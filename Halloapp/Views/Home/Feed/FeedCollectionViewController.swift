@@ -15,20 +15,24 @@ import UIKit
 class FeedCollectionViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private(set) var collectionView: UICollectionView!
-    private(set) var fetchedResultsController: NSFetchedResultsController<FeedPost>?
+    private(set) var dataSource: FeedDataSource?
     private let feedLayout = FeedLayout()
-    
+
     private var newPostsList: [FeedPostID] = []
-    
+
     private var cancellableSet: Set<AnyCancellable> = []
 
-    init(title: String?) {
+    private var cachedCellHeights = [FeedDisplayItem: CGFloat]()
+
+    init(title: String?, fetchRequest: NSFetchRequest<FeedPost>) {
+        self.feedDataSource = FeedDataSource(fetchRequest: fetchRequest)
         super.init(nibName: nil, bundle: nil)
         self.title = title
+        self.feedDataSource.itemsDidChange = { [weak self] items in self?.update(with: items) }
     }
 
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
+        fatalError("init(coder:) has not been implemented")
     }
 
     override func viewDidLoad() {
@@ -44,35 +48,36 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         feedLayout.minimumLineSpacing = 0
 
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: feedLayout)
+        collectionViewDataSource = makeCollectionViewDataSource()
+
         collectionView.delegate = self
-        collectionView.dataSource = self
+        collectionView.dataSource = collectionViewDataSource
         collectionView.allowsSelection = false
         collectionView.showsVerticalScrollIndicator = false
         collectionView.backgroundColor = .clear
         collectionView.preservesSuperviewLayoutMargins = true
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.register(FeedPostCollectionViewCell.self, forCellWithReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier)
-        collectionView.register(DeletedPostCollectionViewCell.self, forCellWithReuseIdentifier: DeletedPostCollectionViewCell.reuseIdentifier)
+        collectionView.register(FeedEventCollectionViewCell.self, forCellWithReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier)
 
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
 
-        setupFetchedResultsController()
         setupNoConnectionBanner()
 
         cancellableSet.insert(MainAppContext.shared.feedData.willDestroyStore.sink { [weak self] in
             guard let self = self else { return }
-            self.fetchedResultsController = nil
-            self.collectionView.reloadData()
             self.view.isUserInteractionEnabled = false
+            self.feedDataSource.clear()
+            self.collectionView.reloadData()
         })
 
         cancellableSet.insert(
             MainAppContext.shared.feedData.didReloadStore.sink { [weak self] in
                 guard let self = self else { return }
-                self.view.isUserInteractionEnabled = true
-                self.setupFetchedResultsController()
+                self.feedDataSource.setup()
                 self.collectionView.reloadData()
+                self.view.isUserInteractionEnabled = true
         })
 
         cancellableSet.insert(
@@ -103,7 +108,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
             NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] (_) in
                 guard let self = self else { return }
                 self.collectionView.indexPathsForVisibleItems.forEach { (indexPath) in
-                    self.didShowPost(atIndexPath: indexPath)
+                    self.didShowCell(atIndexPath: indexPath)
                 }
         })
 
@@ -113,6 +118,8 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
                 // TextLabel in FeedItemContentView uses NSAttributedText and therefore doesn't support automatic font adjustment.
                 self.collectionView.reloadData()
         })
+
+        update(with: feedDataSource.displayItems)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -137,132 +144,60 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     // MARK: FeedCollectionViewController Customization
 
-    public var fetchRequest: NSFetchRequest<FeedPost> {
-        fatalError("Must be implemented in a subclass.")
-    }
-
     public func shouldOpenFeed(for userId: UserID) -> Bool {
         return true
     }
-    
+
     public func showGroupName() -> Bool {
         return true
     }
 
-    // MARK: Fetched Results Controller
-
-    private var trackPerRowFRCChanges = false
-
-    private var collectionViewUpdates: [BlockOperation] = []
-
-    @Published var isFeedEmpty = true
-
-    private func setupFetchedResultsController() {
-        fetchedResultsController = newFetchedResultsController()
-        do {
-            try fetchedResultsController?.performFetch()
-            isFeedEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
-        } catch {
-            fatalError("Failed to fetch feed items \(error)")
-        }
+    public func willUpdate(with items: [FeedDisplayItem]) {
+        // Subclasses can implement
     }
 
-    private func newFetchedResultsController() -> NSFetchedResultsController<FeedPost> {
-        // Setup fetched results controller the old way because it allows granular control over UI update operations.
-        let fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest,
-                                                                            managedObjectContext: MainAppContext.shared.feedData.viewContext,
-                                                                            sectionNameKeyPath: nil,
-                                                                            cacheName: nil)
-        fetchedResultsController.delegate = self
-        return fetchedResultsController
+    public func didUpdateItems() {
+        // Update footers (currently the only part of cell that may change after an update)
+        refreshFooters()
     }
 
-    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        trackPerRowFRCChanges = view.window != nil && UIApplication.shared.applicationState == .active
-        DDLogDebug("FeedCollectionView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+    // MARK: Update
 
-        if trackPerRowFRCChanges {
-            collectionViewUpdates.removeAll()
-            collectionViewUpdates.append(BlockOperation {
-                DDLogDebug("FeedCollectionView/frc/batch-updates Start")
-            })
-        }
-    }
+    private var loadedPostIDs = Set<FeedPostID>()
 
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        switch type {
-        case .insert:
-            guard let indexPath = newIndexPath, let feedPost = anObject as? FeedPost else { break }
-            DDLogDebug("FeedCollectionView/frc/insert [\(feedPost)] at [\(indexPath)]")
-            if trackPerRowFRCChanges {
-                collectionViewUpdates.append(BlockOperation {
-                    DDLogDebug("FeedCollectionView/frc/batch-updates/insert at [\(indexPath)]")
-                    self.collectionView.insertItems(at: [ indexPath ])
-                })
-                if !isNearTop() {
-                    feedLayout.maintainVisualPosition = true
-                    newPostsList.append(feedPost.id)
-                    showNewPostsIndicator()
-                }
-            }
-        case .delete:
-            guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { break }
-            DDLogDebug("FeedCollectionView/frc/delete [\(feedPost)] at [\(indexPath)]")
-            if trackPerRowFRCChanges {
-                collectionViewUpdates.append(BlockOperation {
-                    DDLogDebug("FeedCollectionView/frc/batch-updates/delete at [\(indexPath)]")
-                    self.collectionView.deleteItems(at: [ indexPath ])
-                })
-            }
+    // This works around an NSDiffableDataSource issue.
+    // Cells for deleted posts need to be reloaded (but only when they're first deleted)
+    private var deletedPostIDs = Set<FeedPostID>()
 
-        case .move:
-            guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let feedPost = anObject as? FeedPost else { break }
-            DDLogDebug("FeedCollectionView/frc/move [\(feedPost)] from [\(fromIndexPath)] to [\(toIndexPath)]")
-            if trackPerRowFRCChanges {
-                collectionViewUpdates.append(BlockOperation {
-                    DDLogDebug("FeedCollectionView/frc/batch-updates/move from [\(fromIndexPath)] to [\(toIndexPath)]")
-                    self.collectionView.moveItem(at: fromIndexPath, to: toIndexPath)
-                })
-            }
+    private func update(with items: [FeedDisplayItem]) {
+        willUpdate(with: items)
 
-        case .update:
-            guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { return }
-            DDLogDebug("FeedCollectionView/frc/update [\(feedPost)] at [\(indexPath)]")
-            if trackPerRowFRCChanges {
-                collectionViewUpdates.append(BlockOperation {
-                    DDLogDebug("FeedCollectionView/frc/batch-updates/reload at [\(indexPath)]")
-                    self.collectionView.reloadItems(at: [ indexPath ])
-                })
-            }
-
-        default:
-            break
+        let updatedPostIDs = Set(items.compactMap { $0.post?.id })
+        let newPostIDs = updatedPostIDs.subtracting(loadedPostIDs)
+        if !isNearTop() && !newPostIDs.isEmpty {
+            newPostsList.append(contentsOf: newPostIDs)
+            showNewPostsIndicator()
+            feedLayout.maintainVisualPosition = true
         }
 
-        isFeedEmpty = (controller.sections?.first?.numberOfObjects ?? 0) == 0
-    }
-
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("FeedCollectionView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]")
-        if trackPerRowFRCChanges {
-            collectionViewUpdates.append(BlockOperation {
-                DDLogDebug("FeedCollectionView/frc/batch-updates Finish")
-            })
-            
-            collectionView.performBatchUpdates({
-                collectionViewUpdates.forEach({ $0.start() })
-            }, completion: { [weak self] _ in
-                guard let self = self else { return }
-                guard self.feedLayout.maintainVisualPosition else { return }
-                self.feedLayout.maintainVisualPosition = false
-            })
-            
-            collectionViewUpdates.removeAll()
-        } else {
-            collectionView.reloadData()
+        let newlyDeletedPosts = items.filter {
+            guard let post = $0.post else { return false }
+            return post.isPostRetracted && !deletedPostIDs.contains(post.id)
         }
 
-        isFeedEmpty = (controller.sections?.first?.numberOfObjects ?? 0) == 0
+        var snapshot = NSDiffableDataSourceSnapshot<FeedDisplaySection, FeedDisplayItem>()
+        snapshot.appendSections([.posts])
+        snapshot.appendItems(items)
+
+        // TODO: See if we can improve this animation
+        snapshot.reloadItems(newlyDeletedPosts)
+        deletedPostIDs.formUnion(newlyDeletedPosts.compactMap { $0.post?.id })
+
+        collectionViewDataSource?.apply(snapshot, animatingDifferences: true) { [weak self] in
+            self?.loadedPostIDs = updatedPostIDs
+            self?.feedLayout.maintainVisualPosition = false
+            self?.didUpdateItems()
+        }
     }
 
     // MARK: Post Actions
@@ -295,7 +230,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         guard MainAppContext.shared.chatData.chatGroup(groupId: groupID) != nil else { return }
         navigationController?.pushViewController(GroupFeedViewController(groupId: groupID), animated: true)
     }
-    
+
     private func cancelSending(postId: FeedPostID) {
         MainAppContext.shared.feedData.cancelMediaUpload(postId: postId)
     }
@@ -356,37 +291,37 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     }
 
     // MARK: New Posts Indicator
-    
+
     private let newPostsIndicator = NewPostsIndicator()
-    
+
     private func showNewPostsIndicator() {
         guard !view.subviews.contains(newPostsIndicator) else { return }
         newPostsIndicator.translatesAutoresizingMaskIntoConstraints = false
-        
+
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(newPostsIndicatorTapped))
         newPostsIndicator.isUserInteractionEnabled = true
         newPostsIndicator.addGestureRecognizer(tapGesture)
-        
+
         view.addSubview(newPostsIndicator)
         newPostsIndicator.alpha = 0
         newPostsIndicator.constrain([.leading, .trailing, .top], to: view.safeAreaLayoutGuide)
-        
+
         UIView.animate(withDuration: 0.35) { () -> Void in
             self.newPostsIndicator.alpha = 1.0
         }
     }
-    
+
     private func removeNewPostsIndicator() {
         guard view.subviews.contains(newPostsIndicator) else { return }
         newPostsList.removeAll()
         newPostsIndicator.removeFromSuperview()
     }
-    
+
     @objc private func newPostsIndicatorTapped() {
         removeNewPostsIndicator()
         scrollToTop(animated: true)
     }
-    
+
     // MARK: Misc
 
     private func stopAllVideoPlayback() {
@@ -404,20 +339,20 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     private func refreshTimestamps() {
         for indexPath in collectionView.indexPathsForVisibleItems {
             if let feedCell = collectionView.cellForItem(at: indexPath) as? FeedPostCollectionViewCell,
-               let feedPost = fetchedResultsController?.object(at: indexPath)
+               let feedPost = feedDataSource.item(at: indexPath.item)?.post
             {
                 feedCell.refreshTimestamp(using: feedPost)
             }
         }
     }
 
-    private func didShowPost(atIndexPath indexPath: IndexPath) {
-        if let feedPost = fetchedResultsController?.object(at: indexPath) {
+    private func didShowCell(atIndexPath indexPath: IndexPath) {
+        if let feedPost = feedDataSource.item(at: indexPath.item)?.post {
             // Load downloaded images into memory.
             MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)?.loadImages()
 
             // Initiate download for images that were not yet downloaded.
-            MainAppContext.shared.feedData.downloadMedia(in: [ feedPost ])
+            MainAppContext.shared.feedData.downloadMedia(in: [feedPost])
 
             // If app is in foreground and is currently active:
             // • send "seen" receipt for the post
@@ -428,53 +363,73 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
             }
         }
     }
-    
+
     private func isNearTop() -> Bool {
         return collectionView.contentOffset.y < 100
     }
+
+    let feedDataSource: FeedDataSource
+    var collectionViewDataSource: UICollectionViewDiffableDataSource<FeedDisplaySection, FeedDisplayItem>?
 }
 
 extension FeedCollectionViewController: UIViewControllerScrollsToTop {
-    
+
     func scrollToTop(animated: Bool) {
         collectionView.setContentOffset(CGPoint(x: 0, y: -collectionView.adjustedContentInset.top), animated: animated)
     }
 }
 
-extension FeedCollectionViewController: UICollectionViewDataSource {
+extension FeedCollectionViewController {
 
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return fetchedResultsController?.sections?.count ?? 0
+    func makeCollectionViewDataSource() -> UICollectionViewDiffableDataSource<FeedDisplaySection, FeedDisplayItem> {
+        return UICollectionViewDiffableDataSource<FeedDisplaySection, FeedDisplayItem>(collectionView: collectionView) { [weak self] collectionView, indexPath, item in
+            switch item {
+            case .event(let event):
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier, for: indexPath)
+                (cell as? FeedEventCollectionViewCell)?.configure(with: event.description, type: .event)
+                return cell
+            case .post(let feedPost):
+                guard !feedPost.isPostRetracted else {
+                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier, for: indexPath)
+                    (cell as? FeedEventCollectionViewCell)?.configure(with: Localizations.deletedPost(from: feedPost.userId), type: .deletedPost)
+                    return cell
+                }
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier, for: indexPath)
+                if let postCell = cell as? FeedPostCollectionViewCell {
+                    self?.configure(cell: postCell, withActiveFeedPost: feedPost)
+                } else {
+                    DDLogError("FeedCollectionViewController/error FeedPostCollectionViewCell reuse identifier not registered correctly")
+                }
+                return cell
+            }
+
+        }
     }
 
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        guard let sections = fetchedResultsController?.sections else {
-            return 0
-        }
-        return sections[section].numberOfObjects
+    private var cellContentWidth: CGFloat {
+        collectionView.frame.size.width - collectionView.layoutMargins.left - collectionView.layoutMargins.right
     }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let feedPost = fetchedResultsController?.object(at: indexPath) else {
-            return UICollectionViewCell(frame: .zero)
+
+    private var gutterWidth: CGFloat {
+        (1 - FeedPostCollectionViewCellBase.LayoutConstants.backgroundPanelHMarginRatio) * collectionView.layoutMargins.left
+    }
+
+    func refreshFooters() {
+        for indexPath in collectionView.indexPathsForVisibleItems {
+            if let feedCell = collectionView.cellForItem(at: indexPath) as? FeedPostCollectionViewCell,
+               let feedPost = feedDataSource.item(at: indexPath.item)?.post
+            {
+                feedCell.refreshFooter(using: feedPost, contentWidth: cellContentWidth)
+            }
         }
-        guard !feedPost.isPostRetracted else {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DeletedPostCollectionViewCell.reuseIdentifier, for: indexPath)
-            (cell as? DeletedPostCollectionViewCell)?.configure(with: feedPost)
-            return cell
-        }
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier, for: indexPath) as? FeedPostCollectionViewCell else {
-            DDLogError("FeedCollectionViewController/error FeedPostCollectionViewCell reuse identifier not registered correctly")
-            return UICollectionViewCell(frame: .zero)
-        }
-        
+    }
+
+    func configure(cell: FeedPostCollectionViewCell, withActiveFeedPost feedPost: FeedPost) {
         let postId = feedPost.id
         let isGroupPost = feedPost.groupId != nil
-        let contentWidth = collectionView.frame.size.width - collectionView.layoutMargins.left - collectionView.layoutMargins.right
-        let gutterWidth = (1 - FeedPostCollectionViewCellBase.LayoutConstants.backgroundPanelHMarginRatio) * collectionView.layoutMargins.left
 
         cell.maxWidth = collectionView.frame.width
-        cell.configure(with: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth, showGroupName: showGroupName())
+        cell.configure(with: feedPost, contentWidth: cellContentWidth, gutterWidth: gutterWidth, showGroupName: showGroupName())
 
         cell.commentAction = { [weak self] in
             guard let self = self else { return }
@@ -509,14 +464,13 @@ extension FeedCollectionViewController: UICollectionViewDataSource {
             self.deleteUnsentPost(postID: postId)
         }
         cell.delegate = self
-        return cell
     }
 }
 
 extension FeedCollectionViewController: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        didShowPost(atIndexPath: indexPath)
+        didShowCell(atIndexPath: indexPath)
     }
 
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -532,25 +486,43 @@ extension FeedCollectionViewController: UICollectionViewDelegate {
 extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        guard let feedPost = fetchedResultsController?.object(at: indexPath) else {
+
+        guard let displayItem = feedDataSource.item(at: indexPath.item) else {
             DDLogError("FeedCollectionView Automatic size for index path [\(indexPath)]")
             return UICollectionViewFlowLayout.automaticSize
         }
 
-        let cellClass: FeedPostHeightDetermining.Type = feedPost.isPostRetracted ? DeletedPostCollectionViewCell.self : FeedPostCollectionViewCell.self
-        let feedItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)
         let cellWidth = collectionView.frame.width
-        if let cachedCellHeight = feedItem?.cachedCellHeight {
+        if let cachedCellHeight = cachedCellHeights[displayItem] {
             return CGSize(width: cellWidth, height: cachedCellHeight)
         }
-        // NB: Retracted post cell has larger margins... for now let's pass it the entire width to simplify calculation
-        let contentWidth = feedPost.isPostRetracted ? collectionView.frame.width : collectionView.frame.size.width - collectionView.layoutMargins.left - collectionView.layoutMargins.right
-        let cellHeight = cellClass.height(forPost: feedPost, contentWidth: contentWidth)
-        feedItem?.cachedCellHeight = cellHeight
-        
-        DDLogDebug("FeedCollectionView Calculated cell height [\(cellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
 
-        return CGSize(width: cellWidth, height: cellHeight)
+        switch displayItem {
+        case .event(let event):
+            let height = FeedEventCollectionViewCell.height(for: event.description, width: cellWidth)
+            cachedCellHeights[displayItem] = height
+            return CGSize(width: cellWidth, height: height)
+        case .post(let feedPost):
+            if feedPost.isPostRetracted {
+                let text = Localizations.deletedPost(from: feedPost.userId)
+                let height = FeedEventCollectionViewCell.height(for: text, width: cellWidth)
+                cachedCellHeights[displayItem] = height
+                return CGSize(width: cellWidth, height: height)
+            }
+
+            // TODO: Move these cached heights off of the data items and into the view
+            let feedItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)
+            if let cachedCellHeight = feedItem?.cachedCellHeight {
+                return CGSize(width: cellWidth, height: cachedCellHeight)
+            }
+            let contentWidth = cellWidth - collectionView.layoutMargins.left - collectionView.layoutMargins.right
+            let cellHeight = FeedPostCollectionViewCell.height(forPost: feedPost, contentWidth: contentWidth)
+            feedItem?.cachedCellHeight = cellHeight
+
+            DDLogDebug("FeedCollectionView Calculated cell height [\(cellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
+
+            return CGSize(width: cellWidth, height: cellHeight)
+        }
     }
 }
 
@@ -601,7 +573,7 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate {
 }
 
 private class FeedLayout: UICollectionViewFlowLayout {
-    
+
     var maintainVisualPosition: Bool = false
     var newItemsHeight: CGFloat = 0.0
 
@@ -618,7 +590,7 @@ private class FeedLayout: UICollectionViewFlowLayout {
 
         newItemsHeight = totalHeight
     }
-    
+
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
         guard maintainVisualPosition else { return proposedContentOffset }
         var offset = proposedContentOffset

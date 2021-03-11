@@ -49,6 +49,7 @@
 		68D2915125096F0700AF5061 /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
 		68D45A0E25544813000BF04E /* ContactsPermissionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D45A0D25544813000BF04E /* ContactsPermissionsViewController.swift */; };
 		68E4619625C9C93B008B5698 /* ExpiredVersionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */; };
+		68E5E9DA25F6FAF100250762 /* FeedDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E5E9D925F6FAF100250762 /* FeedDataSource.swift */; };
 		68F046B22543856E001D602E /* RegistrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F046B12543856E001D602E /* RegistrationManager.swift */; };
 		68F935C5252CD00800FA6E75 /* ChatMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */; };
 		68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */; };
@@ -372,6 +373,7 @@
 		68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Localizations+Registration.swift"; sourceTree = "<group>"; };
 		68D45A0D25544813000BF04E /* ContactsPermissionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsPermissionsViewController.swift; sourceTree = "<group>"; };
 		68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiredVersionViewController.swift; sourceTree = "<group>"; };
+		68E5E9D925F6FAF100250762 /* FeedDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataSource.swift; sourceTree = "<group>"; };
 		68F046B12543856E001D602E /* RegistrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationManager.swift; sourceTree = "<group>"; };
 		68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -1054,6 +1056,7 @@
 				76654789252BE44C00379BEF /* GroupFeedViewController.swift */,
 				6829F78624D0A62800207F6B /* UserFeedViewController.swift */,
 				EA73DF3F25E88D9B0070875D /* NewPostsIndicator.swift */,
+				68E5E9D925F6FAF100250762 /* FeedDataSource.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -1783,6 +1786,7 @@
 			files = (
 				761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */,
 				2446D67E24CB558F005BAD3C /* ImageServer.swift in Sources */,
+				68E5E9DA25F6FAF100250762 /* FeedDataSource.swift in Sources */,
 				EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */,
 				EA52EB18245A012700FB03F6 /* NewChatViewController.swift in Sources */,
 				6829F78324CFA41F00207F6B /* FeedMention+CoreDataProperties.swift in Sources */,

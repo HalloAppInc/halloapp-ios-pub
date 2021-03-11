@@ -161,7 +161,10 @@ class HomeViewController: UITabBarController {
     }()
 
     private func feedNavigationController() -> UINavigationController {
-        let navigationController = UINavigationController(rootViewController: FeedViewController(title: Localizations.titleHome))
+        let navigationController = UINavigationController(
+            rootViewController: FeedViewController(
+                title: Localizations.titleHome,
+                fetchRequest: FeedDataSource.homeFeedRequest(combinedFeed: ServerProperties.isCombineFeedEnabled)))
         navigationController.tabBarItem.image = UIImage(named: "TabBarHome")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
         navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarHomeActive")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets

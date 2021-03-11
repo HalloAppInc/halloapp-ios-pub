@@ -26,7 +26,9 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     init(groupId: GroupID) {
         self.groupId = groupId
-        super.init(title: nil)
+        super.init(
+            title: nil,
+            fetchRequest: FeedDataSource.groupFeedRequest(groupID: groupId))
     }
 
     required init?(coder: NSCoder) {
@@ -158,18 +160,6 @@ class GroupFeedViewController: FeedCollectionViewController {
         newPostViewController.modalPresentationStyle = .fullScreen
         present(newPostViewController, animated: true)
     }
-
-    // MARK: FeedCollectionViewController
-
-    override var fetchRequest: NSFetchRequest<FeedPost> {
-        get {
-            let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "groupId == %@", groupId)
-            fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
-            return fetchRequest
-        }
-    }
-
 }
 
 // MARK: Title View Delegates

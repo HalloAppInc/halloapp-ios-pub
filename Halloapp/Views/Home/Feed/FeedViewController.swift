@@ -65,10 +65,6 @@ class FeedViewController: FeedCollectionViewController {
                 self.processNotification(metadata: metadata)
         })
 
-        cancellables.insert(
-            $isFeedEmpty.sink { [weak self] isEmpty in self?.updateEmptyView(isEmpty) }
-        )
-
         // When the user was not on this view, and HomeView sends user to here
         if let metadata = NotificationMetadata.fromUserDefaults()  {
             // dispatch_async is needed because collection view isn't ready to scroll to a given item at this point.
@@ -90,23 +86,24 @@ class FeedViewController: FeedCollectionViewController {
 
     // MARK: FeedCollectionViewController
 
-    override var fetchRequest: NSFetchRequest<FeedPost> {
-        get {
-            let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            
-            if !ServerProperties.isCombineFeedEnabled {
-                fetchRequest.predicate = NSPredicate(format: "groupId == nil")
-            }
-            fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
-            return fetchRequest
-        }
-    }
-
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         super.scrollViewDidScroll(scrollView)
 
         guard scrollView == collectionView else { return }
         updateInviteFriendsButtonPosition()
+    }
+
+    override func willUpdate(with items: [FeedDisplayItem]) {
+        super.willUpdate(with: items)
+
+        updateEmptyView(items.isEmpty)
+    }
+
+    override func didUpdateItems() {
+        super.didUpdateItems()
+
+        updateInviteFriendsButtonPosition()
+        inviteFriendsButton.isHidden = false
     }
 
     // MARK: UI Actions
@@ -135,6 +132,7 @@ class FeedViewController: FeedCollectionViewController {
         let imageSpacing: CGFloat = 6 // NB: The image has an additional 4px of padding so it will optically center correctly
         inviteFriendsButton.contentEdgeInsets = inviteFriendsButton.getDirectionalUIEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: imageSpacing)
         inviteFriendsButton.titleEdgeInsets = inviteFriendsButton.getDirectionalUIEdgeInsets(top: 0, leading: imageSpacing, bottom: 0, trailing: -imageSpacing)
+        inviteFriendsButton.isHidden = true // Hide until we've loaded posts
         view.addSubview(inviteFriendsButton)
 
         inviteFriendsButton.trailingAnchor.constraint(lessThanOrEqualTo: floatingMenu.permanentButton.leadingAnchor).isActive = true
@@ -395,8 +393,8 @@ class FeedViewController: FeedCollectionViewController {
     }
 
     private func scrollTo(post feedPost: FeedPost) {
-        if let indexPath = fetchedResultsController?.indexPath(forObject: feedPost) {
-            collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+        if let index = feedDataSource.index(of: feedPost.id) {
+            collectionView.scrollToItem(at: IndexPath(item: index, section: 0), at: .top, animated: false)
         }
     }
 
@@ -441,7 +439,7 @@ class FeedViewController: FeedCollectionViewController {
                 // Scroll to the top now and wait for post to be received.
                 ///TODO: some kind of indicator?
                 feedPostIdToScrollTo = feedPostId
-                if !(fetchedResultsController?.fetchedObjects?.isEmpty ?? true) {
+                if !feedDataSource.displayItems.isEmpty {
                     collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: false)
                 }
             }

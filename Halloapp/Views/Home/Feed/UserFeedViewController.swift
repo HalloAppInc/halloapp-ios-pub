@@ -20,7 +20,7 @@ class UserFeedViewController: FeedCollectionViewController {
 
     init(userId: UserID) {
         self.userId = userId
-        super.init(title: nil)
+        super.init(title: nil, fetchRequest: FeedDataSource.userFeedRequest(userID: userId))
     }
 
     required init?(coder: NSCoder) {
@@ -73,11 +73,13 @@ class UserFeedViewController: FeedCollectionViewController {
             headerViewController.configureWith(userId: userId)
         }
 
+        collectionViewDataSource?.supplementaryViewProvider = { [weak self] (collectionView, kind, path) -> UICollectionReusableView? in
+            guard let self = self else {
+                return UICollectionReusableView()
+            }
+            return self.collectionView(collectionView, viewForSupplementaryElementOfKind: kind, at: path)
+        }
         collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
-
-        cancellables.insert(
-            $isFeedEmpty.sink { [weak self] isEmpty in self?.updateExchangeNumbersView(isFeedEmpty: isEmpty) }
-        )
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -111,17 +113,14 @@ class UserFeedViewController: FeedCollectionViewController {
     
     // MARK: FeedCollectionViewController
 
-    override var fetchRequest: NSFetchRequest<FeedPost> {
-        get {
-            let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "userId == %@", userId)
-            fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
-            return fetchRequest
-        }
-    }
-
     override func shouldOpenFeed(for userId: UserID) -> Bool {
         return userId != self.userId
+    }
+
+    override func willUpdate(with items: [FeedDisplayItem]) {
+        super.willUpdate(with: items)
+
+        updateExchangeNumbersView(isFeedEmpty: items.isEmpty)
     }
 
     // MARK: Collection View Header
@@ -152,7 +151,7 @@ class UserFeedViewController: FeedCollectionViewController {
             return .zero
         }
         let targetSize = CGSize(width: collectionView.frame.width, height: UIView.layoutFittingCompressedSize.height)
-        let headerSize = headerViewController.view.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+        let headerSize = headerViewController?.view.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel) ?? .zero
         return headerSize
     }
 
@@ -183,7 +182,6 @@ class UserFeedViewController: FeedCollectionViewController {
         }
     }
 }
-
 
 extension Localizations {
     static var exchangePhoneNumbersToConnect: String {

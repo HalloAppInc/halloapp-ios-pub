@@ -275,6 +275,10 @@ class FeedPostCollectionViewCell: FeedPostCollectionViewCellBase {
         headerView.configure(with: feedPost)
     }
 
+    func refreshFooter(using feedPost: FeedPost, contentWidth: CGFloat) {
+        footerView.configure(with: feedPost, contentWidth: contentWidth)
+    }
+
     // MARK: FeedPostCollectionViewCellBase
 
     override class var reuseIdentifier: String {
@@ -370,7 +374,12 @@ extension FeedPostCollectionViewCell: TextLabelDelegate {
     }
 }
 
-final class DeletedPostCollectionViewCell: UICollectionViewCell {
+final class FeedEventCollectionViewCell: UICollectionViewCell {
+
+    enum EventType {
+        case event
+        case deletedPost
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -387,29 +396,39 @@ final class DeletedPostCollectionViewCell: UICollectionViewCell {
     }
 
     class var reuseIdentifier: String {
-        "deleted-post"
+        "feed-event"
     }
 
-    func configure(with post: FeedPost) {
-        textLabel.text = Localizations.deletedPost(from: post.userId)
-        timeLabel.text = post.timestamp.deletedPostTimestamp()
+    func configure(with text: String, type: EventType) {
+        textLabel.text = text
+        switch type {
+        case .deletedPost:
+            bubble.backgroundColor = UIColor.label.withAlphaComponent(0.1)
+            textLabel.textColor = .secondaryLabel
+        case .event:
+            bubble.backgroundColor = .init(red: 205.0/255, green: 227.0/255, blue: 255.0/255, alpha: 1)
+            textLabel.textColor = .black
+        }
     }
 
-    private static let cacheKey = "\(DeletedPostCollectionViewCell.self).content"
+    private static let cacheKey = "\(FeedEventCollectionViewCell.self).content"
     private static let sizingLabel = makeLabel(alignment: .natural, isMultiLine: true)
-    private static let directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 24, bottom: 8, trailing: 24)
-    private static let labelSpacing: CGFloat = 8
+    private static let directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 50, bottom: 8, trailing: 50)
+    private static let bubbleMargins = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
     private let textLabel = makeLabel(alignment: .natural, isMultiLine: true)
-    private let timeLabel = makeLabel(alignment: .unnatural, isMultiLine: false)
+    private let bubble = makeBubble()
 
     private func commonInit() {
         contentView.directionalLayoutMargins = Self.directionalLayoutMargins
-        contentView.addSubview(textLabel)
-        contentView.addSubview(timeLabel)
 
-        textLabel.constrainMargins([.top, .leading, .bottom], to: contentView)
-        timeLabel.constrainMargins([.top, .trailing], to: contentView)
-        timeLabel.leadingAnchor.constraint(equalTo: textLabel.trailingAnchor, constant: Self.labelSpacing).isActive = true
+        bubble.addSubview(textLabel)
+        contentView.addSubview(bubble)
+
+        textLabel.constrainMargins(to: bubble)
+
+        bubble.constrainMargins([.top, .bottom, .centerX], to: contentView)
+        bubble.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
+        bubble.trailingAnchor.constraint(lessThanOrEqualTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
 
         contentView.widthAnchor.constraint(equalToConstant: bounds.width).isActive = true
     }
@@ -422,23 +441,31 @@ final class DeletedPostCollectionViewCell: UICollectionViewCell {
         if !isMultiLine {
             textLabel.setContentCompressionResistancePriority(.required - 1, for: .horizontal)
         }
-        textLabel.textColor = .secondaryLabel
+        textLabel.backgroundColor = .clear
         textLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
         textLabel.adjustsFontForContentSizeCategory = true
         return textLabel
     }
-}
 
-extension DeletedPostCollectionViewCell: FeedPostHeightDetermining {
-    static func height(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat {
-        sizingLabel.text = Localizations.deletedPost(from: post.userId) + post.timestamp.feedTimestamp()
-        let availableWidth = contentWidth - labelSpacing - directionalLayoutMargins.leading - directionalLayoutMargins.trailing
-        let size = sizingLabel.sizeThatFits(CGSize(width: availableWidth, height: 0))
-        return size.height + directionalLayoutMargins.bottom + directionalLayoutMargins.top
+    static func makeBubble() -> UIView {
+        let bubble = UIView()
+        bubble.translatesAutoresizingMaskIntoConstraints = false
+        bubble.layer.cornerRadius = 15
+        bubble.directionalLayoutMargins = Self.bubbleMargins
+        return bubble
     }
 }
 
-private extension Localizations {
+extension FeedEventCollectionViewCell {
+    static func height(for text: String, width: CGFloat) -> CGFloat {
+        sizingLabel.text = text
+        let availableWidth = width - directionalLayoutMargins.leading - directionalLayoutMargins.trailing - bubbleMargins.leading - bubbleMargins.trailing
+        let size = sizingLabel.sizeThatFits(CGSize(width: availableWidth, height: 0))
+        return size.height + directionalLayoutMargins.bottom + directionalLayoutMargins.top + bubbleMargins.bottom + bubbleMargins.top
+    }
+}
+
+extension Localizations {
     static func deletedPost(from userID: UserID) -> String {
         if userID == MainAppContext.shared.userData.userId {
             return  NSLocalizedString("post.has.been.deleted.by.you", value: "You deleted your post", comment: "Displayed in place of a deleted feed post.")

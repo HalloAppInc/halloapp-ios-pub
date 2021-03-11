@@ -226,13 +226,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Fetched Results Controller
 
-    @Published var isFeedEmpty: Bool = true
-
-    var feedDataItems : [FeedDataItem] = [] {
-        didSet {
-            self.isFeedEmpty = feedDataItems.isEmpty
-        }
-    }
+    var feedDataItems : [FeedDataItem] = []
 
     private func reloadFeedDataItems(using feedPosts: [FeedPost], fullReload: Bool = true) {
         if fullReload {
@@ -438,8 +432,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.reloadFeedDataItems(using: feedPosts, fullReload: false)
                 DDLogInfo("FeedData/frc/reload \(self.feedDataItems.count) posts")
             }
-        } else {
-            self.isFeedEmpty = self.feedDataItems.isEmpty
         }
 
         setNeedsReloadGroupFeedUnreadCounts()
@@ -1215,7 +1207,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             // 5. Clear cached cell height
             DispatchQueue.main.async {
-                self.feedDataItem(with: feedPost.id)?.cachedCellHeight = nil
+                self.feedDataItem(with: postId)?.cachedCellHeight = nil
             }
 
             if managedObjectContext.hasChanges {
