@@ -47,6 +47,10 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
     }
 
     private func computeScaleAspectFit(containerSize: CGSize, contentSize: CGSize, transitionSize: CGSize) -> CGFloat {
+        guard contentSize.width != 0 && contentSize.height != 0 && transitionSize.width != 0 && transitionSize.height != 0 else {
+            return 0
+        }
+
         let contentFitScale = min(containerSize.width / contentSize.width, containerSize.height / contentSize.height)
         let transitionFitScale = min(contentSize.width / transitionSize.width, contentSize.height / transitionSize.height)
 
@@ -130,14 +134,14 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
         } else {
             if let interactiveTransitionView = interactiveTransitionView {
                 let scale = computeScaleAspectFit(containerSize: interactiveTransitionView.frame.size, contentSize: media.size, transitionSize: originMediaSize)
-                transitionViewFinalTransform = CGAffineTransform(scaleX: 1 / scale, y: 1 / scale)
+                transitionViewFinalTransform = scale == 0 ? .identity : CGAffineTransform(scaleX: 1 / scale, y: 1 / scale)
 
                 transitionView.frame.size = originMediaSize.applying(CGAffineTransform(scaleX: scale, y: scale))
                 transitionView.center = interactiveTransitionView.center
                 interactiveTransitionView.removeFromSuperview()
             } else {
                 let scale = computeScaleAspectFit(containerSize: fromViewStartFrame.size, contentSize: media.size, transitionSize: originMediaSize)
-                transitionViewFinalTransform = CGAffineTransform(scaleX: 1 / scale, y: 1 / scale)
+                transitionViewFinalTransform = scale == 0 ? .identity : CGAffineTransform(scaleX: 1 / scale, y: 1 / scale)
 
                 transitionView.frame.size = originMediaSize.applying(CGAffineTransform(scaleX: scale, y: scale))
                 transitionView.center = CGPoint(x: fromViewStartFrame.midX, y: fromViewStartFrame.midY)
