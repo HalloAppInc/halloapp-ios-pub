@@ -365,6 +365,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     }
 
     private func isNearTop() -> Bool {
+        guard collectionView != nil else { return true }
         return collectionView.contentOffset.y < 100
     }
 
