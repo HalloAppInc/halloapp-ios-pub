@@ -7,6 +7,7 @@
 
 import AVKit
 import Core
+import Combine
 import Foundation
 import UIKit
 
@@ -16,6 +17,8 @@ class MediaExplorerVideoCell: UICollectionViewCell {
     }
 
     private let spaceBetweenPages: CGFloat = 20
+    private var readyCancellable: AnyCancellable?
+    private var progressCancellable: AnyCancellable?
 
     private lazy var video: VideoView = {
         let view = VideoView()
@@ -23,20 +26,62 @@ class MediaExplorerVideoCell: UICollectionViewCell {
         return view
     }()
 
+    private lazy var placeHolderView: UIImageView = {
+        let placeHolderImageView = UIImageView(image: UIImage(systemName: "video"))
+        placeHolderImageView.contentMode = .center
+        placeHolderImageView.translatesAutoresizingMaskIntoConstraints = false
+        placeHolderImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
+        placeHolderImageView.tintColor = .white
+        placeHolderImageView.isHidden = true
+
+        return placeHolderImageView
+    }()
+
+    private lazy var progressView: CircularProgressView = {
+        let progressView = CircularProgressView()
+        progressView.barWidth = 2
+        progressView.progressTintColor = .lavaOrange
+        progressView.trackTintColor = .white
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        progressView.isHidden = true
+
+        return progressView
+    }()
+
     var isSystemUIHidden = false
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        url = nil
+
+        video.player?.pause()
+        video.player = nil
+        media = nil
+        readyCancellable?.cancel()
+        progressCancellable?.cancel()
+        readyCancellable = nil
+        progressCancellable = nil
     }
 
-    var url: URL! {
+    var media: MediaExplorerMedia? {
         didSet {
-            if url != nil {
-                video.player = AVPlayer(url: url)
+            guard let media = media else { return }
+
+            if let url = media.url {
+                show(url: url)
             } else {
-                video.player?.pause()
-                video.player = nil
+                show(progress: media.progress.value)
+
+                readyCancellable = media.ready.sink { [weak self] ready in
+                    guard let self = self else { return }
+                    guard ready else { return }
+                    guard let url = self.media?.url else { return }
+                    self.show(url: url)
+                }
+
+                progressCancellable = media.progress.sink { [weak self] value in
+                    guard let self = self else { return }
+                    self.progressView.setProgress(value, animated: true)
+                }
             }
         }
     }
@@ -44,18 +89,47 @@ class MediaExplorerVideoCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        addSubview(video)
+        contentView.addSubview(placeHolderView)
+        contentView.addSubview(progressView)
+        contentView.addSubview(video)
 
         NSLayoutConstraint.activate([
-            video.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: spaceBetweenPages),
-            video.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -spaceBetweenPages),
-            video.topAnchor.constraint(equalTo: self.topAnchor),
-            video.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+            placeHolderView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            placeHolderView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            progressView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            progressView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            progressView.widthAnchor.constraint(equalToConstant: 80),
+            progressView.heightAnchor.constraint(equalToConstant: 80),
+            video.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: spaceBetweenPages),
+            video.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -spaceBetweenPages),
+            video.topAnchor.constraint(equalTo: contentView.topAnchor),
+            video.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
         ])
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    deinit {
+        video.player?.pause()
+        video.player = nil
+    }
+
+    func show(url: URL) {
+        placeHolderView.isHidden = true
+        progressView.isHidden = true
+        video.isHidden = false
+        video.player = AVPlayer(url: url)
+    }
+
+    func show(progress: Float) {
+        placeHolderView.isHidden = false
+        progressView.isHidden = false
+        progressView.setProgress(progress, animated: false)
+        video.isHidden = true
+        video.player?.pause()
+        video.player = nil
     }
 
     func play(time: CMTime = .zero) {

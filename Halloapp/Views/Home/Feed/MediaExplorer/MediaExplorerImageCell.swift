@@ -7,6 +7,7 @@
 
 import AVKit
 import Core
+import Combine
 import Foundation
 import UIKit
 
@@ -45,6 +46,8 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
         imageView.center.y + height / 2
     }
 
+    private var readyCancellable: AnyCancellable?
+    private var progressCancellable: AnyCancellable?
 
     private lazy var imageView: UIImageView = {
         let imageView = UIImageView(frame: .zero)
@@ -55,12 +58,49 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
         return imageView
     }()
 
+    private lazy var placeHolderView: UIImageView = {
+        let placeHolderImageView = UIImageView(image: UIImage(systemName: "photo"))
+        placeHolderImageView.contentMode = .center
+        placeHolderImageView.translatesAutoresizingMaskIntoConstraints = false
+        placeHolderImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
+        placeHolderImageView.tintColor = .white
+        placeHolderImageView.isHidden = true
 
-    var image: UIImage! {
+        return placeHolderImageView
+    }()
+
+    private lazy var progressView: CircularProgressView = {
+        let progressView = CircularProgressView()
+        progressView.barWidth = 2
+        progressView.progressTintColor = .lavaOrange
+        progressView.trackTintColor = .white
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        progressView.isHidden = true
+
+        return progressView
+    }()
+
+    var media: MediaExplorerMedia? {
         didSet {
-            imageView.image = image
-            reset()
-            computeConstraints()
+            guard let media = media else { return }
+
+            if let image = media.image {
+                show(image: image)
+            } else {
+                show(progress: media.progress.value)
+
+                readyCancellable = media.ready.sink { [weak self] ready in
+                    guard let self = self else { return }
+                    guard ready else { return }
+                    guard let image = self.media?.image else { return }
+                    self.show(image: image)
+                }
+
+                progressCancellable = media.progress.sink { [weak self] value in
+                    guard let self = self else { return }
+                    self.progressView.setProgress(value, animated: true)
+                }
+            }
         }
     }
 
@@ -69,8 +109,19 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
     override init(frame: CGRect) {
         super.init(frame: frame)
 
+        contentView.addSubview(placeHolderView)
+        contentView.addSubview(progressView)
         contentView.addSubview(imageView)
         contentView.clipsToBounds = true
+
+        NSLayoutConstraint.activate([
+            placeHolderView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            placeHolderView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            progressView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            progressView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            progressView.widthAnchor.constraint(equalToConstant: 80),
+            progressView.heightAnchor.constraint(equalToConstant: 80),
+        ])
 
         let zoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(onZoom(sender:)))
         imageView.addGestureRecognizer(zoomRecognizer)
@@ -91,8 +142,34 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+
+        media = nil
+        readyCancellable?.cancel()
+        progressCancellable?.cancel()
+        readyCancellable = nil
+        progressCancellable = nil
+    }
+
+    func show(image: UIImage) {
+        placeHolderView.isHidden = true
+        progressView.isHidden = true
+        imageView.isHidden = false
+        imageView.image = image
+        reset()
+        computeConstraints()
+    }
+
+    func show(progress: Float) {
+        placeHolderView.isHidden = false
+        progressView.isHidden = false
+        progressView.setProgress(progress, animated: false)
+        imageView.isHidden = true
+    }
+
     func computeConstraints() {
-        guard image != nil else { return }
+        guard let image = imageView.image else { return }
 
         let scale = min((contentView.frame.width - spaceBetweenPages * 2) / image.size.width, contentView.frame.height / image.size.height)
         imageViewWidth = image.size.width * scale

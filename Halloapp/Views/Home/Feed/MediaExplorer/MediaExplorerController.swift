@@ -6,6 +6,7 @@
 //
 
 import AVKit
+import Combine
 import Core
 import CoreData
 import Foundation
@@ -21,7 +22,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     private let spaceBetweenPages: CGFloat = 20
 
-    private let media: [MediaExplorerMedia]
+    private var media: [MediaExplorerMedia]
     private var collectionView: UICollectionView!
     private var pageControl: UIPageControl!
     private var tapRecorgnizer: UITapGestureRecognizer!
@@ -31,6 +32,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var isTransition = false
     private var animator: MediaExplorerAnimator!
     private var fetchedResultsController: NSFetchedResultsController<ChatMedia>?
+    private let chatMediaUpdated = PassthroughSubject<(ChatMedia, IndexPath), Never>()
 
     private var currentIndex: Int {
         didSet {
@@ -63,8 +65,19 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 
     init(media: [FeedMedia], index: Int) {
-        self.media = media.map {
-            MediaExplorerMedia(url: $0.fileURL, image: $0.image, type: ($0.type == .image ? .image : .video), size: $0.size)
+        self.media = media.map { item in
+            let type: MediaExplorerMediaType = (item.type == .image ? .image : .video)
+            let progress = MainAppContext.shared.feedData.downloadTask(for: item)?.downloadProgress.eraseToAnyPublisher()
+
+            var update: AnyPublisher<(URL?, UIImage?, CGSize), Never>?
+            switch(type) {
+            case .image:
+                update = item.imageDidBecomeAvailable.map { _ in (item.fileURL, item.image, item.size) }.eraseToAnyPublisher()
+            case .video:
+                update = item.videoDidBecomeAvailable.map { _ in (item.fileURL, item.image, item.size) }.eraseToAnyPublisher()
+            }
+
+            return MediaExplorerMedia(url: item.fileURL, image: item.image, type: type, size: item.size, update: update, progress: progress)
         }
         self.currentIndex = index
 
@@ -84,6 +97,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         self.currentIndex = computePosition(for: media[index])
 
         fetchedResultsController = makeFetchedResultsController(media[index])
+        fetchedResultsController?.delegate = self
         try? fetchedResultsController?.performFetch()
     }
 
@@ -312,12 +326,12 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         switch item.type {
         case .image:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MediaExplorerImageCell.reuseIdentifier, for: indexPath) as! MediaExplorerImageCell
-            cell.image = item.image
             cell.scrollView = collectionView
+            cell.media = item
             return cell
         case .video:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MediaExplorerVideoCell.reuseIdentifier, for: indexPath) as! MediaExplorerVideoCell
-            cell.url = item.url
+            cell.media = item
             return cell
         }
     }
@@ -335,7 +349,28 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             let chatMedia = controller.object(at: indexPath)
             let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath ?? "", isDirectory: false)
             let image: UIImage? = chatMedia.type == .image ? UIImage(contentsOfFile: url.path) : nil
-            return MediaExplorerMedia(url: url, image: image, type: (chatMedia.type == .image ? .image : .video), size: chatMedia.size)
+            let type: MediaExplorerMediaType = chatMedia.type == .image ? .image : .video
+            let update = chatMediaUpdated
+                .filter { media, mediaIndexPath in
+                    mediaIndexPath == indexPath && media.relativeFilePath != nil
+                }
+                .map { (media, mediaIndexPath) -> (URL?, UIImage?, CGSize) in
+                    let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath ?? "", isDirectory: false)
+                    let image: UIImage? = chatMedia.type == .image ? UIImage(contentsOfFile: url.path) : nil
+
+                    return (url, image, media.size)
+                }
+                .eraseToAnyPublisher()
+            let progress = MainAppContext.shared.chatData.didGetMediaDownloadProgress
+                .filter { id, order, progress in
+                    chatMedia.order == order && chatMedia.message?.id == id
+                }
+                .map { _, _, progress in
+                    Float(progress)
+                }
+                .eraseToAnyPublisher()
+
+            return MediaExplorerMedia(url: url, image: image, type: type, size: chatMedia.size, update: update, progress: progress)
         } else {
             return media[indexPath.item]
         }
@@ -502,17 +537,60 @@ extension MediaExplorerController: MediaExplorerTransitionDelegate {
     }
 }
 
+extension MediaExplorerController: NSFetchedResultsControllerDelegate {
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        guard let indexPath = indexPath else { return }
+        guard let chatMedia = anObject as? ChatMedia else { return }
+
+        chatMediaUpdated.send((chatMedia, indexPath))
+    }
+}
+
 enum MediaExplorerMediaType {
     case image, video
 }
 
-struct MediaExplorerMedia {
+class MediaExplorerMedia {
     var url: URL?
     var image: UIImage?
     var type: MediaExplorerMediaType
     var size: CGSize
+    var ready = CurrentValueSubject<Bool, Never>(false)
+    var progress = CurrentValueSubject<Float, Never>(0)
 
-    mutating func computeSize() {
+    private var updateCancellable: AnyCancellable?
+    private var progressCancellable: AnyCancellable?
+
+    init(url: URL? = nil, image: UIImage? = nil, type: MediaExplorerMediaType, size: CGSize, update: AnyPublisher<(URL?, UIImage?, CGSize), Never>? = nil, progress: AnyPublisher<Float, Never>? = nil) {
+        self.url = url
+        self.image = image
+        self.type = type
+        self.size = size
+
+        listen(update: update, progress: progress)
+    }
+
+    private func listen(update: AnyPublisher<(URL?, UIImage?, CGSize), Never>?, progress: AnyPublisher<Float, Never>?) {
+        if (type == .video && url == nil) || (type == .image && image == nil) {
+            updateCancellable = update?.sink { [weak self] url, image, size in
+                guard let self = self else { return }
+                self.url = url
+                self.image = image
+                self.size = size
+                self.ready.send(true)
+            }
+
+            progressCancellable = progress?.sink { [weak self] value in
+                guard let self = self else { return }
+                self.progress.send(value)
+            }
+        } else {
+            self.ready.send(true)
+            self.progress.send(1)
+        }
+    }
+
+    func computeSize() {
         guard size == .zero else { return }
 
         if let image = image {
