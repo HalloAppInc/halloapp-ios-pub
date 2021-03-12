@@ -157,7 +157,7 @@ public final class ProtoMessageRerequest: ProtoRequest<Void> {
         rerequest.signedPreKeyID = Int64(rerequestData.signedPreKeyID)
         rerequest.oneTimePreKeyID = Int64(rerequestData.oneTimePreKeyID ?? 0)
         rerequest.sessionSetupEphemeralKey = rerequestData.sessionSetupEphemeralKey
-        rerequest.messageEphemeralKey = rerequestData.messageEphemeralKey
+        rerequest.messageEphemeralKey = rerequestData.messageEphemeralKey ?? Data()
 
         super.init(
             iqPacket: .msgPacket(from: fromUserID, to: toUserID, type: .chat, payload: .rerequest(rerequest)),

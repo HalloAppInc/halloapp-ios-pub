@@ -375,26 +375,26 @@ final class ProtoService: ProtoServiceCore {
 
     }
 
-    private func rerequestMessage(_ message: Server_Msg) {
+    private func rerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?) {
         self.updateMessageStatus(id: message.id, status: .rerequested)
 
-        let keyStore = AppContext.shared.keyStore
-        keyStore.performSeriallyOnBackgroundContext { context in
-            guard let identityKey = keyStore.keyBundle(in: context)?.identityPublicEdKey else {
-                DDLogError("ProtoService/rerequestMessage/\(message.id)/error could not retrieve identity key")
-                return
-            }
+        guard let identityKey = AppContext.shared.keyStore.keyBundle()?.identityPublicEdKey else {
+            DDLogError("ProtoService/rerequestMessage/\(message.id)/error could not retrieve identity key")
+            return
+        }
 
-            // TODO: Fill this struct out
+        let fromUserID = UserID(message.fromUid)
+
+        AppContext.shared.messageCrypter.sessionSetupInfoForRerequest(from: fromUserID) { setupInfo in
             let rerequestData = RerequestData(
                 identityKey: identityKey,
                 signedPreKeyID: 0,
-                oneTimePreKeyID: nil,
-                sessionSetupEphemeralKey: Data(),
-                messageEphemeralKey: Data())
+                oneTimePreKeyID: setupInfo?.1,
+                sessionSetupEphemeralKey: setupInfo?.0 ?? Data(),
+                messageEphemeralKey: failedEphemeralKey)
 
             DDLogInfo("ProtoService/rerequestMessage/\(message.id) rerequesting")
-            self.rerequestMessage(message.id, senderID: UserID(message.fromUid), rerequestData: rerequestData) { _ in }
+            self.rerequestMessage(message.id, senderID: fromUserID, rerequestData: rerequestData) { _ in }
         }
     }
 
@@ -521,16 +521,16 @@ final class ProtoService: ProtoServiceCore {
         case .deliveryReceipt(let pbReceipt):
             handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
         case .chatStanza(let serverChat):
-            decryptChat(serverChat, from: UserID(msg.fromUid)) { (clientChat, decryptionError) in
+            decryptChat(serverChat, from: UserID(msg.fromUid)) { (clientChat, decryptionFailure) in
                 if let clientChat = clientChat {
                     let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount)
                     DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId) [length=\(chatMessage.text?.count ?? 0)] [media=\(chatMessage.media.count)]")
                     self.didGetNewChatMessage.send(chatMessage)
                 }
-                if let error = decryptionError {
-                    DDLogError("proto/didReceive/\(msg.id)/decrypt/error \(error)")
-                    AppContext.shared.errorLogger?.logError(error)
-                    self.rerequestMessage(msg)
+                if let failure = decryptionFailure {
+                    DDLogError("proto/didReceive/\(msg.id)/decrypt/error \(failure.error)")
+                    AppContext.shared.errorLogger?.logError(failure.error)
+                    self.rerequestMessage(msg, failedEphemeralKey: failure.ephemeralKey)
                 } else {
                     DDLogInfo("proto/didReceive/\(msg.id)/decrypt/success")
                 }
@@ -540,16 +540,16 @@ final class ProtoService: ProtoServiceCore {
                 if !serverChat.senderLogInfo.isEmpty {
                     DDLogInfo("proto/didReceive/\(msg.id)/senderLog [\(serverChat.senderLogInfo)]")
                 }
-                AppContext.shared.eventMonitor.count(.decryption(error: decryptionError, sender: UserAgent(string: serverChat.senderClientVersion)))
+                AppContext.shared.eventMonitor.count(.decryption(error: decryptionFailure?.error, sender: UserAgent(string: serverChat.senderClientVersion)))
                 self.sendAck(messageID: msg.id)
             }
         case .silentChatStanza(let silent):
             // We ignore message content from silent messages (only interested in decryption success)
-            decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, decryptionError) in
-                if let error = decryptionError {
-                    DDLogError("proto/didReceive/\(msg.id)/silent-decrypt/error \(error)")
-                    AppContext.shared.errorLogger?.logError(error)
-                    self.rerequestMessage(msg)
+            decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, decryptionFailure) in
+                if let failure = decryptionFailure {
+                    DDLogError("proto/didReceive/\(msg.id)/silent-decrypt/error \(failure.error)")
+                    AppContext.shared.errorLogger?.logError(failure.error)
+                    self.rerequestMessage(msg, failedEphemeralKey: failure.ephemeralKey)
                 } else {
                     DDLogInfo("proto/didReceive/\(msg.id)/silent-decrypt/success")
                 }
@@ -559,35 +559,40 @@ final class ProtoService: ProtoServiceCore {
                 if !silent.chatStanza.senderLogInfo.isEmpty {
                     DDLogInfo("proto/didReceive/\(msg.id)/senderLog [\(silent.chatStanza.senderLogInfo)]")
                 }
-                AppContext.shared.eventMonitor.count(.decryption(error: decryptionError, sender: UserAgent(string: silent.chatStanza.senderClientVersion)))
+                AppContext.shared.eventMonitor.count(.decryption(error: decryptionFailure?.error, sender: UserAgent(string: silent.chatStanza.senderClientVersion)))
                 self.sendAck(messageID: msg.id)
             }
         case .rerequest(let rerequest):
-            if let delegate = chatDelegate {
-                let keyStore = AppContext.shared.keyStore
-                let userID = UserID(msg.fromUid)
-                keyStore.performSeriallyOnBackgroundContext { context in
-                    DDLogInfo("proto/rerequest/user/\(userID) will clear keys to trigger new session")
-                    keyStore.deleteMessageKeyBundles(for: userID)
-                    DispatchQueue.main.async {
-                        if let silentChat = SilentChatMessage.forRerequest(incomingID: rerequest.id) {
-                            if silentChat.rerequestCount < 5 {
-                                DDLogInfo("proto/didReceive/rerequest/silent/\(silentChat.id) resending")
-                                self.sendSilentChatMessage(silentChat, encryption: AppContext.shared.encryptOperation(for: silentChat.toUserId)) { _ in }
-                            } else {
-                                DDLogInfo("proto/didReceive/rerequest/silent/\(silentChat.id) skipping (\(silentChat.rerequestCount) resends)")
-                            }
-                            self.sendAck(messageID: msg.id)
-                        } else {
-                            DDLogInfo("proto/didReceive/\(msg.id)/rerequest/chat")
-                            delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID) {
-                                self.sendAck(messageID: msg.id)
-                            }
-                        }
-                    }
+            let userID = UserID(msg.fromUid)
+
+            // Protobuf object will contain a 0 if no one time pre key was used
+            let oneTimePreKeyID: Int? = rerequest.oneTimePreKeyID > 0 ? Int(rerequest.oneTimePreKeyID) : nil
+
+            AppContext.shared.messageCrypter.receivedRerequest(
+                RerequestData(
+                    identityKey: rerequest.identityKey,
+                    signedPreKeyID: Int(rerequest.signedPreKeyID),
+                    oneTimePreKeyID: oneTimePreKeyID,
+                    sessionSetupEphemeralKey: rerequest.sessionSetupEphemeralKey,
+                    messageEphemeralKey: rerequest.messageEphemeralKey),
+                from: userID)
+            if let silentChat = SilentChatMessage.forRerequest(incomingID: rerequest.id) {
+                if silentChat.rerequestCount < 5 {
+                    DDLogInfo("proto/didReceive/rerequest/silent/\(silentChat.id) resending")
+                    self.sendSilentChatMessage(silentChat) { _ in }
+                } else {
+                    DDLogInfo("proto/didReceive/rerequest/silent/\(silentChat.id) skipping (\(silentChat.rerequestCount) resends)")
                 }
+                self.sendAck(messageID: msg.id)
             } else {
-                sendAck(messageID: msg.id)
+                DDLogInfo("proto/didReceive/\(msg.id)/rerequest/chat")
+                if let delegate = chatDelegate {
+                    delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID) {
+                        self.sendAck(messageID: msg.id)
+                    }
+                } else {
+                    sendAck(messageID: msg.id)
+                }
             }
         case .chatRetract(let pbChatRetract):
             let fromUserID = UserID(msg.fromUid)
@@ -761,31 +766,32 @@ final class ProtoService: ProtoServiceCore {
     // MARK: Decryption
 
     /// May return a valid message with an error (i.e., there may be plaintext to fall back to even if decryption fails).
-    private func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (Clients_ChatMessage?, DecryptionError?) -> Void) {
+    private func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (Clients_ChatMessage?, DecryptionFailure?) -> Void) {
         let plainTextMessage = Clients_ChatMessage(containerData: serverChat.payload)
-        AppContext.shared.keyStore.decryptPayload(
-            for: fromUserID,
-            encryptedPayload: serverChat.encPayload,
-            publicKey: serverChat.publicKey.isEmpty ? nil : serverChat.publicKey,
-            oneTimeKeyID: Int(serverChat.oneTimePreKeyID)) { result in
+        AppContext.shared.messageCrypter.decrypt(
+            EncryptedData(
+                data: serverChat.encPayload,
+                identityKey: serverChat.publicKey.isEmpty ? nil : serverChat.publicKey,
+                oneTimeKeyId: Int(serverChat.oneTimePreKeyID)),
+            from: fromUserID) { result in
             switch result {
             case .success(let decryptedData):
                 guard let decryptedMessage = Clients_ChatMessage(containerData: decryptedData) else {
                     // Decryption deserialization failed, fall back to plaintext if possible
-                    completion(plainTextMessage, .deserialization)
+                    completion(plainTextMessage, DecryptionFailure(.deserialization))
                     return
                 }
                 if let plainTextMessage = plainTextMessage, plainTextMessage.text != decryptedMessage.text {
                     // Decrypted message does not match plaintext
-                    completion(plainTextMessage, .plaintextMismatch)
+                    completion(plainTextMessage, DecryptionFailure(.plaintextMismatch))
                 } else {
                     if plainTextMessage == nil {
                         DDLogInfo("proto/decryptChat/plaintext not available")
                     }
                     completion(decryptedMessage, nil)
                 }
-            case .failure(let error):
-                completion(plainTextMessage, error)
+            case .failure(let failure):
+                completion(plainTextMessage, failure)
             }
         }
     }

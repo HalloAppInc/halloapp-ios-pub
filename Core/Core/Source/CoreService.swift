@@ -24,8 +24,6 @@ public enum Feed {
 public typealias ServiceRequestCompletion<T> = (Result<T, RequestError>) -> Void
 
 public typealias AvatarInfo = (userID: UserID, avatarID: AvatarID)
-public typealias EncryptedData = (data: Data, identityKey: Data?, oneTimeKeyId: Int32)
-public typealias EncryptOperation = (_ data: Data, _ completion: @escaping (Result<EncryptedData, EncryptionError>) -> Void) -> Void
 public typealias ServerPropertiesResponse = (version: String, properties: [String: String])
 
 /// Core aspects of the service available in extensions
@@ -55,7 +53,7 @@ public protocol CoreService {
     func requestWhisperKeyBundle(userID: UserID, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>)
 
     // MARK: Chat
-    func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping ServiceRequestCompletion<Void>)
+    func sendChatMessage(_ message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>)
     func rerequestMessage(_ messageID: String, senderID: UserID, rerequestData: RerequestData, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Event Logging
@@ -70,7 +68,7 @@ public protocol ServiceAvatarDelegate: AnyObject {
 }
 
 public struct RerequestData {
-    public init(identityKey: Data, signedPreKeyID: Int, oneTimePreKeyID: Int? = nil, sessionSetupEphemeralKey: Data, messageEphemeralKey: Data) {
+    public init(identityKey: Data, signedPreKeyID: Int, oneTimePreKeyID: Int? = nil, sessionSetupEphemeralKey: Data, messageEphemeralKey: Data? = nil) {
         self.identityKey = identityKey
         self.signedPreKeyID = signedPreKeyID
         self.oneTimePreKeyID = oneTimePreKeyID
@@ -82,5 +80,17 @@ public struct RerequestData {
     public var signedPreKeyID: Int
     public var oneTimePreKeyID: Int?
     public var sessionSetupEphemeralKey: Data
-    public var messageEphemeralKey: Data
+    public var messageEphemeralKey: Data?
+}
+
+public struct EncryptedData {
+    public init(data: Data, identityKey: Data? = nil, oneTimeKeyId: Int) {
+        self.data = data
+        self.identityKey = identityKey
+        self.oneTimeKeyId = oneTimeKeyId
+    }
+
+    public var data: Data
+    public var identityKey: Data?
+    public var oneTimeKeyId: Int
 }

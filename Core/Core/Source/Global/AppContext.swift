@@ -63,6 +63,7 @@ open class AppContext {
     public static let userDefaultsForAppGroup: UserDefaults! = UserDefaults(suiteName: appGroupName)
     public let userDefaults: UserDefaults! = AppContext.userDefaultsForAppGroup
     public let keyStore: KeyStore
+    public let messageCrypter: MessageCrypter
     public let fileLogger: DDFileLogger
     public let phoneNumberFormatter = PhoneNumberKit(metadataCallback: AppContext.phoneNumberKitMetadataCallback)
     public lazy var eventMonitor: EventMonitor = {
@@ -83,12 +84,6 @@ open class AppContext {
         get {
             contactStoreImpl
         }
-    }
-
-    // MARK: Encryption
-
-    public func encryptOperation(for userID: UserID) -> EncryptOperation {
-        return keyStore.encryptOperation(for: userID, with: coreService)
     }
 
     // MARK: Event monitoring
@@ -205,6 +200,7 @@ open class AppContext {
         coreService = serviceBuilder(userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
         keyStore = KeyStore(userData: userData)
+        messageCrypter = MessageCrypter(service: coreService, keyStore: keyStore)
     }
 
     static func phoneNumberKitMetadataCallback() throws -> Data? {

@@ -1628,7 +1628,7 @@ extension ChatData {
     }
 
     private func send(message: ChatMessageProtocol) {
-        service.sendChatMessage(message, encryption: AppContext.shared.encryptOperation(for: message.toUserId)) { _ in }
+        service.sendChatMessage(message) { _ in }
     }
 
     private func handleRerequest(for messageID: String, from userID: UserID) {

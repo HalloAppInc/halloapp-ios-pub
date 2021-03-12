@@ -39,6 +39,8 @@ extension MessageKeyBundle {
     
     @NSManaged public var outboundIdentityPublicEdKey: Data?
     @NSManaged public var outboundOneTimePreKeyId: Int32
+
+    @NSManaged public var teardownKey: Data?
     
     @NSManaged public var messageKeys: Set<MessageKey>?
 

@@ -273,7 +273,7 @@ class DataStore: ShareExtensionDataStore {
             save(managedObjectContext)
         }
 
-        service.sendChatMessage(message, encryption: AppContext.shared.encryptOperation(for: message.toUserId)) { result in
+        service.sendChatMessage(message) { result in
             switch result {
             case .success:
                 completion(.success(message.id))

@@ -254,15 +254,15 @@ open class ProtoServiceCore: NSObject, ObservableObject {
                 return
             }
             let silentChat = SilentChatMessage(from: userData.userId, to: toUserID)
-            sendSilentChatMessage(silentChat, encryption: AppContext.shared.encryptOperation(for: toUserID)) { _ in }
+            sendSilentChatMessage(silentChat) { _ in }
             messagesRemaining -= 1
         }
     }
 
-    public func sendSilentChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping ServiceRequestCompletion<Void>) {
+    public func sendSilentChatMessage(_ message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
         let fromUserID = userData.userId
 
-        makeChatStanza(message, encryption: encryption) { chat, error in
+        makeChatStanza(message) { chat, error in
             guard let chat = chat else {
                 completion(.failure(RequestError.malformedRequest))
                 return
@@ -545,14 +545,14 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    private func makeChatStanza(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping (Server_ChatStanza?, EncryptionError?) -> Void) {
+    private func makeChatStanza(_ message: ChatMessageProtocol, completion: @escaping (Server_ChatStanza?, EncryptionError?) -> Void) {
         guard let messageData = try? message.protoContainer.serializedData() else {
             DDLogError("ProtoServiceCore/makeChatStanza/\(message.id)/error could not serialize chat message!")
             completion(nil, nil)
             return
         }
 
-        encryption(messageData) { result in
+        AppContext.shared.messageCrypter.encrypt(messageData, for: message.toUserId) { result in
             switch result {
             case .success(let encryptedData):
                 var chat = Server_ChatStanza()
@@ -574,7 +574,7 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping ServiceRequestCompletion<Void>) {
+    public func sendChatMessage(_ message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
         guard self.isConnected else {
             DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) skipping (disconnected)")
             completion(.failure(RequestError.notConnected))
@@ -583,7 +583,7 @@ extension ProtoServiceCore: CoreService {
 
         let fromUserID = userData.userId
 
-        makeChatStanza(message, encryption: encryption) { chat, error in
+        makeChatStanza(message) { chat, error in
             guard let chat = chat else {
                 completion(.failure(RequestError.malformedRequest))
                 return
