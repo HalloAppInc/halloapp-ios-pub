@@ -759,6 +759,7 @@ public struct Server_GroupMember {
     case promote // = 2
     case demote // = 3
     case leave // = 4
+    case join // = 5
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -772,6 +773,7 @@ public struct Server_GroupMember {
       case 2: self = .promote
       case 3: self = .demote
       case 4: self = .leave
+      case 5: self = .join
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -783,6 +785,7 @@ public struct Server_GroupMember {
       case .promote: return 2
       case .demote: return 3
       case .leave: return 4
+      case .join: return 5
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -830,6 +833,7 @@ extension Server_GroupMember.Action: CaseIterable {
     .promote,
     .demote,
     .leave,
+    .join,
   ]
 }
 
@@ -877,6 +881,7 @@ public struct Server_GroupStanza {
     case modifyMembers // = 8
     case autoPromoteAdmins // = 9
     case setName // = 10
+    case join // = 11
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -896,6 +901,7 @@ public struct Server_GroupStanza {
       case 8: self = .modifyMembers
       case 9: self = .autoPromoteAdmins
       case 10: self = .setName
+      case 11: self = .join
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -913,6 +919,7 @@ public struct Server_GroupStanza {
       case .modifyMembers: return 8
       case .autoPromoteAdmins: return 9
       case .setName: return 10
+      case .join: return 11
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -938,6 +945,7 @@ extension Server_GroupStanza.Action: CaseIterable {
     .modifyMembers,
     .autoPromoteAdmins,
     .setName,
+    .join,
   ]
 }
 
@@ -1012,6 +1020,86 @@ extension Server_GroupsStanza.Action: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
   public static var allCases: [Server_GroupsStanza.Action] = [
     .get,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Server_GroupInviteLink {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var action: Server_GroupInviteLink.Action = .unknown
+
+  public var gid: String = String()
+
+  public var link: String = String()
+
+  public var result: String = String()
+
+  public var reason: String = String()
+
+  ///only present for action=JOIN
+  public var group: Server_GroupStanza {
+    get {return _group ?? Server_GroupStanza()}
+    set {_group = newValue}
+  }
+  /// Returns true if `group` has been explicitly set.
+  public var hasGroup: Bool {return self._group != nil}
+  /// Clears the value of `group`. Subsequent reads from it will return its default value.
+  public mutating func clearGroup() {self._group = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Action: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknown // = 0
+    case get // = 1
+    case reset // = 2
+    case join // = 3
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknown
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknown
+      case 1: self = .get
+      case 2: self = .reset
+      case 3: self = .join
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknown: return 0
+      case .get: return 1
+      case .reset: return 2
+      case .join: return 3
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+
+  fileprivate var _group: Server_GroupStanza? = nil
+}
+
+#if swift(>=4.2)
+
+extension Server_GroupInviteLink.Action: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_GroupInviteLink.Action] = [
+    .unknown,
+    .get,
+    .reset,
+    .join,
   ]
 }
 
@@ -1479,6 +1567,14 @@ public struct Server_Iq {
     set {_uniqueStorage()._payload = .deleteAccount(newValue)}
   }
 
+  public var groupInviteLink: Server_GroupInviteLink {
+    get {
+      if case .groupInviteLink(let v)? = _storage._payload {return v}
+      return Server_GroupInviteLink()
+    }
+    set {_uniqueStorage()._payload = .groupInviteLink(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -1508,6 +1604,7 @@ public struct Server_Iq {
     case groupFeedItem(Server_GroupFeedItem)
     case groupAvatar(Server_UploadGroupAvatar)
     case deleteAccount(Server_DeleteAccount)
+    case groupInviteLink(Server_GroupInviteLink)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Iq.OneOf_Payload, rhs: Server_Iq.OneOf_Payload) -> Bool {
@@ -1538,6 +1635,7 @@ public struct Server_Iq {
       case (.groupFeedItem(let l), .groupFeedItem(let r)): return l == r
       case (.groupAvatar(let l), .groupAvatar(let r)): return l == r
       case (.deleteAccount(let l), .deleteAccount(let r)): return l == r
+      case (.groupInviteLink(let l), .groupInviteLink(let r)): return l == r
       default: return false
       }
     }
@@ -2454,6 +2552,8 @@ public struct Server_PushRegister {
   public var hasPushToken: Bool {return self._pushToken != nil}
   /// Clears the value of `pushToken`. Subsequent reads from it will return its default value.
   public mutating func clearPushToken() {self._pushToken = nil}
+
+  public var langID: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -3873,6 +3973,7 @@ extension Server_GroupMember.Action: SwiftProtobuf._ProtoNameProviding {
     2: .same(proto: "PROMOTE"),
     3: .same(proto: "DEMOTE"),
     4: .same(proto: "LEAVE"),
+    5: .same(proto: "JOIN"),
   ]
 }
 
@@ -3961,6 +4062,7 @@ extension Server_GroupStanza.Action: SwiftProtobuf._ProtoNameProviding {
     8: .same(proto: "MODIFY_MEMBERS"),
     9: .same(proto: "AUTO_PROMOTE_ADMINS"),
     10: .same(proto: "SET_NAME"),
+    11: .same(proto: "JOIN"),
   ]
 }
 
@@ -4067,6 +4169,74 @@ extension Server_GroupsStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
 extension Server_GroupsStanza.Action: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "GET"),
+  ]
+}
+
+extension Server_GroupInviteLink: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GroupInviteLink"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "action"),
+    2: .same(proto: "gid"),
+    3: .same(proto: "link"),
+    4: .same(proto: "result"),
+    5: .same(proto: "reason"),
+    6: .same(proto: "group"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularEnumField(value: &self.action)
+      case 2: try decoder.decodeSingularStringField(value: &self.gid)
+      case 3: try decoder.decodeSingularStringField(value: &self.link)
+      case 4: try decoder.decodeSingularStringField(value: &self.result)
+      case 5: try decoder.decodeSingularStringField(value: &self.reason)
+      case 6: try decoder.decodeSingularMessageField(value: &self._group)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.action != .unknown {
+      try visitor.visitSingularEnumField(value: self.action, fieldNumber: 1)
+    }
+    if !self.gid.isEmpty {
+      try visitor.visitSingularStringField(value: self.gid, fieldNumber: 2)
+    }
+    if !self.link.isEmpty {
+      try visitor.visitSingularStringField(value: self.link, fieldNumber: 3)
+    }
+    if !self.result.isEmpty {
+      try visitor.visitSingularStringField(value: self.result, fieldNumber: 4)
+    }
+    if !self.reason.isEmpty {
+      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 5)
+    }
+    if let v = self._group {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_GroupInviteLink, rhs: Server_GroupInviteLink) -> Bool {
+    if lhs.action != rhs.action {return false}
+    if lhs.gid != rhs.gid {return false}
+    if lhs.link != rhs.link {return false}
+    if lhs.result != rhs.result {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs._group != rhs._group {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_GroupInviteLink.Action: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN"),
+    1: .same(proto: "GET"),
+    2: .same(proto: "RESET"),
+    3: .same(proto: "JOIN"),
   ]
 }
 
@@ -4584,6 +4754,7 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     26: .standard(proto: "group_feed_item"),
     27: .standard(proto: "group_avatar"),
     28: .standard(proto: "delete_account"),
+    31: .standard(proto: "group_invite_link"),
   ]
 
   fileprivate class _StorageClass {
@@ -4824,6 +4995,14 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
           }
           try decoder.decodeSingularMessageField(value: &v)
           if let v = v {_storage._payload = .deleteAccount(v)}
+        case 31:
+          var v: Server_GroupInviteLink?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupInviteLink(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupInviteLink(v)}
         default: break
         }
       }
@@ -4891,6 +5070,8 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
         try visitor.visitSingularMessageField(value: v, fieldNumber: 27)
       case .deleteAccount(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 28)
+      case .groupInviteLink(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 31)
       case nil: break
       }
     }
@@ -5777,12 +5958,14 @@ extension Server_PushRegister: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   public static let protoMessageName: String = _protobuf_package + ".PushRegister"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "push_token"),
+    2: .standard(proto: "lang_id"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularMessageField(value: &self._pushToken)
+      case 2: try decoder.decodeSingularStringField(value: &self.langID)
       default: break
       }
     }
@@ -5792,11 +5975,15 @@ extension Server_PushRegister: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     if let v = self._pushToken {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }
+    if !self.langID.isEmpty {
+      try visitor.visitSingularStringField(value: self.langID, fieldNumber: 2)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_PushRegister, rhs: Server_PushRegister) -> Bool {
     if lhs._pushToken != rhs._pushToken {return false}
+    if lhs.langID != rhs.langID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

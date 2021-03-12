@@ -94,6 +94,7 @@ struct XMPPGroup {
             case .modifyMembers: return .modifyMembers
             case .setName: return nil
             case .autoPromoteAdmins: return nil
+            case .join: return nil
             case .UNRECOGNIZED(_): return nil
             }
         }()
@@ -120,6 +121,7 @@ struct XMPPGroupMember {
             case .promote: return .promote
             case .demote: return .demote
             case .leave: return .leave
+            case .join: return nil
             case .UNRECOGNIZED(_): return nil
             }
         }()

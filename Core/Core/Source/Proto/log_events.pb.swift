@@ -114,6 +114,14 @@ public struct Server_EventData {
     set {edata = .pushReceived(newValue)}
   }
 
+  public var decryptionReport: Server_DecryptionReport {
+    get {
+      if case .decryptionReport(let v)? = edata {return v}
+      return Server_DecryptionReport()
+    }
+    set {edata = .decryptionReport(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Edata: Equatable {
@@ -121,6 +129,7 @@ public struct Server_EventData {
     case mediaDownload(Server_MediaDownload)
     case mediaComposeLoad(Server_MediaComposeLoad)
     case pushReceived(Server_PushReceived)
+    case decryptionReport(Server_DecryptionReport)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_EventData.OneOf_Edata, rhs: Server_EventData.OneOf_Edata) -> Bool {
@@ -129,6 +138,7 @@ public struct Server_EventData {
       case (.mediaDownload(let l), .mediaDownload(let r)): return l == r
       case (.mediaComposeLoad(let l), .mediaComposeLoad(let r)): return l == r
       case (.pushReceived(let l), .pushReceived(let r)): return l == r
+      case (.decryptionReport(let l), .decryptionReport(let r)): return l == r
       default: return false
       }
     }
@@ -400,6 +410,75 @@ public struct Server_PushReceived {
   public init() {}
 }
 
+public struct Server_DecryptionReport {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var result: Server_DecryptionReport.Status = .ok
+
+  public var reason: String = String()
+
+  public var msgID: String = String()
+
+  /// at time message id was first encountered
+  public var originalVersion: String = String()
+
+  public var senderPlatform: Server_Platform = .unknown
+
+  public var senderVersion: String = String()
+
+  public var rerequestCount: UInt32 = 0
+
+  public var timeTakenS: UInt32 = 0
+
+  public var isSilent: Bool = false
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Status: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case ok // = 0
+    case fail // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .ok
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .ok
+      case 1: self = .fail
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .ok: return 0
+      case .fail: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_DecryptionReport.Status: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_DecryptionReport.Status] = [
+    .ok,
+    .fail,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "server"
@@ -423,6 +502,7 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     11: .standard(proto: "media_download"),
     12: .standard(proto: "media_compose_load"),
     13: .standard(proto: "push_received"),
+    14: .standard(proto: "decryption_report"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -464,6 +544,14 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.edata = .pushReceived(v)}
+      case 14:
+        var v: Server_DecryptionReport?
+        if let current = self.edata {
+          try decoder.handleConflictingOneOf()
+          if case .decryptionReport(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.edata = .decryptionReport(v)}
       default: break
       }
     }
@@ -491,6 +579,8 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
     case .pushReceived(let v)?:
       try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
+    case .decryptionReport(let v)?:
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -757,4 +847,88 @@ extension Server_PushReceived: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_DecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".DecryptionReport"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "result"),
+    2: .same(proto: "reason"),
+    3: .standard(proto: "msg_id"),
+    4: .standard(proto: "original_version"),
+    5: .standard(proto: "sender_platform"),
+    6: .standard(proto: "sender_version"),
+    7: .standard(proto: "rerequest_count"),
+    8: .standard(proto: "time_taken_s"),
+    9: .standard(proto: "is_silent"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularEnumField(value: &self.result)
+      case 2: try decoder.decodeSingularStringField(value: &self.reason)
+      case 3: try decoder.decodeSingularStringField(value: &self.msgID)
+      case 4: try decoder.decodeSingularStringField(value: &self.originalVersion)
+      case 5: try decoder.decodeSingularEnumField(value: &self.senderPlatform)
+      case 6: try decoder.decodeSingularStringField(value: &self.senderVersion)
+      case 7: try decoder.decodeSingularUInt32Field(value: &self.rerequestCount)
+      case 8: try decoder.decodeSingularUInt32Field(value: &self.timeTakenS)
+      case 9: try decoder.decodeSingularBoolField(value: &self.isSilent)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.result != .ok {
+      try visitor.visitSingularEnumField(value: self.result, fieldNumber: 1)
+    }
+    if !self.reason.isEmpty {
+      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 2)
+    }
+    if !self.msgID.isEmpty {
+      try visitor.visitSingularStringField(value: self.msgID, fieldNumber: 3)
+    }
+    if !self.originalVersion.isEmpty {
+      try visitor.visitSingularStringField(value: self.originalVersion, fieldNumber: 4)
+    }
+    if self.senderPlatform != .unknown {
+      try visitor.visitSingularEnumField(value: self.senderPlatform, fieldNumber: 5)
+    }
+    if !self.senderVersion.isEmpty {
+      try visitor.visitSingularStringField(value: self.senderVersion, fieldNumber: 6)
+    }
+    if self.rerequestCount != 0 {
+      try visitor.visitSingularUInt32Field(value: self.rerequestCount, fieldNumber: 7)
+    }
+    if self.timeTakenS != 0 {
+      try visitor.visitSingularUInt32Field(value: self.timeTakenS, fieldNumber: 8)
+    }
+    if self.isSilent != false {
+      try visitor.visitSingularBoolField(value: self.isSilent, fieldNumber: 9)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_DecryptionReport, rhs: Server_DecryptionReport) -> Bool {
+    if lhs.result != rhs.result {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs.msgID != rhs.msgID {return false}
+    if lhs.originalVersion != rhs.originalVersion {return false}
+    if lhs.senderPlatform != rhs.senderPlatform {return false}
+    if lhs.senderVersion != rhs.senderVersion {return false}
+    if lhs.rerequestCount != rhs.rerequestCount {return false}
+    if lhs.timeTakenS != rhs.timeTakenS {return false}
+    if lhs.isSilent != rhs.isSilent {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_DecryptionReport.Status: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "OK"),
+    1: .same(proto: "FAIL"),
+  ]
 }
