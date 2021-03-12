@@ -1044,7 +1044,7 @@ extension ProtoService: HalloService {
 
     func sendCurrentAPNSTokenIfPossible() {
         if isConnected, let token = UserDefaults.standard.string(forKey: userDefaultsKeyForAPNSToken) {
-            let request = ProtoPushTokenRequest(token: token) { (error) in
+            let request = ProtoPushTokenRequest(token: token, locale: Locale.current) { (error) in
                 DDLogInfo("proto/push-token/sent")
             }
             enqueue(request: request)
