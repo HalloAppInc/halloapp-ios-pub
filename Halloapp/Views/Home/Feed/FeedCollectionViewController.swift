@@ -543,7 +543,16 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
         feedDataItem.textExpanded = true
         UIView.animate(withDuration: 0.35) {
             animationBlock()
-            self.collectionView.reloadItems(at: [ indexPath ])
+
+            guard let collectionViewDataSource = self.collectionViewDataSource,
+                  let displayItem = self.feedDataSource.item(at: indexPath.item) else
+            {
+                self.collectionView.reloadData()
+                return
+            }
+            var snapshot = collectionViewDataSource.snapshot()
+            snapshot.reloadItems([displayItem])
+            collectionViewDataSource.apply(snapshot)
         }
     }
 }
