@@ -14,6 +14,7 @@ import UIKit
 
 class FeedCollectionViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
+    // TODO: Remove this implicitly unwrapped optional
     private(set) var collectionView: UICollectionView!
     private(set) var dataSource: FeedDataSource?
     private let feedLayout = FeedLayout()
@@ -365,7 +366,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     }
 
     private func isNearTop() -> Bool {
-        guard collectionView != nil else { return true }
+        guard let collectionView = collectionView else { return true }
         return collectionView.contentOffset.y < 100
     }
 
