@@ -44,6 +44,7 @@ class ChatData: ObservableObject {
     let didGetAGroupFeed = PassthroughSubject<GroupID, Never>()
     let didGetAChatMsg = PassthroughSubject<UserID, Never>()
     let didGetAGroupChatMsg = PassthroughSubject<GroupID, Never>()
+    let didGetAGroupEvent = PassthroughSubject<GroupID, Never>()
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
@@ -2894,6 +2895,11 @@ extension ChatData {
         return chatGroupMessages(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
     
+    func groupFeedEvents(with groupID: GroupID, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
+        let cutOffDate = Date(timeIntervalSinceNow: -Date.days(31))
+        return chatGroupMessages(predicate: NSPredicate(format: "groupId == %@ && (event.@count > 0) && timestamp >= %@", groupID, cutOffDate as NSDate), in: managedObjectContext)
+    }
+    
     // includes seen but not sent messages
     func unseenChatGroupMessages(with groupId: String, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
         let sortDescriptors = [
@@ -3818,6 +3824,8 @@ extension ChatData {
             }
             // unreadCount is not incremented for group event messages
         }
+        
+        didGetAGroupEvent.send(chatGroupMessage.groupId)
     }
     
     

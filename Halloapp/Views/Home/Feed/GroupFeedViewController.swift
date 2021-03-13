@@ -29,6 +29,7 @@ class GroupFeedViewController: FeedCollectionViewController {
         super.init(
             title: nil,
             fetchRequest: FeedDataSource.groupFeedRequest(groupID: groupId))
+        self.populateEvents()
     }
 
     required init?(coder: NSCoder) {
@@ -75,6 +76,16 @@ class GroupFeedViewController: FeedCollectionViewController {
             }
         )
         
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetAGroupEvent.sink { [weak self] (groupID) in
+                guard let self = self else { return }
+                guard groupID == self.groupId else { return }
+                DispatchQueue.main.async {
+                    self.populateEvents()
+                }
+            }
+        )
+        
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -115,6 +126,21 @@ class GroupFeedViewController: FeedCollectionViewController {
         backButton.title = num > 0 ? String(num) : " \u{00a0}"
 
         navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
+    }
+    
+    private func populateEvents() {
+        
+        let groupFeedEvents = MainAppContext.shared.chatData.groupFeedEvents(with: self.groupId)
+        var feedEvents = [FeedEvent]()
+        
+        groupFeedEvents.forEach {
+            let text = $0.event?.text ?? ""
+            let timestamp = $0.timestamp ?? Date()
+            feedEvents.append((FeedEvent(description: text, timestamp: timestamp)))
+        }
+        
+        feedDataSource.events = feedEvents
+        feedDataSource.refresh()
     }
     
     // MARK: New post

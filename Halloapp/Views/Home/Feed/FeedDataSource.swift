@@ -21,6 +21,8 @@ final class FeedDataSource: NSObject {
 
     var itemsDidChange: (([FeedDisplayItem]) -> Void)?
     private(set) var displayItems = [FeedDisplayItem]()
+    
+    var events = [FeedEvent]()
 
     func index(of feedPostID: FeedPostID) -> Int? {
         return displayItems.firstIndex(where: {
@@ -52,9 +54,13 @@ final class FeedDataSource: NSObject {
         }
     }
 
-    // MARK: Private
+    func refresh() {
+        let posts = fetchedResultsController?.fetchedObjects ?? []
+        displayItems = FeedDataSource.makeDisplayItems(orderedPosts: posts, orderedEvents: events)
+        itemsDidChange?(displayItems)
+    }
 
-    private var events = [FeedEvent]()
+    // MARK: Private
 
     private var fetchedResultsController: NSFetchedResultsController<FeedPost>?
     private let fetchRequest: NSFetchRequest<FeedPost>
@@ -73,27 +79,15 @@ final class FeedDataSource: NSObject {
     private static func makeDisplayItems(orderedPosts: [FeedPost], orderedEvents: [FeedEvent]) -> [FeedDisplayItem]
     {
         var displayItems = [FeedDisplayItem]()
-        var post_i = 0
-        var event_i = 0
 
-        // Choose newest post or event until one list is exhausted
-        while post_i < orderedPosts.count && event_i < orderedEvents.count {
-            let post = orderedPosts[post_i]
-            let event = orderedEvents[event_i]
-            if post.timestamp > event.timestamp {
-                displayItems.append(.post(post))
-                post_i += 1
-            } else {
-                displayItems.append(.event(event))
-                event_i += 1
-            }
+        displayItems.append(contentsOf: orderedPosts.map { FeedDisplayItem.post($0) })
+        displayItems.append(contentsOf: orderedEvents.map { FeedDisplayItem.event($0) })
+        
+        return displayItems.sorted {
+            let t1 = $0.post?.timestamp ?? $0.event?.timestamp ?? Date()
+            let t2 = $1.post?.timestamp ?? $1.event?.timestamp ?? Date()
+            return t1 > t2
         }
-
-        // Add remaining items from whichever list still has some
-        displayItems.append(contentsOf: orderedPosts[post_i...].map { FeedDisplayItem.post($0) })
-        displayItems.append(contentsOf: orderedEvents[event_i...].map { FeedDisplayItem.event($0) })
-
-        return displayItems
     }
 }
 
@@ -142,6 +136,13 @@ enum FeedDisplayItem: Hashable, Equatable {
         switch self {
         case .post(let post): return post
         case .event: return nil
+        }
+    }
+    
+    var event: FeedEvent? {
+        switch self {
+        case .post: return nil
+        case .event(let event): return event
         }
     }
 }
