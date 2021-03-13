@@ -101,14 +101,9 @@ class UserFeedViewController: FeedCollectionViewController {
     }
 
     private func updateExchangeNumbersView(isFeedEmpty: Bool) {
-        let isInNetwork: Bool = {
-            guard let contact = MainAppContext.shared.contactStore.contact(withUserId: userId) else {
-                return false
-            }
-            return contact.status == .in
-        }()
+        let isKnownContact = MainAppContext.shared.contactStore.contact(withUserId: userId) != nil
 
-        exchangeNumbersView.isHidden = !isFeedEmpty || isInNetwork
+        exchangeNumbersView.isHidden = !isFeedEmpty || isKnownContact
     }
     
     // MARK: FeedCollectionViewController
