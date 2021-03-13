@@ -29,7 +29,11 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         self.feedDataSource = FeedDataSource(fetchRequest: fetchRequest)
         super.init(nibName: nil, bundle: nil)
         self.title = title
-        self.feedDataSource.itemsDidChange = { [weak self] items in self?.update(with: items) }
+        self.feedDataSource.itemsDidChange = { [weak self] items in
+            DispatchQueue.main.async {
+                self?.update(with: items)
+            }
+        }
     }
 
     required init?(coder: NSCoder) {
