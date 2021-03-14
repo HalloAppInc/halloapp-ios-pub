@@ -296,6 +296,11 @@ public final class WhisperSession {
 
     private func setupOutbound() {
 
+        if case .retrievingKeys = state {
+            DDLogInfo("WhisperSession/\(self.userID)/setupOutbound/skipping [already retrieving keys]")
+            return
+        }
+
         let teardownKey = state.keyBundle?.teardownKey
         let attemptNumber = 1 + (state.failedSetupAttempts ?? 0)
         state = .retrievingKeys
