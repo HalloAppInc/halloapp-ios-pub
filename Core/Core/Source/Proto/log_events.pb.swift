@@ -133,12 +133,30 @@ public struct Server_EventData {
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_EventData.OneOf_Edata, rhs: Server_EventData.OneOf_Edata) -> Bool {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch (lhs, rhs) {
-      case (.mediaUpload(let l), .mediaUpload(let r)): return l == r
-      case (.mediaDownload(let l), .mediaDownload(let r)): return l == r
-      case (.mediaComposeLoad(let l), .mediaComposeLoad(let r)): return l == r
-      case (.pushReceived(let l), .pushReceived(let r)): return l == r
-      case (.decryptionReport(let l), .decryptionReport(let r)): return l == r
+      case (.mediaUpload, .mediaUpload): return {
+        guard case .mediaUpload(let l) = lhs, case .mediaUpload(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.mediaDownload, .mediaDownload): return {
+        guard case .mediaDownload(let l) = lhs, case .mediaDownload(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.mediaComposeLoad, .mediaComposeLoad): return {
+        guard case .mediaComposeLoad(let l) = lhs, case .mediaComposeLoad(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.pushReceived, .pushReceived): return {
+        guard case .pushReceived(let l) = lhs, case .pushReceived(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.decryptionReport, .decryptionReport): return {
+        guard case .decryptionReport(let l) = lhs, case .decryptionReport(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
       default: return false
       }
     }
@@ -507,12 +525,15 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try decoder.decodeSingularUInt64Field(value: &self.uid)
-      case 2: try decoder.decodeSingularEnumField(value: &self.platform)
-      case 3: try decoder.decodeSingularStringField(value: &self.version)
-      case 4: try decoder.decodeSingularUInt64Field(value: &self.timestampMs)
-      case 10:
+      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.uid) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.platform) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.version) }()
+      case 4: try { try decoder.decodeSingularUInt64Field(value: &self.timestampMs) }()
+      case 10: try {
         var v: Server_MediaUpload?
         if let current = self.edata {
           try decoder.handleConflictingOneOf()
@@ -520,7 +541,8 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.edata = .mediaUpload(v)}
-      case 11:
+      }()
+      case 11: try {
         var v: Server_MediaDownload?
         if let current = self.edata {
           try decoder.handleConflictingOneOf()
@@ -528,7 +550,8 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.edata = .mediaDownload(v)}
-      case 12:
+      }()
+      case 12: try {
         var v: Server_MediaComposeLoad?
         if let current = self.edata {
           try decoder.handleConflictingOneOf()
@@ -536,7 +559,8 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.edata = .mediaComposeLoad(v)}
-      case 13:
+      }()
+      case 13: try {
         var v: Server_PushReceived?
         if let current = self.edata {
           try decoder.handleConflictingOneOf()
@@ -544,7 +568,8 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.edata = .pushReceived(v)}
-      case 14:
+      }()
+      case 14: try {
         var v: Server_DecryptionReport?
         if let current = self.edata {
           try decoder.handleConflictingOneOf()
@@ -552,6 +577,7 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.edata = .decryptionReport(v)}
+      }()
       default: break
       }
     }
@@ -570,17 +596,30 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if self.timestampMs != 0 {
       try visitor.visitSingularUInt64Field(value: self.timestampMs, fieldNumber: 4)
     }
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every case branch when no optimizations are
+    // enabled. https://github.com/apple/swift-protobuf/issues/1034
     switch self.edata {
-    case .mediaUpload(let v)?:
+    case .mediaUpload?: try {
+      guard case .mediaUpload(let v)? = self.edata else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
-    case .mediaDownload(let v)?:
+    }()
+    case .mediaDownload?: try {
+      guard case .mediaDownload(let v)? = self.edata else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
-    case .mediaComposeLoad(let v)?:
+    }()
+    case .mediaComposeLoad?: try {
+      guard case .mediaComposeLoad(let v)? = self.edata else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
-    case .pushReceived(let v)?:
+    }()
+    case .pushReceived?: try {
+      guard case .pushReceived(let v)? = self.edata else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
-    case .decryptionReport(let v)?:
+    }()
+    case .decryptionReport?: try {
+      guard case .decryptionReport(let v)? = self.edata else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
+    }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -612,15 +651,18 @@ extension Server_MediaUpload: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try decoder.decodeSingularStringField(value: &self.id)
-      case 2: try decoder.decodeSingularEnumField(value: &self.type)
-      case 3: try decoder.decodeSingularUInt32Field(value: &self.durationMs)
-      case 4: try decoder.decodeSingularUInt32Field(value: &self.numPhotos)
-      case 5: try decoder.decodeSingularUInt32Field(value: &self.numVideos)
-      case 6: try decoder.decodeSingularUInt32Field(value: &self.totalSize)
-      case 7: try decoder.decodeSingularEnumField(value: &self.status)
-      case 8: try decoder.decodeSingularUInt32Field(value: &self.retryCount)
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      case 3: try { try decoder.decodeSingularUInt32Field(value: &self.durationMs) }()
+      case 4: try { try decoder.decodeSingularUInt32Field(value: &self.numPhotos) }()
+      case 5: try { try decoder.decodeSingularUInt32Field(value: &self.numVideos) }()
+      case 6: try { try decoder.decodeSingularUInt32Field(value: &self.totalSize) }()
+      case 7: try { try decoder.decodeSingularEnumField(value: &self.status) }()
+      case 8: try { try decoder.decodeSingularUInt32Field(value: &self.retryCount) }()
       default: break
       }
     }
@@ -697,15 +739,18 @@ extension Server_MediaDownload: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try decoder.decodeSingularStringField(value: &self.id)
-      case 2: try decoder.decodeSingularEnumField(value: &self.type)
-      case 3: try decoder.decodeSingularUInt32Field(value: &self.durationMs)
-      case 4: try decoder.decodeSingularUInt32Field(value: &self.numPhotos)
-      case 5: try decoder.decodeSingularUInt32Field(value: &self.numVideos)
-      case 6: try decoder.decodeSingularUInt32Field(value: &self.totalSize)
-      case 7: try decoder.decodeSingularEnumField(value: &self.status)
-      case 8: try decoder.decodeSingularUInt32Field(value: &self.retryCount)
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      case 3: try { try decoder.decodeSingularUInt32Field(value: &self.durationMs) }()
+      case 4: try { try decoder.decodeSingularUInt32Field(value: &self.numPhotos) }()
+      case 5: try { try decoder.decodeSingularUInt32Field(value: &self.numVideos) }()
+      case 6: try { try decoder.decodeSingularUInt32Field(value: &self.totalSize) }()
+      case 7: try { try decoder.decodeSingularEnumField(value: &self.status) }()
+      case 8: try { try decoder.decodeSingularUInt32Field(value: &self.retryCount) }()
       default: break
       }
     }
@@ -778,11 +823,14 @@ extension Server_MediaComposeLoad: SwiftProtobuf.Message, SwiftProtobuf._Message
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try decoder.decodeSingularUInt32Field(value: &self.durationMs)
-      case 2: try decoder.decodeSingularUInt32Field(value: &self.numPhotos)
-      case 3: try decoder.decodeSingularUInt32Field(value: &self.numVideos)
-      case 4: try decoder.decodeSingularUInt32Field(value: &self.totalSize)
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.durationMs) }()
+      case 2: try { try decoder.decodeSingularUInt32Field(value: &self.numPhotos) }()
+      case 3: try { try decoder.decodeSingularUInt32Field(value: &self.numVideos) }()
+      case 4: try { try decoder.decodeSingularUInt32Field(value: &self.totalSize) }()
       default: break
       }
     }
@@ -823,9 +871,12 @@ extension Server_PushReceived: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try decoder.decodeSingularStringField(value: &self.id)
-      case 2: try decoder.decodeSingularUInt64Field(value: &self.clientTimestamp)
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.clientTimestamp) }()
       default: break
       }
     }
@@ -865,16 +916,19 @@ extension Server_DecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Message
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try decoder.decodeSingularEnumField(value: &self.result)
-      case 2: try decoder.decodeSingularStringField(value: &self.reason)
-      case 3: try decoder.decodeSingularStringField(value: &self.msgID)
-      case 4: try decoder.decodeSingularStringField(value: &self.originalVersion)
-      case 5: try decoder.decodeSingularEnumField(value: &self.senderPlatform)
-      case 6: try decoder.decodeSingularStringField(value: &self.senderVersion)
-      case 7: try decoder.decodeSingularUInt32Field(value: &self.rerequestCount)
-      case 8: try decoder.decodeSingularUInt32Field(value: &self.timeTakenS)
-      case 9: try decoder.decodeSingularBoolField(value: &self.isSilent)
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.result) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.reason) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.msgID) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.originalVersion) }()
+      case 5: try { try decoder.decodeSingularEnumField(value: &self.senderPlatform) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.senderVersion) }()
+      case 7: try { try decoder.decodeSingularUInt32Field(value: &self.rerequestCount) }()
+      case 8: try { try decoder.decodeSingularUInt32Field(value: &self.timeTakenS) }()
+      case 9: try { try decoder.decodeSingularBoolField(value: &self.isSilent) }()
       default: break
       }
     }
