@@ -140,6 +140,11 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         stopAllVideoPlayback()
     }
 
+    override func viewLayoutMarginsDidChange() {
+        super.viewLayoutMarginsDidChange()
+        collectionView?.reloadData()
+    }
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView == collectionView else { return }
         updateNavigationBarStyleUsing(scrollView: collectionView)
