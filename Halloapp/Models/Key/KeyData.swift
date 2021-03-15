@@ -43,10 +43,7 @@ class KeyData {
                     if self.keyStore.keyBundle(in: managedObjectContext) == nil {
                         DDLogInfo("KeyData/onConnect/noUserKeyBundle")
                         self.uploadWhisperKeyBundle()
-                    } else {
-                        self.getWhisperCountOfOneTimeKeys()
                     }
-
                 }
             }
         )
@@ -191,6 +188,9 @@ class KeyData {
         }
     }
 
+    // Unused function as of now.
+    // We dont request count of otp keys from the server - since server already sends us notifications when we are running low.
+    // server team will measure if clients are missing these notifications and we can then revisit and enable this if needed.
     public func getWhisperCountOfOneTimeKeys() {
         DDLogInfo("keyData/getWhisperCountOfOneTimeKeys")
         service.requestCountOfOneTimeKeys() { result in
