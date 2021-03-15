@@ -74,7 +74,7 @@ public final class UserData: ObservableObject {
     }
 
     public var hostPort: UInt16 {
-        useNoise ? 5208 : 5210
+        useNoise ? 5222 : 5210
     }
 
     public var credentials: Credentials? {
