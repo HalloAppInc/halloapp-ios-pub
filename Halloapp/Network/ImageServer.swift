@@ -321,33 +321,12 @@ class ImageServer {
         let fileSize = fileAttrs[FileAttributeKey.size] as! NSNumber
         DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(fileSize)] url=[\(videoUrl.description)]")
 
-        // Sometimes NextLevelSessionExporterError/AVAssetReader is unable to process videos if they are not copied first
-        let tempMediaURL = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent(UUID().uuidString, isDirectory: false)
-            .appendingPathExtension("mp4")
-
-        do {
-            try FileManager.default.copyItem(at: videoUrl, to: tempMediaURL)
-        } catch {
-            DDLogError("ImageServer/video/prepare/error Failed to copy [\(error)] url=[\(videoUrl.description)] tmp=[\(tempMediaURL.description)]")
-            completion(.failure(VideoProcessingError.failedToCopyLocally))
-            return
-        }
-        DDLogInfo("ImageServer/video/prepare/ready  Temporary url: [\(tempMediaURL.description)] url=[\(videoUrl.description)] original order=[\(item.order)]")
-
-        VideoUtils.resizeVideo(inputUrl: tempMediaURL) { (result) in
-            do {
-                try FileManager.default.removeItem(at: tempMediaURL)
-                DDLogInfo("video-processing/export/cleanup/\(tempMediaURL.absoluteString)/deleted")
-            } catch {
-                DDLogError("video-processing/export/cleanup/\(tempMediaURL.absoluteString)/error [\(error)]")
-            }
+        VideoUtils.resizeVideo(inputUrl: videoUrl) { (result) in
             switch result {
             case .success(let (_, videoResolution)):
-                DDLogInfo("ImageServer/video/prepare/ready  New video resolution: [\(videoResolution)] [\(tempMediaURL.description)]")
-
+                DDLogInfo("ImageServer/video/prepare/ready  New video resolution: [\(videoResolution)] [\(videoUrl.description)]")
             case .failure(let error):
-                DDLogError("ImageServer/video/prepare/error [\(error)] [\(tempMediaURL.description)]")
+                DDLogError("ImageServer/video/prepare/error [\(error)] [\(videoUrl.description)]")
             }
             completion(result)
         }

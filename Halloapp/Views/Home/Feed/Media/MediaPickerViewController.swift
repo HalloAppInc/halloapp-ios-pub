@@ -616,7 +616,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         
         var result = [PendingMedia]()
         let manager = PHImageManager.default()
-        let group = DispatchGroup()
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
             
@@ -640,20 +639,25 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     options.isNetworkAccessAllowed = true
                     options.progressHandler = { progress, error, stop, _ in
                         DDLogInfo("MediaPickerViewController/next/image/progress [\(progress)] asset=[\(asset)]")
+                        media.progress.send(Float(progress))
 
                         if let error = error {
                             DDLogError("MediaPickerViewController/next/image error=[\(error)] asset=[\(asset)]")
                         }
                     }
-                    
-                    group.enter()
+
                     manager.requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .default, options: options) { image, _ in
                         if image == nil {
                             DDLogWarn("MediaPickerViewController/next/image Unable to fetch image")
+                            media.ready.send(completion: .finished)
                         }
 
                         media.image = image
-                        group.leave()
+
+                        media.progress.send(1)
+                        media.progress.send(completion: .finished)
+                        media.ready.send(true)
+                        media.ready.send(completion: .finished)
                     }
                     
                     result.append(media)
@@ -666,26 +670,45 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     options.isNetworkAccessAllowed = true
                     options.progressHandler = { progress, error, stop, _ in
                         DDLogInfo("MediaPickerViewController/next/video/progress [\(progress)] asset=[\(asset)]")
+                        media.progress.send(Float(progress))
 
                         if let error = error {
                             DDLogError("MediaPickerViewController/next/video error=[\(error)] asset=[\(asset)]")
                         }
                     }
 
-                    group.enter()
                     manager.requestAVAsset(forVideo: asset, options: options) { avasset, _, _ in
-                        defer { group.leave() }
                         guard let video = avasset as? AVURLAsset else {
                             DDLogWarn("MediaPickerViewController/next/video Unable to fetch video")
+                            media.ready.send(completion: .finished)
                             return
                         }
 
-                        media.videoURL = video.url
-                        media.originalVideoURL = video.url
+                        // Sometimes NextLevelSessionExporterError/AVAssetReader is unable to process videos if they are not copied first
+                        let url = URL(fileURLWithPath: NSTemporaryDirectory())
+                            .appendingPathComponent(UUID().uuidString, isDirectory: false)
+                            .appendingPathExtension("mp4")
+
+                        do {
+                            try FileManager.default.copyItem(at: video.url, to: url)
+                        } catch {
+                            DDLogError("MediaPickerViewController/next/video/copy/error Failed to copy [\(error)] url=[\(video.url.description)] tmp=[\(url.description)]")
+                            media.ready.send(completion: .finished)
+                            return
+                        }
+                        DDLogInfo("MediaPickerViewController/next/video/copy/ready  Temporary url: [\(url.description)] url=[\(video.url.description)] original order=[\(media.order)]")
+
+                        media.videoURL = url
+                        media.originalVideoURL = url
 
                         if let url = media.videoURL, let size = VideoUtils.resolutionForLocalVideo(url: url) {
                             media.size = size
                         }
+
+                        media.progress.send(1)
+                        media.progress.send(completion: .finished)
+                        media.ready.send(true)
+                        media.ready.send(completion: .finished)
                     }
                     
                     result.append(media)
@@ -693,26 +716,15 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     continue
                 }
             }
-            
-            group.notify(queue: .main) { [weak self] in
-                guard let self = self else { return }
-                self.nextInProgress = false
 
-                for media in result {
-                    if (media.type == .video && media.videoURL == nil) || (media.type == .image && media.image == nil) {
-                        let alert = UIAlertController(title: Localizations.mediaFailTitle,
-                                                      message: Localizations.mediaFailMessage,
-                                                      preferredStyle: .alert)
-                        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
-                        self.present(alert, animated: true)
-                        return
-                    }
-                }
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
 
                 if !self.multiselect {
                     self.selected.removeAll()
                 }
 
+                self.nextInProgress = false
                 self.didFinish(self, result, false)
             }
         }

@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjack
+import Combine
 import CoreGraphics
 import Photos
 import SwiftProtobuf
@@ -171,6 +172,8 @@ public class PendingMedia {
     public var sha256: String?
     public var image: UIImage?
     public var isResized = false
+    public var progress = CurrentValueSubject<Float, Never>(0)
+    public var ready = CurrentValueSubject<Bool, Never>(false)
 
     // TODO(VL): Possibly create custom type for videoURL and fileURL, that manages their lifecycle?
     public var originalVideoURL: URL? {

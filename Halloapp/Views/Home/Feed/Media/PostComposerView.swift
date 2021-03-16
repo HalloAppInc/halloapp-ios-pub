@@ -131,6 +131,7 @@ class PostComposerViewController: UIViewController {
     private let isMediaPost: Bool
     private let configuration: PostComposerViewConfiguration
     private weak var delegate: PostComposerViewDelegate?
+    private var pendingMediaReadyCancelable: AnyCancellable?
 
     private var barState: NavigationBarState?
 
@@ -165,10 +166,18 @@ class PostComposerViewController: UIViewController {
             configuration: configuration,
             prepareImages: { [weak self] isReady, imagesAreProcessed, numberOfFailedItems in
                 guard let self = self else { return }
-                self.imageServer?.cancel()
 
-                self.imageServer = ImageServer(maxAllowedAspectRatio: self.configuration.imageServerMaxAspectRatio, maxVideoLength: self.configuration.maxVideoLength)
-                self.imageServer!.prepare(mediaItems: self.mediaItems.value, isReady: isReady, imagesAreProcessed: imagesAreProcessed, numberOfFailedItems: numberOfFailedItems)
+                self.pendingMediaReadyCancelable?.cancel()
+                self.pendingMediaReadyCancelable = Publishers.MergeMany(self.mediaItems.value.map { $0.ready }).ignoreOutput().sink(receiveCompletion: { [weak self] completion in
+                    guard let self = self else { return }
+
+                    if completion == .finished {
+                        self.imageServer?.cancel()
+
+                        self.imageServer = ImageServer(maxAllowedAspectRatio: self.configuration.imageServerMaxAspectRatio, maxVideoLength: self.configuration.maxVideoLength)
+                        self.imageServer!.prepare(mediaItems: self.mediaItems.value, isReady: isReady, imagesAreProcessed: imagesAreProcessed, numberOfFailedItems: numberOfFailedItems)
+                    }
+                }, receiveValue: {_ in})
             },
             crop: { [weak self] index in
                 guard let self = self else { return }

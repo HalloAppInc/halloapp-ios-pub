@@ -22,8 +22,10 @@ class FeedMedia: Identifiable, Hashable {
     let feedPostId: FeedPostID
     let order: Int
     let type: FeedMediaType
-    let size: CGSize
+    var size: CGSize
     private var status: FeedPostMedia.Status
+    private var pendingMediaReadyCancelable: AnyCancellable?
+    private var pendingMediaProgress: CurrentValueSubject<Float, Never>?
 
     private(set) var isMediaAvailable: Bool = false
     var isDownloadRequired: Bool {
@@ -33,6 +35,17 @@ class FeedMedia: Identifiable, Hashable {
     private(set) var image: UIImage?
     private var isImageLoaded: Bool = false
 
+    var progress: CurrentValueSubject<Float, Never>? {
+        get {
+            if let progress = pendingMediaProgress {
+                return progress
+            } else if let task = MainAppContext.shared.feedData.downloadTask(for: self) {
+                return task.downloadProgress
+            } else {
+                return nil
+            }
+        }
+    }
     let imageDidBecomeAvailable = PassthroughSubject<UIImage, Never>()
     let videoDidBecomeAvailable = PassthroughSubject<URL, Never>()
 
@@ -129,7 +142,41 @@ class FeedMedia: Identifiable, Hashable {
         self.image = media.image
         self.size = media.size ?? CGSize(width: 100, height: 100)
         self.fileURL = media.videoURL ?? media.fileURL
-        self.isMediaAvailable = true
+        self.isMediaAvailable = media.ready.value
+
+        if !media.ready.value {
+            updateWhenReady(media: media)
+        }
+    }
+
+    private func updateWhenReady(media: PendingMedia) {
+        self.status = .downloading
+        
+        pendingMediaReadyCancelable = media.ready.sink { [weak self] ready in
+            guard let self = self else { return }
+            guard ready else { return }
+
+            self.status = .uploading
+            self.image = media.image
+            self.fileURL = media.videoURL ?? media.fileURL
+            self.isMediaAvailable = true
+
+            if let size = media.size {
+                self.size = size
+            }
+
+            switch self.type {
+            case .image:
+                guard let image = self.image else { return }
+                self.isImageLoaded = true
+                self.imageDidBecomeAvailable.send(image)
+            case .video:
+                guard let url = self.fileURL else { return }
+                self.videoDidBecomeAvailable.send(url)
+            }
+        }
+
+        pendingMediaProgress = media.progress
     }
 
     static func == (lhs: FeedMedia, rhs: FeedMedia) -> Bool {

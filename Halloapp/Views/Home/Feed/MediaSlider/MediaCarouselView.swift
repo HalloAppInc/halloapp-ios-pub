@@ -508,8 +508,8 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
     func startObservingDownloadProgressIfNecessary(_ media: FeedMedia) {
         guard downloadProgressCancellable == nil else { return }
 
-        if let downloadTask = MainAppContext.shared.feedData.downloadTask(for: media) {
-            downloadProgressCancellable = downloadTask.downloadProgress.sink(receiveCompletion: { [weak self] (_) in
+        if let progress = media.progress {
+            downloadProgressCancellable = progress.receive(on: DispatchQueue.main).sink(receiveCompletion: { [weak self] (_) in
                 guard let self = self else { return }
                 self.progressView.setProgress(1, withAnimationDuration: 0.1) {
                     self.hideProgressView()

@@ -230,6 +230,10 @@ fileprivate class MediaEdit : ObservableObject {
         media.size = image!.size
         media.fileURL = url
         media.edit = edit
+        media.progress.send(1)
+        media.progress.send(completion: .finished)
+        media.ready.send(true)
+        media.ready.send(completion: .finished)
 
         return media
     }
