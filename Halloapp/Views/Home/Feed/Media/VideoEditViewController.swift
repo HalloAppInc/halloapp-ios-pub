@@ -74,10 +74,12 @@ class VideoEditViewController : UIViewController {
     private var isProcessing = false
     private var startTime: CMTime {
         guard let interval = video.player?.currentItem?.duration else { return CMTime() }
+        guard interval.isNumeric else { return CMTime() }
         return CMTimeMultiplyByFloat64(interval, multiplier: Float64(start))
     }
     private var endTime: CMTime {
         guard let interval = video.player?.currentItem?.duration else { return CMTime() }
+        guard interval.isNumeric else { return CMTime() }
         return CMTimeMultiplyByFloat64(interval, multiplier: Float64(end))
     }
     private var isMuted = false {
@@ -212,6 +214,8 @@ class VideoEditViewController : UIViewController {
     }
 
     private func generateThumbnails(asset: AVAsset) {
+        guard asset.duration.isNumeric else { return }
+
         var times = [NSValue]()
         for index: Int32 in 0..<Int32(thumbnailsCount) {
             let t = CMTimeMultiplyByRatio(asset.duration, multiplier: index, divisor: Int32(thumbnailsCount))
@@ -247,6 +251,7 @@ class VideoEditViewController : UIViewController {
 
     private func updateDuration() {
         guard let interval = video.player?.currentItem?.duration else { return }
+        guard interval.isNumeric else { return }
         duration.text = durationFormatter.string(from: interval.seconds * TimeInterval(end - start))
     }
 
