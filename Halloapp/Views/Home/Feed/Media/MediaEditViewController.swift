@@ -574,6 +574,12 @@ fileprivate struct PreviewCollection: UIViewControllerRepresentable {
 fileprivate struct CropGestureView: UIViewRepresentable {
     typealias UIViewType = UIView
 
+    var outThreshold: CGFloat
+
+    init(outThreshold: CGFloat) {
+        self.outThreshold = outThreshold
+    }
+
     private var actions = Actions()
     
     func onZoomChanged(_ action: @escaping (CGFloat, CGPoint) -> Void) -> CropGestureView {
@@ -653,7 +659,8 @@ fileprivate struct CropGestureView: UIViewRepresentable {
         }
         
         @objc func onDrag(sender: UIPanGestureRecognizer) {
-            let location = sender.location(in: sender.view)
+            let location = convert(sender.location(in: sender.view))
+
             if sender.state == .began || sender.state == .changed {
                 actions?.dragChangedAction?(location)
             } else if sender.state == .ended {
@@ -676,8 +683,8 @@ fileprivate struct CropGestureView: UIViewRepresentable {
                 guard sender.numberOfTouches > 1 else { return }
 
                 let locations = [
-                    sender.location(ofTouch: 0, in: sender.view),
-                    sender.location(ofTouch: 1, in: sender.view),
+                    convert(sender.location(ofTouch: 0, in: sender.view)),
+                    convert(sender.location(ofTouch: 1, in: sender.view)),
                 ]
 
                 let zoomLocation = CGPoint(x: (locations[0].x + locations[1].x) / 2, y: (locations[0].y + locations[1].y) / 2)
@@ -697,6 +704,10 @@ fileprivate struct CropGestureView: UIViewRepresentable {
             }
             
             return false
+        }
+
+        private func convert(_ location: CGPoint) -> CGPoint {
+            return CGPoint(x: location.x - parent.outThreshold, y: location.y - parent.outThreshold)
         }
         
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -752,8 +763,8 @@ fileprivate struct CropImage: View {
             break
         }
         
-        let isInsideVertical = (crop.minY + vThreshold) < location.y && location.y < (crop.maxY - vThreshold)
-        let isInsideHorizontal = (crop.minX + hThreshold) < location.x && location.x < (crop.maxX - hThreshold)
+        let isInsideVertical = crop.minY <= location.y && location.y <= crop.maxY
+        let isInsideHorizontal = crop.minX <= location.x && location.x <= crop.maxX
         if isInsideVertical && isInsideHorizontal {
             return .inside
         }
@@ -856,7 +867,7 @@ fileprivate struct CropImage: View {
                             CropRegion(cropToCircle: self.cropToCircle, region: self.scaleCropRegion(self.media.cropRect, from: self.media.image!.size, to: inner.size))
                         })
                         .overlay(GeometryReader { inner in
-                            CropGestureView()
+                            CropGestureView(outThreshold: outThreshold)
                                 .onZoomChanged { scale, location in
                                     let baseScale = self.media.image!.size.width / inner.size.width
                                     let zoomCenter = location.applying(CGAffineTransform(scaleX: baseScale, y: baseScale))
