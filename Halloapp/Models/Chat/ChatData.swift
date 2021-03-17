@@ -262,14 +262,12 @@ class ChatData: ObservableObject {
                 } else {
                     DDLogDebug("ChatData/didConnect/app is in background \(UIApplication.shared.applicationState.rawValue)")
                 }
-                
+
+                self.currentlyUploadingDict.removeAll()
+
                 self.processPendingChatMsgs()
                 self.processRetractingChatMsgs()
                 self.processPendingSeenReceipts()
-                
-                self.processPendingGroupChatMsgs()
-                self.processRetractingGroupChatMsgs()
-                self.processPendingGroupChatSeenReceipts()
                 
                 if (UIApplication.shared.applicationState == .active) {
                     self.currentlyDownloading.removeAll()
