@@ -57,6 +57,8 @@ struct CameraPickerView: UIViewControllerRepresentable {
                 let mediaItem = PendingMedia(type: .image)
                 mediaItem.image = normalizedImage
                 mediaItem.size = normalizedImage.size
+                mediaItem.ready.send(true)
+                mediaItem.ready.send(completion: .finished)
                 parent.capturedMedia = [mediaItem]
                 parent.didFinishWithMedia()
                 
@@ -70,7 +72,9 @@ struct CameraPickerView: UIViewControllerRepresentable {
 
                     DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
                 }
-                
+
+                mediaItem.ready.send(true)
+                mediaItem.ready.send(completion: .finished)
                 self.parent.capturedMedia = [mediaItem]
                 self.parent.didFinishWithMedia()
                 

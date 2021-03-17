@@ -586,6 +586,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                 media.order = 1
                 media.image = image
                 media.size = image.size
+                media.ready.send(true)
+                media.ready.send(completion: .finished)
 
                 self.didFinish(self, [media], false)
             },
@@ -597,6 +599,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                 media.order = 1
                 media.videoURL = url
                 media.originalVideoURL = url
+                media.ready.send(true)
+                media.ready.send(completion: .finished)
 
                 if let size = VideoUtils.resolutionForLocalVideo(url: url) {
                     media.size = size

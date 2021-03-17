@@ -161,6 +161,9 @@ final class NewPostViewController: UIViewController {
         let mediaToPost = PendingMedia(type: .image)
         mediaToPost.image = normalizedImage
         mediaToPost.size = normalizedImage.size
+        mediaToPost.ready.send(true)
+        mediaToPost.ready.send(completion: .finished)
+
         pendingMedia.append(mediaToPost)
         state.pendingMedia = pendingMedia
         didFinishPickingMedia(showAddMoreMediaButton: false)
@@ -171,6 +174,8 @@ final class NewPostViewController: UIViewController {
         let mediaToPost = PendingMedia(type: .video)
         mediaToPost.videoURL = videoURL
         mediaToPost.originalVideoURL = videoURL
+        mediaToPost.ready.send(true)
+        mediaToPost.ready.send(completion: .finished)
 
         if let videoSize = VideoUtils.resolutionForLocalVideo(url: videoURL) {
             mediaToPost.size = videoSize
@@ -190,6 +195,9 @@ extension NewPostViewController: UIImagePickerControllerDelegate {
             let mediaToPost = PendingMedia(type: .image)
             mediaToPost.image = normalizedImage
             mediaToPost.size = normalizedImage.size
+            mediaToPost.ready.send(true)
+            mediaToPost.ready.send(completion: .finished)
+
             pendingMedia.append(mediaToPost)
         } else if let videoURL = info[.mediaURL] as? URL {
             let mediaToPost = PendingMedia(type: .video)
@@ -200,6 +208,9 @@ extension NewPostViewController: UIImagePickerControllerDelegate {
                 mediaToPost.size = videoSize
                 DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
             }
+
+            mediaToPost.ready.send(true)
+            mediaToPost.ready.send(completion: .finished)
             pendingMedia.append(mediaToPost)
         } else {
             DDLogError("UIImagePickerController returned unknown media type")
