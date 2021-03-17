@@ -1172,6 +1172,8 @@ public struct Server_AuthResult {
 
   public var propsHash: Data = Data()
 
+  public var versionTtl: Int64 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -4573,6 +4575,7 @@ extension Server_AuthResult: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     1: .same(proto: "result"),
     2: .same(proto: "reason"),
     3: .standard(proto: "props_hash"),
+    4: .standard(proto: "version_ttl"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4584,6 +4587,7 @@ extension Server_AuthResult: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       case 1: try { try decoder.decodeSingularStringField(value: &self.result) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.reason) }()
       case 3: try { try decoder.decodeSingularBytesField(value: &self.propsHash) }()
+      case 4: try { try decoder.decodeSingularInt64Field(value: &self.versionTtl) }()
       default: break
       }
     }
@@ -4599,6 +4603,9 @@ extension Server_AuthResult: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if !self.propsHash.isEmpty {
       try visitor.visitSingularBytesField(value: self.propsHash, fieldNumber: 3)
     }
+    if self.versionTtl != 0 {
+      try visitor.visitSingularInt64Field(value: self.versionTtl, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -4606,6 +4613,7 @@ extension Server_AuthResult: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if lhs.result != rhs.result {return false}
     if lhs.reason != rhs.reason {return false}
     if lhs.propsHash != rhs.propsHash {return false}
+    if lhs.versionTtl != rhs.versionTtl {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

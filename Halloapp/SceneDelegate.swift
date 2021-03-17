@@ -79,14 +79,17 @@ extension SceneDelegate: UIWindowSceneDelegate {
         })
 
         cancellables.insert(
-            MainAppContext.shared.coreService.didConnect.sink { [weak self] in
-                self?.checkClientVersionExpiration()
-        })
-
-        cancellables.insert(
             MainAppContext.shared.coreService.isAppVersionKnownExpired.sink { [weak self] isExpired in
                 guard let self = self else { return }
                 self.transition(to: self.state(isLoggedIn: MainAppContext.shared.userData.isLoggedIn, isAppVersionKnownExpired: isExpired))
+        })
+
+        cancellables.insert(
+            MainAppContext.shared.coreService.isAppVersionCloseToExpiry.sink { [weak self] isCloseToExpiry in
+                guard let self = self else { return }
+                if isCloseToExpiry {
+                    self.presentAppUpdateWarning()
+                }
         })
     }
 
@@ -178,21 +181,6 @@ private extension SceneDelegate {
         alert.addAction(updateAction)
         alert.addAction(dismissAction)
         window?.rootViewController?.present(alert, animated: true, completion: nil)
-    }
-
-    private func checkClientVersionExpiration() {
-        MainAppContext.shared.service.checkVersionExpiration { result in
-            guard case .success(let numSecondsLeft) = result else {
-                DDLogError("Client version check did not return expiration")
-                return
-            }
-
-            let numDaysLeft = numSecondsLeft/86400
-            if numDaysLeft < 10 {
-                DDLogInfo("SceneDelegate/updateNotice/days left: \(numDaysLeft)")
-                self.presentAppUpdateWarning()
-            }
-        }
     }
 }
 

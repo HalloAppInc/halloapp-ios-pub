@@ -31,6 +31,7 @@ public protocol CoreService {
 
     // MARK: App expiration
     var isAppVersionKnownExpired: CurrentValueSubject<Bool, Never> { get }
+    var isAppVersionCloseToExpiry: CurrentValueSubject<Bool, Never> { get }
 
     // MARK: Connection
     var didConnect: PassthroughSubject<Void, Never> { get }

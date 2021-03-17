@@ -92,7 +92,6 @@ protocol HalloService: CoreService {
     func updateNotificationSettings(_ settings: [NotificationSettings.ConfigKey: Bool], completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Client version
-    func checkVersionExpiration(completion: @escaping ServiceRequestCompletion<TimeInterval>)
     func getServerProperties(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>)
 }
 

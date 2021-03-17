@@ -48,6 +48,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
 
     public var isAppVersionKnownExpired = CurrentValueSubject<Bool, Never>(false)
+    public var isAppVersionCloseToExpiry = CurrentValueSubject<Bool, Never>(false)
 
     public var isConnected: Bool { get { connectionState == .connected } }
     public var isDisconnected: Bool { get { connectionState == .disconnecting || connectionState == .notConnected } }
@@ -367,6 +368,16 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         connectionState = .connected
         DispatchQueue.main.async {
             self.performOnConnect()
+        }
+
+        // check the time left for version to expire.
+        // if it's too close - we need to present a warning to the user.
+        let numDaysLeft = authResult.versionTtl/86400
+        DDLogInfo("ProtoServiceCore/versionTtl/days left: \(numDaysLeft)")
+        if numDaysLeft < 10 {
+            DispatchQueue.main.async {
+                self.isAppVersionCloseToExpiry.send(true)
+            }
         }
     }
 

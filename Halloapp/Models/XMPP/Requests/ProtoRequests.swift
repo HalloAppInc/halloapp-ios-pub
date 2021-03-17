@@ -178,22 +178,6 @@ final class ProtoSendNameRequest: ProtoRequest<Void> {
 }
 
 
-final class ProtoClientVersionCheck: ProtoRequest<TimeInterval> {
-
-    init(version: String, completion: @escaping Completion) {
-        var clientVersion = Server_ClientVersion()
-        clientVersion.version = UserAgent(platform: .ios, version: version).description
-
-        super.init(
-            iqPacket: .iqPacket(type: .get, payload: .clientVersion(clientVersion)),
-            transform: { (iq) in
-                let expiresInSeconds = iq.clientVersion.expiresInSeconds
-                return .success(TimeInterval(expiresInSeconds)) },
-            completion: completion)
-    }
-}
-
-
 final class ProtoGroupCreateRequest: ProtoRequest<String> {
 
     init(name: String, members: [UserID], completion: @escaping Completion) {
