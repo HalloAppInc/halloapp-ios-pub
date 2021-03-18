@@ -307,10 +307,6 @@ class VideoEditViewController : UIViewController {
                 case .success(let url):
                     self.media.videoEdit = PendingVideoEdit(start: self.start, end: self.end, muted: self.isMuted)
                     self.media.videoURL = url
-                    self.media.progress.send(1)
-                    self.media.progress.send(completion: .finished)
-                    self.media.ready.send(true)
-                    self.media.ready.send(completion: .finished)
                     self.didFinish(self, self.media, false)
                 case .failure(let error):
                     DDLogWarn("VideoEditViewController/trimming Unable to trim the video url=[\(original.description)] error=[\(error.localizedDescription)]")

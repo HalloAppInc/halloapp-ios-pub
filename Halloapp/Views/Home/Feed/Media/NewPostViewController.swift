@@ -160,9 +160,6 @@ final class NewPostViewController: UIViewController {
         let normalizedImage = uiImage.correctlyOrientedImage()
         let mediaToPost = PendingMedia(type: .image)
         mediaToPost.image = normalizedImage
-        mediaToPost.size = normalizedImage.size
-        mediaToPost.ready.send(true)
-        mediaToPost.ready.send(completion: .finished)
 
         pendingMedia.append(mediaToPost)
         state.pendingMedia = pendingMedia
@@ -172,15 +169,9 @@ final class NewPostViewController: UIViewController {
     private func onCameraVideoPicked(_ videoURL: URL) {
         var pendingMedia = [PendingMedia]()
         let mediaToPost = PendingMedia(type: .video)
-        mediaToPost.videoURL = videoURL
         mediaToPost.originalVideoURL = videoURL
-        mediaToPost.ready.send(true)
-        mediaToPost.ready.send(completion: .finished)
+        mediaToPost.videoURL = videoURL
 
-        if let videoSize = VideoUtils.resolutionForLocalVideo(url: videoURL) {
-            mediaToPost.size = videoSize
-            DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
-        }
         pendingMedia.append(mediaToPost)
         state.pendingMedia = pendingMedia
         didFinishPickingMedia(showAddMoreMediaButton: false)
@@ -194,23 +185,13 @@ extension NewPostViewController: UIImagePickerControllerDelegate {
             let normalizedImage = uiImage.correctlyOrientedImage()
             let mediaToPost = PendingMedia(type: .image)
             mediaToPost.image = normalizedImage
-            mediaToPost.size = normalizedImage.size
-            mediaToPost.ready.send(true)
-            mediaToPost.ready.send(completion: .finished)
 
             pendingMedia.append(mediaToPost)
         } else if let videoURL = info[.mediaURL] as? URL {
             let mediaToPost = PendingMedia(type: .video)
-            mediaToPost.videoURL = videoURL
             mediaToPost.originalVideoURL = videoURL
+            mediaToPost.videoURL = videoURL
 
-            if let videoSize = VideoUtils.resolutionForLocalVideo(url: videoURL) {
-                mediaToPost.size = videoSize
-                DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
-            }
-
-            mediaToPost.ready.send(true)
-            mediaToPost.ready.send(completion: .finished)
             pendingMedia.append(mediaToPost)
         } else {
             DDLogError("UIImagePickerController returned unknown media type")

@@ -368,9 +368,6 @@ class ComposeViewController: SLComposeServiceViewController {
             let mediaItem = PendingMedia(type: .image)
             mediaItem.order = mediaOrder
             mediaItem.image = image
-            mediaItem.size = image.size
-            mediaItem.ready.send(true)
-            mediaItem.ready.send(completion: .finished)
             self.mediaToSend.append(mediaItem)
             
             completion(.success(Void()))
@@ -404,8 +401,6 @@ class ComposeViewController: SLComposeServiceViewController {
             let mediaItem = PendingMedia(type: .video)
             mediaItem.order = mediaOrder
             mediaItem.videoURL = url
-            mediaItem.ready.send(true)
-            mediaItem.ready.send(completion: .finished)
             self.mediaToSend.append(mediaItem)
             
             completion(.success(Void()))

@@ -170,10 +170,20 @@ public class PendingMedia {
     public var size: CGSize?
     public var key: String?
     public var sha256: String?
-    public var image: UIImage?
     public var isResized = false
     public var progress = CurrentValueSubject<Float, Never>(0)
     public var ready = CurrentValueSubject<Bool, Never>(false)
+
+    public var image: UIImage? {
+        didSet {
+            size = image?.size
+
+            progress.send(1)
+            progress.send(completion: .finished)
+            ready.send(true)
+            ready.send(completion: .finished)
+        }
+    }
 
     // TODO(VL): Possibly create custom type for videoURL and fileURL, that manages their lifecycle?
     public var originalVideoURL: URL? {
@@ -189,6 +199,24 @@ public class PendingMedia {
             if videoURL != nil { DDLogDebug("PendingMedia: set videoURL \(videoURL!)") }
             if let previousVideoURL = oldValue, !isInUseURL(previousVideoURL) {
                 clearTemporaryMedia(tempURL: previousVideoURL)
+            }
+
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                guard let self = self else { return }
+                defer {
+                    self.progress.send(1)
+                    self.progress.send(completion: .finished)
+                    self.ready.send(true)
+                    self.ready.send(completion: .finished)
+                }
+
+                guard let url = self.videoURL else { return }
+                guard let track = AVURLAsset(url: url).tracks(withMediaType: AVMediaType.video).first else { return }
+
+                let size = track.naturalSize.applying(track.preferredTransform)
+                self.size = CGSize(width: abs(size.width), height: abs(size.height))
+
+                DDLogInfo("PendingMedia Video size: [\(NSCoder.string(for: size))]")
             }
         }
     }

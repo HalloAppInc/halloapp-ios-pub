@@ -585,9 +585,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                 let media = PendingMedia(type: .image)
                 media.order = 1
                 media.image = image
-                media.size = image.size
-                media.ready.send(true)
-                media.ready.send(completion: .finished)
 
                 self.didFinish(self, [media], false)
             },
@@ -597,14 +594,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
 
                 let media = PendingMedia(type: .video)
                 media.order = 1
-                media.videoURL = url
                 media.originalVideoURL = url
-                media.ready.send(true)
-                media.ready.send(completion: .finished)
-
-                if let size = VideoUtils.resolutionForLocalVideo(url: url) {
-                    media.size = size
-                }
+                media.videoURL = url
 
                 self.didFinish(self, [media], false)
             }
@@ -636,11 +627,11 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     let media = PendingMedia(type: .image)
                     media.asset = asset
                     media.order = i + 1
-                    media.size = CGSize(width: asset.pixelWidth, height: asset.pixelHeight)
                     
                     let options = PHImageRequestOptions()
-                    options.isSynchronous = true
+                    options.isSynchronous = false
                     options.isNetworkAccessAllowed = true
+                    options.deliveryMode = .highQualityFormat
                     options.progressHandler = { progress, error, stop, _ in
                         DDLogInfo("MediaPickerViewController/next/image/progress [\(progress)] asset=[\(asset)]")
                         media.progress.send(Float(progress))
@@ -653,15 +644,9 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     manager.requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .default, options: options) { image, _ in
                         if image == nil {
                             DDLogWarn("MediaPickerViewController/next/image Unable to fetch image")
-                            media.ready.send(completion: .finished)
                         }
 
                         media.image = image
-
-                        media.progress.send(1)
-                        media.progress.send(completion: .finished)
-                        media.ready.send(true)
-                        media.ready.send(completion: .finished)
                     }
                     
                     result.append(media)
@@ -672,6 +657,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
 
                     let options = PHVideoRequestOptions()
                     options.isNetworkAccessAllowed = true
+                    options.deliveryMode = .highQualityFormat
                     options.progressHandler = { progress, error, stop, _ in
                         DDLogInfo("MediaPickerViewController/next/video/progress [\(progress)] asset=[\(asset)]")
                         media.progress.send(Float(progress))
@@ -702,17 +688,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                         }
                         DDLogInfo("MediaPickerViewController/next/video/copy/ready  Temporary url: [\(url.description)] url=[\(video.url.description)] original order=[\(media.order)]")
 
-                        media.videoURL = url
                         media.originalVideoURL = url
-
-                        if let url = media.videoURL, let size = VideoUtils.resolutionForLocalVideo(url: url) {
-                            media.size = size
-                        }
-
-                        media.progress.send(1)
-                        media.progress.send(completion: .finished)
-                        media.ready.send(true)
-                        media.ready.send(completion: .finished)
+                        media.videoURL = url
                     }
                     
                     result.append(media)
