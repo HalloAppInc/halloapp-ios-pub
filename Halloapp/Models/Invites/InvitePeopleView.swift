@@ -63,10 +63,16 @@ private extension Localizations {
                           comment: "Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp.")
     }
 
-    static var inviteText: String {
-        NSLocalizedString("invite.text",
-                          value: "Join me on HalloApp – a simple, private, and secure way to stay in touch with friends and family. Get it at https://halloapp.com/dl",
-                          comment: "Text of invitation to join HalloApp.")
+    static func inviteText(name: String?, number: String?) -> String {
+        guard let name = name, let number = number else {
+            return NSLocalizedString("invite.text",
+                              value: "Join me on HalloApp – a simple, private, and secure way to stay in touch with friends and family. Get it at https://halloapp.com/dl",
+                              comment: "Text of invitation to join HalloApp.")
+        }
+        let format = NSLocalizedString("invite.text.specific",
+                                       value: "Hey %1$@, I have an invite for you to join me on HalloApp (a simple social app for sharing everyday moments). Use %2$@ to register. Get it at https://halloapp.com/dl",
+                                       comment: "Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number.")
+        return String(format: format, name, number)
     }
 }
 
@@ -175,7 +181,11 @@ struct InvitePeopleView: View {
         .sheet(isPresented: self.$isShareSheetPresented, onDismiss: {
             self.inviteManager.contactToInvite = nil
         }) {
-            ActivityView(activityItems: [ Localizations.inviteText ])
+            let contact = self.inviteManager.contactToInvite
+            let text = Localizations.inviteText(
+                name: contact?.givenName ?? contact?.fullName,
+                number: contact?.phoneNumber?.formattedPhoneNumber)
+            ActivityView(activityItems: [ text ])
         }
         .onDisappear {
             self.inviteManager.contactToInvite = nil
