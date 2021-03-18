@@ -59,7 +59,10 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         installLargeTitleUsingGothamFont()
-        
+
+        let image = UIImage(named: "NavCreateGroup", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openNewGroupAction))
+
         definesPresentationContext = true
         
         searchController = UISearchController(searchResultsController: nil)
@@ -78,8 +81,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         tableView.constrain(to: view)
 
         installEmptyView()
-        installFloatingActionMenu()
-        
+  
         tableView.register(GroupsListHeaderView.self, forHeaderFooterViewReuseIdentifier: "sectionHeader")
         tableView.register(ThreadListCell.self, forCellReuseIdentifier: GroupsListViewController.cellReuseIdentifier)
         tableView.delegate = self
@@ -124,8 +126,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         DDLogInfo("GroupsListViewController/viewWillDisappear")
         super.viewWillDisappear(animated)
         isVisible = false
-
-        floatingMenu.setState(.collapsed, animated: true)
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -183,22 +183,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     private func updateEmptyView() {
         let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
         emptyView.alpha = isEmpty ? 1 : 0
-    }
-
-    // MARK: New Chat
-
-    private lazy var floatingMenu: FloatingMenu = {
-        FloatingMenu(
-            permanentButton: .standardActionButton(
-                iconTemplate: UIImage(named: "icon_fab_group_add")?.withRenderingMode(.alwaysTemplate),
-                accessibilityLabel: Localizations.fabAccessibilityNewGroup,
-                action: { [weak self] in self?.openNewGroup() }))
-    }()
-
-    private func installFloatingActionMenu() {
-        floatingMenu.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(floatingMenu)
-        floatingMenu.constrain(to: view)
     }
 
     // MARK: Invite friends
@@ -314,6 +298,12 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         }
 
         updateEmptyView()
+    }
+    
+    // MARK: Actions
+    
+    @objc private func openNewGroupAction() {
+        openNewGroup()
     }
 
     // MARK: Helpers

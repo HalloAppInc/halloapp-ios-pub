@@ -40,8 +40,8 @@ class BadgedButton: UIButton {
             badgeViewPositionConstraints.removeAll()
         }
         if let viewToAttachTo = badgeAnchor == .image ? imageView : titleLabel {
-            badgeViewPositionConstraints.append(badgeView.centerXAnchor.constraint(equalTo: viewToAttachTo.trailingAnchor))
-            badgeViewPositionConstraints.append(badgeView.centerYAnchor.constraint(equalTo: viewToAttachTo.topAnchor))
+            badgeViewPositionConstraints.append(badgeView.centerXAnchor.constraint(equalTo: viewToAttachTo.trailingAnchor, constant: centerXConstant))
+            badgeViewPositionConstraints.append(badgeView.centerYAnchor.constraint(equalTo: viewToAttachTo.topAnchor, constant: centerYConstant))
             addConstraints(badgeViewPositionConstraints)
         }
     }
@@ -61,6 +61,21 @@ class BadgedButton: UIButton {
         }
     }
 
+    public var centerXConstant:CGFloat = 0 {
+        didSet {
+            if oldValue != centerXConstant {
+                setupBadgeViewPositionConstraints()
+            }
+        }
+    }
+    public var centerYConstant:CGFloat = 0 {
+        didSet {
+            if oldValue != centerYConstant {
+                setupBadgeViewPositionConstraints()
+            }
+        }
+    }
+    
     public var isBadgeHidden: Bool {
         get { badgeView.isHidden }
         set { badgeView.isHidden = newValue }

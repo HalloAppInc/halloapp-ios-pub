@@ -2895,7 +2895,10 @@ extension ChatData {
     
     func groupFeedEvents(with groupID: GroupID, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
         let cutOffDate = Date(timeIntervalSinceNow: -Date.days(31))
-        return chatGroupMessages(predicate: NSPredicate(format: "groupId == %@ && (event.@count > 0) && timestamp >= %@", groupID, cutOffDate as NSDate), in: managedObjectContext)
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
+        ]
+        return chatGroupMessages(predicate: NSPredicate(format: "groupId == %@ && (event.@count > 0) && timestamp >= %@", groupID, cutOffDate as NSDate), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
     // includes seen but not sent messages
@@ -3747,6 +3750,21 @@ extension ChatData {
     }
     
     private func recordGroupMessageEvent(xmppGroup: XMPPGroup, xmppGroupMember: XMPPGroupMember?, in managedObjectContext: NSManagedObjectContext) {
+
+        // hack, skip recording the event of an avatar change if the change is done when the group was created,
+        // since server api requires two  separate requests for it now but we want to show only the group creation event
+        // rough check by comparing if the last event (also first) was a group creation event and if avatar change happened right after
+        let groupFeedEventsList = groupFeedEvents(with: xmppGroup.groupId, in: managedObjectContext)
+        if let lastMsg = groupFeedEventsList.last,
+           let lastMsgEvent = lastMsg.event,
+           [.create].contains(lastMsgEvent.action),
+           lastMsgEvent.memberUserId == xmppGroupMember?.userId,
+           let createEventTimestamp = lastMsg.timestamp,
+           let diff = Calendar.current.dateComponents([.second], from: createEventTimestamp, to: Date()).second,
+           diff < 3 {
+            return
+        }
+
         let chatGroupMessage = ChatGroupMessage(context: managedObjectContext)
 
         if let messageId = xmppGroup.messageId {
@@ -3789,18 +3807,7 @@ extension ChatData {
         save(managedObjectContext)
         
         if let chatThread = self.chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
-            
-            // hack, skip recording the event of an avatar change if the change is done when the group was created,
-            // since server api requires two  separate requests for it now but we want to show only the group creation event
-            // rough check by comparing if the last event was a group creation event and if avatar change happened right after
-            if [.changeAvatar].contains(chatGroupMessageEvent.action),
-                  chatThread.lastFeedId == nil,
-                  let senderName = chatGroupMessageEvent.senderName,
-                  chatThread.lastFeedText == String(format: Localizations.groupEventCreatedGroup, senderName, chatGroupMessageEvent.groupName ?? ""),
-                  let lastFeedTimestamp = chatThread.lastFeedTimestamp,
-                  let diff = Calendar.current.dateComponents([.second], from: lastFeedTimestamp, to: Date()).second,
-                  diff < 3 { return }
-            
+
             // if group feed is not enabled or if the chat already have a message or event
             if !ServerProperties.isGroupFeedEnabled || chatThread.lastMsgId != nil {
                 chatThread.lastMsgId = chatGroupMessage.id

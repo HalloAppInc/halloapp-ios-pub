@@ -58,6 +58,9 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         installLargeTitleUsingGothamFont()
 
+        let image = UIImage(named: "NavComposeChat", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openComposeChatAction))
+
         definesPresentationContext = true
         
         searchController = UISearchController(searchResultsController: nil)
@@ -76,7 +79,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         tableView.constrain(to: view)
 
         installEmptyView()
-        installFloatingActionMenu()
 
         tableView.register(ChatListHeaderView.self, forHeaderFooterViewReuseIdentifier: "sectionHeader")
         tableView.register(ThreadListCell.self, forCellReuseIdentifier: ChatListViewController.cellReuseIdentifier)
@@ -202,16 +204,10 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             permanentButton: .standardActionButton(
                 iconTemplate: UIImage(named: "icon_fab_compose_message")?.withRenderingMode(.alwaysTemplate),
                 accessibilityLabel: Localizations.fabAccessibilityNewMessage,
-                action: { [weak self] in self?.showContacts() }))
+                action: { [weak self] in self?.showComposeChat() }))
     }()
 
-    private func installFloatingActionMenu() {
-        floatingMenu.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(floatingMenu)
-        floatingMenu.constrain(to: view)
-    }
-
-    private func showContacts() {
+    private func showComposeChat() {
         present(UINavigationController(rootViewController: NewChatViewController(delegate: self)), animated: true)
     }
 
@@ -336,6 +332,12 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     private var lastCheckedForNewContacts: Date?
         
+    // MARK: Actions
+    
+    @objc private func openComposeChatAction() {
+        showComposeChat()
+    }
+    
     // MARK: Helpers
     
     func isScrolledFromTop(by fromTop: CGFloat) -> Bool {

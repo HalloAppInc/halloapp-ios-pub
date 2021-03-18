@@ -36,7 +36,8 @@ class FeedViewController: FeedCollectionViewController {
         installInviteFriendsButton()
 
         let notificationButton = BadgedButton(type: .system)
-        notificationButton.setImage(UIImage(named: "FeedNavbarNotifications"), for: .normal)
+        notificationButton.centerYConstant = 5
+        notificationButton.setImage(UIImage(named: "FeedNavbarNotifications")?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal), for: .normal)
         notificationButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
         notificationButton.addTarget(self, action: #selector(presentNotificationsView), for: .touchUpInside)
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: notificationButton)
