@@ -52,4 +52,24 @@ public extension ABContact {
             searchTokenList?.components(separatedBy: " ") ?? []
         }
     }
+
+    static func contactsWithUniquePhoneNumbers(allContacts: [ABContact]) -> [ABContact] {
+        var uniqueContacts: [ABContact] = []
+        var contactIdentifiers = Set<String>()
+        for contact in allContacts {
+            guard let _ = contact.identifier,
+                  let phoneNumber = contact.normalizedPhoneNumber else
+            {
+                uniqueContacts.append(contact)
+                continue
+            }
+            let normalizedId = "\(phoneNumber)"
+            guard !contactIdentifiers.contains(normalizedId) else {
+                continue
+            }
+            uniqueContacts.append(contact)
+            contactIdentifiers.insert(normalizedId)
+        }
+        return uniqueContacts
+    }
 }

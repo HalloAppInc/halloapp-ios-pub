@@ -46,7 +46,7 @@ class InvitePeopleTableViewController: ContactPickerViewController<ABContact> {
 
     fileprivate init(didSelectContact: @escaping (ABContact) -> ()) {
         self.didSelectContact = didSelectContact
-        super.init(contacts: [])
+        super.init(displayContacts: [], searchableContacts: [])
     }
 
     required init?(coder: NSCoder) {
@@ -127,7 +127,9 @@ class InvitePeopleViewController: InvitePeopleTableViewController {
     }
 
     private func reloadContacts() {
-        contacts = fetchedResultsController.fetchedObjects ?? []
+        let allContacts = fetchedResultsController.fetchedObjects ?? []
+        let uniqueContacts = ABContact.contactsWithUniquePhoneNumbers(allContacts: allContacts)
+        set(displayContacts: uniqueContacts, searchableContacts: allContacts)
     }
 
 }

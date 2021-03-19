@@ -84,17 +84,31 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
     private(set) var dataSource: DataSource!
 
     var contacts: [ContactType] {
-        didSet {
-            if isViewLoaded {
-                dataSource.reload(contacts: contacts, animatingDifferences: false)
-            }
+        get {
+            return displayContacts
         }
     }
+    private var displayContacts: [ContactType]
+    private var searchableContacts: [ContactType]
     private(set) var searchController: UISearchController!
 
-    init(contacts: [ContactType]) {
-        self.contacts = contacts
+    init(displayContacts: [ContactType], searchableContacts: [ContactType]) {
+        self.displayContacts = displayContacts
+        self.searchableContacts = searchableContacts
         super.init(style: .plain)
+        reloadDataSource()
+    }
+
+    public func set(displayContacts: [ContactType], searchableContacts: [ContactType]) {
+        self.displayContacts = displayContacts
+        self.searchableContacts = searchableContacts
+        reloadDataSource()
+    }
+    
+    func reloadDataSource() {
+        if isViewLoaded {
+            dataSource.reload(contacts: contacts, animatingDifferences: false)
+        }
     }
 
     required init?(coder: NSCoder) {
@@ -157,7 +171,8 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
         }
 
         let finalCompoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: andPredicates)
-        resultsController.contacts = contacts.filter { finalCompoundPredicate.evaluate(with: $0) }
+        let contacts = searchableContacts.filter { finalCompoundPredicate.evaluate(with: $0) }
+        resultsController.set(displayContacts: contacts, searchableContacts: [])
     }
 
     // MARK: Section Headers

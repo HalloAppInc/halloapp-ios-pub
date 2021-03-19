@@ -100,7 +100,7 @@ class PrivacyListViewController: PrivacyListTableViewController {
         let unknownUserIds = selectedContactIds.subtracting(uniqueUserIds)
         let namesForUnknownContacts = MainAppContext.shared.contactStore.fullNames(forUserIds: unknownUserIds)
         contacts.append(contentsOf: unknownUserIds.map({ PrivacyListTableRow(userId: $0, name: namesForUnknownContacts[$0] ?? Localizations.unknownContact, isSelected: true) }))
-        super.init(contacts: contacts)
+        super.init(displayContacts: contacts, searchableContacts: contacts)
     }
 
     required init?(coder: NSCoder) {
@@ -117,7 +117,7 @@ class PrivacyListViewController: PrivacyListTableViewController {
     }
 
     override func makeSearchResultsController() -> ContactPickerViewController<PrivacyListTableRow> {
-        return PrivacyListSearchResultsViewController(contacts: [])
+        return PrivacyListSearchResultsViewController(displayContacts: [], searchableContacts: [])
     }
 
     /**

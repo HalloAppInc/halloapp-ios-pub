@@ -51,7 +51,7 @@ class NewChatViewController: NewChatTableViewController {
 
     init(delegate: NewChatViewControllerDelegate) {
         self.delegate = delegate
-        super.init(contacts: [])
+        super.init(displayContacts: [], searchableContacts: [])
     }
 
     required init?(coder: NSCoder) {
@@ -124,23 +124,9 @@ class NewChatViewController: NewChatTableViewController {
     }
 
     private func reloadContacts() {
-        var deduplicatedContacts: [ABContact] = []
-        var contactIdentifiers = Set<String>()
-        for contact in fetchedResultsController.fetchedObjects ?? [] {
-            guard let identifier = contact.identifier,
-                  let phoneNumber = contact.normalizedPhoneNumber else
-            {
-                deduplicatedContacts.append(contact)
-                continue
-            }
-            let id = "\(identifier)-\(phoneNumber)"
-            guard !contactIdentifiers.contains(id) else {
-                continue
-            }
-            contactIdentifiers.insert(id)
-            deduplicatedContacts.append(contact)
-        }
-        contacts = deduplicatedContacts
+        let allContacts = fetchedResultsController.fetchedObjects ?? []
+        let uniqueContacts = ABContact.contactsWithUniquePhoneNumbers(allContacts: allContacts)
+        set(displayContacts: uniqueContacts, searchableContacts: allContacts)
     }
 
     // MARK: NewChatTableViewController
@@ -181,7 +167,7 @@ private class NewChatSearchResultsController: NewChatTableViewController {
 
     init(delegate: NewChatSearchResultsControllerDelegate) {
         self.delegate = delegate
-        super.init(contacts: [])
+        super.init(displayContacts: [], searchableContacts: [])
     }
 
     required init?(coder: NSCoder) {
