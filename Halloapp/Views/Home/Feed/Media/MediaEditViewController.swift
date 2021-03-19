@@ -440,7 +440,7 @@ fileprivate struct Preview: View {
             
             if media.type == .video {
                 Image(systemName: "play.fill")
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(UIColor.primaryWhiteBlack))
                     .imageScale(.large)
                     .opacity(0.6)
             }

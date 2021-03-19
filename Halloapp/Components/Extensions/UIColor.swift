@@ -18,6 +18,10 @@ extension UIColor {
         UIColor(named: "PrimaryBlue")!
     }
     
+    class var primaryWhiteBlack: UIColor {
+        UIColor(named: "PrimaryWhiteBlack")!
+    }
+    
     class var feedBackground: UIColor {
         UIColor(named: "FeedBackground")!
     }

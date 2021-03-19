@@ -742,14 +742,21 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     private func initPlayButton() {
         let size: CGFloat = 100
         let config = UIImage.SymbolConfiguration(pointSize: 30)
-        let iconColor = UIColor(red: 0.54, green: 0.53, blue: 0.48, alpha: 1.00)
+        let iconColor = UIColor.primaryWhiteBlack
         let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
 
         let button = UIButton.systemButton(with: icon, target: self, action: #selector(startPlayback))
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = size / 2
         button.clipsToBounds = true
-        button.backgroundColor = UIColor(red: 0.92, green: 0.91, blue: 0.89, alpha: 0.9)
+
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurredEffectView = BlurView(effect: blurEffect, intensity: 0.5)
+        blurredEffectView.isUserInteractionEnabled = false
+        blurredEffectView.translatesAutoresizingMaskIntoConstraints = false
+
+        button.insertSubview(blurredEffectView, at: 0)
+        blurredEffectView.constrain(to: button)
 
         contentView.addSubview(button)
 

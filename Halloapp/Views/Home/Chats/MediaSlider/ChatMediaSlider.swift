@@ -51,7 +51,7 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
             
             if media.type == .video || (media.type == .image && imageView.image == nil) {
                 let iconConfig = UIImage.SymbolConfiguration(pointSize: 30)
-                let iconColor = UIColor(red: 0.54, green: 0.53, blue: 0.48, alpha: 0.9)
+                let iconColor = UIColor.primaryWhiteBlack
                 let iconName = (media.type == .image) ? "photo.fill" : "play.fill"
                 let icon = UIImage(systemName: iconName, withConfiguration: iconConfig)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
 
@@ -63,9 +63,20 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
                 button.layer.cornerRadius = buttonSize / 2
                 button.clipsToBounds = true
 
-                let alphaSetting: CGFloat = media.type == .image ? 0.0 : 0.9
-                button.backgroundColor = UIColor(red: 0.92, green: 0.91, blue: 0.89, alpha: alphaSetting)
                 button.isUserInteractionEnabled = false
+
+                let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+                let blurredEffectView = BlurView(effect: blurEffect, intensity: 0.5)
+                blurredEffectView.isUserInteractionEnabled = false
+                blurredEffectView.translatesAutoresizingMaskIntoConstraints = false
+
+                button.insertSubview(blurredEffectView, at: 0)
+                blurredEffectView.constrain(to: button)
+
+                if let imageView = button.imageView{
+                    button.bringSubviewToFront(imageView)
+                }
+
                 imageViewButtonDict[media.order] = button
                 scrollView.addSubview(button)
                 
