@@ -61,6 +61,18 @@ class FeedViewController: FeedCollectionViewController {
         })
 
         cancellables.insert(
+            MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] (feedPostId) in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    if self.feedPostIdToScrollTo == feedPostId {
+                        DDLogDebug("FeedViewController/scroll-to-post/merged \(feedPostId)")
+                        self.scrollToPostId(postId: feedPostId)
+                        self.feedPostIdToScrollTo = nil
+                    }
+                }
+        })
+
+        cancellables.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
                 guard let self = self else { return }
                 self.processNotification(metadata: metadata)
@@ -394,7 +406,11 @@ class FeedViewController: FeedCollectionViewController {
     }
 
     private func scrollTo(post feedPost: FeedPost) {
-        if let index = feedDataSource.index(of: feedPost.id) {
+        scrollToPostId(postId: feedPost.id)
+    }
+
+    private func scrollToPostId(postId feedPostId: FeedPostID) {
+        if let index = feedDataSource.index(of: feedPostId) {
             collectionView.scrollToItem(at: IndexPath(item: index, section: 0), at: .top, animated: false)
         }
     }
