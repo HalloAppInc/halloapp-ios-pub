@@ -349,6 +349,10 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
             return
         }
 
+        downloadLists(listTypes: listTypes)
+    }
+
+    private func downloadLists(listTypes: [PrivacyListType]) {
         DDLogInfo("privacy/download-lists")
         service.getPrivacyLists(listTypes) { result in
             switch result {
@@ -382,7 +386,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         }
     }
 
-    private func upload(privacyList: PrivacyList) {
+    private func upload(privacyList: PrivacyList, retryOnFailure: Bool = true) {
         numberOfPendingRequests += 1
         privacyListSyncError = nil
 
@@ -402,10 +406,46 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
             case .failure(let error):
                 DDLogError("privacy/upload-list/\(privacyList.type)/error \(error)")
 
-                self.activeType = previousSetting
-                self.privacyListSyncError = "Failed to sync privacy settings. Please try again later."
+                var resync: Bool = false
+                // upon server error to upload lists - resync that specific list and update the list on the server.
+                if retryOnFailure == true {
+                    switch error {
+                    case .serverError(let reason):
+                        DDLogInfo("privacy/retry sync for privacy list type: \(privacyList.type)")
+                        if reason == "hash_mismatch" {
+                            self.handleFailure(privacyList: privacyList)
+                            resync = true
+                        }
+                    default:
+                        resync = false
+                    }
+                }
+                if !resync {
+                    self.activeType = previousSetting
+                    self.privacyListSyncError = "Failed to sync privacy settings. Please try again later."
+                }
             }
             self.numberOfPendingRequests -= 1
+        }
+    }
+
+    // currently, server allows clients to sync only one privacy list at a time.
+    // this function handles failures received when we try to sync a specific privacy list with the server.
+    private func handleFailure(privacyList: PrivacyList) {
+        let privacyListType = privacyList.type
+        service.getPrivacyLists([privacyListType]) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let (lists, _)):
+                DDLogInfo("privacy/download-lists/complete \(lists.count) lists, type: \(privacyListType)")
+                let currentUserIds = privacyList.userIds
+                if let serverList = lists.first(where: { $0.type == privacyListType }) {
+                    privacyList.set(userIds: serverList.userIds)
+                    self.update(privacyList: privacyList, with: currentUserIds, retryOnFailure: false)
+                }
+            case .failure(let error):
+                DDLogError("privacy/download-lists/error \(error)")
+            }
         }
     }
 
@@ -434,14 +474,14 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         validateState()
     }
 
-    func update<T>(privacyList: PrivacyList, with userIds: T) where T: Collection, T.Element == UserID {
+    func update<T>(privacyList: PrivacyList, with userIds: T, retryOnFailure: Bool = true) where T: Collection, T.Element == UserID {
         DDLogInfo("privacy/update-list/\(privacyList.type)\nOld: \(privacyList.items.map({ $0.userId }))\nNew: \(userIds)")
 
         privacyList.update(with: userIds)
 
         if privacyList.state == .needsUpstreamSync || privacyList.canBeSetAsFeedAudience {
             updateSettingValue(forPrivacyList: privacyList)
-            upload(privacyList: privacyList)
+            upload(privacyList: privacyList, retryOnFailure: retryOnFailure)
         }
     }
 
