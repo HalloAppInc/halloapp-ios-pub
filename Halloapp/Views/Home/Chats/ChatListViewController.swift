@@ -90,12 +90,12 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         tableView.backgroundColor = .primaryBg
         tableView.separatorStyle = .none
         tableView.contentInset = UIEdgeInsets(top: -10, left: 0, bottom: 0, right: 0) // -10 to hide top padding on searchBar
-        
+
         tableView.tableHeaderView = searchController.searchBar
         tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
 
         setupFetchedResultsController()
-        
+
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] in
                 guard let self = self else { return }
@@ -371,8 +371,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         
         if chatThread.type == .oneToOne {
             typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: chatThread.type, id: chatThread.chatWithUserId)
-        } else if chatThread.type == .group {
-            typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: chatThread.type, id: chatThread.groupId)
         }
 
         if typingIndicatorStr == nil && !cell.isShowingTypingIndicator {

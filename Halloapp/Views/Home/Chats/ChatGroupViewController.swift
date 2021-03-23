@@ -283,7 +283,6 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         super.viewDidAppear(animated)
         
         MainAppContext.shared.chatData.markThreadAsRead(type: .group, for: groupId)
-        MainAppContext.shared.chatData.updateUnreadThreadCount()
         MainAppContext.shared.chatData.setCurrentlyChattingInGroup(for: groupId)
         MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
 

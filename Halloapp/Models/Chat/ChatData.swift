@@ -289,7 +289,7 @@ class ChatData: ObservableObject {
                 
             }
         )
-                
+
         cancellableSet.insert(
             service.didGetPresence.sink { [weak self] xmppPresence in
                 guard let self = self else { return }
@@ -297,7 +297,7 @@ class ChatData: ObservableObject {
                 self.processIncomingPresence(xmppPresence)
             }
         )
-        
+
         cancellableSet.insert(
             service.didGetChatState.sink { [weak self] chatStateInfo in
                 guard let self = self else { return }
@@ -305,7 +305,7 @@ class ChatData: ObservableObject {
                 self.processInboundChatStateInBg(chatStateInfo)
             }
         )
-        
+
         cancellableSet.insert(
             service.didGetChatRetract.sink { [weak self] chatRetractInfo in
                 guard let self = self else { return }
@@ -313,7 +313,7 @@ class ChatData: ObservableObject {
                 self.processInboundChatRetractInBg(chatRetractInfo)
             }
         )
-        
+
         /** gotcha: use Combine sink instead of notificationCenter.addObserver because for some reason if the user flicks the app to the background and back
             really quickly, the observer doesn't fire
          */
@@ -327,10 +327,13 @@ class ChatData: ObservableObject {
                         self.markSeenMessages(type: .oneToOne, for: currentlyChattingWithUserId, in: managedObjectContext)
                     }
                 }
-                //TODO: if at group screen
+
+                // clear the typing indicators
+                self.chatStateInfoList.removeAll()
+                self.didGetChatStateInfo.send()
             }
         )
-        
+
         cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { [weak self] notification in
                 guard let self = self else { return }
@@ -762,25 +765,8 @@ class ChatData: ObservableObject {
                 self.currentlyUploadingDict.removeValue(forKey: chatMessage.toUserId)
             }
             self.processPendingChatMsgs()
-
         }
 
-        // search for pending group message
-        updateChatGroupMessageByStatus(for: messageID, status: .pending) { (chatGroupMessage) in
-            DDLogDebug("ChatData/processInboundChatAck/updatePendingChatGroupMessage [\(messageID)]")
-    
-            chatGroupMessage.outboundStatus = .sentOut
-                
-            self.updateChatThreadStatus(type: .group, for: chatGroupMessage.groupId, messageId: chatGroupMessage.id) { (chatThread) in
-                chatThread.lastMsgStatus = .sentOut
-            }
-                    
-            if let serverTimestamp = chatAck.timestamp {
-                chatGroupMessage.timestamp = serverTimestamp
-            }
-            
-        }
-        
         // search for retracting 1-1 message
         updateRetractingChatMessage(for: messageID) { (chatMessage) in
             DDLogDebug("ChatData/processInboundChatAck/updateRetractingChatMessage/ [\(messageID)]")
@@ -790,20 +776,6 @@ class ChatData: ObservableObject {
                 chatThread.lastMsgStatus = .retracted
             }
         }
-        
-        // search for retracting group message
-        updateRetractingGroupChatMessage(for: messageID) { (groupChatMessage) in
-            DDLogDebug("ChatData/processInboundChatAck/updateRetractingGroupChatMessage [\(messageID)]")
-
-            groupChatMessage.outboundStatus = .retracted
-
-            self.updateChatThreadStatus(type: .group, for: groupChatMessage.groupId, messageId: groupChatMessage.id) { (chatThread) in
-                chatThread.lastMsgStatus = .retracted
-            }
-
-            return
-        }
-        
 
     }
     
@@ -1126,7 +1098,7 @@ extension ChatData {
         }
     }
 
-    func updateUnreadThreadCount() {
+    func updateUnreadChatsThreadCount() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             let threads = self.chatThreads(predicate: NSPredicate(format: "groupId = nil && unreadCount > 0"), in: managedObjectContext)
@@ -1243,23 +1215,9 @@ extension ChatData {
         case .group:
             chatStateList = chatStateInfoList.filter { $0.threadType == .group && $0.threadID == id }
         }
-        
+
         guard chatStateList.count > 0 else { return nil }
-        
-        if type == .group {
-            let numUser = chatStateList.count
 
-            var firstNameList: [String] = []
-            for typingUser in chatStateList {
-                firstNameList.append(contactStore.firstName(for: typingUser.from))
-            }
-            
-            let localizedFirstNameList = ListFormatter.localizedString(byJoining: firstNameList)
-
-            let formatString = NSLocalizedString("chat.n.users.typing", comment: "Text showing all the users who are typing")
-            return String.localizedStringWithFormat(formatString, localizedFirstNameList, numUser)
-            
-        }
         return typingStr
     }
     
@@ -1834,7 +1792,9 @@ extension ChatData {
             self.save(managedObjectContext)
             
             DispatchQueue.main.async { [weak self] in
-                self?.populateThreadsWithSymmetricContacts()
+                guard let self = self else { return }
+                self.populateThreadsWithSymmetricContacts()
+                self.updateUnreadChatsThreadCount()
             }
         }
     }
@@ -2088,7 +2048,7 @@ extension ChatData {
             }
         } else {
             self.unreadMessageCount += 1
-            self.updateUnreadThreadCount()
+            self.updateUnreadChatsThreadCount()
         }
         
         // 1 and higher means it's an offline message and that server has sent out a push notification already
@@ -3427,8 +3387,6 @@ extension ChatData {
             updateChatGroupMessage(with: chatGroupMessage.id) { (chatGroupMessage) in
                 chatGroupMessage.inboundStatus = .haveSeen
             }
-        } else {
-            updateUnreadThreadCount()
         }
         
         // add to pushnames
@@ -3745,6 +3703,7 @@ extension ChatData {
             chatThread.groupId = chatGroup.groupId
             chatThread.title = chatGroup.name
             chatThread.lastMsgTimestamp = nil
+            chatThread.lastFeedTimestamp = Date()
         }
         return chatGroup
     }

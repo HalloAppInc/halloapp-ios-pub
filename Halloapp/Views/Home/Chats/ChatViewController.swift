@@ -283,7 +283,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         super.viewDidAppear(animated)
         if let chatWithUserId = self.fromUserId {
             MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
-            MainAppContext.shared.chatData.updateUnreadThreadCount()
+            MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
             MainAppContext.shared.chatData.updateUnreadMessageCount()
             MainAppContext.shared.chatData.subscribeToPresence(to: chatWithUserId)
             MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
