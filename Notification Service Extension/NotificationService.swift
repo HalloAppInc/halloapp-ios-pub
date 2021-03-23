@@ -94,6 +94,8 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
 
         var invokeHandler = true
         if protoContainer.hasPost && metadata.feedPostId != nil {
+            // Continue checking for duplicate posts.
+            // TODO(murali@): test and remove this.
             guard !dataStore.posts().contains(where: { $0.id == metadata.feedPostId }) else {
                 DDLogError("didReceiveRequest/error duplicate post ID [\(metadata.feedPostId ?? "nil")]")
                 contentHandler(bestAttemptContent)

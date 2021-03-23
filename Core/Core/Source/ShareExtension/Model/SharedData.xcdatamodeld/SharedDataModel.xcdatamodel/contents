@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17192" systemVersion="19H2" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="19H524" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="SharedChatMessage" representedClassName="SharedChatMessage" syncable="YES">
         <attribute name="fromUserId" attributeType="String"/>
         <attribute name="id" attributeType="String"/>
@@ -25,6 +25,11 @@
         <attribute name="userId" attributeType="String"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="SharedMedia" inverseName="post" inverseEntity="SharedMedia"/>
         <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedFeedMention"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <entity name="SharedMedia" representedClassName="SharedMedia" syncable="YES">
         <attribute name="height" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>

@@ -66,6 +66,8 @@ class DataStore: NotificationServiceExtensionDataStore {
         }
         feedPost.media = postMedia
 
+        // set a merge policy so that we dont end up with duplicate feedposts.
+        managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         save(managedObjectContext)
 
         return feedPost
