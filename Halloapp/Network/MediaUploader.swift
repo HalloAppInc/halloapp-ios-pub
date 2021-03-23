@@ -58,14 +58,15 @@ final class MediaUploader {
         var uploadRequest: Request?
         var totalUploadSize: Int64 = 0
         var completedSize: Int64 = 0
+        var progressDidChange: Bool = false
 
         var mediaUploadType: MediaUploadType = .resumableUpload
         var didGetUrls: FetchUrls
         var failureCount: Int64 = 0
         var mediaUrls: MediaURLInfo?
-
-        init(groupId: String, index: Int, fileURL: URL, didGetUrls: @escaping FetchUrls, completion: @escaping Completion) {
+        init(groupId: String, mediaUrls: MediaURLInfo?, index: Int, fileURL: URL, didGetUrls: @escaping FetchUrls, completion: @escaping Completion) {
             self.groupId = groupId
+            self.mediaUrls = mediaUrls
             self.index = index
             self.fileURL = fileURL
             self.didGetUrls = didGetUrls
@@ -151,15 +152,18 @@ final class MediaUploader {
     // Tus is the name of the protocol we use for resumable file uploads.
     // This function handles all failures in the resumable upload responses.
     private func handleTusFailure(task: Task, withResponse response: AFDataResponse<Data?>) {
-        task.failureCount += 1
+        if task.progressDidChange == false {
+            task.failureCount += 1
+        } else {
+            task.failureCount = 0
+        }
         DDLogInfo("MediaUploader/handleTusFailure/\(task.groupId)/\(task.index)/ failureCount: \(task.failureCount), response: \(response)")
+        DDLogInfo("MediaUploader/handleTusFailure/\(task.groupId)/\(task.index)/ progressDidChange: \(task.progressDidChange)")
 
         // After three failures try direct upload by sending IQ without size attribute.
         if task.failureCount > 3 {
-            task.mediaUrls = nil
-            task.mediaUploadType = .directUpload
             // fetch new urls for direct upload and start task freshly again!
-            startTask(task: task)
+            requestUrlsAndStartTask(uploadType: .directUpload, task: task)
         } else {
             // FailureCount is less than or equal to 3: so inspect the error code and act accordingly.
             let error = response.error as Error? ?? MediaUploadError.unknownError
@@ -183,20 +187,16 @@ final class MediaUploader {
              This condition is possible in case upload server looses its state and the upload needs to be started from the very begining.
              */
             case 404:
-                task.mediaUrls = nil
-                task.mediaUploadType = .resumableUpload
                 // fetch new urls for resumable upload and start task freshly again!
-                startTask(task: task)
+                requestUrlsAndStartTask(uploadType: .resumableUpload, task: task)
 
             /*
              Precondition failed; Try direct upload by sending IQ without size attribute.
              Here we are checking Tus-Resumable header to be compatible. The current expected value is 1.0.0.
              */
             case 412:
-                task.mediaUrls = nil
-                task.mediaUploadType = .directUpload
                 // fetch new urls for direct upload and start task freshly again!
-                startTask(task: task)
+                requestUrlsAndStartTask(uploadType: .directUpload, task: task)
 
             /*
              Requested Entity too large; Cann't upload this large an object (We don't impose any limits right now, but we will in future).
@@ -255,46 +255,49 @@ final class MediaUploader {
 
     func upload(media mediaItem: MediaUploadable, groupId: String, didGetURLs: @escaping (MediaURLInfo) -> (), completion: @escaping Completion) {
         let fileURL = resolveMediaPath(mediaItem.encryptedFilePath!)
-        let task = Task(groupId: groupId, index: Int(mediaItem.index), fileURL: fileURL, didGetUrls: didGetURLs, completion: completion)
+        let task = Task(groupId: groupId, mediaUrls: mediaItem.urlInfo, index: Int(mediaItem.index), fileURL: fileURL, didGetUrls: didGetURLs, completion: completion)
         // Task might fail immediately so make sure it's added before being started.
         tasks.insert(task)
 
         // Fetch urls if necessary and start media upload.
-        startTask(task: task)
-    }
-
-    // Fetch urls and then start media upload.
-    private func startTask(task: Task) {
         if task.mediaUrls != nil {
             startMediaUpload(task: task)
         } else {
-            // Request URLs first.
-            let fileSize: Int
-            // When sending out an iq - try our preference of urls.
-            // we'll update the task-type again depending on what the server responds with.
-            switch task.mediaUploadType {
-            case .resumableUpload:
-                fileSize = (try? task.fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
-            case .directUpload:
-                fileSize = 0
-            }
-            service.requestMediaUploadURL(size: fileSize) { result in
-                guard !task.isCanceled else { return }
-                switch result {
-                case .success(let mediaURLs):
-                    task.mediaUrls = mediaURLs
-                    task.didGetUrls(mediaURLs)
-                    self.startMediaUpload(task: task)
-                case .failure(let error):
-                    DDLogError("MediaUploader/startTask/\(task.groupId)/\(task.index)/error [\(error)]")
-                    self.fail(task: task, withError: error)
-                }
+            requestUrlsAndStartTask(uploadType: .resumableUpload, task: task)
+        }
+    }
+
+    private func requestUrlsAndStartTask(uploadType: MediaUploadType, task: Task) {
+        // Request URLs first.
+        let fileSize: Int
+        // When sending out an iq - try our preference of urls.
+        // we'll update the task-type again depending on what the server responds with.
+        switch uploadType {
+        case .resumableUpload:
+            fileSize = (try? task.fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+        case .directUpload:
+            fileSize = 0
+        }
+        service.requestMediaUploadURL(size: fileSize) { result in
+            guard !task.isCanceled else { return }
+            switch result {
+            case .success(let mediaURLs):
+                DDLogInfo("MediaUploader/requestUrlsAndStartTask/\(task.groupId)/\(task.index)/success urls: [\(mediaURLs)]")
+                task.didGetUrls(mediaURLs)
+                task.mediaUrls = mediaURLs
+                self.startMediaUpload(task: task)
+            case .failure(let error):
+                DDLogError("MediaUploader/requestUrlsAndStartTask/\(task.groupId)/\(task.index)/error [\(error)]")
+                self.fail(task: task, withError: error)
             }
         }
     }
 
     // Check the urls in the task and start direct upload or the resumable upload accordingly.
     private func startMediaUpload(task: Task) {
+        // set progressDidChange to false
+        task.progressDidChange = false
+
         let mediaURLs = task.mediaUrls
         // Initiate media upload.
         switch mediaURLs {
@@ -302,6 +305,7 @@ final class MediaUploader {
             DDLogInfo("MediaUploader/startMediaUpload/\(task.groupId)/\(task.index)/ startDirectUpload")
             task.mediaUploadType = .directUpload
             task.downloadURL = getURL
+            task.completedSize = 0
             startUpload(forTask: task, to: putURL)
 
         case .patch(let patchURL):
@@ -324,8 +328,12 @@ final class MediaUploader {
                     return
                 }
                 DDLogDebug("MediaUploader/startUpload/\(task.groupId)/\(task.index)/progress \(progress.fractionCompleted)")
+                let completedUnitCount = progress.completedUnitCount
+                if completedUnitCount > task.completedSize {
+                    task.progressDidChange = true
+                }
                 task.totalUploadSize = progress.totalUnitCount
-                task.completedSize = progress.completedUnitCount
+                task.completedSize = completedUnitCount
                 self.updateUploadProgress(forGroupId: task.groupId)
             }
             .validate()
@@ -410,7 +418,11 @@ final class MediaUploader {
                     return
                 }
                 DDLogDebug("MediaUploader/upload/\(task.groupId)/\(task.index)/progress \(progress.fractionCompleted)")
-                task.completedSize = Int64(effectiveOffset) + progress.completedUnitCount
+                let completedUnitCount = Int64(effectiveOffset) + progress.completedUnitCount
+                if completedUnitCount > task.completedSize {
+                    task.progressDidChange = true
+                }
+                task.completedSize = completedUnitCount
                 self.updateUploadProgress(forGroupId: task.groupId)
             }
             .validate()
