@@ -121,7 +121,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private lazy var persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: FeedData.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
-        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
+        storeDescription.setOption(NSNumber(booleanLiteral: false), forKey: NSInferMappingModelAutomaticallyOption)
         storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
         storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
         let container = NSPersistentContainer(name: "Feed")
@@ -1681,6 +1681,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.info = feedPostInfo
         }
 
+        // set a merge policy so that we dont end up with duplicate feedposts.
+        managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         save(managedObjectContext)
 
         uploadMediaAndSend(feedPost: feedPost)
@@ -1730,7 +1732,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedComment.post = feedPost
         feedComment.status = .sending
         feedComment.timestamp = Date()
-        self.save(managedObjectContext)
+        save(managedObjectContext)
 
         // Now send data over the wire.
         send(comment: feedComment)

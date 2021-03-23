@@ -53,6 +53,9 @@
 		68F046B22543856E001D602E /* RegistrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F046B12543856E001D602E /* RegistrationManager.swift */; };
 		68F935C5252CD00800FA6E75 /* ChatMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */; };
 		68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */; };
+		6A1BFD30260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */; };
+		6ABBD2502601DE890041B9ED /* FeedMigration.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6ABBD24F2601DE890041B9ED /* FeedMigration.xcmappingmodel */; };
+		6ABBD25F2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABBD25E2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift */; };
 		761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */; };
 		761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
 		761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C4245D32C200DD9D1A /* UIDevice.swift */; };
@@ -378,6 +381,10 @@
 		68F046B12543856E001D602E /* RegistrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationManager.swift; sourceTree = "<group>"; };
 		68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostCommentToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
+		6ABBD24A2601DD990041B9ED /* Feed2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed2.xcdatamodel; sourceTree = "<group>"; };
+		6ABBD24F2601DE890041B9ED /* FeedMigration.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = FeedMigration.xcmappingmodel; sourceTree = "<group>"; };
+		6ABBD25E2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
 		74296216C820A50656388247 /* Pods-Share Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VerificationCodeViewController.swift; path = HalloApp/Views/Registration/VerificationCodeViewController.swift; sourceTree = SOURCE_ROOT; };
 		761442C2245CF4FC00DD9D1A /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIColor.swift; path = HalloApp/Components/Extensions/UIColor.swift; sourceTree = SOURCE_ROOT; };
@@ -925,8 +932,11 @@
 				7653808D243D4B32000AD9A1 /* FeedPostMedia+CoreDataClass.swift */,
 				7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */,
 				76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */,
+				6ABBD24F2601DE890041B9ED /* FeedMigration.xcmappingmodel */,
+				6ABBD25E2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift */,
 				6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */,
 				6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */,
+				6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */,
 			);
 			path = "CoreData Stack";
 			sourceTree = "<group>";
@@ -1881,6 +1891,7 @@
 				68E4619625C9C93B008B5698 /* ExpiredVersionViewController.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,
 				EAA424F124EC71450025CBBE /* XMPPGroup.swift in Sources */,
+				6A1BFD30260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift in Sources */,
 				761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */,
 				EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */,
 				EAD476F32458F03700EF8591 /* ChatMedia+CoreDataProperties.swift in Sources */,
@@ -1910,10 +1921,12 @@
 				761BD0FE24B3EE0A00B567F6 /* InvitePeopleView.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
 				F878427C24F6C0FB0040B723 /* MediaAlbumsViewController.swift in Sources */,
+				6ABBD25F2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift in Sources */,
 				F8606DDB257E7C2A006CD1A6 /* MediaExplorerAnimator.swift in Sources */,
 				F8606DD6257E7402006CD1A6 /* MediaExplorerImageCell.swift in Sources */,
 				761BD0FC24B3D75800B567F6 /* InviteManager.swift in Sources */,
 				765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */,
+				6ABBD2502601DE890041B9ED /* FeedMigration.xcmappingmodel in Sources */,
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
@@ -2918,9 +2931,10 @@
 		76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				6ABBD24A2601DD990041B9ED /* Feed2.xcdatamodel */,
 				76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */,
 			);
-			currentVersion = 76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */;
+			currentVersion = 6ABBD24A2601DD990041B9ED /* Feed2.xcdatamodel */;
 			path = Feed.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

@@ -39,6 +39,11 @@
         <fetchIndex name="byGroupId">
             <fetchIndexElement property="groupId" type="Binary" order="ascending"/>
         </fetchIndex>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <entity name="FeedPostComment" representedClassName="FeedPostComment" syncable="YES">
         <attribute name="id" attributeType="String"/>
@@ -48,7 +53,7 @@
         <attribute name="userId" attributeType="String"/>
         <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedMention"/>
         <relationship name="parent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="replies" inverseEntity="FeedPostComment"/>
-        <relationship name="post" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="comments" inverseEntity="FeedPost"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="comments" inverseEntity="FeedPost"/>
         <relationship name="replies" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FeedPostComment" inverseName="parent" inverseEntity="FeedPostComment"/>
         <fetchIndex name="byTimetamp">
             <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
@@ -75,7 +80,7 @@
         <attribute name="uploadUrl" optional="YES" attributeType="URI"/>
         <attribute name="url" optional="YES" attributeType="URI"/>
         <attribute name="width" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <relationship name="post" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="media" inverseEntity="FeedPost"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="media" inverseEntity="FeedPost"/>
     </entity>
     <elements>
         <element name="FeedMention" positionX="-45" positionY="117" width="128" height="88"/>
