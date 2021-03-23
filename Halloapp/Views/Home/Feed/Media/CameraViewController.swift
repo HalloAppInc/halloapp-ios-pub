@@ -275,13 +275,11 @@ fileprivate struct CameraView: View {
     }
 
     private func capturePressed() {
-        defer {
-            withAnimation {
-                captureButtonColor = Color.cameraButton.opacity(0.7)
-            }
-        }
         guard !captureIsPressed else { return }
         captureIsPressed = true
+        withAnimation {
+            captureButtonColor = Color.cameraButton.opacity(0.7)
+        }
     }
 
     private func captureLongPressed() {
@@ -367,8 +365,11 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
             !cameraState.shouldRecordVideo &&
             !context.coordinator.isRecordingVideo {
 
-            context.coordinator.isTakingPhoto = true
-            cameraController.takePhoto(useFlashlight: cameraState.shouldUseFlashlight)
+            if cameraController.takePhoto(useFlashlight: cameraState.shouldUseFlashlight) {
+                context.coordinator.isTakingPhoto = true
+            } else {
+                cameraState.shouldTakePhoto = false
+            }
         }
         if !cameraState.shouldTakePhoto &&
             !context.coordinator.isTakingPhoto &&
@@ -376,7 +377,11 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
 
             if cameraState.shouldRecordVideo {
                 cameraController.startRecordingVideo(CameraControllerRepresentable.videoOutputURL)
-                context.coordinator.isRecordingVideo = cameraController.isRecordingVideo
+                if cameraController.isRecordingVideo {
+                    context.coordinator.isRecordingVideo = true
+                } else {
+                    cameraState.shouldRecordVideo = false
+                }
             } else {
                 cameraController.stopRecordingVideo()
             }
