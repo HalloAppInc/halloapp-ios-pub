@@ -2085,24 +2085,24 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping () -> ()) {
         let posts = sharedDataStore.posts()
-        guard !posts.isEmpty else {
+        let comments = sharedDataStore.comments()
+        guard !posts.isEmpty || !comments.isEmpty else {
             DDLogDebug("FeedData/merge-data/ Nothing to merge")
             completion()
             return
         }
-
-        //TODO: merge comments
         
         performSeriallyOnBackgroundContext { managedObjectContext in
-            self.merge(posts: posts, from: sharedDataStore, using: managedObjectContext, completion: completion)
+            self.merge(posts: posts, comments: comments, from: sharedDataStore, using: managedObjectContext, completion: completion)
         }
     }
 
-    private func merge(posts: [SharedFeedPost], from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext, completion: @escaping () -> ()) {
+    private func merge(posts: [SharedFeedPost], comments: [SharedFeedComment], from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext, completion: @escaping () -> ()) {
         let postIds = Set(posts.map{ $0.id })
         let existingPosts = feedPosts(with: postIds, in: managedObjectContext).reduce(into: [FeedPostID: FeedPost]()) { $0[$1.id] = $1 }
         var addedPostIDs = Set<FeedPostID>()
         var newMergedPosts: [FeedPostID] = []
+        var newMergedComments: [FeedPostComment] = []
         
         for post in posts {
             guard existingPosts[post.id] == nil else {
@@ -2206,12 +2206,85 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         save(managedObjectContext)
 
         newMergedPosts.forEach({ didMergeFeedPost.send($0) })
+        
+        // Merge comments after posts.
+        for comment in comments {
+            let feedPostComment = merge(sharedComment: comment)
+            newMergedComments.append(feedPostComment)
+        }
+        
+        // Add comments to the notifications database.
+        self.generateNotifications(for: newMergedComments, using: managedObjectContext)
+        newMergedComments.forEach({ didReceiveFeedPostComment.send($0) })
     
         DDLogInfo("FeedData/merge-data/finished")
 
-        sharedDataStore.delete(posts: posts) {
+        sharedDataStore.delete(posts: posts, comments: comments) {
             completion()
         }
+    }
+    
+    // Merge comment
+    func merge(sharedComment: SharedFeedComment) -> FeedPostComment {
+        let postId = sharedComment.postId
+        let commentId = sharedComment.id
+
+        // Create and save FeedPostComment
+        let managedObjectContext = self.persistentContainer.viewContext
+        
+        // Fetch feedpost
+        guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else {
+            DDLogError("FeedData/merge/comment/error  Missing FeedPost with id [\(postId)]")
+            fatalError("Unable to find FeedPost")
+        }
+        
+        // Fetch parentCommentId
+        var parentComment: FeedPostComment?
+        if let parentCommentId = sharedComment.parentCommentId {
+            parentComment = self.feedComment(with: parentCommentId, in: managedObjectContext)
+            if parentComment == nil {
+                DDLogError("FeedData/merge/comment/error  Missing parent comment with id=[\(parentCommentId)]")
+            }
+        }
+
+        // Add mentions
+        var mentionSet = Set<FeedMention>()
+        sharedComment.mentions?.forEach({ mention in
+            let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
+            feedMention.index = mention.index
+            feedMention.userID = mention.userID
+            feedMention.name = contactStore.pushNames[mention.userID] ?? mention.name
+            if feedMention.name == "" {
+                DDLogError("FeedData/merge/comment/mention/\(mention.userID) missing push name")
+            }
+            mentionSet.insert(feedMention)
+        })
+
+        // Create comment
+        DDLogInfo("FeedData/merge/comment id=[\(commentId)]  postId=[\(postId)]")
+        let feedComment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
+        feedComment.id = commentId
+        feedComment.userId = sharedComment.userId
+        feedComment.text = sharedComment.text
+        feedComment.mentions = mentionSet
+        feedComment.parent = parentComment
+        feedComment.post = feedPost
+        feedComment.status = {
+            switch sharedComment.status {
+            case .received: return .incoming
+            case .sent: return .sent
+            case .none, .sendError: return .sendError
+            }
+        }()
+        feedComment.timestamp = sharedComment.timestamp
+        
+        // Increase unread comments counter on post.
+        feedPost.unreadCount += 1
+
+        // Merge comment data
+        managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        self.save(managedObjectContext)
+        return feedComment
     }
 }
 

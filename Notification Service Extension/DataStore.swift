@@ -72,6 +72,49 @@ class DataStore: NotificationServiceExtensionDataStore {
 
         return feedPost
     }
+    
+    func save(protoComment: Clients_Comment, notificationMetadata: NotificationMetadata) {
+        let managedObjectContext = persistentContainer.viewContext
+        
+        // Extract info from parameters
+        let userId = notificationMetadata.fromId
+        let commentId = notificationMetadata.feedPostCommentId!
+        let postId = protoComment.feedPostID
+        let parentCommentId: String?
+        if protoComment.parentCommentID == "" {
+            parentCommentId = nil
+        } else {
+            parentCommentId = protoComment.parentCommentID
+        }
+        
+        // Add mentions
+        var mentionSet = Set<SharedFeedMention>()
+        for mention in protoComment.mentions {
+            let feedMention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
+            feedMention.index = Int(mention.index)
+            feedMention.userID = mention.userID
+            feedMention.name = mention.name
+            if feedMention.name == "" {
+                DDLogError("FeedData/new-comment/mention/\(mention.userID) missing push name")
+            }
+            mentionSet.insert(feedMention)
+        }
+        
+        // Create comment
+        DDLogInfo("NotificationExtension/DataStore/new-comment/create id=[\(commentId)]  postId=[\(postId)]")
+        let feedComment = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedComment", into: managedObjectContext) as! SharedFeedComment
+        feedComment.id = commentId
+        feedComment.userId = userId
+        feedComment.postId = postId
+        feedComment.parentCommentId = parentCommentId
+        feedComment.text = protoComment.text
+        feedComment.mentions = mentionSet
+        feedComment.status = .received
+        feedComment.timestamp = notificationMetadata.timestamp ?? Date()
+        
+        managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        save(managedObjectContext)
+    }
 
     func sharedMediaObject(forObjectId objectId: NSManagedObjectID) throws -> SharedMedia? {
         return try persistentContainer.viewContext.existingObject(with: objectId) as? SharedMedia

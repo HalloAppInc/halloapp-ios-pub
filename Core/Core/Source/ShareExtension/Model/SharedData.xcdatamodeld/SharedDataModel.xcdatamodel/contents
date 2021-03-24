@@ -9,6 +9,21 @@
         <attribute name="toUserId" attributeType="String"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="SharedMedia" inverseName="message" inverseEntity="SharedMedia"/>
     </entity>
+    <entity name="SharedFeedComment" representedClassName="SharedFeedComment" syncable="YES">
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="parentCommentId" optional="YES" attributeType="String"/>
+        <attribute name="postId" optional="YES" attributeType="String"/>
+        <attribute name="statusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userId" optional="YES" attributeType="String"/>
+        <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedFeedMention"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
     <entity name="SharedFeedMention" representedClassName="SharedFeedMention" syncable="YES">
         <attribute name="index" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
@@ -47,6 +62,7 @@
     </entity>
     <elements>
         <element name="SharedChatMessage" positionX="-54" positionY="81" width="128" height="148"/>
+        <element name="SharedFeedComment" positionX="-45" positionY="99" width="128" height="163"/>
         <element name="SharedFeedMention" positionX="-54" positionY="81" width="128" height="88"/>
         <element name="SharedFeedPost" positionX="-63" positionY="-18" width="128" height="193"/>
         <element name="SharedMedia" positionX="-45" positionY="27" width="128" height="223"/>

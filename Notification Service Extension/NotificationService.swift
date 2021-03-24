@@ -108,6 +108,9 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 invokeHandler = downloadTask == nil
             }
         }
+        if protoContainer.hasComment && metadata.feedPostCommentId != nil {
+            dataStore.save(protoComment: protoContainer.comment, notificationMetadata: metadata)
+        }
         if let messageId = metadata.messageID, protoContainer.hasChatMessage {
             guard !dataStore.messages().contains(where: { $0.id == metadata.messageID }) else {
                 DDLogError("didReceiveRequest/error duplicate message ID [\(metadata.messageID ?? "nil")]")

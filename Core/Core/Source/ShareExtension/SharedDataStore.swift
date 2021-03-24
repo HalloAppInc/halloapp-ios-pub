@@ -96,6 +96,22 @@ open class SharedDataStore {
         }
     }
     
+    public final func comments() -> [SharedFeedComment] {
+        let managedObjectContext = persistentContainer.viewContext
+        let fetchRequest: NSFetchRequest<SharedFeedComment> = SharedFeedComment.fetchRequest()
+        // Important to fetch these in ascending order - since there could be replies to comments.
+        // We fetch the parent comment using parentId and use it to store a reference in our entity.
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedFeedComment.timestamp, ascending: true)]
+        
+        do {
+            let comments = try managedObjectContext.fetch(fetchRequest)
+            return comments
+        } catch {
+            DDLogError("SharedDataStore/posts/error  [\(error)]")
+            fatalError("Failed to fetch shared posts.")
+        }
+    }
+    
     public final func messages() -> [SharedChatMessage] {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
@@ -114,15 +130,22 @@ open class SharedDataStore {
 
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.data-store")
 
-    public final func delete(posts: [SharedFeedPost], completion: @escaping (() -> Void)) {
+    public final func delete(posts: [SharedFeedPost], comments: [SharedFeedComment], completion: @escaping (() -> Void)) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
             let posts = posts.compactMap({ managedObjectContext.object(with: $0.objectID) as? SharedFeedPost })
+            let comments = comments.compactMap({ managedObjectContext.object(with: $0.objectID) as? SharedFeedComment })
 
+            // Delete posts
             for post in posts {
                 if let media = post.media, !media.isEmpty {
                     self.deleteFiles(forMedia: Array(media))
                 }
                 managedObjectContext.delete(post)
+            }
+            
+            // Delete comments
+            for comment in comments {
+                managedObjectContext.delete(comment)
             }
             
             self.save(managedObjectContext)
