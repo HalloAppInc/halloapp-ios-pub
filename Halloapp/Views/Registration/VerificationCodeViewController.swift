@@ -219,25 +219,35 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         retryAvailableDate = .distantFuture
 
         delegate.requestVerificationCode() { [weak self] result in
+            guard let self = self else { return }
+            DDLogInfo("VerificationCodeViewController/requestVerificationCode/result: \(result)")
             switch result {
             case .success(let retryDelay):
-                self?.state = .enteringCode
-                self?.textFieldCode.becomeFirstResponder()
-                self?.retryAvailableDate = Date().addingTimeInterval(retryDelay)
+                self.state = .enteringCode
+                self.textFieldCode.becomeFirstResponder()
+                self.retryAvailableDate = Date().addingTimeInterval(retryDelay)
                 DispatchQueue.main.asyncAfter(deadline: .now() + retryDelay + 1) {
-                    self?.updateUI()
+                    self.updateUI()
                 }
 
             case .failure(let error):
-                if let codeRequestError = error as? VerificationCodeRequestError, case .notInvited = codeRequestError {
-                    let alert = UIAlertController(
-                        title: Localizations.registrationInviteOnlyTitle,
-                        message: Localizations.registrationInviteOnlyText,
-                        preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
-                    self?.present(alert, animated: true)
+                if let codeRequestError = error as? VerificationCodeRequestError {
+                    switch codeRequestError {
+                    case .notInvited:
+                        let alert = UIAlertController(
+                            title: Localizations.registrationInviteOnlyTitle,
+                            message: Localizations.registrationInviteOnlyText,
+                            preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
+                        self.present(alert, animated: true)
+                    case .invalidClientVersion:
+                        let alert = self.getAppUpdateAlertController()
+                        self.present(alert, animated: true)
+                    default:
+                        self.state = .requestError
+                    }
                 } else {
-                    self?.state = .requestError
+                    self.state = .requestError
                 }
             }
         }
@@ -255,15 +265,39 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
 
         delegate.confirmVerificationCode(verificationCode) { [weak self] result in
             guard let self = self else { return }
-
+            DDLogInfo("VerificationCodeViewController/validateCode/result: \(result)")
             switch result {
             case .success:
                 self.state = .validatedCode
                 self.delegate?.verificationCodeViewControllerDidFinish(self)
-            case .failure:
-                self.state = .invalidCode
-                self.textFieldCode.becomeFirstResponder()
+            case .failure(let error):
+                if .invalidClientVersion == error as? VerificationCodeValidationError {
+                    let alert = self.getAppUpdateAlertController()
+                    self.present(alert, animated: true)
+                } else {
+                    self.state = .invalidCode
+                    self.textFieldCode.becomeFirstResponder()
+                }
             }
         }
+    }
+
+    private func getAppUpdateAlertController() -> UIAlertController {
+        let alert = UIAlertController(
+            title: Localizations.appUpdateNoticeTitle,
+            message: Localizations.appUpdateNoticeText,
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonUpdate, style: .default, handler: { action in
+            DDLogInfo("VerificationCodeViewController/updateNotice/update clicked")
+            let urlString = "itms-apps://apple.com/app/1501583052"
+            guard let customAppURL = URL(string: urlString),
+                  UIApplication.shared.canOpenURL(customAppURL) else
+            {
+                DDLogError("VerificationCodeViewController/updateNotice/error unable to open \(urlString)")
+                return
+            }
+            UIApplication.shared.open(customAppURL, options: [:], completionHandler: nil)
+        }))
+        return alert
     }
 }

@@ -289,6 +289,7 @@ final class DefaultRegistrationService: RegistrationService {
 enum VerificationCodeRequestError: String, Error, RawRepresentable {
     case notInvited = "not_invited"
     case smsFailure = "sms_fail"
+    case invalidClientVersion = "invalid_client_version"    // client version has expired.
     case malformedResponse // everything else
 }
 
@@ -300,6 +301,7 @@ enum VerificationCodeValidationError: String, Error, RawRepresentable {
     case invalidName = "invalid_name"                       // Invalid name in the request
     case badRequest = "bad_request"                         // Could be several reasons, one is UserAgent does not follow the HalloApp.
     case signedPhraseError = "unable_to_open_signed_phrase" // Server unable to read signed phrase
+    case invalidClientVersion = "invalid_client_version"    // client version has expired.
     case phraseSigningError                                 // Error signing key phrase
     case keyGenerationError                                 // Unable to generate keys
     case malformedResponse                                  // Everything else
