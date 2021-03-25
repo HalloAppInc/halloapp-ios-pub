@@ -138,12 +138,12 @@ class HelpViewController: UITableViewController {
     }
 
     private func openTermsOfService() {
-        let viewController = SFSafariViewController(url: URL(string: "https://www.halloapp.com/terms-of-service")!)
+        let viewController = SFSafariViewController(url: URL(string: "https://www.halloapp.com/terms")!)
         present(viewController, animated: true)
     }
 
     private func openPrivacyPolicy() {
-        let viewController = SFSafariViewController(url: URL(string: "https://www.halloapp.com/privacy-policy")!)
+        let viewController = SFSafariViewController(url: URL(string: "https://www.halloapp.com/privacy")!)
         present(viewController, animated: true)
     }
 
