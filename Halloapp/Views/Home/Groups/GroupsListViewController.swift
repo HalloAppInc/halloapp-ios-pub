@@ -41,6 +41,11 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         return searchController.searchBar.text?.isEmpty ?? true
     }
     private var isFiltering: Bool {
+        if searchController.isActive {
+            navigationItem.rightBarButtonItem = nil
+        } else {
+            navigationItem.rightBarButtonItem = rightBarButtonItem
+        }
         return searchController.isActive && !isSearchBarEmpty
     }
         
@@ -60,9 +65,8 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         installLargeTitleUsingGothamFont()
 
-        let image = UIImage(named: "NavCreateGroup", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openNewGroupAction))
-
+        navigationItem.rightBarButtonItem = rightBarButtonItem
+        
         definesPresentationContext = true
         
         searchController = UISearchController(searchResultsController: nil)
@@ -74,6 +78,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         searchController.searchBar.delegate = self
 
         searchController.searchBar.backgroundImage = UIImage()
+        searchController.searchBar.tintColor = UIColor.primaryBlue
         searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
 
         view.addSubview(tableView)
@@ -133,6 +138,12 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
             updateNavigationBarStyleUsing(scrollView: scrollView)
         }
     }
+
+    private lazy var rightBarButtonItem: UIBarButtonItem = {
+        let image = UIImage(named: "NavCreateGroup", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
+        let button = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openNewGroupAction))
+        return button
+    }()
 
     // MARK: NUX
 

@@ -39,9 +39,14 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         return searchController.searchBar.text?.isEmpty ?? true
     }
     private var isFiltering: Bool {
+        if searchController.isActive {
+            navigationItem.rightBarButtonItem = nil
+        } else {
+            navigationItem.rightBarButtonItem = rightBarButtonItem
+        }
         return searchController.isActive && !isSearchBarEmpty
     }
-        
+
     // MARK: Lifecycle
     
     init(title: String) {
@@ -53,13 +58,12 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     override func viewDidLoad() {
         DDLogInfo("ChatListViewController/viewDidLoad")
-        
+
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         installLargeTitleUsingGothamFont()
 
-        let image = UIImage(named: "NavComposeChat", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openComposeChatAction))
+        navigationItem.rightBarButtonItem = rightBarButtonItem
 
         definesPresentationContext = true
         
@@ -70,10 +74,11 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         searchController.hidesNavigationBarDuringPresentation = false
         searchController.searchBar.autocapitalizationType = .none
         searchController.searchBar.delegate = self
-    
+
         searchController.searchBar.backgroundImage = UIImage()
+        searchController.searchBar.tintColor = UIColor.primaryBlue
         searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
-        
+
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.constrain(to: view)
@@ -144,6 +149,12 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             updateNavigationBarStyleUsing(scrollView: scrollView)
         }
     }
+
+    private lazy var rightBarButtonItem: UIBarButtonItem = {
+        let image = UIImage(named: "NavComposeChat", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
+        let button = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openComposeChatAction))
+        return button
+    }()
 
     // MARK: NUX
 
