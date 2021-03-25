@@ -2020,6 +2020,12 @@ extension ChatData {
         
         // Update Chat Thread
         if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.fromUserId, in: managedObjectContext) {
+            // do an extra save if the timestamp was nil since fetchedcontroller have issues with detecting re-ordering changes for properties
+            // that started out as nil
+            if chatThread.lastMsgTimestamp == nil {
+                chatThread.lastMsgTimestamp = chatMessage.timestamp
+                save(managedObjectContext)
+            }
             chatThread.lastMsgId = chatMessage.id
             chatThread.lastMsgUserId = chatMessage.fromUserId
             chatThread.lastMsgText = chatMessage.text
@@ -2038,9 +2044,9 @@ extension ChatData {
             chatThread.lastMsgTimestamp = chatMessage.timestamp
             chatThread.unreadCount = 1
         }
-        
-        self.save(managedObjectContext)
-        
+
+        save(managedObjectContext)
+
         if isCurrentlyChattingWithUser && isAppActive {
             self.sendSeenReceipt(for: chatMessage)
             self.updateChatMessage(with: chatMessage.id) { (chatMessage) in
@@ -2050,21 +2056,21 @@ extension ChatData {
             self.unreadMessageCount += 1
             self.updateUnreadChatsThreadCount()
         }
-        
+
         // 1 and higher means it's an offline message and that server has sent out a push notification already
         if xmppChatMessage.retryCount == nil || xmppChatMessage.retryCount == 0 {
             showOneToOneNotification(for: xmppChatMessage)
         }
-        
+
         // download chat message media
         processInboundPendingChatMsgMedia()
-        
+
         // remove user from typing state
         removeFromChatStateList(from: xmppChatMessage.fromUserId, threadType: .oneToOne, threadID: xmppChatMessage.fromUserId, type: .available)
     }
-    
+
     // MARK: 1-1 Process Inbound Receipts
-    
+
     private func processInboundOneToOneMessageReceipt(with receipt: XMPPReceipt) {
         DDLogInfo("ChatData/processInboundOneToOneMessageReceipt")
         let messageId = receipt.itemId
