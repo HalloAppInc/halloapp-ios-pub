@@ -3737,7 +3737,7 @@ extension ChatData {
         }
         chatGroupMessage.groupId = xmppGroup.groupId
         chatGroupMessage.timestamp = Date()
-        
+
         let chatGroupMessageEvent = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMessageEvent.entity().name!, into: managedObjectContext) as! ChatGroupMessageEvent
         chatGroupMessageEvent.sender = xmppGroup.sender
         chatGroupMessageEvent.memberUserId = xmppGroupMember?.userId
@@ -3755,7 +3755,7 @@ extension ChatData {
             default: return .none
             }
         }()
-        
+
         chatGroupMessageEvent.memberAction = {
             switch xmppGroupMember?.action {
             case .add: return .add
@@ -3766,11 +3766,11 @@ extension ChatData {
             default: return .none
             }
         }()
-        
+
         chatGroupMessageEvent.groupMessage = chatGroupMessage
-        
+
         save(managedObjectContext)
-        
+
         if let chatThread = self.chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
 
             // if group feed is not enabled or if the chat already have a message or event
@@ -3780,7 +3780,7 @@ extension ChatData {
                 chatThread.lastMsgText = chatGroupMessageEvent.text
                 chatThread.lastMsgMediaType = .none
                 chatThread.lastMsgStatus = .none
-                
+
                 if ![.changeAvatar].contains(chatGroupMessageEvent.action) {
                     chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
                 }
@@ -3788,17 +3788,14 @@ extension ChatData {
             
             chatThread.lastFeedUserID = chatGroupMessage.userId
             chatThread.lastFeedText = chatGroupMessageEvent.text
-            
-            if ![.changeAvatar, .modifyAdmins, .modifyMembers].contains(chatGroupMessageEvent.action) {
-                chatThread.lastFeedTimestamp = chatGroupMessage.timestamp
-            }
+            chatThread.lastFeedTimestamp = chatGroupMessage.timestamp
+
             // unreadCount is not incremented for group event messages
         }
-        
+
         didGetAGroupEvent.send(chatGroupMessage.groupId)
     }
-    
-    
+
     private func processGroupAddMemberAction(chatGroup: ChatGroup, xmppGroupMember: XMPPGroupMember, in managedObjectContext: NSManagedObjectContext) {
         DDLogDebug("ChatData/group/processGroupAddMemberAction/member [\(xmppGroupMember.userId)]")
         guard let xmppGroupMemberType = xmppGroupMember.type else { return }
