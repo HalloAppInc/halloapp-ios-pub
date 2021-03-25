@@ -25,6 +25,9 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     private var cachedCellHeights = [FeedDisplayItem: CGFloat]()
 
+    private var isVisible: Bool = true
+    private var isCheckForOnscreenCellsScheduled: Bool = false
+
     init(title: String?, fetchRequest: NSFetchRequest<FeedPost>) {
         self.feedDataSource = FeedDataSource(fetchRequest: fetchRequest)
         super.init(nibName: nil, bundle: nil)
@@ -112,9 +115,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] (_) in
                 guard let self = self else { return }
-                self.collectionView.indexPathsForVisibleItems.forEach { (indexPath) in
-                    self.didShowCell(atIndexPath: indexPath)
-                }
+                self.checkForOnscreenCells()
         })
 
         cancellableSet.insert(
@@ -125,6 +126,13 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         })
 
         update(with: feedDataSource.displayItems)
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        isVisible = true
+        checkForOnscreenCells()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -138,6 +146,8 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         super.viewWillDisappear(animated)
 
         stopAllVideoPlayback()
+
+        isVisible = false
     }
 
     override func viewLayoutMarginsDidChange() {
@@ -148,8 +158,11 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView == collectionView else { return }
         updateNavigationBarStyleUsing(scrollView: collectionView)
-        guard isNearTop() else { return }
-        removeNewPostsIndicator()
+        if isNearTop() {
+            removeNewPostsIndicator()
+        }
+
+        checkForOnscreenCells()
     }
 
     // MARK: FeedCollectionViewController Customization
@@ -356,21 +369,47 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         }
     }
 
+    private func willShowCell(atIndexPath indexPath: IndexPath) {
+        guard let feedPost = feedDataSource.item(at: indexPath.item)?.post else { return }
+        // Load downloaded images into memory.
+        MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)?.loadImages()
+
+        // Initiate download for images that were not yet downloaded.
+        MainAppContext.shared.feedData.downloadMedia(in: [feedPost])
+    }
+
     private func didShowCell(atIndexPath indexPath: IndexPath) {
-        if let feedPost = feedDataSource.item(at: indexPath.item)?.post {
-            // Load downloaded images into memory.
-            MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)?.loadImages()
+        guard let feedPost = feedDataSource.item(at: indexPath.item)?.post else { return }
+        guard let cell = self.collectionView.cellForItem(at: indexPath) else { return }
+        guard self.isOnscreen(cell: cell) else { return }
+        MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+        UNUserNotificationCenter.current().removeDeliveredFeedNotifications(postId: feedPost.id)
+    }
+    
+    private func isOnscreen(cell: UICollectionViewCell) -> Bool {
+        var rectSize = collectionView.bounds.size
+        var rectOrigin = collectionView.contentOffset
 
-            // Initiate download for images that were not yet downloaded.
-            MainAppContext.shared.feedData.downloadMedia(in: [feedPost])
+        rectSize.height -= 220 // rough estimate for top/bottom bars and cell paddings
+        rectOrigin.y += 120 // rough estimate for top bar and cell padding
 
-            // If app is in foreground and is currently active:
-            // • send "seen" receipt for the post
-            // • remove notifications for the post
-            if UIApplication.shared.applicationState == .active {
-                MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
-                UNUserNotificationCenter.current().removeDeliveredFeedNotifications(postId: feedPost.id)
+        let visibleOnscreenRect = CGRect(origin: rectOrigin, size: rectSize)
+        let result = cell.frame.intersects(visibleOnscreenRect)
+        return result
+    }
+
+    // checks for cells that's actually visible on the screen
+    // using dispatch instead of timer for throttling as scrolling will keep pushing back timers
+    private func checkForOnscreenCells() {
+        guard isVisible && UIApplication.shared.applicationState == .active else { return }
+        guard !isCheckForOnscreenCellsScheduled else { return }
+        isCheckForOnscreenCellsScheduled = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            guard let self = self else { return }
+            self.collectionView.indexPathsForVisibleItems.forEach { (indexPath) in
+                self.didShowCell(atIndexPath: indexPath)
             }
+            self.isCheckForOnscreenCellsScheduled = false
         }
     }
 
@@ -481,7 +520,8 @@ extension FeedCollectionViewController {
 extension FeedCollectionViewController: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        didShowCell(atIndexPath: indexPath)
+        willShowCell(atIndexPath: indexPath)
+        checkForOnscreenCells()
     }
 
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
