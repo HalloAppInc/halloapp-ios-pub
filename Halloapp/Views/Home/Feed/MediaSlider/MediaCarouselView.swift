@@ -793,7 +793,9 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
                 showPlaceholderImage()
                 videoLoadingCancellable = media.videoDidBecomeAvailable.sink { [weak self] (videoURL) in
                     guard let self = self else { return }
-                    self.showPlayer(forVideoURL: videoURL)
+                    DispatchQueue.main.async {
+                        self.showPlayer(forVideoURL: videoURL)
+                    }
                 }
             }
         }
