@@ -52,6 +52,7 @@ class ChatData: ObservableObject {
     private let contactStore: ContactStoreMain
     private var service: HalloService
     private let mediaUploader: MediaUploader
+    private let imageServer = ImageServer()
     
     private var currentlyChattingWithUserId: String? = nil
     private var isSubscribedToCurrentUser: Bool = false
@@ -1366,8 +1367,6 @@ extension ChatData {
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("ChatData/createChatMsg/\(messageId)/add-media [\(mediaItem)]")
             guard let mediaItemSize = mediaItem.size,
-                  let mediaItemKey = mediaItem.key,
-                  let mediaItemSha256 = mediaItem.sha256,
                   let mediaItemfileURL = mediaItem.fileURL else {
                 DDLogDebug("ChatData/createChatMsg/\(messageId)/add-media/skip/missing info")
                 continue
@@ -1390,8 +1389,8 @@ extension ChatData {
             chatMedia.url = mediaItem.url
             chatMedia.uploadUrl = mediaItem.uploadUrl
             chatMedia.size = mediaItemSize
-            chatMedia.key = mediaItemKey
-            chatMedia.sha256 = mediaItemSha256
+            chatMedia.key = ""
+            chatMedia.sha256 = ""
             chatMedia.order = Int16(index)
             chatMedia.message = chatMessage
 
@@ -1522,49 +1521,62 @@ extension ChatData {
         DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/starting [\(totalUploads)]")
 
         let uploadGroup = DispatchGroup()
+        let uploadCompletion: (Result<MediaUploader.UploadDetails, Error>) -> Void = { result in
+            switch result {
+            case .failure(_):
+                numberOfFailedUploads += 1
+
+                if let msgTimestamp = chatMsg.timestamp, let diff = Calendar.current.dateComponents([.hour], from: msgTimestamp, to: Date()).hour, diff > 24 {
+                    isMsgStale = true
+                }
+            default:
+                break
+            }
+
+            uploadGroup.leave()
+        }
+
         for mediaItem in mediaItemsToUpload {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
-            mediaUploader.upload(media: mediaItem, groupId: msgID, didGetURLs: { (mediaURLs) in
-                DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
-                // Save URLs acquired during upload to the database.
-                self.updateChatMessage(with: msgID) { msg in
-                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
-                    
-                    switch mediaURLs {
-                    case .getPut(let getURL, let putURL):
-                        media.url = getURL
-                        media.uploadUrl = putURL
-                    case .patch(let patchURL):
-                        media.uploadUrl = patchURL
-                    }
-                    
-                }
-            }) { (uploadResult) in
-                DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(mediaIndex)/finished result=[\(uploadResult)]")
+            if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
+                let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+                let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
+                let type: FeedMediaType = mediaItem.type == .image ? .image : .video
 
-                // Save URLs acquired during upload to the database.
-                self.updateChatMessage(with: msgID, block: { msg in
-                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
-                    
-                    switch uploadResult {
-                    case .success(let details):
-                        media.url = details.downloadURL
-                        media.outgoingStatus = .uploaded
+                imageServer.prepare(type, url: url, output: output) { [weak self] in
+                    guard let self = self else { return }
+
+                    switch $0 {
+                    case .success(let result):
+                        let path = self.relativePath(from: output)
+                        mediaItem.relativeFilePath = path
+
+                        self.updateChatMessage(with: msgID, block: { msg in
+                            guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
+
+                            media.size = result.size
+                            media.key = result.key
+                            media.sha256 = result.sha256
+                            media.relativeFilePath = path
+                        }) {
+                            self.uploadChat(msgID: msgID, media: mediaItem, completion: uploadCompletion)
+                        }
                     case .failure(_):
                         numberOfFailedUploads += 1
-                        media.outgoingStatus = .error
-                        media.numTries += 1
-                        
-                        if let msgTimestamp = chatMsg.timestamp, let diff = Calendar.current.dateComponents([.hour], from: msgTimestamp, to: Date()).hour, diff > 24 {
-                            isMsgStale = true
+
+                        self.updateChatMessage(with: msgID, block: { msg in
+                            guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
+                            media.outgoingStatus = .error
+                            media.numTries += 1
+                        }) {
+                            uploadGroup.leave()
                         }
                     }
-
-                }, performAfterSave: {
-                    uploadGroup.leave()
-                })
+                }
+            } else {
+                uploadChat(msgID: msgID, media: mediaItem, completion: uploadCompletion)
             }
         }
 
@@ -1581,6 +1593,45 @@ extension ChatData {
                 self.send(message: XMPPChatMessage(chatMessage: chatMsg))
             }
 
+        }
+    }
+
+    private func uploadChat(msgID: String, media: ChatMedia, completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
+        let index = media.order
+
+        mediaUploader.upload(media: media, groupId: msgID, didGetURLs: { (mediaURLs) in
+            DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(index)/acquired-urls [\(mediaURLs)]")
+
+            // Save URLs acquired during upload to the database.
+            self.updateChatMessage(with: msgID) { msg in
+                guard let media = msg.media?.first(where: { $0.order == index }) else { return }
+
+                switch mediaURLs {
+                case .getPut(let getURL, let putURL):
+                    media.url = getURL
+                    media.uploadUrl = putURL
+                case .patch(let patchURL):
+                    media.uploadUrl = patchURL
+                }
+            }
+        }) { (uploadResult) in
+            DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(index)/finished result=[\(uploadResult)]")
+
+            // Save URLs acquired during upload to the database.
+            self.updateChatMessage(with: msgID, block: { msg in
+                guard let media = msg.media?.first(where: { $0.order == index }) else { return }
+
+                switch uploadResult {
+                case .success(let details):
+                    media.url = details.downloadURL
+                    media.outgoingStatus = .uploaded
+                case .failure(_):
+                    media.outgoingStatus = .error
+                    media.numTries += 1
+                }
+            }) {
+                completion(uploadResult)
+            }
         }
     }
 
@@ -2590,8 +2641,6 @@ extension ChatData {
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("ChatData/group/new-msg/\(groupMessageId)/add-media [\(mediaItem)]")
             guard let mediaItemSize = mediaItem.size,
-                  let mediaItemKey = mediaItem.key,
-                  let mediaItemSha256 = mediaItem.sha256,
                   let mediaItemFileURL = mediaItem.fileURL else {
                 DDLogDebug("ChatData/createChatMsg/\(groupMessageId)/add-media/skip/missing info")
                 continue
@@ -2614,8 +2663,8 @@ extension ChatData {
             chatMedia.url = mediaItem.url
             chatMedia.uploadUrl = mediaItem.uploadUrl
             chatMedia.size = mediaItemSize
-            chatMedia.key = mediaItemKey
-            chatMedia.sha256 = mediaItemSha256
+            chatMedia.key = ""
+            chatMedia.sha256 = ""
             chatMedia.order = Int16(index)
             chatMedia.message = nil
             chatMedia.groupMessage = chatGroupMessage
@@ -2716,44 +2765,57 @@ extension ChatData {
         DDLogInfo("ChatData/group/upload-media/\(groupChatMsgID)/starting [\(totalUploads)]")
 
         let uploadGroup = DispatchGroup()
+        let uploadCompletion: (Result<MediaUploader.UploadDetails, Error>) -> Void = { result in
+            switch result {
+            case .failure(_):
+                numberOfFailedUploads += 1
+            default:
+                break
+            }
+
+            uploadGroup.leave()
+        }
         
         for mediaItem in mediaItemsToUpload {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
-            
-            mediaUploader.upload(media: mediaItem, groupId: groupChatMsgID, didGetURLs: { (mediaURLs) in
-                DDLogInfo("ChatData/group/upload-media/\(groupChatMsgID)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
-                // Save URLs acquired during upload to the database.
-                self.updateChatGroupMessage(with: groupChatMsgID) { msg in
-                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
-                    switch mediaURLs {
-                    case .getPut(let getURL, let putURL):
-                        media.url = getURL
-                        media.uploadUrl = putURL
-                    case .patch(let patchURL):
-                        media.uploadUrl = patchURL
-                    }
-                }
-                
-            }) { (uploadResult) in
-                DDLogInfo("ChatData/group/upload-media/\(groupChatMsgID)/\(mediaIndex)/finished result=[\(uploadResult)]")
+            if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
+                let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+                let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
+                let type: FeedMediaType = mediaItem.type == .image ? .image : .video
 
-                self.updateChatGroupMessage(with: groupChatMsgID, block: { msg in
-                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
-                    switch uploadResult {
-                    case .success(let details):
-                        media.url = details.downloadURL
-                        media.outgoingStatus = .uploaded
+                imageServer.prepare(type, url: url, output: output) { [weak self] in
+                    guard let self = self else { return }
 
+                    switch $0 {
+                    case .success(let result):
+                        let path = self.relativePath(from: output)
+                        mediaItem.relativeFilePath = path
+
+                        self.updateChatGroupMessage(with: groupChatMsgID, block: { msg in
+                            guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
+
+                            media.size = result.size
+                            media.key = result.key
+                            media.sha256 = result.sha256
+                            media.relativeFilePath = path
+                        }) {
+                            self.uploadGroupChat(msgID: groupChatMsgID, media: mediaItem, completion: uploadCompletion)
+                        }
                     case .failure(_):
                         numberOfFailedUploads += 1
-                        media.outgoingStatus = .error
+
+                        self.updateChatGroupMessage(with: groupChatMsgID, block: { msg in
+                            guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
+                            media.outgoingStatus = .error
+                        }) {
+                            uploadGroup.leave()
+                        }
                     }
-                },
-                performAfterSave: {
-                    uploadGroup.leave()
-                })
+                }
+            } else {
+                uploadGroupChat(msgID: groupChatMsgID, media: mediaItem, completion: uploadCompletion)
             }
         }
 
@@ -2766,6 +2828,42 @@ extension ChatData {
                 }
             } else {
                 self.service.sendGroupChatMessage(XMPPChatGroupMessage(chatGroupMessage: groupChatMsg))
+            }
+        }
+    }
+
+    private func uploadGroupChat(msgID: String, media: ChatMedia, completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
+        let index = media.order
+
+        mediaUploader.upload(media: media, groupId: msgID, didGetURLs: { (mediaURLs) in
+            DDLogInfo("ChatData/group/upload-media/\(msgID)/\(index)/acquired-urls [\(mediaURLs)]")
+
+            // Save URLs acquired during upload to the database.
+            self.updateChatGroupMessage(with: msgID) { msg in
+                guard let media = msg.media?.first(where: { $0.order == index }) else { return }
+                switch mediaURLs {
+                case .getPut(let getURL, let putURL):
+                    media.url = getURL
+                    media.uploadUrl = putURL
+                case .patch(let patchURL):
+                    media.uploadUrl = patchURL
+                }
+            }
+        }) { (uploadResult) in
+            DDLogInfo("ChatData/group/upload-media/\(msgID)/\(index)/finished result=[\(uploadResult)]")
+
+            self.updateChatGroupMessage(with: msgID, block: { msg in
+                guard let media = msg.media?.first(where: { $0.order == index }) else { return }
+                switch uploadResult {
+                case .success(let details):
+                    media.url = details.downloadURL
+                    media.outgoingStatus = .uploaded
+
+                case .failure(_):
+                    media.outgoingStatus = .error
+                }
+            }) {
+                completion(uploadResult)
             }
         }
     }

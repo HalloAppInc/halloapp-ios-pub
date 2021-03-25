@@ -170,7 +170,7 @@ final class NewPostViewController: UIViewController {
         var pendingMedia = [PendingMedia]()
         let mediaToPost = PendingMedia(type: .video)
         mediaToPost.originalVideoURL = videoURL
-        mediaToPost.videoURL = videoURL
+        mediaToPost.fileURL = videoURL
 
         pendingMedia.append(mediaToPost)
         state.pendingMedia = pendingMedia
@@ -190,7 +190,7 @@ extension NewPostViewController: UIImagePickerControllerDelegate {
         } else if let videoURL = info[.mediaURL] as? URL {
             let mediaToPost = PendingMedia(type: .video)
             mediaToPost.originalVideoURL = videoURL
-            mediaToPost.videoURL = videoURL
+            mediaToPost.fileURL = videoURL
 
             pendingMedia.append(mediaToPost)
         } else {

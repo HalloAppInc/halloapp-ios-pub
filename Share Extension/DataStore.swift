@@ -18,6 +18,7 @@ class DataStore: ShareExtensionDataStore {
 
     private let service: CoreService
     private let mediaUploader: MediaUploader
+    private let imageServer = ImageServer(maxAllowedAspectRatio: 1.25)
 
     init(service: CoreService) {
         self.service = service
@@ -47,7 +48,8 @@ class DataStore: ShareExtensionDataStore {
         for mediaItem in mediaItemsToUpload {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
-            mediaUploader.upload(media: mediaItem, groupId: postOrMessageId, didGetURLs: { (mediaURLs) in
+
+            let onDidGetURLs: (MediaURLInfo) -> () = { (mediaURLs) in
                 DDLogInfo("SharedDataStore/upload-media/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
                 // Save URLs acquired during upload to the database.
@@ -60,22 +62,54 @@ class DataStore: ShareExtensionDataStore {
                     mediaItem.uploadUrl = patchURL
                 }
                 self.save(managedObjectContext)
-            }) { (uploadResult) in
-                DDLogInfo("SharedDataStore/upload-media/\(mediaIndex)/finished result=[\(uploadResult)]")
+            }
 
-                // Save URLs acquired during upload to the database.
-                switch uploadResult {
-                case .success(let details):
-                    mediaItem.url = details.downloadURL
-                    mediaItem.status = .uploaded
+            let onUploadCompletion: MediaUploader.Completion = { (uploadResult) in
+                    DDLogInfo("SharedDataStore/upload-media/\(mediaIndex)/finished result=[\(uploadResult)]")
 
-                case .failure(_):
-                    numberOfFailedUploads += 1
-                    mediaItem.status = .error
+                    // Save URLs acquired during upload to the database.
+                    switch uploadResult {
+                    case .success(let details):
+                        mediaItem.url = details.downloadURL
+                        mediaItem.status = .uploaded
+
+                    case .failure(_):
+                        numberOfFailedUploads += 1
+                        mediaItem.status = .error
+                    }
+                    self.save(managedObjectContext)
+
+                    uploadGroup.leave()
+            }
+
+            if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
+                let url = fileURL(forRelativeFilePath: relativeFilePath)
+                let path = Self.relativeFilePath(forFilename: UUID().uuidString + ".processed", mediaType: mediaItem.type)
+                let output = fileURL(forRelativeFilePath: path)
+
+                imageServer.prepare(mediaItem.type, url: url, output: output) { [weak self] in
+                    guard let self = self else { return }
+
+                    switch $0 {
+                    case .success(let result):
+                        mediaItem.size = result.size
+                        mediaItem.key = result.key
+                        mediaItem.sha256 = result.sha256
+                        mediaItem.relativeFilePath = path
+                        self.save(managedObjectContext)
+
+                        self.mediaUploader.upload(media: mediaItem, groupId: postOrMessageId, didGetURLs: onDidGetURLs, completion: onUploadCompletion)
+                    case .failure(_):
+                        numberOfFailedUploads += 1
+
+                        mediaItem.status = .error
+                        self.save(managedObjectContext)
+
+                        uploadGroup.leave()
+                    }
                 }
-                self.save(managedObjectContext)
-
-                uploadGroup.leave()
+            } else {
+                mediaUploader.upload(media: mediaItem, groupId: postOrMessageId, didGetURLs: onDidGetURLs, completion: onUploadCompletion)
             }
         }
 
@@ -97,8 +131,8 @@ class DataStore: ShareExtensionDataStore {
         feedMedia.url = media.url
         feedMedia.uploadUrl = media.uploadUrl
         feedMedia.size = media.size!
-        feedMedia.key = media.key!
-        feedMedia.sha256 = media.sha256!
+        feedMedia.key = ""
+        feedMedia.sha256 = ""
         feedMedia.order = Int16(media.order)
 
         switch target {

@@ -8,6 +8,7 @@
 
 import AVFoundation
 import CocoaLumberjack
+import Combine
 import Core
 import SwiftUI
 
@@ -24,10 +25,10 @@ enum VideoProcessingError: Error {
     case failedToCopyLocally
 }
 
-fileprivate struct ProcessedImageData {
-    var image: UIImage
-    var uncroppedImage: UIImage?
-    var cropRect: CGRect?
+struct ImageServerResult {
+    var size: CGSize
+    var key: String
+    var sha256: String
 }
 
 class ImageServer {
@@ -39,295 +40,184 @@ class ImageServer {
     private static let mediaProcessingSemaphore = DispatchSemaphore(value: 3) // Prevents having more than 3 instances of AVAssetReader
 
     private let mediaProcessingQueue = DispatchQueue(label: "ImageServer.MediaProcessing")
-    private let mediaProcessingGroup = DispatchGroup()
-    private let imageProcessingGroup = DispatchGroup()
     private var isCancelled = false
     private var maxAllowedAspectRatio: CGFloat? = nil
-    private var maxVideoLength: TimeInterval?
 
-    init(maxAllowedAspectRatio: CGFloat? = nil, maxVideoLength: TimeInterval? = nil) {
+    init(maxAllowedAspectRatio: CGFloat? = nil) {
         self.maxAllowedAspectRatio = maxAllowedAspectRatio
-        self.maxVideoLength = maxVideoLength
-    }
-
-    func prepare(mediaItems: [PendingMedia], completion: @escaping (Bool) -> ()) {
-        mediaItems.forEach{ prepare(mediaItem: $0) }
-        mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
-            guard let self = self else { return }
-            if !self.isCancelled {
-                let allItemsPrepared = mediaItems.filter{ $0.error != nil }.isEmpty
-                completion(allItemsPrepared)
-            }
-        }
-    }
-    
-    func prepare(mediaItems: [PendingMedia], isReady: Binding<Bool>, imagesAreProcessed: Binding<Bool>, numberOfFailedItems: Binding<Int>) {
-        mediaItems.forEach{ prepare(mediaItem: $0) }
-        imageProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
-            guard let self = self else { return }
-            if !self.isCancelled {
-                imagesAreProcessed.wrappedValue = true
-            }
-        }
-        mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
-            guard let self = self else { return }
-            if !self.isCancelled {
-                isReady.wrappedValue = true
-                numberOfFailedItems.wrappedValue = mediaItems.filter{ $0.error != nil }.count
-            }
-        }
     }
 
     func cancel() {
         isCancelled = true
     }
 
-    private func prepare(mediaItem item: PendingMedia) {
-        let typeSpecificProcessingGroup = item.type == .image ? imageProcessingGroup : nil
-        typeSpecificProcessingGroup?.enter()
-        mediaProcessingQueue.async(group: mediaProcessingGroup) { [weak self] in
-            defer { typeSpecificProcessingGroup?.leave() }
+    func prepare(_ type: FeedMediaType, url: URL, output: URL, completion: @escaping (Result<ImageServerResult, Error>) -> Void) {
+        let processingCompletion: (Result<(URL, CGSize), Error>) -> Void = { [weak self] result in
             guard let self = self, !self.isCancelled else { return }
-            // 1. Resize media as necessary.
-            let mediaResizeCropGroup = DispatchGroup()
-            switch item.type {
-            case .image:
-                mediaResizeCropGroup.enter()
-                self.processImage(inMediaItem: item) { (result) in
-                    defer { mediaResizeCropGroup.leave() }
-                    switch result {
-                    case .success(let processedData):
-                        // Original image could be returned if resize wasn't necessary, thus this comparison.
-                        if processedData.image != item.image {
-                            mediaResizeCropGroup.enter()
-                            DispatchQueue.main.async {
-                                item.image = processedData.image
-                                item.size = processedData.image.size
-                                if let cropRect = processedData.cropRect, let originalImage = processedData.uncroppedImage, item.edit == nil {
-                                    DDLogInfo("ImageServer/image/prepare set edit image")
-                                    item.edit = PendingMediaEdit(image: originalImage)
-                                    item.edit!.cropRect = cropRect
-                                }
-                                item.isResized = true
-                                mediaResizeCropGroup.leave()
-                            }
-                        }
 
-                    case .failure(let error):
-                        item.error = error
-                    }
-
-                }
-
-            case .video:
-                if let url = item.videoURL, let max = self.maxVideoLength {
-                    let asset = AVURLAsset(url: url)
-
-                    if asset.duration.seconds > max {
-                        DDLogWarn("ImageServer/video/prepare/warn  video is \(asset.duration.seconds) seconds long. Maximum is \(max) seconds. \(item)")
-                        return
-                    }
-                }
-
-                mediaResizeCropGroup.enter()
-                defer { mediaResizeCropGroup.leave() }
-
-                if !item.isResized {
-                    mediaResizeCropGroup.enter()
-                    ImageServer.mediaProcessingSemaphore.wait()
-                    self.resizeVideo(inMediaItem: item) { (result) in
-                        defer {
-                            mediaResizeCropGroup.leave()
-                            ImageServer.mediaProcessingSemaphore.signal()
-                        }
-
-                        switch (result) {
-                        case .success(let (videoUrl, videoResolution)):
-                            mediaResizeCropGroup.enter()
-                            DispatchQueue.main.async {
-                                item.videoURL = videoUrl
-                                item.size = videoResolution
-                                item.isResized = true
-                                mediaResizeCropGroup.leave()
-                            }
-
-                        case .failure(let error):
-                            item.error = error
-                        }
-                    }
-                }
-            }
-
-            // 2. Encrypt media.
-            self.mediaProcessingGroup.enter()
-            typeSpecificProcessingGroup?.enter()
-            mediaResizeCropGroup.notify(queue: self.mediaProcessingQueue) {
-                defer {
-                    self.mediaProcessingGroup.leave()
-                    typeSpecificProcessingGroup?.leave()
-                }
-                guard item.error == nil, !self.isCancelled else { return }
-
-                /// TODO: Encrypt media without loading into memory.
-
-                // 2.1 Load image / video into memory.
-                var plaintextData: Data! = nil
-                switch item.type {
-                case .image:
-                    if let image = item.image, let imageData = image.jpegData(compressionQuality: Constants.jpegCompressionQuality) {
-                        DDLogInfo("ImageServer/image/prepare/ready  JPEG Quality: [\(Constants.jpegCompressionQuality)] Size: [\(imageData.count)]")
-                        plaintextData = imageData
-
-                        // Save resized image to the temp directory - it will be copied to the permanent directory if user proceeds posting media.
-                        let tempMediaURL = URL(fileURLWithPath: NSTemporaryDirectory())
-                            .appendingPathComponent(UUID().uuidString, isDirectory: false)
-                            .appendingPathExtension("jpg")
-                        DDLogDebug("ImageServer/media/copy to [\(tempMediaURL)]")
-                        do {
-                            try imageData.write(to: tempMediaURL, options: [ .atomic ])
-                            item.fileURL = tempMediaURL
-                        }
-                        catch {
-                            DDLogError("ImageServer/media/copy/error [\(error)]")
-                            item.error = error
-                        }
-                    } else {
-                        DDLogError("ImageServer/image/prepare/error  Failed to generate JPEG data. \(item)")
-                        item.error = ImageProcessingError.jpegConversionFailure
-                    }
-
-                case .video:
-                    if let videoData = try? Data(contentsOf: item.videoURL!) {
-                        DDLogInfo("ImageServer/video/prepare/ready  New Video file size: [\(videoData.count)]")
-                        plaintextData = videoData
-
-                        // Exported video would be copied to the permanent directory if user proceeds posting media.
-                        item.fileURL = item.videoURL
-                    } else {
-                        DDLogError("ImageServer/video/prepare/error  File not accessible")
-                        item.error = VideoProcessingError.failedToLoad
-                    }
-                }
-                                
-                guard item.error == nil && plaintextData != nil else { return }
-
-                // 2.2 Encrypt media.
-                let ts = Date()
-                let encryptedData: Data, key: Data, sha256Hash: Data
-                DDLogDebug("ImageServer/encrypt/begin")
+            switch result {
+            case .success((let tmp, let size)):
                 do {
-                    (encryptedData, key, sha256Hash) = try MediaCrypter.encrypt(data: plaintextData, mediaType: item.type)
+                    try FileManager.default.copyItem(at: tmp, to: output)
+                    DDLogInfo("ImageServer/prepare/media/processed copied from=[\(tmp.description)] to=[\(output.description)]")
+
+                    try FileManager.default.removeItem(at: tmp)
+                    DDLogInfo("ImageServer/prepare/media/deleted url=[\(tmp.description)]")
                 } catch {
-                    DDLogError("ImageServer/encrypt/error item=[\(item)] [\(error)]")
-                    item.error = error
-                    return
+                    DDLogError("ImageServer/preapre/media/error error=[\(error)]")
                 }
-                DDLogDebug("ImageServer/encrypt/finished  Duration: \(-ts.timeIntervalSinceNow) s")
 
-                // 2.3 Save encrypted data into a temp file.
-                if let existingFileURL = item.encryptedFileUrl {
-                    do {
-                        try FileManager.default.removeItem(at: existingFileURL)
-                        DDLogInfo("ImageServer/media/delete-existing-encrypted/deleted [\(existingFileURL.absoluteString)]")
-                    } catch {
-                        DDLogError("ImageServer/media/delete-existing-encrypted/error [\(error)]")
-                    }
-                }
-                let encryptedFileURL = URL(fileURLWithPath: NSTemporaryDirectory())
-                    .appendingPathComponent(UUID().uuidString, isDirectory: false)
-                    .appendingPathExtension("enc")
-                DDLogDebug("ImageServer/media/save-enc to [\(encryptedFileURL)]")
-                do {
-                    try encryptedData.write(to: encryptedFileURL, options: [ .atomic ])
-                    item.key = key.base64EncodedString()
-                    item.sha256 = sha256Hash.base64EncodedString()
-                    item.encryptedFileUrl = encryptedFileURL
-                }
-                catch {
-                    DDLogError("ImageServer/media/save-enc/error [\(error)]")
-                    item.error = error
-                    return
-                }
+                completion(
+                    self.encrypt(type, input: output, output: output.appendingPathExtension("enc"))
+                        .map { ImageServerResult(size: size, key: $0.key, sha256: $0.sha256) }
+                )
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+
+        mediaProcessingQueue.async { [weak self] in
+            guard let self = self, !self.isCancelled else { return }
+
+            switch type {
+            case .image:
+                self.process(image: url, completion: processingCompletion)
+            case .video:
+                self.resize(video: url, completion: processingCompletion)
             }
         }
     }
 
-    private func cropImage(inMediaItem item: PendingMedia, image: UIImage, completion: @escaping (Result<ProcessedImageData, Error>) -> ()) {
-        guard let maxAllowedAspectRatio = maxAllowedAspectRatio, image.size.height > maxAllowedAspectRatio * image.size.width else {
-            completion(.success(ProcessedImageData(image: image)))
-            return
+    private func encrypt(_ type: FeedMediaType, input: URL, output: URL) -> Result<(key: String, sha256: String), Error> {
+        // TODO:  Encrypt media without loading into memory.
+        guard let plaintextData = try? Data(contentsOf: input) else {
+            DDLogError("ImageServer/encrypt/media/error  File not accessible")
+            return .failure(VideoProcessingError.failedToLoad)
         }
+        DDLogInfo("ImageServer/prepare/media/ready  New media file size: [\(plaintextData.count)]")
 
-        DDLogInfo("ImageServer/image/prepare  Cropping image to ratio: [\(maxAllowedAspectRatio)]")
+        // encrypt
         let ts = Date()
-        guard let croppedImage = image.aspectRatioCropped(heightToWidthRatio: maxAllowedAspectRatio) else {
-            DDLogError("ImageServer/image/prepare/error  Cropping failed [\(item)]")
-            completion(.failure(ImageProcessingError.cropFailure))
-            return
+        let encryptedData: Data, key: Data, sha256Hash: Data
+        DDLogDebug("ImageServer/encrypt/begin")
+        do {
+            (encryptedData, key, sha256Hash) = try MediaCrypter.encrypt(data: plaintextData, mediaType: type)
+        } catch {
+            DDLogError("ImageServer/encrypt/error url=[\(input.description)] [\(error)]")
+            return .failure(error)
         }
-        DDLogDebug("ImageServer/image/prepare  Cropped in \(-ts.timeIntervalSinceNow) s")
-        DDLogInfo("ImageServer/image/prepare  Cropped image size: [\(NSCoder.string(for: croppedImage.size))]")
+        DDLogDebug("ImageServer/encrypt/finished  Duration: \(-ts.timeIntervalSinceNow) s")
 
-        let cropOrigin = CGPoint(x: 0, y: (image.size.height - croppedImage.size.height) / 2)
-        let cropRect = CGRect(origin: cropOrigin, size: croppedImage.size)
-
-        completion(.success(ProcessedImageData(image: croppedImage, uncroppedImage: image, cropRect: cropRect)))
+        // save encrypted data
+        DDLogDebug("ImageServer/media/save-enc to [\(output.description)]")
+        do {
+            try encryptedData.write(to: output, options: [ .atomic ])
+            return .success((key.base64EncodedString(), sha256Hash.base64EncodedString()))
+        } catch {
+            DDLogError("ImageServer/media/save-enc/error [\(error)]")
+            return .failure(error)
+        }
     }
 
-    private func processImage(inMediaItem item: PendingMedia, completion: @escaping (Result<ProcessedImageData, Error>) -> ()) {
-        guard let image = item.image else {
-            DDLogError("ImageServer/image/prepare/error  Empty image [\(item)]")
-            completion(.failure(ImageProcessingError.invalidImage))
-            return
+    private func process(image url: URL, completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
+        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+            guard let self = self, !self.isCancelled else { return }
+
+            guard let data = data, error == nil else {
+                DDLogError("ImageServer/image/prepare/error  Cannot get image url=[\(url.description)] [\(String(describing: error))]")
+                return completion(.failure(ImageProcessingError.invalidImage))
+            }
+
+            guard let image = UIImage(data: data) else {
+                DDLogError("ImageServer/image/prepare/error  Empty image url=[\(url.description)]")
+                return completion(.failure(ImageProcessingError.invalidImage))
+            }
+
+            completion(
+                self.resize(image: image)
+                .flatMap(self.crop(image:))
+                .flatMap(self.save(image:))
+            )
+        }.resume()
+    }
+
+    private func save(image: UIImage) -> Result<(URL, CGSize), Error> {
+        guard let data = image.jpegData(compressionQuality: 0.8) else {
+            DDLogError("ImageServer/image/prepare/error  JPEG conversation failure")
+            return .failure(ImageProcessingError.jpegConversionFailure)
         }
-        DDLogInfo("ImageServer/image/prepare  Original image size: [\(NSCoder.string(for: item.size!))]")
 
-        let imageSize = image.size
+        let output = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(UUID().uuidString, isDirectory: false)
+            .appendingPathExtension("jpg")
 
-        // Do not resize if image is within required dimensions.
-        guard imageSize.width > Constants.maxImageSize || imageSize.height > Constants.maxImageSize else {
-            cropImage(inMediaItem: item, image: image, completion: completion)
-            return
+        DDLogInfo("ImageServer/image/prepare  Saving temporarily to: [\(output.description)]")
+
+        return Result {
+            try data.write(to: output)
+        }.map {
+            (output, image.size)
+        }
+    }
+
+    private func crop(image: UIImage) -> Result<UIImage, Error> {
+        guard let maxAllowedAspectRatio = maxAllowedAspectRatio, image.size.height > maxAllowedAspectRatio * image.size.width else {
+            return .success(image)
         }
 
-        let aspectRatioForWidth = Constants.maxImageSize / imageSize.width
-        let aspectRatioForHeight = Constants.maxImageSize / imageSize.height
-        let aspectRatio = min(aspectRatioForWidth, aspectRatioForHeight)
-        let targetSize = CGSize(width: (imageSize.width * aspectRatio).rounded(), height: (imageSize.height * aspectRatio).rounded())
+        DDLogInfo("ImageServer/image/crop  Cropping image to ratio: [\(maxAllowedAspectRatio)]")
+        let ts = Date()
+        guard let cropped = image.aspectRatioCropped(heightToWidthRatio: maxAllowedAspectRatio) else {
+            DDLogError("ImageServer/image/crop/error  Cropping failed")
+            return .failure(ImageProcessingError.cropFailure)
+        }
+
+        DDLogDebug("ImageServer/image/crop  Cropped in \(-ts.timeIntervalSinceNow) s")
+        DDLogInfo("ImageServer/image/crop  Cropped image size: [\(cropped.size))]")
+
+        return .success(cropped)
+    }
+
+    private func resize(image: UIImage) -> Result<UIImage, Error> {
+        guard image.size.width > Constants.maxImageSize || image.size.height > Constants.maxImageSize else {
+            return .success(image)
+        }
+
+        let aspectRatio = min(Constants.maxImageSize / image.size.width, Constants.maxImageSize / image.size.height)
+        let targetSize = CGSize(width: (image.size.width * aspectRatio).rounded(), height: (image.size.height * aspectRatio).rounded())
 
         let ts = Date()
         guard let resized = image.fastResized(to: targetSize) else {
-            DDLogError("ImageServer/image/prepare/error  Resize failed [\(item)]")
-            completion(.failure(ImageProcessingError.resizeFailure))
-            return
+            DDLogError("ImageServer/image/resize/error  Resizing failed")
+            return .failure(ImageProcessingError.resizeFailure)
         }
-        DDLogDebug("ImageServer/image/prepare  Resized in \(-ts.timeIntervalSinceNow) s")
-        DDLogInfo("ImageServer/image/prepare  Downscaled image size: [\(resized.size)]")
 
-        cropImage(inMediaItem: item, image: resized, completion: completion)
+        DDLogDebug("ImageServer/image/resize  Resized in \(-ts.timeIntervalSinceNow) s")
+        DDLogInfo("ImageServer/image/resize  Downscaled image size: [\(resized.size)]")
+
+        return .success(resized)
     }
 
-    private func resizeVideo(inMediaItem item: PendingMedia, completion: @escaping (Result<(URL, CGSize), Error>) -> ()) {
-        guard let videoUrl = item.videoURL else {
-            DDLogError("ImageServer/video/prepare/error  Empty video URL. \(item)")
-            completion(.failure(VideoProcessingError.emptyURL))
-            return
+    private func resize(video url: URL, completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
+        guard let fileAttrs = try? FileManager.default.attributesOfItem(atPath: url.path) else {
+            DDLogError("ImageServer/video/prepare/error  Failed to get file attributes. \(url.description)")
+            return completion(.failure(VideoProcessingError.failedToLoad))
         }
-        guard let fileAttrs = try? FileManager.default.attributesOfItem(atPath: videoUrl.path) else {
-            DDLogError("ImageServer/video/prepare/error  Failed to get file attributes. \(item)")
-            completion(.failure(VideoProcessingError.failedToLoad))
-            return
-        }
-        let fileSize = fileAttrs[FileAttributeKey.size] as! NSNumber
-        DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(fileSize)] url=[\(videoUrl.description)]")
 
-        VideoUtils.resizeVideo(inputUrl: videoUrl) { (result) in
+        let fileSize = fileAttrs[FileAttributeKey.size] as! NSNumber
+        DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(fileSize)] url=[\(url.description)]")
+
+        ImageServer.mediaProcessingSemaphore.wait()
+        VideoUtils.resizeVideo(inputUrl: url) { (result) in
+            ImageServer.mediaProcessingSemaphore.signal()
+
             switch result {
             case .success(let (_, videoResolution)):
-                DDLogInfo("ImageServer/video/prepare/ready  New video resolution: [\(videoResolution)] [\(videoUrl.description)]")
+                DDLogInfo("ImageServer/video/prepare/ready  New video resolution: [\(videoResolution)] [\(url.description)]")
             case .failure(let error):
-                DDLogError("ImageServer/video/prepare/error [\(error)] [\(videoUrl.description)]")
+                DDLogError("ImageServer/video/prepare/error [\(error)] [\(url.description)]")
             }
+
             completion(result)
         }
     }

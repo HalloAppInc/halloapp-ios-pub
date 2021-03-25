@@ -39,6 +39,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }()
 
     let mediaUploader: MediaUploader
+    private let imageServer = ImageServer(maxAllowedAspectRatio: 1.25)
 
     init(service: HalloService, contactStore: ContactStoreMain, userData: UserData) {
         self.service = service
@@ -1649,8 +1650,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedMedia.status = .uploading
             feedMedia.url = mediaItem.url
             feedMedia.size = mediaItem.size!
-            feedMedia.key = mediaItem.key!
-            feedMedia.sha256 = mediaItem.sha256!
+            feedMedia.key = ""
+            feedMedia.sha256 = ""
             feedMedia.order = Int16(index)
             feedMedia.post = feedPost
 
@@ -1869,7 +1870,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     // MARK: Media Upload
-
     private func uploadMediaAndSend(feedPost: FeedPost) {
         let postId = feedPost.id
 
@@ -1886,47 +1886,56 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         DDLogInfo("FeedData/upload-media/\(postId)/starting [\(totalUploads)]")
 
         let uploadGroup = DispatchGroup()
+        let uploadCompletion: (Result<Int, Error>) -> Void = { result in
+            switch result {
+            case .success(let size):
+                totalUploadSize += size
+            case .failure(_):
+                numberOfFailedUploads += 1
+            }
+
+            uploadGroup.leave()
+        }
+
         for mediaItem in mediaItemsToUpload {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
-            mediaUploader.upload(media: mediaItem, groupId: postId, didGetURLs: { (mediaURLs) in
-                DDLogInfo("FeedData/upload-media/\(postId)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
-                // Save URLs acquired during upload to the database.
-                self.updateFeedPost(with: postId) { (feedPost) in
-                    if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
-                        switch mediaURLs {
-                        case .getPut(let getURL, let putURL):
-                            media.url = getURL
-                            media.uploadUrl = putURL
+            if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
+                let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+                let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
-                        case .patch(let patchURL):
-                            media.uploadUrl = patchURL
+                imageServer.prepare(mediaItem.type, url: url, output: output) { [weak self] in
+                    guard let self = self else { return }
+                    switch $0 {
+                    case .success(let result):
+                        let path = self.downloadManager.relativePath(from: output)
+                        mediaItem.relativeFilePath = path
+
+                        self.updateFeedPost(with: postId, block: { (feedPost) in
+                            if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
+                                media.size = result.size
+                                media.key = result.key
+                                media.sha256 = result.sha256
+                                media.relativeFilePath = path
+                            }
+                        }) {
+                            self.upload(postId: postId, media: mediaItem, completion: uploadCompletion)
+                        }
+                    case .failure(_):
+                        numberOfFailedUploads += 1
+
+                        self.updateFeedPost(with: postId, block: { (feedPost) in
+                            if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
+                                media.status = .uploadError
+                            }
+                        }) {
+                            uploadGroup.leave()
                         }
                     }
                 }
-            }) { (uploadResult) in
-                DDLogInfo("FeedData/upload-media/\(postId)/\(mediaIndex)/finished result=[\(uploadResult)]")
-
-                // Save URLs acquired during upload to the database.
-                self.updateFeedPost(with: postId,
-                                    block: { feedPost in
-                                        if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
-                                            switch uploadResult {
-                                            case .success(let details):
-                                                totalUploadSize += details.fileSize
-                                                media.url = details.downloadURL
-                                                media.status = .uploaded
-
-                                            case .failure(_):
-                                                numberOfFailedUploads += 1
-                                                media.status = .uploadError
-                                            }
-                                        }
-                                    },
-                                    performAfterSave: {
-                                        uploadGroup.leave()
-                                    })
+            } else {
+                self.upload(postId: postId, media: mediaItem, completion: uploadCompletion)
             }
         }
 
@@ -1945,6 +1954,46 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         numPhotos: mediaItemsToUpload.filter { $0.type == .image }.count,
                         numVideos: mediaItemsToUpload.filter { $0.type == .video }.count,
                         totalSize: totalUploadSize))
+            }
+        }
+    }
+
+    private func upload(postId: FeedPostID, media: FeedPostMedia, completion: @escaping (Result<Int, Error>) -> Void) {
+        let index = media.order
+
+        self.mediaUploader.upload(media: media, groupId: postId, didGetURLs: { (mediaURLs) in
+            DDLogInfo("FeedData/upload-media/\(postId)/\(index)/acquired-urls [\(mediaURLs)]")
+
+            // Save URLs acquired during upload to the database.
+            self.updateFeedPost(with: postId) { (feedPost) in
+                if let media = feedPost.media?.first(where: { $0.order == media.order }) {
+                    switch mediaURLs {
+                    case .getPut(let getURL, let putURL):
+                        media.url = getURL
+                        media.uploadUrl = putURL
+
+                    case .patch(let patchURL):
+                        media.uploadUrl = patchURL
+                    }
+                }
+            }
+        }) { (uploadResult) in
+            DDLogInfo("FeedData/upload-media/\(postId)/\(index)/finished result=[\(uploadResult)]")
+
+            // Save URLs acquired during upload to the database.
+            self.updateFeedPost(with: postId, block: { feedPost in
+                if let media = feedPost.media?.first(where: { $0.order == index }) {
+                    switch uploadResult {
+                    case .success(let details):
+                        media.url = details.downloadURL
+                        media.status = .uploaded
+
+                    case .failure(_):
+                        media.status = .uploadError
+                    }
+                }
+            }) {
+                completion(uploadResult.map { $0.fileSize })
             }
         }
     }

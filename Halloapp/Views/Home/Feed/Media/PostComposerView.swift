@@ -117,7 +117,6 @@ class PostComposerViewController: UIViewController {
 
     let backIcon = UIImage(named: "NavbarBack")
     let closeIcon = UIImage(named: "NavbarClose")
-    var imageServer: ImageServer?
 
     private var isPosting = false
     private var isReadyToShare = false
@@ -131,7 +130,6 @@ class PostComposerViewController: UIViewController {
     private let isMediaPost: Bool
     private let configuration: PostComposerViewConfiguration
     private weak var delegate: PostComposerViewDelegate?
-    private var pendingMediaReadyCancelable: AnyCancellable?
 
     private var barState: NavigationBarState?
 
@@ -164,35 +162,19 @@ class PostComposerViewController: UIViewController {
             mentionableUsers: configuration.mentionableUsers,
             shouldAutoPlay: shouldAutoPlay,
             configuration: configuration,
-            prepareImages: { [weak self] isReady, imagesAreProcessed, numberOfFailedItems in
-                guard let self = self else { return }
-
-                self.pendingMediaReadyCancelable?.cancel()
-                self.pendingMediaReadyCancelable = Publishers.MergeMany(self.mediaItems.value.map { $0.ready }).ignoreOutput().sink(receiveCompletion: { [weak self] completion in
-                    guard let self = self else { return }
-
-                    if completion == .finished {
-                        self.imageServer?.cancel()
-
-                        self.imageServer = ImageServer(maxAllowedAspectRatio: self.configuration.imageServerMaxAspectRatio, maxVideoLength: self.configuration.maxVideoLength)
-                        self.imageServer!.prepare(mediaItems: self.mediaItems.value, isReady: isReady, imagesAreProcessed: imagesAreProcessed, numberOfFailedItems: numberOfFailedItems)
-                    }
-                }, receiveValue: {_ in})
-            },
-            crop: { [weak self] index in
+            crop: { [weak self] index, completion in
                 guard let self = self else { return }
 
                 let editController: UIViewController
-                let media = self.mediaItems.value[index.value]
+                let media = self.mediaItems.value[index]
 
                 if media.type == .image {
-                    editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index.value, maxAspectRatio: self.configuration.mediaEditMaxAspectRatio) { controller, media, selected, cancel in
+                    editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index, maxAspectRatio: self.configuration.mediaEditMaxAspectRatio) { controller, media, selected, cancel in
                         controller.dismiss(animated: true)
 
-                        guard !cancel else { return }
+                        completion(media, selected, cancel)
 
-                        index.value = selected
-                        self.mediaItems.value = media
+                        guard !cancel else { return }
 
                         if media.count == 0 {
                             self.backAction()
@@ -202,9 +184,10 @@ class PostComposerViewController: UIViewController {
                     MediaCarouselView.stopAllPlayback()
                     editController = VideoEditViewController(media: media) { controller, media, cancel in
                         controller.dismiss(animated: true)
-                        guard !cancel else { return }
-                        media.isResized = false
-                        self.mediaItems.value[index.value] = media
+
+                        self.mediaItems.value[index] = media
+
+                        completion(self.mediaItems.value, index, cancel)
                     }.withNavigationController()
                 }
                 
@@ -287,13 +270,6 @@ class PostComposerViewController: UIViewController {
         navigationController.navigationBar.backgroundColor = barState.backgroundColor
     }
 
-    override func willMove(toParent parent: UIViewController?) {
-        super.willMove(toParent: parent)
-        if parent == nil && isMediaPost {
-            imageServer?.cancel()
-        }
-    }
-
     @objc private func shareAction() {
         isVideoLengthWithinLimit { [weak self] isWithinLimit in
             guard let self = self else { return }
@@ -307,9 +283,6 @@ class PostComposerViewController: UIViewController {
     }
 
     @objc private func backAction() {
-        if isMediaPost {
-            imageServer?.cancel()
-        }
         delegate?.composerDidTapBack(controller: self, media: self.mediaItems.value)
     }
 
@@ -338,7 +311,7 @@ class PostComposerViewController: UIViewController {
 
             for item in self.mediaItems.value {
                 guard item.type == .video else { continue }
-                guard let url = item.videoURL else { continue }
+                guard let url = item.fileURL else { continue }
 
                 if AVURLAsset(url: url).duration.seconds > self.configuration.maxVideoLength {
                     DispatchQueue.main.async {
@@ -447,8 +420,7 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
     @ObservedObject private var isPosting = GenericObservable<Bool>(false)
     private let mentionableUsers: [MentionableUser]
-    private let prepareImages: (Binding<Bool>, Binding<Bool>, Binding<Int>) -> Void
-    private let crop: (GenericObservable<Int>) -> Void
+    private let crop: (Int, @escaping ([PendingMedia], Int, Bool) -> Void) -> Void
     private let goBack: () -> Void
     private let setReadyToShare: (Bool) -> Void
 
@@ -460,7 +432,6 @@ fileprivate struct PostComposerView: View {
     @State private var pendingMention: PendingMention? = nil
     @State private var keyboardHeight: CGFloat = 0
     @State private var presentPicker = false
-    @State private var imagesAreProcessed = false
     @State private var videoTooLong = false
     private var mediaItemsBinding = Binding.constant([PendingMedia]())
     private var mediaIsReadyBinding = Binding.constant(false)
@@ -488,6 +459,7 @@ fileprivate struct PostComposerView: View {
     private var pageChangedPublisher: AnyPublisher<Bool, Never>!
     private var postTextComputedHeightPublisher: AnyPublisher<CGFloat, Never>!
     private var longestVideoLengthPublisher: AnyPublisher<TimeInterval?, Never>!
+    private var mediaReadyPublisher: AnyPublisher<Bool, Never>!
 
     private var mediaCount: Int {
         mediaItems.value.count
@@ -511,8 +483,7 @@ fileprivate struct PostComposerView: View {
         mentionableUsers: [MentionableUser],
         shouldAutoPlay: GenericObservable<Bool>,
         configuration: PostComposerViewConfiguration,
-        prepareImages: @escaping (Binding<Bool>, Binding<Bool>, Binding<Int>) -> Void,
-        crop: @escaping (GenericObservable<Int>) -> Void,
+        crop: @escaping (Int, @escaping ([PendingMedia], Int, Bool) -> Void) -> Void,
         goBack: @escaping () -> Void,
         setReadyToShare: @escaping (Bool) -> Void)
     {
@@ -523,7 +494,6 @@ fileprivate struct PostComposerView: View {
         self.showAddMoreMediaButton = configuration.showAddMoreMediaButton
         self.mediaCarouselMaxAspectRatio = configuration.mediaCarouselMaxAspectRatio
         self.maxVideoLength = configuration.maxVideoLength
-        self.prepareImages = prepareImages
         self.crop = crop
         self.goBack = goBack
         self.setReadyToShare = setReadyToShare
@@ -568,12 +538,18 @@ fileprivate struct PostComposerView: View {
                     if item.type == .image {
                         return 0
                     } else {
-                        guard let url = item.videoURL else { return 0 }
+                        guard let url = item.fileURL else { return 0 }
                         return AVURLAsset(url: url).duration.seconds
                     }
                 }.max()
             }
             .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+
+        mediaReadyPublisher = self.mediaItems.$value
+            .flatMap { items in
+                return Publishers.MergeMany(items.map { $0.ready })
+            }
             .eraseToAnyPublisher()
 
         self.mediaItemsBinding = self.$mediaItems.value
@@ -605,14 +581,10 @@ fileprivate struct PostComposerView: View {
             presentPicker = false
             guard !cancel else { return }
 
-            imagesAreProcessed = false
-            mediaState.isReady = false
-
             let lastAsset = mediaItems.value[currentPosition.value].asset
             mediaItems.value = newMediaItems
             currentPosition.value = newMediaItems.firstIndex { $0.asset == lastAsset } ?? 0
-
-            prepareImages($mediaState.isReady, $imagesAreProcessed, $mediaState.numberOfFailedItems)
+            mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
         }
     }
 
@@ -630,7 +602,7 @@ fileprivate struct PostComposerView: View {
                 Button(action: deleteMedia) {
                     ControlIconView(imageLabel: "ComposerDeleteMedia")
                 }
-                if imagesAreProcessed && showCropButton {
+                if mediaState.isReady && showCropButton {
                     Button(action: cropMedia) {
                         ControlIconView(imageLabel: "ComposerCropMedia")
                     }
@@ -716,15 +688,6 @@ fileprivate struct PostComposerView: View {
                                     .shadow(color: Color.black.opacity(self.colorScheme == .dark ? 0 : 0.08), radius: 8, y: 8))
                             .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
                             .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
-                            .onAppear {
-                                if (self.mediaCount > 0) {
-                                    self.imagesAreProcessed = false
-                                    self.mediaState.isReady = false
-                                    self.prepareImages(self.$mediaState.isReady, $imagesAreProcessed, self.$mediaState.numberOfFailedItems)
-                                } else {
-                                    self.mediaState.isReady = true
-                                }
-                            }
                             .onReceive(self.readyToSharePublisher) { self.setReadyToShare($0) }
                             .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
                             .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
@@ -735,6 +698,12 @@ fileprivate struct PostComposerView: View {
                                     return
                                 }
                                 videoTooLong = length > maxVideoLength
+                            }
+                            .onReceive(mediaReadyPublisher) { _ in
+                                mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
+                            }
+                            .onAppear {
+                                mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
                             }
                         }
                         .frame(minHeight: scrollGeometry.size.height)
@@ -766,9 +735,17 @@ fileprivate struct PostComposerView: View {
     }
 
     private func cropMedia() {
-        imagesAreProcessed = false
         mediaState.isReady = false
-        crop(currentPosition)
+        crop(currentPosition.value) { media, selected, cancel in
+            defer {
+                mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
+            }
+
+            guard !cancel else { return }
+
+            currentPosition.value = selected
+            self.mediaItems.value = media
+        }
     }
 
     private func deleteMedia() {
@@ -984,7 +961,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MediaCarouselView {
         DDLogInfo("MediaPreviewSlider/makeUIView")
-        context.coordinator.apply(media: mediaItems)
+        _ = context.coordinator.apply(media: mediaItems)
 
         var configuration = MediaCarouselViewConfiguration.composer
         configuration.gutterWidth = PostComposerLayoutConstants.horizontalPadding
@@ -1015,7 +992,6 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
             public var type: FeedMediaType
             public var image: UIImage?
             public var originalVideoURL: URL?
-            public var videoURL: URL?
             public var fileURL: URL?
             public var asset: PHAsset?
             public var edit: PendingMediaEdit?
@@ -1026,7 +1002,6 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
                 type = media.type
                 image = media.image
                 originalVideoURL = media.originalVideoURL
-                videoURL = media.videoURL
                 fileURL = media.fileURL
                 asset = media.asset
                 edit = media.edit

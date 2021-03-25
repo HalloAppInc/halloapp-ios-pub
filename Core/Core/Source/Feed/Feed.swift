@@ -178,10 +178,30 @@ public class PendingMedia {
         didSet {
             size = image?.size
 
-            progress.send(1)
-            progress.send(completion: .finished)
-            ready.send(true)
-            ready.send(completion: .finished)
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                guard let self = self else { return }
+                guard let image = self.image else { return }
+                guard let data = image.jpegData(compressionQuality: 0.8) else { return }
+
+                // Local copy of the file is required for further processing
+                let url = URL(fileURLWithPath: NSTemporaryDirectory())
+                    .appendingPathComponent(UUID().uuidString, isDirectory: false)
+                    .appendingPathExtension("jpg")
+
+                if (try? data.write(to: url)) != nil {
+                    self.fileURL = url
+
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self else { return }
+                        self.progress.send(1)
+                        self.progress.send(completion: .finished)
+                        self.ready.send(true)
+                        self.ready.send(completion: .finished)
+                    }
+                } else {
+                    DDLogError("PendingMedia: unable to save image")
+                }
+            }
         }
     }
 
@@ -194,42 +214,37 @@ public class PendingMedia {
             }
         }
     }
-    public var videoURL: URL? {
-        didSet {
-            if videoURL != nil { DDLogDebug("PendingMedia: set videoURL \(videoURL!)") }
-            if let previousVideoURL = oldValue, !isInUseURL(previousVideoURL) {
-                clearTemporaryMedia(tempURL: previousVideoURL)
-            }
-
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                guard let self = self else { return }
-                defer {
-                    self.progress.send(1)
-                    self.progress.send(completion: .finished)
-                    self.ready.send(true)
-                    self.ready.send(completion: .finished)
-                }
-
-                guard let url = self.videoURL else { return }
-                guard let track = AVURLAsset(url: url).tracks(withMediaType: AVMediaType.video).first else { return }
-
-                let size = track.naturalSize.applying(track.preferredTransform)
-                self.size = CGSize(width: abs(size.width), height: abs(size.height))
-
-                DDLogInfo("PendingMedia Video size: [\(NSCoder.string(for: size))]")
-            }
-        }
-    }
     public var fileURL: URL? {
         didSet {
             if fileURL != nil { DDLogDebug("PendingMedia: set fileUrl \(fileURL!)") }
             if let previousFileURL = oldValue, !isInUseURL(previousFileURL) {
                 clearTemporaryMedia(tempURL: previousFileURL)
             }
+
+            if type == .video {
+                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                    guard let self = self else { return }
+                    defer {
+                        DispatchQueue.main.async {
+                            self.progress.send(1)
+                            self.progress.send(completion: .finished)
+                            self.ready.send(true)
+                            self.ready.send(completion: .finished)
+                        }
+                    }
+
+                    guard let url = self.fileURL else { return }
+                    guard let track = AVURLAsset(url: url).tracks(withMediaType: AVMediaType.video).first else { return }
+
+                    let size = track.naturalSize.applying(track.preferredTransform)
+                    self.size = CGSize(width: abs(size.width), height: abs(size.height))
+
+                    DDLogInfo("PendingMedia Video size: [\(NSCoder.string(for: size))]")
+                }
+            }
         }
     }
     public var encryptedFileUrl: URL?
-    public var error: Error?
     public var asset: PHAsset?
     
     public var edit: PendingMediaEdit?
@@ -246,11 +261,11 @@ public class PendingMedia {
     }
 
     private func isInUseURL(_ previousURL: URL) -> Bool {
-        return [fileURL, videoURL, originalVideoURL].contains(previousURL)
+        return [fileURL, originalVideoURL].contains(previousURL)
     }
     
     deinit {
-        [fileURL, videoURL, originalVideoURL].forEach { tempURL in clearTemporaryMedia(tempURL: tempURL) }
+        [fileURL, originalVideoURL].forEach { tempURL in clearTemporaryMedia(tempURL: tempURL) }
     }
 }
 

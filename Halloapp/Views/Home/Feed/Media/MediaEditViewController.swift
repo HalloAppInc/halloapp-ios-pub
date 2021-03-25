@@ -158,30 +158,28 @@ fileprivate class MediaEdit : ObservableObject {
     private func load() {
         switch media.type {
         case .image:
-            if original == nil && fileURL != nil {
-                cancellable = URLSession.shared.dataTaskPublisher(for: media.fileURL!)
-                    .map { UIImage(data: $0.data) }
-                    .replaceError(with: nil)
-                    .receive(on: DispatchQueue.main)
-                    .sink { image in
-                        self.original = image
-                        self.updateImage()
-                        
-                        if self.media.edit == nil {
-                            self.cropRect = self.initialCrop()
-                        }
-                    }
-            } else {
+            if media.ready.value {
                 updateImage()
-                
+
                 if media.edit == nil {
                     cropRect = initialCrop()
                 }
+            } else {
+                cancellable = media.ready.sink { [weak self] ready in
+                    guard let self = self else { return }
+                    guard ready else { return }
+
+                    self.original = self.media.image
+                    self.updateImage()
+
+                    if self.media.edit == nil {
+                        self.cropRect = self.initialCrop()
+                    }
+                }
             }
         case .video:
-            let url = media.fileURL ?? media.videoURL
-            if url != nil {
-                let asset = AVURLAsset(url: url!, options: nil)
+            if let url = media.fileURL {
+                let asset = AVURLAsset(url: url, options: nil)
                 let gen = AVAssetImageGenerator(asset: asset)
                 gen.appliesPreferredTrackTransform = true
                 
@@ -208,27 +206,10 @@ fileprivate class MediaEdit : ObservableObject {
     }
     
     func process() -> PendingMedia {
-        let image = crop()
-        guard let data = image?.jpegData(compressionQuality: 0.8) else { return media }
-        
-        var url: URL;
-        if media.edit != nil {
-            url = media.fileURL!
-        } else {
-            url = URL(fileURLWithPath: NSTemporaryDirectory())
-                .appendingPathComponent(UUID().uuidString, isDirectory: false)
-                .appendingPathExtension("jpg")
+        if let image = crop() {
+            media.edit = edit
+            media.image = image
         }
-        
-        do {
-            try data.write(to: url)
-        } catch {
-            return media
-        }
-
-        media.fileURL = url
-        media.edit = edit
-        media.image = image
 
         return media
     }

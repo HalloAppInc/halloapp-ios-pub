@@ -595,7 +595,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                 let media = PendingMedia(type: .video)
                 media.order = 1
                 media.originalVideoURL = url
-                media.videoURL = url
+                media.fileURL = url
 
                 self.didFinish(self, [media], false)
             }
@@ -642,8 +642,9 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     }
 
                     manager.requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .default, options: options) { image, _ in
-                        if image == nil {
+                        guard let image = image else {
                             DDLogWarn("MediaPickerViewController/next/image Unable to fetch image")
+                            return
                         }
 
                         media.image = image
@@ -689,7 +690,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                         DDLogInfo("MediaPickerViewController/next/video/copy/ready  Temporary url: [\(url.description)] url=[\(video.url.description)] original order=[\(media.order)]")
 
                         media.originalVideoURL = url
-                        media.videoURL = url
+                        media.fileURL = url
                     }
                     
                     result.append(media)

@@ -48,7 +48,6 @@ class ComposeViewController: SLComposeServiceViewController {
         didSet { validateContent() }
     }
 
-    private let imageServer = ImageServer()
     private var mediaToSend = [PendingMedia]()
     private var dataStore: DataStore!
     private var service: CoreService!
@@ -153,7 +152,7 @@ class ComposeViewController: SLComposeServiceViewController {
             guard !self.mediaToSend.isEmpty else { return }
 
             DDLogInfo("\(self.mediaToSend.count) of \(attachments.count) items have been loaded")
-            self.prepareMedia()
+            self.isMediaReady = true
         }
     }
     
@@ -166,7 +165,6 @@ class ComposeViewController: SLComposeServiceViewController {
     }
     
     override func didSelectCancel() {
-        imageServer.cancel()
         dataStore.cancelSending()
 
         ///TODO: delete saved data
@@ -313,24 +311,6 @@ class ComposeViewController: SLComposeServiceViewController {
             }
         }
     }
-    
-    private func prepareMedia() {
-        DDLogInfo("ComposeViewController/prepareMedia start")
-
-        mediaToSend.sort { $0.order < $1.order }
-
-        imageServer.prepare(mediaItems: mediaToSend) { (success) in
-            if success {
-                DDLogInfo("ComposeViewController/prepareMedia success")
-                self.isMediaReady = true
-            } else {
-                DDLogError("ComposeViewController/prepareMedia failed")
-                self.presentSimpleAlert(title: nil, message: "One or more items you have selected could not be send. Please choose different item(s).") {
-                    self.didSelectCancel()
-                }
-            }
-        }
-    }
 
     typealias ItemLoadingCompletion = (Result<Void, Error>) -> ()
     
@@ -400,7 +380,7 @@ class ComposeViewController: SLComposeServiceViewController {
             
             let mediaItem = PendingMedia(type: .video)
             mediaItem.order = mediaOrder
-            mediaItem.videoURL = url
+            mediaItem.fileURL = url
             self.mediaToSend.append(mediaItem)
             
             completion(.success(Void()))

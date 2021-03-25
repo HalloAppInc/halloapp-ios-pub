@@ -141,7 +141,7 @@ class FeedMedia: Identifiable, Hashable {
         self.type = media.type
         self.image = media.image
         self.size = media.size ?? CGSize(width: 100, height: 100)
-        self.fileURL = media.videoURL ?? media.fileURL
+        self.fileURL = media.fileURL
         self.isMediaAvailable = media.ready.value
 
         if !media.ready.value {
@@ -158,7 +158,7 @@ class FeedMedia: Identifiable, Hashable {
 
             self.status = .uploading
             self.image = media.image
-            self.fileURL = media.videoURL ?? media.fileURL
+            self.fileURL = media.fileURL
             self.isMediaAvailable = true
 
             if let size = media.size {
