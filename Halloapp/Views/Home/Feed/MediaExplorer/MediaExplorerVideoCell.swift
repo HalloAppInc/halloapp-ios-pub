@@ -21,7 +21,7 @@ class MediaExplorerVideoCell: UICollectionViewCell {
     private var progressCancellable: AnyCancellable?
 
     private lazy var video: VideoView = {
-        let view = VideoView()
+        let view = VideoView(playbackControls: .advanced)
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
