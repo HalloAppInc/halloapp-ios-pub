@@ -521,6 +521,9 @@ final class ProtoService: ProtoServiceCore {
         case .deliveryReceipt(let pbReceipt):
             handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
         case .chatStanza(let serverChat):
+            if !serverChat.senderName.isEmpty {
+                MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverChat.senderName ])
+            }
             decryptChat(serverChat, from: UserID(msg.fromUid)) { (clientChat, decryptionFailure) in
                 if let clientChat = clientChat {
                     let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount)
