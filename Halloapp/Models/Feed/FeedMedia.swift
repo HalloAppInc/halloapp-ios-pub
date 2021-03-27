@@ -32,7 +32,14 @@ class FeedMedia: Identifiable, Hashable {
         get { status == .downloading || status == .none }
     }
 
-    private(set) var image: UIImage?
+    private(set) var image: UIImage? {
+        didSet {
+            guard let image = image else { return }
+            isImageLoaded = true
+            isMediaAvailable = true
+            imageDidBecomeAvailable.send(image)
+        }
+    }
     private var isImageLoaded: Bool = false
 
     var progress: CurrentValueSubject<Float, Never>? {
@@ -93,11 +100,6 @@ class FeedMedia: Identifiable, Hashable {
             let image = UIImage(contentsOfFile: path)
             DispatchQueue.main.async {
                 self.image = image
-                self.isImageLoaded = true
-                if let image = image {
-                    self.isMediaAvailable = true
-                    self.imageDidBecomeAvailable.send(image)
-                }
             }
         }
     }
@@ -156,24 +158,13 @@ class FeedMedia: Identifiable, Hashable {
             guard let self = self else { return }
             guard ready else { return }
 
-            self.status = .uploading
-            self.image = media.image
-            self.fileURL = media.fileURL
-            self.isMediaAvailable = true
-
             if let size = media.size {
                 self.size = size
             }
 
-            switch self.type {
-            case .image:
-                guard let image = self.image else { return }
-                self.isImageLoaded = true
-                self.imageDidBecomeAvailable.send(image)
-            case .video:
-                guard let url = self.fileURL else { return }
-                self.videoDidBecomeAvailable.send(url)
-            }
+            self.status = .uploading
+            self.image = media.image
+            self.fileURL = media.fileURL
         }
 
         pendingMediaProgress = media.progress
