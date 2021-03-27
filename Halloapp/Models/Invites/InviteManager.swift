@@ -59,22 +59,20 @@ class InviteManager: ObservableObject {
         }
     }
 
-    func redeemInviteForSelectedContact(presentErrorAlert: Binding<Bool>, presentShareSheet: Binding<Bool>) {
-        guard let contact = contactToInvite else {
-            assert(false, "Contact not selected.")
-            return
-        }
-
+    func redeemInviteForPhoneNumber(_ normalizedPhoneNumber: String, completion: @escaping (InviteResult) -> Void) {
         DDLogInfo("invite-manager/redeem-request/start")
         self.redeemInProgress = true
 
-        let phoneNumber = "+\(contact.normalizedPhoneNumber!)"
+        let phoneNumber = "+\(normalizedPhoneNumber)"
         MainAppContext.shared.service.sendInvites(phoneNumbers: [phoneNumber]) { result in
             self.redeemInProgress = false
 
             switch result {
             case .success(let (inviteResults, inviteCount, refreshDate)):
-                let inviteResult = inviteResults[phoneNumber]!
+                guard let inviteResult = inviteResults[phoneNumber] else {
+                    completion(.failure(.unknown))
+                    return
+                }
 
                 DDLogInfo("invite-manager/redeem-request/complete Result: [\(inviteResult)] Count: [\(inviteCount)] Refresh Date: [\(refreshDate)]")
 
@@ -82,16 +80,28 @@ class InviteManager: ObservableObject {
                 self.nextRefreshDate = refreshDate
                 self.saveToUserDefaults()
 
-                if case .success = inviteResult {
-                    presentShareSheet.wrappedValue = true
-                } else if case .failure(let reason) = inviteResult, reason == .existingUser {
-                    presentShareSheet.wrappedValue = true
-                } else {
-                    presentErrorAlert.wrappedValue = true
-                }
+                completion(inviteResult)
 
             case .failure(let error):
                 DDLogInfo("invite-manager/redeem-request/error \(error)")
+
+                completion(.failure(.unknown))
+            }
+        }
+    }
+
+    func redeemInviteForSelectedContact(presentErrorAlert: Binding<Bool>, presentShareSheet: Binding<Bool>) {
+        guard let contactNumber = contactToInvite?.normalizedPhoneNumber else {
+            assert(false, "Contact not selected.")
+            return
+        }
+
+        redeemInviteForPhoneNumber(contactNumber) { inviteResult in
+            if case .success = inviteResult {
+                presentShareSheet.wrappedValue = true
+            } else if case .failure(let reason) = inviteResult, reason == .existingUser {
+                presentShareSheet.wrappedValue = true
+            } else {
                 presentErrorAlert.wrappedValue = true
             }
         }

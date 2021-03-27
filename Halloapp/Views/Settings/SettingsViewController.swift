@@ -219,9 +219,8 @@ class SettingsViewController: UITableViewController {
     
     private func openInviteFriends() {
         InviteManager.shared.requestInvitesIfNecessary()
-        let inviteView = InvitePeopleView(dismiss: { [weak self] in self?.dismiss(animated: true, completion: nil) })
-        let viewController = UIHostingController(rootView: inviteView)
-        present(UINavigationController(rootViewController: viewController), animated: true) {
+        let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+        present(UINavigationController(rootViewController: inviteVC), animated: true) {
             if let indexPath = self.dataSource.indexPath(for: .invite) {
                 self.tableView.deselectRow(at: indexPath, animated: true)
             }

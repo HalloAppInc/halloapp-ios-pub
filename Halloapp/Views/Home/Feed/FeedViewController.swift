@@ -161,8 +161,7 @@ class FeedViewController: FeedCollectionViewController {
     @objc
     private func startInviteFriendsFlow() {
         InviteManager.shared.requestInvitesIfNecessary()
-        let inviteView = InvitePeopleView(dismiss: { [weak self] in self?.dismiss(animated: true, completion: nil) })
-        let inviteVC = UIHostingController(rootView: inviteView)
+        let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
         let navController = UINavigationController(rootViewController: inviteVC)
         present(navController, animated: true)
     }

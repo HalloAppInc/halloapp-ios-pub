@@ -37,6 +37,7 @@ public extension ABContact {
     @NSManaged var statusValue: Int16
     @NSManaged var userId: UserID?
     @NSManaged var phoneNumberHash: String?
+    @NSManaged var numPotentialFriends: Int64
 
     var status: Status {
         get {

@@ -4,6 +4,7 @@
 <dict>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
+		<string>whatsapp</string>
 		<string>itms-apps</string>
 	</array>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>

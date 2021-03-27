@@ -745,6 +745,12 @@ class ContactStoreMain: ContactStore {
                 DDLogInfo("contacts/sync/process-results/userid-update [\(abContact.fullName ?? "<<NO NAME>>")|\(xmppContact.normalized ?? "<missing phone number>")]: [\(abContact.userId ?? "")] -> [\(xmppContact.userid ?? "")]")
                 abContact.userId = xmppContact.userid
             }
+
+            // Update friend count
+            if xmppContact.numPotentialFriends != abContact.numPotentialFriends {
+                DDLogInfo("contacts/sync/process-results/friend-count-update [\(xmppContact.normalized!)]:[\(xmppContact.numPotentialFriends ?? 0)]")
+                abContact.numPotentialFriends = Int64(xmppContact.numPotentialFriends)
+            }
         }
         return newUsers
     }

@@ -9,7 +9,7 @@
 import Core
 import SwiftUI
 
-private extension Localizations {
+extension Localizations {
 
     static var pleaseWait: String {
         NSLocalizedString("invite.please.wait", value: "Please wait...", comment: "Displayed white user is inviting someone.")
@@ -44,7 +44,7 @@ private extension Localizations {
         return String(format: format, contactName)
     }
 
-    static func invitesRemaining(_ count: Int) -> String {
+    static func invitesRemainingWeek(_ count: Int) -> String {
         let format = NSLocalizedString("invite.remaining.count",
                                        value: "You have %@ invitations remaining this week",
                                        comment: "Indicates how many invites are remaining in the current week")
@@ -127,7 +127,7 @@ struct InvitePeopleView: View {
                         self.inviteManager.contactToInvite = contact
                         self.isActionSheetPresented = true
                     }
-                    Text(Localizations.invitesRemaining(inviteManager.numberOfInvitesAvailable))
+                    Text(Localizations.invitesRemainingWeek(inviteManager.numberOfInvitesAvailable))
                         .padding()
                         .font(.subheadline)
                         .foregroundColor(.white)

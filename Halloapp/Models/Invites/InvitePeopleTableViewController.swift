@@ -10,7 +10,7 @@ import Core
 import CoreData
 import UIKit
 
-private extension Localizations {
+extension Localizations {
 
     static var alreadyHalloAppUser: String {
         NSLocalizedString("invite.already.halloapp.user",
