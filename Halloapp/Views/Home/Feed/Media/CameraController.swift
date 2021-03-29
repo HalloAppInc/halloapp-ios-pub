@@ -6,10 +6,11 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import AVFoundation
 import CocoaLumberjack
 import Core
+import CallKit
 import UIKit
-import AVFoundation
 
 protocol CameraDelegate: AVCapturePhotoCaptureDelegate, AVCaptureFileOutputRecordingDelegate {
     func goBack() -> Void
@@ -72,7 +73,7 @@ private extension Localizations {
     }
 }
 
-class CameraController: UIViewController {
+class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
     private static let volumeDidChangeNotificationName =
         NSNotification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification")
     private static let volumeNotificationParameter = "AVSystemController_AudioVolumeNotificationParameter"
@@ -99,7 +100,7 @@ class CameraController: UIViewController {
 
     private(set) var orientation: UIDeviceOrientation
     private var videoTimeout: DispatchWorkItem?
-    private(set) var isRecordingVideo =  false
+    private(set) var isRecordingVideo = false
     private(set) var isUsingBackCamera = true
 
     private var sessionIsStarted = false
@@ -148,8 +149,7 @@ class CameraController: UIViewController {
 
     deinit {
         DDLogInfo("CameraController/deinit")
-        guard let captureSession = captureSession else { return }
-        teardownCaptureSession(captureSession)
+        teardownCaptureSession()
     }
 
     override func viewDidLoad() {
@@ -193,16 +193,6 @@ class CameraController: UIViewController {
         stopCaptureSession()
     }
 
-    @objc func volumeDidChange(_ notification: NSNotification) {
-        if let userInfo = notification.userInfo, 
-           let volume = userInfo[CameraController.volumeNotificationParameter] as? Float,
-           let reason = userInfo[CameraController.reasonNotificationParameter] as? String,
-           reason == CameraController.explicitVolumeChangeReason {
-            DDLogInfo("CameraController/volumeDidChange \(volume) \(reason)")
-            cameraDelegate.volumeButtonPressed()
-        }
-    }
-
     private func startCaptureSession() {
         guard let captureSession = captureSession else { return }
         DispatchQueue.global(qos: .userInitiated).async{
@@ -211,6 +201,8 @@ class CameraController: UIViewController {
                 captureSession.startRunning()
                 DispatchQueue.main.async {
                     self.sessionIsStarted = true
+                    NotificationCenter.default.addObserver(
+                        self, selector: #selector(self.sessionWasInterrupted(_:)), name: NSNotification.Name.AVCaptureSessionWasInterrupted, object: nil)
                     if (self.previewLayer == nil) {
                         DDLogInfo("CameraController/startCaptureSession create preview layer")
                         self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
@@ -235,10 +227,37 @@ class CameraController: UIViewController {
         timerLabel.layer.removeFromSuperlayer()
         guard let captureSession = captureSession else { return }
         sessionIsStarted = false
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVCaptureSessionWasInterrupted, object: nil)
         DispatchQueue.global(qos: .userInitiated).async{
             if captureSession.isRunning {
                 DDLogInfo("CameraController/stopCaptureSession stopRunning")
                 captureSession.stopRunning()
+            }
+        }
+    }
+
+    @objc func volumeDidChange(_ notification: NSNotification) {
+        if let userInfo = notification.userInfo,
+           let volume = userInfo[CameraController.volumeNotificationParameter] as? Float,
+           let reason = userInfo[CameraController.reasonNotificationParameter] as? String,
+           reason == CameraController.explicitVolumeChangeReason {
+            DDLogInfo("CameraController/volumeDidChange \(volume) \(reason)")
+            cameraDelegate.volumeButtonPressed()
+        }
+    }
+
+    @objc func sessionWasInterrupted(_ notification: NSNotification) {
+        guard let captureSession = captureSession,
+              let userInfo = notification.userInfo else { return }
+        DDLogInfo("CameraController/sessionWasInterrupted \(userInfo)")
+        if let reasonRawValue = userInfo[AVCaptureSessionInterruptionReasonKey] as? Int,
+           let reason = AVCaptureSession.InterruptionReason(rawValue: reasonRawValue),
+           reason == .audioDeviceInUseByAnotherClient {
+
+            DispatchQueue.main.async {
+                guard let currentAudioInput = self.audioInput else { return }
+                captureSession.removeInput(currentAudioInput)
+                self.audioInput = nil
             }
         }
     }
@@ -314,21 +333,26 @@ class CameraController: UIViewController {
         startCaptureSession()
     }
 
-    private func teardownCaptureSession(_ session: AVCaptureSession) {
+    private func teardownCaptureSession() {
         DDLogInfo("CameraController/stopAndTeardownCaptureSession")
+        guard let session = captureSession else { return }
         session.beginConfiguration()
         if audioInput != nil {
             session.removeInput(audioInput!)
+            audioInput = nil
         }
-        let cameraInput = isUsingBackCamera ? backInput : frontInput
-        if cameraInput != nil {
-            session.removeInput(cameraInput!)
+        if let cameraInput = isUsingBackCamera ? backInput : frontInput {
+            session.removeInput(cameraInput)
+            backInput = nil
+            frontInput = nil
         }
         if photoOutput != nil {
             session.removeOutput(photoOutput!)
+            photoOutput = nil
         }
         if movieOutput != nil {
             session.removeOutput(movieOutput!)
+            movieOutput = nil
         }
         session.commitConfiguration()
     }
@@ -439,12 +463,12 @@ class CameraController: UIViewController {
     }
 
     private func setVideoTimeout() {
-        clearVieoTimeout()
+        clearVideoTimeout()
         videoTimeout = DispatchWorkItem { [weak self] in self?.stopRecordingVideo() }
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + CameraController.maxVideoTimespan, execute: videoTimeout!)
     }
 
-    private func clearVieoTimeout() {
+    private func clearVideoTimeout() {
         videoTimeout?.cancel()
         videoTimeout = nil
     }
@@ -551,11 +575,11 @@ class CameraController: UIViewController {
         setFocusAndExposure(camera: isUsingBackCamera ? backCamera : frontCamera, point: convertedPoint)
     }
 
-    public func takePhoto(useFlashlight: Bool) {
+    public func takePhoto(useFlashlight: Bool) -> Bool {
         guard let captureSession = captureSession,
             captureSession.isRunning,
             sessionIsStarted,
-            let photoOutput = photoOutput else { return }
+            let photoOutput = photoOutput else { return false }
 
         DDLogInfo("CameraController/takePhoto")
         let photoSettings = AVCapturePhotoSettings.init(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])
@@ -563,6 +587,29 @@ class CameraController: UIViewController {
         photoSettings.isHighResolutionPhotoEnabled = false
 
         photoOutput.capturePhoto(with: photoSettings, delegate: cameraDelegate)
+        return true
+    }
+
+    private func isActiveCallPresent() -> Bool {
+        return CXCallObserver().calls.contains { !$0.hasEnded }
+    }
+
+    private func restoreAudioInput(_ captureSession: AVCaptureSession) {
+        if audioInput == nil && !isActiveCallPresent() {
+            DDLogInfo("CameraController/reinitAudioInput")
+            captureSession.beginConfiguration()
+            do {
+                try audioInput = AVCaptureDeviceInput(device: microphone!)
+                if captureSession.canAddInput(audioInput!) {
+                    captureSession.addInput(audioInput!)
+                } else {
+                    throw CameraInitError.cannotAddAudioInput
+                }
+            } catch {
+                DDLogError("CameraController/reinitAudioInput \(error)")
+            }
+            captureSession.commitConfiguration()
+        }
     }
 
     public func startRecordingVideo(_ to: URL) {
@@ -574,23 +621,33 @@ class CameraController: UIViewController {
         if !isRecordingVideo {
             isRecordingVideo = true
             DDLogInfo("CameraController/startRecordingVideo")
-            AudioServicesPlaySystemSound(1117)
+            restoreAudioInput(captureSession)
             startRecordingTimer()
-            movieOutput.startRecording(to: to, recordingDelegate: cameraDelegate)
             setVideoTimeout()
+            AudioServicesPlaySystemSound(1117)
+            movieOutput.startRecording(to: to, recordingDelegate: self)
         }
     }
 
     public func stopRecordingVideo() {
         guard let movieOutput = movieOutput else { return }
 
-        clearVieoTimeout()
+        clearVideoTimeout()
+        stopRecordingTimer()
         if isRecordingVideo {
             isRecordingVideo = false
             DDLogInfo("CameraController/stopRecordingVideo")
             movieOutput.stopRecording()
-            stopRecordingTimer()
             AudioServicesPlaySystemSound(1118)
         }
+    }
+
+    // MARK: AVCaptureFileOutputRecordingDelegate
+
+    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
+        clearVideoTimeout()
+        stopRecordingTimer()
+        isRecordingVideo = false
+        cameraDelegate.fileOutput(output, didFinishRecordingTo: outputFileURL, from: connections, error: error)
     }
 }
