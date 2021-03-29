@@ -302,6 +302,7 @@ final class InviteViewController: UIViewController {
 
 extension InviteViewController: MFMessageComposeViewControllerDelegate {
     func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
+        guard result == .cancelled else { return }
         // NB: We should really be calling this on the presenting view controller (see: https://developer.apple.com/documentation/uikit/uiviewcontroller/1621505-dismiss)
         // Unfortunately, that isn't working correctly (Apple bug?) so we have to call it on the presented controller instead
         controller.dismiss(animated: true, completion: nil)
