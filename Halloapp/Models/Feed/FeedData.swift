@@ -2302,7 +2302,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
             feedMention.index = mention.index
             feedMention.userID = mention.userID
-            feedMention.name = contactStore.pushNames[mention.userID] ?? mention.name
+            feedMention.name = mention.name
             if feedMention.name == "" {
                 DDLogError("FeedData/merge/comment/mention/\(mention.userID) missing push name")
             }
