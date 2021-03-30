@@ -351,7 +351,10 @@ extension InviteViewController: UICollectionViewDelegate, UICollectionViewDelega
 
 extension InviteViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        dataSource.apply(makeDataSnapshot(searchString: searchController.searchBar.text))
+        dataSource.apply(makeDataSnapshot(searchString: searchController.searchBar.text))  { [weak self] in
+            // Cells need to be reloaded in order to update the dividers.
+            self?.collectionView.reloadData()
+        }
     }
 }
 
