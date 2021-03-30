@@ -205,8 +205,8 @@ final class InviteViewController: UIViewController {
         let contacts = inviteContactsManager.contacts(searchString: searchString)
         let halloAppUsers = contacts.filter { $0.userID != nil }
         let inviteCandidates = contacts.filter { $0.userID == nil }
-        let withFriends = inviteCandidates.filter { ($0.friendCount ?? 0) > 0 }.sorted { $0.friendCount ?? 0 > $1.friendCount ?? 0 }
-        let withoutFriends = inviteCandidates.filter { ($0.friendCount ?? 0) == 0}
+        let withFriends = inviteCandidates.filter { ($0.friendCount ?? 0) > 1 }.sorted { $0.friendCount ?? 0 > $1.friendCount ?? 0 }
+        let withoutFriends = inviteCandidates.filter { ($0.friendCount ?? 0) <= 1 }
 
         snapshot.appendSections([.contactsWithFriendCount, .contactsWithoutFriendCount, .contactsOnHallo])
 
@@ -432,7 +432,7 @@ final class InviteCellView: UIView {
             guard !isUserAlready else {
                 return Localizations.alreadyHalloAppUser
             }
-            guard let friendCount = contact.friendCount, friendCount > 0 else {
+            guard let friendCount = contact.friendCount, friendCount > 1 else {
                 return nil
             }
             return Localizations.contactsOnHalloApp(friendCount)

@@ -86,8 +86,6 @@ extension InviteContact {
         self.givenName = abContact.givenName
         self.normalizedPhoneNumber = number
         self.userID = abContact.userId
-
-        // Subtract 1 before displaying (potential friends count includes current user)
-        self.friendCount = max(0, Int(abContact.numPotentialFriends - 1))
+        self.friendCount = Int(abContact.numPotentialFriends)
     }
 }
