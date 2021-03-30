@@ -37,6 +37,7 @@ final class InviteViewController: UIViewController {
             let searchController = UISearchController(searchResultsController: searchResultsController)
             searchController.searchResultsUpdater = searchResultsController
             searchController.searchBar.autocapitalizationType = .none
+            searchController.searchBar.tintColor = .systemBlue
             searchController.definesPresentationContext = true
             return searchController
         }()
@@ -274,7 +275,7 @@ final class InviteViewController: UIViewController {
             switch result {
             case .success, .failure(.existingUser):
                 guard let urlEncodedInviteText = Localizations
-                        .inviteText(name: contact.name, number: contact.normalizedPhoneNumber.formattedPhoneNumber)
+                        .inviteText(name: contact.givenName ?? contact.fullName, number: contact.normalizedPhoneNumber.formattedPhoneNumber)
                         .addingPercentEncoding(withAllowedCharacters: .urlHostAllowed),
                       let whatsAppURL = URL(string: "https://wa.me/\(contact.normalizedPhoneNumber)/?text=\(urlEncodedInviteText)") else
                 {
@@ -371,7 +372,7 @@ final class InviteCellView: UIView {
         layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 8, right: 16)
 
         nameLabel.textColor = .label
-        nameLabel.font = .gothamFont(forTextStyle: .subheadline, weight: .semibold)
+        nameLabel.font = .systemFont(forTextStyle: .subheadline, weight: .semibold)
         nameLabel.numberOfLines = 1
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
 
@@ -413,10 +414,10 @@ final class InviteCellView: UIView {
             guard let friendCount = contact.friendCount, friendCount > 0 else {
                 return nil
             }
-            return Localizations.friendsOnHalloApp(friendCount)
+            return Localizations.contactsOnHalloApp(friendCount)
         }()
 
-        nameLabel.text = contact.name
+        nameLabel.text = contact.fullName
         subtitleLabel.text = [secondLine, thirdLine].compactMap({ $0 }).joined(separator: "\n")
 
         let showSMS = actions?.types.contains(.sms) ?? false
@@ -480,9 +481,9 @@ final class InviteCellView: UIView {
 }
 
 private extension Localizations {
-    static func friendsOnHalloApp(_ count: Int) -> String {
-        let format = NSLocalizedString("invite.friend.count",
-                                       value: "%d friends on HalloApp",
+    static func contactsOnHalloApp(_ count: Int) -> String {
+        let format = NSLocalizedString("invite.contact.count",
+                                       value: "%d contacts on HalloApp",
                                        comment: "Shows number of current HalloApp users who have this contact in their list")
         return String(format: format, count)
     }

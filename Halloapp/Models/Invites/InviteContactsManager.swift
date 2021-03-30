@@ -70,7 +70,8 @@ extension InviteContactsManager: NSFetchedResultsControllerDelegate {
 }
 
 struct InviteContact: Hashable, Equatable {
-    var name: String
+    var fullName: String
+    var givenName: String?
     var normalizedPhoneNumber: String
     var friendCount: Int?
     var userID: UserID?
@@ -78,10 +79,11 @@ struct InviteContact: Hashable, Equatable {
 
 extension InviteContact {
     init?(from abContact: ABContact) {
-        guard let name = abContact.fullName, let number = abContact.normalizedPhoneNumber else {
+        guard let fullName = abContact.fullName, let number = abContact.normalizedPhoneNumber else {
             return nil
         }
-        self.name = name
+        self.fullName = fullName
+        self.givenName = abContact.givenName
         self.normalizedPhoneNumber = number
         self.userID = abContact.userId
 
