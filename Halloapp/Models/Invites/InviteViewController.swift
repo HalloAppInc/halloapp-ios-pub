@@ -58,7 +58,7 @@ final class InviteViewController: UIViewController {
         navigationItem.titleView = titleLabel
 
         if dismissAction != nil {
-            navigationItem.leftBarButtonItem = .init(barButtonSystemItem: .close, target: self, action: #selector(didTapDismiss))
+            navigationItem.leftBarButtonItem = .init(image: UIImage(named: "ReplyPanelClose"), style: .plain, target: self, action: #selector(didTapDismiss))
         }
         if searchController != nil {
             navigationItem.searchController = searchController
