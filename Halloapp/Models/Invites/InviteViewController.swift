@@ -124,7 +124,8 @@ final class InviteViewController: UIViewController {
                     with: contact,
                     actions: InviteActions(
                         action: { [weak self] action in self?.inviteAction(action, contact: contact)},
-                        types: actions))
+                        types: actions),
+                    isTopDividerHidden: indexPath.item == 0)
             }
             return cell
         }
@@ -305,7 +306,8 @@ final class InviteViewController: UIViewController {
             let layout = UICollectionViewFlowLayout()
             let cellHeight = InviteCellView.forSizing.systemLayoutSizeFitting(CGSize(width: itemWidth, height: 0)).height
             layout.itemSize = CGSize(width: itemWidth, height: cellHeight)
-            layout.minimumLineSpacing = 1
+            layout.minimumLineSpacing = 0
+            layout.minimumInteritemSpacing = 0
             collectionView.setCollectionViewLayout(layout, animated: true)
         }
     }
@@ -350,10 +352,17 @@ final class InviteCollectionViewCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
+        contentView.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+
         contentView.addSubview(inviteCellView)
         inviteCellView.translatesAutoresizingMaskIntoConstraints = false
-        inviteCellView.constrainMargins([.leading, .trailing], to: contentView)
-        inviteCellView.constrain([.top, .bottom], to: contentView)
+        inviteCellView.constrainMargins(to: contentView)
+
+        contentView.addSubview(topDivider)
+        topDivider.backgroundColor = UIColor.label.withAlphaComponent(0.15)
+        topDivider.translatesAutoresizingMaskIntoConstraints = false
+        topDivider.heightAnchor.constraint(equalToConstant: 1).isActive = true
+        topDivider.constrainMargins([.top, .leading, .trailing], to: contentView)
     }
 
     required init?(coder: NSCoder) {
@@ -361,9 +370,11 @@ final class InviteCollectionViewCell: UICollectionViewCell {
     }
 
     let inviteCellView = InviteCellView()
+    let topDivider = UIView()
 
-    func configure(with contact: InviteContact, actions: InviteActions?) {
+    func configure(with contact: InviteContact, actions: InviteActions?, isTopDividerHidden: Bool) {
         inviteCellView.configure(with: contact, actions: actions)
+        topDivider.isHidden = isTopDividerHidden
     }
 }
 
