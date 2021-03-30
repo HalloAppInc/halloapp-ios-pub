@@ -56,9 +56,9 @@ extension FeedPost {
     }
 
     var audience: FeedAudience? {
-        guard let privacyListType = info?.privacyListType else { return nil }
+        guard let audienceType = info?.audienceType else { return nil }
         guard let receipts = info?.receipts else { return nil }
-        return FeedAudience(privacyListType: privacyListType, userIds: Set(receipts.keys))
+        return FeedAudience(audienceType: audienceType, userIds: Set(receipts.keys))
     }
 }
 

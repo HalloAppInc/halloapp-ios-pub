@@ -1669,16 +1669,27 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
 
-        // For items posted to user's feed we save current audience in FeedPostInfo.
-        // Not pre-populating audience for groups - will be querying participants from ChatData.
-        if case .userFeed = destination {
+        switch destination {
+        case .userFeed:
             let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
             let postAudience = try! MainAppContext.shared.privacySettings.currentFeedAudience()
             let receipts = postAudience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
                 receipts[userId] = Receipt()
             }
             feedPostInfo.receipts = receipts
-            feedPostInfo.privacyListType = postAudience.privacyListType
+            feedPostInfo.audienceType = postAudience.audienceType
+            feedPost.info = feedPostInfo
+        case .groupFeed(let groupId):
+            guard let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId) else {
+                return
+            }
+            let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
+            var receipts = [UserID : Receipt]()
+            chatGroup.members?.forEach({ member in
+                receipts[member.userId] = Receipt()
+            })
+            feedPostInfo.receipts = receipts
+            feedPostInfo.audienceType = .group
             feedPost.info = feedPostInfo
         }
 
@@ -1838,7 +1849,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         var postsToShare: [FeedPost] = []
         for post in posts {
             guard let audience = post.audience else { continue }
-            switch audience.privacyListType {
+            switch audience.audienceType {
             case .all:
                 postsToShare.append(post)
 
@@ -2195,7 +2206,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Post Audience
             if let audience = post.audience {
                 let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
-                feedPostInfo.privacyListType = audience.privacyListType
+                feedPostInfo.audienceType = audience.audienceType
                 feedPostInfo.receipts = audience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
                     receipts[userId] = Receipt()
                 }

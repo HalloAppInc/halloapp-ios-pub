@@ -48,12 +48,12 @@ public final class ProtoPublishPostRequest: ProtoRequest<Date> {
         var serverAudience = Server_Audience()
         serverAudience.uids = audience.userIds.compactMap { Int64($0) }
         serverAudience.type = {
-            switch audience.privacyListType {
+            switch audience.audienceType {
             case .all: return .all
             case .blacklist: return .except
             case .whitelist: return .only
             default:
-                DDLogError("ProtoPublishPostRequest/error unsupported audience type \(audience.privacyListType)")
+                DDLogError("ProtoPublishPostRequest/error unsupported audience type \(audience.audienceType)")
                 return .only
             }
         }()

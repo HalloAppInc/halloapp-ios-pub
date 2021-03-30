@@ -258,16 +258,18 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
 
     private func reloadData(from feedPost: FeedPost) {
         let postAudience: Set<UserID>
-        if let groupId = feedPost.groupId {
-            if let groupMembers = MainAppContext.shared.chatData.chatGroup(groupId: groupId)?.members {
-                postAudience = Set(groupMembers.map({ $0.userId }))
-            } else {
-                postAudience = []
-            }
+
+        // Only use userIds from receipts if privacy list was actually saved into feedPost.info.
+        if let receiptUserIds = feedPost.info?.receipts?.keys, feedPost.info?.audienceType != nil {
+            postAudience = Set(receiptUserIds)
         } else {
-            // Only use userIds from receipts if privacy list was actually saved into feedPost.info.
-            if let receiptUserIds = feedPost.info?.receipts?.keys, feedPost.info?.privacyListType != nil {
-                postAudience = Set(receiptUserIds)// MainAppContext.shared.contactStore.sortedContacts(withUserIds: Array(receiptUserIds))
+            // If there is no post info - then use the group info for group feed posts.
+            if let groupId = feedPost.groupId {
+                if let groupMembers = MainAppContext.shared.chatData.chatGroup(groupId: groupId)?.members {
+                    postAudience = Set(groupMembers.map({ $0.userId }))
+                } else {
+                    postAudience = []
+                }
             } else {
                 postAudience = Set(MainAppContext.shared.contactStore.allInNetworkContactIDs())
             }

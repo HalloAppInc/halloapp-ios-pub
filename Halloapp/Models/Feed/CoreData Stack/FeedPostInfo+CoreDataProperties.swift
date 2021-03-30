@@ -26,9 +26,10 @@ extension FeedPostInfo {
         get { receiptInfo as? [ UserID : Receipt ] }
         set { receiptInfo = newValue }
     }
-
-    var privacyListType: PrivacyListType? {
-        get { PrivacyListType(rawValue: privacyListTypeValue ?? "") }
+    
+    // TODO(murali@): rename coredata attribute name - else it is confusing!
+    var audienceType: AudienceType? {
+        get { AudienceType(rawValue: privacyListTypeValue ?? "") }
         set { privacyListTypeValue = newValue?.rawValue }
     }
 

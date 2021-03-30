@@ -203,7 +203,7 @@ class DataStore: ShareExtensionDataStore {
         feedPost.media?.forEach({ $0.status = .uploading })
 
         let postAudience = try! ShareExtensionContext.shared.privacySettings.currentFeedAudience()
-        feedPost.privacyListType = postAudience.privacyListType
+        feedPost.audienceType = postAudience.audienceType
         feedPost.audienceUserIds = Array(postAudience.userIds)
 
         save(managedObjectContext)

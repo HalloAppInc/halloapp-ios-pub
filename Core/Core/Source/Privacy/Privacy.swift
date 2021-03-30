@@ -20,6 +20,13 @@ public enum PrivacyListType: String, Codable {
     case blocked = "block"
 }
 
+public enum AudienceType: String, Codable {
+    case all = "all"
+    case whitelist = "only"
+    case blacklist = "except"
+    case group = "group"
+}
+
 
 public protocol PrivacyListProtocol {
 
@@ -40,11 +47,11 @@ public extension PrivacyListProtocol {
 
 
 public struct FeedAudience {
-    public let privacyListType: PrivacyListType
+    public let audienceType: AudienceType
     public let userIds: Set<UserID>
 
-    public init(privacyListType: PrivacyListType, userIds: Set<UserID>) {
-        self.privacyListType = privacyListType
+    public init(audienceType: AudienceType, userIds: Set<UserID>) {
+        self.audienceType = audienceType
         self.userIds = userIds
     }
 }
@@ -182,6 +189,9 @@ open class PrivacySettings {
 
     public func currentFeedAudience() throws -> FeedAudience {
         guard let selectedListType = activeType else { throw PrivacySettingsError.currentSettingUnknown }
+        guard let audienceType = AudienceType(rawValue: selectedListType.rawValue) else {
+            throw PrivacySettingsError.currentSettingUnknown
+        }
         if selectedListType == .whitelist {
             guard whitelist.isLoaded else { throw PrivacySettingsError.currentListUnavailable }
         }
@@ -203,6 +213,6 @@ open class PrivacySettings {
             results.subtract(blocked.userIds)
         }
 
-        return FeedAudience(privacyListType: selectedListType, userIds: results)
+        return FeedAudience(audienceType: audienceType, userIds: results)
     }
 }

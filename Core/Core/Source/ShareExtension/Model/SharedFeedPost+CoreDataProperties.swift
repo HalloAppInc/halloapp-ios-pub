@@ -32,8 +32,9 @@ extension SharedFeedPost {
     @NSManaged private var privacyListTypeValue: String?
     @NSManaged public var audienceUserIds: [UserID]?
 
-    public var privacyListType: PrivacyListType? {
-        get { PrivacyListType(rawValue: privacyListTypeValue ?? "") }
+    // TODO(murali@): update attribute name in the entity.
+    public var audienceType: AudienceType? {
+        get { AudienceType(rawValue: privacyListTypeValue ?? "") }
         set { privacyListTypeValue = newValue?.rawValue }
     }
 
@@ -47,9 +48,9 @@ extension SharedFeedPost {
     }
 
     public var audience: FeedAudience? {
-        guard let privacyListType = privacyListType else { return nil }
+        guard let audienceType = audienceType else { return nil }
         guard let userIds = audienceUserIds else { return nil }
-        return FeedAudience(privacyListType: privacyListType, userIds: Set(userIds))
+        return FeedAudience(audienceType: audienceType, userIds: Set(userIds))
     }
 
 }
