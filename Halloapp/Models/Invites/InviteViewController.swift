@@ -38,7 +38,15 @@ final class InviteViewController: UIViewController {
             searchController.searchResultsUpdater = searchResultsController
             searchController.searchBar.autocapitalizationType = .none
             searchController.searchBar.tintColor = .systemBlue
+            searchController.obscuresBackgroundDuringPresentation = false
+            searchController.hidesNavigationBarDuringPresentation = false
             searchController.definesPresentationContext = true
+
+            // Set the background color we want...
+            searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
+            // ... then work around the weird extra background layer Apple adds (see https://stackoverflow.com/questions/61364175/uisearchbar-with-a-white-background-is-impossible)
+            searchController.searchBar.setSearchFieldBackgroundImage(UIImage(), for: .normal)
+            searchController.searchBar.searchTextField.layer.cornerRadius = 10
             return searchController
         }()
 
@@ -71,7 +79,7 @@ final class InviteViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
 
-        collectionView.backgroundColor = .feedBackground
+        collectionView.backgroundColor = .primaryBg
         view.addSubview(collectionView)
 
         busyView.translatesAutoresizingMaskIntoConstraints = false
