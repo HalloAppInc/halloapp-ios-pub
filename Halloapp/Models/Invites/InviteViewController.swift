@@ -172,17 +172,27 @@ final class InviteViewController: UIViewController {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = 8
         let titleFont = UIFont.gothamFont(ofFixedSize: 15, weight: .semibold)
-        let inviteCountFont = UIFont.gothamFont(ofFixedSize: 13)
-        let titleString = NSMutableAttributedString(
-            string: Localizations.inviteTitle + "\n",
-            attributes: [.font: titleFont, .paragraphStyle: paragraphStyle])
         let countText: String = {
             guard let invitesLeft = invitesLeft else { return Localizations.pleaseWait }
             return Localizations.invitesRemaining(invitesLeft)
         }()
-        titleString.append(NSAttributedString(
-                            string: countText,
-                            attributes: [NSAttributedString.Key.font: inviteCountFont]))
+        let countAttributedString: NSAttributedString = {
+            let mutableString = NSMutableAttributedString(
+                string: countText,
+                attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 13)])
+            if let invitesLeft = invitesLeft, let range = countText.range(of: "\(invitesLeft)") {
+                mutableString.addAttribute(
+                    .font,
+                    value: UIFont.systemFont(ofSize: 13, weight: .bold),
+                    range: NSRange(range, in: countText))
+            }
+            return mutableString
+        }()
+
+        let titleString = NSMutableAttributedString(
+            string: Localizations.inviteTitle + "\n",
+            attributes: [.font: titleFont, .paragraphStyle: paragraphStyle])
+        titleString.append(countAttributedString)
 
         titleLabel.attributedText = titleString
         titleLabel.textAlignment = .center
