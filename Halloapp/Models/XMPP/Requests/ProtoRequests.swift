@@ -46,7 +46,7 @@ final class ProtoUpdateAvatarRequest: ProtoRequest<String?> {
 
 final class ProtoPushTokenRequest: ProtoRequest<Void> {
 
-    init(token: String, locale: Locale, completion: @escaping Completion) {
+    init(token: String, langID: String?, completion: @escaping Completion) {
         var pushToken = Server_PushToken()
         pushToken.token = token
         
@@ -55,17 +55,6 @@ final class ProtoPushTokenRequest: ProtoRequest<Void> {
         #else
         pushToken.os = .ios
         #endif
-
-        let langID: String? = {
-            guard let languageCode = locale.languageCode else {
-                return nil
-            }
-            guard let regionCode = locale.regionCode, ["en", "pt", "zh"].contains(locale.languageCode) else {
-                // Only append region code for specific languages (defined in push_language_id spec)
-                return languageCode
-            }
-            return "\(languageCode)-\(regionCode)"
-        }()
 
         var pushRegister = Server_PushRegister()
         pushRegister.pushToken = pushToken

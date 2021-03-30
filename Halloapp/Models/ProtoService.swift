@@ -13,6 +13,8 @@ import SwiftProtobuf
 import XMPPFramework
 
 fileprivate let userDefaultsKeyForAPNSToken = "apnsPushToken"
+fileprivate let userDefaultsKeyForLangID = "langId"
+fileprivate let userDefaultsKeyForAPNSSyncTime = "apnsSyncTime"
 fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 
 final class ProtoService: ProtoServiceCore {
@@ -36,10 +38,6 @@ final class ProtoService: ProtoServiceCore {
 
     override func performOnConnect() {
         super.performOnConnect()
-
-        if hasValidAPNSPushToken {
-            sendCurrentAPNSTokenIfPossible()
-        }
 
         resendNameIfNecessary()
         resendAvatarIfNecessary()
@@ -1037,23 +1035,58 @@ extension ProtoService: HalloService {
         return false
     }
 
-    func setAPNSToken(_ token: String?) {
+    func sendAPNSTokenIfNecessary(_ token: String?) {
+        let langID = makeAPNSTokenLangID(for: Locale.current)
+        let hasSyncTokenChanged = token != UserDefaults.standard.string(forKey: userDefaultsKeyForAPNSToken)
+        let hasLangIDChanged = langID != UserDefaults.standard.string(forKey: userDefaultsKeyForLangID)
+        let savedAPNSSyncTime = UserDefaults.standard.object(forKey: userDefaultsKeyForAPNSSyncTime) as? Date
+        let isSyncScheduled = Date() > (savedAPNSSyncTime ?? Date.distantPast)
+
+        // Sync push token and langID whenever they change or every 24hrs.
+        if (hasSyncTokenChanged || hasLangIDChanged || isSyncScheduled), let token = token {
+            execute(whenConnectionStateIs: .connected, onQueue: .main) {
+                self.enqueue(request: ProtoPushTokenRequest(token: token, langID: langID) { result in
+                    DDLogInfo("proto/push-token/sent")
+                    if case .success = result {
+                        DDLogInfo("proto/push-token/update local data")
+                        self.saveAPNSTokenAndLangID(token: token, langID: langID)
+                    } else {
+                        DDLogInfo("proto/push-token/failed to set on server")
+                    }
+                })
+            }
+        }
+    }
+
+    func saveAPNSTokenAndLangID(token: String?, langID: String?) {
+        // save token
         if let token = token {
             UserDefaults.standard.set(token, forKey: userDefaultsKeyForAPNSToken)
         } else {
             UserDefaults.standard.removeObject(forKey: userDefaultsKeyForAPNSToken)
         }
+
+        // save langID
+        if let langID = langID {
+            UserDefaults.standard.set(langID, forKey: userDefaultsKeyForLangID)
+        } else {
+            UserDefaults.standard.removeObject(forKey: userDefaultsKeyForLangID)
+        }
+
+        // save next sync date - after 1 day.
+        let nextDate = Date(timeIntervalSinceNow: 60*60*24)
+        UserDefaults.standard.set(nextDate, forKey: userDefaultsKeyForAPNSSyncTime)
     }
 
-    func sendCurrentAPNSTokenIfPossible() {
-        if isConnected, let token = UserDefaults.standard.string(forKey: userDefaultsKeyForAPNSToken) {
-            let request = ProtoPushTokenRequest(token: token, locale: Locale.current) { (error) in
-                DDLogInfo("proto/push-token/sent")
-            }
-            enqueue(request: request)
-        } else {
-            DDLogInfo("proto/push-token/could-not-send")
+    func makeAPNSTokenLangID(for locale: Locale) -> String? {
+        guard let languageCode = locale.languageCode else {
+            return nil
         }
+        guard let regionCode = locale.regionCode, ["en", "pt", "zh"].contains(locale.languageCode) else {
+            // Only append region code for specific languages (defined in push_language_id spec)
+            return languageCode
+        }
+        return "\(languageCode)-\(regionCode)"
     }
 
     func updateNotificationSettings(_ settings: [NotificationSettings.ConfigKey : Bool], completion: @escaping ServiceRequestCompletion<Void>) {

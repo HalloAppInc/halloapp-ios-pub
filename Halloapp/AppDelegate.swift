@@ -110,15 +110,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DDLogInfo("appdelegate/notifications/push-token/success [\(tokenString)]")
 
         self.needsAPNSToken = false
-        MainAppContext.shared.service.setAPNSToken(tokenString)
-        MainAppContext.shared.service.sendCurrentAPNSTokenIfPossible()
+        MainAppContext.shared.service.sendAPNSTokenIfNecessary(tokenString)
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         DDLogError("appdelegate/notifications/push-token/error [\(error)]")
 
         self.needsAPNSToken = false
-        MainAppContext.shared.service.setAPNSToken(nil)
+        MainAppContext.shared.service.sendAPNSTokenIfNecessary(nil)
     }
 
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {

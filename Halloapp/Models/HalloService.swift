@@ -87,8 +87,7 @@ protocol HalloService: CoreService {
 
     // MARK: Push notifications
     var hasValidAPNSPushToken: Bool { get }
-    func setAPNSToken(_ token: String?)
-    func sendCurrentAPNSTokenIfPossible()
+    func sendAPNSTokenIfNecessary(_ token: String?)
     func updateNotificationSettings(_ settings: [NotificationSettings.ConfigKey: Bool], completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Client version
