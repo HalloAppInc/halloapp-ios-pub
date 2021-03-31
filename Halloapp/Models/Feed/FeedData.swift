@@ -2162,7 +2162,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let existingPosts = feedPosts(with: postIds, in: managedObjectContext).reduce(into: [FeedPostID: FeedPost]()) { $0[$1.id] = $1 }
         var addedPostIDs = Set<FeedPostID>()
         var newMergedPosts: [FeedPostID] = []
-        var newMergedComments: [FeedPostComment] = []
         
         for post in posts {
             guard existingPosts[post.id] == nil else {
@@ -2263,20 +2262,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             
         }
 
-        save(managedObjectContext)
-
-        newMergedPosts.forEach({ didMergeFeedPost.send($0) })
         
         // Merge comments after posts.
-        for comment in comments {
-            let feedPostComment = merge(sharedComment: comment)
-            newMergedComments.append(feedPostComment)
-        }
-        
+        let newMergedComments = comments.compactMap { merge(sharedComment: $0, into: managedObjectContext) }
+
+        // Save merged objects
+        managedObjectContext.mergePolicy = NSRollbackMergePolicy
+        save(managedObjectContext)
+
         // Add comments to the notifications database.
-        self.generateNotifications(for: newMergedComments, using: managedObjectContext)
+        generateNotifications(for: newMergedComments, using: managedObjectContext)
+
+        // Notify
+        newMergedPosts.forEach({ didMergeFeedPost.send($0) })
         newMergedComments.forEach({ didReceiveFeedPostComment.send($0) })
-    
+
         DDLogInfo("FeedData/merge-data/finished")
 
         sharedDataStore.delete(posts: posts, comments: comments) {
@@ -2284,24 +2284,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
     
-    // Merge comment
-    func merge(sharedComment: SharedFeedComment) -> FeedPostComment {
+    /// Creates new comment with data from shared feed comment and increments parent post's unread count. Does not save context.
+    func merge(sharedComment: SharedFeedComment, into managedObjectContext: NSManagedObjectContext) -> FeedPostComment? {
         let postId = sharedComment.postId
         let commentId = sharedComment.id
 
-        // Create and save FeedPostComment
-        let managedObjectContext = self.persistentContainer.viewContext
-        
         // Fetch feedpost
         guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else {
             DDLogError("FeedData/merge/comment/error  Missing FeedPost with id [\(postId)]")
-            fatalError("Unable to find FeedPost")
+            return nil
         }
         
         // Fetch parentCommentId
         var parentComment: FeedPostComment?
         if let parentCommentId = sharedComment.parentCommentId {
-            parentComment = self.feedComment(with: parentCommentId, in: managedObjectContext)
+            parentComment = feedComment(with: parentCommentId, in: managedObjectContext)
             if parentComment == nil {
                 DDLogError("FeedData/merge/comment/error  Missing parent comment with id=[\(parentCommentId)]")
             }
@@ -2341,9 +2338,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Increase unread comments counter on post.
         feedPost.unreadCount += 1
 
-        // Merge comment data
-        managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        self.save(managedObjectContext)
         return feedComment
     }
 }

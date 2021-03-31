@@ -72,11 +72,12 @@ open class SharedDataStore {
             DDLogError("SharedDataStore/save-error error=[\(error)]")
         }
     }
+
+    private lazy var bgContext: NSManagedObjectContext = { persistentContainer.newBackgroundContext() }()
     
-    private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
+    public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         self.backgroundProcessingQueue.async {
-            let managedObjectContext = self.persistentContainer.newBackgroundContext()
-            managedObjectContext.performAndWait { block(managedObjectContext) }
+            self.bgContext.performAndWait { block(self.bgContext) }
         }
     }
 
