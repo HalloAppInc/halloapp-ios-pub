@@ -427,7 +427,7 @@ final class InviteCellView: UIView {
 
         smsButton.constrainMargins([.centerY, .trailing], to: self)
         smsButton.setContentHuggingPriority(.required, for: .horizontal)
-        smsButton.leadingAnchor.constraint(equalTo: whatsAppButton.trailingAnchor, constant: 8).isActive = true
+        smsButton.leadingAnchor.constraint(equalTo: whatsAppButton.trailingAnchor, constant: 16).isActive = true
     }
 
     required init?(coder: NSCoder) {
