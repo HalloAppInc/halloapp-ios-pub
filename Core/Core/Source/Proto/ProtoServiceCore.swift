@@ -568,7 +568,6 @@ extension ProtoServiceCore: CoreService {
             case .success(let encryptedData):
                 var chat = Server_ChatStanza()
                 chat.senderLogInfo = self.dateTimeFormatterMonthDayTime.string(from: Date())
-                chat.payload = messageData
                 chat.encPayload = encryptedData.data
                 chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
                 if let publicKey = encryptedData.identityKey {
@@ -576,10 +575,15 @@ extension ProtoServiceCore: CoreService {
                 } else {
                     DDLogInfo("ProtoServiceCore/makeChatStanza/\(message.id)/ skipping public key")
                 }
+                if ServerProperties.shouldSendClearTextChat {
+                    chat.payload = messageData
+                }
                 completion(chat, nil)
             case .failure(let error):
                 var chat = Server_ChatStanza()
-                chat.payload = messageData
+                if ServerProperties.shouldSendClearTextChat {
+                    chat.payload = messageData
+                }
                 completion(chat, error)
             }
         }

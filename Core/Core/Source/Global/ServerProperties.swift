@@ -20,6 +20,7 @@ public struct ServerProperties {
         case groupFeed = "group_feed"
         case groupChat = "group_chat"
         case combineFeed = "combine_feed"
+        case clearTextChat = "cleartext_chat_messages"
         case silentChatMessages = "silent_chat_messages"
         case maxFeedVideoDuration = "max_feed_video_duration"
         case maxChatVideoDuration = "max_chat_video_duration"
@@ -42,6 +43,7 @@ public struct ServerProperties {
         static let groupChat = true
         static let combineFeed = true
         static let maxGroupSize = 50
+        static let clearTextChat = true
         static let silentChatMessages = 0
         static let maxFeedVideoDuration = 60.0
         static let maxChatVideoDuration = 120.0
@@ -195,6 +197,11 @@ public struct ServerProperties {
     public static var isCombineFeedEnabled: Bool {
         ServerProperties.bool(forKey: .combineFeed) ?? Defaults.combineFeed
     }
+
+    public static var shouldSendClearTextChat: Bool {
+        ServerProperties.bool(forKey: .clearTextChat) ?? Defaults.clearTextChat
+    }
+
     /// Number of silent chat messages to send alongside each user-initiated message
     public static var silentChatMessages: Int {
         ServerProperties.integer(forKey: .silentChatMessages) ?? Defaults.silentChatMessages
