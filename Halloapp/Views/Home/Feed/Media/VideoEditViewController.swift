@@ -298,6 +298,8 @@ class VideoEditViewController : UIViewController {
         guard let original = media.originalVideoURL else { return }
         isProcessing = true
 
+        media.resetProgress()
+
         VideoUtils.trim(start: startTime, end: endTime, url: original, mute: isMuted) {[weak self] result in
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }

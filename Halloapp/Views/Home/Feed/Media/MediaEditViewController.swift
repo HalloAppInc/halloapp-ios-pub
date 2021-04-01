@@ -206,30 +206,50 @@ fileprivate class MediaEdit : ObservableObject {
     }
     
     func process() -> PendingMedia {
-        if let image = crop() {
-            media.edit = edit
-            media.image = image
+        guard media.type == .image else { return media }
+
+        media.edit = edit
+        media.resetProgress()
+
+        // The clousure keeps reference to self, otherwise cropping might not happen
+        PendingMedia.queue.async {
+            guard let image = self.crop() else { return }
+            self.media.image = image
         }
 
         return media
     }
     
     func updateImage() {
-        guard let image = original else { return }
-        
-        let size = (numberOfRotations % 2) == 0 ? image.size : CGSize(width: image.size.height, height: image.size.width)
+        guard let image = original?.cgImage else { return }
 
-        let format = UIGraphicsImageRendererFormat()
-        format.preferredRange = .extended
+        var rotations = numberOfRotations
 
-        self.image = UIGraphicsImageRenderer(size: size, format: format).image { context in
-            context.cgContext.translateBy(x: size.width / 2, y: size.height / 2)
-
-            context.cgContext.scaleBy(x: vFlipped ? -1 : 1, y: hFlipped ? -1 : 1)
-            context.cgContext.rotate(by: CGFloat(numberOfRotations) * CGFloat(-Double.pi) / 2)
-
-            image.draw(at: CGPoint(x: -image.size.width / 2, y: -image.size.height / 2))
+        switch original?.imageOrientation {
+        case .right:
+            rotations += 3
+        case .left:
+            rotations += 1
+        case .down:
+            rotations += 2
+        default:
+            break
         }
+
+        let size = (rotations % 2) == 0 ? CGSize(width: image.width, height: image.height) : CGSize(width: image.height, height: image.width)
+
+        let transform = CGAffineTransform(translationX: size.width / 2, y: size.height / 2)
+            .scaledBy(x: vFlipped ? -1 : 1, y: hFlipped ? -1 : 1)
+            .rotated(by: CGFloat(rotations) * .pi / 2)
+            .translatedBy(x: -CGFloat(image.width) / 2, y: -CGFloat(image.height) / 2)
+
+        let ciimage = CIImage(cgImage: image).transformed(by: transform)
+        guard let transformed = CIContext().createCGImage(ciimage, from: CGRect(x: 0, y: 0, width: size.width, height: size.height), format: .RGBA8, colorSpace: image.colorSpace) else {
+            self.image = nil
+            return
+        }
+
+        self.image = UIImage(cgImage: transformed)
     }
     
     private func initialCrop() -> CGRect {
@@ -343,26 +363,27 @@ fileprivate class MediaEdit : ObservableObject {
     }
     
     func crop() -> UIImage? {
-        guard let image = image else { return nil }
-        
+        guard let image = image?.cgImage else { return nil }
+
         let contextCenterX = cropRect.size.width / 2
         let contextCenterY = cropRect.size.height / 2
-        let imgCenterX = image.size.width / 2
-        let imgCenterY = image.size.height / 2
+        let imgCenterX = CGFloat(image.width) / 2
+        let imgCenterY = CGFloat(image.height) / 2
         let cropOffsetX = cropRect.midX - imgCenterX
-        let cropOffsetY = cropRect.midY - imgCenterY
+        let cropOffsetY = (CGFloat(image.height) - cropRect.midY) - imgCenterY
 
-        let format = UIGraphicsImageRendererFormat()
-        format.preferredRange = .extended
+        let transform = CGAffineTransform(translationX: contextCenterX, y: contextCenterY)
+            .translatedBy(x: -cropOffsetX, y: -cropOffsetY)
+            .translatedBy(x: offset.x, y: -offset.y)
+            .scaledBy(x: scale, y: scale)
+            .translatedBy(x: -imgCenterX, y: -imgCenterY)
 
-        return UIGraphicsImageRenderer(size: cropRect.size, format: format).image { context in
-            context.cgContext.translateBy(x: contextCenterX, y: contextCenterY)
-            context.cgContext.translateBy(x: -cropOffsetX, y: -cropOffsetY)
-            context.cgContext.translateBy(x: offset.x, y: offset.y)
-            context.cgContext.scaleBy(x: scale, y: scale)
-
-            image.draw(at: CGPoint(x: -imgCenterX, y: -imgCenterY))
+        let ciimage = CIImage(cgImage: image).transformed(by: transform)
+        guard let transformed = CIContext().createCGImage(ciimage, from: CGRect(x: 0, y: 0, width: cropRect.size.width, height: cropRect.size.height), format: .RGBA8, colorSpace: image.colorSpace) else {
+            return nil
         }
+
+        return UIImage(cgImage: transformed)
     }
 }
 

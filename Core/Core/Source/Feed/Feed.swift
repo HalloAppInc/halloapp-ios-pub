@@ -161,6 +161,7 @@ public struct PendingMediaEdit: Equatable {
 }
 
 public class PendingMedia {
+    public static let queue = DispatchQueue(label: "com.halloapp.pending-media", qos: .userInitiated)
     private static let homeDirURL = URL(fileURLWithPath: NSHomeDirectory()).standardizedFileURL
 
     public var order: Int = 0
@@ -176,30 +177,31 @@ public class PendingMedia {
 
     public var image: UIImage? {
         didSet {
-            size = image?.size
+            guard let image = image else { return }
 
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            PendingMedia.queue.async { [weak self] in
                 guard let self = self else { return }
-                guard let image = self.image else { return }
-                guard let data = image.jpegData(compressionQuality: 0.8) else { return }
 
                 // Local copy of the file is required for further processing
                 let url = URL(fileURLWithPath: NSTemporaryDirectory())
                     .appendingPathComponent(UUID().uuidString, isDirectory: false)
                     .appendingPathExtension("jpg")
 
-                if (try? data.write(to: url)) != nil {
-                    self.fileURL = url
+                do {
+                    try image.jpegData(compressionQuality: 0.8)?.write(to: url)
+                } catch {
+                    DDLogError("PendingMedia: unable to save image \(error)")
+                    return
+                }
 
-                    DispatchQueue.main.async { [weak self] in
-                        guard let self = self else { return }
-                        self.progress.send(1)
-                        self.progress.send(completion: .finished)
-                        self.ready.send(true)
-                        self.ready.send(completion: .finished)
-                    }
-                } else {
-                    DDLogError("PendingMedia: unable to save image")
+                self.size = self.image?.size
+                self.fileURL = url
+
+                DispatchQueue.main.async {
+                    self.progress.send(1)
+                    self.progress.send(completion: .finished)
+                    self.ready.send(true)
+                    self.ready.send(completion: .finished)
                 }
             }
         }
@@ -210,7 +212,10 @@ public class PendingMedia {
         didSet {
             if originalVideoURL != nil { DDLogDebug("PendingMedia: set originalVideoURL \(originalVideoURL!)") }
             if let previousVideoURL = oldValue, !isInUseURL(previousVideoURL) {
-                clearTemporaryMedia(tempURL: previousVideoURL)
+                PendingMedia.queue.async { [weak self] in
+                    guard let self = self else { return }
+                    self.clearTemporaryMedia(tempURL: previousVideoURL)
+                }
             }
         }
     }
@@ -218,11 +223,14 @@ public class PendingMedia {
         didSet {
             if fileURL != nil { DDLogDebug("PendingMedia: set fileUrl \(fileURL!)") }
             if let previousFileURL = oldValue, !isInUseURL(previousFileURL) {
-                clearTemporaryMedia(tempURL: previousFileURL)
+                PendingMedia.queue.async {  [weak self] in
+                    guard let self = self else { return }
+                    self.clearTemporaryMedia(tempURL: previousFileURL)
+                }
             }
 
             if type == .video {
-                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                PendingMedia.queue.async { [weak self] in
                     guard let self = self else { return }
                     defer {
                         DispatchQueue.main.async {
@@ -252,6 +260,11 @@ public class PendingMedia {
 
     public init(type: FeedMediaType) {
         self.type = type
+    }
+
+    public func resetProgress() {
+        progress = CurrentValueSubject<Float, Never>(0)
+        ready = CurrentValueSubject<Bool, Never>(false)
     }
 
     private func clearTemporaryMedia(tempURL: URL?) {
