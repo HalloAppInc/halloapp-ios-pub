@@ -404,12 +404,12 @@ final class InviteCellView: UIView {
         layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 8, right: 16)
 
         nameLabel.textColor = .label
-        nameLabel.font = .systemFont(forTextStyle: .subheadline, weight: .semibold)
+        nameLabel.font = .systemFont(forTextStyle: .callout, weight: .semibold)
         nameLabel.numberOfLines = 1
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        subtitleLabel.textColor = .secondaryLabel
-        subtitleLabel.font = .preferredFont(forTextStyle: .footnote)
+        subtitleLabel.textColor = UIColor.label.withAlphaComponent(0.5)
+        subtitleLabel.font = .systemFont(forTextStyle: .footnote, pointSizeChange: 1)
         subtitleLabel.numberOfLines = 0
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
 
