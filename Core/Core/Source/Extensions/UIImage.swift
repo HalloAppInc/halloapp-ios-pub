@@ -156,6 +156,32 @@ extension UIImage {
         return image
     }
 
+    public func simpleResized(to size: CGSize) -> UIImage? {
+        guard let image = self.cgImage else { return nil }
+
+        let scaleX: CGFloat
+        let scaleY: CGFloat
+        let targetRect: CGRect
+
+        switch self.imageOrientation {
+        case .left, .right:
+            scaleX = size.width / CGFloat(image.height)
+            scaleY = size.height / CGFloat(image.width)
+            targetRect = CGRect(x: 0, y: 0, width: size.height, height: size.width)
+        default:
+            scaleX = size.width / CGFloat(image.width)
+            scaleY = size.height / CGFloat(image.height)
+            targetRect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+        }
+
+        let output = CIImage(cgImage: image).transformed(by: CGAffineTransform(scaleX: scaleX, y: scaleY))
+        guard let resized = CIContext().createCGImage(output, from: targetRect, format: .RGBA8, colorSpace: image.colorSpace) else {
+            return nil
+        }
+
+        return UIImage(cgImage: resized, scale: 1, orientation: self.imageOrientation)
+    }
+
     public func resized(to targetSize: CGSize, contentMode: UIView.ContentMode, downscaleOnly: Bool, opaque removeAlpha: Bool = false) -> UIImage? {
 
         guard contentMode == .center || contentMode == .scaleAspectFit || contentMode == .scaleAspectFill || contentMode == .scaleToFill else {

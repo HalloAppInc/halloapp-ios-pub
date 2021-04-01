@@ -187,7 +187,7 @@ class ImageServer {
         let targetSize = CGSize(width: (image.size.width * aspectRatio).rounded(), height: (image.size.height * aspectRatio).rounded())
 
         let ts = Date()
-        guard let resized = image.fastResized(to: targetSize) else {
+        guard let resized = image.simpleResized(to: targetSize) else {
             DDLogError("ImageServer/image/resize/error  Resizing failed")
             return .failure(ImageProcessingError.resizeFailure)
         }
