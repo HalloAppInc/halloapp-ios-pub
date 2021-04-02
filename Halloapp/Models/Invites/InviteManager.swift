@@ -13,13 +13,10 @@ import SwiftUI
 
 class InviteManager: ObservableObject {
 
-    // MARK: SwiftUI Support
     @Published private(set) var isDataCurrent: Bool = false
     @Published private(set) var fetchError: Bool = false
     @Published private(set) var numberOfInvitesAvailable: Int = 0
     @Published private(set) var nextRefreshDate: Date? = nil
-
-    var contactToInvite: ABContact?
     @Published private(set) var redeemInProgress: Bool = false
 
     private static let sharedManager = InviteManager()
@@ -86,23 +83,6 @@ class InviteManager: ObservableObject {
                 DDLogInfo("invite-manager/redeem-request/error \(error)")
 
                 completion(.failure(.unknown))
-            }
-        }
-    }
-
-    func redeemInviteForSelectedContact(presentErrorAlert: Binding<Bool>, presentShareSheet: Binding<Bool>) {
-        guard let contactNumber = contactToInvite?.normalizedPhoneNumber else {
-            assert(false, "Contact not selected.")
-            return
-        }
-
-        redeemInviteForPhoneNumber(contactNumber) { inviteResult in
-            if case .success = inviteResult {
-                presentShareSheet.wrappedValue = true
-            } else if case .failure(let reason) = inviteResult, reason == .existingUser {
-                presentShareSheet.wrappedValue = true
-            } else {
-                presentErrorAlert.wrappedValue = true
             }
         }
     }
