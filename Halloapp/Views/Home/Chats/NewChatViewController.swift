@@ -260,3 +260,11 @@ private extension Localizations {
     }
 
 }
+
+extension ABContact: IndexableContact {
+    var collationName: String {
+        indexName ?? "#"
+    }
+}
+
+extension ABContact: SearchableContact { }
