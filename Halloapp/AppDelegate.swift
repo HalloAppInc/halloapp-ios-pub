@@ -131,6 +131,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         MainAppContext.shared.mergeSharedData()
+        
+        // Delete content on notifications if server asks us to delete a push.
+        if let metadata = userInfo["metadata"] as? [String: String], let contentId = metadata["content-id"], metadata["retract"] == "true" {
+            DDLogInfo("application/background-push/retract notification, identifier: \(contentId)")
+            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [contentId])
+        }
 
         let service = MainAppContext.shared.service
         service.startConnectingIfNecessary()
