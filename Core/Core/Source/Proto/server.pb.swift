@@ -326,6 +326,8 @@ public struct Server_ContactList {
     case normal // = 2
     case friendNotice // = 3
     case inviterNotice // = 4
+    case deleteNotice // = 5
+    case contactNotice // = 6
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -339,6 +341,8 @@ public struct Server_ContactList {
       case 2: self = .normal
       case 3: self = .friendNotice
       case 4: self = .inviterNotice
+      case 5: self = .deleteNotice
+      case 6: self = .contactNotice
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -350,6 +354,8 @@ public struct Server_ContactList {
       case .normal: return 2
       case .friendNotice: return 3
       case .inviterNotice: return 4
+      case .deleteNotice: return 5
+      case .contactNotice: return 6
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -369,6 +375,8 @@ extension Server_ContactList.TypeEnum: CaseIterable {
     .normal,
     .friendNotice,
     .inviterNotice,
+    .deleteNotice,
+    .contactNotice,
   ]
 }
 
@@ -884,6 +892,8 @@ public struct Server_GroupStanza {
 
   public var members: [Server_GroupMember] = []
 
+  public var background: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Action: SwiftProtobuf.Enum {
@@ -900,6 +910,8 @@ public struct Server_GroupStanza {
     case autoPromoteAdmins // = 9
     case setName // = 10
     case join // = 11
+    case preview // = 12
+    case setBackground // = 13
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -920,6 +932,8 @@ public struct Server_GroupStanza {
       case 9: self = .autoPromoteAdmins
       case 10: self = .setName
       case 11: self = .join
+      case 12: self = .preview
+      case 13: self = .setBackground
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -938,6 +952,8 @@ public struct Server_GroupStanza {
       case .autoPromoteAdmins: return 9
       case .setName: return 10
       case .join: return 11
+      case .preview: return 12
+      case .setBackground: return 13
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -964,6 +980,8 @@ extension Server_GroupStanza.Action: CaseIterable {
     .autoPromoteAdmins,
     .setName,
     .join,
+    .preview,
+    .setBackground,
   ]
 }
 
@@ -1076,6 +1094,7 @@ public struct Server_GroupInviteLink {
     case get // = 1
     case reset // = 2
     case join // = 3
+    case preview // = 4
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -1088,6 +1107,7 @@ public struct Server_GroupInviteLink {
       case 1: self = .get
       case 2: self = .reset
       case 3: self = .join
+      case 4: self = .preview
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1098,6 +1118,7 @@ public struct Server_GroupInviteLink {
       case .get: return 1
       case .reset: return 2
       case .join: return 3
+      case .preview: return 4
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1118,6 +1139,7 @@ extension Server_GroupInviteLink.Action: CaseIterable {
     .get,
     .reset,
     .join,
+    .preview,
   ]
 }
 
@@ -1466,14 +1488,6 @@ public struct Server_Iq {
     set {payload = .privacyList(newValue)}
   }
 
-  public var privacyListResult: Server_PrivacyListResult {
-    get {
-      if case .privacyListResult(let v)? = payload {return v}
-      return Server_PrivacyListResult()
-    }
-    set {payload = .privacyListResult(newValue)}
-  }
-
   public var privacyLists: Server_PrivacyLists {
     get {
       if case .privacyLists(let v)? = payload {return v}
@@ -1601,7 +1615,6 @@ public struct Server_Iq {
     case ping(Server_Ping)
     case feedItem(Server_FeedItem)
     case privacyList(Server_PrivacyList)
-    case privacyListResult(Server_PrivacyListResult)
     case privacyLists(Server_PrivacyLists)
     case groupStanza(Server_GroupStanza)
     case groupsStanza(Server_GroupsStanza)
@@ -1669,10 +1682,6 @@ public struct Server_Iq {
       }()
       case (.privacyList, .privacyList): return {
         guard case .privacyList(let l) = lhs, case .privacyList(let r) = rhs else { preconditionFailure() }
-        return l == r
-      }()
-      case (.privacyListResult, .privacyListResult): return {
-        guard case .privacyListResult(let l) = lhs, case .privacyListResult(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       case (.privacyLists, .privacyLists): return {
@@ -2579,22 +2588,6 @@ extension Server_PrivacyList.TypeEnum: CaseIterable {
 }
 
 #endif  // swift(>=4.2)
-
-public struct Server_PrivacyListResult {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var result: String = String()
-
-  public var reason: String = String()
-
-  public var hash: Data = Data()
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-}
 
 public struct Server_PrivacyLists {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -3637,6 +3630,8 @@ extension Server_ContactList.TypeEnum: SwiftProtobuf._ProtoNameProviding {
     2: .same(proto: "NORMAL"),
     3: .same(proto: "FRIEND_NOTICE"),
     4: .same(proto: "INVITER_NOTICE"),
+    5: .same(proto: "DELETE_NOTICE"),
+    6: .same(proto: "CONTACT_NOTICE"),
   ]
 }
 
@@ -4255,6 +4250,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     5: .standard(proto: "sender_uid"),
     6: .standard(proto: "sender_name"),
     7: .same(proto: "members"),
+    8: .same(proto: "background"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4270,6 +4266,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       case 5: try { try decoder.decodeSingularInt64Field(value: &self.senderUid) }()
       case 6: try { try decoder.decodeSingularStringField(value: &self.senderName) }()
       case 7: try { try decoder.decodeRepeatedMessageField(value: &self.members) }()
+      case 8: try { try decoder.decodeSingularStringField(value: &self.background) }()
       default: break
       }
     }
@@ -4297,6 +4294,9 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if !self.members.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.members, fieldNumber: 7)
     }
+    if !self.background.isEmpty {
+      try visitor.visitSingularStringField(value: self.background, fieldNumber: 8)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -4308,6 +4308,7 @@ extension Server_GroupStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if lhs.senderUid != rhs.senderUid {return false}
     if lhs.senderName != rhs.senderName {return false}
     if lhs.members != rhs.members {return false}
+    if lhs.background != rhs.background {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4327,6 +4328,8 @@ extension Server_GroupStanza.Action: SwiftProtobuf._ProtoNameProviding {
     9: .same(proto: "AUTO_PROMOTE_ADMINS"),
     10: .same(proto: "SET_NAME"),
     11: .same(proto: "JOIN"),
+    12: .same(proto: "PREVIEW"),
+    13: .same(proto: "SET_BACKGROUND"),
   ]
 }
 
@@ -4510,6 +4513,7 @@ extension Server_GroupInviteLink.Action: SwiftProtobuf._ProtoNameProviding {
     1: .same(proto: "GET"),
     2: .same(proto: "RESET"),
     3: .same(proto: "JOIN"),
+    4: .same(proto: "PREVIEW"),
   ]
 }
 
@@ -5052,7 +5056,6 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     12: .same(proto: "ping"),
     13: .standard(proto: "feed_item"),
     14: .standard(proto: "privacy_list"),
-    15: .standard(proto: "privacy_list_result"),
     16: .standard(proto: "privacy_lists"),
     17: .standard(proto: "group_stanza"),
     18: .standard(proto: "groups_stanza"),
@@ -5184,15 +5187,6 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.payload = .privacyList(v)}
-      }()
-      case 15: try {
-        var v: Server_PrivacyListResult?
-        if let current = self.payload {
-          try decoder.handleConflictingOneOf()
-          if case .privacyListResult(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.payload = .privacyListResult(v)}
       }()
       case 16: try {
         var v: Server_PrivacyLists?
@@ -5383,10 +5377,6 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     case .privacyList?: try {
       guard case .privacyList(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
-    }()
-    case .privacyListResult?: try {
-      guard case .privacyListResult(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
     }()
     case .privacyLists?: try {
       guard case .privacyLists(let v)? = self.payload else { preconditionFailure() }
@@ -6294,50 +6284,6 @@ extension Server_PrivacyList.TypeEnum: SwiftProtobuf._ProtoNameProviding {
     3: .same(proto: "MUTE"),
     4: .same(proto: "ONLY"),
   ]
-}
-
-extension Server_PrivacyListResult: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".PrivacyListResult"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "result"),
-    2: .same(proto: "reason"),
-    3: .same(proto: "hash"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.result) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.reason) }()
-      case 3: try { try decoder.decodeSingularBytesField(value: &self.hash) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.result.isEmpty {
-      try visitor.visitSingularStringField(value: self.result, fieldNumber: 1)
-    }
-    if !self.reason.isEmpty {
-      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 2)
-    }
-    if !self.hash.isEmpty {
-      try visitor.visitSingularBytesField(value: self.hash, fieldNumber: 3)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Server_PrivacyListResult, rhs: Server_PrivacyListResult) -> Bool {
-    if lhs.result != rhs.result {return false}
-    if lhs.reason != rhs.reason {return false}
-    if lhs.hash != rhs.hash {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
 }
 
 extension Server_PrivacyLists: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {

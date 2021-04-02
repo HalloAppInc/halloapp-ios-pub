@@ -95,6 +95,8 @@ struct XMPPGroup {
             case .setName: return nil
             case .autoPromoteAdmins: return nil
             case .join: return nil
+            case .preview: return nil
+            case .setBackground: return nil
             case .UNRECOGNIZED(_): return nil
             }
         }()
