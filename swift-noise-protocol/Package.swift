@@ -10,8 +10,8 @@ let package = Package(
   ],
   dependencies: [
     // Dependencies declare other packages that this package depends on.
-    .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.3.0"),
-    .package(url: "https://github.com/christophhagen/CryptoKit25519", .exact("0.4.2"))
+    .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .revision("5669f222e46c8134fb1f399c745fa6882b43532e")), // v1.3.8
+    .package(url: "https://github.com/christophhagen/CryptoKit25519", .revision("d1feb6533039fedc36a4004bd32b328f18a7e653"))  // v0.4.2
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module or a test suite.
