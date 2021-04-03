@@ -24,6 +24,7 @@ enum NotificationContentType: String, RawRepresentable {
 
     case newInvitee = "inviter_notice"
     case newFriend = "friend_notice"
+    case newContact = "contact_notice"
 }
 
 class NotificationMetadata {
@@ -224,7 +225,7 @@ extension NotificationMetadata {
         switch contentType {
         case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment:
             return true
-        case .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee:
+        case .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact:
             return false
         }
     }
@@ -243,7 +244,7 @@ extension NotificationMetadata {
     
     var isContactNotification: Bool {
         switch contentType {
-        case .newFriend, .newInvitee:
+        case .newFriend, .newInvitee, .newContact:
             return true
         case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd:
             return false
@@ -254,7 +255,7 @@ extension NotificationMetadata {
         switch contentType {
         case .groupFeedPost, .groupFeedComment, .groupChatMessage, .groupAdd:
             return true
-        case .feedPost, .feedComment, .chatMessage, .newFriend, .newInvitee:
+        case .feedPost, .feedComment, .chatMessage, .newFriend, .newInvitee, .newContact:
             return false
         }
     }

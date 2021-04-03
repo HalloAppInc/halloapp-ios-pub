@@ -828,6 +828,8 @@ final class ProtoService: ProtoServiceCore {
             contentType = .newFriend
         case .inviterNotice:
             contentType = .newInvitee
+        case .contactNotice:
+            contentType = .newContact
         default:
             return
         }

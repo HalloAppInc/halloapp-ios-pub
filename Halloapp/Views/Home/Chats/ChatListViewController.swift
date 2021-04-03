@@ -403,7 +403,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         navigationController?.popToRootViewController(animated: false)
 
-        if metadata.contentType == .chatMessage || metadata.contentType == .newInvitee || metadata.contentType == .newFriend {
+        if metadata.contentType == .chatMessage || metadata.isContactNotification {
             navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
         }
 

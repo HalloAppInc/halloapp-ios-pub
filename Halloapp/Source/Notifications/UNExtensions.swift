@@ -125,6 +125,8 @@ extension UNMutableNotificationContent {
                 body = String(format: Localizations.contactNotificationInviteContent, name)
             } else if contactList.type == .friendNotice {
                 body = String(format: Localizations.contactNotificationFriendContent, name)
+            } else if contactList.type == .contactNotice {
+                body = String(format: Localizations.contactNotificationContent, name)
             }
             return
         default:
@@ -221,5 +223,12 @@ extension Localizations {
             "notification.new.friend.content",
             value: "%@ is now on HalloApp",
             comment: "Content for friend notification.")
+    }
+
+    static var contactNotificationContent: String {
+        NSLocalizedString(
+            "notification.new.friend.content",
+            value: "%@ is now on HalloApp",
+            comment: "Content for contact notification.")
     }
 }
