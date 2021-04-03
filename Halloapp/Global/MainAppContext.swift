@@ -17,6 +17,7 @@ class MainAppContext: AppContext {
     // MARK: Constants
     private static let feedDatabaseFilename = "feed.sqlite"
     private static let chatDatabaseFilename = "chat.sqlite"
+    private static let cryptoStatsDatabaseFilename = "cryptoStats.sqlite"
 
     // MARK: Global objects
     private(set) var avatarStore: AvatarStore!
@@ -26,6 +27,7 @@ class MainAppContext: AppContext {
     private(set) var syncManager: SyncManager!
     private(set) var privacySettings: PrivacySettings!
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
+    lazy var cryptoData: CryptoData = { CryptoData() }()
     
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
@@ -76,6 +78,10 @@ class MainAppContext: AppContext {
     static let chatStoreURL = {
         documentsDirectoryURL.appendingPathComponent(chatDatabaseFilename)
     }()
+
+    static let cryptoStatsStoreURL = {
+        documentsDirectoryURL.appendingPathComponent(cryptoStatsDatabaseFilename)
+    }()
     
     // MARK: Initializer
 
@@ -103,6 +109,11 @@ class MainAppContext: AppContext {
         avatarStore = AvatarStore()
         coreService.avatarDelegate = avatarStore
         privacySettings = PrivacySettings(contactStore: contactStore, service: service)
+
+        let oneHour = TimeInterval(60*60)
+        cryptoData.startReporting(interval: oneHour) { [weak self] events in
+            self?.eventMonitor.observe(events)
+        }
 
         #if !DEBUG
         // Log errors to firebase

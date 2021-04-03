@@ -8,14 +8,14 @@
 
 import Foundation
 
-public struct UserAgent: CustomStringConvertible {
-    public enum Platform: String, CaseIterable {
+public struct UserAgent: CustomStringConvertible, Codable {
+    public enum Platform: String, CaseIterable, Codable {
         case ios = "iOS"
         case android = "Android"
     }
 
-    var platform: Platform
-    var version: String
+    public var platform: Platform
+    public var version: String
 
     public init?(string: String) {
         let components = string.split(separator: "/")

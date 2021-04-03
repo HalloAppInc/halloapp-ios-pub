@@ -522,6 +522,7 @@ final class ProtoService: ProtoServiceCore {
             if !serverChat.senderName.isEmpty {
                 MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverChat.senderName ])
             }
+            let receiptTimestamp = Date()
             decryptChat(serverChat, from: UserID(msg.fromUid)) { (clientChat, decryptionFailure) in
                 if let clientChat = clientChat {
                     let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount)
@@ -541,10 +542,17 @@ final class ProtoService: ProtoServiceCore {
                 if !serverChat.senderLogInfo.isEmpty {
                     DDLogInfo("proto/didReceive/\(msg.id)/senderLog [\(serverChat.senderLogInfo)]")
                 }
-                AppContext.shared.eventMonitor.count(.decryption(error: decryptionFailure?.error, sender: UserAgent(string: serverChat.senderClientVersion)))
+                self.reportDecryptionResult(
+                    error: decryptionFailure?.error,
+                    messageID: msg.id,
+                    timestamp: receiptTimestamp,
+                    sender: UserAgent(string: serverChat.senderClientVersion),
+                    rerequestCount: Int(msg.rerequestCount),
+                    isSilent: false)
                 self.sendAck(messageID: msg.id)
             }
         case .silentChatStanza(let silent):
+            let receiptTimestamp = Date()
             // We ignore message content from silent messages (only interested in decryption success)
             decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, decryptionFailure) in
                 if let failure = decryptionFailure {
@@ -560,7 +568,13 @@ final class ProtoService: ProtoServiceCore {
                 if !silent.chatStanza.senderLogInfo.isEmpty {
                     DDLogInfo("proto/didReceive/\(msg.id)/senderLog [\(silent.chatStanza.senderLogInfo)]")
                 }
-                AppContext.shared.eventMonitor.count(.decryption(error: decryptionFailure?.error, sender: UserAgent(string: silent.chatStanza.senderClientVersion)))
+                self.reportDecryptionResult(
+                    error: decryptionFailure?.error,
+                    messageID: msg.id,
+                    timestamp: receiptTimestamp,
+                    sender: UserAgent(string: silent.chatStanza.senderClientVersion),
+                    rerequestCount: Int(msg.rerequestCount),
+                    isSilent: true)
                 self.sendAck(messageID: msg.id)
             }
         case .rerequest(let rerequest):
@@ -733,6 +747,22 @@ final class ProtoService: ProtoServiceCore {
                 DDLogError("ProtoService/resendAvatarIfNecessary/error avatar not \(logAction): \(error)")
             }
         })
+    }
+
+    private func reportDecryptionResult(error: DecryptionError?, messageID: String, timestamp: Date, sender: UserAgent?, rerequestCount: Int, isSilent: Bool) {
+        AppContext.shared.eventMonitor.count(.decryption(error: error, sender: sender))
+
+        if let sender = sender {
+            MainAppContext.shared.cryptoData.update(
+                messageID: messageID,
+                timestamp: timestamp,
+                result: error?.rawValue ?? "success",
+                rerequestCount: rerequestCount,
+                sender: sender,
+                isSilent: isSilent)
+        } else {
+            DDLogError("proto/didReceive/\(messageID)/decrypt/stats/error missing sender user agent")
+        }
     }
 
     // MARK: Noise

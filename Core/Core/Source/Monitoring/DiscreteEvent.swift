@@ -12,6 +12,7 @@ public enum DiscreteEvent {
     case mediaUpload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int, totalSize: Int)
     case mediaDownload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int, totalSize: Int)
     case pushReceived(id: String, timestamp: Date)
+    case decryptionReport(id: String, result: String, clientVersion: String, sender: UserAgent, rerequestCount: Int, timeTaken: TimeInterval, isSilent: Bool)
 }
 
 extension DiscreteEvent: Codable {
@@ -39,6 +40,15 @@ extension DiscreteEvent: Codable {
             let id = try container.decode(String.self, forKey: .id)
             let timestamp = try container.decode(Date.self, forKey: .timestamp)
             self = .pushReceived(id: id, timestamp: timestamp)
+        case .decryptionReport:
+            let id = try container.decode(String.self, forKey: .id)
+            let result = try container.decode(String.self, forKey: .result)
+            let clientVersion = try container.decode(String.self, forKey: .version)
+            let sender = try container.decode(UserAgent.self, forKey: .sender)
+            let rerequestCount = try container.decode(Int.self, forKey: .count)
+            let timeTaken = try container.decode(TimeInterval.self, forKey: .duration)
+            let isSilent = try container.decode(Bool.self, forKey: .silent)
+            self = .decryptionReport(id: id, result: result, clientVersion: clientVersion, sender: sender, rerequestCount: rerequestCount, timeTaken: timeTaken, isSilent: isSilent)
         }
     }
 
@@ -64,22 +74,37 @@ extension DiscreteEvent: Codable {
             try container.encode(EventType.pushReceived, forKey: .eventType)
             try container.encode(id, forKey: .id)
             try container.encode(timestamp, forKey: .timestamp)
+        case .decryptionReport(let id, let result, let clientVersion, let sender, let rerequestCount, let timeTaken, let isSilent):
+            try container.encode(EventType.decryptionReport, forKey: .eventType)
+            try container.encode(id, forKey: .id)
+            try container.encode(clientVersion, forKey: .version)
+            try container.encode(result, forKey: .result)
+            try container.encode(sender, forKey: .sender)
+            try container.encode(rerequestCount, forKey: .count)
+            try container.encode(timeTaken, forKey: .duration)
+            try container.encode(isSilent, forKey: .silent)
         }
     }
 
     private enum CodingKeys: String, CodingKey {
+        case count
         case duration
         case eventType
         case id
         case numPhotos
         case numVideos
+        case result
+        case sender
         case timestamp
         case totalSize
+        case version
+        case silent
     }
 
     private enum EventType: String, Codable {
         case mediaDownload
         case mediaUpload
         case pushReceived
+        case decryptionReport
     }
 }

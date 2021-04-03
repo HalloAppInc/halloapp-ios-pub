@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17511" systemVersion="19G73" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="MessageDecryption" representedClassName="MessageDecryption" syncable="YES" codeGenerationType="class">
+        <attribute name="decryptionResult" optional="YES" attributeType="String"/>
+        <attribute name="hasBeenReported" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isSilent" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="messageID" attributeType="String"/>
+        <attribute name="rerequestCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="timeDecrypted" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="timeReceived" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userAgentReceiver" optional="YES" attributeType="String"/>
+        <attribute name="userAgentSender" optional="YES" attributeType="String"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="messageID"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <elements>
+        <element name="MessageDecryption" positionX="-63" positionY="-18" width="128" height="178"/>
+    </elements>
+</model>

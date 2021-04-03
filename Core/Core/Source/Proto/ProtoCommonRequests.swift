@@ -226,6 +226,33 @@ private extension DiscreteEvent {
             push.id = id
             push.clientTimestamp = UInt64(timestamp.timeIntervalSince1970)
             return .pushReceived(push)
+
+        case .decryptionReport(let id, let result, let clientVersion, let sender, let rerequestCount, let timeTaken, let isSilent):
+            var report = Server_DecryptionReport()
+            report.msgID = id
+            if result == "success" {
+                report.result = .ok
+            } else {
+                report.result = .fail
+                report.reason = result
+            }
+            report.originalVersion = clientVersion
+            report.senderVersion = sender.version
+            report.senderPlatform = sender.platform.serverPlatform
+            report.rerequestCount = UInt32(rerequestCount)
+            report.timeTakenS = UInt32(timeTaken)
+            report.isSilent = isSilent
+            return .decryptionReport(report)
+
+        }
+    }
+}
+
+extension UserAgent.Platform {
+    var serverPlatform: Server_Platform {
+        switch self {
+        case .android: return .android
+        case .ios: return .ios
         }
     }
 }

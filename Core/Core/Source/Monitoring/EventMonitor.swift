@@ -34,6 +34,13 @@ final public class EventMonitor {
         }
     }
 
+    /// Records events for future report
+    public func observe<S: Sequence>(_ events: S) where S.Element == DiscreteEvent {
+        monitorQueue.async {
+            self.activeReport.discreteEvents += events
+        }
+    }
+
     /// Aggregates events observed since last report and runs completion handler on main thread
     public func generateReport(completion: @escaping ([CountableEvent], [DiscreteEvent]) -> Void) {
         monitorQueue.async {
