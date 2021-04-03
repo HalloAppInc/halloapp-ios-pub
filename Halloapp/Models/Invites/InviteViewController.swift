@@ -293,9 +293,11 @@ final class InviteViewController: UIViewController {
         redeemInvite(for: contact) { [weak self] result in
             switch result {
             case .success, .failure(.existingUser):
+                var allowedCharacters = CharacterSet.urlHostAllowed
+                allowedCharacters.remove("+")
                 guard let urlEncodedInviteText = Localizations
                         .inviteText(name: contact.givenName ?? contact.fullName, number: contact.normalizedPhoneNumber.formattedPhoneNumber)
-                        .addingPercentEncoding(withAllowedCharacters: .urlHostAllowed),
+                        .addingPercentEncoding(withAllowedCharacters: allowedCharacters),
                       let whatsAppURL = URL(string: "https://wa.me/\(contact.normalizedPhoneNumber)/?text=\(urlEncodedInviteText)") else
                 {
                     return
