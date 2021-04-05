@@ -246,6 +246,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         }
         
         let userName = MainAppContext.shared.contactStore.fullName(for: chatGroupMember.userId)
+        let isUserAContact = MainAppContext.shared.contactStore.isContactInAddressBook(userId: chatGroupMember.userId)
         let selectedMembers = [chatGroupMember.userId]
         
         let actionSheet = UIAlertController(title: "\(userName)", message: nil, preferredStyle: .actionSheet)
@@ -257,12 +258,14 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             let userViewController = UserFeedViewController(userId: chatGroupMember.userId)
             self.navigationController?.pushViewController(userViewController, animated: true)
         })
-        
-        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMessageUser, style: .default) { [weak self] _ in
-            guard let self = self else { return }
-               
-            self.navigationController?.pushViewController(ChatViewController(for: chatGroupMember.userId), animated: true)
-        })
+
+        if isUserAContact {
+            actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMessageUser, style: .default) { [weak self] _ in
+                guard let self = self else { return }
+
+                self.navigationController?.pushViewController(ChatViewController(for: chatGroupMember.userId), animated: true)
+            })
+        }
         
         if isAdmin {
             if chatGroupMember.type == .admin {

@@ -307,15 +307,19 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         }
 
         let contactName = MainAppContext.shared.contactStore.fullName(for: receipt.userId)
+        let isUserAContact = MainAppContext.shared.contactStore.isContactInAddressBook(userId: receipt.userId)
+
         let actionSheet = UIAlertController(title: contactName, message: nil, preferredStyle: .actionSheet)
         // View Profile
         actionSheet.addAction(UIAlertAction(title: Localizations.actionViewProfile, style: .default, handler: { (_) in
             delegate.postDashboardViewController(self, didRequestPerformAction: .profile(receipt.userId))
         }))
         // Message
-        actionSheet.addAction(UIAlertAction(title: Localizations.actionMessage, style: .default, handler: { (_) in
-            delegate.postDashboardViewController(self, didRequestPerformAction: .message(receipt.userId))
-        }))
+        if isUserAContact {
+            actionSheet.addAction(UIAlertAction(title: Localizations.actionMessage, style: .default, handler: { (_) in
+                delegate.postDashboardViewController(self, didRequestPerformAction: .message(receipt.userId))
+            }))
+        }
         // Hide from Contact
         // This options isn't shown for group feed posts to avoid confusion:
         // blacklisted contacts still able to see user's posts in the group.
