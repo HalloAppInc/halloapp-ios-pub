@@ -11,7 +11,6 @@ import Core
 import MessageUI
 import SafariServices
 import UIKit
-import Zip
 
 private extension Localizations {
 
@@ -166,7 +165,6 @@ class HelpViewController: UITableViewController {
             }
         }
     }
-
 }
 
 extension HelpViewController: MFMailComposeViewControllerDelegate {
@@ -198,10 +196,9 @@ private extension MFMailComposeViewController {
         vc.mailComposeDelegate = delegate
 
         do {
-            let logFilePaths = MainAppContext.shared.fileLogger.logFileManager.sortedLogFilePaths.compactMap { URL(fileURLWithPath: $0) }
             let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
             let archiveURL = tempDirectoryURL.appendingPathComponent("logs-\(timeStr).zip")
-            try Zip.zipFiles(paths: logFilePaths, zipFilePath: archiveURL, password: nil, progress: nil)
+            try MainAppContext.shared.archiveLogs(to: archiveURL)
             if let archiveData = try? Data(contentsOf: archiveURL) {
                 vc.addAttachmentData(archiveData, mimeType: "application/zip", fileName: "logs.zip")
             }
@@ -237,8 +234,7 @@ private class LogsArchive: UIActivityItemProvider {
 
     override var item: Any {
         if !archiveCreated {
-            let logFilePaths = MainAppContext.shared.fileLogger.logFileManager.sortedLogFilePaths.compactMap { URL(fileURLWithPath: $0) }
-            try? Zip.zipFiles(paths: logFilePaths, zipFilePath: archiveURL, password: nil, progress: nil)
+            try? MainAppContext.shared.archiveLogs(to: archiveURL)
             archiveCreated = true
         }
         return archiveURL
