@@ -168,7 +168,9 @@ final class MediaUploader {
             // FailureCount is less than or equal to 3: so inspect the error code and act accordingly.
             let error = response.error as Error? ?? MediaUploadError.unknownError
             guard let statusCode = response.response?.statusCode else {
-                fail(task: task, withError: error)
+                // If the error is unknown - this is primarily due to loss of connection without a server response.
+                // so we should retry this task.
+                retryAfterDelay(task: task)
                 return
             }
             DDLogInfo("MediaUploader/handleTusFailure/\(task.groupId)/\(task.index)/statusCode: \(statusCode)")
@@ -207,11 +209,16 @@ final class MediaUploader {
             default:
                 // For any other 4XX errors or 5XX errors
                 // Retry three time after (5, 10, 20) seconds. After three failures try direct upload by sending IQ without size attribute.
-                let timeDelay = Double(task.failureCount) * 5.0
-                DispatchQueue.main.asyncAfter(deadline: .now() + timeDelay) {
-                    self.startMediaUpload(task: task)
-                }
+                retryAfterDelay(task: task)
             }
+        }
+    }
+
+    func retryAfterDelay(task: Task) {
+        // Try and resume task using a timer - with delay based on failureCount.
+        let timeDelay = Double(task.failureCount) * 5.0
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeDelay) {
+            self.startMediaUpload(task: task)
         }
     }
 
