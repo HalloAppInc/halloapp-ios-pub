@@ -60,11 +60,16 @@ final class CryptoData {
         fetchRequest.returnsObjectsAsFaults = false
 
         do {
-            let results = try viewContext.fetch(fetchRequest)
-            if markEventsReported && !results.isEmpty {
-                markDecryptionsAsReported(results.map { $0.objectID })
+            let unreportedEvents = try viewContext.fetch(fetchRequest)
+            let readyEvents = unreportedEvents.filter { $0.isReadyToBeReported(withDeadline: deadline) }
+
+            DDLogInfo("CryptoData/generateReport [\(readyEvents.count) ready of \(unreportedEvents.count) unreported]")
+
+            if markEventsReported && !readyEvents.isEmpty {
+                markDecryptionsAsReported(readyEvents.map { $0.objectID })
             }
-            return results.compactMap { $0.report(deadline: deadline) }
+
+            return readyEvents.compactMap { $0.report(deadline: deadline) }
         }
         catch {
             DDLogError("CryptoData/generateReport/error \(error)")
@@ -175,6 +180,11 @@ final class CryptoData {
 }
 
 extension MessageDecryption {
+    func isReadyToBeReported(withDeadline deadline: TimeInterval) -> Bool {
+        guard let timeReceived = timeReceived else { return false }
+        return timeReceived.timeIntervalSinceNow < -deadline
+    }
+
     func report(deadline: TimeInterval) -> DiscreteEvent? {
         guard
             let messageID = messageID,
@@ -187,7 +197,7 @@ extension MessageDecryption {
             return nil
         }
 
-        guard timeReceived.timeIntervalSinceNow < -deadline else {
+        guard isReadyToBeReported(withDeadline: deadline) else {
             return nil
         }
 
