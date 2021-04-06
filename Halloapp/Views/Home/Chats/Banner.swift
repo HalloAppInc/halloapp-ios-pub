@@ -199,10 +199,10 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
         
         let metadata = NotificationMetadata(contentId: contentId,
                                             contentType: notificationType,
-                                            messageID: nil,
-                                            fromId: contentId, // not used by groups
+                                            fromId: contentId,
+                                            timestamp: nil,
                                             data: nil,
-                                            timestamp: nil)
+                                            messageId: nil)
         metadata.groupId = groupID
         metadata.saveToUserDefaults()
         

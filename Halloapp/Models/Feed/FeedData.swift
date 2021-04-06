@@ -1083,26 +1083,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let protoContainer = comment.protoContainer
                 let protobufData = try? protoContainer.serializedData()
                 let contentType: NotificationContentType = comment.post.groupId == nil ? .feedComment : .groupFeedComment
+
                 let metadata = NotificationMetadata(contentId: comment.id,
                                                     contentType: contentType,
-                                                    messageID: nil,
                                                     fromId: comment.userId,
+                                                    timestamp: comment.timestamp,
                                                     data: protobufData,
-                                                    timestamp: comment.timestamp)
+                                                    messageId: nil)
                 if let groupId = comment.post.groupId,
                    let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                     metadata.groupId = group.groupId
                     metadata.groupName = group.name
                 }
-
-                let contactName = contactNames[comment.userId] ?? Localizations.unknownContact
                 let notification = UNMutableNotificationContent()
-                notification.title = [contactName, metadata.groupName].compactMap({ $0 }).joined(separator: " @ ")
-                notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
-                    self.contactStore.mentionName(for: userID, pushName: protoContainer.mentionPushName(for: userID))
-                })
-                notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
-
+                notification.populate(from: metadata, contactStore: self.contactStore)
                 notifications.append(notification)
             }
 
@@ -1120,8 +1114,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         guard UIApplication.shared.applicationState != .active else { return }
 
         let userIds = Set(feedPosts.map { $0.userId })
-        let contactNames = contactStore.fullNames(forUserIds: userIds)
-
         var postIdsToFilterOut = [FeedPostID]()
 
         let dispatchGroup = DispatchGroup()
@@ -1137,26 +1129,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let protoContainer = feedPost.protoContainer
                 let protobufData = try? protoContainer.serializedData()
                 let metadataContentType: NotificationContentType = feedPost.groupId == nil ? .feedPost : .groupFeedPost
+
                 let metadata = NotificationMetadata(contentId: feedPost.id,
                                                     contentType: metadataContentType,
-                                                    messageID: nil,
                                                     fromId: feedPost.userId,
+                                                    timestamp: feedPost.timestamp,
                                                     data: protobufData,
-                                                    timestamp: feedPost.timestamp)
+                                                    messageId: nil)
                 if let groupId = feedPost.groupId,
                    let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                     metadata.groupId = group.groupId
                     metadata.groupName = group.name
                 }
-
-                let contactName = contactNames[feedPost.userId] ?? Localizations.unknownContact
                 let notification = UNMutableNotificationContent()
-                notification.title = [contactName, metadata.groupName].compactMap({ $0 }).joined(separator: " @ ")
-                notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
-                    self.contactStore.mentionName(for: userID, pushName: protoContainer.mentionPushName(for: userID))
-                })
-                notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
-
+                notification.populate(from: metadata, contactStore: self.contactStore)
                 notifications.append(notification)
             }
 

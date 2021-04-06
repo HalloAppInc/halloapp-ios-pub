@@ -13,18 +13,18 @@ import UserNotifications
 private extension UNNotificationRequest {
 
     var feedPostId: FeedPostID? {
-        if let (contentId, contentType) = NotificationMetadata.parseIds(from: self) {
-            if contentType == .feedPost || contentType == .groupFeedPost {
-                return contentId
+        if let notificationContent = NotificationMetadata.load(from: self) {
+            if notificationContent.contentType == .feedPost || notificationContent.contentType == .groupFeedPost {
+                return notificationContent.contentId
             }
         }
         return nil
     }
 
     var feedPostCommentId: FeedPostCommentID? {
-        if let (contentId, contentType) = NotificationMetadata.parseIds(from: self) {
-            if contentType == .feedComment || contentType == .groupFeedComment {
-                return contentId
+        if let notificationContent = NotificationMetadata.load(from: self) {
+            if notificationContent.contentType == .feedComment || notificationContent.contentType == .groupFeedComment {
+                return notificationContent.contentId
             }
         }
         return nil
@@ -33,105 +33,17 @@ private extension UNNotificationRequest {
 
 extension UNMutableNotificationContent {
 
-    private static func mediaIcon(_ protoMedia: Clients_Media) -> String {
-        switch protoMedia.type {
-            case .image:
-                return "📷"
-            case .video:
-                return "📹"
-            default:
-                return ""
-        }
-    }
-
-    private static func notificationBody(forMedia media: [Clients_Media]) -> String {
-        let numPhotos = media.filter { $0.type == .image }.count
-        let numVideos = media.filter { $0.type == .video }.count
-        if numPhotos == 1 && numVideos == 0 {
-            return NSLocalizedString("notification.one.photo", value: "📷 photo", comment: "New post notification text when post is one photo without caption.")
-        }
-        if numVideos == 1 && numPhotos == 0 {
-             return NSLocalizedString("notification.one.video", value: "📹 video", comment: "New post notification text when post is one video without caption.")
-        }
-        var strings: [String] = []
-        if numPhotos > 0 {
-            let format = NSLocalizedString("notification.n.photos", comment: "New post notification text when post is multiple photos without caption.")
-            strings.append(String.localizedStringWithFormat(format, numPhotos))
-        }
-        if numVideos > 0 {
-            let format = NSLocalizedString("notification.n.videos", comment: "New post notification text when post is multiple videos without caption.")
-            strings.append(String.localizedStringWithFormat(format, numVideos))
-        }
-        return ListFormatter.localizedString(byJoining: strings)
-    }
-
-    func populate(withDataFrom protoContainer: Clients_Container, notificationMetadata: NotificationMetadata, mentionNameProvider: (UserID) -> String) {
-        if protoContainer.hasPost {
-            subtitle = NSLocalizedString("notification.new.post", value: "New Post", comment: "Title for the new feed post notification.")
-            body = protoContainer.post.mentionText.expandedText(nameProvider: mentionNameProvider).string
-            if !protoContainer.post.media.isEmpty {
-                // Display how many photos and videos post contains if there's no caption.
-                if body.isEmpty {
-                    body = Self.notificationBody(forMedia: protoContainer.post.media)
-                } else {
-                    let mediaIcon = Self.mediaIcon(protoContainer.post.media.first!)
-                    body = "\(mediaIcon) \(body)"
-                }
-            }
-        } else if protoContainer.hasComment {
-            let commentText = protoContainer.comment.mentionText.expandedText(nameProvider: mentionNameProvider).string
-            body = String(format: NSLocalizedString("notification.commented.with.text", value: "Commented: %@", comment: "Push notification for a new comment. Parameter is the text of the comment"), commentText)
-        } else if protoContainer.hasChatMessage {
-            let protoMessage = protoContainer.chatMessage
-
-            body = protoContainer.chatMessage.mentionText.expandedText(nameProvider: mentionNameProvider).string
-            if !protoMessage.media.isEmpty {
-                // Display how many photos and videos message contains if there's no caption.
-                if body.isEmpty {
-                    body = Self.notificationBody(forMedia: protoMessage.media)
-                } else {
-                    let mediaIcon = Self.mediaIcon(protoMessage.media.first!)
-                    body = "\(mediaIcon) \(body)"
-                }
-            }
-        }
-    }
-
-    func populate(withMsg msg: Server_Msg, notificationMetadata: NotificationMetadata, contactStore: ContactStore) {
-        // Currently, this function only supports contact notifications.
-        // Extend this to support other notification types as well.
-        DDLogInfo("populate/msg populating content from msg \(msg)")
-
-        switch msg.payload {
-        case .contactList(let contactList):
-            guard let contact = contactList.contacts.first else {
-                DDLogError("populate/contactList Invalid contact.")
-                return
-            }
-            if contact.uid <= 0 {
-                DDLogError("populate/contactList Invalid contactUid.")
-                return
-            }
-            let contactUid = String(contact.uid)
-            // Look up contact using phone number as the user ID probably hasn't synced yet
-            let contactName = contactStore.fullNameIfAvailable(forNormalizedPhone: contact.normalized) ?? nil
-            DDLogInfo("populate/msg contact notification, type:\(contactList.type), uid:\(String(describing: contactUid)), name:\(String(describing: contactName))")
-            title = ""
-            guard let name = contactName else {
-                body = Localizations.contactNotificationUnknownContent
-                return
-            }
-            if contactList.type == .inviterNotice {
-                body = String(format: Localizations.contactNotificationInviteContent, name)
-            } else if contactList.type == .friendNotice {
-                body = String(format: Localizations.contactNotificationFriendContent, name)
-            } else if contactList.type == .contactNotice {
-                body = String(format: Localizations.contactNotificationContent, name)
-            }
-            return
-        default:
-            DDLogInfo("populate/msg invalid payload:\(String(describing: msg.payload))")
-            return
+    func populate(from metadata: NotificationMetadata, contactStore: ContactStore) {
+        // populate title and body if metadata has more information - else dont modify the fields.
+        if metadata.populateContent(contactStore: contactStore) {
+            title = metadata.title
+            subtitle = metadata.subtitle
+            body = metadata.body
+            // encode and store metadata - this will be used to handle user response on the notification.
+            userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
+            DDLogInfo("UNExtensions/populate updated title: \(title), subtitle: \(subtitle), body: \(body)")
+        } else {
+            DDLogError("UNExtensions/populate Could not populate content")
         }
     }
 
@@ -159,7 +71,7 @@ extension UNUserNotificationCenter {
 
             var identifiersToRemove: [String] = []
             for notification in notifications {
-                guard let metadata = NotificationMetadata(notificationRequest: notification.request) else { continue }
+                guard let metadata = NotificationMetadata.load(from: notification.request) else { continue }
                 if predicate(metadata) {
                     DDLogDebug("Notification/removeDelivered \(notification.request.identifier) will be removed")
                     identifiersToRemove.append(notification.request.identifier)
@@ -231,4 +143,12 @@ extension Localizations {
             value: "%@ is now on HalloApp",
             comment: "Content for contact notification.")
     }
+
+    static var groupsAddNotificationBody: String {
+        NSLocalizedString(
+            "groups.add.notification",
+            value: "You were added to a new group",
+            comment: "Text shown in notification when the user is added to a new group")
+    }
+
 }

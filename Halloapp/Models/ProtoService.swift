@@ -848,35 +848,13 @@ final class ProtoService: ProtoServiceCore {
 
     private func presentLocalContactNotifications(for msg: Server_Msg) {
         DDLogDebug("ProtoService/presentLocalContactNotifications")
-        guard let contact = msg.contactList.contacts.first else {
-            return
-        }
-
-        let contentType: NotificationContentType
-        switch msg.contactList.type {
-        case .friendNotice:
-            contentType = .newFriend
-        case .inviterNotice:
-            contentType = .newInvitee
-        case .contactNotice:
-            contentType = .newContact
-        default:
-            return
-        }
-        let contactUid = String(contact.uid)
-
         var notifications: [UNMutableNotificationContent] = []
-        let metadata = NotificationMetadata(contentId: contact.normalized,
-                                            contentType: contentType,
-                                            messageID: nil,
-                                            fromId: contactUid,
-                                            data: nil,
-                                            timestamp: nil,
-                                            message: msg)
+        guard let metadata = NotificationMetadata(msg: msg) else {
+            return
+        }
 
         let notification = UNMutableNotificationContent()
-        notification.populate(withMsg: msg, notificationMetadata: metadata, contactStore: AppContext.shared.contactStore)
-        notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
+        notification.populate(from: metadata, contactStore: MainAppContext.shared.contactStore)
         notifications.append(notification)
 
         let notificationCenter = UNUserNotificationCenter.current()

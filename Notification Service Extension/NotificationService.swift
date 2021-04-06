@@ -47,53 +47,27 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         bestAttemptContent = content
         self.contentHandler = contentHandler
         
-        guard let metadata = NotificationMetadata(notificationRequest: request) else {
+        guard let metadata = NotificationMetadata.load(from: request) else {
             DDLogError("didReceiveRequest/error Invalid metadata. \(request.content.userInfo)")
             recordPushEvent(requestID: request.identifier, messageID: nil)
             contentHandler(bestAttemptContent)
             return
         }
-
-        recordPushEvent(requestID: request.identifier, messageID: metadata.messageID)
-
-        // Title:
-        // "Contact" for feed posts / comments and 1-1 chat messages.
-        // "Contact @ Group" for group feed posts / comments and group chat messages.
-        let userId = metadata.fromId
-        let contactName = AppExtensionContext.shared.contactStore.fullNameIfAvailable(for: userId) ?? metadata.pushName
-        bestAttemptContent.title = [contactName ?? Localizations.unknownContact, metadata.groupName].compactMap({ $0 }).joined(separator: " @ ")
+        bestAttemptContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
+        recordPushEvent(requestID: request.identifier, messageID: metadata.messageId)
         DDLogVerbose("didReceiveRequest/ Updated title: \(bestAttemptContent.title)")
-
-        // If notification is a contact notification
-        // extract data from msg and return bestAttemptContent
-        if (metadata.isContactNotification) {
-            guard let msg = metadata.msg else {
-                DDLogError("populate/error Invalid msg - protoPacket.")
-                contentHandler(self.bestAttemptContent)
-                return
-            }
-
-            // Populate notification body.
-            bestAttemptContent.populate(withMsg: msg, notificationMetadata: metadata, contactStore: AppExtensionContext.shared.contactStore)
-            invokeCompletionHandler(bestAttemptContent: bestAttemptContent)
-            return
-        }
 
         // If notification is anything else other than contact notification
         // use payload and other fields in metadata
         guard let protoContainer = metadata.protoContainer else {
             DDLogError("didReceiveRequest/error Invalid protobuf.")
-            contentHandler(bestAttemptContent)
+            invokeCompletionHandler(bestAttemptContent: bestAttemptContent)
             return
         }
 
-        // Populate notification body.
-        bestAttemptContent.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
-            AppExtensionContext.shared.contactStore.mentionNameIfAvailable(for: userID, pushName: protoContainer.mentionPushName(for: userID)) ?? Localizations.unknownContact
-        })
-
         var invokeHandler = true
-        if protoContainer.hasPost && metadata.feedPostId != nil {
+        switch metadata.contentType {
+        case .feedPost, .groupFeedPost:
             // Continue checking for duplicate posts.
             // TODO(murali@): test and remove this.
             guard !dataStore.posts().contains(where: { $0.id == metadata.feedPostId }) else {
@@ -107,13 +81,11 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 downloadTask?.feedMediaObjectId = firstMediaItem.objectID
                 invokeHandler = downloadTask == nil
             }
-        }
-        if protoContainer.hasComment && metadata.feedPostCommentId != nil {
+        case .feedComment, .groupFeedComment:
             dataStore.save(protoComment: protoContainer.comment, notificationMetadata: metadata)
-        }
-        if let messageId = metadata.messageID, protoContainer.hasChatMessage {
-            guard !dataStore.messages().contains(where: { $0.id == metadata.messageID }) else {
-                DDLogError("didReceiveRequest/error duplicate message ID [\(metadata.messageID ?? "nil")]")
+        case .chatMessage:
+            guard let messageId = metadata.messageId, !dataStore.messages().contains(where: { $0.id == metadata.messageId }) else {
+                DDLogError("didReceiveRequest/error duplicate message ID [\(String(describing: metadata.messageId))]")
                 contentHandler(bestAttemptContent)
                 return
             }
@@ -127,6 +99,8 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             let applicationIconBadgeNumber = badgeNum == -1 ? 1 : badgeNum + 1
             bestAttemptContent.badge = NSNumber(value: applicationIconBadgeNumber)
             AppExtensionContext.shared.applicationIconBadgeNumber = applicationIconBadgeNumber
+        default:
+            break
         }
 
         // Invoke completion handler now if there was nothing to download.

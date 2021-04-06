@@ -2349,18 +2349,12 @@ extension ChatData {
         
         let metadata = NotificationMetadata(contentId: xmppChatMessage.id,
                                             contentType: .chatMessage,
-                                            messageID: xmppChatMessage.id,
                                             fromId: userID,
+                                            timestamp: timestamp,
                                             data: protobufData,
-                                            timestamp: timestamp)
-        
+                                            messageId: xmppChatMessage.id)
         let notification = UNMutableNotificationContent()
-        notification.title = contactStore.fullName(for: userID)
-        notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
-            contactStore.mentionName(for: userID, pushName: protoContainer.mentionPushName(for: userID))
-        })
-        
-        notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
+        notification.populate(from: metadata, contactStore: self.contactStore)
         notifications.append(notification)
         
         let notificationCenter = UNUserNotificationCenter.current()
@@ -4077,20 +4071,15 @@ extension ChatData {
         
         let metadata = NotificationMetadata(contentId: messageID,
                                             contentType: .groupAdd,
-                                            messageID: messageID,
-                                            fromId: xmppGroup.groupId,
+                                            fromId: userID,
+                                            timestamp: nil,
                                             data: nil,
-                                            timestamp: nil)
+                                            messageId: messageID)
         metadata.groupId = xmppGroup.groupId
         metadata.groupName = xmppGroup.name
 
         let notification = UNMutableNotificationContent()
-        let userName = contactStore.fullName(for: userID)
-        
-        notification.title = "\(userName) @ \(metadata.groupName ?? "")"
-        notification.body = Localizations.groupsAddNotificationBody
-
-        notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
+        notification.populate(from: metadata, contactStore: contactStore)
         notifications.append(notification)
 
         let notificationCenter = UNUserNotificationCenter.current()
@@ -4108,23 +4097,19 @@ extension ChatData {
         
         let protoContainer = xmppChatGroupMessage.protoContainer
         let protobufData = try? protoContainer.serializedData()
-                
+
         let metadata = NotificationMetadata(contentId: xmppChatGroupMessage.id,
                                             contentType: .groupChatMessage,
-                                            messageID: xmppChatGroupMessage.id,
                                             fromId: userID,
+                                            timestamp: xmppChatGroupMessage.timestamp,
                                             data: protobufData,
-                                            timestamp: xmppChatGroupMessage.timestamp)
+                                            messageId: xmppChatGroupMessage.id,
+                                            pushName: xmppChatGroupMessage.userName)
         metadata.groupId = xmppChatGroupMessage.groupId
         metadata.groupName = xmppChatGroupMessage.groupName
         
         let notification = UNMutableNotificationContent()
-        notification.title = contactStore.fullName(for: userID)
-        notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
-            contactStore.mentionName(for: userID, pushName: protoContainer.mentionPushName(for: userID))
-        })
-        
-        notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
+        notification.populate(from: metadata, contactStore: contactStore)
         notifications.append(notification)
         
         let notificationCenter = UNUserNotificationCenter.current()
@@ -4265,11 +4250,5 @@ extension Clients_ChatMessage {
     }
 }
 
-extension Localizations {
-    
-    static var groupsAddNotificationBody: String {
-        NSLocalizedString("groups.add.notification", value: "You got added to new group", comment: "Text shown in notification when the user is added to a new group")
-    }
-    
-}
+
 

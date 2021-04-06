@@ -10,7 +10,7 @@ import CocoaLumberjack
 import Core
 import UserNotifications
 
-enum NotificationContentType: String, RawRepresentable {
+enum NotificationContentType: String, RawRepresentable, Codable {
     case feedPost = "feedpost"
     case groupFeedPost = "group_post"
 
@@ -27,23 +27,11 @@ enum NotificationContentType: String, RawRepresentable {
     case newContact = "contact_notice"
 }
 
-class NotificationMetadata {
+class NotificationMetadata: Codable {
 
-    static let userInfoKey = "metadata"
-    static let userDefaultsKey = "tap-notification-metadata"
-
-    private struct Keys {
-        static let contentId = "content-id"
-        static let contentType = "content-type"
-        static let fromId = "from-id"
-        static let threadId = "thread-id"
-        static let messageID = "message-id"
-        static let threadName = "thread-name"
-        static let senderName = "sender-name"
-        static let timestamp = "timestamp"
-        static let data = "data"
-        static let messagePacketData = "message"
-    }
+    static let userInfoKeyMetadata = "metadata"
+    static let userDefaultsKeyRawData = "rawdata"
+    static let messagePacketData = "message"
 
     /*
      The meaning of contentId depends on contentType.
@@ -51,49 +39,23 @@ class NotificationMetadata {
      For feedpost, contentId refers to FeedPost.id
      For comment, contentId refers to FeedPostComment.id.
      */
-    let contentId: String
-    let contentType: NotificationContentType
-    let fromId: UserID
-    let timestamp: Date?
-    let data: Data?
-    let messagePacketData: Data?
-    let messageID: String?
+    var contentId: String
+    var contentType: NotificationContentType
+    var fromId: UserID
+    var timestamp: Date?
+    var data: Data?
+    var messageId: String?
+    var pushName: String?
 
-    private var threadId: String? = nil
-    private var threadName: String? = nil
-    private var senderName: String? = nil
+    // Fields to set in the actual UNMutableNotificationContent
+    var title: String = ""
+    var subtitle: String = ""
+    var body: String = ""
 
-    var rawData: [String: String] {
-        get {
-            var result: [String: String] = [
-                Keys.contentId: contentId,
-                Keys.contentType: contentType.rawValue,
-                Keys.fromId: fromId
-            ]
-            if let threadId = threadId {
-                result[Keys.threadId] = threadId
-            }
-            if let messageID = messageID {
-                result[Keys.messageID] = messageID
-            }
-            if let threadName = threadName {
-                result[Keys.threadName] = threadName
-            }
-            if let senderName = senderName {
-                result[Keys.senderName] = senderName
-            }
-            if let data = data {
-                result[Keys.data] = data.base64EncodedString()
-            }
-            if let timestamp = timestamp {
-                result[Keys.timestamp] = String(timestamp.timeIntervalSince1970)
-            }
-            if let messagePacketData = messagePacketData {
-                result[Keys.messagePacketData] = messagePacketData.base64EncodedString()
-            }
-            return result
-        }
-    }
+    // Notification specific fields
+    var groupId: String? = nil
+    var groupName: String? = nil
+    var normalizedPhone: String? = nil
 
     var protoContainer: Clients_Container? {
         guard let protobufData = data else { return nil }
@@ -106,117 +68,304 @@ class NotificationMetadata {
         return nil
     }
 
-    var msg: Server_Msg? {
-        guard let packetData = messagePacketData else { return nil }
-        do {
-            return try Server_Msg(serializedData: packetData)
+    var rawData: Data? {
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(self) {
+            return data
+        } else {
+            DDLogError("NotificationMetadata/init/error invalid object to encode: [\(self)]")
+            return nil
         }
-        catch {
-            DDLogError("NotificationMetadata/messagePacketData/error Invalid protobuf. \(error)")
-        }
-        return nil
     }
 
-    /**
-     Lightweight parsing of metadata attached to a notification.
-
-     - returns: Identifier and type of the content that given notification is for.
-     */
-    static func parseIds(from request: UNNotificationRequest) -> (String, NotificationContentType)? {
-        guard let metadata = request.content.userInfo[Self.userInfoKey] as? [String: String] else { return nil }
-        if let contentId = metadata[Keys.contentId], let contentType = NotificationContentType(rawValue: metadata[Keys.contentType] ?? "") {
-            return (contentId, contentType)
+    static func load(from rawData: Data?) -> NotificationMetadata? {
+        guard let rawData = rawData else { return nil }
+        let decoder = JSONDecoder()
+        guard let metadata = try? decoder.decode(NotificationMetadata.self, from: rawData) else {
+            DDLogError("NotificationMetadata/init/error invalid object to decode: [\(rawData)]")
+            return nil
         }
-        return nil
+        return metadata
     }
 
-    private init?(rawMetadata: Any) {
-        guard let metadata = rawMetadata as? [String: String] else {
-            DDLogError("NotificationMetadata/init/error Can't convert metadata to [String: String]. Metadata: [\(rawMetadata)]")
-            return nil
-        }
-
-        guard let contentId = metadata[Keys.contentId] else {
-            DDLogError("NotificationMetadata/init/error Missing ContentId")
-            return nil
-        }
-        self.contentId = contentId
-
-        guard let contentType = NotificationContentType(rawValue: metadata[Keys.contentType] ?? "") else {
-            DDLogError("NotificationMetadata/init/error Unsupported ContentType \(String(describing: metadata[Keys.contentType]))")
-            return nil
-        }
-        self.contentType = contentType
-
-        guard let fromId = metadata[Keys.fromId] else {
-            DDLogError("NotificationMetadata/init/error Missing fromId")
-            return nil
-        }
-        self.fromId = fromId
-
-        if let base64Data = metadata[Keys.data] {
-            self.data = Data(base64Encoded: base64Data)
-        } else {
-            self.data = nil
-        }
-        
-        if let timestamp = TimeInterval(metadata[Keys.timestamp] ?? "") {
-            self.timestamp = Date(timeIntervalSince1970: timestamp)
-        } else {
-            self.timestamp = nil
-        }
-
-        if let base64PacketData = metadata[Keys.messagePacketData] {
-            self.messagePacketData = Data(base64Encoded: base64PacketData)
-        } else {
-            self.messagePacketData = nil
-        }
-
-        self.threadId = metadata[Keys.threadId]
-        self.messageID = metadata[Keys.messageID]
-        self.threadName = metadata[Keys.threadName]
-        self.senderName = metadata[Keys.senderName]
+    static func load(from notificationRequest: UNNotificationRequest) -> NotificationMetadata? {
+        initialize(userInfo: notificationRequest.content.userInfo)
     }
 
-    init(contentId: String, contentType: NotificationContentType, messageID: String?, fromId: UserID, data: Data?, timestamp: Date?, message: Server_Msg? = nil) {
+    static func load(from notificationResponse: UNNotificationResponse) -> NotificationMetadata? {
+        initialize(userInfo: notificationResponse.notification.request.content.userInfo)
+    }
+
+    private static func initialize(userInfo: [AnyHashable: Any]) -> NotificationMetadata? {
+        if let metadata = userInfo[Self.userInfoKeyMetadata] as? [String: String] {
+            guard let data = metadata[Self.messagePacketData] else {
+                DDLogError("NotificationMetadata/init/error invalid metadata: [\(metadata)]")
+                return nil
+            }
+            guard let packetData = Data(base64Encoded: data) else {
+                DDLogError("NotificationMetadata/init/error invalid base64encoded data: [\(data)]")
+                return nil
+            }
+            do {
+                let msg = try Server_Msg(serializedData: packetData)
+                return NotificationMetadata(msg: msg)
+            } catch {
+                DDLogError("NotificationMetadata/init/error invalid protobuf data: [\(packetData)]")
+                return nil
+            }
+        } else {
+            guard let rawData = userInfo[Self.userDefaultsKeyRawData] as? Data else {
+                DDLogError("NotificationMetadata/init/error Can't initialize metadata from userInfo: [\(userInfo)]")
+                return nil
+            }
+            return NotificationMetadata.load(from: rawData)
+        }
+    }
+
+    init(contentId: String, contentType: NotificationContentType, fromId: UserID, timestamp: Date?, data: Data?, messageId: String?, pushName: String? = nil) {
         self.contentId = contentId
         self.contentType = contentType
-        self.messageID = messageID
         self.fromId = fromId
-        self.data = data
         self.timestamp = timestamp
-        do {
-            self.messagePacketData = try message?.serializedData().base64EncodedData()
-        } catch {
-            DDLogError("NotificationMetadata/could not initialize messagePacketData, error: \(error)")
-            self.messagePacketData = nil
+        self.data = data
+        self.messageId = messageId
+        self.pushName = pushName
+    }
+
+    init?(msg: Server_Msg?) {
+        guard let msg = msg else {
+            DDLogError("NotificationMetadata/init/msg is nil")
+            return nil
+        }
+
+        messageId = msg.id
+        switch msg.payload {
+
+        case .contactList(let contactList):
+            contentId = msg.id
+            if contactList.type == .inviterNotice {
+                contentType = .newInvitee
+            } else if contactList.type == .friendNotice {
+                contentType = .newFriend
+            } else if contactList.type == .contactNotice {
+                contentType = .newContact
+            } else {
+                DDLogError("NotificationMetadata/init/contactList Invalid contactListType, message: \(msg)")
+                return nil
+            }
+            guard let contact = contactList.contacts.first else {
+                DDLogError("NotificationMetadata/init/contactList Invalid contact, message: \(msg)")
+                return nil
+            }
+            if contact.uid <= 0 {
+                DDLogError("NotificationMetadata/init/contactList Invalid contactUid, message: \(msg)")
+                return nil
+            }
+            let contactUid = String(contact.uid)
+            fromId = UserID(contactUid)
+            timestamp = nil
+            data = nil
+            pushName = contact.name
+            normalizedPhone = contact.normalized
+
+        case .feedItem(let feedItem):
+            switch feedItem.item {
+            case .post(let post):
+                contentId = post.id
+                contentType = .feedPost
+                fromId = UserID(post.publisherUid)
+                timestamp = Date(timeIntervalSince1970: TimeInterval(post.timestamp))
+                data = post.payload
+                pushName = post.publisherName
+            case .comment(let comment):
+                contentId = comment.id
+                contentType = .feedComment
+                fromId = UserID(comment.publisherUid)
+                timestamp = Date(timeIntervalSince1970: TimeInterval(comment.timestamp))
+                data = comment.payload
+                pushName = comment.publisherName
+            default:
+                DDLogError("NotificationMetadata/init/feedItem Invalid item, message: \(msg)")
+                return nil
+            }
+        case .groupFeedItem(let groupFeedItem):
+
+            switch groupFeedItem.item {
+            case .post(let post):
+                contentId = post.id
+                contentType = .groupFeedPost
+                fromId = UserID(post.publisherUid)
+                timestamp = Date(timeIntervalSince1970: TimeInterval(post.timestamp))
+                data = post.payload
+                pushName = post.publisherName
+            case .comment(let comment):
+                contentId = comment.id
+                contentType = .groupFeedComment
+                fromId = UserID(comment.publisherUid)
+                timestamp = Date(timeIntervalSince1970: TimeInterval(comment.timestamp))
+                data = comment.payload
+                pushName = comment.publisherName
+            default:
+                DDLogError("NotificationMetadata/init/groupFeedItem Invalid item, message: \(msg)")
+                return nil
+            }
+            groupId = groupFeedItem.gid
+            groupName = groupFeedItem.name
+        case .chatStanza(let chatMsg):
+            contentId = msg.id
+            contentType = .chatMessage
+            fromId = UserID(msg.fromUid)
+            timestamp = Date(timeIntervalSince1970: TimeInterval(chatMsg.timestamp))
+            data = chatMsg.payload
+            pushName = chatMsg.senderName
+
+        case .groupStanza(let groupStanza):
+            if groupStanza.action == .modifyMembers {
+                contentId = msg.id
+                contentType = .groupAdd
+                fromId = UserID(groupStanza.senderUid)
+                timestamp = nil
+                data = nil
+                pushName = nil
+                groupId = groupStanza.gid
+                groupName = groupStanza.name
+            } else {
+                DDLogError("NotificationMetadata/init/groupStanza Invalid action, message: \(msg)")
+                return nil
+            }
+        default:
+            return nil
         }
     }
 
-    convenience init?(notificationRequest: UNNotificationRequest) {
-        guard let metadata = notificationRequest.content.userInfo[Self.userInfoKey] else { return nil }
-        self.init(rawMetadata: metadata)
+    private static func mediaIcon(_ protoMedia: Clients_Media) -> String {
+        switch protoMedia.type {
+            case .image:
+                return "📷"
+            case .video:
+                return "📹"
+            default:
+                return ""
+        }
     }
 
-    convenience init?(notificationResponse: UNNotificationResponse) {
-        guard let metadata = notificationResponse.notification.request.content.userInfo[Self.userInfoKey] else { return nil }
-        self.init(rawMetadata: metadata)
+    private static func notificationBody(forMedia media: [Clients_Media]) -> String {
+        let numPhotos = media.filter { $0.type == .image }.count
+        let numVideos = media.filter { $0.type == .video }.count
+        if numPhotos == 1 && numVideos == 0 {
+            return NSLocalizedString("notification.one.photo", value: "📷 photo", comment: "New post notification text when post is one photo without caption.")
+        }
+        if numVideos == 1 && numPhotos == 0 {
+             return NSLocalizedString("notification.one.video", value: "📹 video", comment: "New post notification text when post is one video without caption.")
+        }
+        var strings: [String] = []
+        if numPhotos > 0 {
+            let format = NSLocalizedString("notification.n.photos", comment: "New post notification text when post is multiple photos without caption.")
+            strings.append(String.localizedStringWithFormat(format, numPhotos))
+        }
+        if numVideos > 0 {
+            let format = NSLocalizedString("notification.n.videos", comment: "New post notification text when post is multiple videos without caption.")
+            strings.append(String.localizedStringWithFormat(format, numVideos))
+        }
+        return ListFormatter.localizedString(byJoining: strings)
     }
 
+    func populateContent(contactStore: ContactStore) -> Bool {
+
+        let mentionNameProvider = { [self] fromId in
+            contactStore.mentionNameIfAvailable(for: fromId, pushName: pushName) ?? Localizations.unknownContact
+        }
+
+        // Title:
+        // "Contact" for feed posts / comments and 1-1 chat messages.
+        // "Contact @ Group" for group feed posts / comments and group chat messages.
+        let contactName = contactStore.fullNameIfAvailable(for: fromId) ?? pushName
+        title = [contactName, groupName].compactMap({ $0 }).joined(separator: " @ ")
+
+        switch contentType {
+
+        // Post on user feed or group feed
+        case .feedPost, .groupFeedPost:
+            guard let protoContainer = protoContainer else {
+                return false
+            }
+            subtitle = NSLocalizedString("notification.new.post", value: "New Post", comment: "Title for the new feed post notification.")
+            body = protoContainer.post.mentionText.expandedText(nameProvider: mentionNameProvider).string
+            if !protoContainer.post.media.isEmpty {
+                // Display how many photos and videos post contains if there's no caption.
+                if body.isEmpty {
+                    body = Self.notificationBody(forMedia: protoContainer.post.media)
+                } else {
+                    let mediaIcon = Self.mediaIcon(protoContainer.post.media.first!)
+                    body = "\(mediaIcon) \(body)"
+                }
+            }
+
+        // Comment on user feed or group feed
+        case .feedComment, .groupFeedComment:
+            guard let protoContainer = protoContainer else {
+                return false
+            }
+            let commentText = protoContainer.comment.mentionText.expandedText(nameProvider: mentionNameProvider).string
+            body = String(format: NSLocalizedString("notification.commented.with.text", value: "Commented: %@", comment: "Push notification for a new comment. Parameter is the text of the comment"), commentText)
+
+        // ChatMessage or GroupChatMessage
+        case .chatMessage, .groupChatMessage:
+            guard let protoContainer = protoContainer else {
+                return false
+            }
+            let protoMessage = protoContainer.chatMessage
+            body = protoContainer.chatMessage.mentionText.expandedText(nameProvider: mentionNameProvider).string
+            if !protoMessage.media.isEmpty {
+                // Display how many photos and videos message contains if there's no caption.
+                if body.isEmpty {
+                    body = Self.notificationBody(forMedia: protoMessage.media)
+                } else {
+                    let mediaIcon = Self.mediaIcon(protoMessage.media.first!)
+                    body = "\(mediaIcon) \(body)"
+                }
+            }
+
+        // Contact notification for new friend or new invitee
+        case .newFriend, .newInvitee, .newContact:
+            // Look up contact using phone number as the user ID probably hasn't synced yet
+            let contactName = contactStore.fullNameIfAvailable(forNormalizedPhone: normalizedPhone!) ?? nil
+            title = ""
+            guard let name = contactName else {
+                body = Localizations.contactNotificationUnknownContent
+                return true
+            }
+            if contentType == .newFriend {
+                body = String(format: Localizations.contactNotificationFriendContent, name)
+            } else if contentType == .newInvitee {
+                body = String(format: Localizations.contactNotificationInviteContent, name)
+            } else if contentType == .newContact {
+                body = String(format: Localizations.contactNotificationContent, name)
+            }
+
+        case .groupAdd:
+            body = Localizations.groupsAddNotificationBody
+
+        }
+        return true
+    }
+
+    // Discuss with team - if we need this - there should be a better way to handle these cases.
     static func fromUserDefaults() -> NotificationMetadata? {
-        guard let metadata = UserDefaults.standard.object(forKey: Self.userDefaultsKey) else { return nil }
-        return NotificationMetadata(rawMetadata: metadata)
+        guard let rawData = UserDefaults.standard.object(forKey: Self.userDefaultsKeyRawData) as? Data else { return nil }
+        return NotificationMetadata.load(from: rawData)
     }
 
     func saveToUserDefaults() {
         DDLogDebug("NotificationMetadata/saveToUserDefaults")
-        UserDefaults.standard.set(self.rawData, forKey: Self.userDefaultsKey)
+        UserDefaults.standard.set(self.rawData, forKey: Self.userDefaultsKeyRawData)
     }
 
     func removeFromUserDefaults() {
         DDLogDebug("NotificationMetadata/removeFromUserDefaults")
-        UserDefaults.standard.removeObject(forKey: Self.userDefaultsKey)
+        UserDefaults.standard.removeObject(forKey: Self.userDefaultsKeyRawData)
     }
+
 }
 
 extension NotificationMetadata {
@@ -274,30 +423,4 @@ extension NotificationMetadata {
         return nil
     }
 
-    var groupName: String? {
-        get {
-            return isGroupNotification ? threadName : nil
-        }
-        set {
-            if isGroupNotification {
-                threadName = newValue
-            }
-        }
-    }
-
-    var groupId: GroupID? {
-        get {
-            return isGroupNotification ? threadId : nil
-        }
-        set {
-            if isGroupNotification {
-                threadId = newValue
-            }
-        }
-    }
-
-    var pushName: String? {
-        senderName
-    }
 }
-
