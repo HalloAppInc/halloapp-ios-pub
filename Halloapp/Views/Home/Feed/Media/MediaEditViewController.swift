@@ -213,7 +213,9 @@ fileprivate class MediaEdit : ObservableObject {
 
         // The clousure keeps reference to self, otherwise cropping might not happen
         PendingMedia.queue.async {
-            guard let image = self.crop() else { return }
+            guard let image = self.crop() else {
+                return self.media.error.send(PendingMediaError.processingError)
+            }
             self.media.image = image
         }
 

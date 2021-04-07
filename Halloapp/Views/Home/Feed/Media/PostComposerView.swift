@@ -460,6 +460,7 @@ fileprivate struct PostComposerView: View {
     private var postTextComputedHeightPublisher: AnyPublisher<CGFloat, Never>!
     private var longestVideoLengthPublisher: AnyPublisher<TimeInterval?, Never>!
     private var mediaReadyPublisher: AnyPublisher<Bool, Never>!
+    private var mediaErrorPublisher: AnyPublisher<Error, Never>!
 
     private var mediaCount: Int {
         mediaItems.value.count
@@ -547,9 +548,13 @@ fileprivate struct PostComposerView: View {
             .eraseToAnyPublisher()
 
         mediaReadyPublisher = self.mediaItems.$value
-            .flatMap { items in
-                return Publishers.MergeMany(items.map { $0.ready })
-            }
+            .flatMap { items in Publishers.MergeMany(items.map { $0.ready }) }
+            .eraseToAnyPublisher()
+
+        mediaErrorPublisher = self.mediaItems.$value
+            .flatMap { items in Publishers.MergeMany(items.map { $0.error }) }
+            .filter { $0 != nil }
+            .map { $0! }
             .eraseToAnyPublisher()
 
         self.mediaItemsBinding = self.$mediaItems.value
@@ -701,6 +706,9 @@ fileprivate struct PostComposerView: View {
                             }
                             .onReceive(mediaReadyPublisher) { _ in
                                 mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
+                            }
+                            .onReceive(mediaErrorPublisher) { _ in
+                                mediaState.numberOfFailedItems += 1
                             }
                             .onAppear {
                                 mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }

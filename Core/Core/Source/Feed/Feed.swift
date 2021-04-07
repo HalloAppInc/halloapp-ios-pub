@@ -146,6 +146,11 @@ public struct PendingVideoEdit: Equatable {
     }
 }
 
+public enum PendingMediaError: Error {
+    case loadingError
+    case processingError
+}
+
 public struct PendingMediaEdit: Equatable {
     public var image: UIImage?
     public var cropRect: CGRect = CGRect.zero
@@ -174,6 +179,7 @@ public class PendingMedia {
     public var isResized = false
     public var progress = CurrentValueSubject<Float, Never>(0)
     public var ready = CurrentValueSubject<Bool, Never>(false)
+    public var error = CurrentValueSubject<Error?, Never>(nil)
 
     public var image: UIImage? {
         didSet {
@@ -191,7 +197,7 @@ public class PendingMedia {
                     try image.jpegData(compressionQuality: 0.8)?.write(to: url)
                 } catch {
                     DDLogError("PendingMedia: unable to save image \(error)")
-                    return
+                    return self.error.send(error)
                 }
 
                 self.size = self.image?.size
@@ -265,6 +271,7 @@ public class PendingMedia {
     public func resetProgress() {
         progress = CurrentValueSubject<Float, Never>(0)
         ready = CurrentValueSubject<Bool, Never>(false)
+        error = CurrentValueSubject<Error?, Never>(nil)
     }
 
     private func clearTemporaryMedia(tempURL: URL?) {
