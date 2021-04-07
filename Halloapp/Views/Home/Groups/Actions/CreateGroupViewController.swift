@@ -6,6 +6,7 @@
 //
 
 import CocoaLumberjack
+import Combine
 import Core
 import UIKit
 
@@ -24,6 +25,7 @@ class CreateGroupViewController: UIViewController {
     
     private var selectedMembers: [UserID] = []
     private var placeholderText = Localizations.chatCreateGroupNamePlaceholder
+    private var cancellableSet: Set<AnyCancellable> = []
     
     private var avatarData: Data? = nil
     
@@ -342,18 +344,19 @@ class CreateGroupViewController: UIViewController {
                     controller.dismiss(animated: true)
 
                     if !cancel && media.count > 0 {
-                        
-                        guard let image = media[0].image else { return }
-                        
-                        guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
-                            DDLogError("CreateGroupViewController/resizeImage error resize failed")
-                            return
+                        if media[0].ready.value {
+                            guard let image = media[0].image else { return }
+                            self.setAvatar(image: image)
+                        } else {
+                            self.cancellableSet.insert(
+                                media[0].ready.sink { [weak self] ready in
+                                    guard let self = self else { return }
+                                    guard ready else { return }
+                                    guard let image = media[0].image else { return }
+                                    self.setAvatar(image: image)
+                                }
+                            )
                         }
-
-                        let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
-                        
-                        self.avatarView.image =  UIImage(data: data)
-                        self.avatarData = data
                         
                         self.dismiss(animated: true)
                     }
@@ -365,6 +368,18 @@ class CreateGroupViewController: UIViewController {
         }
         
         self.present(UINavigationController(rootViewController: pickerController), animated: true)
+    }
+
+    private func setAvatar(image: UIImage) {
+        guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
+            DDLogError("CreateGroupViewController/resizeImage error resize failed")
+            return
+        }
+
+        let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
+
+        self.avatarView.image =  UIImage(data: data)
+        self.avatarData = data
     }
 }
 

@@ -27,6 +27,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     private var isAdmin: Bool = false
     
     private var fetchedResultsController: NSFetchedResultsController<ChatGroupMember>?
+    private var cancellableSet: Set<AnyCancellable> = []
 
     let cellReuseIdentifier = "GroupMembersViewCell"
     
@@ -332,35 +333,21 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                     controller.dismiss(animated: true)
 
                     if !cancel && media.count > 0 {
-                        
-                        guard let image = media[0].image else { return }
-                        
-                        guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
-                            DDLogError("GroupInfoViewController/resizeImage error resize failed")
-                            return
-                        }
-
-                        let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
-                        
-                        MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: data) { result in
-            
-                            switch result {
-                            case .success:
-                                DispatchQueue.main.async() { [weak self] in
+                        if media[0].ready.value {
+                            guard let image = media[0].image else { return }
+                            self.changeAvatar(image: image)
+                        } else {
+                            self.cancellableSet.insert(
+                                media[0].ready.sink { [weak self] ready in
                                     guard let self = self else { return }
-                                    
-                                    // configure again as avatar listens to cached object that's evicted if app goes into background
-                                    if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
-                                        tableHeaderView.configure(chatGroup: self.chatGroup)
-                                    }
-                                    
-                                    controller.dismiss(animated: true)
+                                    guard ready else { return }
+                                    guard let image = media[0].image else { return }
+                                    self.changeAvatar(image: image)
                                 }
-                            case .failure(let error):
-                                DDLogError("GroupInfoViewController/createAction/error \(error)")
-                            }
+                            )
                         }
                         
+                        controller.dismiss(animated: true)
                         self.dismiss(animated: true)
                     }
                 }
@@ -371,6 +358,31 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         }
         
         self.present(UINavigationController(rootViewController: pickerController), animated: true)
+    }
+    
+    private func changeAvatar(image: UIImage) {
+        guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
+            DDLogError("GroupInfoViewController/resizeImage error resize failed")
+            return
+        }
+
+        let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
+        
+        MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: data) { result in
+            switch result {
+            case .success:
+                DispatchQueue.main.async() { [weak self] in
+                    guard let self = self else { return }
+                    
+                    // configure again as avatar listens to cached object that's evicted if app goes into background
+                    if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
+                        tableHeaderView.configure(chatGroup: self.chatGroup)
+                    }
+                }
+            case .failure(let error):
+                DDLogError("GroupInfoViewController/createAction/error \(error)")
+            }
+        }
     }
 
     private func refreshGroupInfo() {

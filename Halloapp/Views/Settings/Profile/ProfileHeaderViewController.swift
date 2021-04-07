@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjack
+import Combine
 import Core
 import UIKit
 
@@ -25,6 +26,8 @@ final class ProfileHeaderViewController: UIViewController {
     }
     
     var name: String? { headerView.name }
+
+    private var cancellableSet: Set<AnyCancellable> = []
     
     private var headerView: ProfileHeaderView {
         view as! ProfileHeaderView
@@ -138,12 +141,26 @@ final class ProfileHeaderViewController: UIViewController {
 
             DDLogInfo("profile/edit-photo Presenting photo cropper")
             let photoCropperViewController = MediaEditViewController(cropToCircle: true, mediaToEdit: media, selected: 0) { (controller, media, index, canceled) in
-                guard let selectedPhoto = media.first?.image, !canceled else {
+                guard let selected = media.first, !canceled else {
                     DDLogInfo("profile/edit-photo Photo cropper canceled")
                     controller.dismiss(animated: true)
                     return
                 }
-                self.uploadProfilePhoto(selectedPhoto)
+
+                if selected.ready.value {
+                    guard let image = selected.image else { return }
+                    self.uploadProfilePhoto(image)
+                } else {
+                    self.cancellableSet.insert(
+                        media[0].ready.sink { [weak self] ready in
+                            guard let self = self else { return }
+                            guard ready else { return }
+                            guard let image = media[0].image else { return }
+                            self.uploadProfilePhoto(image)
+                        }
+                    )
+                }
+
                 self.dismiss(animated: true)
             }
 
