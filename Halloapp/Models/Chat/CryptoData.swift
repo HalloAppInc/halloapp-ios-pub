@@ -98,6 +98,33 @@ final class CryptoData {
         reportTimer?.resume()
     }
 
+    func result(for messageID: String) -> String? {
+        return fetchMessageDecryption(id: messageID, in: viewContext)?.decryptionResult
+    }
+
+    func details(for messageID: String) -> String? {
+        guard let decryption = fetchMessageDecryption(id: messageID, in: viewContext) else {
+            DDLogInfo("CryptoData/details/\(messageID)/not-found")
+            return nil
+        }
+
+        var lines = ["Decryption Info [Internal]"]
+        if let result = decryption.decryptionResult {
+            lines.append("Result: \(result)")
+        }
+        lines.append("Rerequests: \(decryption.rerequestCount)")
+        if let timeReceived = decryption.timeReceived {
+            lines.append("Received: \(DateFormatter.dateTimeFormatterMonthDayTime.string(from: timeReceived))")
+        }
+        if let timeDecrypted = decryption.timeDecrypted {
+            lines.append("Decrypted: \(DateFormatter.dateTimeFormatterMonthDayTime.string(from: timeDecrypted))")
+        }
+        // NB: A bug in 1.4.108 caused messages to be prematurely marked as reported
+        lines.append("Reported: \(decryption.hasBeenReported)")
+
+        return lines.joined(separator: "\n")
+    }
+
     // MARK: Private
 
     private let queue = DispatchQueue(label: "com.halloapp.crypto-stats")

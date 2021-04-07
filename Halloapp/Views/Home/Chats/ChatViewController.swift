@@ -893,6 +893,10 @@ extension ChatViewController: InboundMsgViewCellDelegate {
                     pasteboard.string = messageText
                 })
             }
+
+            if ServerProperties.isInternalUser {
+                actionSheet.message = MainAppContext.shared.cryptoData.details(for: chatMessage.id)
+            }
         }
         
         guard actionSheet.actions.count > 0 else { return }

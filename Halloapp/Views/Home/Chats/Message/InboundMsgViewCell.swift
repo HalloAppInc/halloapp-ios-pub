@@ -354,6 +354,12 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             textView.textColor = UIColor.chatTime
             text = Localizations.chatMessageDeleted
         }
+        if ServerProperties.isInternalUser,
+           let decryptionResult = MainAppContext.shared.cryptoData.result(for: chatMessage.id),
+           let originalText = text
+        {
+            text = originalText + (decryptionResult == "success" ? " ✅" : " 💣")
+        }
         
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
