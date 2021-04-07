@@ -133,6 +133,7 @@ final class InviteViewController: UIViewController {
                     actions: InviteActions(
                         action: { [weak self] action in self?.inviteAction(action, contact: contact)},
                         types: actions),
+                    visitedActions: self.visitedActions[contact] ?? Set(),
                     isTopDividerHidden: indexPath.item == 0)
             }
             return cell
@@ -148,6 +149,8 @@ final class InviteViewController: UIViewController {
 
     private let dismissAction: (() -> Void)?
     private var cancellableSet: Set<AnyCancellable> = []
+
+    private var visitedActions = [InviteContact: Set<InviteActionType>]()
 
     @objc
     private func didTapDismiss() {
@@ -255,6 +258,12 @@ final class InviteViewController: UIViewController {
         case .whatsApp:
             whatsAppAction(contact: contact)
         }
+
+        var visitedActionsForContact = visitedActions[contact] ?? Set()
+        visitedActionsForContact.insert(action)
+        visitedActions[contact] = visitedActionsForContact
+
+        collectionView.reloadData()
     }
 
     private func smsAction(contact: InviteContact) {
@@ -347,7 +356,7 @@ extension InviteViewController: UICollectionViewDelegate, UICollectionViewDelega
             return
         }
 
-        smsAction(contact: contact)
+        inviteAction(.sms, contact: contact)
     }
 }
 
@@ -385,8 +394,8 @@ final class InviteCollectionViewCell: UICollectionViewCell {
     let inviteCellView = InviteCellView()
     let topDivider = UIView()
 
-    func configure(with contact: InviteContact, actions: InviteActions?, isTopDividerHidden: Bool) {
-        inviteCellView.configure(with: contact, actions: actions)
+    func configure(with contact: InviteContact, actions: InviteActions?, visitedActions: Set<InviteActionType>, isTopDividerHidden: Bool) {
+        inviteCellView.configure(with: contact, actions: actions, visitedActions: visitedActions)
         topDivider.isHidden = isTopDividerHidden
     }
 }
@@ -436,7 +445,7 @@ final class InviteCellView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(with contact: InviteContact, actions: InviteActions?) {
+    func configure(with contact: InviteContact, actions: InviteActions?, visitedActions: Set<InviteActionType>) {
 
         let isUserAlready = contact.userID != nil
 
@@ -454,10 +463,13 @@ final class InviteCellView: UIView {
         nameLabel.text = contact.fullName
         subtitleLabel.text = [secondLine, thirdLine].compactMap({ $0 }).joined(separator: "\n")
 
-        let showSMS = actions?.types.contains(.sms) ?? false
-        let showWhatsApp = actions?.types.contains(.whatsApp) ?? false
-        smsButton.isHidden = !showSMS
-        whatsAppButton.isHidden = !showWhatsApp
+        smsButton.setImage(visitedActions.contains(.sms) ? smsImageVisited : smsImage, for: .normal)
+        whatsAppButton.setImage(visitedActions.contains(.whatsApp) ? whatsAppImageVisited : whatsAppImage, for: .normal)
+
+        let actionTypes = actions?.types ?? []
+
+        smsButton.isHidden = !actionTypes.contains(.sms)
+        whatsAppButton.isHidden = !actionTypes.contains(.whatsApp)
         action = actions?.action
     }
 
@@ -468,17 +480,21 @@ final class InviteCellView: UIView {
 
     var contact: InviteContact?
 
-    lazy var smsButton: UIView = {
+    lazy var smsImage = UIImage(named: "InviteIconMessages")
+    lazy var smsImageVisited = UIImage(named: "InviteIconMessagesVisited")
+    lazy var smsButton: UIButton = {
         let button = Self.makeActionButton(
-            image: UIImage(named: "InviteIconMessages"),
+            image: smsImage,
             title: Localizations.appNameSMS)
         button.addTarget(self, action: #selector(didTapSMS), for: .touchUpInside)
         return button
     }()
 
-    lazy var whatsAppButton: UIView = {
+    lazy var whatsAppImage = UIImage(named: "InviteIconWhatsApp")
+    lazy var whatsAppImageVisited = UIImage(named: "InviteIconWhatsAppVisited")
+    lazy var whatsAppButton: UIButton = {
         let button = Self.makeActionButton(
-            image: UIImage(named: "InviteIconWhatsApp"),
+            image: whatsAppImage,
             title: Localizations.appNameWhatsApp)
         button.addTarget(self, action: #selector(didTapWhatsApp), for: .touchUpInside)
         return button
