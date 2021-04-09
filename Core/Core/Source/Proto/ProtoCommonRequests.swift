@@ -106,24 +106,29 @@ public final class ProtoPublishCommentRequest: ProtoRequest<Date> {
     }
 }
 
-public final class ProtoMediaUploadURLRequest: ProtoRequest<MediaURLInfo> {
+public final class ProtoMediaUploadURLRequest: ProtoRequest<(MediaURLInfo?, URL?)> {
 
-    public init(size: Int, completion: @escaping Completion) {
+    public init(size: Int, downloadURL: URL?, completion: @escaping Completion) {
         var uploadMedia = Server_UploadMedia()
         uploadMedia.size = Int64(size)
+        uploadMedia.downloadURL = downloadURL?.absoluteString ?? ""
         let packet = Server_Packet.iqPacket(type: .get, payload: .uploadMedia(uploadMedia))
 
         super.init(
             iqPacket: packet,
             transform: { (iq) in
-                guard iq.uploadMedia.hasURL else {
+                guard iq.uploadMedia.hasURL || !iq.uploadMedia.downloadURL.isEmpty else {
                     return .failure(RequestError.malformedResponse)
                 }
+
                 let urls = iq.uploadMedia.url
-                if let getURL = URL(string: urls.get), let putURL = URL(string: urls.put) {
-                    return .success(.getPut(getURL, putURL))
+
+                if let downloadURL = URL(string: iq.uploadMedia.downloadURL) {
+                    return .success((nil, downloadURL))
+                } else if let getURL = URL(string: urls.get), let putURL = URL(string: urls.put) {
+                    return .success((.getPut(getURL, putURL), nil))
                 } else if let patchURL = URL(string: urls.patch) {
-                    return .success(.patch(patchURL))
+                    return .success((.patch(patchURL), nil))
                 } else {
                     return .failure(RequestError.malformedResponse)
                 }

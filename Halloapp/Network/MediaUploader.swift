@@ -31,6 +31,8 @@ protocol MediaUploadable {
     var encryptedFilePath: String? { get }
 
     var urlInfo: MediaURLInfo? { get }
+
+    var url: URL? { get }
 }
 
 final class MediaUploader {
@@ -270,6 +272,10 @@ final class MediaUploader {
         if task.mediaUrls != nil {
             startMediaUpload(task: task)
         } else {
+            if let url = mediaItem.url {
+                task.downloadURL = url
+            }
+
             requestUrlsAndStartTask(uploadType: .resumableUpload, task: task)
         }
     }
@@ -285,14 +291,22 @@ final class MediaUploader {
         case .directUpload:
             fileSize = 0
         }
-        service.requestMediaUploadURL(size: fileSize) { result in
+        service.requestMediaUploadURL(size: fileSize, downloadURL: task.downloadURL) { result in
             guard !task.isCanceled else { return }
             switch result {
-            case .success(let mediaURLs):
-                DDLogInfo("MediaUploader/requestUrlsAndStartTask/\(task.groupId)/\(task.index)/success urls: [\(mediaURLs)]")
-                task.didGetUrls(mediaURLs)
-                task.mediaUrls = mediaURLs
-                self.startMediaUpload(task: task)
+            case .success((let mediaURLs, let downloadURL)):
+                if let downloadURL = downloadURL {
+                    task.downloadURL = downloadURL
+                    self.finish(task: task)
+                } else if let mediaURLs = mediaURLs {
+                    DDLogInfo("MediaUploader/requestUrlsAndStartTask/\(task.groupId)/\(task.index)/success urls: [\(mediaURLs)]")
+                    task.didGetUrls(mediaURLs)
+                    task.mediaUrls = mediaURLs
+                    self.startMediaUpload(task: task)
+                } else {
+                    DDLogError("MediaUploader/requestUrlsAndStartTask/\(task.groupId)/\(task.index)/error missing urls")
+                    self.fail(task: task, withError: MediaUploadError.malformedResponse)
+                }
             case .failure(let error):
                 DDLogError("MediaUploader/requestUrlsAndStartTask/\(task.groupId)/\(task.index)/error [\(error)]")
                 self.fail(task: task, withError: error)

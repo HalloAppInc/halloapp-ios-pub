@@ -1546,6 +1546,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DispatchQueue.main.async {
                 self.reloadMedia(feedPostId: feedPostId, order: mediaOrder)
             }
+
+            // Step 4: Update upload data to avoid duplicate uploads
+            if let path = feedPostMedia.relativeFilePath, let downloadUrl = feedPostMedia.url {
+                let fileUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(path, isDirectory: false)
+                MainAppContext.shared.uploadData.update(upload: fileUrl, key: feedPostMedia.key, sha256: feedPostMedia.sha256, downloadURL: downloadUrl)
+            }
         }
     }
 
@@ -1958,39 +1964,60 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func upload(postId: FeedPostID, media: FeedPostMedia, completion: @escaping (Result<Int, Error>) -> Void) {
         let index = media.order
 
-        self.mediaUploader.upload(media: media, groupId: postId, didGetURLs: { (mediaURLs) in
-            DDLogInfo("FeedData/upload-media/\(postId)/\(index)/acquired-urls [\(mediaURLs)]")
+        guard let relativeFilePath = media.relativeFilePath else {
+            DDLogError("FeedData/upload-media/\(postId)/\(index) missing file path")
+            return completion(.failure(MediaUploadError.invalidUrls))
+        }
+        let processed = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
-            // Save URLs acquired during upload to the database.
-            self.updateFeedPost(with: postId) { (feedPost) in
-                if let media = feedPost.media?.first(where: { $0.order == media.order }) {
-                    switch mediaURLs {
-                    case .getPut(let getURL, let putURL):
-                        media.url = getURL
-                        media.uploadUrl = putURL
+        MainAppContext.shared.uploadData.fetch(upload: processed) { [weak self] upload in
+            guard let self = self else { return }
 
-                    case .patch(let patchURL):
-                        media.uploadUrl = patchURL
-                    }
-                }
+            if let url = upload?.url {
+                DDLogInfo("Media \(processed) has been uploaded before at \(url).")
+                media.url = url
             }
-        }) { (uploadResult) in
-            DDLogInfo("FeedData/upload-media/\(postId)/\(index)/finished result=[\(uploadResult)]")
 
-            // Save URLs acquired during upload to the database.
-            self.updateFeedPost(with: postId, block: { feedPost in
-                if let media = feedPost.media?.first(where: { $0.order == index }) {
-                    switch uploadResult {
-                    case .success(let details):
-                        media.url = details.downloadURL
-                        media.status = .uploaded
+            self.mediaUploader.upload(media: media, groupId: postId, didGetURLs: { (mediaURLs) in
+                DDLogInfo("FeedData/upload-media/\(postId)/\(index)/acquired-urls [\(mediaURLs)]")
 
-                    case .failure(_):
-                        media.status = .uploadError
+                // Save URLs acquired during upload to the database.
+                self.updateFeedPost(with: postId) { (feedPost) in
+                    if let media = feedPost.media?.first(where: { $0.order == media.order }) {
+                        switch mediaURLs {
+                        case .getPut(let getURL, let putURL):
+                            media.url = getURL
+                            media.uploadUrl = putURL
+
+                        case .patch(let patchURL):
+                            media.uploadUrl = patchURL
+                        }
                     }
                 }
-            }) {
-                completion(uploadResult.map { $0.fileSize })
+            }) { (uploadResult) in
+                DDLogInfo("FeedData/upload-media/\(postId)/\(index)/finished result=[\(uploadResult)]")
+
+                // Save URLs acquired during upload to the database.
+                self.updateFeedPost(with: postId, block: { feedPost in
+                    if let media = feedPost.media?.first(where: { $0.order == index }) {
+                        switch uploadResult {
+                        case .success(let details):
+                            media.url = details.downloadURL
+                            media.status = .uploaded
+
+                            if media.url == upload?.url, let key = upload?.key, let sha256 = upload?.sha256 {
+                                media.key = key
+                                media.sha256 = sha256
+                            }
+
+                            MainAppContext.shared.uploadData.update(upload: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
+                        case .failure(_):
+                            media.status = .uploadError
+                        }
+                    }
+                }) {
+                    completion(uploadResult.map { $0.fileSize })
+                }
             }
         }
     }

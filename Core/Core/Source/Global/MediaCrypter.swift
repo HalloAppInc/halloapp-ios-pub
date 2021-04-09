@@ -220,6 +220,14 @@ public class MediaCrypter {
         return decryptedData
     }
 
+    public class func hash(url: URL) throws -> Data {
+        return hash(data: try Data(contentsOf: url))
+    }
+
+    public class func hash(data: Data) -> Data {
+        return Data(SHA256.hash(data: data))
+    }
+
 }
 
 

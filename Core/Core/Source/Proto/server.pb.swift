@@ -1277,6 +1277,8 @@ public struct Server_UploadMedia {
   /// Clears the value of `url`. Subsequent reads from it will return its default value.
   public mutating func clearURL() {self._url = nil}
 
+  public var downloadURL: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -4792,6 +4794,7 @@ extension Server_UploadMedia: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "size"),
     2: .same(proto: "url"),
+    3: .standard(proto: "download_url"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4802,6 +4805,7 @@ extension Server_UploadMedia: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularInt64Field(value: &self.size) }()
       case 2: try { try decoder.decodeSingularMessageField(value: &self._url) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.downloadURL) }()
       default: break
       }
     }
@@ -4814,12 +4818,16 @@ extension Server_UploadMedia: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if let v = self._url {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }
+    if !self.downloadURL.isEmpty {
+      try visitor.visitSingularStringField(value: self.downloadURL, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_UploadMedia, rhs: Server_UploadMedia) -> Bool {
     if lhs.size != rhs.size {return false}
     if lhs._url != rhs._url {return false}
+    if lhs.downloadURL != rhs.downloadURL {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

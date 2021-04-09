@@ -18,12 +18,14 @@ class MainAppContext: AppContext {
     private static let feedDatabaseFilename = "feed.sqlite"
     private static let chatDatabaseFilename = "chat.sqlite"
     private static let cryptoStatsDatabaseFilename = "cryptoStats.sqlite"
+    private static let uploadDatabaseFilename = "upload.sqlite"
 
     // MARK: Global objects
     private(set) var avatarStore: AvatarStore!
     private(set) var feedData: FeedData!
     private(set) var chatData: ChatData!
     private(set) var keyData: KeyData!
+    private(set) var uploadData: UploadData!
     private(set) var syncManager: SyncManager!
     private(set) var privacySettings: PrivacySettings!
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
@@ -82,6 +84,10 @@ class MainAppContext: AppContext {
     static let cryptoStatsStoreURL = {
         documentsDirectoryURL.appendingPathComponent(cryptoStatsDatabaseFilename)
     }()
+
+    static let uploadStoreURL = {
+        documentsDirectoryURL.appendingPathComponent(uploadDatabaseFilename)
+    }()
     
     // MARK: Initializer
 
@@ -105,6 +111,7 @@ class MainAppContext: AppContext {
         feedData = FeedData(service: service, contactStore: contactStore, userData: userData)
         chatData = ChatData(service: service, contactStore: contactStore, userData: userData)
         keyData = KeyData(service: service, userData: userData, keyStore: keyStore)
+        uploadData = UploadData()
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         avatarStore = AvatarStore()
         coreService.avatarDelegate = avatarStore
