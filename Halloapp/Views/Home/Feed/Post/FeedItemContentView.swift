@@ -111,6 +111,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     }
 
     private var mediaView: MediaCarouselView?
+    private var mediaViewHeightConstraint: NSLayoutConstraint?
 
     private func setupView() {
         isUserInteractionEnabled = true
@@ -130,7 +131,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) else { return }
 
         if let mediaView = mediaView {
-            let keepMediaView = postId == post.id
+            let keepMediaView = postId == post.id && mediaView.configuration.gutterWidth == gutterWidth
             if !keepMediaView {
                 vStack.removeArrangedSubview(mediaView)
                 mediaView.removeFromSuperview()
@@ -141,19 +142,26 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         }
 
         let postContainsMedia = !feedDataItem.media.isEmpty
-        if postContainsMedia && mediaView == nil {
+        if postContainsMedia {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
-            var mediaViewConfiguration = MediaCarouselViewConfiguration.default
-            mediaViewConfiguration.gutterWidth = gutterWidth
-            let mediaView = MediaCarouselView(feedDataItem: feedDataItem, configuration: mediaViewConfiguration)
-            mediaView.delegate = self
-            mediaView.addConstraint({
-                let constraint = mediaView.heightAnchor.constraint(equalToConstant: mediaViewHeight)
-                constraint.priority = .required - 10
-                return constraint
-            }())
-            vStack.insertArrangedSubview(mediaView, at: 0)
-            self.mediaView = mediaView
+            if mediaView == nil {
+                // Create new media view
+                var mediaViewConfiguration = MediaCarouselViewConfiguration.default
+                mediaViewConfiguration.gutterWidth = gutterWidth
+                let mediaView = MediaCarouselView(feedDataItem: feedDataItem, configuration: mediaViewConfiguration)
+                mediaView.delegate = self
+                mediaViewHeightConstraint = {
+                    let constraint = mediaView.heightAnchor.constraint(equalToConstant: mediaViewHeight)
+                    constraint.priority = .required - 10
+                    return constraint
+                }()
+                mediaViewHeightConstraint?.isActive = true
+                vStack.insertArrangedSubview(mediaView, at: 0)
+                self.mediaView = mediaView
+            } else {
+                // Update height on existing media view
+                mediaViewHeightConstraint?.constant = mediaViewHeight
+            }
         }
 
         // With media or > 180 chars long: System 16 pt (Body - 1)

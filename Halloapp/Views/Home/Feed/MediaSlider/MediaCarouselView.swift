@@ -58,7 +58,7 @@ fileprivate struct LayoutConstants {
 
 class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MediaExplorerTransitionDelegate {
 
-    private let configuration: MediaCarouselViewConfiguration
+    let configuration: MediaCarouselViewConfiguration
 
     private enum MediaSliderSection: Int {
         case main = 0
