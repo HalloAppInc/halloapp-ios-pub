@@ -405,14 +405,17 @@ final class InviteCellView: UIView {
     init() {
         super.init(frame: .zero)
 
-        addSubview(nameLabel)
-        addSubview(subtitleLabel)
+        contactInfoPanel.addSubview(nameLabel)
+        contactInfoPanel.addSubview(subtitleLabel)
+        addSubview(contactInfoPanel)
         addSubview(whatsAppButton)
         addSubview(smsButton)
 
         backgroundColor = .systemBackground
 
-        layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 8, right: 16)
+        layoutMargins = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+
+        contactInfoPanel.translatesAutoresizingMaskIntoConstraints = false
 
         nameLabel.textColor = .label
         nameLabel.font = .systemFont(forTextStyle: .callout, weight: .semibold)
@@ -427,14 +430,18 @@ final class InviteCellView: UIView {
         smsButton.translatesAutoresizingMaskIntoConstraints = false
         whatsAppButton.translatesAutoresizingMaskIntoConstraints = false
 
-        nameLabel.constrainMargins([.top, .leading], to: self)
-        subtitleLabel.constrain([.leading, .trailing], to: nameLabel)
-        subtitleLabel.bottomAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.bottomAnchor).isActive = true
+        contactInfoPanel.constrainMargins([.leading, .centerY], to: self)
+        contactInfoPanel.topAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.topAnchor).isActive = true
+        contactInfoPanel.bottomAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.bottomAnchor).isActive = true
+
+        nameLabel.constrain([.top, .leading, .trailing], to: contactInfoPanel)
+
+        subtitleLabel.constrain([.bottom, .leading, .trailing], to: contactInfoPanel)
         subtitleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 2).isActive = true
 
         whatsAppButton.constrainMargins([.centerY], to: self)
         whatsAppButton.setContentHuggingPriority(.required, for: .horizontal)
-        whatsAppButton.leadingAnchor.constraint(equalTo: nameLabel.trailingAnchor, constant: 0).isActive = true
+        whatsAppButton.leadingAnchor.constraint(equalTo: contactInfoPanel.trailingAnchor, constant: 0).isActive = true
 
         smsButton.constrainMargins([.centerY, .trailing], to: self)
         smsButton.setContentHuggingPriority(.required, for: .horizontal)
@@ -473,6 +480,7 @@ final class InviteCellView: UIView {
         action = actions?.action
     }
 
+    let contactInfoPanel = UIView()
     let nameLabel = UILabel()
     let subtitleLabel = UILabel()
     let actionViewStack = UIStackView()
