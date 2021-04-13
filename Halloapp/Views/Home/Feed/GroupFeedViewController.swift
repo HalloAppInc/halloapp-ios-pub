@@ -96,12 +96,7 @@ class GroupFeedViewController: FeedCollectionViewController {
         
         MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
         UNUserNotificationCenter.current().removeDeliveredChatNotifications(groupId: groupId)
-        
-        if MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil {
-            installFloatingActionMenu()
-        } else {
-            removeFloatingActionMenu()
-        }
+        updateFloatingActionMenu()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -113,6 +108,10 @@ class GroupFeedViewController: FeedCollectionViewController {
     
     override func showGroupName() -> Bool {
         return false
+    }
+
+    private var userBelongsToGroup: Bool {
+        MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil
     }
     
     private lazy var titleView: GroupTitleView = {
@@ -166,6 +165,16 @@ class GroupFeedViewController: FeedCollectionViewController {
             ]
         )
     }()
+
+    private func updateFloatingActionMenu() {
+        guard userBelongsToGroup else {
+            removeFloatingActionMenu()
+            return
+        }
+        if floatingMenu.superview == nil {
+            installFloatingActionMenu()
+        }
+    }
 
     private func installFloatingActionMenu() {
         floatingMenu.translatesAutoresizingMaskIntoConstraints = false
