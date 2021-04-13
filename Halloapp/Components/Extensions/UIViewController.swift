@@ -32,16 +32,4 @@ extension UIViewController {
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
         navigationItem.title = nil
     }
-
-    func updateNavigationBarStyleUsing(scrollView: UIScrollView) {
-//        let makeNavigationBarOpaque = scrollView.contentOffset.y <= -scrollView.adjustedContentInset.top
-//        let isNavigationBarOpaque = self.navigationItem.standardAppearance?.backgroundEffect == nil
-//        guard makeNavigationBarOpaque != isNavigationBarOpaque else { return }
-//        if makeNavigationBarOpaque {
-//            self.navigationItem.standardAppearance = .opaqueAppearance
-//        } else {
-//            self.navigationItem.standardAppearance = .translucentAppearance
-//        }
-    }
-
 }

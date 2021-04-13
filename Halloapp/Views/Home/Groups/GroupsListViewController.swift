@@ -133,12 +133,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         isVisible = false
     }
 
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView == tableView {
-            updateNavigationBarStyleUsing(scrollView: scrollView)
-        }
-    }
-
     private lazy var rightBarButtonItem: UIBarButtonItem = {
         let image = UIImage(named: "NavCreateGroup", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
         let button = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openNewGroupAction))

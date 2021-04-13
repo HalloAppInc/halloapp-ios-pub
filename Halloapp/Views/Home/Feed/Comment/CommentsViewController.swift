@@ -213,12 +213,6 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         }
     }
 
-    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView == tableView {
-            updateNavigationBarStyleUsing(scrollView: scrollView)
-        }
-    }
-
     // MARK: Delayed Post Loading
 
     private var isFeedPostAvailable: Bool = false

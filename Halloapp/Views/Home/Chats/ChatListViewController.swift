@@ -144,12 +144,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         floatingMenu.setState(.collapsed, animated: true)
     }
 
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView == tableView {
-            updateNavigationBarStyleUsing(scrollView: scrollView)
-        }
-    }
-
     private lazy var rightBarButtonItem: UIBarButtonItem = {
         let image = UIImage(named: "NavComposeChat", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
         let button = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openComposeChatAction))

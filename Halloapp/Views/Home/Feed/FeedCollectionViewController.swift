@@ -140,7 +140,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        updateNavigationBarStyleUsing(scrollView: collectionView)
         updateNoConnectionBanner(animated: true)
     }
 
@@ -160,7 +159,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView == collectionView else { return }
-        updateNavigationBarStyleUsing(scrollView: collectionView)
         if isNearTop() {
             removeNewPostsIndicator()
         }
