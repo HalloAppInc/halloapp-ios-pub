@@ -407,7 +407,7 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
     private static let sizingLabel = makeLabel(alignment: .natural, isMultiLine: true)
     private static let directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 50, bottom: 8, trailing: 50)
     private static let bubbleMargins = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
-    private let textLabel = makeLabel(alignment: .natural, isMultiLine: true)
+    private let textLabel = makeLabel(alignment: .center, isMultiLine: true)
     private let bubble = makeBubble()
 
     private func commonInit() {
