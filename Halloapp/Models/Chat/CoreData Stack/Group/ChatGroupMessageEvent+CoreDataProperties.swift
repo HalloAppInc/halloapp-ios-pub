@@ -22,11 +22,13 @@ extension ChatGroupMessageEvent {
 
         case changeName = 5
         case changeAvatar = 6
-        
+    
         case modifyMembers = 7
         case modifyAdmins = 8
+        
+        case join = 9
     }
-    
+
     enum MemberAction: Int16 {
         case none = 0
         case add = 1
@@ -35,11 +37,11 @@ extension ChatGroupMessageEvent {
         case demote = 4
         case leave = 5
     }
-    
+
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatGroupMessageEvent> {
         return NSFetchRequest<ChatGroupMessageEvent>(entityName: "ChatGroupMessageEvent")
     }
-    
+
     @NSManaged public var actionValue: Int16
     @NSManaged public var memberActionValue: Int16
     @NSManaged public var memberUserId: String?
@@ -92,6 +94,8 @@ extension ChatGroupMessageEvent {
             switch action {
             case .create:
                 return String(format: Localizations.groupEventCreatedGroup, senderName, groupName ?? "")
+            case .join:
+                return String(format: Localizations.groupEventJoin, senderName)
             case .changeName:
                 return String(format: Localizations.groupEventChangedName, senderName, groupName ?? "")
             case .changeAvatar:
@@ -121,37 +125,40 @@ extension ChatGroupMessageEvent {
 }
 
 extension Localizations {
-    
+
     static var groupEventCreatedGroup: String {
         NSLocalizedString("group.event.created.group", value: "%@ created the group \"%2@\"", comment: "Message text shown with the user who created the group")
     }
-    
+
+    static var groupEventJoin: String {
+        NSLocalizedString("chat.group.event.join", value: "%@ joined the group via Group Invite Link", comment: "Message text shown with the user who joined the group via invite link")
+    }
+
     static var groupEventChangedName: String {
         NSLocalizedString("group.event.changed.name", value: "%1@ changed the group name to \"%2@\"", comment: "Message text shown with the user who changed the group name")
     }
-    
+
     static var groupEventChangedAvatar: String {
         NSLocalizedString("group.event.changed.avatar", value: "%@ changed the group icon", comment: "Message text shown with the user who changed the group avatar")
     }
-    
+
     static var groupEventAddedMember: String {
         NSLocalizedString("group.event.added.member", value: "%1@ added %2@", comment: "Message text shown with the user who added a group member")
     }
-    
+
     static var groupEventRemovedMember: String {
         NSLocalizedString("group.event.removed.member", value: "%1@ removed %2@", comment: "Message text shown with the user who removed a group member")
     }
-    
+
     static var groupEventPromotedMember: String {
         NSLocalizedString("group.event.promoted.member", value: "%1@ made %2@ an admin", comment: "Message text shown with the user who promoted a group member")
     }
-    
+
     static var groupEventDemotedMember: String {
         NSLocalizedString("chat.group.event.demoted.member", value: "%1@ removed %2@ as an admin", comment: "Message text shown with the user who demoted a group admin")
     }
-    
+
     static var groupEventMemberLeave: String {
         NSLocalizedString("chat.group.event.member.left", value: "%@ left", comment: "Message text shown with the user who left the group")
     }
-    
 }

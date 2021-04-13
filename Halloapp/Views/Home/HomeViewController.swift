@@ -57,21 +57,13 @@ class HomeViewController: UITabBarController {
         
         updateTabBarBackgroundEffect()
 
-        if ServerProperties.isGroupFeedEnabled {
-            viewControllers = [
-                feedNavigationController(),
-                groupsNavigationController(),
-                chatsNavigationController(),
-                profileNavigationController()
-            ]
-        } else {
-            viewControllers = [
-                feedNavigationController(),
-                chatsNavigationController(),
-                profileNavigationController()
-            ]
-        }
-        
+        viewControllers = [
+            feedNavigationController(),
+            groupsNavigationController(),
+            chatsNavigationController(),
+            profileNavigationController()
+        ]
+
         cancellableSet.insert(
             MainAppContext.shared.feedData.didFindUnreadFeed.sink { [weak self] (count) in
                 guard let self = self else { return }
@@ -105,6 +97,14 @@ class HomeViewController: UITabBarController {
             MainAppContext.shared.activityViewControllerPresentRequest.sink { [weak self] (items) in
                 guard let self = self else { return }
                 self.presentActivityViewController(forItems: items)
+        })
+        
+        // navigate to group feed from the tabbar
+        cancellableSet.insert(
+            MainAppContext.shared.groupFeedFromGroupTabPresentRequest.sink { [weak self] (groupID) in
+                guard let self = self else { return }
+                guard groupID != nil else { return }
+                self.selectedIndex = 1
         })
         
         // Temporary listener for adding/removing the groups tab

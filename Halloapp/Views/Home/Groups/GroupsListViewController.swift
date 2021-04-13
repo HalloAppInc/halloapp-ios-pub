@@ -114,6 +114,15 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         if let metadata = NotificationMetadata.fromUserDefaults() {
             processNotification(metadata: metadata)
         }
+        
+        cancellableSet.insert(
+            MainAppContext.shared.groupFeedFromGroupTabPresentRequest.sink { [weak self] (groupID) in
+                guard let self = self else { return }
+                guard let groupID = groupID else { return }
+                self.navigationController?.popToRootViewController(animated: false)
+                self.navigationController?.pushViewController(GroupFeedViewController(groupId: groupID), animated: false)
+            }
+        )
     }
     
     override func viewWillAppear(_ animated: Bool) {

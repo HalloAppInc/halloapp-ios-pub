@@ -91,6 +91,18 @@ extension SceneDelegate: UIWindowSceneDelegate {
                     self.presentAppUpdateWarning()
                 }
         })
+        
+        // explicitly call delegates for group invites for first app start up
+        // wait a second or so for app to connect
+        if let userActivity = connectionOptions.userActivities.first {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.scene(scene, continue: userActivity)
+            }
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.scene(scene, openURLContexts: connectionOptions.urlContexts)
+            }
+        }
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -157,6 +169,25 @@ extension SceneDelegate: UIWindowSceneDelegate {
             appDelegate.scheduleFeedRefresh(after: Date.minutes(5))
         }
     }
+
+    // handles halloapp:// custom schema while app is either in foreground or background
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        DDLogInfo("application/scene/openURLContexts")
+        guard let url = URLContexts.first?.url else { return }
+        guard let inviteLink = ChatData.parseInviteURL(url: url) else { return }
+        DDLogInfo("application/scene/openURLContexts/url \(url)")
+        presentGroupPreview(inviteLink: inviteLink)
+    }
+
+    // handles invite url while app is either in foreground or background
+    func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+        DDLogInfo("application/scene/continue")
+        guard userActivity.activityType == NSUserActivityTypeBrowsingWeb else { return }
+        guard let incomingURL = userActivity.webpageURL else { return }
+        guard let inviteLink = ChatData.parseInviteURL(url: incomingURL) else { return }
+        DDLogInfo("application/scene/continue/incomingURL \(incomingURL)")
+        presentGroupPreview(inviteLink: inviteLink)
+    }
 }
 
 // App expiration
@@ -181,6 +212,11 @@ private extension SceneDelegate {
         alert.addAction(updateAction)
         alert.addAction(dismissAction)
         window?.rootViewController?.present(alert, animated: true, completion: nil)
+    }
+    
+    private func presentGroupPreview(inviteLink: String) {
+        let vc = GroupInvitePreviewViewController(for: inviteLink)
+        window?.rootViewController?.present(UINavigationController(rootViewController: vc), animated: true)
     }
 }
 

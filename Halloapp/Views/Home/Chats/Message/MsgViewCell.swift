@@ -79,5 +79,15 @@ class MsgViewCell: UITableViewCell {
         label.textColor = .systemGray6
         return label
     }()
+}
 
+extension MsgViewCell: UITextViewDelegate {
+    func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
+        guard let inviteLink = ChatData.parseInviteURL(url: URL) else { return true }
+
+        let vc = GroupInvitePreviewViewController(for: inviteLink)
+        window?.rootViewController?.present(UINavigationController(rootViewController: vc), animated: true)
+
+        return false
+    }
 }

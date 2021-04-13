@@ -23,6 +23,7 @@ extension ChatGroup {
     @NSManaged var desc: String?
     @NSManaged var maxSize: Int16
     @NSManaged var lastSync: Date?
+    @NSManaged var inviteLink: String?
     
     @NSManaged var members: Set<ChatGroupMember>?
     

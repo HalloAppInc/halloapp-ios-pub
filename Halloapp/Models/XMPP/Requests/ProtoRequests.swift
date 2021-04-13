@@ -205,6 +205,66 @@ final class ProtoGroupInfoRequest: ProtoRequest<HalloGroup> {
     }
 }
 
+final class ProtoGroupInviteLinkRequest: ProtoRequest<Server_GroupInviteLink> {
+
+    init(groupID: GroupID, completion: @escaping Completion) {
+        var groupInviteLink = Server_GroupInviteLink()
+        groupInviteLink.gid = groupID
+        groupInviteLink.action = .get
+
+        super.init(
+            iqPacket: .iqPacket(type: .get, payload: .groupInviteLink(groupInviteLink)),
+            transform: { (iq) in
+                return .success(iq.groupInviteLink) },
+            completion: completion)
+    }
+}
+
+final class ProtoResetGroupInviteLinkRequest: ProtoRequest<Server_GroupInviteLink> {
+
+    init(groupID: GroupID, completion: @escaping Completion) {
+        var groupInviteLink = Server_GroupInviteLink()
+        groupInviteLink.gid = groupID
+        groupInviteLink.action = .reset
+
+        super.init(
+            iqPacket: .iqPacket(type: .set, payload: .groupInviteLink(groupInviteLink)),
+            transform: { (iq) in
+                return .success(iq.groupInviteLink) },
+            completion: completion)
+    }
+}
+
+final class ProtoGroupPreviewWithLinkRequest: ProtoRequest<Server_GroupInviteLink> {
+
+    init(inviteLink: String, completion: @escaping Completion) {
+        var groupInviteLink = Server_GroupInviteLink()
+        groupInviteLink.action = .preview
+        groupInviteLink.link = inviteLink
+
+        super.init(
+            iqPacket: .iqPacket(type: .get, payload: .groupInviteLink(groupInviteLink)),
+            transform: { (iq) in
+                return .success(iq.groupInviteLink) },
+            completion: completion)
+    }
+}
+
+final class ProtoJoinGroupWithLinkRequest: ProtoRequest<Server_GroupInviteLink> {
+
+    init(inviteLink: String, completion: @escaping Completion) {
+        var groupInviteLink = Server_GroupInviteLink()
+        groupInviteLink.action = .join
+        groupInviteLink.link = inviteLink
+
+        super.init(
+            iqPacket: .iqPacket(type: .set, payload: .groupInviteLink(groupInviteLink)),
+            transform: { (iq) in
+                return .success(iq.groupInviteLink) },
+            completion: completion)
+    }
+}
+
 final class ProtoGroupsListRequest: ProtoRequest<HalloGroups> {
 
     init(completion: @escaping Completion) {
@@ -315,6 +375,7 @@ extension Server_GroupStanza.Action {
     init(_ groupAction: ChatGroupAction) {
         switch groupAction {
         case .create: self = .create
+        case .join: self = .join
         case .leave: self = .leave
         case .delete: self = .delete
         case .changeName: self = .changeName
@@ -344,6 +405,7 @@ extension Server_GroupMember.Action {
         case .leave: self = .leave
         case .promote: self = .promote
         case .remove: self = .remove
+        case .join: self = .join
         }
     }
 }

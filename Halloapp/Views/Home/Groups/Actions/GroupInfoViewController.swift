@@ -46,6 +46,9 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         navigationItem.title = Localizations.chatGroupInfoTitle
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonShare, style: .done, target: self, action: #selector(shareAction))
+        navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
 
         tableView.separatorStyle = .singleLine
         tableView.backgroundColor = UIColor.feedBackground
@@ -187,6 +190,11 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     
     // MARK: Actions
 
+    @objc private func shareAction() {
+        let controller = GroupInviteViewController(for: groupId)
+        navigationController?.pushViewController(controller, animated: true)
+    }
+    
     @objc private func editAction() {
         guard let chatGroup = chatGroup else { return }
         let controller = EditGroupViewController(chatGroup: chatGroup)
@@ -304,12 +312,20 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     func checkIfMember() {
         let headerView = self.tableView.tableHeaderView as! GroupInfoHeaderView
         let footerView = self.tableView.tableFooterView as! GroupInfoFooterView
+        navigationItem.rightBarButtonItem?.isEnabled = false
+        navigationItem.rightBarButtonItem?.tintColor = UIColor.clear
         
         if let chatGroupMember = MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) {
             if chatGroupMember.type == .admin {
                 isAdmin = true
                 headerView.setIsAdmin(true)
                 footerView.setIsMember(true)
+                
+                if ServerProperties.isInternalUser {
+                    navigationItem.rightBarButtonItem?.isEnabled = true
+                    navigationItem.rightBarButtonItem?.tintColor = UIColor.primaryBlue
+                }
+                
             } else if chatGroupMember.type == .member {
                 isAdmin = false
                 headerView.setIsAdmin(false)

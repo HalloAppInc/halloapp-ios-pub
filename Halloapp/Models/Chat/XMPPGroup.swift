@@ -14,6 +14,7 @@ typealias HalloGroupChatMessage = XMPPChatGroupMessage
 
 enum ChatGroupAction: String {
     case create = "create"
+    case join = "join"
     case leave = "leave"
     case delete = "delete"
     case changeName = "change_name"
@@ -33,7 +34,7 @@ enum ChatGroupMemberAction: String {
     case demote = "demote"
     case remove = "remove"
     case leave = "leave"
-    
+    case join = "join"
 }
 
 public struct XMPPChatMention: FeedMentionProtocol {
@@ -94,7 +95,7 @@ struct XMPPGroup {
             case .modifyMembers: return .modifyMembers
             case .setName: return nil
             case .autoPromoteAdmins: return nil
-            case .join: return nil
+            case .join: return .join
             case .preview: return nil
             case .setBackground: return nil
             case .UNRECOGNIZED(_): return nil
@@ -123,7 +124,7 @@ struct XMPPGroupMember {
             case .promote: return .promote
             case .demote: return .demote
             case .leave: return .leave
-            case .join: return nil
+            case .join: return .join
             case .UNRECOGNIZED(_): return nil
             }
         }()

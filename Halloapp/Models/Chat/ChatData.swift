@@ -2581,6 +2581,99 @@ extension ChatData {
             if !contactNames.isEmpty {
                 self.contactStore.addPushNames(contactNames)
             }
+
+        }
+    }
+
+    // MARK: Group Invite Link
+
+    static public func parseInviteURL(url: URL?) -> String? {
+        guard let url = url else { return nil }
+        guard let components = NSURLComponents(url: url, resolvingAgainstBaseURL: true) else { return nil }
+
+        guard let scheme = components.scheme?.lowercased() else { return nil }
+        guard let host = components.host?.lowercased() else { return nil }
+        guard let path = components.path?.lowercased() else { return nil }
+
+        if scheme == "https" {
+            guard host == "halloapp.com" || host == "www.halloapp.com" else { return nil }
+            guard path == "/invite/" else { return nil }
+        } else if scheme == "halloapp" {
+            guard host == "invite" else { return nil }
+            guard path == "/" else { return nil }
+        }
+
+        guard let params = components.queryItems else { return nil }
+        guard let inviteLink = params.first(where: { $0.name == "g" })?.value else { return nil }
+
+        return inviteLink
+    }
+
+    // MARK: Group Invite Link Actions
+
+    func getGroupInviteLink(groupID: GroupID, completion: @escaping ServiceRequestCompletion<String?>) {
+        DDLogDebug("ChatData/group/getGroupInviteLink/group \(groupID)")
+        service.getGroupInviteLink(groupID: groupID) { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let groupInviteLink):
+                self.updateChatGroup(with: groupID, block: { chatGroup in
+                    guard chatGroup.inviteLink != groupInviteLink.link else { return }
+                    chatGroup.inviteLink = groupInviteLink.link
+                }, performAfterSave: {
+                    let link = groupInviteLink.link
+                    completion(.success((link)))
+                })
+            case .failure(let error):
+                DDLogError("ChatData/group/getGroupInviteLink/error \(error)")
+            }
+        }
+    }
+    
+    func resetGroupInviteLink(groupID: GroupID, completion: @escaping ServiceRequestCompletion<String?>) {
+        DDLogDebug("ChatData/group/resetGroupInviteLink/group \(groupID)")
+        service.resetGroupInviteLink(groupID: groupID) { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let groupInviteLink):
+                self.updateChatGroup(with: groupID, block: { chatGroup in
+                    guard chatGroup.inviteLink != groupInviteLink.link else { return }
+                    chatGroup.inviteLink = groupInviteLink.link
+                }, performAfterSave: {
+                    let link = groupInviteLink.link
+                    completion(.success((link)))
+                })
+            case .failure(let error):
+                DDLogError("ChatData/group/resetGroupInviteLink/error \(error)")
+            }
+        }
+    }
+    
+    func getGroupPreviewWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
+        DDLogDebug("ChatData/group/getGroupPreviewWithLink/inviteLink \(inviteLink)")
+        service.getGroupPreviewWithLink(inviteLink: inviteLink) { result in
+            switch result {
+            case .success(let groupInviteLink):
+                completion(.success((groupInviteLink)))
+            case .failure(let error):
+                DDLogError("ChatData/group/getGroupPreviewWithLink/error \(error)")
+                completion(.failure((error)))
+            }
+        }
+    }
+    
+    func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
+        DDLogDebug("ChatData/group/getGroupPreviewWithLink/inviteLink \(inviteLink)")
+        service.joinGroupWithLink(inviteLink: inviteLink) { result in
+            switch result {
+            case .success(let groupInviteLink):
+                completion(.success((groupInviteLink)))
+            case .failure(let error):
+                DDLogError("ChatData/group/getGroupPreviewWithLink/error \(error)")
+                completion(.failure((error)))
+            }
         }
     }
     
@@ -3662,11 +3755,14 @@ extension ChatData {
             self.processIncomingGroup(xmppGroup: group, using: managedObjectContext)
         }
     }
-    
+
     private func processIncomingGroup(xmppGroup: XMPPGroup, using managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("ChatData/processIncomingGroup")
         switch xmppGroup.action {
         case .create:
             processGroupCreateAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .join:
+            processGroupJoinAction(xmppGroup: xmppGroup, in: managedObjectContext)
         case .leave:
             processGroupLeaveAction(xmppGroup: xmppGroup, in: managedObjectContext)
         case .modifyMembers, .modifyAdmins:
@@ -3677,11 +3773,10 @@ extension ChatData {
             processGroupChangeAvatarAction(xmppGroup: xmppGroup, in: managedObjectContext)
         default: break
         }
-        
+
         self.save(managedObjectContext)
     }
-    
-    
+
     private func processGroupCreateAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
 
         let chatGroup = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
@@ -3708,7 +3803,7 @@ extension ChatData {
         for xmppGroupMember in xmppGroup.members ?? [] {
             DDLogDebug("ChatData/group/process/new/add-member [\(xmppGroupMember.userId)]")
             processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
-            
+
             // add to pushnames
             if let name = xmppGroupMember.name, !name.isEmpty {
                 contactNames[xmppGroupMember.userId] = name
@@ -3732,6 +3827,29 @@ extension ChatData {
         }
         
         recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
+    }
+
+    private func processGroupJoinAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("ChatData/group/processGroupJoinAction")
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        
+        for xmppGroupMember in xmppGroup.members ?? [] {
+            guard xmppGroupMember.action == .join else { continue }
+
+            // add pushname first before recording message since user could be new
+            var contactNames = [UserID:String]()
+            if let name = xmppGroupMember.name, !name.isEmpty {
+                contactNames[xmppGroupMember.userId] = name
+            }
+            if !contactNames.isEmpty {
+                contactStore.addPushNames(contactNames)
+            }
+
+            processGroupAddMemberAction(chatGroup: group, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+            recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+        }
+
+        getAndSyncGroup(groupId: xmppGroup.groupId)
     }
 
     private func processGroupLeaveAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
@@ -3792,16 +3910,13 @@ extension ChatData {
             if xmppGroupMember.action == .add, xmppGroupMember.userId == MainAppContext.shared.userData.userId, xmppGroup.retryCount == 0 {
                 showGroupAddNotification(for: xmppGroup)
             }
-            
         }
-        
+
         if syncGroup {
             getAndSyncGroup(groupId: xmppGroup.groupId)
         }
-        
-
     }
-    
+
     private func processGroupChangeNameAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
         DDLogDebug("ChatData/group/processGroupChangeNameAction")
         _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
@@ -3885,6 +4000,7 @@ extension ChatData {
         chatGroupMessageEvent.action = {
             switch xmppGroup.action {
             case .create: return .create
+            case .join: return .join
             case .leave: return .leave
             case .delete: return .delete
             case .changeName: return .changeName
@@ -3924,7 +4040,7 @@ extension ChatData {
                     chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
                 }
             }
-            
+
             chatThread.lastFeedUserID = chatGroupMessage.userId
             chatThread.lastFeedText = chatGroupMessageEvent.text
             chatThread.lastFeedTimestamp = chatGroupMessage.timestamp

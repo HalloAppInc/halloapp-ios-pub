@@ -1179,6 +1179,22 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoGroupInfoRequest(groupID: groupID, completion: completion))
     }
     
+    func getGroupInviteLink(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
+        enqueue(request: ProtoGroupInviteLinkRequest(groupID: groupID, completion: completion))
+    }
+
+    func resetGroupInviteLink(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
+        enqueue(request: ProtoResetGroupInviteLinkRequest(groupID: groupID, completion: completion))
+    }
+    
+    func getGroupPreviewWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
+        enqueue(request: ProtoGroupPreviewWithLinkRequest(inviteLink: inviteLink, completion: completion))
+    }
+    
+    func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
+        enqueue(request: ProtoJoinGroupWithLinkRequest(inviteLink: inviteLink, completion: completion))
+    }
+    
     func getGroupsList(completion: @escaping ServiceRequestCompletion<HalloGroups>) {
         enqueue(request: ProtoGroupsListRequest(completion: completion))
     }

@@ -188,6 +188,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.textColor = UIColor.systemGray
         view.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
         view.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.delegate = self
+        
         return view
     }()
     
@@ -281,6 +284,8 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
         textView.textColor = UIColor.chatOwnMsg
         textView.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
+    
+        textView.delegate = self
 
         textView.translatesAutoresizingMaskIntoConstraints = false
         return textView

@@ -20,6 +20,10 @@ extension Localizations {
         NSLocalizedString("button.cancel", value: "Cancel", comment: "Title for generic Cancel button. Mostly used in popups and as such.")
     }
 
+    static var buttonCancelCapitalized: String {
+        NSLocalizedString("button.cancel", value: "CANCEL", comment: "Title for generic capitalized CANCEL button. Mostly used in popups and as such.")
+    }
+    
     static var buttonNext: String {
         NSLocalizedString("button.next", value: "Next", comment: "Title for generic Next button. Mostly used to proceed to next screen in flow.")
     }
@@ -28,12 +32,16 @@ extension Localizations {
         NSLocalizedString("button.create", value: "Create", comment: "Title for generic Create button")
     }
 
+    static var buttonShare: String {
+        NSLocalizedString("button.share", value: "Share", comment: "Title for generic Share button. Mostly used to complete some modal flow.")
+    }
+    
     static var buttonDone: String {
         NSLocalizedString("button.done", value: "Done", comment: "Title for generic Done button. Mostly used to complete some modal flow.")
     }
     
     static var buttonSave: String {
-        NSLocalizedString("button.done", value: "Save", comment: "Title for generic Save button. Mostly used to complete some modal flow.")
+        NSLocalizedString("button.save", value: "Save", comment: "Title for generic Save button. Mostly used to complete some modal flow.")
     }
     
     static var buttonUpdate: String {

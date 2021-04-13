@@ -19,7 +19,9 @@ protocol GroupMemberAvatarsDelegate: AnyObject {
 
 class GroupMemberAvatars: UIView, UIScrollViewDelegate {
     weak var delegate: GroupMemberAvatarsDelegate?
-   
+
+    public var showActionButton: Bool = true
+
     private var avatarUserIDs: [UserID] = []
 
     override init(frame: CGRect) {
@@ -84,8 +86,10 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
             avatarView.topAnchor.constraint(equalTo: avatarBoxView.topAnchor, constant: 10).isActive = true
             
             // add delete icon
-            deleteIcon.frame = CGRect(x: avatarBoxView.bounds.maxX - deleteIconSize, y: 0, width: deleteIconSize, height: deleteIconSize)
-            avatarBoxView.addSubview(deleteIcon)
+            if showActionButton {
+                deleteIcon.frame = CGRect(x: avatarBoxView.bounds.maxX - deleteIconSize, y: 0, width: deleteIconSize, height: deleteIconSize)
+                avatarBoxView.addSubview(deleteIcon)
+            }
             
             // add name label
             avatarBoxView.addSubview(nameLabel)
