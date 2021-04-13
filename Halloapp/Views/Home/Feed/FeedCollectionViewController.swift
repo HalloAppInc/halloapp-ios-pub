@@ -24,6 +24,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     private var cancellableSet: Set<AnyCancellable> = []
 
     private var cachedCellHeights = [FeedDisplayItem: CGFloat]()
+    private var expandedPostIDs = Set<FeedPostID>()
 
     private var isVisible: Bool = true
     private var isCheckForOnscreenCellsScheduled: Bool = false
@@ -121,6 +122,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIContentSizeCategory.didChangeNotification).sink { [weak self] (_) in
                 guard let self = self else { return }
+                self.cachedCellHeights.removeAll()
                 // TextLabel in FeedItemContentView uses NSAttributedText and therefore doesn't support automatic font adjustment.
                 self.collectionView.reloadData()
         })
@@ -152,6 +154,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     override func viewLayoutMarginsDidChange() {
         super.viewLayoutMarginsDidChange()
+        cachedCellHeights.removeAll()
         collectionView?.reloadData()
     }
 
@@ -206,6 +209,10 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         let newlyDeletedPosts = items.filter {
             guard let post = $0.post else { return false }
             return post.isPostRetracted && !deletedPostIDs.contains(post.id)
+        }
+
+        newlyDeletedPosts.forEach {
+            self.cachedCellHeights[$0] = nil
         }
 
         var snapshot = NSDiffableDataSourceSnapshot<FeedDisplaySection, FeedDisplayItem>()
@@ -479,7 +486,12 @@ extension FeedCollectionViewController {
         let isGroupPost = feedPost.groupId != nil
 
         cell.maxWidth = collectionView.frame.width
-        cell.configure(with: feedPost, contentWidth: cellContentWidth, gutterWidth: gutterWidth, showGroupName: showGroupName())
+        cell.configure(
+            with: feedPost,
+            contentWidth: cellContentWidth,
+            gutterWidth: gutterWidth,
+            showGroupName: showGroupName(),
+            isTextExpanded: expandedPostIDs.contains(postId))
 
         cell.commentAction = { [weak self] in
             guard let self = self else { return }
@@ -554,24 +566,17 @@ extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
             cachedCellHeights[displayItem] = height
             return CGSize(width: cellWidth, height: height)
         case .post(let feedPost):
-            if feedPost.isPostRetracted {
-                let text = Localizations.deletedPost(from: feedPost.userId)
-                let height = FeedEventCollectionViewCell.height(for: text, width: cellWidth)
-                cachedCellHeights[displayItem] = height
-                return CGSize(width: cellWidth, height: height)
-            }
-
-            // TODO: Move these cached heights off of the data items and into the view
-            let feedItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)
-            if let cachedCellHeight = feedItem?.cachedCellHeight {
-                return CGSize(width: cellWidth, height: cachedCellHeight)
-            }
-            let contentWidth = cellWidth - collectionView.layoutMargins.left - collectionView.layoutMargins.right
-            let cellHeight = FeedPostCollectionViewCell.height(forPost: feedPost, contentWidth: contentWidth)
-            feedItem?.cachedCellHeight = cellHeight
-
+            let cellHeight: CGFloat = {
+                if feedPost.isPostRetracted {
+                    let text = Localizations.deletedPost(from: feedPost.userId)
+                    return FeedEventCollectionViewCell.height(for: text, width: cellWidth)
+                } else {
+                    let contentWidth = cellWidth - collectionView.layoutMargins.left - collectionView.layoutMargins.right
+                    return FeedPostCollectionViewCell.height(forPost: feedPost, contentWidth: contentWidth, isTextExpanded: expandedPostIDs.contains(feedPost.id))
+                }
+            }()
             DDLogDebug("FeedCollectionView Calculated cell height [\(cellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
-
+            cachedCellHeights[displayItem] = cellHeight
             return CGSize(width: cellWidth, height: cellHeight)
         }
     }
@@ -585,13 +590,13 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
         }
     }
 
-    func feedPostCollectionViewCellDidRequestReloadHeight(_ cell: FeedPostCollectionViewCell, animations animationBlock: @escaping () -> Void) {
+    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell, animations animationBlock: @escaping () -> Void) {
         guard let indexPath = collectionView.indexPath(for: cell),
-              let postId = cell.postId, let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else
+              let postID = cell.postId else
         {
             return
         }
-        feedDataItem.textExpanded = true
+        expandedPostIDs.insert(postID)
         UIView.animate(withDuration: 0.35) {
             animationBlock()
 
@@ -604,6 +609,7 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
             var snapshot = collectionViewDataSource.snapshot()
             snapshot.reloadItems([displayItem])
             collectionViewDataSource.apply(snapshot)
+            self.collectionView.collectionViewLayout.invalidateLayout()
         }
     }
 }

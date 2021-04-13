@@ -17,14 +17,6 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     var userId: UserID
     var media: [FeedMedia]
     var currentMediaIndex: Int? = nil
-    var textExpanded: Bool = false {
-        didSet {
-            if oldValue != textExpanded {
-                cachedCellHeight = nil
-            }
-        }
-    }
-    var cachedCellHeight: CGFloat?
 
     var commentsDidChange = PassthroughSubject<(Int, Bool), Never>()
     var hasUnreadComments: Bool {
@@ -56,7 +48,6 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
         if feedPost.isPostRetracted && !media.isEmpty {
             media = []
             currentMediaIndex = nil
-            cachedCellHeight = nil
         }
     }
 

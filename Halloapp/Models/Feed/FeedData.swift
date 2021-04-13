@@ -94,15 +94,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 userIds.forEach({ self.sharePastPostsWith(userId: $0) })
             })
 
-        cancellableSet.insert(
-            NotificationCenter.default
-                .publisher(for: UIContentSizeCategory.didChangeNotification)
-                .eraseToAnyPublisher()
-                .sink { [weak self] _ in
-                    guard let self = self else { return }
-                    self.feedDataItems.forEach({ $0.cachedCellHeight = nil })
-                })
-
         fetchFeedPosts()
     }
 
@@ -1191,11 +1182,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // 4. Reset post data and mark post as deleted.
             feedPost.text = nil
             feedPost.status = .retracted
-
-            // 5. Clear cached cell height
-            DispatchQueue.main.async {
-                self.feedDataItem(with: postId)?.cachedCellHeight = nil
-            }
 
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)

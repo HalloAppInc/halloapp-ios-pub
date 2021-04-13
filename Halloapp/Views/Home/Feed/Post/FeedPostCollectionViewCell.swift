@@ -11,10 +11,6 @@ import Combine
 import Core
 import UIKit
 
-protocol FeedPostHeightDetermining {
-    static func height(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat
-}
-
 fileprivate extension FeedPost {
     var hideFooterSeparator: Bool {
         !orderedMedia.isEmpty && text?.isEmpty ?? true
@@ -25,10 +21,10 @@ protocol FeedPostCollectionViewCellDelegate: AnyObject {
 
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didRequestOpen url: URL)
 
-    func feedPostCollectionViewCellDidRequestReloadHeight(_ cell: FeedPostCollectionViewCell, animations animationBlock: @escaping () -> Void)
+    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell, animations animationBlock: @escaping () -> Void)
 }
 
-class FeedPostCollectionViewCellBase: UICollectionViewCell, FeedPostHeightDetermining {
+class FeedPostCollectionViewCellBase: UICollectionViewCell {
 
     static var metricsCache: [String: CGFloat] = [:]
 
@@ -136,15 +132,9 @@ class FeedPostCollectionViewCellBase: UICollectionViewCell, FeedPostHeightDeterm
         fatalError("Subclasses must implement")
     }
 
-    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool) {
-        DDLogVerbose("FeedPostCollectionViewCell/configure [\(post.id)]")
-
-        postId = post.id
-    }
-
-    final class func height(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat {
+    final class func height(forPost post: FeedPost, contentWidth: CGFloat, isTextExpanded: Bool) -> CGFloat {
         let headerHeight = Self.headerHeight(forPost: post, contentWidth: contentWidth)
-        let contentHeight = Self.contentHeight(forPost: post, contentWidth: contentWidth)
+        let contentHeight = Self.contentHeight(forPost: post, contentWidth: contentWidth, isTextExpanded: isTextExpanded)
         let footerHeight = Self.footerHeight(forPost: post, contentWidth: contentWidth)
         return headerHeight + contentHeight + footerHeight + 2 * LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing
     }
@@ -163,7 +153,7 @@ class FeedPostCollectionViewCellBase: UICollectionViewCell, FeedPostHeightDeterm
         return headerSize.height
     }
 
-    fileprivate class func contentHeight(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat {
+    fileprivate class func contentHeight(forPost post: FeedPost, contentWidth: CGFloat, isTextExpanded: Bool) -> CGFloat {
         return 0
     }
 
@@ -285,8 +275,10 @@ class FeedPostCollectionViewCell: FeedPostCollectionViewCellBase {
         "active-post"
     }
 
-    override func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool) {
-        super.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, showGroupName: showGroupName)
+    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool, isTextExpanded: Bool) {
+        DDLogVerbose("FeedPostCollectionViewCell/configure [\(post.id)]")
+
+        postId = post.id
 
         headerView.configure(with: post)
         if showGroupName {
@@ -299,12 +291,12 @@ class FeedPostCollectionViewCell: FeedPostCollectionViewCellBase {
             guard let groupID = post.groupId else { return }
             self?.showGroupFeedAction?(groupID)
         }
-        itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth)
+        itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, isTextExpanded: isTextExpanded)
         footerView.configure(with: post, contentWidth: contentWidth)
     }
 
-    override class func contentHeight(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat {
-        let contentHeight = FeedItemContentView.preferredHeight(forPost: post, contentWidth: contentWidth)
+    override class func contentHeight(forPost post: FeedPost, contentWidth: CGFloat, isTextExpanded: Bool) -> CGFloat {
+        let contentHeight = FeedItemContentView.preferredHeight(forPost: post, contentWidth: contentWidth, isTextExpanded: isTextExpanded)
         return contentHeight
     }
 
@@ -367,7 +359,7 @@ extension FeedPostCollectionViewCell: TextLabelDelegate {
 
     func textLabelDidRequestToExpand(_ label: TextLabel) {
         if let delegate = delegate {
-            delegate.feedPostCollectionViewCellDidRequestReloadHeight(self) {
+            delegate.feedPostCollectionViewCellDidRequestTextExpansion(self) {
                 self.itemContentView.textLabel.numberOfLines = 0
             }
         }

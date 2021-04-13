@@ -127,7 +127,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         vStack.constrainMargins(to: self)
     }
 
-    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat) {
+    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, isTextExpanded: Bool) {
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) else { return }
 
         if let mediaView = mediaView {
@@ -180,7 +180,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             }()
             let mentionNameFont = UIFont(descriptor: postFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
             textLabel.attributedText = postText?.with(font: postFont, color: .label).applyingFontForMentions(mentionNameFont)
-            textLabel.numberOfLines = feedDataItem.textExpanded ? 0 : postContainsMedia ? 3 : 10
+            textLabel.numberOfLines = isTextExpanded ? 0 : postContainsMedia ? 3 : 10
             // Adjust vertical margins around text.
             textContentView.layoutMargins.top = postContainsMedia ? 11 : 9
         } else {
@@ -193,7 +193,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         postId = post.id
     }
 
-    class func preferredHeight(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat {
+    class func preferredHeight(forPost post: FeedPost, contentWidth: CGFloat, isTextExpanded: Bool) -> CGFloat {
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) else {
             return 0
         }
@@ -217,7 +217,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             }()
             let textContentView = TextContentView()
             textContentView.textLabel.attributedText = postText?.with(font: postFont, color: .label)
-            textContentView.textLabel.numberOfLines = feedDataItem.textExpanded ? 0 : postContainsMedia ? 3 : 10
+            textContentView.textLabel.numberOfLines = isTextExpanded ? 0 : postContainsMedia ? 3 : 10
             // Adjust vertical margins around text.
             textContentView.layoutMargins.top = postContainsMedia ? 11 : 9
 
