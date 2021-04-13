@@ -607,10 +607,10 @@ final class FeedItemFooterView: UIView {
     // Gotham Medium, 15 pt (Subhead)
     lazy var messageButton: UIButton = {
         let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 8 : -8
-        let stringMessage = NSLocalizedString("feedpost.button.message", value: "Message", comment: "Button under someoneelse's post. Verb.")
+        let stringMessage = NSLocalizedString("feedpost.button.reply", value: "Reply", comment: "Button under someoneelse's post. Verb.")
         let button = UIButton(type: .system)
         button.setTitle(stringMessage, for: .normal)
-        button.setImage(UIImage(named: "FeedPostMessage"), for: .normal)
+        button.setImage(UIImage(named: "FeedPostReply"), for: .normal)
         button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 21)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.lineBreakMode = .byWordWrapping
