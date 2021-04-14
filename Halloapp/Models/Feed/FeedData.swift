@@ -2036,6 +2036,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func deleteMedia(in feedPost: FeedPost) {
         feedPost.media?.forEach { (media) in
+
+            // cancel any pending tasks for this media
+            DDLogInfo("FeedData/deleteMedia/post-id \(feedPost.id), media-id: \(media.id)")
+            if let currentTask = downloadManager.currentTask(for: media) {
+                DDLogInfo("FeedData/deleteMedia/cancelTask/task: \(currentTask.id)")
+                currentTask.downloadRequest?.cancel(producingResumeData : false)
+            }
             if let encryptedFilePath = media.encryptedFilePath {
                 let encryptedURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
                 do {
