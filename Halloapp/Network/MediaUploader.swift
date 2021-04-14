@@ -125,6 +125,16 @@ final class MediaUploader {
     // Resolves relative media file path to file url.
     var resolveMediaPath: ((String) -> (URL))!
 
+    // Use Custom Alamofire session - we modify the timeoutIntervalForRequest parameter in the configuration
+    lazy var afSession : Alamofire.Session = { [weak self] in
+        let configuration = URLSessionConfiguration.default
+        // Set the timeout to be 20 seconds.
+        configuration.timeoutIntervalForRequest = TimeInterval(20)
+
+        let session = Alamofire.Session(configuration: configuration)
+        return session
+    }()
+
     init(service: CoreService) {
         self.service = service
     }
@@ -172,6 +182,7 @@ final class MediaUploader {
             guard let statusCode = response.response?.statusCode else {
                 // If the error is unknown - this is primarily due to loss of connection without a server response.
                 // so we should retry this task.
+                DDLogError("MediaUploader/handleTusFailure/Failed/response: \(response)")
                 retryAfterDelay(task: task)
                 return
             }
@@ -343,7 +354,7 @@ final class MediaUploader {
     private func startUpload(forTask task: Task, to url: URL) {
         DDLogDebug("MediaUploader/startUpload/\(task.groupId)/\(task.index)/begin url=[\(url)]")
 
-        task.uploadRequest = AF.upload(task.fileURL, to: url, method: .put, headers: [ .contentType("application/octet-stream") ])
+        task.uploadRequest = afSession.upload(task.fileURL, to: url, method: .put, headers: [ .contentType("application/octet-stream") ])
             .uploadProgress { [weak task, weak self] (progress) in
                 guard let self = self, let task = task, !task.isCanceled else {
                     return
@@ -377,7 +388,7 @@ final class MediaUploader {
     private func startResumableUpload(forTask task: Task, to url: URL) {
         DDLogDebug("MediaUploader/startResumableUpload/\(task.groupId)/\(task.index)/begin url=[\(url)]")
 
-        task.uploadRequest = AF.request(url, method: .head, headers: [ "Tus-Resumable": "1.0.0" ])
+        task.uploadRequest = afSession.request(url, method: .head, headers: [ "Tus-Resumable": "1.0.0" ])
             .validate()
             .response { [weak task] response in
                 guard let task = task, !task.isCanceled else {
@@ -420,7 +431,7 @@ final class MediaUploader {
                     try fileHandle.seek(toOffset: UInt64(offset))
                     let data = fileHandle.availableData
                     DDLogInfo("MediaUploader/upload/\(task.groupId)/\(task.index)/resume Loaded remainer size=[\(data.count)]")
-                    uploadRequest = AF.upload(data, to: url, method: .patch, headers: headers)
+                    uploadRequest = afSession.upload(data, to: url, method: .patch, headers: headers)
                 }
                 catch {
                     DDLogError("MediaUploader/upload/\(task.groupId)/\(task.index)/seek-error [\(error)]")
@@ -430,7 +441,7 @@ final class MediaUploader {
         if uploadRequest == nil {
             effectiveOffset = 0
             headers.update(name: "Upload-offset", value: String(effectiveOffset))
-            uploadRequest = AF.upload(task.fileURL, to: url, method: .patch, headers: headers)
+            uploadRequest = afSession.upload(task.fileURL, to: url, method: .patch, headers: headers)
         }
 
         task.uploadRequest = uploadRequest
