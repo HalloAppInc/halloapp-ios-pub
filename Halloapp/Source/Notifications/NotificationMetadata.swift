@@ -25,6 +25,13 @@ enum NotificationContentType: String, RawRepresentable, Codable {
     case newInvitee = "inviter_notice"
     case newFriend = "friend_notice"
     case newContact = "contact_notice"
+
+    case feedPostRetract = "feedpost_retract"
+    case groupFeedPostRetract = "group_post_retract"
+    case feedCommentRetract = "comment_retract"
+    case groupFeedCommentRetract = "group_comment_retract"
+    case chatMessageRetract = "chat_retract"
+    case groupChatMessageRetract = "group_chat_retract"
 }
 
 class NotificationMetadata: Codable {
@@ -96,7 +103,7 @@ class NotificationMetadata: Codable {
         initialize(userInfo: notificationResponse.notification.request.content.userInfo)
     }
 
-    private static func initialize(userInfo: [AnyHashable: Any]) -> NotificationMetadata? {
+    public static func initialize(userInfo: [AnyHashable: Any]) -> NotificationMetadata? {
         if let metadata = userInfo[Self.userInfoKeyMetadata] as? [String: String] {
             guard let data = metadata[Self.messagePacketData] else {
                 DDLogError("NotificationMetadata/init/error invalid metadata: [\(metadata)]")
@@ -172,14 +179,28 @@ class NotificationMetadata: Codable {
             switch feedItem.item {
             case .post(let post):
                 contentId = post.id
-                contentType = .feedPost
+                switch feedItem.action {
+                case .retract:
+                    contentType = .feedPostRetract
+                case .publish:
+                    contentType = .feedPost
+                default:
+                    return nil
+                }
                 fromId = UserID(post.publisherUid)
                 timestamp = Date(timeIntervalSince1970: TimeInterval(post.timestamp))
                 data = post.payload
                 pushName = post.publisherName
             case .comment(let comment):
                 contentId = comment.id
-                contentType = .feedComment
+                switch feedItem.action {
+                case .retract:
+                    contentType = .feedCommentRetract
+                case .publish:
+                    contentType = .feedComment
+                default:
+                    return nil
+                }
                 fromId = UserID(comment.publisherUid)
                 timestamp = Date(timeIntervalSince1970: TimeInterval(comment.timestamp))
                 data = comment.payload
@@ -193,14 +214,28 @@ class NotificationMetadata: Codable {
             switch groupFeedItem.item {
             case .post(let post):
                 contentId = post.id
-                contentType = .groupFeedPost
+                switch groupFeedItem.action {
+                case .retract:
+                    contentType = .groupFeedPostRetract
+                case .publish:
+                    contentType = .groupFeedPost
+                default:
+                    return nil
+                }
                 fromId = UserID(post.publisherUid)
                 timestamp = Date(timeIntervalSince1970: TimeInterval(post.timestamp))
                 data = post.payload
                 pushName = post.publisherName
             case .comment(let comment):
                 contentId = comment.id
-                contentType = .groupFeedComment
+                switch groupFeedItem.action {
+                case .retract:
+                    contentType = .groupFeedCommentRetract
+                case .publish:
+                    contentType = .groupFeedComment
+                default:
+                    return nil
+                }
                 fromId = UserID(comment.publisherUid)
                 timestamp = Date(timeIntervalSince1970: TimeInterval(comment.timestamp))
                 data = comment.payload
@@ -218,7 +253,13 @@ class NotificationMetadata: Codable {
             timestamp = Date(timeIntervalSince1970: TimeInterval(chatMsg.timestamp))
             data = chatMsg.payload
             pushName = chatMsg.senderName
-
+        case .chatRetract(let chatRetractStanza):
+            contentId = chatRetractStanza.id
+            contentType = .chatMessageRetract
+            fromId = UserID(msg.fromUid)
+            timestamp = nil
+            data = nil
+            pushName = nil
         case .groupStanza(let groupStanza):
             if groupStanza.action == .modifyMembers {
                 contentId = msg.id
@@ -346,6 +387,8 @@ class NotificationMetadata: Codable {
         case .groupAdd:
             body = Localizations.groupsAddNotificationBody
 
+        default:
+            break
         }
         return true
     }
@@ -372,9 +415,9 @@ extension NotificationMetadata {
 
     var isFeedNotification: Bool {
         switch contentType {
-        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment:
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract:
             return true
-        case .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact:
+        case .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd:
             return false
         }
     }
@@ -395,16 +438,16 @@ extension NotificationMetadata {
         switch contentType {
         case .newFriend, .newInvitee, .newContact:
             return true
-        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd:
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .groupAdd:
             return false
         }
     }
 
     var isGroupNotification: Bool {
         switch contentType {
-        case .groupFeedPost, .groupFeedComment, .groupChatMessage, .groupAdd:
+        case .groupFeedPost, .groupFeedComment, .groupChatMessage, .groupFeedPostRetract, .groupFeedCommentRetract, .groupChatMessageRetract, .groupAdd:
             return true
-        case .feedPost, .feedComment, .chatMessage, .newFriend, .newInvitee, .newContact:
+        case .feedPost, .feedComment, .feedPostRetract, .feedCommentRetract, .chatMessage, .chatMessageRetract, .newFriend, .newInvitee, .newContact:
             return false
         }
     }
@@ -421,6 +464,15 @@ extension NotificationMetadata {
             return contentId
         }
         return nil
+    }
+
+    var isRetractNotification: Bool {
+        switch contentType {
+        case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract:
+            return true
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact:
+            return false
+        }
     }
 
 }
