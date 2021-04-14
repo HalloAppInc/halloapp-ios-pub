@@ -11,6 +11,7 @@ import Combine
 import Contacts
 import Core
 import FirebaseCore
+import FirebaseCrashlytics
 import Foundation
 
 class MainAppContext: AppContext {
@@ -108,6 +109,9 @@ class MainAppContext: AppContext {
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass)
         // This is needed to encode/decode protobuf in FeedPostInfo.
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
+
+        // Add UserId to Crashlytics
+        Crashlytics.crashlytics().setUserID(userData.userId)
 
         feedData = FeedData(service: service, contactStore: contactStore, userData: userData)
         chatData = ChatData(service: service, contactStore: contactStore, userData: userData)
