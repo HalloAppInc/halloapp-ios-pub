@@ -166,7 +166,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
 
         // Schedule periodic data refresh in the background.
         if MainAppContext.shared.userData.isLoggedIn {
-            appDelegate.scheduleFeedRefresh(after: Date.minutes(5))
+            appDelegate.scheduleFeedRefresh(after: Date.hours(2))
         }
     }
 

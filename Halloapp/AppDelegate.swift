@@ -288,7 +288,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         // Schedule next bg fetch.
-        scheduleFeedRefresh(after: Date.minutes(5))
+        scheduleFeedRefresh(after: Date.hours(2))
     }
 
     // MARK: Background Connection Task
