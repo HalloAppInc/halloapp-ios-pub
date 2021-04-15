@@ -51,21 +51,29 @@ public protocol FeedItemProtocol {
 
     // MARK: Serialization
 
-    var protoMessage: SwiftProtobuf.Message { get }
+    var protoMessage: SwiftProtobuf.Message? { get }
 
-    func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item
+    func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item?
 }
 
 public extension FeedItemProtocol {
 
-    var protoContainer: Clients_Container {
+    var protoContainer: Clients_Container? {
         get {
             var container = Clients_Container()
             switch Self.itemType {
             case .post:
-                container.post = protoMessage as! Clients_Post
+                guard let message = protoMessage as? Clients_Post else {
+                    DDLogError("FeedItemProtocol/protoContainer/\(id)/error [could not create post message]")
+                    return nil
+                }
+                container.post = message
             case .comment:
-                container.comment = protoMessage as! Clients_Comment
+                guard let message = protoMessage as? Clients_Comment else {
+                    DDLogError("FeedItemProtocol/protoContainer/\(id)/error [could not create comment message]")
+                    return nil
+                }
+                container.comment = message
             }
             return container
         }
@@ -115,8 +123,12 @@ public protocol FeedMediaProtocol {
 
 extension FeedMediaProtocol {
 
-    var protoMessage: Clients_Media {
+    var protoMessage: Clients_Media? {
         get {
+            guard let url = url else {
+                DDLogError("FeedMediaProtocol/protoMessage/\(id)/error [missing url]")
+                return nil
+            }
             var media = Clients_Media()
             media.type = {
                 switch type {
@@ -128,7 +140,7 @@ extension FeedMediaProtocol {
             media.height = Int32(size.height)
             media.encryptionKey = Data(base64Encoded: key)!
             media.plaintextHash = Data(base64Encoded: sha256)!
-            media.downloadURL = url!.absoluteString
+            media.downloadURL = url.absoluteString
             return media
         }
     }
@@ -319,19 +331,23 @@ public protocol FeedPostProtocol: FeedItemProtocol {
 
 public extension FeedPostProtocol {
 
-    var protoMessage: SwiftProtobuf.Message {
+    var protoMessage: SwiftProtobuf.Message? {
         get {
             var post = Clients_Post()
             if let text = text {
                 post.text = text
             }
             post.mentions = orderedMentions.map { $0.protoMention }
-            post.media = orderedMedia.compactMap{ $0.protoMessage }
+            post.media = orderedMedia.compactMap { $0.protoMessage }
+            if post.media.count < orderedMedia.count {
+                DDLogError("FeedPostProtocol/\(id)/error [media not ready]")
+                return nil
+            }
             return post
         }
     }
 
-    var serverPost: Server_Post {
+    var serverPost: Server_Post? {
         var post = Server_Post()
 
         if let uid = Int64(userId) {
@@ -339,14 +355,21 @@ public extension FeedPostProtocol {
         }
         post.id = id
         post.timestamp = Int64(timestamp.timeIntervalSince1970)
-        if let payload = try? protoContainer.serializedData() {
+        if let payload = try? protoContainer?.serializedData() {
             post.payload = payload
+        } else {
+            DDLogError("FeedPostProtocol/serverPost/\(id)/error [could not create payload]")
+            return nil
         }
         return post
     }
 
-    func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item {
+    func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item? {
         if withData {
+            guard let serverPost = serverPost else {
+                DDLogError("FeedPostProtocol/protoFeedItem/\(id)/error [could not create serverpost]")
+                return nil
+            }
             return .post(serverPost)
         } else {
             var post = Server_Post()
@@ -373,7 +396,7 @@ public protocol FeedCommentProtocol: FeedItemProtocol {
 
 public extension FeedCommentProtocol {
 
-    var protoMessage: Message {
+    var protoMessage: Message? {
         get {
             var comment = Clients_Comment()
             comment.text = text
@@ -386,7 +409,7 @@ public extension FeedCommentProtocol {
         }
     }
 
-    var serverComment: Server_Comment {
+    var serverComment: Server_Comment? {
         var comment = Server_Comment()
         comment.id = id
         if let parentID = parentId {
@@ -394,15 +417,22 @@ public extension FeedCommentProtocol {
         }
         comment.postID = feedPostId
         comment.timestamp = Int64(timestamp.timeIntervalSince1970)
-        if let payload = try? protoContainer.serializedData() {
+        if let payload = try? protoContainer?.serializedData() {
             comment.payload = payload
+        } else {
+            DDLogError("FeedCommentProtocol/serverComment/\(id)/error [could not create payload]")
+            return nil
         }
 
         return comment
     }
 
-    func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item {
+    func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item? {
         if withData {
+            guard let serverComment = serverComment else {
+                DDLogError("FeedCommentProtocol/protoFeedItem/\(id)/error [could not create serverComment]")
+                return nil
+            }
             return .comment(serverComment)
         } else {
             var comment = Server_Comment()

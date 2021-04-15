@@ -544,7 +544,11 @@ extension ProtoServiceCore: CoreService {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
-            self.enqueue(request: ProtoPublishPostRequest(post: post, feed: feed, completion: completion))
+            guard let request = ProtoPublishPostRequest(post: post, feed: feed, completion: completion) else {
+                completion(.failure(.malformedRequest))
+                return
+            }
+            self.enqueue(request: request)
         }
     }
 
@@ -552,7 +556,11 @@ extension ProtoServiceCore: CoreService {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
-            self.enqueue(request: ProtoPublishCommentRequest(comment: comment, groupId: groupId, completion: completion))
+            guard let request = ProtoPublishCommentRequest(comment: comment, groupId: groupId, completion: completion) else {
+                completion(.failure(.malformedRequest))
+                return
+            }
+            self.enqueue(request: request)
         }
     }
 

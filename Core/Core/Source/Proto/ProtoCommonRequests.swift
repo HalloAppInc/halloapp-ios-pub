@@ -11,17 +11,23 @@ import Foundation
 
 public final class ProtoPublishPostRequest: ProtoRequest<Date> {
 
-    public init(post: FeedPostProtocol, feed: Feed, completion: @escaping Completion) {
+    public init?(post: FeedPostProtocol, feed: Feed, completion: @escaping Completion) {
         var isGroupFeedRequest: Bool
         let payload: Server_Iq.OneOf_Payload
         switch feed {
         case .personal(let audience):
+            guard let item = Self.pbFeedItem(post: post, audience: audience) else {
+                return nil
+            }
             isGroupFeedRequest = false
-            payload = .feedItem(Self.pbFeedItem(post: post, audience: audience))
+            payload = .feedItem(item)
 
         case .group(let groupId):
+            guard let item = Self.pbGroupFeedItem(post: post, groupId: groupId) else {
+                return nil
+            }
             isGroupFeedRequest = true
-            payload = .groupFeedItem(Self.pbGroupFeedItem(post: post, groupId: groupId))
+            payload = .groupFeedItem(item)
         }
 
         let packet = Server_Packet.iqPacket(type: .set, payload: payload)
@@ -36,15 +42,21 @@ public final class ProtoPublishPostRequest: ProtoRequest<Date> {
             completion: completion)
     }
 
-    private static func pbGroupFeedItem(post: FeedPostProtocol, groupId: GroupID) -> Server_GroupFeedItem {
+    private static func pbGroupFeedItem(post: FeedPostProtocol, groupId: GroupID) -> Server_GroupFeedItem? {
+        guard let serverPost = post.serverPost else {
+            return nil
+        }
         var pbGroupFeedItem = Server_GroupFeedItem()
         pbGroupFeedItem.action = .publish
-        pbGroupFeedItem.item = .post(post.serverPost)
+        pbGroupFeedItem.item = .post(serverPost)
         pbGroupFeedItem.gid = groupId
         return pbGroupFeedItem
     }
 
-    private static func pbFeedItem(post: FeedPostProtocol, audience: FeedAudience) -> Server_FeedItem {
+    private static func pbFeedItem(post: FeedPostProtocol, audience: FeedAudience) -> Server_FeedItem? {
+        guard var serverPost = post.serverPost else {
+            return nil
+        }
         var serverAudience = Server_Audience()
         serverAudience.uids = audience.userIds.compactMap { Int64($0) }
         serverAudience.type = {
@@ -58,7 +70,6 @@ public final class ProtoPublishPostRequest: ProtoRequest<Date> {
             }
         }()
 
-        var serverPost = post.serverPost
         serverPost.audience = serverAudience
 
         var pbFeedItem = Server_FeedItem()
@@ -70,7 +81,10 @@ public final class ProtoPublishPostRequest: ProtoRequest<Date> {
 
 public final class ProtoPublishCommentRequest: ProtoRequest<Date> {
 
-    public init(comment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping Completion) {
+    public init?(comment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping Completion) {
+        guard let serverComment = comment.serverComment else {
+            return nil
+        }
         var isGroupFeedRequest: Bool
 
         let payload: Server_Iq.OneOf_Payload
@@ -79,7 +93,7 @@ public final class ProtoPublishCommentRequest: ProtoRequest<Date> {
 
             var pbGroupFeedItem = Server_GroupFeedItem()
             pbGroupFeedItem.action = .publish
-            pbGroupFeedItem.item = .comment(comment.serverComment)
+            pbGroupFeedItem.item = .comment(serverComment)
             pbGroupFeedItem.gid = groupId
 
             payload = .groupFeedItem(pbGroupFeedItem)
@@ -88,7 +102,7 @@ public final class ProtoPublishCommentRequest: ProtoRequest<Date> {
 
             var pbFeedItem = Server_FeedItem()
             pbFeedItem.action = .publish
-            pbFeedItem.item = .comment(comment.serverComment)
+            pbFeedItem.item = .comment(serverComment)
 
             payload = .feedItem(pbFeedItem)
         }
