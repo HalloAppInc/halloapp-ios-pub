@@ -874,12 +874,8 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         guard let player = avPlayerViewController.player else { return }
         guard let item = player.currentItem else { return }
 
-        if item.duration.seconds < 1 {
-            player.seek(to: CMTimeMultiplyByRatio(item.duration, multiplier: 1, divisor: 2))
-        } else {
-            player.seek(to: CMTime(value: 1, timescale: 1))
-        }
-
+        let seekTime = FeedMedia.getThumbnailTime(duration: item.duration)
+        player.seek(to: seekTime)
     }
 
     private func showPlaceholderImage() {

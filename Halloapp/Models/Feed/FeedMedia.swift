@@ -10,6 +10,7 @@ import CocoaLumberjack
 import Combine
 import Core
 import Foundation
+import AVKit
 
 enum FeedMediaError: Error {
     case missingImage // Image not available despite isMediaAvailable set to true
@@ -176,5 +177,13 @@ class FeedMedia: Identifiable, Hashable {
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(self.id)
+    }
+
+    static func getThumbnailTime(duration: CMTime) -> CMTime {
+        if duration.seconds < 1 {
+            return CMTimeMultiplyByRatio(duration, multiplier: 1, divisor: 2)
+        } else {
+            return CMTime(value: 1, timescale: 1)
+        }
     }
 }

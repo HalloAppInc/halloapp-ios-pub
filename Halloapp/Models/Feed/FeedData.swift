@@ -931,7 +931,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogInfo("FeedData/generateNotifications  New notification [\(notification)]")
 
             // Step 3. Generate media preview for the notification.
-            self.generateMediaPreview(for: notification, feedPost: post, using: managedObjectContext)
+            self.generateMediaPreview(for: [ notification ], feedPost: post, using: managedObjectContext)
         }
         if managedObjectContext.hasChanges {
             self.save(managedObjectContext)
@@ -977,7 +977,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogInfo("FeedData/generateNotifications  New notification [\(notification)]")
 
             // Step 3. Generate media preview for the notification.
-            self.generateMediaPreview(for: notification, feedPost: comment.post, using: managedObjectContext)
+            self.generateMediaPreview(for: [ notification ], feedPost: comment.post, using: managedObjectContext)
         }
         if managedObjectContext.hasChanges {
             self.save(managedObjectContext)
@@ -1543,8 +1543,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func updateNotificationMediaPreview(with postMedia: FeedPostMedia, using managedObjectContext: NSManagedObjectContext) {
         guard postMedia.relativeFilePath != nil else { return }
-        // TODO: add support for video previews
-        guard postMedia.type == .image else { return }
+        let feedPost = postMedia.post
         let feedPostId = postMedia.post.id
 
         // Fetch all associated notifications.
@@ -1553,7 +1552,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         do {
             let notifications = try managedObjectContext.fetch(fetchRequest)
             if !notifications.isEmpty {
-                self.updateMediaPreview(for: notifications, usingImageAt: MainAppContext.mediaDirectoryURL.appendingPathComponent(postMedia.relativeFilePath!, isDirectory: false))
+                generateMediaPreview(for: notifications, feedPost: feedPost, using: managedObjectContext)
             }
         }
         catch {
@@ -1562,12 +1561,29 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func generateMediaPreview(for notification: FeedNotification, feedPost: FeedPost, using managedObjectContext: NSManagedObjectContext) {
+    private func generateMediaPreview(for notifications: [FeedNotification], feedPost: FeedPost, using managedObjectContext: NSManagedObjectContext) {
         guard let postMedia = feedPost.orderedMedia.first as? FeedPostMedia else { return }
-        guard postMedia.type == .image else { return }
-        // TODO: add support for video previews
         guard let mediaPath = postMedia.relativeFilePath else { return }
-        self.updateMediaPreview(for: [ notification ], usingImageAt: MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaPath, isDirectory: false))
+
+        DDLogInfo("FeedData/generateMediaPreview/feedPost \(feedPost.id), mediaType: \(postMedia.type)")
+        let mediaURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaPath, isDirectory: false)
+        switch postMedia.type {
+        case .image:
+            self.updateMediaPreview(for: notifications, usingImageAt: mediaURL)
+        case .video:
+            let asset = AVURLAsset(url: mediaURL)
+            let seekTime = FeedMedia.getThumbnailTime(duration: asset.duration)
+            let imgGenerator = AVAssetImageGenerator(asset: asset)
+            imgGenerator.appliesPreferredTrackTransform = true
+            do {
+                let cgImage = try imgGenerator.copyCGImage(at: seekTime, actualTime: nil)
+                let image = UIImage(cgImage: cgImage)
+                updateMediaPreview(for: notifications, using: image)
+            } catch {
+                DDLogError("FeedData/generateMediaPreview/error \(error)")
+                return
+            }
+        }
     }
 
     private func updateMediaPreview(for notifications: [FeedNotification], usingImageAt url: URL) {
@@ -1575,12 +1591,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogError("FeedData/notification/preview/error  Failed to load image at [\(url)]")
             return
         }
+        updateMediaPreview(for: notifications, using: image)
+    }
+
+    private func updateMediaPreview(for notifications: [FeedNotification], using image: UIImage) {
         guard let preview = image.resized(to: CGSize(width: 128, height: 128), contentMode: .scaleAspectFill, downscaleOnly: false) else {
-            DDLogError("FeedData/notification/preview/error  Failed to generate preview for image at [\(url)]")
+            DDLogError("FeedData/notification/preview/error  Failed to generate preview for notifications: \(notifications)")
             return
         }
         guard let imageData = preview.jpegData(compressionQuality: 0.5) else {
-            DDLogError("FeedData/notification/preview/error  Failed to generate PNG for image at [\(url)]")
+            DDLogError("FeedData/notification/preview/error  Failed to generate PNG for notifications: \(notifications)")
             return
         }
         notifications.forEach { $0.mediaPreview = imageData }
