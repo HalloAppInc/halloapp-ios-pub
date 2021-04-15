@@ -9,6 +9,7 @@
 import CocoaLumberjack
 import Core
 import UserNotifications
+import SwiftNoise
 
 enum NotificationContentType: String, RawRepresentable, Codable {
     case feedPost = "feedpost"
@@ -39,6 +40,7 @@ class NotificationMetadata: Codable {
     static let userInfoKeyMetadata = "metadata"
     static let userDefaultsKeyRawData = "rawdata"
     static let messagePacketData = "message"
+    static let encryptedData = "content"
 
     /*
      The meaning of contentId depends on contentType.
@@ -99,18 +101,23 @@ class NotificationMetadata: Codable {
         initialize(userInfo: notificationRequest.content.userInfo)
     }
 
+    static func load(from notificationRequest: UNNotificationRequest, userData: UserData) -> NotificationMetadata? {
+        initialize(userInfo: notificationRequest.content.userInfo, userData: userData)
+    }
+
     static func load(from notificationResponse: UNNotificationResponse) -> NotificationMetadata? {
         initialize(userInfo: notificationResponse.notification.request.content.userInfo)
     }
 
-    public static func initialize(userInfo: [AnyHashable: Any]) -> NotificationMetadata? {
-        if let metadata = userInfo[Self.userInfoKeyMetadata] as? [String: String] {
-            guard let data = metadata[Self.messagePacketData] else {
-                DDLogError("NotificationMetadata/init/error invalid metadata: [\(metadata)]")
-                return nil
-            }
-            guard let packetData = Data(base64Encoded: data) else {
-                DDLogError("NotificationMetadata/init/error invalid base64encoded data: [\(data)]")
+    private static func initialize(userInfo: [AnyHashable: Any]) -> NotificationMetadata? {
+        if let rawData = userInfo[Self.userDefaultsKeyRawData] as? Data {
+            return NotificationMetadata.load(from: rawData)
+        } else {
+            // TODO(murali@): Log an error to firebase for this!!
+            // That should be helpful to get an overall sense of how well this is working.
+            guard let metadata = userInfo[Self.userInfoKeyMetadata] as? [String: String],
+                  let data = metadata[Self.messagePacketData],
+                  let packetData = Data(base64Encoded: data) else {
                 return nil
             }
             do {
@@ -120,12 +127,28 @@ class NotificationMetadata: Codable {
                 DDLogError("NotificationMetadata/init/error invalid protobuf data: [\(packetData)]")
                 return nil
             }
-        } else {
-            guard let rawData = userInfo[Self.userDefaultsKeyRawData] as? Data else {
-                DDLogError("NotificationMetadata/init/error Can't initialize metadata from userInfo: [\(userInfo)]")
-                return nil
+        }
+    }
+
+    public static func initialize(userInfo: [AnyHashable: Any], userData: UserData) -> NotificationMetadata? {
+        guard let noiseKeys = userData.noiseKeys,
+              let metadata = userInfo[Self.userInfoKeyMetadata] as? [String: String],
+              let encryptedContentB64 = metadata[Self.encryptedData],
+              let encryptedMessage = Data(base64Encoded: encryptedContentB64) else {
+            return initialize(userInfo: userInfo)
+        }
+
+        do {
+            if let pushContent = NoiseStream.decryptPushContent(noiseKeys: noiseKeys, encryptedMessage: encryptedMessage) {
+                let msg = try Server_Msg(serializedData: pushContent.content)
+                return NotificationMetadata(msg: msg)
+            } else {
+                DDLogError("NotificationMetadata/noise/error decrypting push content")
+                return initialize(userInfo: userInfo)
             }
-            return NotificationMetadata.load(from: rawData)
+        } catch {
+            DDLogError("NotificationMetadata/noise/error \(error)")
+            return nil
         }
     }
 

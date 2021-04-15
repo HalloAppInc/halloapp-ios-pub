@@ -47,7 +47,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         bestAttemptContent = content
         self.contentHandler = contentHandler
         
-        guard let metadata = NotificationMetadata.load(from: request) else {
+        guard let metadata = NotificationMetadata.load(from: request, userData: AppExtensionContext.shared.userData) else {
             DDLogError("didReceiveRequest/error Invalid metadata. \(request.content.userInfo)")
             recordPushEvent(requestID: request.identifier, messageID: nil)
             contentHandler(bestAttemptContent)

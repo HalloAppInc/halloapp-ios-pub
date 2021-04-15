@@ -254,7 +254,7 @@ public final class NoiseStream: NSObject {
                 failHandshake()
                 return
             }
-            guard verify(staticKey: staticKey, certificate: data) else {
+            guard NoiseStream.verify(staticKey: staticKey, certificate: data) else {
                 DDLogError("noise/handshake/xxfallback/error unable to verify static key")
                 failHandshake()
                 return
@@ -291,7 +291,7 @@ public final class NoiseStream: NSObject {
                 return
             }
 
-            guard verify(staticKey: staticKey, certificate: data) else {
+            guard NoiseStream.verify(staticKey: staticKey, certificate: data) else {
                 DDLogError("noise/handshake/xxB/error unable to verify static key")
                 failHandshake()
                 return
@@ -319,7 +319,7 @@ public final class NoiseStream: NSObject {
         }
     }
 
-    private func verify(staticKey: Data, certificate: Data) -> Bool {
+    private static func verify(staticKey: Data, certificate: Data) -> Bool {
         let rootKey = Data.init(hex: "1dcd81dc096613759b186e93f354fff0a2f1e79390b8502a90bc461e08f98077")
         let messageStartIndex = certificate.count - staticKey.count
         guard messageStartIndex >= 0, certificate[messageStartIndex...].bytes == staticKey.bytes else {
@@ -328,6 +328,32 @@ public final class NoiseStream: NSObject {
         }
 
         return Sodium().sign.verify(signedMessage: certificate.bytes, publicKey: rootKey.bytes)
+    }
+
+    // Decrypt push content using Noise-X pattern.
+    public static func decryptPushContent(noiseKeys: NoiseKeys, encryptedMessage: Data) -> Server_PushContent? {
+        do {
+            let handshake = try HandshakeState(pattern: .X, initiator: false, prologue: Data(), s: noiseKeys.makeX25519KeyPair())
+            DDLogInfo("NoiseStream/decryptPushContent/encrypted message: \(encryptedMessage)")
+            // Drop Header
+            let encryptedContent = encryptedMessage.dropFirst(1)
+            let data = try handshake.readMessage(message: encryptedContent)
+            DDLogInfo("NoiseStream/decryptPushContent/data: \(data)")
+            let pushContent = try Server_PushContent(serializedData: data)
+            DDLogInfo("NoiseStream/decryptPushContent/noise/handshake/reading data")
+            guard let staticKey = handshake.remoteS else {
+                DDLogError("NoiseStream/decryptPushContent/noise/handshake/x/error missing static key")
+                return nil
+            }
+            guard Self.verify(staticKey: staticKey, certificate: pushContent.certificate) else {
+                DDLogError("NoiseStream/decryptPushContent/noise/handshake/x/error unable to verify static key")
+                return nil
+            }
+            return pushContent
+        } catch {
+            DDLogError("NoiseStream/decryptPushContent/noise/error: \(error)")
+            return nil
+        }
     }
 
     private func failHandshake() {
