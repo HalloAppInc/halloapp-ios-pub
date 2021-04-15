@@ -111,7 +111,7 @@ public final class NoiseStream: NSObject {
         connect(host: host, port: port)
     }
 
-    private func sendNoiseMessage(_ content: Data, type: Server_NoiseMessage.MessageType) {
+    private func sendNoiseMessage(_ content: Data, type: Server_NoiseMessage.MessageType, timeout: TimeInterval? = 8) {
         do {
             var msg = Server_NoiseMessage()
             msg.messageType = type
@@ -121,6 +121,17 @@ public final class NoiseStream: NSObject {
             writeToSocket(data)
         } catch {
             DDLogError("noise/sendNoiseMessage/error \(error)")
+        }
+
+        if let timeout = timeout {
+            // Schedule a timeout. Must be canceled when response is received.
+            handshakeTimeoutTask?.cancel()
+            let handshakeTimeout = DispatchWorkItem { [weak self] in
+                DDLogInfo("noise/handshake/timeout")
+                self?.failHandshake()
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + timeout, execute: handshakeTimeout)
+            handshakeTimeoutTask = handshakeTimeout
         }
     }
 
@@ -357,8 +368,13 @@ public final class NoiseStream: NSObject {
     }
 
     private func failHandshake() {
-        DDLogInfo("noise/handshake/failed")
-        state = .disconnected
+        switch state {
+        case .authorizing, .handshake:
+            DDLogInfo("noise/handshake/failed")
+            state = .disconnected
+        case .connecting, .connected, .disconnected, .disconnecting:
+            DDLogInfo("noise/handshake/could-not-fail [state=\(state)]")
+        }
     }
 
     private func makeClientConfig() -> Server_AuthRequest {
@@ -406,6 +422,7 @@ public final class NoiseStream: NSObject {
                     DDLogError("noise/receive/error could not deserialize noise message [\(packetData.base64EncodedString())]")
                     break
                 }
+                handshakeTimeoutTask?.cancel()
                 continueHandshake(noiseMessage)
             case .authorizing(_, let recv):
                 guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: packetData) else {
@@ -416,6 +433,7 @@ public final class NoiseStream: NSObject {
                     DDLogError("noise/receive/error could not deserialize auth result [\(decryptedData.base64EncodedString())]")
                     break
                 }
+                handshakeTimeoutTask?.cancel()
                 handleAuthResult(authResult)
             case .connected(_, let recv):
                 guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: packetData) else {
@@ -461,6 +479,8 @@ public final class NoiseStream: NSObject {
     private let noiseKeys: NoiseKeys
     private var clientEphemeralKeys: NoiseKeys?
     private var serverStaticKey: Data?
+
+    private var handshakeTimeoutTask: DispatchWorkItem?
 
     private weak var delegate: NoiseDelegate?
 
