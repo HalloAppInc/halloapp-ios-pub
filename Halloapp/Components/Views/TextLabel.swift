@@ -207,7 +207,9 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
 
     override func invalidateIntrinsicContentSize() {
         super.invalidateIntrinsicContentSize()
-        textContainer.size = .zero
+        performLayoutBlock { (textStorage, textContainer, layoutManager) in
+            textContainer.size = .zero
+        }
     }
 
     override func sizeThatFits(_ size: CGSize) -> CGSize {
@@ -237,12 +239,12 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
     override func draw(_ rect: CGRect) {
         prepareTextStorageIfNeeded()
 
-        links.forEach { link in
-            guard link.rects.isEmpty else { return }
-            link.rects = Self.textRects(forCharacterRange: link.range, inTextContainer: textContainer, withLayoutManager: layoutManager)
-        }
-
         performLayoutBlock { (textStorage, textContainer, layoutManager) in
+            links.forEach { link in
+                guard link.rects.isEmpty else { return }
+                link.rects = Self.textRects(forCharacterRange: link.range, inTextContainer: textContainer, withLayoutManager: layoutManager)
+            }
+
             let glyphRange = layoutManager.glyphRange(forBoundingRect: rect, in: textContainer)
             layoutManager.drawGlyphs(forGlyphRange: glyphRange, at: .zero)
         }
