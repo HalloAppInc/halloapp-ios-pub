@@ -228,6 +228,7 @@
 		EAAF43992603F7720037F83D /* BlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAF43982603F7720037F83D /* BlurView.swift */; };
 		EAB1FFEE2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB1FFEC2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift */; };
 		EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB1FFED2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift */; };
+		EAB533CA26265ED700943FDC /* GroupBackgroundViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB533C926265ED700943FDC /* GroupBackgroundViewController.swift */; };
 		EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */; };
 		EABBF72B24E72C6200FE1F1F /* CreateGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */; };
 		EABDC977253424E1005FE00A /* InboundMsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */; };
@@ -573,6 +574,7 @@
 		EAAF43982603F7720037F83D /* BlurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurView.swift; sourceTree = "<group>"; };
 		EAB1FFEC2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageEvent+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAB1FFED2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageEvent+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		EAB533C926265ED700943FDC /* GroupBackgroundViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupBackgroundViewController.swift; sourceTree = "<group>"; };
 		EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGroupMembersViewController.swift; sourceTree = "<group>"; };
 		EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupViewController.swift; sourceTree = "<group>"; };
 		EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundMsgViewCell.swift; sourceTree = "<group>"; };
@@ -1282,6 +1284,7 @@
 				EA5975DD252D3CF600810F48 /* GroupMemberAvatars.swift */,
 				EA79AEF4260E5D5200F8184F /* GroupInviteViewController.swift */,
 				EA1CEF5D2617964C00BC0C79 /* GroupInvitePreviewViewController.swift */,
+				EAB533C926265ED700943FDC /* GroupBackgroundViewController.swift */,
 			);
 			path = Actions;
 			sourceTree = "<group>";
@@ -1986,6 +1989,7 @@
 				685B76CC24E4A37600BF666A /* FloatingMenu.swift in Sources */,
 				766492252450E04D009BC368 /* BadgeView.swift in Sources */,
 				EA6DE2CD25C3768C00C83001 /* GroupTitleView.swift in Sources */,
+				EAB533CA26265ED700943FDC /* GroupBackgroundViewController.swift in Sources */,
 				7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */,
 				EAD476F42458F03700EF8591 /* ChatThread+CoreDataClass.swift in Sources */,
 				76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */,

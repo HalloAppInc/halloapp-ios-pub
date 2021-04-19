@@ -127,6 +127,20 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
                 self.collectionView.reloadData()
         })
 
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetAGroupEvent.sink { [weak self] (groupID) in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    for indexPath in self.collectionView.indexPathsForVisibleItems {
+                        guard let feedCell = self.collectionView.cellForItem(at: indexPath) as? FeedPostCollectionViewCell else { continue }
+                        guard let feedPost = self.feedDataSource.item(at: indexPath.item)?.post else { continue }
+                        guard feedPost.groupId != nil, feedPost.groupId == groupID else { continue }
+                        feedCell.configureGroupLabel(with: groupID)
+                    }
+                }
+            }
+        )
+
         update(with: feedDataSource.displayItems)
     }
 

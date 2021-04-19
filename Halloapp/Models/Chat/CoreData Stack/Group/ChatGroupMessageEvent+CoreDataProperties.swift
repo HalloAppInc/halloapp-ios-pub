@@ -27,6 +27,7 @@ extension ChatGroupMessageEvent {
         case modifyAdmins = 8
         
         case join = 9
+        case setBackground = 10
     }
 
     enum MemberAction: Int16 {
@@ -100,6 +101,8 @@ extension ChatGroupMessageEvent {
                 return String(format: Localizations.groupEventChangedName, senderName, groupName ?? "")
             case .changeAvatar:
                 return String(format: Localizations.groupEventChangedAvatar, senderName)
+            case .setBackground:
+                return String(format: Localizations.groupEventChangedBackground, senderName)
             case .leave, .modifyMembers, .modifyAdmins:
                 guard let memberName = memberName else { return nil }
                 switch memberAction {
@@ -140,6 +143,10 @@ extension Localizations {
 
     static var groupEventChangedAvatar: String {
         NSLocalizedString("group.event.changed.avatar", value: "%@ changed the group icon", comment: "Message text shown with the user who changed the group avatar")
+    }
+    
+    static var groupEventChangedBackground: String {
+        NSLocalizedString("group.event.changed.background", value: "%@ changed the background color", comment: "Message text shown with the user who changed the background")
     }
 
     static var groupEventAddedMember: String {

@@ -18,6 +18,17 @@ class GroupFeedViewController: FeedCollectionViewController {
     }
 
     private let groupId: GroupID
+    private var group: ChatGroup?
+
+    private var theme: Int32 = 0 {
+        didSet {
+            guard oldValue != theme else { return }
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.setThemeColors(theme: self.theme)
+            }
+        }
+    }
     
     private var currentUnreadThreadGroupCount = 0
     private var currentUnseenGroupFeedList: [GroupID: Int] = [:]
@@ -26,6 +37,8 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     init(groupId: GroupID) {
         self.groupId = groupId
+        self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupId)
+        self.theme = group?.background ?? 0
         super.init(
             title: nil,
             fetchRequest: FeedDataSource.groupFeedRequest(groupID: groupId))
@@ -40,15 +53,9 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let navAppearance = UINavigationBarAppearance()
-        navAppearance.backgroundColor = UIColor.feedBackground
-        navAppearance.shadowColor = nil
-        navAppearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
-        navigationItem.standardAppearance = navAppearance
-        navigationItem.scrollEdgeAppearance = navAppearance
-        navigationItem.compactAppearance = navAppearance
-        
+
+        setThemeColors(theme: theme)
+
         NSLayoutConstraint.activate([
             titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))
         ])
@@ -75,17 +82,19 @@ class GroupFeedViewController: FeedCollectionViewController {
                 }
             }
         )
-        
+
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetAGroupEvent.sink { [weak self] (groupID) in
                 guard let self = self else { return }
                 guard groupID == self.groupId else { return }
+                self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupID)
+                self.theme = self.group?.background ?? 0
+
                 DispatchQueue.main.async {
                     self.populateEvents()
                 }
             }
         )
-        
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -119,29 +128,41 @@ class GroupFeedViewController: FeedCollectionViewController {
         titleView.translatesAutoresizingMaskIntoConstraints = false
         return titleView
     }()
-    
+
     private func updateBackButtonUnreadCount(num: Int) {
         let backButton = UIBarButtonItem()
         backButton.title = num > 0 ? String(num) : " \u{00a0}"
 
         navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
     }
+
+    private func setThemeColors(theme: Int32) {
+        let backgroundColor = ChatData.getThemeBackgroundColor(for: theme)
+        view.backgroundColor = backgroundColor
+        
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.backgroundColor = backgroundColor
+        navAppearance.shadowColor = nil
+        navAppearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
+        navigationItem.standardAppearance = navAppearance
+        navigationItem.scrollEdgeAppearance = navAppearance
+        navigationItem.compactAppearance = navAppearance
+    }
     
     private func populateEvents() {
-        
         let groupFeedEvents = MainAppContext.shared.chatData.groupFeedEvents(with: self.groupId)
         var feedEvents = [FeedEvent]()
-        
+
         groupFeedEvents.forEach {
             let text = $0.event?.text ?? ""
             let timestamp = $0.timestamp ?? Date()
             feedEvents.append((FeedEvent(description: text, timestamp: timestamp)))
         }
-        
+
         feedDataSource.events = feedEvents
         feedDataSource.refresh()
     }
-    
+
     // MARK: New post
 
     private lazy var floatingMenu: FloatingMenu = {

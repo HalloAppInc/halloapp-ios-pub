@@ -282,7 +282,7 @@ class FeedPostCollectionViewCell: FeedPostCollectionViewCellBase {
 
         headerView.configure(with: post)
         if showGroupName {
-            headerView.configureGroupLabel(with: post)
+            configureGroupLabel(with: post.groupId)
         }
         headerView.showUserAction = { [weak self] in
             self?.showUserAction?(post.userId)
@@ -293,6 +293,10 @@ class FeedPostCollectionViewCell: FeedPostCollectionViewCellBase {
         }
         itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, isTextExpanded: isTextExpanded)
         footerView.configure(with: post, contentWidth: contentWidth)
+    }
+    
+    func configureGroupLabel(with groupID: String?) {
+        headerView.configureGroupLabel(with: groupID)
     }
 
     override class func contentHeight(forPost post: FeedPost, contentWidth: CGFloat, isTextExpanded: Bool) -> CGFloat {

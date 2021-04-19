@@ -19,6 +19,7 @@ enum ChatGroupAction: String {
     case delete = "delete"
     case changeName = "change_name"
     case changeAvatar = "change_avatar"
+    case setBackground = "set_background"
     case modifyMembers = "modify_members"
     case modifyAdmins = "modify_admins"
 }
@@ -55,6 +56,7 @@ struct XMPPGroup {
     let groupId: GroupID
     let name: String
     var avatarID: String? = nil
+    var background: Int32 = 0
     var retryCount: Int32 = 0
 
     private(set) var messageId: String? = nil
@@ -81,7 +83,13 @@ struct XMPPGroup {
         self.name = protoGroup.name
         self.avatarID = protoGroup.avatarID
         self.members = protoGroup.members.compactMap { XMPPGroupMember(protoMember: $0) }
-        
+
+        if let protoBackgroundData = protoGroup.background.data(using: .utf8) {
+            if let protoBackground = try? Clients_Background(serializedData: protoBackgroundData) {
+                self.background = protoBackground.theme
+            }
+        }
+
         self.action = {
             switch protoGroup.action {
             case .set: return nil
@@ -97,7 +105,7 @@ struct XMPPGroup {
             case .autoPromoteAdmins: return nil
             case .join: return .join
             case .preview: return nil
-            case .setBackground: return nil
+            case .setBackground: return .setBackground
             case .UNRECOGNIZED(_): return nil
             }
         }()

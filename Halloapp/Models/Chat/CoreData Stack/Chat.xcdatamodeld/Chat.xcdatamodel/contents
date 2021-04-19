@@ -2,6 +2,7 @@
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="20D91" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="ChatGroup" representedClassName="ChatGroup" syncable="YES">
         <attribute name="avatar" optional="YES" attributeType="String"/>
+        <attribute name="background" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="desc" optional="YES" attributeType="String"/>
         <attribute name="groupId" optional="YES" attributeType="String"/>
         <attribute name="inviteLink" optional="YES" attributeType="String"/>
@@ -133,7 +134,7 @@
         <relationship name="draftMentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMention" inverseName="chatThread" inverseEntity="ChatMention"/>
     </entity>
     <elements>
-        <element name="ChatGroup" positionX="-45" positionY="135" width="128" height="149"/>
+        <element name="ChatGroup" positionX="-45" positionY="135" width="128" height="164"/>
         <element name="ChatGroupMember" positionX="-36" positionY="144" width="128" height="103"/>
         <element name="ChatGroupMessage" positionX="-27" positionY="153" width="128" height="284"/>
         <element name="ChatGroupMessageEvent" positionX="-27" positionY="144" width="128" height="133"/>

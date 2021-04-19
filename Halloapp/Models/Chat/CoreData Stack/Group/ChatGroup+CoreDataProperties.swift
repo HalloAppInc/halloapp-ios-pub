@@ -20,6 +20,7 @@ extension ChatGroup {
     @NSManaged var groupId: String
     @NSManaged var name: String
     @NSManaged var avatar: String?
+    @NSManaged var background: Int32
     @NSManaged var desc: String?
     @NSManaged var maxSize: Int16
     @NSManaged var lastSync: Date?

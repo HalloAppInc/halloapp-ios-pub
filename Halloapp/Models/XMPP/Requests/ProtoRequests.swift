@@ -153,6 +153,7 @@ final class ProtoContactSyncRequest: ProtoRequest<[HalloContact]> {
     }
 }
 
+
 final class ProtoSendNameRequest: ProtoRequest<Void> {
 
     init(name: String, completion: @escaping Completion) {
@@ -205,6 +206,7 @@ final class ProtoGroupInfoRequest: ProtoRequest<HalloGroup> {
     }
 }
 
+
 final class ProtoGroupInviteLinkRequest: ProtoRequest<Server_GroupInviteLink> {
 
     init(groupID: GroupID, completion: @escaping Completion) {
@@ -219,6 +221,7 @@ final class ProtoGroupInviteLinkRequest: ProtoRequest<Server_GroupInviteLink> {
             completion: completion)
     }
 }
+
 
 final class ProtoResetGroupInviteLinkRequest: ProtoRequest<Server_GroupInviteLink> {
 
@@ -235,6 +238,7 @@ final class ProtoResetGroupInviteLinkRequest: ProtoRequest<Server_GroupInviteLin
     }
 }
 
+
 final class ProtoGroupPreviewWithLinkRequest: ProtoRequest<Server_GroupInviteLink> {
 
     init(inviteLink: String, completion: @escaping Completion) {
@@ -250,6 +254,7 @@ final class ProtoGroupPreviewWithLinkRequest: ProtoRequest<Server_GroupInviteLin
     }
 }
 
+
 final class ProtoJoinGroupWithLinkRequest: ProtoRequest<Server_GroupInviteLink> {
 
     init(inviteLink: String, completion: @escaping Completion) {
@@ -264,6 +269,7 @@ final class ProtoJoinGroupWithLinkRequest: ProtoRequest<Server_GroupInviteLink> 
             completion: completion)
     }
 }
+
 
 final class ProtoGroupsListRequest: ProtoRequest<HalloGroups> {
 
@@ -281,6 +287,7 @@ final class ProtoGroupsListRequest: ProtoRequest<HalloGroups> {
             completion: completion)
     }
 }
+
 
 final class ProtoGroupLeaveRequest: ProtoRequest<Void> {
 
@@ -335,7 +342,7 @@ final class ProtoChangeGroupAvatarRequest: ProtoRequest<String> {
         var uploadAvatar = Server_UploadGroupAvatar()
         uploadAvatar.gid = groupID
         uploadAvatar.data = data
-        
+
         super.init(
             iqPacket: .iqPacket(type: .set, payload: .groupAvatar(uploadAvatar)),
             transform: { (iq) in
@@ -343,6 +350,28 @@ final class ProtoChangeGroupAvatarRequest: ProtoRequest<String> {
                     return .failure(RequestError.malformedResponse)
                 }
                 return .success(avatarID) },
+            completion: completion)
+    }
+}
+
+
+final class ProtoSetGroupBackgroundRequest: ProtoRequest<Void> {
+
+    init(groupID: GroupID, background: Int32, completion: @escaping Completion) {
+        var group = Server_GroupStanza()
+        group.gid = groupID
+        group.action = .setBackground
+
+        var protoBackground = Clients_Background()
+        protoBackground.theme = background
+
+        if let payload = try? protoBackground.serializedData() {
+            group.background = String(decoding: payload, as: UTF8.self)
+        }
+
+        super.init(
+            iqPacket: .iqPacket(type: .set, payload: .groupStanza(group)),
+            transform: { _ in .success(()) },
             completion: completion)
     }
 }
@@ -380,6 +409,7 @@ extension Server_GroupStanza.Action {
         case .delete: self = .delete
         case .changeName: self = .changeName
         case .changeAvatar: self = .changeAvatar
+        case .setBackground: self = .setBackground
         case .modifyAdmins: self = .modifyAdmins
         case .modifyMembers: self = .modifyMembers
         }

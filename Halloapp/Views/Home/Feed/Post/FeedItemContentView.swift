@@ -30,7 +30,7 @@ final class FeedItemBackgroundPanelView: UIView {
     }
 
     private func commonInit() {
-        self.backgroundColor = .secondarySystemGroupedBackground
+        self.backgroundColor = UIColor.feedPostBackground
         self.layer.shadowRadius = 8
         self.layer.shadowOffset = CGSize(width: 0, height: 8)
         self.layer.shadowColor = UIColor.black.cgColor
@@ -316,7 +316,7 @@ final class FeedItemHeaderView: UIView {
     private lazy var nameColumn: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ userAndGroupNameRow, secondLineGroupNameLabel ])
         view.axis = .vertical
-        view.spacing = 4
+        view.spacing = 0
         
         view.translatesAutoresizingMaskIntoConstraints = false
 
@@ -440,30 +440,35 @@ final class FeedItemHeaderView: UIView {
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
     }
     
-    func configureGroupLabel(with post: FeedPost) {
-        if let groupID = post.groupId, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) {
+    func configureGroupLabel(with groupID: String?) {
+        if let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) {
             
             let attrText = NSMutableAttributedString(string: "")
             let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")
-            
-            if let groupIndicator = groupIndicatorImage {
+            let groupNameColor = ChatData.getThemeColor(for: groupChat.background)
+
+            if let groupIndicator = groupIndicatorImage, let font = groupNameLabel.font {
                 let iconAttachment = NSTextAttachment(image: groupIndicator)
                 attrText.append(NSAttributedString(attachment: iconAttachment))
-                if let font = groupNameLabel.font {
-                    attrText.addAttributes([.font: font], range: NSRange(location: 0, length: attrText.length))
-                }
+                
+                attrText.addAttributes([.font: font, .foregroundColor: UIColor.label], range: NSRange(location: 0, length: attrText.length))
+                
+                let groupNameAttributes = [NSAttributedString.Key.font: font, NSAttributedString.Key.foregroundColor: groupNameColor]
+                let groupNameAttributedStr = NSAttributedString(string: " \(groupChat.name)", attributes: groupNameAttributes)
+                attrText.append(groupNameAttributedStr)
             }
-            attrText.append(NSAttributedString(string: " \(groupChat.name)"))
-            
+
             groupNameLabel.attributedText = attrText
-            
+
             if isRowTruncated() {
                 let shortAttrText = attrText.mutableCopy() as! NSMutableAttributedString
                 let range = (shortAttrText.string as NSString).range(of: " \(groupChat.name)")
                 shortAttrText.deleteCharacters(in: range)
                 groupNameLabel.attributedText = shortAttrText
-                
-                secondLineGroupNameLabel.attributedText = NSMutableAttributedString(string: "\(groupChat.name)")
+
+                let secondLineGroupNameAttributes = [NSAttributedString.Key.foregroundColor: groupNameColor]
+                let secondLineGroupNameAttributedStr = NSAttributedString(string: "\(groupChat.name)", attributes: secondLineGroupNameAttributes)
+                secondLineGroupNameLabel.attributedText = secondLineGroupNameAttributedStr
                 secondLineGroupNameLabel.isHidden = false
             } else {
                 secondLineGroupNameLabel.isHidden = true
@@ -475,7 +480,9 @@ final class FeedItemHeaderView: UIView {
     func prepareForReuse() {
         avatarViewButton.avatarView.prepareForReuse()
         groupNameLabel.attributedText = nil
+        groupNameLabel.textColor = .label
         secondLineGroupNameLabel.attributedText = nil
+        secondLineGroupNameLabel.textColor = .label
     }
 
     @objc func showUser() {

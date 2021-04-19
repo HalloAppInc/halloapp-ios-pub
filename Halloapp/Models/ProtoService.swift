@@ -1223,6 +1223,12 @@ extension ProtoService: HalloService {
             completion: completion))
     }
     
+    func setGroupBackground(groupID: GroupID, background: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoSetGroupBackgroundRequest(
+            groupID: groupID,
+            background: background,
+            completion: completion))
+    }
 }
 
 private protocol ReceivedReceipt {

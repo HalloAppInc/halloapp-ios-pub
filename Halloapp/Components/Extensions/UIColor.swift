@@ -26,6 +26,10 @@ extension UIColor {
         UIColor(named: "FeedBackground")!
     }
 
+    class var feedPostBackground: UIColor {
+        UIColor(named: "FeedPostBackground")!
+    }
+
     class var textFieldBackground: UIColor {
         UIColor(named: "TextFieldBackground")!
     }
@@ -73,5 +77,5 @@ extension UIColor {
     class var avatarDefaultBg: UIColor {
         UIColor(named: "AvatarDefaultBg")!
     }
-    
+
 }

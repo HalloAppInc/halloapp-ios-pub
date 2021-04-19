@@ -54,6 +54,10 @@ extension Localizations {
         NSLocalizedString("chat.group.name.label", value: "GROUP NAME", comment: "Label shown above group name input box")
     }
 
+    static var chatGroupBackgroundLabel: String {
+        NSLocalizedString("chat.group.background.label", value: "BACKGROUND", comment: "Label shown above background selection row")
+    }
+
     static var chatGroupMembersLabel: String {
         NSLocalizedString("chat.group.members.label", value: "MEMBERS", comment: "Label shown above group members list")
     }

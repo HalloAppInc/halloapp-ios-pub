@@ -27,7 +27,6 @@ public enum UserPresenceType: Int16 {
     case away = 2
 }
 
-
 class ChatData: ObservableObject {
 
     public var currentPage: Int = 0
@@ -2484,6 +2483,24 @@ extension ChatData {
         }
     }
     
+    public func setGroupBackground(groupID: GroupID, background: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
+        MainAppContext.shared.service.setGroupBackground(groupID: groupID, background: background) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success:
+                self.updateChatGroup(with: groupID, block: { (chatGroup) in
+                    guard chatGroup.background != background else { return }
+                    chatGroup.background = background
+                }, performAfterSave: {
+                    completion(.success(()))
+                })
+            case .failure(let error):
+                DDLogError("CreateGroupViewController/createAction/error \(error)")
+                completion(.failure(error))
+            }
+        }
+    }
+    
     public func getGroupsList() {
         DDLogDebug("ChatData/group/getGroupsList")
         service.getGroupsList() { [weak self] result in
@@ -2495,7 +2512,7 @@ extension ChatData {
             }
         }
     }
-    
+
     public func getAndSyncGroup(groupId: GroupID) {
         DDLogDebug("ChatData/group/getAndSyncGroupInfo/group \(groupId)")
         service.getGroupInfo(groupID: groupId) { [weak self] result in
@@ -2507,7 +2524,7 @@ extension ChatData {
             }
         }
     }
-    
+
     func syncGroupIfNeeded(for groupId: GroupID) {
         guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil else { return }
         guard let chatGroup = chatGroup(groupId: groupId) else { return }
@@ -2527,11 +2544,11 @@ extension ChatData {
     
     func syncGroup(_ xmppGroup: XMPPGroup) {
         DDLogInfo("ChatData/group/syncGroupInfo")
-    
+
         updateChatGroup(with: xmppGroup.groupId) { [weak self] (chatGroup) in
             guard let self = self else { return }
             chatGroup.lastSync = Date()
-            
+
             if chatGroup.name != xmppGroup.name {
                 chatGroup.name = xmppGroup.name
                 self.updateChatThread(type: .group, for: xmppGroup.groupId) { (chatThread) in
@@ -2544,22 +2561,25 @@ extension ChatData {
                     MainAppContext.shared.avatarStore.updateOrInsertGroupAvatar(for: chatGroup.groupId, with: avatarID)
                 }
             }
-            
+            if chatGroup.background != xmppGroup.background {
+                chatGroup.background = xmppGroup.background
+            }
+
             // look for users that are not members anymore
             chatGroup.orderedMembers.forEach { currentMember in
                 let foundMember = xmppGroup.members?.first(where: { $0.userId == currentMember.userId })
-                
+
                 if foundMember == nil {
                     chatGroup.managedObjectContext!.delete(currentMember)
                 }
             }
-            
+
             var contactNames = [UserID:String]()
-            
+
             // see if there are new members added or needs to be updated
             xmppGroup.members?.forEach { inboundMember in
                 let foundMember = chatGroup.members?.first(where: { $0.userId == inboundMember.userId })
-                
+
                 // member already exists
                 if let member = foundMember {
                     if let inboundType = inboundMember.type {
@@ -2571,18 +2591,34 @@ extension ChatData {
                     DDLogDebug("ChatData/group/syncGroupInfo/new/add-member [\(inboundMember.userId)]")
                     self.processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: inboundMember, in: chatGroup.managedObjectContext!)
                 }
-                
+
                 // add to pushnames
                 if let name = inboundMember.name, !name.isEmpty {
                     contactNames[inboundMember.userId] = name
                 }
             }
-            
+
             if !contactNames.isEmpty {
                 self.contactStore.addPushNames(contactNames)
             }
 
         }
+    }
+    
+    // MARK: Group Background
+
+    static public func getThemeColor(for theme: Int32) -> UIColor {
+        let colorName = "Theme\(String(theme))"
+        guard let color = UIColor(named: colorName) else { return UIColor.label }
+        
+        return color
+    }
+
+    static public func getThemeBackgroundColor(for theme: Int32) -> UIColor {
+        let colorName = "Theme\(String(theme))Bg"
+        guard let color = UIColor(named: colorName) else { return UIColor.primaryBg }
+        
+        return color
     }
 
     // MARK: Group Invite Link
@@ -3771,10 +3807,12 @@ extension ChatData {
             processGroupChangeNameAction(xmppGroup: xmppGroup, in: managedObjectContext)
         case .changeAvatar:
             processGroupChangeAvatarAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .setBackground:
+            processGroupSetBackgroundAction(xmppGroup: xmppGroup, in: managedObjectContext)
         default: break
         }
 
-        self.save(managedObjectContext)
+        save(managedObjectContext)
     }
 
     private func processGroupCreateAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
@@ -3918,26 +3956,28 @@ extension ChatData {
     }
 
     private func processGroupChangeNameAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
-        DDLogDebug("ChatData/group/processGroupChangeNameAction")
+        DDLogInfo("ChatData/group/processGroupChangeNameAction")
         _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
-        
         recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
-        
         getAndSyncGroup(groupId: xmppGroup.groupId)
-        
     }
     
     private func processGroupChangeAvatarAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
-        DDLogDebug("ChatData/group/processGroupChangeAvatarAction")
-        
+        DDLogInfo("ChatData/group/processGroupChangeAvatarAction")
         _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
-        
         recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
-        
         getAndSyncGroup(groupId: xmppGroup.groupId)
-        
     }
-    
+
+    private func processGroupSetBackgroundAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("ChatData/group/processGroupSetBackgroundAction")
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        group.background = xmppGroup.background
+        save(managedObjectContext)
+        recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
+        getAndSyncGroup(groupId: xmppGroup.groupId)
+    }
+
     private func processGroupCreateIfNotExist(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) -> ChatGroup {
         DDLogDebug("ChatData/group/processGroupCreateIfNotExist/ [\(xmppGroup.groupId)]")
         if let existingChatGroup = chatGroup(groupId: xmppGroup.groupId, in: managedObjectContext) {
@@ -4005,6 +4045,7 @@ extension ChatData {
             case .delete: return .delete
             case .changeName: return .changeName
             case .changeAvatar: return .changeAvatar
+            case .setBackground: return .setBackground
             case .modifyAdmins: return .modifyAdmins
             case .modifyMembers: return .modifyMembers
             default: return .none
