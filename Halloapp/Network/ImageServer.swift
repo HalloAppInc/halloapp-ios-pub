@@ -212,13 +212,65 @@ class ImageServer {
             ImageServer.mediaProcessingSemaphore.signal()
 
             switch result {
-            case .success(let (_, videoResolution)):
+            case .success(let (outputUrl, videoResolution)):
                 DDLogInfo("ImageServer/video/prepare/ready  New video resolution: [\(videoResolution)] [\(url.description)]")
+
+                do {
+                    try self.clearTimestamps(video: outputUrl)
+                } catch {
+                    DDLogError("ImageServer/video/prepare/error clearing timestamps [\(error)] [\(url.description)]")
+                }
             case .failure(let error):
                 DDLogError("ImageServer/video/prepare/error [\(error)] [\(url.description)]")
             }
 
             completion(result)
+        }
+    }
+
+    // Clears uncompressed movie atom headers from timestamps
+    //
+    // Video format details
+    // https://openmp4file.com/format.html
+    // https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html#//apple_ref/doc/uid/TP40000939-CH204-33299
+    // https://www.cimarronsystems.com/wp-content/uploads/2017/04/Elements-of-the-H.264-VideoAAC-Audio-MP4-Movie-v2_0.pdf
+    private func clearTimestamps(video url: URL) throws {
+        let handle = try FileHandle(forUpdating: url)
+        defer { try? handle.close() }
+
+        // atom types
+        guard let moov = "moov".data(using: .ascii) else { return }
+        guard let mvhd = "mvhd".data(using: .ascii) else { return }
+        guard let tkhd = "tkhd".data(using: .ascii) else { return }
+        guard let mdhd = "mdhd".data(using: .ascii) else { return }
+
+        // Find the moov atom
+        try handle.seek(toOffset: 0)
+        guard var moovIdx = handle.availableData.firstRange(of: moov)?.lowerBound else { return }
+        moovIdx -= 4
+
+        try handle.seek(toOffset: UInt64(moovIdx))
+        var data = handle.availableData
+        guard !data.isEmpty && data.count > 8 else { return }
+
+        let moovSize = (Int(data[0]) << 24) + (Int(data[1]) << 16) + (Int(data[2]) << 8) + Int(data[3])
+        data = data.subdata(in: 0..<moovSize)
+
+        try clearTimestamps(for: mvhd, from: data, at: moovIdx, in: handle)
+        try clearTimestamps(for: tkhd, from: data, at: moovIdx, in: handle)
+        try clearTimestamps(for: mdhd, from: data, at: moovIdx, in: handle)
+
+        try handle.synchronize()
+    }
+
+    // Finds the atoms for the specified header, maps the timestamp locations in the file and clears them
+    private func clearTimestamps(for header: Data, from data: Data, at offset: Int, in handle: FileHandle) throws {
+        var searchRange = 0..<data.count
+        while let position = data.firstRange(of: header, in: searchRange) {
+            try handle.seek(toOffset: UInt64(offset + position.upperBound) + 4)
+            handle.write(Data(count: 8))
+
+            searchRange = position.upperBound..<data.count
         }
     }
 }
