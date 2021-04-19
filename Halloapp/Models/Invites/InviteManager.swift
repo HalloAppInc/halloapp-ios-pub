@@ -12,12 +12,11 @@ import Foundation
 import SwiftUI
 
 class InviteManager: ObservableObject {
-
-    @Published private(set) var isDataCurrent: Bool = false
     @Published private(set) var fetchError: Bool = false
     @Published private(set) var numberOfInvitesAvailable: Int = 0
     @Published private(set) var nextRefreshDate: Date? = nil
     @Published private(set) var redeemInProgress: Bool = false
+    @Published private(set) var isLoading: Bool = false
 
     private static let sharedManager = InviteManager()
     class var shared: InviteManager {
@@ -28,25 +27,32 @@ class InviteManager: ObservableObject {
         loadFromUserDefaults()
     }
 
-    private func validateCachedData() {
-        isDataCurrent = nextRefreshDate != nil && nextRefreshDate!.timeIntervalSinceNow > 0
-    }
-
     // MARK: Server Sync
 
+    var isDataCurrent: Bool {
+        nextRefreshDate != nil && nextRefreshDate!.timeIntervalSinceNow > 0
+    }
+
     func requestInvitesIfNecessary() {
-        validateCachedData()
+        guard !isLoading else {
+            DDLogInfo("invite-manager/fetch-request/aborting [in progress]")
+            return
+        }
 
         DDLogInfo("invite-manager/fetch-request/start")
         fetchError = false
+        isLoading = true
 
-        MainAppContext.shared.service.requestInviteAllowance { result in
+        MainAppContext.shared.service.requestInviteAllowance { [weak self] result in
+            guard let self = self else { return }
+
+            self.isLoading = false
             switch result {
             case .success(let (inviteCount, refreshDate)):
                 DDLogInfo("invite-manager/fetch-request/complete Count: [\(inviteCount)] Refresh Date: [\(refreshDate)]")
 
-                self.numberOfInvitesAvailable = inviteCount
                 self.nextRefreshDate = refreshDate
+                self.numberOfInvitesAvailable = inviteCount
                 self.saveToUserDefaults()
 
             case .failure(let error):
@@ -98,12 +104,10 @@ class InviteManager: ObservableObject {
         numberOfInvitesAvailable = UserDefaults.standard.integer(forKey: UserDefaultsKeys.numberOfInvites)
         nextRefreshDate = UserDefaults.standard.object(forKey: UserDefaultsKeys.refreshDate) as? Date
         DDLogInfo("invite-manager/loaded  Available: [\(numberOfInvitesAvailable)]  Refresh Date: [\(String(describing: nextRefreshDate))]")
-        validateCachedData()
     }
 
     private func saveToUserDefaults() {
         UserDefaults.standard.set(numberOfInvitesAvailable, forKey: UserDefaultsKeys.numberOfInvites)
         UserDefaults.standard.set(nextRefreshDate, forKey: UserDefaultsKeys.refreshDate)
-        validateCachedData()
     }
 }

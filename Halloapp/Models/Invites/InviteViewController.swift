@@ -94,8 +94,8 @@ final class InviteViewController: UIViewController {
 
         updateLoading(!inviteManager.isDataCurrent)
         cancellableSet.insert(
-            inviteManager.$isDataCurrent.sink { [weak self] isDataCurrent in
-                self?.updateLoading(!isDataCurrent)
+            inviteManager.$isLoading.sink { [weak self] isLoading in
+                self?.updateLoading(isLoading)
             }
         )
 
