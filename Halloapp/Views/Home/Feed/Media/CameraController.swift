@@ -590,12 +590,29 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
         return true
     }
 
-    private func isActiveCallPresent() -> Bool {
+    private func isCallKitSupported() -> Bool {
+        guard let regionCode = NSLocale.current.regionCode else {
+            return false
+        }
+
+        if regionCode.contains("CN") || regionCode.contains("CHN") {
+            return false
+        } else {
+            return true
+        }
+    }
+
+    private func isActiveCallPresent() -> Bool? {
+        guard isCallKitSupported() else { return nil }
         return CXCallObserver().calls.contains { !$0.hasEnded }
     }
 
     private func restoreAudioInput(_ captureSession: AVCaptureSession) {
-        if audioInput == nil && !isActiveCallPresent() {
+        guard let isActiveCallPresent = isActiveCallPresent() else {
+            DDLogInfo("CameraController/restoreAudioInput/skipping [not supported]")
+            return
+        }
+        if audioInput == nil && !isActiveCallPresent {
             DDLogInfo("CameraController/reinitAudioInput")
             captureSession.beginConfiguration()
             do {
