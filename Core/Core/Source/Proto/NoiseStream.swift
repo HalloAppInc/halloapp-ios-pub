@@ -371,6 +371,7 @@ public final class NoiseStream: NSObject {
         switch state {
         case .authorizing, .handshake:
             DDLogInfo("noise/handshake/failed")
+            socket.disconnect()
             state = .disconnected
         case .connecting, .connected, .disconnected, .disconnecting:
             DDLogInfo("noise/handshake/could-not-fail [state=\(state)]")
