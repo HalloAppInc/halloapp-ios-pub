@@ -89,6 +89,16 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
                 self.view.isUserInteractionEnabled = true
         })
 
+        // feed view needs to know when unread count changes when user is not on view
+        cancellableSet.insert(
+            MainAppContext.shared.feedData.didGetUnreadFeedCount.sink { [weak self] (count) in
+                guard let self = self else { return }
+                guard count == 0 else { return }
+                DispatchQueue.main.async {
+                    self.removeNewPostsIndicator()
+                }
+        })
+
         cancellableSet.insert(
             MainAppContext.shared.service.didDisconnect.sink { [weak self] in
                 DispatchQueue.main.async { self?.updateNoConnectionBanner(animated: true) }

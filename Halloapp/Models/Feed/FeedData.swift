@@ -1389,7 +1389,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return receipts
     }
 
-    let didFindUnreadFeed = PassthroughSubject<Int, Never>()
+    let didGetUnreadFeedCount = PassthroughSubject<Int, Never>()
     
     func checkForUnreadFeed() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
@@ -1399,7 +1399,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 predicate = NSPredicate(format: "statusValue = %d", FeedPost.Status.incoming.rawValue)
             }
             let unreadFeedPosts = self.feedPosts(predicate: predicate, in: managedObjectContext)
-            self.didFindUnreadFeed.send(unreadFeedPosts.count)
+            self.didGetUnreadFeedCount.send(unreadFeedPosts.count)
         }
     }
     

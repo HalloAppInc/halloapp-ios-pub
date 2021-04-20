@@ -65,7 +65,7 @@ class HomeViewController: UITabBarController {
         ]
 
         cancellableSet.insert(
-            MainAppContext.shared.feedData.didFindUnreadFeed.sink { [weak self] (count) in
+            MainAppContext.shared.feedData.didGetUnreadFeedCount.sink { [weak self] (count) in
                 guard let self = self else { return }
                 self.updateFeedNavigationControllerBadge(count)
         })
