@@ -249,6 +249,11 @@ public final class WhisperSession {
             completion(.failure(.init(.invalidPayload, ephemeralKey: nil)))
             return
         }
+        if let teardownKey = state.keyBundle?.teardownKey, teardownKey == payload.ephemeralPublicKey {
+            DDLogInfo("WhisperSession/\(self.userID)/decrypt/skipping [teardown key match]")
+            completion(.failure(.init(.teardownKeyMatch, ephemeralKey: teardownKey)))
+            return
+        }
         switch setupInbound(with: encryptedData) {
         case .success((let keyBundle, let messageKeys)):
             switch Whisper.decrypt(payload, keyBundle: keyBundle, messageKeys: messageKeys) {
@@ -257,14 +262,9 @@ public final class WhisperSession {
                 self.deleteOneTimeKey(id: encryptedData.oneTimeKeyId)
                 completion(.success(data))
             case .failure(let failure):
-                switch failure.error {
-                case .teardownKeyMatch:
-                    DDLogInfo("WhisperSession/\(self.userID)/decrypt/teardown/skipping [teardown key match]")
-                default:
-                    DDLogInfo("WhisperSession/\(self.userID)/decrypt/teardown [\(failure.error)]")
-                    self.teardown(payload.ephemeralPublicKey)
-                    self.setupOutbound()
-                }
+                DDLogInfo("WhisperSession/\(self.userID)/decrypt/teardown [\(failure.error)]")
+                self.teardown(payload.ephemeralPublicKey)
+                self.setupOutbound()
                 completion(.failure(failure))
             }
         case .failure(let error):

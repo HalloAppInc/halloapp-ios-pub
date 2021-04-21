@@ -44,10 +44,6 @@ final class Whisper {
 
     static func decrypt(_ payload: EncryptedPayload, keyBundle: KeyBundle, messageKeys: MessageKeyMap) -> Result<(data: Data, keyBundle: KeyBundle, messageKeys: MessageKeyMap), DecryptionFailure> {
 
-        guard payload.ephemeralPublicKey != keyBundle.teardownKey else {
-            return .failure(.init(.teardownKeyMatch, ephemeralKey: payload.ephemeralPublicKey))
-        }
-
         var updatedKeyBundle: KeyBundle
         var updatedMessageKeys: MessageKeyMap
 
