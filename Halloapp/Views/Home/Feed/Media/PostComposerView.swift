@@ -835,11 +835,6 @@ fileprivate struct TextView: UIViewRepresentable {
         DDLogInfo("TextView/updateUIView")
 
         // Don't set text or selection on uiView (it clears markedTextRange, which breaks IME)
-        let fontToUse = PostComposerLayoutConstants.getFontSize(
-            textSize: input.value.text.count, isPostWithMedia: mediaItems.count > 0)
-        if uiView.font != fontToUse {
-            uiView.font = fontToUse
-        }
 
         if let mention = pendingMention {
             DispatchQueue.main.async {
@@ -853,6 +848,8 @@ fileprivate struct TextView: UIViewRepresentable {
         }
 
         TextView.recomputeHeight(textView: uiView, resultHeight: textHeight)
+        TextView.recomputeTextSize(
+            textView: uiView, textSize: input.value.text.count, isPostWithMedia: mediaItems.count > 0)
     }
 
     private static func recomputeHeight(textView: UIView, resultHeight: GenericObservable<CGFloat>) {
@@ -860,6 +857,15 @@ fileprivate struct TextView: UIViewRepresentable {
         if resultHeight.value != newSize.height {
             DispatchQueue.main.async {
                 resultHeight.value = newSize.height
+            }
+        }
+    }
+
+    private static func recomputeTextSize(textView: UITextView, textSize: Int, isPostWithMedia: Bool) {
+        let fontToUse = PostComposerLayoutConstants.getFontSize(textSize: textSize, isPostWithMedia: isPostWithMedia)
+        if textView.font != fontToUse {
+            DispatchQueue.main.async {
+                textView.font = fontToUse
             }
         }
     }
@@ -941,6 +947,9 @@ fileprivate struct TextView: UIViewRepresentable {
                 textView.text = mentionInput.text
                 textView.selectedRange = mentionInput.selectedRange
                 parent.input.value = mentionInput
+                TextView.recomputeHeight(textView: textView, resultHeight: parent.textHeight)
+                TextView.recomputeTextSize(
+                    textView: textView, textSize: parent.input.value.text.count, isPostWithMedia: parent.mediaItems.count > 0)
                 return false
             }
         }
@@ -948,6 +957,8 @@ fileprivate struct TextView: UIViewRepresentable {
         func textViewDidChange(_ textView: UITextView) {
             parent.input.value.text = textView.text ?? ""
             TextView.recomputeHeight(textView: textView, resultHeight: parent.textHeight)
+            TextView.recomputeTextSize(
+                textView: textView, textSize: parent.input.value.text.count, isPostWithMedia: parent.mediaItems.count > 0)
             updateMentionPickerContent()
         }
 
