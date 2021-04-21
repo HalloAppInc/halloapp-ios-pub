@@ -113,6 +113,11 @@ open class AppContext {
         eventMonitorTimer = nil
     }
 
+    public func observeAndSave(event: DiscreteEvent) {
+        eventMonitor.observe(event)
+        eventMonitor.saveReport(to: userDefaults)
+    }
+
     private var eventMonitorTimer: DispatchSourceTimer?
 
     private func sendEventReport() {

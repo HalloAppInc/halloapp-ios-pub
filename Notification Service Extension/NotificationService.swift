@@ -29,8 +29,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
     }
 
     private func recordPushEvent(requestID: String, messageID: String?) {
-        AppContext.shared.eventMonitor.observe(.pushReceived(id: messageID ?? requestID, timestamp: Date()))
-        AppContext.shared.eventMonitor.saveReport(to: AppContext.shared.userDefaults)
+        AppContext.shared.observeAndSave(event: .pushReceived(id: messageID ?? requestID, timestamp: Date()))
     }
 
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
