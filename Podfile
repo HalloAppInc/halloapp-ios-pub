@@ -6,6 +6,7 @@ target 'Core' do
   project './Core/Core.xcodeproj'
   pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
   pod 'Sodium', :git => 'git@github.com:HalloAppInc/swift-sodium.git'
+  pod 'Firebase/Crashlytics'
 end
 
 target 'HalloApp' do

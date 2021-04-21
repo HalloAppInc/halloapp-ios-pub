@@ -113,8 +113,6 @@ class NotificationMetadata: Codable {
         if let rawData = userInfo[Self.userDefaultsKeyRawData] as? Data {
             return NotificationMetadata.load(from: rawData)
         } else {
-            // TODO(murali@): Log an error to firebase for this!!
-            // That should be helpful to get an overall sense of how well this is working.
             guard let metadata = userInfo[Self.userInfoKeyMetadata] as? [String: String],
                   let data = metadata[Self.messagePacketData],
                   let packetData = Data(base64Encoded: data) else {
@@ -122,6 +120,7 @@ class NotificationMetadata: Codable {
             }
             do {
                 let msg = try Server_Msg(serializedData: packetData)
+                logPushDecryptionError(with: msg)
                 return NotificationMetadata(msg: msg)
             } catch {
                 DDLogError("NotificationMetadata/init/error invalid protobuf data: [\(packetData)]")
@@ -150,6 +149,16 @@ class NotificationMetadata: Codable {
             DDLogError("NotificationMetadata/noise/error \(error)")
             return nil
         }
+    }
+
+    private static func logPushDecryptionError(with msg: Server_Msg) {
+        let reportUserInfo = [
+            "userId": UserID(msg.toUid),
+            "msgId": msg.id,
+            "reason": "PushDecryptionError"
+        ]
+        let customError = NSError.init(domain: "PushDecryptionErrorTest", code: 1003, userInfo: reportUserInfo)
+        AppContext.shared.errorLogger?.logError(customError)
     }
 
     init(contentId: String, contentType: NotificationContentType, fromId: UserID, timestamp: Date?, data: Data?, messageId: String?, pushName: String? = nil) {

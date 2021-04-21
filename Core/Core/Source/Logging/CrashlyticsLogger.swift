@@ -6,7 +6,6 @@
 //  Copyright © 2020 Hallo App, Inc. All rights reserved.
 //
 
-import Core
 import Foundation
 import CocoaLumberjack
 import FirebaseCrashlytics
@@ -16,7 +15,7 @@ public final class CrashlyticsLogger: DDAbstractLogger {
     public override func log(message logMessage: DDLogMessage) {
 
         var message = logMessage.message
-        
+
         let ivar = class_getInstanceVariable(object_getClass(self), "_logFormatter")
         if let formatter = object_getIvar(self, ivar!) as? DDLogFormatter {
             message = formatter.format(message: logMessage) ?? message

@@ -11,6 +11,8 @@ import Contacts
 import CoreData
 import Foundation
 import PhoneNumberKit
+import FirebaseCore
+import FirebaseCrashlytics
 
 fileprivate var sharedContext: AppContext?
 
@@ -206,6 +208,17 @@ open class AppContext {
         contactStoreImpl = contactStoreClass.init(userData: userData)
         keyStore = KeyStore(userData: userData)
         messageCrypter = MessageCrypter(service: coreService, keyStore: keyStore)
+
+        FirebaseApp.configure()
+        let logger = CrashlyticsLogger()
+        logger.logFormatter = LogFormatter()
+        DDLog.add(logger)
+        // Add UserId to Crashlytics
+        Crashlytics.crashlytics().setUserID(userData.userId)
+        #if !DEBUG
+        // Log errors to firebase
+        errorLogger = logger
+        #endif
     }
 
     static func phoneNumberKitMetadataCallback() throws -> Data? {

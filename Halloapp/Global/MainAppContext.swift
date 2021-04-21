@@ -100,18 +100,9 @@ class MainAppContext: AppContext {
     }
 
     required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type) {
-        FirebaseApp.configure()
-
-        let logger = CrashlyticsLogger()
-        logger.logFormatter = LogFormatter()
-        DDLog.add(logger)
-
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass)
         // This is needed to encode/decode protobuf in FeedPostInfo.
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
-
-        // Add UserId to Crashlytics
-        Crashlytics.crashlytics().setUserID(userData.userId)
 
         feedData = FeedData(service: service, contactStore: contactStore, userData: userData)
         chatData = ChatData(service: service, contactStore: contactStore, userData: userData)
@@ -126,11 +117,6 @@ class MainAppContext: AppContext {
         cryptoData.startReporting(interval: oneHour) { [weak self] events in
             self?.eventMonitor.observe(events)
         }
-
-        #if !DEBUG
-        // Log errors to firebase
-        errorLogger = logger
-        #endif
     }
     
     private var mergingSharedData = false
