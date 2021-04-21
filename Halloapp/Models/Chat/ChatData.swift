@@ -2364,28 +2364,25 @@ extension ChatData {
         let userID = xmppChatMessage.fromUserId
         
         guard let ts = xmppChatMessage.timeIntervalSince1970 else { return }
-        
         let timestamp = Date(timeIntervalSinceReferenceDate: ts)
-        
-        var notifications: [UNMutableNotificationContent] = []
-        
         let protoContainer = xmppChatMessage.protoContainer
         let protobufData = try? protoContainer.serializedData()
-        
         let metadata = NotificationMetadata(contentId: xmppChatMessage.id,
                                             contentType: .chatMessage,
                                             fromId: userID,
                                             timestamp: timestamp,
                                             data: protobufData,
                                             messageId: xmppChatMessage.id)
-        let notification = UNMutableNotificationContent()
-        notification.populate(from: metadata, contactStore: self.contactStore)
-        notifications.append(notification)
-        
-        let notificationCenter = UNUserNotificationCenter.current()
-        notifications.forEach { (notificationContent) in
-            notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
-            incrementApplicationIconBadgeNumber()
+        // create and add a notification to the notification center.
+        NotificationRequest.createAndShow(from: metadata) { [weak self] error in
+            guard let self = self else {
+                return
+            }
+            if let error = error {
+                DDLogInfo("ChatData/NotificationRequest/failed/error: \(error)")
+            } else {
+                self.incrementApplicationIconBadgeNumber()
+            }
         }
     }
 }
@@ -4271,8 +4268,6 @@ extension ChatData {
         guard let messageID = xmppGroup.messageId else { return }
         guard let userID = xmppGroup.sender else { return }
 
-        var notifications: [UNMutableNotificationContent] = []
-        
         let metadata = NotificationMetadata(contentId: messageID,
                                             contentType: .groupAdd,
                                             fromId: userID,
@@ -4281,27 +4276,16 @@ extension ChatData {
                                             messageId: messageID)
         metadata.groupId = xmppGroup.groupId
         metadata.groupName = xmppGroup.name
-
-        let notification = UNMutableNotificationContent()
-        notification.populate(from: metadata, contactStore: contactStore)
-        notifications.append(notification)
-
-        let notificationCenter = UNUserNotificationCenter.current()
-        notifications.forEach { (notificationContent) in
-            notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
-        }
+        // create and add a notification to the notification center.
+        NotificationRequest.createAndShow(from: metadata)
         
     }
     
     private func presentLocalGroupNotifications(for xmppChatGroupMessage: XMPPChatGroupMessage) {
         DDLogDebug("ChatData/presentLocalGroupNotifications/id \(xmppChatGroupMessage.id)")
         guard let userID = xmppChatGroupMessage.userId else { return }
-        
-        var notifications: [UNMutableNotificationContent] = []
-        
         let protoContainer = xmppChatGroupMessage.protoContainer
         let protobufData = try? protoContainer.serializedData()
-
         let metadata = NotificationMetadata(contentId: xmppChatGroupMessage.id,
                                             contentType: .groupChatMessage,
                                             fromId: userID,
@@ -4311,17 +4295,17 @@ extension ChatData {
                                             pushName: xmppChatGroupMessage.userName)
         metadata.groupId = xmppChatGroupMessage.groupId
         metadata.groupName = xmppChatGroupMessage.groupName
-        
-        let notification = UNMutableNotificationContent()
-        notification.populate(from: metadata, contactStore: contactStore)
-        notifications.append(notification)
-        
-        let notificationCenter = UNUserNotificationCenter.current()
-        notifications.forEach { (notificationContent) in
-            notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
-            incrementApplicationIconBadgeNumber()
+        // create and add a notification to the notification center.
+        NotificationRequest.createAndShow(from: metadata) { [weak self] error in
+            guard let self = self else {
+                return
+            }
+            if let error = error {
+                DDLogInfo("ChatData/NotificationRequest/failed/error: \(error)")
+            } else {
+                self.incrementApplicationIconBadgeNumber()
+            }
         }
-        
     }
 }
 

@@ -59,6 +59,7 @@
 		68F935C5252CD00800FA6E75 /* ChatMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */; };
 		68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */; };
 		6A1BFD30260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */; };
+		6A91069D262D02170081E337 /* NotificationRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A91069C262D02170081E337 /* NotificationRequest.swift */; };
 		6ABBD2502601DE890041B9ED /* FeedMigration.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6ABBD24F2601DE890041B9ED /* FeedMigration.xcmappingmodel */; };
 		6ABBD25F2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABBD25E2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift */; };
 		761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */; };
@@ -397,6 +398,7 @@
 		68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostCommentToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
+		6A91069C262D02170081E337 /* NotificationRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationRequest.swift; sourceTree = "<group>"; };
 		6ABBD24A2601DD990041B9ED /* Feed2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed2.xcdatamodel; sourceTree = "<group>"; };
 		6ABBD24F2601DE890041B9ED /* FeedMigration.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = FeedMigration.xcmappingmodel; sourceTree = "<group>"; };
 		6ABBD25E2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
@@ -925,6 +927,7 @@
 				76B5B52B2501EE790055E712 /* NotificationMetadata.swift */,
 				76B5B52E2501EEBE0055E712 /* UNExtensions.swift */,
 				76B5B5312501F1700055E712 /* NotificationSettings.swift */,
+				6A91069C262D02170081E337 /* NotificationRequest.swift */,
 			);
 			path = Notifications;
 			sourceTree = "<group>";
@@ -1990,6 +1993,7 @@
 				766492252450E04D009BC368 /* BadgeView.swift in Sources */,
 				EA6DE2CD25C3768C00C83001 /* GroupTitleView.swift in Sources */,
 				EAB533CA26265ED700943FDC /* GroupBackgroundViewController.swift in Sources */,
+				6A91069D262D02170081E337 /* NotificationRequest.swift in Sources */,
 				7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */,
 				EAD476F42458F03700EF8591 /* ChatThread+CoreDataClass.swift in Sources */,
 				76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */,

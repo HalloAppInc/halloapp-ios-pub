@@ -1069,12 +1069,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         dispatchGroup.notify(queue: .main) {
-            var notifications: [UNMutableNotificationContent] = []
             comments.filter { !commentIdsToFilterOut.contains($0.id) && self.isCommentEligibleForLocalNotification($0) }.forEach { (comment) in
                 guard let protoContainer = comment.protoContainer else { return }
                 let protobufData = try? protoContainer.serializedData()
                 let contentType: NotificationContentType = comment.post.groupId == nil ? .feedComment : .groupFeedComment
-
                 let metadata = NotificationMetadata(contentId: comment.id,
                                                     contentType: contentType,
                                                     fromId: comment.userId,
@@ -1086,16 +1084,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     metadata.groupId = group.groupId
                     metadata.groupName = group.name
                 }
-                let notification = UNMutableNotificationContent()
-                notification.populate(from: metadata, contactStore: self.contactStore)
-                notifications.append(notification)
-            }
-
-            guard !notifications.isEmpty else { return }
-
-            let notificationCenter = UNUserNotificationCenter.current()
-            notifications.forEach { (notificationContent) in
-                notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+                // create and add a notification to the notification center.
+                NotificationRequest.createAndShow(from: metadata)
             }
         }
     }
@@ -1103,8 +1093,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func presentLocalNotifications(forFeedPosts feedPosts: [FeedPost]) {
         // present local notifications when applicationState is either .background or .inactive
         guard UIApplication.shared.applicationState != .active else { return }
-
-        let userIds = Set(feedPosts.map { $0.userId })
         var postIdsToFilterOut = [FeedPostID]()
 
         let dispatchGroup = DispatchGroup()
@@ -1115,12 +1103,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         dispatchGroup.notify(queue: .main) {
-            var notifications: [UNMutableNotificationContent] = []
             feedPosts.filter({ !postIdsToFilterOut.contains($0.id) }).forEach { (feedPost) in
                 guard let protoContainer = feedPost.protoContainer else { return }
                 let protobufData = try? protoContainer.serializedData()
                 let metadataContentType: NotificationContentType = feedPost.groupId == nil ? .feedPost : .groupFeedPost
-
                 let metadata = NotificationMetadata(contentId: feedPost.id,
                                                     contentType: metadataContentType,
                                                     fromId: feedPost.userId,
@@ -1132,14 +1118,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     metadata.groupId = group.groupId
                     metadata.groupName = group.name
                 }
-                let notification = UNMutableNotificationContent()
-                notification.populate(from: metadata, contactStore: self.contactStore)
-                notifications.append(notification)
-            }
-
-            let notificationCenter = UNUserNotificationCenter.current()
-            notifications.forEach { (notificationContent) in
-                notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+                // create and add a notification to the notification center.
+                NotificationRequest.createAndShow(from: metadata)
             }
         }
     }
