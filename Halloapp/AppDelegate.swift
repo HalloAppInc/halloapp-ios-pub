@@ -308,14 +308,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             guard let self = self else { return }
             self.disconnectAndEndBackgroundTask()
         })
-        timer.schedule(deadline: .now() + 10)
+        timer.schedule(deadline: .now() + 60)
         timer.resume()
         return timer
     }
 
-    /**
-     Stay connected in the background for 10 seconds, then gracefully disconnect and let iOS suspend the app.
-     */
+    // Stay connected in the background for 1 minute and then disconnect.
+    // Let iOS trigger an expiration handler for our app and then disconnect and end the task.
     func beginBackgroundConnectionTask() {
         guard backgroundTaskIdentifier == .invalid else {
             DDLogError("appdelegate/bg-task Identifier is not set")
@@ -338,7 +337,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 self.disconnectTimer?.cancel()
                 self.disconnectTimer = nil
             }
+            MainAppContext.shared.feedData.suspendMediaDownloads()
             service.disconnectImmediately()
+            MainAppContext.shared.stopReportingEvents()
+            UIApplication.shared.endBackgroundTask(self.backgroundTaskIdentifier)
             self.backgroundTaskIdentifier = .invalid
         }
         guard backgroundTaskIdentifier != .invalid else {
