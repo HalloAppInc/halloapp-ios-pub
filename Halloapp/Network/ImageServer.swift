@@ -35,6 +35,7 @@ class ImageServer {
     private struct Constants {
         static let jpegCompressionQuality = CGFloat(UserData.compressionQuality)
         static let maxImageSize: CGFloat = 1600
+        static let maxBitrate: Float = 8000000
     }
 
     private static let mediaProcessingSemaphore = DispatchSemaphore(value: 3) // Prevents having more than 3 instances of AVAssetReader
@@ -61,8 +62,10 @@ class ImageServer {
                     try FileManager.default.copyItem(at: tmp, to: output)
                     DDLogInfo("ImageServer/prepare/media/processed copied from=[\(tmp.description)] to=[\(output.description)]")
 
-                    try FileManager.default.removeItem(at: tmp)
-                    DDLogInfo("ImageServer/prepare/media/deleted url=[\(tmp.description)]")
+                    if tmp != url {
+                        try FileManager.default.removeItem(at: tmp)
+                        DDLogInfo("ImageServer/prepare/media/deleted url=[\(tmp.description)]")
+                    }
                 } catch {
                     DDLogError("ImageServer/preapre/media/error error=[\(error)]")
                 }
@@ -199,6 +202,17 @@ class ImageServer {
     }
 
     private func resize(video url: URL, completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
+        guard shouldConvert(video: url) else {
+            DDLogInfo("ImageServer/video/prepare/ready  conversion not required [\(url.description)]")
+
+            if let resolution = VideoUtils.resolutionForLocalVideo(url: url) {
+                return completion(.success((url, resolution)))
+            } else {
+                DDLogError("ImageServer/video/prepare/error  Failed to get resolution. \(url.description)")
+                return completion(.failure(VideoProcessingError.failedToLoad))
+            }
+        }
+
         guard let fileAttrs = try? FileManager.default.attributesOfItem(atPath: url.path) else {
             DDLogError("ImageServer/video/prepare/error  Failed to get file attributes. \(url.description)")
             return completion(.failure(VideoProcessingError.failedToLoad))
@@ -272,5 +286,18 @@ class ImageServer {
 
             searchRange = position.upperBound..<data.count
         }
+    }
+
+    private func shouldConvert(video url: URL) -> Bool {
+        let asset = AVURLAsset(url: url, options: nil)
+
+        for track in asset.tracks {
+            if track.timeRange.duration != .zero && track.estimatedDataRate > Constants.maxBitrate {
+                DDLogInfo("ImageServer/video/prepare/shouldConvert bitrate[\(track.estimatedDataRate)] > max[\(Constants.maxBitrate)]  [\(url.description)]")
+                return true
+            }
+        }
+
+        return false
     }
 }
