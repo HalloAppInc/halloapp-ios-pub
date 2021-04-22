@@ -281,7 +281,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     private func showGroupFeed(for groupID: GroupID) {
         guard MainAppContext.shared.chatData.chatGroup(groupId: groupID) != nil else { return }
         let vc = GroupFeedViewController(groupId: groupID)
-        vc.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(vc, animated: true)
     }
 

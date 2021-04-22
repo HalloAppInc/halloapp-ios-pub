@@ -463,7 +463,6 @@ class FeedViewController: FeedCollectionViewController {
         case .groupFeedPost:
             if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                 let vc = GroupFeedViewController(groupId: groupId)
-                vc.hidesBottomBarWhenPushed = true
                 navigationController?.pushViewController(vc, animated: false)
             }
             break

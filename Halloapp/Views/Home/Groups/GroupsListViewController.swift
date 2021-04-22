@@ -121,7 +121,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
                 guard let groupID = groupID else { return }
                 self.navigationController?.popToRootViewController(animated: false)
                 let vc = GroupFeedViewController(groupId: groupID)
-                vc.hidesBottomBarWhenPushed = true
                 self.navigationController?.pushViewController(vc, animated: false)
             }
         )
@@ -343,14 +342,12 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         case .groupFeedPost, .groupFeedComment:
             if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                 let vc = GroupFeedViewController(groupId: groupId)
-                vc.hidesBottomBarWhenPushed = true
                 self.navigationController?.pushViewController(vc, animated: false)
             }
             break
         case .groupAdd:
             if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                 let vc = GroupFeedViewController(groupId: groupId)
-                vc.hidesBottomBarWhenPushed = true
                 self.navigationController?.pushViewController(vc, animated: false)
             } else {
                 // for offline groupAdd notifications, the app needs some time to get and create the new group when the user
@@ -358,7 +355,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                         let vc = GroupFeedViewController(groupId: groupId)
-                        vc.hidesBottomBarWhenPushed = true
                         self.navigationController?.pushViewController(vc, animated: false)
                     }
                 }
@@ -377,7 +373,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 
     private func openFeed(forGroupId groupId: GroupID) {
         let viewController = GroupFeedViewController(groupId: groupId)
-        viewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(viewController, animated: true)
     }
 
@@ -476,10 +471,10 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
         guard let groupId = chatThread.groupId else { return }
 
         openFeed(forGroupId: groupId)
-        
+
         tableView.deselectRow(at: indexPath, animated: true)
     }
-        
+
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let chatThread = self.chatThread(at: indexPath) else { return UISwipeActionsConfiguration(actions: []) }
         guard let groupId = chatThread.groupId else { return UISwipeActionsConfiguration(actions: []) }
@@ -487,13 +482,12 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
         let moreInfoAction = UIContextualAction(style: .normal, title: "") { [weak self] (_, _, completionHandler) in
             guard let self = self else { return }
             let vc = GroupInfoViewController(for: groupId)
-            vc.hidesBottomBarWhenPushed = true
             self.navigationController?.pushViewController(vc, animated: true)
             completionHandler(true)
         }
         moreInfoAction.backgroundColor = .primaryBlue
         moreInfoAction.image = UIImage(systemName: "ellipsis")
-        
+
         let removeAction = UIContextualAction(style: .destructive, title: Localizations.buttonRemove) { [weak self] (_, _, completionHandler) in
             guard let self = self else { return }
             let actionSheet = UIAlertController(title: chatThread.title, message: Localizations.groupsListRemoveMessage, preferredStyle: .actionSheet)
@@ -571,7 +565,6 @@ extension GroupsListViewController: NewGroupMembersViewControllerDelegate {
     
     func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, didCreateGroup: GroupID) {
         let vc = GroupFeedViewController(groupId: didCreateGroup)
-        vc.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(vc, animated: true)
     }
 }

@@ -406,7 +406,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     private func openFeed(forGroupId groupId: GroupID) {
         let viewController = GroupFeedViewController(groupId: groupId)
-        viewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(viewController, animated: true)
     }
 }
@@ -498,16 +497,15 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }
-        
+
         guard let chatWithUserId = chatThread.chatWithUserId else { return }
-        
+
         let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
-        vc.hidesBottomBarWhenPushed = true
         self.navigationController?.pushViewController(vc, animated: true)
-        
+
         tableView.deselectRow(at: indexPath, animated: true)
     }
-    
+
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let chatThread = self.chatThread(at: indexPath) else { return UISwipeActionsConfiguration(actions: []) }
         guard let chatWithUserId = chatThread.chatWithUserId else { return UISwipeActionsConfiguration(actions: []) }

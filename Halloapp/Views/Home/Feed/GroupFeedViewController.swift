@@ -39,9 +39,8 @@ class GroupFeedViewController: FeedCollectionViewController {
         self.groupId = groupId
         self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupId)
         self.theme = group?.background ?? 0
-        super.init(
-            title: nil,
-            fetchRequest: FeedDataSource.groupFeedRequest(groupID: groupId))
+        super.init(title: nil, fetchRequest: FeedDataSource.groupFeedRequest(groupID: groupId))
+        self.hidesBottomBarWhenPushed = true
         self.populateEvents()
     }
 
@@ -223,14 +222,12 @@ extension GroupFeedViewController: GroupTitleViewDelegate {
 
     func groupTitleViewRequestsOpenGroupInfo(_ groupTitleView: GroupTitleView) {
         let vc = GroupInfoViewController(for: groupId)
-        vc.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(vc, animated: true)
     }
 
     func groupTitleViewRequestsOpenGroupFeed(_ groupTitleView: GroupTitleView) {
         if MainAppContext.shared.chatData.chatGroup(groupId: groupId) != nil {
             let vc = GroupFeedViewController(groupId: groupId)
-            vc.hidesBottomBarWhenPushed = true
             navigationController?.pushViewController(vc, animated: true)
         }
     }

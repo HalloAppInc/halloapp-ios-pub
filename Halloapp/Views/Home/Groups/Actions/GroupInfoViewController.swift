@@ -37,6 +37,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         self.groupId = groupId
 //        self.chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId)
         super.init(style: .insetGrouped)
+        self.hidesBottomBarWhenPushed = true
     }
     
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }

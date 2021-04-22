@@ -834,14 +834,12 @@ extension ChatGroupViewController {
 extension ChatGroupViewController: GroupTitleViewDelegate {
     func groupTitleViewRequestsOpenGroupInfo(_ groupTitleView: GroupTitleView) {
         let vc = GroupInfoViewController(for: groupId)
-        vc.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(vc, animated: true)
     }
 
     func groupTitleViewRequestsOpenGroupFeed(_ groupTitleView: GroupTitleView) {
         if MainAppContext.shared.chatData.chatGroup(groupId: groupId) != nil {
             let vc = GroupFeedViewController(groupId: groupId)
-            vc.hidesBottomBarWhenPushed = true
             navigationController?.pushViewController(vc, animated: true)
         }
     }

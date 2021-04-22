@@ -56,6 +56,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex
         super.init(nibName: nil, bundle: nil)
+        self.hidesBottomBarWhenPushed = true
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
