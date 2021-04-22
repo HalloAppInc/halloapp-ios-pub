@@ -15,7 +15,7 @@ import Foundation
 import Sodium
 
 class KeyData {
-    let oneTimePreKeysToUpload: Int32 = 20
+    let oneTimePreKeysToUpload: Int32 = 100
     let thresholdToUploadMoreOTPKeys: Int32 = 5
     var isOneTimePreKeyUploadInProgress = false
     
@@ -59,12 +59,15 @@ class KeyData {
             return nil
         }
 
+        // Start one time keys from 1 (`0` is indistinguishable from `unset` in our current protocol)
+        let minimumOneTimeKeyIndex: Int32 = 1
+
         return UserKeys(
             identityEd: identityEdKeyPair.keyPairEd(),
             identityX25519: identityKeyPair.keyPairX25519(),
             signed: PreKeyPair(id: 1, keyPair: signedPreKeyPair.keyPairX25519()),
             signature: Data(signature),
-            oneTimeKeyPairs: generateOneTimePreKeys(initialCounter: 0))
+            oneTimeKeyPairs: generateOneTimePreKeys(initialCounter: minimumOneTimeKeyIndex))
     }
 
     public func saveUserKeys(_ userKeys: UserKeys) {
