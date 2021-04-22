@@ -404,10 +404,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         metadata.removeFromUserDefaults()
     }
 
-    private func openFeed(forGroupId groupId: GroupID) {
-        let viewController = GroupFeedViewController(groupId: groupId)
-        navigationController?.pushViewController(viewController, animated: true)
-    }
 }
 
 extension ChatListViewController: UIViewControllerScrollsToTop {

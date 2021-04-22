@@ -222,7 +222,6 @@
 		EAA424FD24ECF1480025CBBE /* ChatGroupMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F724ECF1480025CBBE /* ChatGroupMessage+CoreDataProperties.swift */; };
 		EAA424FE24ECF1480025CBBE /* ChatGroup+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F824ECF1480025CBBE /* ChatGroup+CoreDataClass.swift */; };
 		EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F924ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift */; };
-		EAA4250524F0DE360025CBBE /* ChatGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */; };
 		EAA4906625311CD1003348B5 /* OutboundMsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */; };
 		EAA85A0B25E5D510006D0BC9 /* NotInGroupBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */; };
 		EAAA5C0D25644A9600B81630 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAA5C0C25644A9600B81630 /* Utils.swift */; };
@@ -568,7 +567,6 @@
 		EAA424F724ECF1480025CBBE /* ChatGroupMessage+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessage+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAA424F824ECF1480025CBBE /* ChatGroup+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroup+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAA424F924ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroup+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGroupViewController.swift; sourceTree = "<group>"; };
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
 		EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundMsgViewCell.swift; sourceTree = "<group>"; };
 		EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotInGroupBannerView.swift; sourceTree = "<group>"; };
@@ -1102,7 +1100,6 @@
 				EAD476CC245513EF00EF8591 /* ChatListViewController.swift */,
 				EAA0799625AFC71600B384AB /* ThreadListCell.swift */,
 				EA3585742450BE3300E6E8AB /* ChatViewController.swift */,
-				EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */,
 				EA6DE2CC25C3768C00C83001 /* GroupTitleView.swift */,
 				EA3585752450BE3300E6E8AB /* ChatInputView.swift */,
 				EA388C5B2520EB9500DEAB53 /* Banner.swift */,
@@ -2015,7 +2012,6 @@
 				F881ED69261780360013599F /* UploadData.swift in Sources */,
 				6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */,
 				76649227245119F2009BC368 /* FeedNotifications.swift in Sources */,
-				EAA4250524F0DE360025CBBE /* ChatGroupViewController.swift in Sources */,
 				EA454B64234E769F002B960D /* SettingsViewController.swift in Sources */,
 				EA9B750F25A9003B00389A8E /* MsgViewCell.swift in Sources */,
 				681E0DAA24C8E0190073A03E /* NewPostViewController.swift in Sources */,

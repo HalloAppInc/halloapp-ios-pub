@@ -5,6 +5,7 @@
 //  Created by Tony Jiang on 8/18/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
+
 import Core
 import Foundation
 
@@ -254,4 +255,3 @@ struct XMPPChatGroupMessage {
         }
     }
 }
-

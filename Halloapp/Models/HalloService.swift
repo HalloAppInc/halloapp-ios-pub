@@ -109,7 +109,6 @@ protocol HalloChatDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didRerequestMessage messageID: String, from userID: UserID, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt)
-    func halloService(_ halloService: HalloService, didReceiveGroupChatMessage message: HalloGroupChatMessage)
     func halloService(_ halloService: HalloService, didReceiveGroupMessage group: HalloGroup)
 }
 

@@ -244,26 +244,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 }
             }
         )
-        
-        cancellableSet.insert(
-            MainAppContext.shared.chatData.didGetAGroupChatMsg.sink { [weak self] (groupID) in
-                guard let self = self else { return }
-                
-                if self.currentUnseenGroupChatThreadsList[groupID] == nil {
-                    self.currentUnseenGroupChatThreadsList[groupID] = 1
-                } else {
-                    self.currentUnseenGroupChatThreadsList[groupID]? += 1
-                }
-                
-                DispatchQueue.main.async {
-                    let total = self.currentUnseenChatThreadsList.count + self.currentUnseenGroupChatThreadsList.count
-                    self.updateBackButtonUnreadCount(num: total)
-                }
-            }
-        )
-        
+
         configureTitleViewWithTypingIndicator()
-        
+
         guard let thread = MainAppContext.shared.chatData.chatThread(type: .oneToOne, id: fromUserId) else { return }
         guard thread.draft != "", let draft = thread.draft else { return }
         chatInputView.setDraftText(text: draft)

@@ -283,7 +283,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.isHidden = true
         return view
     }()
-    
+
     private lazy var mediaImageView: ChatMediaSlider = {
         let view = ChatMediaSlider()
         view.layer.cornerRadius = 20
@@ -294,7 +294,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-    
+
     private lazy var textRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ textView, timeRow ])
         view.axis = .vertical
@@ -305,7 +305,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-    
+
     private lazy var textView: UnselectableUITextView = {
         let textView = UnselectableUITextView()
         textView.translatesAutoresizingMaskIntoConstraints = false
@@ -336,12 +336,12 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             })
         }
     }
-    
+
     // MARK: Updates
 
     func updateWithChatMessage(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
         messageID = chatMessage.id
-        
+
         var quoteMediaIndex: Int = 0
         if chatMessage.feedPostId != nil {
             quoteMediaIndex = Int(chatMessage.feedPostMediaIndex)
@@ -366,7 +366,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         {
             text = originalText + (decryptionResult == "success" ? " ✅" : " 💣")
         }
-        
+
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
@@ -375,67 +375,22 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                    orderedMentions: [],
                    media: chatMessage.media,
                    timestamp: chatMessage.timestamp)
-        
+
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
         bubbleWrapper.isUserInteractionEnabled = true
         bubbleWrapper.addGestureRecognizer(tapGesture)
     }
-    
-    func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
-        messageID = chatGroupMessage.id
-        
-        var quoteMediaIndex: Int = 0
-        if chatGroupMessage.chatReplyMessageID != nil {
-            quoteMediaIndex = Int(chatGroupMessage.chatReplyMessageMediaIndex)
-        }
-        let isQuotedMessage = updateQuoted(chatQuoted: chatGroupMessage.quoted, mediaIndex: quoteMediaIndex, groupID: chatGroupMessage.groupId)
-        
-        var text = chatGroupMessage.text
-        if chatGroupMessage.inboundStatus == .retracted {
-            textView.textColor = UIColor.chatTime
-            text = Localizations.chatMessageDeleted
-        }
-        
-        if (!isPreviousMsgSameSender || isQuotedMessage), let userId = chatGroupMessage.userId {
-            nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
-            nameLabel.textColor = getNameColor(for: userId, name: nameLabel.text ?? "", groupId: chatGroupMessage.groupId)
-            nameRow.isHidden = false
-            
-            if (chatGroupMessage.orderedMedia.count == 0) {
-                textRow.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 10, right: 10)
-            }
-        }
 
-        updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
-                   isNextMsgSameSender: isNextMsgSameSender,
-                   isNextMsgSameTime: isNextMsgSameTime,
-                   isQuotedMessage: isQuotedMessage,
-                   text: text,
-                   orderedMentions: chatGroupMessage.orderedMentions,
-                   media: chatGroupMessage.media,
-                   timestamp: chatGroupMessage.timestamp)
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
-        bubbleWrapper.isUserInteractionEnabled = true
-        bubbleWrapper.addGestureRecognizer(tapGesture)
-    }
-        
-    func updateQuoted(chatQuoted: ChatQuoted?, mediaIndex: Int, groupID: GroupID? = nil) -> Bool {
-
+    func updateQuoted(chatQuoted: ChatQuoted?, mediaIndex: Int) -> Bool {
         var isQuotedMessage = false
-        
+
         if let quoted = chatQuoted {
             isQuotedMessage = true
-            
+
             guard let userID = quoted.userId else { return false }
             
             quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
-            
-            if let groupID = groupID, userID != MainAppContext.shared.userData.userId {
-                quotedNameLabel.textColor = getNameColor(for: userID, name: quotedNameLabel.text ?? "", groupId: groupID)
-                quotedRow.subviews[1].backgroundColor = quotedNameLabel.textColor.withAlphaComponent(0.1)
-            }
-            
+
             let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.text,
                 orderedMentions: quoted.orderedMentions)
@@ -445,7 +400,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             if text.count <= 3 && text.containsOnlyEmoji {
                 quotedTextView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
-            
+
             // TODO: need to optimize
             if let media = quoted.media {
 

@@ -384,38 +384,8 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             listenForUploadProgress()
         }
     }
-    
-    func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
-        messageID = chatGroupMessage.id
 
-        var quoteMediaIndex: Int = 0
-        if chatGroupMessage.chatReplyMessageID != nil {
-            quoteMediaIndex = Int(chatGroupMessage.chatReplyMessageMediaIndex)
-        }
-        let isQuotedMessage = updateQuoted(chatQuoted: chatGroupMessage.quoted, mediaIndex: quoteMediaIndex, groupID: chatGroupMessage.groupId)
-        
-        var text = chatGroupMessage.text
-        if [.retracting, .retracted].contains(chatGroupMessage.outboundStatus) {
-            textView.textColor = UIColor.chatTime
-            text = Localizations.chatMessageDeleted
-        }
-        
-        updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
-                   isNextMsgSameSender: isNextMsgSameSender,
-                   isNextMsgSameTime: isNextMsgSameTime,
-                   isQuotedMessage: isQuotedMessage,
-                   text: text,
-                   orderedMentions: chatGroupMessage.orderedMentions,
-                   media: chatGroupMessage.media,
-                   timestamp: chatGroupMessage.timestamp,
-                   statusIcon: statusIcon(chatGroupMessage.outboundStatus))
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
-        bubbleWrapper.isUserInteractionEnabled = true
-        bubbleWrapper.addGestureRecognizer(tapGesture)
-    }
-    
-    func updateQuoted(chatQuoted: ChatQuoted?, mediaIndex: Int, groupID: GroupID? = nil) -> Bool {
+    func updateQuoted(chatQuoted: ChatQuoted?, mediaIndex: Int) -> Bool {
 
         var isQuotedMessage = false
         
@@ -425,12 +395,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             guard let userID = quoted.userId else { return false }
             
             quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
-            
-            if let groupID = groupID, userID != MainAppContext.shared.userData.userId {
-                quotedNameLabel.textColor = getNameColor(for: userID, name: quotedNameLabel.text ?? "", groupId: groupID)
-                quotedRow.subviews[1].backgroundColor = quotedNameLabel.textColor.withAlphaComponent(0.1)
-            }
-            
+
             let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.text,
                 orderedMentions: quoted.orderedMentions)
@@ -606,17 +571,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 //        case .error: return UIImage(systemName: "arrow.counterclockwise.circle")?.withTintColor(.systemRed)
         default: return nil }
     }
-    
-    func statusIcon(_ status: ChatGroupMessage.OutboundStatus) -> UIImage? {
-        switch status {
-        case .pending: return UIImage(named: "CheckmarkSingle")?.withTintColor(.clear)
-        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray3)
-        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray3)
-        case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
-//        case .error: return UIImage(systemName: "arrow.counterclockwise.circle")?.withTintColor(.systemRed)
-        default: return nil }
-    }
-    
+
     private func listenForUploadProgress() {
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetMediaUploadProgress.sink { [weak self] (msgID, progress) in

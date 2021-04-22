@@ -578,13 +578,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         if userId == MainAppContext.shared.userData.userId {
             quoteFeedPanelNameLabel.textColor = .chatOwnMsg
         } else {
-            
-            if let groupID = groupID {
-                quoteFeedPanelNameLabel.textColor = getNameColor(for: userId, name: quoteFeedPanelNameLabel.text ?? "", groupId: groupID)
-            } else {
-                quoteFeedPanelNameLabel.textColor = .label
-            }
-
+            quoteFeedPanelNameLabel.textColor = .label
         }
         
         quoteFeedPanel.subviews[0].backgroundColor = quoteFeedPanelNameLabel.textColor.withAlphaComponent(0.1)
