@@ -120,7 +120,9 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
                 guard let self = self else { return }
                 guard let groupID = groupID else { return }
                 self.navigationController?.popToRootViewController(animated: false)
-                self.navigationController?.pushViewController(GroupFeedViewController(groupId: groupID), animated: false)
+                let vc = GroupFeedViewController(groupId: groupID)
+                vc.hidesBottomBarWhenPushed = true
+                self.navigationController?.pushViewController(vc, animated: false)
             }
         )
     }
@@ -340,18 +342,24 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         switch metadata.contentType {
         case .groupFeedPost, .groupFeedComment:
             if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                self.navigationController?.pushViewController(GroupFeedViewController(groupId: groupId), animated: false)
+                let vc = GroupFeedViewController(groupId: groupId)
+                vc.hidesBottomBarWhenPushed = true
+                self.navigationController?.pushViewController(vc, animated: false)
             }
             break
         case .groupAdd:
             if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                self.navigationController?.pushViewController(GroupFeedViewController(groupId: groupId), animated: false)
+                let vc = GroupFeedViewController(groupId: groupId)
+                vc.hidesBottomBarWhenPushed = true
+                self.navigationController?.pushViewController(vc, animated: false)
             } else {
                 // for offline groupAdd notifications, the app needs some time to get and create the new group when the user
                 // taps on the notification so we do a simple retry
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                        self.navigationController?.pushViewController(GroupFeedViewController(groupId: groupId), animated: false)
+                        let vc = GroupFeedViewController(groupId: groupId)
+                        vc.hidesBottomBarWhenPushed = true
+                        self.navigationController?.pushViewController(vc, animated: false)
                     }
                 }
             }
@@ -369,7 +377,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 
     private func openFeed(forGroupId groupId: GroupID) {
         let viewController = GroupFeedViewController(groupId: groupId)
-        viewController.hidesBottomBarWhenPushed = false
+        viewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(viewController, animated: true)
     }
 
@@ -562,7 +570,9 @@ extension GroupsListViewController: NewGroupMembersViewControllerDelegate {
     func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, selected: [UserID]) {}
     
     func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, didCreateGroup: GroupID) {
-        navigationController?.pushViewController(GroupFeedViewController(groupId: didCreateGroup), animated: true)
+        let vc = GroupFeedViewController(groupId: didCreateGroup)
+        vc.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(vc, animated: true)
     }
 }
 
