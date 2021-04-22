@@ -229,15 +229,6 @@ final class InviteViewController: UIViewController {
     }
 
     private func redeemInvite(for contact: InviteContact, completion: ((InviteResult) -> Void)?) {
-        guard !inviteManager.isDataCurrent || inviteManager.numberOfInvitesAvailable != 0 else {
-            let vc = UIAlertController(
-                title: Localizations.inviteErrorTitle,
-                message: Localizations.outOfInvitesWith(date: inviteManager.nextRefreshDate ?? Date()),
-                preferredStyle: .alert)
-            vc.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
-            self.present(vc, animated: true, completion: nil)
-            return
-        }
         busyView.isHidden = false
         busyView.startAnimating()
         collectionView.isUserInteractionEnabled = false
@@ -286,13 +277,9 @@ final class InviteViewController: UIViewController {
                 vc.messageComposeDelegate = self
                 self.present(vc, animated: true, completion: nil)
                 #endif
-            case .failure:
-                let vc = UIAlertController(
-                    title: Localizations.inviteErrorTitle,
-                    message: Localizations.inviteErrorMessage,
-                    preferredStyle: .alert)
-                vc.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
-                self.present(vc, animated: true, completion: nil)
+
+            case .failure(let reason):
+                self.presentFailureAlert(for: reason)
             }
         }
     }
@@ -312,11 +299,30 @@ final class InviteViewController: UIViewController {
                     return
                 }
                 UIApplication.shared.open(whatsAppURL, options: [:], completionHandler: nil)
-            case .failure:
-                let vc = UIAlertController(title: Localizations.inviteErrorTitle, message: Localizations.inviteErrorMessage, preferredStyle: .alert)
-                vc.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
-                self?.present(vc, animated: true, completion: nil)
+            case .failure(let reason):
+                self?.presentFailureAlert(for: reason)
             }
+        }
+    }
+
+    private func presentFailureAlert(for reason: InviteResult.FailureReason) {
+        switch reason {
+        case .existingUser:
+            DDLogInfo("InviteViewController/presentFailureAlert/skipping [existingUser]")
+        case .noInvitesLeft:
+            let vc = UIAlertController(
+                title: Localizations.inviteErrorTitle,
+                message: Localizations.outOfInvitesWith(date: inviteManager.nextRefreshDate ?? Date()),
+                preferredStyle: .alert)
+            vc.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
+            present(vc, animated: true, completion: nil)
+        case .invalidNumber, .unknown:
+            let vc = UIAlertController(
+                title: Localizations.inviteErrorTitle,
+                message: Localizations.inviteErrorMessage,
+                preferredStyle: .alert)
+            vc.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
+            present(vc, animated: true, completion: nil)
         }
     }
 
