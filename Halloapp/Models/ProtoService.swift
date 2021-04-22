@@ -1046,7 +1046,7 @@ extension ProtoService: HalloService {
     }
 
     func sendAPNSTokenIfNecessary(_ token: String?) {
-        let langID = makeAPNSTokenLangID(for: Locale.current)
+        let langID = Locale.current.halloServiceLangID
         let hasSyncTokenChanged = token != UserDefaults.standard.string(forKey: userDefaultsKeyForAPNSToken)
         let hasLangIDChanged = langID != UserDefaults.standard.string(forKey: userDefaultsKeyForLangID)
         let savedAPNSSyncTime = UserDefaults.standard.object(forKey: userDefaultsKeyForAPNSSyncTime) as? Date
@@ -1088,16 +1088,7 @@ extension ProtoService: HalloService {
         UserDefaults.standard.set(nextDate, forKey: userDefaultsKeyForAPNSSyncTime)
     }
 
-    func makeAPNSTokenLangID(for locale: Locale) -> String? {
-        guard let languageCode = locale.languageCode else {
-            return nil
-        }
-        guard let regionCode = locale.regionCode, ["en", "pt", "zh"].contains(locale.languageCode) else {
-            // Only append region code for specific languages (defined in push_language_id spec)
-            return languageCode
-        }
-        return "\(languageCode)-\(regionCode)"
-    }
+
 
     func updateNotificationSettings(_ settings: [NotificationSettings.ConfigKey : Bool], completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoUpdateNotificationSettingsRequest(settings: settings, completion: completion))

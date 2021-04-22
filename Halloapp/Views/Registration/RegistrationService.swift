@@ -12,7 +12,7 @@ import CryptoKit
 import Sodium
 
 protocol RegistrationService {
-    func requestVerificationCode(for phoneNumber: String, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
+    func requestVerificationCode(for phoneNumber: String, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
     func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
 
     // Temporary (used for Noise migration)
@@ -35,10 +35,26 @@ final class DefaultRegistrationService: RegistrationService {
 
     // MARK: Verification code requests
 
-    func requestVerificationCode(for phoneNumber: String, completion: @escaping (Result<RegistrationResponse, Error>) -> Void) {
-        var request = URLRequest(url: URL(string: "https://\(hostName)/api/registration/request_sms")!)
+    func requestVerificationCode(for phoneNumber: String, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void) {
+
+        var json: [String : String] = [
+            "phone": phoneNumber,
+            "method": "sms",
+        ]
+        if let langID = locale.halloServiceLangID {
+            json["lang_id"] = langID
+        }
+
+        guard let url = URL(string: "https://\(hostName)/api/registration/request_otp"),
+              let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else
+        {
+            completion(.failure(VerificationCodeRequestError.requestCreationError))
+            return
+        }
+
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.httpBody = try! JSONSerialization.data(withJSONObject: ["phone": phoneNumber])
+        request.httpBody = jsonData
         request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
         DDLogInfo("reg/request-sms/begin url=[\(request.url!)]  phone=[\(phoneNumber)]")
         let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
@@ -290,6 +306,7 @@ enum VerificationCodeRequestError: String, Error, RawRepresentable {
     case notInvited = "not_invited"
     case smsFailure = "sms_fail"
     case invalidClientVersion = "invalid_client_version"    // client version has expired.
+    case requestCreationError
     case malformedResponse // everything else
 }
 
