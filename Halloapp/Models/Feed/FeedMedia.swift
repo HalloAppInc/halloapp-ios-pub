@@ -24,13 +24,18 @@ class FeedMedia: Identifiable, Hashable {
     let order: Int
     let type: FeedMediaType
     var size: CGSize
-    private var status: FeedPostMedia.Status
+    private var status: FeedPostMedia.Status {
+        didSet {
+            // Notify all status updates.
+            mediaStatusDidChange.send(self)
+        }
+    }
     private var pendingMediaReadyCancelable: AnyCancellable?
     private var pendingMediaProgress: CurrentValueSubject<Float, Never>?
 
     private(set) var isMediaAvailable: Bool = false
     var isDownloadRequired: Bool {
-        get { status == .downloading || status == .none }
+        get { status == .downloading || status == .none || status == .downloadError}
     }
 
     private(set) var image: UIImage? {
@@ -56,6 +61,7 @@ class FeedMedia: Identifiable, Hashable {
     }
     let imageDidBecomeAvailable = PassthroughSubject<UIImage, Never>()
     let videoDidBecomeAvailable = PassthroughSubject<URL, Never>()
+    let mediaStatusDidChange = PassthroughSubject<FeedMedia, Never>()
 
     /**
      Setting this for images will trigger loading of an image on a background queue.

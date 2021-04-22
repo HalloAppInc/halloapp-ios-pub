@@ -144,6 +144,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
 
         appDelegate.endBackgroundConnectionTask()
+        appDelegate.resumeMediaDownloads()
 
         DispatchQueue.main.async {
             appDelegate.checkNotificationsAuthorizationStatus()

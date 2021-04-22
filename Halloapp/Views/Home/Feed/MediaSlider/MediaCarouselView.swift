@@ -467,6 +467,7 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
     }
     private var downloadProgressViewWidthConstraint: NSLayoutConstraint?
     var downloadProgressCancellable: AnyCancellable?
+    private var mediaStatusCancellable: AnyCancellable?
 
     private lazy var progressView: CircularProgressView = {
         let progressView = CircularProgressView()
@@ -486,6 +487,8 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
         }
         downloadProgressCancellable?.cancel()
         downloadProgressCancellable = nil
+        mediaStatusCancellable?.cancel()
+        mediaStatusCancellable = nil
     }
 
     func apply(configuration: MediaCarouselViewConfiguration) {
@@ -494,6 +497,20 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
     }
 
     func configure(with media: FeedMedia) {
+        updateMediaStatusUI(with: media)
+        if mediaStatusCancellable == nil {
+            mediaStatusCancellable = media.mediaStatusDidChange.sink { [weak self] media in
+                guard let self = self else { return }
+                DDLogVerbose("MediaCarouselCollectionViewCell/mediaStatusCancellable/status \(media.isDownloadRequired)")
+                DispatchQueue.main.async {
+                    self.updateMediaStatusUI(with: media)
+                }
+            }
+        }
+    }
+
+    func updateMediaStatusUI(with media: FeedMedia) {
+        DDLogVerbose("MediaCarouselView/updateMediaStatusUI/media: \(media.id), \(media.isDownloadRequired)")
         guard media.isDownloadRequired else {
             hideProgressView()
             downloadProgressCancellable?.cancel()
@@ -506,15 +523,18 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
     }
 
     func startObservingDownloadProgressIfNecessary(_ media: FeedMedia) {
-        guard downloadProgressCancellable == nil else { return }
+        guard downloadProgressCancellable == nil else {
+            // This could happen when we switch media.status from downloading to downloadError.
+            // we continue to show progress bar, but we dont have any task for progress.
+            // so we cancel and wait.
+            downloadProgressCancellable?.cancel()
+            downloadProgressCancellable = nil
+            return
+        }
 
         if let progress = media.progress {
-            downloadProgressCancellable = progress.receive(on: DispatchQueue.main).sink(receiveCompletion: { [weak self] (_) in
-                guard let self = self else { return }
-                self.progressView.setProgress(1, withAnimationDuration: 0.1) {
-                    self.hideProgressView()
-                }
-            }) { [weak self] (progress) in
+            // Dont update view on completion - since download could have succeeded or failed.
+            downloadProgressCancellable = progress.receive(on: DispatchQueue.main).sink() { [weak self] (progress) in
                 guard let self = self else { return }
                 self.progressView.setProgress(progress, animated: true)
             }

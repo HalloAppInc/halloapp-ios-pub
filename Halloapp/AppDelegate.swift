@@ -224,13 +224,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func setUpReachability() {
         reachability = try? Reachability()
         reachability?.whenReachable = { reachability in
-            DDLogInfo("Reachability/reachable/\(reachability.connection)")
+            DDLogInfo("appdelegate/Reachability/reachable/\(reachability.connection)")
             MainAppContext.shared.feedData.resumeMediaDownloads()
         }
         reachability?.whenUnreachable = { reachability in
-            DDLogInfo("Reachability/unreachable/\(reachability.connection)")
+            DDLogInfo("appdelegate/Reachability/unreachable/\(reachability.connection)")
             MainAppContext.shared.feedData.suspendMediaDownloads()
         }
+        do {
+            try reachability?.startNotifier()
+        } catch {
+            DDLogInfo("appdelegate/Reachability/Failed to start notifier/\(reachability?.connection ?? nil)")
+        }
+    }
+
+    func resumeMediaDownloads() {
+        DDLogInfo("appdelegate/resumeMediaDownloads")
+        MainAppContext.shared.feedData.resumeMediaDownloads()
     }
 
     // MARK: Background App Refresh

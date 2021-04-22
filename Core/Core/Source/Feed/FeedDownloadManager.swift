@@ -162,9 +162,9 @@ public class FeedDownloadManager {
         return self.tasks.first(where: { $0.id == taskId })
     }
 
-    // MARK: Suspending and resuming
+    // MARK: Suspend downloads and keep track of mediaObjectIds
 
-    private var suspendedMedia = [FeedMediaData]()
+    public var suspendedMediaObjectIds: Set<NSManagedObjectID> = []
 
     public func suspendMediaDownloads() {
         for task in tasks {
@@ -174,19 +174,9 @@ public class FeedDownloadManager {
                     self.saveResumeData(resumeData, for: task)
                 }
             }
-            DispatchQueue.main.async { self.suspendedMedia.append(task.mediaData) }
-        }
-    }
-
-    public func resumeSuspendedMediaDownloads() {
-        DispatchQueue.main.async {
-            for mediaData in self.suspendedMedia {
-                let (taskAdded, task) = self.downloadMedia(for: mediaData)
-                if taskAdded {
-                    DDLogInfo("FeedDownloadManager/\(task.id)/resuming-suspended-download")
-                }
+            if let mediaObjectId = task.feedMediaObjectId {
+                suspendedMediaObjectIds.insert(mediaObjectId)
             }
-            self.suspendedMedia.removeAll()
         }
     }
 

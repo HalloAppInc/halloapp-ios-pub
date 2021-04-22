@@ -1391,24 +1391,46 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return downloadManager.currentTask(for: feedPostMedia)
     }
 
+    // MARK: Suspending and Resuming
+
     func suspendMediaDownloads() {
         downloadManager.suspendMediaDownloads()
     }
 
+    // We resume media downloads for all these objects on Application/WillEnterForeground.
     func resumeMediaDownloads() {
-        downloadManager.resumeSuspendedMediaDownloads()
+        var pendingPostIds: Set<FeedPostID> = []
+        // Iterate through all the suspendedMediaObjectIds and download media for those posts.
+        downloadManager.suspendedMediaObjectIds.forEach { feedMediaObjectId in
+            // Fetch FeedPostMedia
+            guard let feedPostMedia = try? viewContext.existingObject(with: feedMediaObjectId) as? FeedPostMedia else {
+                DDLogError("FeedData/resumeMediaDownloads/error missing-object [\(feedMediaObjectId)]")
+                return
+            }
+            pendingPostIds.insert(feedPostMedia.post.id)
+            DDLogInfo("FeedData/resumeMediaDownloads/pendingPostId/added post_id - \(feedPostMedia.post.id)")
+        }
+        downloadManager.suspendedMediaObjectIds.removeAll()
+        // Download media for all these posts.
+        downloadMedia(in: feedPosts(with: pendingPostIds))
     }
+
     /**
      This method must be run on the main queue to avoid race condition.
      */
+    // Why use viewContext to update FeedPostMedia here?
+    // Why does this need to run on the main queue - UI updates are anyways posted to the main queue?
     func downloadMedia(in feedPosts: [FeedPost]) {
         guard !feedPosts.isEmpty else { return }
         let managedObjectContext = self.viewContext
         // FeedPost objects should belong to main queue's context.
         assert(feedPosts.first!.managedObjectContext! == managedObjectContext)
 
+        // List of mediaItem info that will need UI update.
+        var mediaItems = [(FeedPostID, Int)]()
         var downloadStarted = false
         feedPosts.forEach { feedPost in
+            DDLogInfo("FeedData/downloadMedia/post_id - \(feedPost.id)")
             let postDownloadGroup = DispatchGroup()
             var startTime: Date?
             var photosDownloaded = 0
@@ -1442,6 +1464,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         task.feedMediaObjectId = feedPostMedia.objectID
                         feedPostMedia.status = .downloading
                         downloadStarted = true
+                        // Add the mediaItem to a list - so that we can reload and update their UI.
+                        mediaItems.append((feedPost.id, Int(feedPostMedia.order)))
                     }
                 }
             }
@@ -1465,10 +1489,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Use `downloadStarted` to prevent recursive saves when posting media.
         if managedObjectContext.hasChanges && downloadStarted {
             self.save(managedObjectContext)
+
+            // Update UI for these items.
+            DispatchQueue.main.async {
+                mediaItems.forEach{ (feedPostId, order) in
+                    self.reloadMedia(feedPostId: feedPostId, order: order)
+                }
+            }
         }
     }
 
     func reloadMedia(feedPostId: FeedPostID, order: Int) {
+        DDLogInfo("FeedData/reloadMedia/postId:\(feedPostId), order/\(order)")
         guard let feedDataItem = self.feedDataItem(with: feedPostId) else { return }
         guard let feedPost = self.feedPost(with: feedPostId) else { return }
         feedDataItem.reloadMedia(from: feedPost, order: order)
@@ -1477,8 +1509,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             // Step 1: Update FeedPostMedia
-            guard let feedPostMedia = try? managedObjectContext.existingObject(with: task.feedMediaObjectId!) as? FeedPostMedia else {
-                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  taskId=[\(task.id)]  objectId=[\(task.feedMediaObjectId!)]")
+            guard let objectID = task.feedMediaObjectId, let feedPostMedia = try? managedObjectContext.existingObject(with: objectID) as? FeedPostMedia else {
+                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  taskId=[\(task.id)]  objectId=[\(task.feedMediaObjectId ?? nil)))]")
                 return
             }
 
