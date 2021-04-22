@@ -115,18 +115,6 @@ final class ProfileHeaderViewController: UIViewController {
         guard let userID = headerView.userID else { return }
 
         navigationController?.pushViewController(ChatViewController(for: userID), animated: true)
-
-        // special case to prevent user from chaining a loop-like navigation stack
-        guard let nc = navigationController else { return }
-        var viewControllers = nc.viewControllers
-        guard viewControllers.count >= 5 else { return }
-        let thirdLast = viewControllers.count - 3
-        let fourthLast = viewControllers.count - 4
-        guard viewControllers[fourthLast].isKind(of: UserFeedViewController.self),
-              viewControllers[thirdLast].isKind(of: ChatViewController.self) else { return }
-        viewControllers.remove(at: thirdLast)
-        viewControllers.remove(at: fourthLast)
-        navigationController?.viewControllers = viewControllers
     }
     
     private func presentPhotoPicker() {

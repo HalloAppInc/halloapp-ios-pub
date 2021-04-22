@@ -59,12 +59,14 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-    
+
     override func viewDidLoad() {
         guard let fromUserId = fromUserId else { return }
 
         super.viewDidLoad()
-        
+
+        preventNavLoop()
+
         let navAppearance = UINavigationBarAppearance()
         navAppearance.backgroundColor = UIColor.feedBackground
         navAppearance.shadowColor = nil
@@ -541,7 +543,22 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     }
 
     // MARK: Helpers
-    
+
+    // special case to prevent user from chaining a loop-like navigation stack
+    private func preventNavLoop() {
+        guard let nc = navigationController else { return }
+        var viewControllers = nc.viewControllers
+        guard viewControllers.count >= 3 else { return }
+        let secondLast = viewControllers.count - 2
+        let thirdLast = viewControllers.count - 3
+        guard viewControllers[secondLast].isKind(of: UserFeedViewController.self),
+              viewControllers[thirdLast].isKind(of: ChatViewController.self) else { return }
+        DDLogInfo("ChatViewController/preventNavLoop")
+        viewControllers.remove(at: secondLast)
+        viewControllers.remove(at: thirdLast)
+        navigationController?.viewControllers = viewControllers
+    }
+
     private func checkIfShouldScrollToBottom(_ chatMsg: ChatMessage) -> Bool {
         var result = true
         guard chatMsg.fromUserId != MainAppContext.shared.userData.userId else { return result }

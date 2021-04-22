@@ -109,6 +109,8 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        preventNavLoop()
+
         navigationItem.title = Localizations.titleComments
 
         tableView.separatorStyle = .none
@@ -396,6 +398,22 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             highlightComment(commentId)
             commentToHighlightAfterScrollingEnds = nil
         }
+    }
+    
+    // MARK: Helpers
+
+    private func preventNavLoop() {
+        guard let nc = navigationController else { return }
+        var viewControllers = nc.viewControllers
+        guard viewControllers.count >= 3 else { return }
+        let secondLast = viewControllers.count - 2
+        let thirdLast = viewControllers.count - 3
+        guard viewControllers[secondLast].isKind(of: UserFeedViewController.self),
+              viewControllers[thirdLast].isKind(of: CommentsViewController.self) else { return }
+        DDLogInfo("CommentsViewController/preventNavLoop")
+        viewControllers.remove(at: secondLast)
+        viewControllers.remove(at: thirdLast)
+        navigationController?.viewControllers = viewControllers
     }
 
     // MARK: UI Actions
