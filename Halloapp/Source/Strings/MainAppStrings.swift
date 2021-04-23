@@ -54,14 +54,6 @@ extension Localizations {
         NSLocalizedString("fab.accessibility.text", value: "Text", comment: "VoiceOver label for text post button in floating compose post menu in Home view.")
     }
     
-    static var fabAccessibilityNewMessage: String {
-        NSLocalizedString("fab.accessibility.new.message", value: "New message", comment: "VoiceOver label for floating compose message button in Chats List view ")
-    }
-
-    static var fabAccessibilityNewGroup: String {
-        NSLocalizedString("fab.accessibility.new.group", value: "New group", comment: "VoiceOver label for floating compose group button in Groups List view ")
-    }
-    
     // MARK: Message Actions
 
     static var messageReply: String {

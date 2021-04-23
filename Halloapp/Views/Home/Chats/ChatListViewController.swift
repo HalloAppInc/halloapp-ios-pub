@@ -140,8 +140,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         DDLogInfo("ChatListViewController/viewWillDisappear")
         super.viewWillDisappear(animated)
         isVisible = false
-
-        floatingMenu.setState(.collapsed, animated: true)
     }
 
     private lazy var rightBarButtonItem: UIBarButtonItem = {
@@ -201,16 +199,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         emptyView.alpha = isEmpty ? 1 : 0
     }
 
-
     // MARK: New Chat
-
-    private lazy var floatingMenu: FloatingMenu = {
-        FloatingMenu(
-            permanentButton: .standardActionButton(
-                iconTemplate: UIImage(named: "icon_fab_compose_message")?.withRenderingMode(.alwaysTemplate),
-                accessibilityLabel: Localizations.fabAccessibilityNewMessage,
-                action: { [weak self] in self?.showComposeChat() }))
-    }()
 
     private func showComposeChat() {
         present(UINavigationController(rootViewController: NewChatViewController(delegate: self)), animated: true)
