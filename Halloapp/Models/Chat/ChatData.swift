@@ -1855,7 +1855,7 @@ extension ChatData {
             chatMedia.sha256 = xmppMedia.sha256
             chatMedia.message = chatMessage
         }
-        
+
         // Process Quoted Feedpost
         if xmppChatMessage.feedPostId != nil {
             if let feedPost = MainAppContext.shared.feedData.feedPost(with: xmppChatMessage.feedPostId!) {
@@ -1900,10 +1900,10 @@ extension ChatData {
                 }
             }
         }
-        
+
         // Process Quoted Message
         if xmppChatMessage.chatReplyMessageID != nil {
-            
+
             if let quotedChatMessage = MainAppContext.shared.chatData.chatMessage(with: xmppChatMessage.chatReplyMessageID!) {
                 let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
                 quoted.type = .message
@@ -1936,12 +1936,11 @@ extension ChatData {
         
         // Update Chat Thread
         if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.fromUserId, in: managedObjectContext) {
-            // do an extra save if the timestamp was nil since fetchedcontroller have issues with detecting re-ordering changes for properties
-            // that started out as nil
-            if chatThread.lastMsgTimestamp == nil {
-                chatThread.lastMsgTimestamp = chatMessage.timestamp
-                save(managedObjectContext)
-            }
+            // do an extra save since fetchedcontroller have issues with detecting re-ordering changes for properties
+            // that started out as nil (and possibly when it's just mixed with other changes)
+            chatThread.lastMsgTimestamp = chatMessage.timestamp
+            save(managedObjectContext)
+
             chatThread.lastMsgId = chatMessage.id
             chatThread.lastMsgUserId = chatMessage.fromUserId
             chatThread.lastMsgText = chatMessage.text
@@ -2963,6 +2962,10 @@ extension ChatData {
         // Update Chat Thread
         let mentionText = contactStore.textWithMentions(groupFeedPost.text, orderedMentions: groupFeedPost.orderedMentions)
         if let chatThread = chatThread(type: .group, id: groupID, in: managedObjectContext) {
+            // extra save for fetchedcontroller to notice re-ordering changes mixed in with other changes
+            chatThread.lastFeedTimestamp = groupFeedPost.timestamp
+            save(managedObjectContext)
+        
             chatThread.lastFeedId = groupFeedPost.id
             chatThread.lastFeedUserID = groupFeedPost.userId
             chatThread.lastFeedText = mentionText?.string ?? ""
@@ -3285,7 +3288,7 @@ extension ChatData {
         chatGroupMessageEvent.sender = xmppGroup.sender
         chatGroupMessageEvent.memberUserId = xmppGroupMember?.userId
         chatGroupMessageEvent.groupName = xmppGroup.name
-        
+
         chatGroupMessageEvent.action = {
             switch xmppGroup.action {
             case .create: return .create
@@ -3314,22 +3317,7 @@ extension ChatData {
 
         chatGroupMessageEvent.groupMessage = chatGroupMessage
 
-        save(managedObjectContext)
-
         if let chatThread = self.chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
-
-            // if group feed is not enabled or if the chat already have a message or event
-            if !ServerProperties.isGroupFeedEnabled || chatThread.lastMsgId != nil {
-                chatThread.lastMsgId = chatGroupMessage.id
-                chatThread.lastMsgUserId = chatGroupMessage.userId
-                chatThread.lastMsgText = chatGroupMessageEvent.text
-                chatThread.lastMsgMediaType = .none
-                chatThread.lastMsgStatus = .none
-
-                if ![.changeAvatar].contains(chatGroupMessageEvent.action) {
-                    chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
-                }
-            }
 
             chatThread.lastFeedUserID = chatGroupMessage.userId
             chatThread.lastFeedText = chatGroupMessageEvent.text
@@ -3337,6 +3325,8 @@ extension ChatData {
 
             // unreadCount is not incremented for group event messages
         }
+        
+        save(managedObjectContext)
 
         didGetAGroupEvent.send(chatGroupMessage.groupId)
     }
