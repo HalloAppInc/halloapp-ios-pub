@@ -33,7 +33,6 @@ class FeedViewController: FeedCollectionViewController {
         installLargeTitleUsingGothamFont()
         installEmptyView()
         installFloatingActionMenu()
-        installInviteFriendsButton()
 
         let notificationButton = BadgedButton(type: .system)
         notificationButton.centerYConstant = 5
@@ -89,7 +88,6 @@ class FeedViewController: FeedCollectionViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        updateInviteFriendsButtonPosition()
         showNUXIfNecessary()
     }
 
@@ -99,71 +97,16 @@ class FeedViewController: FeedCollectionViewController {
 
     // MARK: FeedCollectionViewController
 
-    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        super.scrollViewDidScroll(scrollView)
-
-        guard scrollView == collectionView else { return }
-        updateInviteFriendsButtonPosition()
-    }
-
     override func willUpdate(with items: [FeedDisplayItem]) {
         super.willUpdate(with: items)
 
         updateEmptyView(items.isEmpty)
     }
 
-    override func didUpdateItems() {
-        super.didUpdateItems()
-
-        updateInviteFriendsButtonPosition()
-        inviteFriendsButton.isHidden = false
-    }
-
     // MARK: UI Actions
 
     @objc private func presentNotificationsView() {
         self.present(UINavigationController(rootViewController: NotificationsViewController(style: .plain)), animated: true)
-    }
-
-    // MARK: Invite friends
-
-    private let inviteFriendsButton = UIButton()
-
-    private func installInviteFriendsButton() {
-        inviteFriendsButton.setTitle(Localizations.inviteFriendsAndFamily, for: .normal)
-        inviteFriendsButton.setTitleColor(.systemBlue, for: .normal)
-        inviteFriendsButton.titleLabel?.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
-        inviteFriendsButton.titleLabel?.numberOfLines = 0
-        inviteFriendsButton.tintColor = .systemBlue
-        let image = UIImage(named: "AddFriend")?
-            .withRenderingMode(.alwaysTemplate)
-            .imageFlippedForRightToLeftLayoutDirection()
-        inviteFriendsButton.setImage(image, for: .normal)
-        inviteFriendsButton.translatesAutoresizingMaskIntoConstraints = false
-        inviteFriendsButton.addTarget(self, action: #selector(startInviteFriendsFlow), for: .touchUpInside)
-        inviteFriendsButton.contentHorizontalAlignment = .leading
-        let imageSpacing: CGFloat = 6 // NB: The image has an additional 4px of padding so it will optically center correctly
-        inviteFriendsButton.contentEdgeInsets = inviteFriendsButton.getDirectionalUIEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: imageSpacing)
-        inviteFriendsButton.titleEdgeInsets = inviteFriendsButton.getDirectionalUIEdgeInsets(top: 0, leading: imageSpacing, bottom: 0, trailing: -imageSpacing)
-        inviteFriendsButton.isHidden = true // Hide until we've loaded posts
-        view.addSubview(inviteFriendsButton)
-
-        inviteFriendsButton.trailingAnchor.constraint(lessThanOrEqualTo: floatingMenu.permanentButton.leadingAnchor).isActive = true
-        inviteFriendsButton.constrainMargin(anchor: .leading, to: view)
-    }
-
-    private func updateInviteFriendsButtonPosition() {
-        let scrollViewVisibleHeight = collectionView.contentSize.height - collectionView.contentOffset.y
-        let floatingButtonAlignedY = floatingMenu.permanentButton.center.y - inviteFriendsButton.frame.height / 2
-        inviteFriendsButton.frame.origin.y = max(scrollViewVisibleHeight, floatingButtonAlignedY)
-    }
-
-    @objc
-    private func startInviteFriendsFlow() {
-        InviteManager.shared.requestInvitesIfNecessary()
-        let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
-        let navController = UINavigationController(rootViewController: inviteVC)
-        present(navController, animated: true)
     }
 
     // MARK: NUX
