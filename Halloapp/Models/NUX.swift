@@ -11,7 +11,7 @@ import Core
 
 final class NUX {
     enum Event: String {
-        case homeFeedIntro
+        case homeFeedIntro // no longer used
         case chatListIntro
         case activityCenterIcon
         case newPostButton
@@ -103,34 +103,10 @@ extension Localizations {
             value: "Tap to share an update with your friends & family on HalloApp",
             comment: "Text for new user popup pointing at new post button")
     }
-    static var nuxHomeFeedIntroContent: String {
-        NSLocalizedString(
-            "nux.home.feed",
-            value: "Welcome to your home feed! This is where you can see posts from your phone contacts who use HalloApp.",
-            comment: "Text for new user info panel on home feed")
-    }
-    static var nuxHomeFeedDetailsTitle: String {
-        NSLocalizedString(
-            "nux.home.feed.details.title",
-            value: "About HalloApp",
-            comment: "Title for more detailed new user popup on home feed")
-    }
-    static var nuxHomeFeedDetailsBody: String {
-        NSLocalizedString(
-            "nux.home.feed.details.text",
-            value: """
-Home feed allows you to share text, photo, and video updates that disappear after 30 days.
-
-If you want to share updates with someone, both parties must have each other's numbers saved on their phones.
-
-You can share your updates with your entire contact list or only with selected people. Go to settings to change feed privacy.
-""",
-            comment: "Text for more detailed new user popup on home feed")
-    }
     static var nuxHomeFeedEmpty: String {
         NSLocalizedString(
             "nux.home.feed.empty",
-            value: "Posts from your contacts will appear here",
+            value: "Posts from your phone’s contacts will appear here",
             comment: "Shown on home feed when no posts are available"
         )
     }

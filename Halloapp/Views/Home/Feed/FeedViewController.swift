@@ -143,17 +143,13 @@ class FeedViewController: FeedCollectionViewController {
 
     private weak var overlay: Overlay?
 
-    private var isShowingNUXHeaderView = false
-
     private func showNUXIfNecessary() {
         guard view.window != nil else {
             return
         }
-        if isShowingNUXHeaderView || overlay != nil {
+        if overlay != nil {
             // only show one NUX item at a time
             return
-        } else if MainAppContext.shared.nux.isIncomplete(.homeFeedIntro) {
-            installNUXHeaderView()
         } else if MainAppContext.shared.nux.isIncomplete(.activityCenterIcon) && notificationCount > 0 {
             showActivityCenterNUX()
         } else if MainAppContext.shared.nux.isIncomplete(.newPostButton) {
@@ -173,92 +169,6 @@ class FeedViewController: FeedCollectionViewController {
 
     private func updateEmptyView(_ isEmpty: Bool) {
         emptyView.alpha = isEmpty ? 1 : 0
-    }
-
-    private func installNUXHeaderView() {
-        let stringLearnMore = NSLocalizedString("nux.learn.more", value: "Learn more", comment: "Action in NUX UI in Home screen.")
-        let nuxItem = NUXItem(
-            message: Localizations.nuxHomeFeedIntroContent,
-            icon: UIImage(named: "NUXSpeechBubble"),
-            link: (text: stringLearnMore, action: { [weak self] nuxItem in
-                self?.showNUXDetails { _ = nuxItem.dismiss() }
-            }),
-            didClose: { [weak self] (nuxItem) in
-                MainAppContext.shared.nux.didComplete(.homeFeedIntro)
-                UIView.animate(
-                    withDuration: 0.3,
-                    delay: 0,
-                    usingSpringWithDamping: 1,
-                    initialSpringVelocity: 0,
-                    options: UIView.AnimationOptions(),
-                    animations: {
-                        self?.isShowingNUXHeaderView = false
-                        nuxItem.alpha = 0
-                        self?.collectionView.contentInset.top = 0 },
-                    completion: { [weak self] _ in
-                        nuxItem.removeFromSuperview()
-                        self?.showNUXIfNecessary()
-                    })
-        })
-        nuxItem.frame.size = nuxItem.systemLayoutSizeFitting(
-            CGSize(width: collectionView.frame.width, height: .greatestFiniteMagnitude),
-            withHorizontalFittingPriority: .required,
-            verticalFittingPriority: .fittingSizeLevel)
-        nuxItem.frame.origin.y = -nuxItem.frame.height
-        collectionView.addSubview(nuxItem)
-        collectionView.contentInset.top = nuxItem.frame.height
-        collectionView.contentOffset.y -= nuxItem.frame.height
-        isShowingNUXHeaderView = true
-    }
-
-    private func showNUXDetails(completion: (() -> Void)?) {
-        let titleLabel = UILabel()
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = Localizations.nuxHomeFeedDetailsTitle
-        titleLabel.numberOfLines = 0
-        titleLabel.font = .systemFont(forTextStyle: .title3, weight: .medium)
-        titleLabel.textColor = UIColor.label
-
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = Localizations.nuxHomeFeedDetailsBody
-        label.numberOfLines = 0
-        label.font = .systemFont(forTextStyle: .callout)
-        label.textColor = UIColor.label.withAlphaComponent(0.5)
-
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setContentCompressionResistancePriority(.required, for: .vertical)
-        button.setTitle(Localizations.buttonOK, for: .normal)
-        button.setTitleColor(UIColor.nux, for: .normal)
-        button.titleLabel?.font = .systemFont(forTextStyle: .callout, weight: .bold)
-        button.addTarget(self, action: #selector(dismissOverlay), for: .touchUpInside)
-
-        let contentView = UIView()
-        contentView.translatesAutoresizingMaskIntoConstraints = false
-
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(label)
-        contentView.addSubview(button)
-
-        titleLabel.constrainMargins([.top, .leading, .trailing], to: contentView)
-
-        label.setContentCompressionResistancePriority(.required, for: .vertical)
-        label.constrainMargins([.leading, .trailing], to: contentView)
-        label.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 15).isActive = true
-
-        button.constrainMargins([.trailing, .bottom], to: contentView)
-        button.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 15).isActive = true
-        button.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor).isActive = true
-
-        tabBarController?.tabBar.isHidden = true
-        let sheet = BottomSheet(innerView: contentView) { [weak self] in
-            self?.tabBarController?.tabBar.isHidden = false
-            completion?()
-        }
-
-        overlay = sheet
-        overlayContainer.display(sheet)
     }
 
     private func showFloatingMenuNUX() {
