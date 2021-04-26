@@ -154,12 +154,8 @@ class ChatData: ObservableObject {
         )
         
         cancellableSet.insert(
-            service.didGetNewChatMessage.sink { [weak self] xmppMessage in
-                guard let self = self else { return }
-                DDLogInfo("ChatData/didGetNewChatMessage \(xmppMessage.id)")
-                self.processInboundXMPPChatMessage(xmppMessage)
-                
-                self.didGetAChatMsg.send(xmppMessage.fromUserId)
+            service.didGetNewChatMessage.sink { [weak self] incomingMessage in
+                self?.processIncomingChatMessage(incomingMessage)
             }
         )
         
@@ -1775,20 +1771,47 @@ extension ChatData {
 
     // MARK: 1-1 Process Inbound Messages
     
-    private func processInboundXMPPChatMessage(_ chatMessage: ChatMessageProtocol) {
+    private func processIncomingChatMessage(_ incomingMessage: IncomingChatMessage) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             let isAppActive = UIApplication.shared.applicationState == .active
             
             self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                 guard let self = self else { return }
-                self.processInboundChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
+                switch incomingMessage {
+                case .decrypted(let chatMessage):
+                    DDLogInfo("ChatData/processIncomingChatMessage \(chatMessage.id)")
+                    self.processInboundChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
+                    self.didGetAChatMsg.send(chatMessage.fromUserId)
+                case .notDecrypted(let tombstone):
+                    DDLogInfo("ChatData/processIncomingChatMessage/tombstone \(tombstone.id)")
+                    self.processInboundTombstone(tombstone, using: managedObjectContext)
+                    self.didGetAChatMsg.send(tombstone.from)
+                }
             }
         }
     }
+
+    private func processInboundTombstone(_ tombstone: ChatMessageTombstone, using managedObjectContext: NSManagedObjectContext) {
+        guard self.chatMessage(with: tombstone.id, in: managedObjectContext) == nil else {
+            DDLogInfo("ChatData/processInboundTombstone/skipping [already exists]")
+            return
+        }
+
+        let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
+        chatMessage.id = tombstone.id
+        chatMessage.toUserId = tombstone.to
+        chatMessage.fromUserId = tombstone.from
+        chatMessage.timestamp = tombstone.timestamp
+        chatMessage.incomingStatus = .rerequesting
+        chatMessage.outgoingStatus = .none
+
+        save(managedObjectContext)
+    }
     
     private func processInboundChatMessage(xmppChatMessage: ChatMessageProtocol, using managedObjectContext: NSManagedObjectContext, isAppActive: Bool) {
-        guard self.chatMessage(with: xmppChatMessage.id, in: managedObjectContext) == nil else {
+        let existingChatMessage = chatMessage(with: xmppChatMessage.id, in: managedObjectContext)
+        if let existingChatMessage = existingChatMessage, existingChatMessage.incomingStatus != .rerequesting {
             // This is expected if we rerequest a message where decryption failed but a plaintext version was included
             DDLogInfo("ChatData/process/already-exists [\(xmppChatMessage.id)]")
             return
@@ -1801,10 +1824,16 @@ extension ChatData {
                 isCurrentlyChattingWithUser = true
             }
         }
-        
-        // Add new ChatMessage to database.
-        DDLogDebug("ChatData/process/new [\(xmppChatMessage.id)]")
-        let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
+
+        let chatMessage: ChatMessage = {
+            guard let existingChatMessage = existingChatMessage else {
+                DDLogDebug("ChatData/process/new [\(xmppChatMessage.id)]")
+                return NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
+            }
+            DDLogDebug("ChatData/process/updating rerequested message [\(xmppChatMessage.id)]")
+            return existingChatMessage
+        }()
+
         chatMessage.id = xmppChatMessage.id
         chatMessage.toUserId = xmppChatMessage.toUserId
         chatMessage.fromUserId = xmppChatMessage.fromUserId

@@ -19,7 +19,11 @@ extension Localizations {
     static var chatMessageDeleted: String {
         NSLocalizedString("chat.message.deleted", value: "This message was deleted.", comment: "Message text shown for the message that was deleted")
     }
-    
+
+    static var chatMessageWaiting: String {
+        NSLocalizedString("chat.message.waiting", value: "Waiting for this message. This may take a while.", comment: "Text shown in place of a received message we are not able to decrypt yet.")
+    }
+
     static var chatMessagePhoto: String {
         NSLocalizedString("chat.message.photo", value: "Photo", comment: "Message text shown in a message that have photo media but no text")
     }

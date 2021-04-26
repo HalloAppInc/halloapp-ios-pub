@@ -49,7 +49,7 @@ protocol HalloService: CoreService {
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID)
 
     // MARK: Chat
-    var didGetNewChatMessage: PassthroughSubject<ChatMessageProtocol, Never> { get }
+    var didGetNewChatMessage: PassthroughSubject<IncomingChatMessage, Never> { get }
     var didGetChatAck: PassthroughSubject<ChatAck, Never> { get }
     var didGetPresence: PassthroughSubject<ChatPresenceInfo, Never> { get }
     var didGetChatState: PassthroughSubject<ChatStateInfo, Never> { get }

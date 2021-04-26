@@ -64,7 +64,7 @@ final class ProtoService: ProtoServiceCore {
     weak var feedDelegate: HalloFeedDelegate?
     weak var keyDelegate: HalloKeyDelegate?
 
-    let didGetNewChatMessage = PassthroughSubject<ChatMessageProtocol, Never>()
+    let didGetNewChatMessage = PassthroughSubject<IncomingChatMessage, Never>()
     let didGetChatAck = PassthroughSubject<ChatAck, Never>()
     let didGetPresence = PassthroughSubject<ChatPresenceInfo, Never>()
     let didGetChatState = PassthroughSubject<ChatStateInfo, Never>()
@@ -527,7 +527,16 @@ final class ProtoService: ProtoServiceCore {
                 if let clientChat = clientChat {
                     let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount)
                     DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId) [length=\(chatMessage.text?.count ?? 0)] [media=\(chatMessage.media.count)]")
-                    self.didGetNewChatMessage.send(chatMessage)
+                    self.didGetNewChatMessage.send(.decrypted(chatMessage))
+                } else {
+                    self.didGetNewChatMessage.send(
+                        .notDecrypted(
+                            ChatMessageTombstone(
+                                id: msg.id,
+                                from: UserID(msg.fromUid),
+                                to: UserID(msg.toUid),
+                                timestamp: Date()
+                            )))
                 }
                 if let failure = decryptionFailure {
                     DDLogError("proto/didReceive/\(msg.id)/decrypt/error \(failure.error)")
@@ -796,9 +805,11 @@ final class ProtoService: ProtoServiceCore {
 
     // MARK: Decryption
 
+    private lazy var isPlaintextFallbackSupported = !ServerProperties.isInternalUser
+
     /// May return a valid message with an error (i.e., there may be plaintext to fall back to even if decryption fails).
     private func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (Clients_ChatMessage?, DecryptionFailure?) -> Void) {
-        let plainTextMessage = Clients_ChatMessage(containerData: serverChat.payload)
+        let plainTextMessage = isPlaintextFallbackSupported ? Clients_ChatMessage(containerData: serverChat.payload) : nil
         AppContext.shared.messageCrypter.decrypt(
             EncryptedData(
                 data: serverChat.encPayload,
@@ -814,7 +825,7 @@ final class ProtoService: ProtoServiceCore {
                 }
                 if let plainTextMessage = plainTextMessage, plainTextMessage.text != decryptedMessage.text {
                     // Decrypted message does not match plaintext
-                    completion(plainTextMessage, DecryptionFailure(.plaintextMismatch))
+                    completion(decryptedMessage, DecryptionFailure(.plaintextMismatch))
                 } else {
                     if plainTextMessage == nil {
                         DDLogInfo("proto/decryptChat/plaintext not available")

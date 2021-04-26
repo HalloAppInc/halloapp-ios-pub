@@ -429,6 +429,16 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
         return false
     }
+
+    private func isRerequestStatusUpdate(for chatMessage: ChatMessage) -> Bool {
+        guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return false }
+        if trackedChatMessage.incomingStatus == .rerequesting &&
+            chatMessage.incomingStatus != .rerequesting
+        {
+            return true
+        }
+        return false
+    }
     
     private func findUpdatedMedia(for chatMessage: ChatMessage) -> ChatMedia? {
         guard chatMessage.fromUserId != MainAppContext.shared.userData.userId else { return nil }
@@ -477,6 +487,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             
             if isOutgoingMessageStatusUpdate(for: chatMessage) {
                 DDLogDebug("ChatViewController/frc/update/outgoingMessageStatusChange")
+                self.skipDataUpdate = false
+            }
+
+            if isRerequestStatusUpdate(for: chatMessage) {
+                DDLogDebug("ChatViewController/frc/update/rerequestStatusUpdate")
                 self.skipDataUpdate = false
             }
             
@@ -1037,12 +1052,14 @@ fileprivate struct TrackedChatMessage {
     let id: String
     let cellHeight: Int
     let outgoingStatus: ChatMessage.OutgoingStatus
+    let incomingStatus: ChatMessage.IncomingStatus
     var media: [TrackedChatMedia] = []
 
     init(with chatMessage: ChatMessage) {
         self.id = chatMessage.id
         self.cellHeight = Int(chatMessage.cellHeight)
         self.outgoingStatus = chatMessage.outgoingStatus
+        self.incomingStatus = chatMessage.incomingStatus
 
         if let media = chatMessage.media {
             for med in media {

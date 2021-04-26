@@ -19,6 +19,7 @@ extension ChatMessage {
         case sentSeenReceipt = 2
         case error = 3
         case retracted = 4
+        case rerequesting = 5
     }
     
     enum OutgoingStatus: Int16 {

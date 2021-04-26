@@ -339,6 +339,12 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
     // MARK: Updates
 
+    enum DisplayText {
+        case retracted
+        case rerequesting
+        case normal(String, orderedMentions: [ChatMention])
+    }
+
     func updateWithChatMessage(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
         messageID = chatMessage.id
 
@@ -355,24 +361,29 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         }
         let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted, mediaIndex: quoteMediaIndex)
 
-        var text = chatMessage.text
-        if chatMessage.incomingStatus == .retracted {
-            textView.textColor = UIColor.chatTime
-            text = Localizations.chatMessageDeleted
-        }
-        if ServerProperties.isInternalUser,
-           let decryptionResult = MainAppContext.shared.cryptoData.result(for: chatMessage.id),
-           let originalText = text
-        {
-            text = originalText + (decryptionResult == "success" ? " ✅" : " 💣")
-        }
+        let displayText: DisplayText = {
+            switch chatMessage.incomingStatus {
+            case .retracted:
+                return .retracted
+            case .rerequesting:
+                return .rerequesting
+            case .error, .haveSeen, .none, .sentSeenReceipt:
+                if ServerProperties.isInternalUser,
+                   let decryptionResult = MainAppContext.shared.cryptoData.result(for: chatMessage.id),
+                   let originalText = chatMessage.text
+                {
+                    return .normal(originalText + (decryptionResult == "success" ? " ✅" : " 💣"), orderedMentions: [])
+                } else {
+                    return .normal(chatMessage.text ?? "", orderedMentions: [])
+                }
+            }
+        }()
 
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
-                   text: text,
-                   orderedMentions: [],
+                   displayText: displayText,
                    media: chatMessage.media,
                    timestamp: chatMessage.timestamp)
 
@@ -433,7 +444,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }
     
     
-    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, orderedMentions: [ChatMention], media: Set<ChatMedia>?, timestamp: Date?) {
+    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, displayText: DisplayText, media: Set<ChatMedia>?, timestamp: Date?) {
         
         if isNextMsgSameSender {
             contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 3, right: 18)
@@ -442,16 +453,27 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         }
                 
         // text
-        let text = text ?? ""
-        if text.count <= 3 && text.containsOnlyEmoji {
-            textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
-        }
-        
-        textView.text = text
-        
-        if orderedMentions.count > 0 {
-            let mentionText = MainAppContext.shared.contactStore.textWithMentions(text, orderedMentions: orderedMentions)
-            textView.attributedText = mentionText?.with(font: textView.font, color: textView.textColor)
+        switch displayText {
+        case .normal(let text, let orderedMentions):
+            if text.count <= 3 && text.containsOnlyEmoji {
+                textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+            }
+            if orderedMentions.count > 0 {
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(text, orderedMentions: orderedMentions)
+                textView.attributedText = mentionText?.with(font: textView.font, color: textView.textColor)
+            } else {
+                textView.text = text
+            }
+        case .rerequesting:
+            textView.text = "🕓 " + Localizations.chatMessageWaiting
+            textView.textColor = .chatTime
+            let baseFont = textView.font ?? UIFont.preferredFont(forTextStyle: TextFontStyle)
+            if let italicDescriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitItalic) {
+                textView.font = UIFont(descriptor: italicDescriptor, size: baseFont.pointSize)
+            }
+        case .retracted:
+            textView.text = Localizations.chatMessageDeleted
+            textView.textColor = .chatTime
         }
             
         // media

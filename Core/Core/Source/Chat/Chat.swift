@@ -26,6 +26,11 @@ public enum ChatMessageMediaType: Int {
     case video = 1
 }
 
+public enum IncomingChatMessage {
+    case notDecrypted(ChatMessageTombstone)
+    case decrypted(ChatMessageProtocol)
+}
+
 public protocol ChatMessageProtocol {
     var id: String { get }
     var fromUserId: UserID { get }
@@ -107,4 +112,18 @@ public extension ChatMediaProtocol {
             return media
         }
     }
+}
+
+public struct ChatMessageTombstone {
+    public init(id: String, from: UserID, to: UserID, timestamp: Date) {
+        self.id = id
+        self.from = from
+        self.to = to
+        self.timestamp = timestamp
+    }
+
+    public var id: String
+    public var from: UserID
+    public var to: UserID
+    public var timestamp: Date
 }
