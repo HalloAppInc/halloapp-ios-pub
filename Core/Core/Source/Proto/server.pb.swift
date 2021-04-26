@@ -1279,12 +1279,58 @@ public struct Server_UploadMedia {
 
   public var downloadURL: String = String()
 
+  public var type: Server_UploadMedia.TypeEnum = .default
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum TypeEnum: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case `default` // = 0
+    case resumable // = 1
+    case direct // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .default
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .default
+      case 1: self = .resumable
+      case 2: self = .direct
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .default: return 0
+      case .resumable: return 1
+      case .direct: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
 
   public init() {}
 
   fileprivate var _url: Server_MediaUrl? = nil
 }
+
+#if swift(>=4.2)
+
+extension Server_UploadMedia.TypeEnum: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_UploadMedia.TypeEnum] = [
+    .default,
+    .resumable,
+    .direct,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 public struct Server_ChatStanza {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -4810,6 +4856,7 @@ extension Server_UploadMedia: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     1: .same(proto: "size"),
     2: .same(proto: "url"),
     3: .standard(proto: "download_url"),
+    4: .same(proto: "type"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4821,6 +4868,7 @@ extension Server_UploadMedia: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       case 1: try { try decoder.decodeSingularInt64Field(value: &self.size) }()
       case 2: try { try decoder.decodeSingularMessageField(value: &self._url) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.downloadURL) }()
+      case 4: try { try decoder.decodeSingularEnumField(value: &self.type) }()
       default: break
       }
     }
@@ -4836,6 +4884,9 @@ extension Server_UploadMedia: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if !self.downloadURL.isEmpty {
       try visitor.visitSingularStringField(value: self.downloadURL, fieldNumber: 3)
     }
+    if self.type != .default {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -4843,9 +4894,18 @@ extension Server_UploadMedia: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if lhs.size != rhs.size {return false}
     if lhs._url != rhs._url {return false}
     if lhs.downloadURL != rhs.downloadURL {return false}
+    if lhs.type != rhs.type {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_UploadMedia.TypeEnum: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "DEFAULT"),
+    1: .same(proto: "RESUMABLE"),
+    2: .same(proto: "DIRECT"),
+  ]
 }
 
 extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {

@@ -139,7 +139,7 @@ extension FeedMediaProtocol {
             media.width = Int32(size.width)
             media.height = Int32(size.height)
             media.encryptionKey = Data(base64Encoded: key)!
-            media.plaintextHash = Data(base64Encoded: sha256)!
+            media.ciphertextHash = Data(base64Encoded: sha256)!
             media.downloadURL = url.absoluteString
             return media
         }

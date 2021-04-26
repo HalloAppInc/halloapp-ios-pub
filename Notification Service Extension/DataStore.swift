@@ -60,7 +60,7 @@ class DataStore: NotificationServiceExtensionDataStore {
             media.url = url
             media.size = CGSize(width: width, height: height)
             media.key = protoMedia.encryptionKey.base64EncodedString()
-            media.sha256 = protoMedia.plaintextHash.base64EncodedString()
+            media.sha256 = protoMedia.ciphertextHash.base64EncodedString()
             media.order = Int16(index)
             postMedia.insert(media)
         }

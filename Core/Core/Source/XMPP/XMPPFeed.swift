@@ -93,7 +93,7 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.type = type
         self.size = CGSize(width: width, height: height)
         self.key = protoMedia.encryptionKey.base64EncodedString()
-        self.sha256 = protoMedia.plaintextHash.base64EncodedString()
+        self.sha256 = protoMedia.ciphertextHash.base64EncodedString()
     }
 }
 
