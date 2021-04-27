@@ -134,6 +134,7 @@ class NotificationMetadata: Codable {
               let metadata = userInfo[Self.userInfoKeyMetadata] as? [String: String],
               let encryptedContentB64 = metadata[Self.encryptedData],
               let encryptedMessage = Data(base64Encoded: encryptedContentB64) else {
+            DDLogError("NotificationMetadata/noise/error unable to find encrypted content")
             return initialize(userInfo: userInfo)
         }
 
