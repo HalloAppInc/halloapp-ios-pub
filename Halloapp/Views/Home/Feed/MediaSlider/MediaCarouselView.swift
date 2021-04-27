@@ -34,8 +34,8 @@ struct MediaCarouselViewConfiguration {
     var borderWidth: CGFloat = 1 / UIScreen.main.scale
     var borderColor: UIColor? = .opaqueSeparator
     var gutterWidth: CGFloat = 0
-    var pageIndicatorTintAlpha: CGFloat = 0.2
-    var currentPageIndicatorTintAlpha: CGFloat = 0.7
+    var pageIndicatorTintAlpha: CGFloat = 0.2 // not currently used but keep for now in case design changes
+    var currentPageIndicatorTintAlpha: CGFloat = 1.0
     var downloadProgressViewSize: CGFloat = 80 // Diameter of the circular progress view. Set to 0 to hide progress view.
 
     static var `default`: MediaCarouselViewConfiguration {
@@ -276,7 +276,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         if media.count > 1 && configuration.isPagingEnabled {
             if (pageControl == nil) {
                 let pageControl = UIPageControl()
-                pageControl.pageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(configuration.pageIndicatorTintAlpha)
+                pageControl.pageIndicatorTintColor = UIColor.pageIndicatorInactive
                 pageControl.currentPageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(configuration.currentPageIndicatorTintAlpha)
                 pageControl.translatesAutoresizingMaskIntoConstraints = false
                 pageControl.addTarget(self, action: #selector(pageControlAction), for: .valueChanged)

@@ -13,15 +13,15 @@ extension UIColor {
     class var primaryBg: UIColor {
         UIColor(named: "PrimaryBg")!
     }
-    
+
     class var primaryBlue: UIColor {
         UIColor(named: "PrimaryBlue")!
     }
-    
+
     class var primaryWhiteBlack: UIColor {
         UIColor(named: "PrimaryWhiteBlack")!
     }
-    
+
     class var feedBackground: UIColor {
         UIColor(named: "FeedBackground")!
     }
@@ -49,23 +49,23 @@ extension UIColor {
     class var searchBarBg: UIColor {
         UIColor(named: "SearchBarBg")!
     }
-    
+
     class var tabBar: UIColor {
         UIColor(named: "TabBar")!
     }
-    
+
     class var cameraButton: UIColor {
         UIColor(named: "CameraButton")!
     }
-        
+
     class var chatOwnBubbleBg: UIColor {
         UIColor(named: "ChatOwnBubbleBg")!
     }
-    
+
     class var chatOwnMsg: UIColor {
         UIColor(named: "ChatOwnMsg")!
     }
-    
+
     class var chatTime: UIColor {
         UIColor(named: "ChatTime")!
     }
@@ -73,9 +73,15 @@ extension UIColor {
     class var composerButton: UIColor {
         get { UIColor(named: "ComposerButton")! }
     }
-    
+
     class var avatarDefaultBg: UIColor {
         UIColor(named: "AvatarDefaultBg")!
+    }
+
+    // MARK: Media
+
+    class var pageIndicatorInactive: UIColor {
+        UIColor(named: "PageIndicatorInactive")!
     }
 
 }
