@@ -10,8 +10,8 @@ import Combine
 import UIKit
 
 public class AvatarView: UIView {
-    public static let defaultImage = UIImage(named: "UserAvatar")
-    public static var defaultGroupImage = UIImage(named: "GroupAvatar")
+    public static let defaultImage = UIImage(named: "AvatarUser")
+    public static var defaultGroupImage = UIImage(named: "AvatarGroup")
 
     public private(set) var hasImage: Bool = false {
         didSet {
@@ -203,7 +203,7 @@ extension AvatarView {
             case 1...50:
                 return 11
             case 50...80:
-                return 15
+                return 16
             default:
                 return squareSize/4
             }
