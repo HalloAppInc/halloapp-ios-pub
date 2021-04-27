@@ -78,6 +78,12 @@ extension UIColor {
         UIColor(named: "AvatarDefaultBg")!
     }
 
+    // MARK: Feed
+
+    class var commentIndicatorUnread: UIColor {
+        UIColor(named: "CommentIndicatorUnread")!
+    }
+
     // MARK: Media
 
     class var pageIndicatorInactive: UIColor {

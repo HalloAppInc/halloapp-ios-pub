@@ -542,8 +542,8 @@ final class FeedItemFooterView: UIView {
 
                 case .unread:
                     self.badgeView.isHidden = false
-                    self.badgeView.fillColor = .systemBlue
-                    self.badgeView.alpha = 0.7
+                    self.badgeView.fillColor = UIColor.commentIndicatorUnread
+                    self.badgeView.alpha = 1.0
 
                 case .read:
                     self.badgeView.isHidden = false
