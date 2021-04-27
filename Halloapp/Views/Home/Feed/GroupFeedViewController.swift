@@ -32,7 +32,7 @@ class GroupFeedViewController: FeedCollectionViewController {
     
     private var currentUnreadThreadGroupCount = 0
     private var currentUnseenGroupFeedList: [GroupID: Int] = [:]
-    
+
     private var cancellableSet: Set<AnyCancellable> = []
 
     init(groupId: GroupID) {
@@ -58,24 +58,24 @@ class GroupFeedViewController: FeedCollectionViewController {
         NSLayoutConstraint.activate([
             titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))
         ])
-        
+
         navigationItem.titleView = titleView
         titleView.translatesAutoresizingMaskIntoConstraints = false
         titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        
+
         titleView.delegate = self
-        
+
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetAGroupFeed.sink { [weak self] (groupID) in
                 guard let self = self else { return }
                 guard groupID != self.groupId else { return }
-                
+
                 if self.currentUnseenGroupFeedList[groupID] == nil {
                     self.currentUnseenGroupFeedList[groupID] = 1
                 } else {
                     self.currentUnseenGroupFeedList[groupID]? += 1
                 }
-                
+
                 DispatchQueue.main.async {
                     self.updateBackButtonUnreadCount(num: self.currentUnseenGroupFeedList.count)
                 }
@@ -99,21 +99,21 @@ class GroupFeedViewController: FeedCollectionViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         titleView.update(with: groupId, isFeedView: true)
-        
+
         navigationController?.navigationBar.tintColor = .primaryBlue
-        
+
         MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
         UNUserNotificationCenter.current().removeDeliveredChatNotifications(groupId: groupId)
         updateFloatingActionMenu()
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        
+
         navigationController?.navigationBar.tintColor = .label
         navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
     }
-    
+
     override func showGroupName() -> Bool {
         return false
     }
@@ -121,7 +121,7 @@ class GroupFeedViewController: FeedCollectionViewController {
     private var userBelongsToGroup: Bool {
         MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil
     }
-    
+
     private lazy var titleView: GroupTitleView = {
         let titleView = GroupTitleView()
         titleView.translatesAutoresizingMaskIntoConstraints = false
@@ -138,7 +138,7 @@ class GroupFeedViewController: FeedCollectionViewController {
     private func setThemeColors(theme: Int32) {
         let backgroundColor = ChatData.getThemeBackgroundColor(for: theme)
         view.backgroundColor = backgroundColor
-        
+
         let navAppearance = UINavigationBarAppearance()
         navAppearance.backgroundColor = backgroundColor
         navAppearance.shadowColor = nil
@@ -147,7 +147,7 @@ class GroupFeedViewController: FeedCollectionViewController {
         navigationItem.scrollEdgeAppearance = navAppearance
         navigationItem.compactAppearance = navAppearance
     }
-    
+
     private func populateEvents() {
         let groupFeedEvents = MainAppContext.shared.chatData.groupFeedEvents(with: self.groupId)
         var feedEvents = [FeedEvent]()
@@ -203,17 +203,22 @@ class GroupFeedViewController: FeedCollectionViewController {
 
         collectionView.contentInset.bottom = floatingMenu.suggestedContentInsetHeight
     }
-    
+
     private func removeFloatingActionMenu() {
         floatingMenu.removeFromSuperview()
     }
-    
+
     private func presentNewPostViewController(source: NewPostMediaSource) {
         let newPostViewController = NewPostViewController(source: source, destination: .groupFeed(groupId)) {
             self.dismiss(animated: true)
         }
         newPostViewController.modalPresentationStyle = .fullScreen
         present(newPostViewController, animated: true)
+
+        if !firstActionHappened {
+            delegate?.feedCollectionViewController(self, userActioned: true)
+            firstActionHappened = true
+        }
     }
 }
 

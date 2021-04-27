@@ -22,31 +22,39 @@ fileprivate class ChatDataSource: UITableViewDiffableDataSource<Int, ChatMessage
     }
 }
 
+protocol ChatViewControllerDelegate: AnyObject {
+    func chatViewController(_ chatViewController: ChatViewController, userActioned: Bool)
+}
+
 class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
-    
+
+    weak var delegate: ChatViewControllerDelegate?
+
     private var fromUserId: String?
     private var feedPostId: FeedPostID?
     private var feedPostMediaIndex: Int32 = 0
-    
+
     private var chatReplyMessageID: String?
     private var chatReplyMessageSenderID: String?
     private var chatReplyMessageMediaIndex: Int32 = 0
-    
+
     private var fetchedResultsController: NSFetchedResultsController<ChatMessage>?
     private var dataSource: ChatDataSource?
-    
+
     private var trackedChatMessages: [String: TrackedChatMessage] = [:]
 
     static private let sectionMain = 0
     static private let inboundMsgViewCellReuseIdentifier = "InboundMsgViewCell"
     static private let outboundMsgViewCellReuseIdentifier = "OutboundMsgViewCell"
-    
+
     private var currentUnseenChatThreadsList: [UserID: Int] = [:]
     private var currentUnseenGroupChatThreadsList: [GroupID: Int] = [:]
-    
+
     private var cancellableSet: Set<AnyCancellable> = []
 
     private var mediaPickerController: MediaPickerViewController?
+
+    private var firstActionHappened: Bool = false
 
     // MARK: Lifecycle
     
@@ -582,17 +590,17 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     private func configureTitleViewWithTypingIndicator() {
         guard let userID = self.fromUserId else { return }
         let typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: .oneToOne, id: userID)
-        
+
         if typingIndicatorStr == nil && !titleView.isShowingTypingIndicator {
             return
         }
 
         titleView.showChatState(with: typingIndicatorStr)
     }
-    
+
     private func updateJumpButtonVisibility() {
         let fromTheBottom = UIScreen.main.bounds.height*1.5 - chatInputView.bottomInset
-        
+
         if tableView.contentSize.height - tableView.contentOffset.y > fromTheBottom {
             // using chatInput instead of tableView.contentInset.bottom since for some reason that changes when entering app from a notification
             let aboveChatInput = chatInputView.bottomInset + 50
@@ -604,21 +612,21 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             jumpButtonUnreadCountLabel.text = nil
         }
     }
-    
+
     private func jumpToMsg(_ indexPath: IndexPath) {
         guard let message = fetchedResultsController?.object(at: indexPath) else { return }
-      
+
         guard let chatReplyMessageID = message.chatReplyMessageID else { return }
 
         guard let allMessages = fetchedResultsController?.fetchedObjects else { return }
         guard let replyMessage = allMessages.first(where: {$0.id == chatReplyMessageID}) else { return }
-        
+
         guard let index = allMessages.firstIndex(of: replyMessage) else { return }
-        
+
         let toIndexPath = IndexPath(row: index, section: ChatViewController.sectionMain)
-        
+
         tableView.scrollToRow(at: toIndexPath, at: .middle, animated: true)
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             if replyMessage.fromUserId == MainAppContext.shared.userData.userId {
                 guard let cell = self.tableView.cellForRow(at: toIndexPath) as? OutboundMsgViewCell else { return }
@@ -629,9 +637,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             }
         }
     }
-    
+
     // MARK: Actions
-    
+
     @IBAction func jumpDown(_ sender: Any?) {
         scrollToBottom()
     }
@@ -641,7 +649,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     public func showKeyboard() {
         chatInputView.showKeyboard(from: self)
     }
-    
+
     lazy var chatInputView: ChatInputView = {
         let inputView = ChatInputView(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 90))
         inputView.delegate = self
@@ -652,7 +660,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         chatInputView.setInputViewWidth(view.bounds.size.width)
         return chatInputView
     }
-    
+
     override var canBecomeFirstResponder: Bool {
         get {
             return true
@@ -687,7 +695,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     func sendMessage(text: String, media: [PendingMedia]) {
         guard let sendToUserId = self.fromUserId else { return }
-        
+
         MainAppContext.shared.chatData.sendMessage(toUserId: sendToUserId,
                                                    text: text,
                                                    media: media,
@@ -698,17 +706,22 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                                                    chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
         
         chatInputView.closeQuoteFeedPanel()
-        
+
         feedPostId = nil
         feedPostMediaIndex = 0
-        
+
         chatReplyMessageID = nil
         chatReplyMessageSenderID = nil
         chatReplyMessageMediaIndex = 0
-        
+
         chatInputView.text = ""
+
+        if !firstActionHappened {
+            delegate?.chatViewController(self, userActioned: true)
+            firstActionHappened = true
+        }
     }
-    
+
     private func presentMediaPicker() {
         guard mediaPickerController == nil else { return }
 
@@ -723,6 +736,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
 
         present(UINavigationController(rootViewController: mediaPickerController!), animated: true)
+
+        if !firstActionHappened {
+            delegate?.chatViewController(self, userActioned: true)
+            firstActionHappened = true
+        }
     }
 
     private func dismissMediaPicker(animated: Bool) {

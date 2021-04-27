@@ -387,7 +387,9 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         navigationController?.popToRootViewController(animated: false)
 
         if metadata.contentType == .chatMessage || metadata.isContactNotification {
-            navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
+            let vc = ChatViewController(for: metadata.fromId, with: nil, at: 0)
+            vc.delegate = self
+            navigationController?.pushViewController(vc, animated: true)
         }
 
         metadata.removeFromUserDefaults()
@@ -486,7 +488,8 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
         guard let chatWithUserId = chatThread.chatWithUserId else { return }
 
         let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
-        self.navigationController?.pushViewController(vc, animated: true)
+        vc.delegate = self
+        navigationController?.pushViewController(vc, animated: true)
 
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -571,6 +574,15 @@ extension ChatListViewController: NewChatViewControllerDelegate {
             DispatchQueue.main.async {
                 vc.showKeyboard()
             }
+        }
+    }
+}
+
+extension ChatListViewController: ChatViewControllerDelegate {
+    func chatViewController(_ controller: ChatViewController, userActioned: Bool) {
+        searchController.isActive = false
+        DispatchQueue.main.async {
+            self.scrollToTop(animated: false)
         }
     }
 }

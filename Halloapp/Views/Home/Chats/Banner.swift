@@ -38,8 +38,8 @@ class Banner {
         let bannerTopConstraint = NSLayoutConstraint(item: bannerView, attribute: .top, relatedBy: .equal, toItem: superView, attribute: .top, multiplier: 1, constant: 0 - height)
 
         NSLayoutConstraint.activate([bannerTopConstraint])
-        
-        DispatchQueue.main.async {
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             UIView.animate(withDuration: animateDuration) {
                 bannerTopConstraint.constant = 0
                 superView.layoutIfNeeded()

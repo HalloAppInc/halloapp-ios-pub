@@ -285,7 +285,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         
         if isAdmin {
             if chatGroupMember.type == .admin {
-                actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoDemote, style: .destructive) { [weak self] _ in
+                actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoDismissAsAdmin, style: .destructive) { [weak self] _ in
                     guard let self = self else { return }
                     
                     MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.demote) { result in }
@@ -980,8 +980,8 @@ private extension Localizations {
         NSLocalizedString("chat.group.info.message.user", value: "Message", comment: "Text for menu option of messaging user")
     }
 
-    static var chatGroupInfoDemote: String {
-        NSLocalizedString("chat.group.info.demote", value: "Demote", comment: "Text for menu option of demoting a group member")
+    static var chatGroupInfoDismissAsAdmin: String {
+        NSLocalizedString("chat.group.info.demote", value: "Dismiss As Admin", comment: "Text for menu option of demoting a group member")
     }
 
     static var chatGroupInfoMakeGroupAdmin: String {

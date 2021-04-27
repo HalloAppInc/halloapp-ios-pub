@@ -12,7 +12,13 @@ import Core
 import CoreData
 import UIKit
 
+protocol FeedCollectionViewControllerDelegate: AnyObject {
+    func feedCollectionViewController(_ feedCollectionViewController: FeedCollectionViewController, userActioned: Bool)
+}
+
 class FeedCollectionViewController: UIViewController, NSFetchedResultsControllerDelegate {
+
+    weak var delegate: FeedCollectionViewControllerDelegate?
 
     // TODO: Remove this implicitly unwrapped optional
     private(set) var collectionView: UICollectionView!
@@ -28,6 +34,8 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     private var isVisible: Bool = true
     private var isCheckForOnscreenCellsScheduled: Bool = false
+
+    var firstActionHappened: Bool = false
 
     init(title: String?, fetchRequest: NSFetchRequest<FeedPost>) {
         self.feedDataSource = FeedDataSource(fetchRequest: fetchRequest)
@@ -258,11 +266,21 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         let commentsViewController = CommentsViewController(feedPostId: postId)
         commentsViewController.highlightedCommentId = commentId
         navigationController?.pushViewController(commentsViewController, animated: true)
+        
+        if !firstActionHappened {
+            delegate?.feedCollectionViewController(self, userActioned: true)
+            firstActionHappened = true
+        }
     }
 
     private func showMessageView(for postId: FeedPostID) {
         if let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) {
             navigationController?.pushViewController(ChatViewController(for: feedDataItem.userId, with: postId, at: Int32(feedDataItem.currentMediaIndex ?? 0)), animated: true)
+        }
+
+        if !firstActionHappened {
+            delegate?.feedCollectionViewController(self, userActioned: true)
+            firstActionHappened = true
         }
     }
 

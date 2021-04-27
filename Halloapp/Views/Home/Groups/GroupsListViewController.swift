@@ -109,18 +109,19 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
                 self.processNotification(metadata: metadata)
             }
         )
-        
+
         // When the user was not on this view, and HomeView sends user to here
         if let metadata = NotificationMetadata.fromUserDefaults() {
             processNotification(metadata: metadata)
         }
-        
+
         cancellableSet.insert(
             MainAppContext.shared.groupFeedFromGroupTabPresentRequest.sink { [weak self] (groupID) in
                 guard let self = self else { return }
                 guard let groupID = groupID else { return }
                 self.navigationController?.popToRootViewController(animated: false)
                 let vc = GroupFeedViewController(groupId: groupID)
+                vc.delegate = self
                 self.navigationController?.pushViewController(vc, animated: false)
             }
         )
@@ -342,12 +343,14 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         case .groupFeedPost, .groupFeedComment:
             if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                 let vc = GroupFeedViewController(groupId: groupId)
+                vc.delegate = self
                 self.navigationController?.pushViewController(vc, animated: false)
             }
             break
         case .groupAdd:
             if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                 let vc = GroupFeedViewController(groupId: groupId)
+                vc.delegate = self
                 self.navigationController?.pushViewController(vc, animated: false)
             } else {
                 // for offline groupAdd notifications, the app needs some time to get and create the new group when the user
@@ -355,6 +358,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                         let vc = GroupFeedViewController(groupId: groupId)
+                        vc.delegate = self
                         self.navigationController?.pushViewController(vc, animated: false)
                     }
                 }
@@ -372,8 +376,9 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     }
 
     private func openFeed(forGroupId groupId: GroupID) {
-        let viewController = GroupFeedViewController(groupId: groupId)
-        navigationController?.pushViewController(viewController, animated: true)
+        let vc = GroupFeedViewController(groupId: groupId)
+        vc.delegate = self
+        navigationController?.pushViewController(vc, animated: true)
     }
 
     private func openNewGroup() {
@@ -384,11 +389,19 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 }
 
 extension GroupsListViewController: UIViewControllerScrollsToTop {
-
     func scrollToTop(animated: Bool) {
         guard let firstSection = fetchedResultsController?.sections?.first else { return }
         guard firstSection.numberOfObjects > 0 else { return }
         tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .middle, animated: animated)
+    }
+}
+
+extension GroupsListViewController: FeedCollectionViewControllerDelegate {
+    func feedCollectionViewController(_ controller: FeedCollectionViewController, userActioned: Bool) {
+        searchController.isActive = false
+        DispatchQueue.main.async {
+            self.scrollToTop(animated: false)
+        }
     }
 }
 
@@ -565,6 +578,7 @@ extension GroupsListViewController: NewGroupMembersViewControllerDelegate {
     
     func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, didCreateGroup: GroupID) {
         let vc = GroupFeedViewController(groupId: didCreateGroup)
+        vc.delegate = self
         navigationController?.pushViewController(vc, animated: true)
     }
 }
