@@ -863,8 +863,10 @@ class ChatData: ObservableObject {
     }
     
     private func incrementApplicationIconBadgeNumber() {
-        let badgeNum = MainAppContext.shared.applicationIconBadgeNumber
-        MainAppContext.shared.applicationIconBadgeNumber = badgeNum == -1 ? 1 : badgeNum + 1
+        DispatchQueue.main.async {
+            let badgeNum = MainAppContext.shared.applicationIconBadgeNumber
+            MainAppContext.shared.applicationIconBadgeNumber = badgeNum == -1 ? 1 : badgeNum + 1
+        }
     }
     
     // MARK: Helpers
