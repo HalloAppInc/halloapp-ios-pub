@@ -34,24 +34,26 @@ public struct SilentChatMessage: ChatMessageProtocol {
         self.timeIntervalSince1970 = ts
         self.rerequestCount = resendAttempts
 
-        self.id = [Self.text, fromUserID, toUserID, String(ts), String(resendAttempts)].joined(separator: ":")
+        self.id = [Self.text, fromUserID, toUserID, String(ts)].joined(separator: ":")
+    }
+
+    public static func isSilentChatID(_ id: String) -> Bool {
+        return fromID(id) != nil
     }
 
     /// Use the ID to regenerate messages for incoming rerequests so we don't have to store them
-    public static func forRerequest(incomingID: String) -> SilentChatMessage? {
+    public static func fromID(_ incomingID: String) -> SilentChatMessage? {
         let components = incomingID.split(separator: ":")
-        guard components.count == 5,
+        guard components.count == 4,
               components[0] == Self.text,
-              let ts = TimeInterval(components[3]),
-              let resends = Int32(components[4]) else
+              let ts = TimeInterval(components[3]) else
         {
             return nil
         }
-        let message = SilentChatMessage(
+
+        return SilentChatMessage(
             from: UserID(components[1]),
             to: UserID(components[2]),
-            ts: ts,
-            resendAttempts: resends + 1)
-        return message
+            ts: ts)
     }
 }
