@@ -494,11 +494,11 @@ final class ProtoService: ProtoServiceCore {
         case .haError(let error):
             DDLogError("proto/didReceive/\(requestID) received packet with error \(error)")
         case .presence(let pbPresence):
-            DDLogInfo("proto/presence/received [\(pbPresence.uid)] [\(pbPresence.type)]")
+            DDLogInfo("proto/presence/received [\(pbPresence.fromUid)] [\(pbPresence.type)]")
             // Dispatch to main thread because ChatViewController updates UI in response
             DispatchQueue.main.async {
                 self.didGetPresence.send(
-                    (userID: UserID(pbPresence.uid),
+                    (userID: UserID(pbPresence.fromUid),
                      presence: PresenceType(pbPresence.type),
                      lastSeen: Date(timeIntervalSince1970: TimeInterval(pbPresence.lastSeen))))
             }
@@ -1030,7 +1030,7 @@ extension ProtoService: HalloService {
             }
         }()
         if let uid = Int64(AppContext.shared.userData.userId) {
-            presence.uid = uid
+            presence.toUid = uid
         }
 
         var packet = Server_Packet()
@@ -1050,7 +1050,7 @@ extension ProtoService: HalloService {
         presence.id = Utils().randomString(10)
         presence.type = .subscribe
         if let uid = Int64(userID) {
-            presence.uid = uid
+            presence.toUid = uid
         }
 
         var packet = Server_Packet()
