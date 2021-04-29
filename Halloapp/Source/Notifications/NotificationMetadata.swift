@@ -55,6 +55,7 @@ class NotificationMetadata: Codable {
     var data: Data?
     var messageId: String?
     var pushName: String?
+    var serverMsgPb: Data?
 
     // Fields to set in the actual UNMutableNotificationContent
     var title: String = ""
@@ -177,7 +178,12 @@ class NotificationMetadata: Codable {
             DDLogError("NotificationMetadata/init/msg is nil")
             return nil
         }
-
+        do {
+            serverMsgPb = try msg.serializedData()
+        } catch {
+            DDLogError("NotificationMetadata/init/msg - unable to serialize it.")
+            return nil
+        }
         messageId = msg.id
         switch msg.payload {
 

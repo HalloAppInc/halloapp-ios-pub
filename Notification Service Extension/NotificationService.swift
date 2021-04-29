@@ -56,17 +56,14 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         recordPushEvent(requestID: request.identifier, messageID: metadata.messageId)
         DDLogVerbose("didReceiveRequest/ Updated title: \(bestAttemptContent.title)")
 
-        // If notification is anything else other than contact notification
-        // use payload and other fields in metadata
-        guard let protoContainer = metadata.protoContainer else {
-            DDLogError("didReceiveRequest/error Invalid protobuf.")
-            invokeCompletionHandler(bestAttemptContent: bestAttemptContent)
-            return
-        }
-
         var invokeHandler = true
         switch metadata.contentType {
         case .feedPost, .groupFeedPost:
+            guard let protoContainer = metadata.protoContainer else {
+                DDLogError("didReceiveRequest/error Invalid protobuf.")
+                invokeCompletionHandler(bestAttemptContent: bestAttemptContent)
+                return
+            }
             // Continue checking for duplicate posts.
             // TODO(murali@): test and remove this.
             guard !dataStore.posts().contains(where: { $0.id == metadata.feedPostId }) else {
@@ -81,8 +78,18 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 invokeHandler = downloadTask == nil
             }
         case .feedComment, .groupFeedComment:
+            guard let protoContainer = metadata.protoContainer else {
+                DDLogError("didReceiveRequest/error Invalid protobuf.")
+                invokeCompletionHandler(bestAttemptContent: bestAttemptContent)
+                return
+            }
             dataStore.save(protoComment: protoContainer.comment, notificationMetadata: metadata)
         case .chatMessage:
+            guard let protoContainer = metadata.protoContainer else {
+                DDLogError("didReceiveRequest/error Invalid protobuf.")
+                invokeCompletionHandler(bestAttemptContent: bestAttemptContent)
+                return
+            }
             guard let messageId = metadata.messageId, !dataStore.messages().contains(where: { $0.id == metadata.messageId }) else {
                 DDLogError("didReceiveRequest/error duplicate message ID [\(String(describing: metadata.messageId))]")
                 contentHandler(bestAttemptContent)
@@ -98,7 +105,13 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             let applicationIconBadgeNumber = badgeNum == -1 ? 1 : badgeNum + 1
             bestAttemptContent.badge = NSNumber(value: applicationIconBadgeNumber)
             AppExtensionContext.shared.applicationIconBadgeNumber = applicationIconBadgeNumber
-        default:
+
+        case .newInvitee, .newFriend, .newContact:
+            // save server message stanzas to process for these notifications.
+            // todo(murali@): extend this to other types as well.
+            dataStore.saveServerMsg(notificationMetadata: metadata)
+        case .groupChatMessage, .groupAdd, .feedPostRetract, .groupFeedPostRetract,
+             .feedCommentRetract, .groupFeedCommentRetract, .chatMessageRetract, .groupChatMessageRetract:
             break
         }
 

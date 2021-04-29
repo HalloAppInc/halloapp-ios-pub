@@ -97,6 +97,8 @@ protocol HalloService: CoreService {
 
     // MARK: Client version
     func getServerProperties(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>)
+
+    func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping () -> ())
 }
 
 protocol HalloFeedDelegate: AnyObject {

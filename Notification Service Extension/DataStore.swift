@@ -116,6 +116,21 @@ class DataStore: NotificationServiceExtensionDataStore {
         save(managedObjectContext)
     }
 
+    func saveServerMsg(notificationMetadata: NotificationMetadata) {
+        guard let serverMsgPb = notificationMetadata.serverMsgPb else {
+            DDLogError("NotificationExtension/DataStore/serverMsgPb is nil, unable to save Msg")
+            return
+        }
+        DDLogInfo("NotificationExtension/DataStore/saveServerMsg, contentId: \(notificationMetadata.contentId)")
+        // why use view context in nse to save? all functions are using this.
+        // todo(murali@): update this.
+        let managedObjectContext = persistentContainer.viewContext
+        let serverMsg = NSEntityDescription.insertNewObject(forEntityName: "SharedServerMessage", into: managedObjectContext) as! SharedServerMessage
+        serverMsg.msg = serverMsgPb
+        serverMsg.timestamp = notificationMetadata.timestamp ?? Date()
+        save(managedObjectContext)
+    }
+
     func sharedMediaObject(forObjectId objectId: NSManagedObjectID) throws -> SharedMedia? {
         return try persistentContainer.viewContext.existingObject(with: objectId) as? SharedMedia
     }

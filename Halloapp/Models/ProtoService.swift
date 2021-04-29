@@ -1300,6 +1300,23 @@ extension ProtoService: HalloService {
             background: background,
             completion: completion))
     }
+
+    func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping () -> ()) {
+        let sharedServerMessages = sharedDataStore.serverMessages()
+        DDLogInfo("ProtoService/mergeData/save sharedServerMessages, count: \(sharedServerMessages.count)")
+        sharedServerMessages.forEach{ sharedServerMsg in
+            do {
+                if let serverMsgPb = sharedServerMsg.msg {
+                    let serverMsg = try Server_Msg(serializedData: serverMsgPb)
+                    DDLogInfo("ProtoService/mergeData/handle serverMsg: \(serverMsg.id)")
+                    handleMessage(serverMsg)
+                }
+            } catch {
+                DDLogError("ProtoService/mergeData/Unable to initialize Server_Msg")
+            }
+        }
+        sharedDataStore.delete(serverMessages: sharedServerMessages, completion: completion)
+    }
 }
 
 private protocol ReceivedReceipt {

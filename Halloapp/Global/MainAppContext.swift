@@ -141,6 +141,12 @@ class MainAppContext: AppContext {
 
         DDLogInfo("MainAppContext/merge-data/notification-service-extension")
         let notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()
+
+        mergeGroup.enter()
+        service.mergeData(from: notificationServiceExtensionDataStore) {
+            mergeGroup.leave()
+        }
+
         mergeGroup.enter()
         feedData.mergeData(from: notificationServiceExtensionDataStore) {
             mergeGroup.leave()

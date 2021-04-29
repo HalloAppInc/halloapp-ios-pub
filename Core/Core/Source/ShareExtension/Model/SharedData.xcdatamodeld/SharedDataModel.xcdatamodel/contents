@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="19H524" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="20D91" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="SharedChatMessage" representedClassName="SharedChatMessage" syncable="YES">
         <attribute name="fromUserId" attributeType="String"/>
         <attribute name="id" attributeType="String"/>
@@ -60,11 +60,16 @@
         <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedChatMessage" inverseName="media" inverseEntity="SharedChatMessage"/>
         <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedPost" inverseName="media" inverseEntity="SharedFeedPost"/>
     </entity>
+    <entity name="SharedServerMessage" representedClassName="SharedServerMessage" syncable="YES" codeGenerationType="class">
+        <attribute name="msg" optional="YES" attributeType="Binary"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
     <elements>
         <element name="SharedChatMessage" positionX="-54" positionY="81" width="128" height="148"/>
         <element name="SharedFeedComment" positionX="-45" positionY="99" width="128" height="163"/>
         <element name="SharedFeedMention" positionX="-54" positionY="81" width="128" height="88"/>
         <element name="SharedFeedPost" positionX="-63" positionY="-18" width="128" height="193"/>
         <element name="SharedMedia" positionX="-45" positionY="27" width="128" height="223"/>
+        <element name="SharedServerMessage" positionX="-45" positionY="108" width="128" height="59"/>
     </elements>
 </model>

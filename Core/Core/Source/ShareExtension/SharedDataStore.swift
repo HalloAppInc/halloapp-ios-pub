@@ -127,6 +127,20 @@ open class SharedDataStore {
         }
     }
 
+    public final func serverMessages() -> [SharedServerMessage] {
+        let managedObjectContext = persistentContainer.viewContext
+        let fetchRequest: NSFetchRequest<SharedServerMessage> = SharedServerMessage.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedServerMessage.timestamp, ascending: false)]
+        
+        do {
+            let messages = try managedObjectContext.fetch(fetchRequest)
+            return messages
+        } catch {
+            DDLogError("SharedDataStore/serverMessages/error  [\(error)]")
+            fatalError("Failed to fetch shared serverMessages.")
+        }
+    }
+
     // MARK: Deleting Data
 
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.data-store")
@@ -170,6 +184,20 @@ open class SharedDataStore {
 
             self.save(managedObjectContext)
 
+            DispatchQueue.main.async {
+                completion()
+            }
+        }
+    }
+
+    public final func delete(serverMessages: [SharedServerMessage], completion: @escaping (() -> Void)) {
+        let messageObjectIDs = serverMessages.map { $0.objectID }
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let messages = messageObjectIDs.compactMap { managedObjectContext.object(with: $0) as? SharedServerMessage }
+            for message in messages {
+                managedObjectContext.delete(message)
+            }
+            self.save(managedObjectContext)
             DispatchQueue.main.async {
                 completion()
             }
