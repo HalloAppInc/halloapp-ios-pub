@@ -1921,7 +1921,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         for mediaItem in mediaItemsToUpload {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
-
+            DDLogDebug("FeedData/process-mediaItem: \(postId)/\(mediaItem.order)")
             if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
                 let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
@@ -1932,7 +1932,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     case .success(let result):
                         let path = self.downloadManager.relativePath(from: output)
                         mediaItem.relativeFilePath = path
-
+                        DDLogDebug("FeedData/process-mediaItem/success: \(postId)/\(mediaItem.order)")
                         self.updateFeedPost(with: postId, block: { (feedPost) in
                             if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
                                 media.size = result.size
@@ -1944,6 +1944,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                             self.upload(postId: postId, media: mediaItem, completion: uploadCompletion)
                         }
                     case .failure(_):
+                        DDLogDebug("FeedData/process-mediaItem/failure: \(postId)/\(mediaItem.order)")
                         numberOfFailedUploads += 1
 
                         self.updateFeedPost(with: postId, block: { (feedPost) in
@@ -1956,6 +1957,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 }
             } else {
+                DDLogDebug("FeedData/process-mediaItem/processed already: \(postId)/\(mediaItem.order)")
                 self.upload(postId: postId, media: mediaItem, completion: uploadCompletion)
             }
         }
@@ -1981,7 +1983,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func upload(postId: FeedPostID, media: FeedPostMedia, completion: @escaping (Result<Int, Error>) -> Void) {
         let index = media.order
-
+        DDLogDebug("FeedData/upload/media \(postId)/\(media.order), index:\(index)")
         guard let relativeFilePath = media.relativeFilePath else {
             DDLogError("FeedData/upload-media/\(postId)/\(index) missing file path")
             return completion(.failure(MediaUploadError.invalidUrls))
@@ -1994,10 +1996,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if let url = upload?.url {
                 DDLogInfo("Media \(processed) has been uploaded before at \(url).")
                 media.url = url
+            } else {
+                DDLogInfo("FeedData/uploading media now\(postId)/\(media.order), index:\(index)")
             }
 
             self.mediaUploader.upload(media: media, groupId: postId, didGetURLs: { (mediaURLs) in
-                DDLogInfo("FeedData/upload-media/\(postId)/\(index)/acquired-urls [\(mediaURLs)]")
+                DDLogInfo("FeedData/upload-media/\(postId)/\(media.order), index:\(index)/acquired-urls [\(mediaURLs)]")
 
                 // Save URLs acquired during upload to the database.
                 self.updateFeedPost(with: postId) { (feedPost) in
@@ -2013,7 +2017,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 }
             }) { (uploadResult) in
-                DDLogInfo("FeedData/upload-media/\(postId)/\(index)/finished result=[\(uploadResult)]")
+                DDLogInfo("FeedData/upload-media/\(postId)/\(media.order), index:\(index)/finished result=[\(uploadResult)]")
 
                 // Save URLs acquired during upload to the database.
                 self.updateFeedPost(with: postId, block: { feedPost in
