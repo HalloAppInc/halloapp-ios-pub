@@ -82,13 +82,18 @@ extension FeedPostMedia: MediaUploadable {
     }
 
     var urlInfo: MediaURLInfo? {
-        guard let uploadUrl = uploadUrl else {
-            return nil
-        }
-        if let downloadUrl = url {
-            return .getPut(downloadUrl, uploadUrl)
+        if let uploadUrl = uploadUrl {
+            if let downloadUrl = url {
+                return .getPut(downloadUrl, uploadUrl)
+            } else {
+                return .patch(uploadUrl)
+            }
         } else {
-            return .patch(uploadUrl)
+            if let downloadUrl = url {
+                return .download(downloadUrl)
+            } else {
+                return nil
+            }
         }
     }
 }

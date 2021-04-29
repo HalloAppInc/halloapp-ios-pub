@@ -120,7 +120,7 @@ public final class ProtoPublishCommentRequest: ProtoRequest<Date> {
     }
 }
 
-public final class ProtoMediaUploadURLRequest: ProtoRequest<(MediaURLInfo?, URL?)> {
+public final class ProtoMediaUploadURLRequest: ProtoRequest<(MediaURLInfo?)> {
 
     public init(size: Int, downloadURL: URL?, completion: @escaping Completion) {
         var uploadMedia = Server_UploadMedia()
@@ -138,11 +138,11 @@ public final class ProtoMediaUploadURLRequest: ProtoRequest<(MediaURLInfo?, URL?
                 let urls = iq.uploadMedia.url
 
                 if let downloadURL = URL(string: iq.uploadMedia.downloadURL) {
-                    return .success((nil, downloadURL))
+                    return .success(.download(downloadURL))
                 } else if let getURL = URL(string: urls.get), let putURL = URL(string: urls.put) {
-                    return .success((.getPut(getURL, putURL), nil))
+                    return .success(.getPut(getURL, putURL))
                 } else if let patchURL = URL(string: urls.patch) {
-                    return .success((.patch(patchURL), nil))
+                    return .success(.patch(patchURL))
                 } else {
                     return .failure(RequestError.malformedResponse)
                 }

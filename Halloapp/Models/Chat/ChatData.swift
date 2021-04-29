@@ -1451,6 +1451,11 @@ extension ChatData {
 
             if let url = upload?.url {
                 DDLogInfo("Media \(processed) has been uploaded before at \(url).")
+                if let uploadUrl = media.uploadUrl {
+                    DDLogInfo("ChatData/uploadChat/upload url is supposed to be nil here/\(msgID)/\(media.order), uploadUrl: \(uploadUrl)")
+                    // we set it to be nil here explicitly.
+                    media.uploadUrl = nil
+                }
                 media.url = url
             }
 
@@ -1467,6 +1472,8 @@ extension ChatData {
                         media.uploadUrl = putURL
                     case .patch(let patchURL):
                         media.uploadUrl = patchURL
+                    case .download(let downloadURL):
+                        media.url = downloadURL
                     }
                 }
             }) { (uploadResult) in
@@ -2672,6 +2679,11 @@ extension ChatData {
 
             if let url = upload?.url {
                 DDLogInfo("Media \(processed) has been uploaded before at \(url).")
+                if let uploadUrl = media.uploadUrl {
+                    DDLogInfo("ChatData/uploadGroupChat/upload url is supposed to be nil here/\(msgID)/\(media.order), uploadUrl: \(uploadUrl)")
+                    // we set it to be nil here explicitly.
+                    media.uploadUrl = nil
+                }
                 media.url = url
             }
 
@@ -2687,6 +2699,8 @@ extension ChatData {
                         media.uploadUrl = putURL
                     case .patch(let patchURL):
                         media.uploadUrl = patchURL
+                    case .download(let downloadURL):
+                        media.url = downloadURL
                     }
                 }
             }) { (uploadResult) in

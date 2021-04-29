@@ -280,13 +280,14 @@ final class MediaUploader {
         tasks.insert(task)
 
         // Fetch urls if necessary and start media upload.
-        if task.mediaUrls != nil {
+        switch task.mediaUrls {
+        case .download(let downloadURL):
+            // No upload to be done here, just refreshUrls
+            task.downloadURL = downloadURL
+            requestUrlsAndStartTask(uploadType: .resumableUpload, task: task)
+        case .getPut(_, _), .patch(_):
             startMediaUpload(task: task)
-        } else {
-            if let url = mediaItem.url {
-                task.downloadURL = url
-            }
-
+        case .none:
             requestUrlsAndStartTask(uploadType: .resumableUpload, task: task)
         }
     }
@@ -305,11 +306,8 @@ final class MediaUploader {
         service.requestMediaUploadURL(size: fileSize, downloadURL: task.downloadURL) { result in
             guard !task.isCanceled else { return }
             switch result {
-            case .success((let mediaURLs, let downloadURL)):
-                if let downloadURL = downloadURL {
-                    task.downloadURL = downloadURL
-                    self.finish(task: task)
-                } else if let mediaURLs = mediaURLs {
+            case .success(let mediaURLs):
+                if let mediaURLs = mediaURLs {
                     DDLogInfo("MediaUploader/requestUrlsAndStartTask/\(task.groupId)/\(task.index)/success urls: [\(mediaURLs)]")
                     task.didGetUrls(mediaURLs)
                     task.mediaUrls = mediaURLs
@@ -344,6 +342,11 @@ final class MediaUploader {
             DDLogInfo("MediaUploader/startMediaUpload/\(task.groupId)/\(task.index)/ startResumableUpload")
             task.mediaUploadType = .resumableUpload
             startResumableUpload(forTask: task, to: patchURL)
+
+        case .download(let downloadURL):
+            // No upload to be done here, we successfully refreshedUrls
+            task.downloadURL = downloadURL
+            self.finish(task: task)
 
         case .none:
             DDLogError("MediaUploader/startMediaUpload/\(task.groupId)/\(task.index)/ invalidUrls")

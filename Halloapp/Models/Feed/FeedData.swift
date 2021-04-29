@@ -1995,6 +1995,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             if let url = upload?.url {
                 DDLogInfo("Media \(processed) has been uploaded before at \(url).")
+                if let uploadUrl = media.uploadUrl {
+                    DDLogInfo("FeedData/upload/upload url is supposed to be nil here/\(postId)/\(media.order), uploadUrl: \(uploadUrl)")
+                    // we set it to be nil here explicitly.
+                    media.uploadUrl = nil
+                }
                 media.url = url
             } else {
                 DDLogInfo("FeedData/uploading media now\(postId)/\(media.order), index:\(index)")
@@ -2013,6 +2018,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                         case .patch(let patchURL):
                             media.uploadUrl = patchURL
+
+                        case .download(let downloadURL):
+                            media.url = downloadURL
                         }
                     }
                 }

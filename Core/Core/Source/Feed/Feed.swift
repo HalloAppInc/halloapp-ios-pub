@@ -304,6 +304,7 @@ public class PendingMedia {
 public enum MediaURLInfo {
     case getPut(URL, URL)
     case patch(URL)
+    case download(URL)
 }
 
 // MARK: FeedElement
