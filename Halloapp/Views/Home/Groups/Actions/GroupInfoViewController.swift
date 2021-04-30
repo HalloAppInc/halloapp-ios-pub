@@ -282,57 +282,57 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 self.navigationController?.pushViewController(ChatViewController(for: chatGroupMember.userId), animated: true)
             })
         }
-        
+
         if isAdmin {
             if chatGroupMember.type == .admin {
                 actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoDismissAsAdmin, style: .destructive) { [weak self] _ in
                     guard let self = self else { return }
-                    
+
                     MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.demote) { result in }
                 })
             } else {
                 actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMakeGroupAdmin, style: .default) { [weak self] _ in
                     guard let self = self else { return }
-                    
+
                     MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.promote) { result in }
                 })
             }
             actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoRemoveFromGroup, style: .destructive) { [weak self] _ in
                 guard let self = self else { return }
-                
+
                 MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.remove) { [weak self] result in
                     guard let self = self else { return }
                     self.refreshGroupInfo()
                 }
-                
+
             })
         }
-        
+
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true) {
             deselectRow()
         }
     }
-    
+
     // MARK: Helpers
-    
+
     func checkIfMember() {
         let headerView = self.tableView.tableHeaderView as! GroupInfoHeaderView
         let footerView = self.tableView.tableFooterView as! GroupInfoFooterView
         navigationItem.rightBarButtonItem?.isEnabled = false
         navigationItem.rightBarButtonItem?.tintColor = UIColor.clear
-        
+
         if let chatGroupMember = MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) {
             if chatGroupMember.type == .admin {
                 isAdmin = true
                 headerView.setIsAdmin(true)
                 footerView.setIsMember(true)
-                
+
                 if ServerProperties.isInternalUser {
                     navigationItem.rightBarButtonItem?.isEnabled = true
                     navigationItem.rightBarButtonItem?.tintColor = UIColor.primaryBlue
                 }
-                
+
             } else if chatGroupMember.type == .member {
                 isAdmin = false
                 headerView.setIsAdmin(false)
@@ -344,7 +344,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             footerView.setIsMember(false)
         }
     }
-    
+
     private func presentPhotoLibraryPicker() {
         let pickerController = MediaPickerViewController(filter: .image, multiselect: false, camera: true) { [weak self] controller, media, cancel in
             guard let self = self else { return }
@@ -369,20 +369,20 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                                 }
                             )
                         }
-                        
+
                         controller.dismiss(animated: true)
                         self.dismiss(animated: true)
                     }
                 }
-                
+
                 edit.modalPresentationStyle = .fullScreen
                 controller.present(edit, animated: true)
             }
         }
-        
+
         self.present(UINavigationController(rootViewController: pickerController), animated: true)
     }
-    
+
     private func changeAvatar(image: UIImage) {
         guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
             DDLogError("GroupInfoViewController/resizeImage error resize failed")
@@ -390,13 +390,13 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         }
 
         let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
-        
+
         MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: data) { result in
             switch result {
             case .success:
                 DispatchQueue.main.async() { [weak self] in
                     guard let self = self else { return }
-                    
+
                     // configure again as avatar listens to cached object that's evicted if app goes into background
                     if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
                         tableHeaderView.configure(chatGroup: self.chatGroup)
@@ -511,17 +511,14 @@ class GroupInfoHeaderView: UIView {
         guard let chatGroup = chatGroup else { return }
         groupNameTextView.text = chatGroup.name
         membersLabel.text = "\(Localizations.chatGroupMembersLabel) (\(String(chatGroup.members?.count ?? 0)))"
-        
+
         avatarView.configure(groupId: chatGroup.groupId, squareSize: Constants.AvatarSize, using: MainAppContext.shared.avatarStore)
 
+        backgroundSelectionImage.backgroundColor = ChatData.getThemeBackgroundColor(for: chatGroup.background)
         if chatGroup.background == 0 {
             backgroundSelectionLabel.text = Localizations.chatGroupInfoBgDefaultLabel
-            if let defaultPatternImage = UIImage(named: "DefaultPatternLgSquare") {
-                backgroundSelectionImage.backgroundColor = UIColor(patternImage: defaultPatternImage)
-            }
         } else {
             backgroundSelectionLabel.text = Localizations.chatGroupInfoBgColorLabel
-            backgroundSelectionImage.backgroundColor = ChatData.getThemeBackgroundColor(for: chatGroup.background)
         }
     }
 
@@ -556,23 +553,23 @@ class GroupInfoHeaderView: UIView {
     private lazy var avatarRow: UIStackView = {
         let leftSpacer = UIView()
         leftSpacer.translatesAutoresizingMaskIntoConstraints = false
-    
+
         let rightSpacer = UIView()
         rightSpacer.translatesAutoresizingMaskIntoConstraints = false
-        
+
         let view = UIStackView(arrangedSubviews: [ leftSpacer, avatarBox, rightSpacer ])
 
         view.axis = .horizontal
         view.distribution = .equalCentering
-        
+
         view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
-        
+
         return view
     }()
-    
+
     private lazy var avatarBox: UIView = {
         let viewWidth = Constants.AvatarSize + 40
         let viewHeight = Constants.AvatarSize
@@ -581,32 +578,32 @@ class GroupInfoHeaderView: UIView {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.widthAnchor.constraint(equalToConstant: viewWidth).isActive = true
         view.heightAnchor.constraint(equalToConstant: viewHeight).isActive = true
-        
+
         view.addSubview(avatarView)
-        
+
         avatarView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         avatarView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
-        
+
         photoIcon.frame = CGRect(x: 0 - Constants.PhotoIconSize, y: viewHeight - Constants.PhotoIconSize, width: Constants.PhotoIconSize, height: Constants.PhotoIconSize)
         view.addSubview(photoIcon)
-        
+
         return view
     }()
-    
+
     private lazy var avatarView: AvatarView = {
         let view = AvatarView()
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
         view.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
         view.heightAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
         return view
     }()
-    
+
     private lazy var photoIcon: UIImageView = {
         let view = UIImageView()
         let image = UIImage(named: "ProfileHeaderCamera")
         view.image = image?.imageResized(to: CGSize(width: 20, height: 20)).withRenderingMode(.alwaysTemplate)
-        
+
         view.contentMode = .center
         view.tintColor = UIColor.secondarySystemGroupedBackground
         view.backgroundColor = UIColor.systemBlue
@@ -736,6 +733,9 @@ class GroupInfoHeaderView: UIView {
 
         view.layer.cornerRadius = size / 2
         view.clipsToBounds = true
+
+        view.layer.borderColor = UIColor.primaryBlackWhite.withAlphaComponent(0.2).cgColor
+        view.layer.borderWidth = 1
 
         view.translatesAutoresizingMaskIntoConstraints = false
 

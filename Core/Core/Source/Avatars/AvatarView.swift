@@ -205,7 +205,7 @@ extension AvatarView {
             case 50...80:
                 return 16
             default:
-                return squareSize/4
+                return squareSize/3.4
             }
         }()
 

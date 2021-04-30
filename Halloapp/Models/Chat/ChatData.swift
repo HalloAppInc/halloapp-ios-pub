@@ -2477,14 +2477,21 @@ extension ChatData {
     static public func getThemeColor(for theme: Int32) -> UIColor {
         let colorName = "Theme\(String(theme))"
         guard let color = UIColor(named: colorName) else { return UIColor.label }
-        
+
         return color
     }
 
     static public func getThemeBackgroundColor(for theme: Int32) -> UIColor {
         let colorName = "Theme\(String(theme))Bg"
         guard let color = UIColor(named: colorName) else { return UIColor.primaryBg }
-        
+
+        return color
+    }
+
+    static public func getThemeTopNavColor(for theme: Int32) -> UIColor {
+        let colorName = "Theme\(String(theme))TopNav"
+        guard let color = UIColor(named: colorName) else { return UIColor.primaryBlue }
+
         return color
     }
 
@@ -2518,7 +2525,7 @@ extension ChatData {
         DDLogDebug("ChatData/group/getGroupInviteLink/group \(groupID)")
         service.getGroupInviteLink(groupID: groupID) { [weak self] result in
             guard let self = self else { return }
-            
+
             switch result {
             case .success(let groupInviteLink):
                 self.updateChatGroup(with: groupID, block: { chatGroup in
@@ -2533,12 +2540,12 @@ extension ChatData {
             }
         }
     }
-    
+
     func resetGroupInviteLink(groupID: GroupID, completion: @escaping ServiceRequestCompletion<String?>) {
         DDLogDebug("ChatData/group/resetGroupInviteLink/group \(groupID)")
         service.resetGroupInviteLink(groupID: groupID) { [weak self] result in
             guard let self = self else { return }
-            
+
             switch result {
             case .success(let groupInviteLink):
                 self.updateChatGroup(with: groupID, block: { chatGroup in
@@ -2553,7 +2560,7 @@ extension ChatData {
             }
         }
     }
-    
+
     func getGroupPreviewWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
         DDLogDebug("ChatData/group/getGroupPreviewWithLink/inviteLink \(inviteLink)")
         service.getGroupPreviewWithLink(inviteLink: inviteLink) { result in
@@ -2566,7 +2573,7 @@ extension ChatData {
             }
         }
     }
-    
+
     func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
         DDLogDebug("ChatData/group/getGroupPreviewWithLink/inviteLink \(inviteLink)")
         service.joinGroupWithLink(inviteLink: inviteLink) { result in

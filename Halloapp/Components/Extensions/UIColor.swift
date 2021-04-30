@@ -22,12 +22,8 @@ extension UIColor {
         UIColor(named: "PrimaryWhiteBlack")!
     }
 
-    class var feedBackground: UIColor {
-        UIColor(named: "FeedBackground")!
-    }
-
-    class var feedPostBackground: UIColor {
-        UIColor(named: "FeedPostBackground")!
+    class var primaryBlackWhite: UIColor {
+        UIColor(named: "PrimaryBlackWhite")!
     }
 
     class var textFieldBackground: UIColor {
@@ -80,8 +76,44 @@ extension UIColor {
 
     // MARK: Feed
 
+    class var feedBackground: UIColor {
+        UIColor(named: "FeedBackground")!
+    }
+
+    class var feedPostBackground: UIColor {
+        UIColor(named: "FeedPostBackground")!
+    }
+
+    class var feedPostShadow: UIColor {
+        UIColor(named: "FeedPostShadow")!
+    }
+
+    class var feedPostEventDefaultBg: UIColor {
+        UIColor(named: "FeedPostEventDefaultBg")!
+    }
+
+    class var feedPostEventThemedBg: UIColor {
+        UIColor(named: "FeedPostEventThemedBg")!
+    }
+
+    class var feedPostEventDeletedBg: UIColor {
+        UIColor(named: "FeedPostEventDeletedBg")!
+    }
+
     class var commentIndicatorUnread: UIColor {
         UIColor(named: "CommentIndicatorUnread")!
+    }
+
+    // MARK: Group Feed
+
+    class var groupFeedTopNavShadow: UIColor {
+        UIColor(named: "GroupFeedTopNavShadow")!
+    }
+
+    // MARK: Group
+
+    class var groupBgColorSelectionPanelBg: UIColor {
+        UIColor(named: "GroupBgColorSelectionPanelBg")!
     }
 
     // MARK: Media

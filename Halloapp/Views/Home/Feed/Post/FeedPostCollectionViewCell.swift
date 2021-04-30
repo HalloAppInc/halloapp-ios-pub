@@ -395,14 +395,13 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
         "feed-event"
     }
 
-    func configure(with text: String, type: EventType) {
+    func configure(with text: String, type: EventType, bgColor: UIColor) {
+        bubble.backgroundColor = bgColor
         textLabel.text = text
         switch type {
         case .deletedPost:
-            bubble.backgroundColor = UIColor.label.withAlphaComponent(0.1)
             textLabel.textColor = .secondaryLabel
         case .event:
-            bubble.backgroundColor = .init(red: 205.0/255, green: 227.0/255, blue: 255.0/255, alpha: 1)
             textLabel.textColor = .black
         }
     }

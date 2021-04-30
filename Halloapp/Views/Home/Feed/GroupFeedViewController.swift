@@ -100,7 +100,12 @@ class GroupFeedViewController: FeedCollectionViewController {
         super.viewWillAppear(animated)
         titleView.update(with: groupId, isFeedView: true)
 
-        navigationController?.navigationBar.tintColor = .primaryBlue
+        navigationController?.navigationBar.tintColor = ChatData.getThemeTopNavColor(for: theme)
+
+        navigationController?.navigationBar.layer.shadowColor = UIColor.groupFeedTopNavShadow.cgColor
+        navigationController?.navigationBar.layer.shadowOffset = CGSize(width: 0.0, height: 4.0)
+        navigationController?.navigationBar.layer.shadowRadius = 15.0
+        navigationController?.navigationBar.layer.shadowOpacity = 1.0
 
         MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
         UNUserNotificationCenter.current().removeDeliveredChatNotifications(groupId: groupId)
@@ -112,6 +117,8 @@ class GroupFeedViewController: FeedCollectionViewController {
 
         navigationController?.navigationBar.tintColor = .label
         navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
+
+        navigationController?.navigationBar.layer.shadowOpacity = 0
     }
 
     override func showGroupName() -> Bool {
@@ -151,11 +158,11 @@ class GroupFeedViewController: FeedCollectionViewController {
     private func populateEvents() {
         let groupFeedEvents = MainAppContext.shared.chatData.groupFeedEvents(with: self.groupId)
         var feedEvents = [FeedEvent]()
-
+        let eventBgColor = theme == 0 ? UIColor.feedPostEventDefaultBg : UIColor.feedPostEventThemedBg
         groupFeedEvents.forEach {
             let text = $0.event?.text ?? ""
             let timestamp = $0.timestamp ?? Date()
-            feedEvents.append((FeedEvent(description: text, timestamp: timestamp)))
+            feedEvents.append((FeedEvent(description: text, timestamp: timestamp, bgColor: eventBgColor)))
         }
 
         feedDataSource.events = feedEvents

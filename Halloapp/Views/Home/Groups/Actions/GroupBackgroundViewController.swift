@@ -36,7 +36,7 @@ class GroupBackgroundViewController: UIViewController {
     override func viewDidLoad() {
         DDLogInfo("EditGroupViewController/viewDidLoad")
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonSave, style: .plain, target: self, action: #selector(updateAction))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonSave, style: .done, target: self, action: #selector(updateAction))
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
         
         navigationItem.title = Localizations.groupBgTitle
@@ -51,8 +51,11 @@ class GroupBackgroundViewController: UIViewController {
         mainView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
         mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-        
+
+        let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first
+        let safeAreaInsetBottom = keyWindow?.safeAreaInsets.bottom ?? 0
+        mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: safeAreaInsetBottom).isActive = true
+
         setupColorSelection()
         changePreviewBg(theme: chatGroup.background)
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
@@ -67,7 +70,7 @@ class GroupBackgroundViewController: UIViewController {
         for n in 0...10 {
             let theme = Int32(n)
             let colorView = createColorView(theme: theme)
-            
+
             switch n {
             case 0..<4:
                 colorRowOne.insertArrangedSubview(colorView, at: n % 4)
@@ -83,22 +86,19 @@ class GroupBackgroundViewController: UIViewController {
     }
 
     private lazy var mainView: UIStackView = {
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-
-        let view = UIStackView(arrangedSubviews: [ previewRow, pickAColorLabelRow, selectionRow, spacer])
+        let view = UIStackView(arrangedSubviews: [ previewRow, colorSelectionRow])
 
         view.axis = .vertical
-        view.spacing = 20
+        view.spacing = 0
 
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
 
         let topHeight = previewRow.bounds.size.height + pickAColorLabelRow.bounds.size.height
         let height = self.view.bounds.size.height - topHeight
-        
+
         selectionRow.widthAnchor.constraint(equalToConstant: UIScreen.main.bounds.width).isActive = true
         selectionRow.heightAnchor.constraint(lessThanOrEqualToConstant: height).isActive = true
 
@@ -109,7 +109,7 @@ class GroupBackgroundViewController: UIViewController {
         let view = UIStackView(arrangedSubviews: [previewDeviceImage])
         view.axis = .vertical
 
-        view.layoutMargins = UIEdgeInsets(top: 70, left: 70, bottom: 70, right: 70)
+        view.layoutMargins = UIEdgeInsets(top: 50, left: 80, bottom: 50, right: 80)
         view.isLayoutMarginsRelativeArrangement = true
 
         let subView = UIView(frame: view.bounds)
@@ -132,11 +132,31 @@ class GroupBackgroundViewController: UIViewController {
         return view
     }()
 
+    private lazy var colorSelectionRow: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+
+        let view = UIStackView(arrangedSubviews: [pickAColorLabelRow, selectionRow])
+        view.axis = .vertical
+
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+
+        let subView = UIView(frame: view.bounds)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.backgroundColor = UIColor.groupBgColorSelectionPanelBg
+        view.insertSubview(subView, at: 0)
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        return view
+    }()
+
     private lazy var pickAColorLabelRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [pickAColorLabel])
         view.axis = .horizontal
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 20, bottom: 20, right: 20)
         view.isLayoutMarginsRelativeArrangement = true
 
         return view
@@ -146,7 +166,7 @@ class GroupBackgroundViewController: UIViewController {
         let label = UILabel()
         label.textAlignment = .left
         label.textColor = .secondaryLabel
-        label.font = .systemFont(ofSize: 12)
+        label.font = .systemFont(ofSize: 12, weight: .medium)
         label.text = Localizations.groupBgPickAColorLabel
         label.translatesAutoresizingMaskIntoConstraints = false
 
@@ -158,7 +178,7 @@ class GroupBackgroundViewController: UIViewController {
         view.backgroundColor = .clear
         view.addSubview(innerSelectionRow)
 
-        let height = (Constants.ColorSelectionSize + 35) * 3
+        let height = (Constants.ColorSelectionSize + 30) * 3
         view.contentSize = CGSize(width: UIScreen.main.bounds.width, height: height)
 
         return view
@@ -168,67 +188,89 @@ class GroupBackgroundViewController: UIViewController {
         let view = UIStackView(arrangedSubviews: [colorRowOne, colorRowTwo, colorRowThree])
         view.axis = .vertical
         view.spacing = 20
-        
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 25, bottom: 0, right: 5)
+
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
 
         return view
     }()
 
     private lazy var colorRowOne: UIStackView = {
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-
-        let view = UIStackView(arrangedSubviews: [spacer])
+        let view = UIStackView(arrangedSubviews: [])
 
         view.axis = .horizontal
-        view.spacing = 35
+        view.distribution = .equalSpacing
+
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 25, bottom: 0, right: 25)
+        view.isLayoutMarginsRelativeArrangement = true
+
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.widthAnchor.constraint(equalToConstant: UIScreen.main.bounds.width).isActive = true
+
         return view
     }()
 
     private lazy var colorRowTwo: UIStackView = {
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-
-        let view = UIStackView(arrangedSubviews: [spacer])
+        let view = UIStackView(arrangedSubviews: [])
 
         view.axis = .horizontal
-        view.spacing = 35
+
+        view.distribution = .equalSpacing
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 25, bottom: 0, right: 25)
+        view.isLayoutMarginsRelativeArrangement = true
+
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.widthAnchor.constraint(equalToConstant: UIScreen.main.bounds.width).isActive = true
         return view
     }()
-    
+
     private lazy var colorRowThree: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
+        spacer.widthAnchor.constraint(equalToConstant: Constants.ColorSelectionSize).isActive = true
+        spacer.heightAnchor.constraint(equalToConstant: Constants.ColorSelectionSize).isActive = true
 
         let view = UIStackView(arrangedSubviews: [spacer])
-        
         view.axis = .horizontal
-        view.spacing = 35
+        view.distribution = .equalSpacing
+
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 25, bottom: 0, right: 25)
+        view.isLayoutMarginsRelativeArrangement = true
+
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.widthAnchor.constraint(equalToConstant: UIScreen.main.bounds.width).isActive = true
         return view
     }()
 
     private func createColorView(theme: Int32) -> UIView {
         let view = UIView()
-        if theme == 0, let defaultPatternImage = UIImage(named: "DefaultPattern") {
-            view.backgroundColor = UIColor(patternImage: defaultPatternImage)
-        } else {
-            view.backgroundColor = ChatData.getThemeBackgroundColor(for: theme)
-        }
-        
+        view.backgroundColor = ChatData.getThemeBackgroundColor(for: theme)
+
         view.layer.cornerRadius = Constants.ColorSelectionSize / 2
         view.clipsToBounds = true
 
+        view.layer.borderColor = UIColor.groupBgColorSelectionPanelBg.cgColor
+        view.layer.borderWidth = 5
+
         view.translatesAutoresizingMaskIntoConstraints = false
-        
+
         view.widthAnchor.constraint(equalToConstant: Constants.ColorSelectionSize).isActive = true
         view.heightAnchor.constraint(equalToConstant: Constants.ColorSelectionSize).isActive = true
-        
+
+        let radius = (Constants.ColorSelectionSize / 2) - 5
+        let halfSize: CGFloat = Constants.ColorSelectionSize/2
+        let circlePath = UIBezierPath(arcCenter: CGPoint(x: halfSize, y: halfSize), radius: radius, startAngle: CGFloat(0), endAngle: CGFloat(Double.pi * 2), clockwise: true)
+        let shapeLayer = CAShapeLayer()
+        shapeLayer.path = circlePath.cgPath
+
+        shapeLayer.fillColor = UIColor.clear.cgColor
+        shapeLayer.strokeColor = UIColor.primaryBlackWhite.withAlphaComponent(0.2).cgColor
+        shapeLayer.lineWidth = 1.0
+
+        view.layer.addSublayer(shapeLayer)
+
         let tapGesture = BackgroundThemeUITapGestureRecognizer(target: self, action: #selector(changePreviewBgAction(_:)))
         tapGesture.theme = theme
         view.isUserInteractionEnabled = true
@@ -260,28 +302,23 @@ class GroupBackgroundViewController: UIViewController {
             }
         }
     }
-    
+
     @objc fileprivate func changePreviewBgAction(_ sender: BackgroundThemeUITapGestureRecognizer) {
         changePreviewBg(theme: sender.theme)
     }
-    
+
     private func changePreviewBg(theme: Int32) {
         guard let currentColorView = colorSelectionDict[selectedBackground] else { return }
         guard let selectedColorView = colorSelectionDict[theme] else { return }
 
-        currentColorView.layer.borderWidth = 0
-        
+        currentColorView.layer.borderColor = UIColor.groupBgColorSelectionPanelBg.cgColor
+
         selectedColorView.layer.borderColor = UIColor.primaryBlue.cgColor
-        selectedColorView.layer.borderWidth = 5
 
         selectedBackground = theme
-        
-        if theme == 0, let defaultPatternImage = UIImage(named: "DefaultPatternLgSquare") {
-            previewRow.subviews[0].backgroundColor = UIColor(patternImage: defaultPatternImage)
-        } else {
-            previewRow.subviews[0].backgroundColor = ChatData.getThemeBackgroundColor(for: theme)
-        }
-//        previewRow.subviews[0].backgroundColor = ChatData.getThemeBackgroundColor(for: theme)
+
+        previewRow.subviews[0].backgroundColor = ChatData.getThemeBackgroundColor(for: theme)
+
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
     }
 }

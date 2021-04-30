@@ -33,7 +33,7 @@ final class FeedItemBackgroundPanelView: UIView {
         self.backgroundColor = UIColor.feedPostBackground
         self.layer.shadowRadius = 8
         self.layer.shadowOffset = CGSize(width: 0, height: 8)
-        self.layer.shadowColor = UIColor.black.cgColor
+        self.layer.shadowColor = UIColor.feedPostShadow.cgColor
         self.updateShadowPath()
     }
 

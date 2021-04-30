@@ -42,12 +42,13 @@ class HomeViewController: UITabBarController {
         UISearchBar.appearance().backgroundColor = .primaryBg
         
         // need to set UITabBarItem in addition to appearance as the very first load does not respect appearance (for font)
-        let fontAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 10.0, weight: .semibold),
-                              NSAttributedString.Key.foregroundColor: UIColor.tabBar]
+        let fontAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 9.5, weight: .regular),
+                                NSAttributedString.Key.kern: 0.01,
+                                NSAttributedString.Key.foregroundColor: UIColor.tabBar] as [NSAttributedString.Key : Any]
         UITabBarItem.appearance().setTitleTextAttributes(fontAttributes, for: .normal)
         
         let appearance = UITabBarAppearance()
-        appearance.shadowColor = nil
+        appearance.shadowColor = UIColor.white
         appearance.stackedLayoutAppearance.normal.badgeBackgroundColor = .lavaOrange
         appearance.stackedLayoutAppearance.normal.badgePositionAdjustment = UIOffset(horizontal: 2, vertical: 0 + Self.tabBarItemImageInsets.top)
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = fontAttributes
@@ -147,13 +148,13 @@ class HomeViewController: UITabBarController {
     }
 
     private func updateTabBarBackgroundEffect() {
-        let blurStyle: UIBlurEffect.Style = traitCollection.userInterfaceStyle == .light ? .systemMaterial : .systemChromeMaterial
+        let blurStyle: UIBlurEffect.Style = traitCollection.userInterfaceStyle == .light ? .systemThickMaterial : .systemChromeMaterial
         tabBar.standardAppearance.backgroundEffect = UIBlurEffect(style: blurStyle)
     }
 
     static let tabBarItemImageInsets: UIEdgeInsets = {
         let vInset: CGFloat = UIDevice.current.hasNotch ? 3 : 3 // currently same but can be used to adjust in the future
-        let sizeAdjust: CGFloat = -1
+        let sizeAdjust: CGFloat = -2
         let topInset = vInset + sizeAdjust
         let bottomInset = -vInset + sizeAdjust
         
@@ -234,7 +235,7 @@ class HomeViewController: UITabBarController {
         }
 
     }
-    
+
     private func setTabBarDot(index: Int, count: Int) {
         guard let barItems = tabBar.items else {
             return
@@ -251,19 +252,19 @@ class HomeViewController: UITabBarController {
         }
 
         guard index > -1 && index < tabBarButtons.count - 1 else { return }
-        
+
         let tabBarItemView = tabBarButtons[index]
-        
+
         for subview in tabBarItemView.subviews {
             if subview.tag == tag {
                 subview.removeFromSuperview()
             }
         }
-        
+
         guard count > 0 else { return }
-        
+
         let barItemWidth = tabBarItemView.bounds.width
-        
+
         let x = (barItemWidth * 0.5 + (barItems[index].selectedImage?.size.width ?? barItemWidth) / 2) - 5
         let y: CGFloat = 8
         let size: CGFloat = 6
@@ -275,7 +276,6 @@ class HomeViewController: UITabBarController {
 
         tabBarItemView.addSubview(dot)
     }
-    
 }
 
 extension HomeViewController: UITabBarControllerDelegate {

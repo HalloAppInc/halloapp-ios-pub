@@ -20,11 +20,11 @@ class GroupTitleView: UIView {
     private struct LayoutConstants {
         static let avatarSize: CGFloat = 32
     }
-    
+
     weak var delegate: GroupTitleViewDelegate?
-    
+
     public var isShowingTypingIndicator: Bool = false
-    
+
     override init(frame: CGRect){
         super.init(frame: frame)
         setup()
@@ -33,9 +33,10 @@ class GroupTitleView: UIView {
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     func update(with groupId: String, isFeedView: Bool = false) {
-        
+
         if let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
             nameLabel.text = chatGroup.name
+            nameLabel.textColor = ChatData.getThemeTopNavColor(for: chatGroup.background)
 
             if !isFeedView {
                 var firstNameList: [String] = []
@@ -49,42 +50,47 @@ class GroupTitleView: UIView {
                         fullNameList.append(MainAppContext.shared.contactStore.fullName(for: member.userId))
                     }
                 }
-                
+
                 if addYourself {
                     firstNameList.append(Localizations.userYouCapitalized)
                     fullNameList.append(Localizations.userYouCapitalized)
                 }
-                
+
                 let localizedFirstNameList = ListFormatter.localizedString(byJoining: firstNameList)
                 let localizedFullNameList = ListFormatter.localizedString(byJoining: fullNameList)
 
                 memberNamesLabel.text = localizedFirstNameList
-                
+
                 memberNamesLabel.isHidden = false
-                
+
                 DDLogDebug("GroupTitleView/memberFirstNamesList [\(localizedFirstNameList)]")
                 DDLogDebug("GroupTitleView/fullNameList [\(localizedFullNameList)]")
             } else {
                 memberNamesLabel.text = Localizations.groupTitleTapForInfo
                 memberNamesLabel.isHidden = false
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+                    UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseOut, animations: {
+                        self?.memberNamesLabel.isHidden = true
+                    })
+                }
             }
         }
-        
+
         avatarView.configure(groupId: groupId, squareSize: LayoutConstants.avatarSize, using: MainAppContext.shared.avatarStore)
     }
 
     func showChatState(with typingIndicatorStr: String?) {
         let show: Bool = typingIndicatorStr != nil
-        
+
         memberNamesLabel.isHidden = show
         typingLabel.isHidden = !show
         isShowingTypingIndicator = show
-        
+
         guard let typingStr = typingIndicatorStr else { return }
         typingLabel.text = typingStr
-        
     }
-    
+
     private func setup() {
         avatarView = AvatarViewButton(type: .custom)
 //        avatarView.hasNewPostsIndicator = ServerProperties.isGroupFeedEnabled
@@ -100,7 +106,7 @@ class GroupTitleView: UIView {
 //        }
 
         avatarView.isUserInteractionEnabled = false
-        
+
         addSubview(hStack)
         hStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
         hStack.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
@@ -112,20 +118,20 @@ class GroupTitleView: UIView {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleSingleTap(gesture:)))
         addGestureRecognizer(tapGesture)
     }
-    
+
     private lazy var hStack: UIStackView = {
         let view = UIStackView(arrangedSubviews: [avatarView, nameColumn])
         view.axis = .horizontal
         view.alignment = .center
         view.spacing = 10
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
-        
+
         return view
     }()
-    
+
     private var avatarView: AvatarViewButton!
-    
+
     private lazy var nameColumn: UIStackView = {
         let view = UIStackView(arrangedSubviews: [nameLabel, memberNamesLabel, typingLabel])
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -133,7 +139,7 @@ class GroupTitleView: UIView {
         view.spacing = 0
         return view
     }()
-    
+
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
@@ -142,7 +148,7 @@ class GroupTitleView: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
+
     private lazy var memberNamesLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
@@ -162,7 +168,7 @@ class GroupTitleView: UIView {
         label.isHidden = true
         return label
     }()
-    
+
     @objc func handleSingleTap(gesture: UITapGestureRecognizer) {
         if gesture.state == .ended {
             delegate?.groupTitleViewRequestsOpenGroupInfo(self)
@@ -175,9 +181,9 @@ class GroupTitleView: UIView {
 }
 
 private extension Localizations {
-    
+
     static var groupTitleTapForInfo: String {
         NSLocalizedString("group.title.tap.for.info", value: "Tap here for group info", comment: "Text shown to tell user the group title is tappable")
     }
-    
+
 }
