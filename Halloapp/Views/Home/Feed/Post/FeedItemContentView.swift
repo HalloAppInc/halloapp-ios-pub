@@ -46,7 +46,7 @@ final class FeedItemBackgroundPanelView: UIView {
     }
 
     var isShadowHidden: Bool = false {
-        didSet { self.layer.shadowOpacity = isShadowHidden ? 0 : 0.08 }
+        didSet { self.layer.shadowOpacity = isShadowHidden ? 0 : 1.0 }
     }
 
     var cornerRadius: CGFloat = 0 {
