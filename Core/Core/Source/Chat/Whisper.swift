@@ -186,7 +186,6 @@ final class Whisper {
         inboundEphemeralKeyID: Int,
         oneTimeKeyID: Int?,
         previousChainLength: Int,
-        chainIndex: Int,
         userKeys: UserKeyBundle) -> Result<KeyBundle, DecryptionError>
     {
         DDLogInfo("WhisperSession/receiveSessionSetup \(userID)")
@@ -262,7 +261,7 @@ final class Whisper {
                                   inboundEphemeralKeyId: Int32(inboundEphemeralKeyID),
                                   inboundChainKey: Data(inboundChainKey),
                                   inboundPreviousChainLength: Int32(previousChainLength),
-                                  inboundChainIndex: Int32(chainIndex - 1),
+                                  inboundChainIndex: -1, // start new sessions at -1 (not incoming chainIndex) so we ratchet properly for out of order messages
 
                                   rootKey: Data(rootKey),
 

@@ -96,7 +96,6 @@ public final class WhisperSession {
                     inboundEphemeralKeyID: 1,
                     oneTimeKeyID: rerequestData.oneTimePreKeyID,
                     previousChainLength: 0,
-                    chainIndex: 0,
                     userKeys: userKeys)
                 switch setupResult {
                 case .success(let keyBundle):
@@ -366,7 +365,6 @@ public final class WhisperSession {
             inboundEphemeralKeyID: Int(payload.ephemeralKeyID),
             oneTimeKeyID: encryptedData.oneTimeKeyId,
             previousChainLength: Int(payload.previousChainLength),
-            chainIndex: Int(payload.chainIndex),
             userKeys: userKeys)
         switch setupResult {
         case .success(let keyBundle):
