@@ -69,10 +69,6 @@ extension FeedPostComment: FeedCommentProtocol {
         get { post.id }
     }
 
-    public var feedPostUserId: UserID {
-        get { post.userId }
-    }
-
     public var parentId: String? {
         get { parent?.id }
     }

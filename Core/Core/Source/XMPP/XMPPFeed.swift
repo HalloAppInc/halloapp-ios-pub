@@ -105,7 +105,6 @@ public struct XMPPComment: FeedCommentProtocol {
 
     // MARK: FeedComment
     public let feedPostId: FeedPostID
-    public let feedPostUserId: UserID = "" // added for protocol conformance,  not actually used anywhere
     public let parentId: FeedPostCommentID?
     public let text: String
     public var orderedMentions: [FeedMentionProtocol] {
