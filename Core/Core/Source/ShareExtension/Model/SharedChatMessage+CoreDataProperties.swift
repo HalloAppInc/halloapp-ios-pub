@@ -16,6 +16,9 @@ extension SharedChatMessage {
         case sent = 1
         case received = 2
         case sendError = 3
+        case acked = 4
+        case decryptionError = 5
+        case rerequesting = 6
     }
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<SharedChatMessage> {
@@ -28,6 +31,10 @@ extension SharedChatMessage {
     @NSManaged public var text: String?
     @NSManaged public var statusValue: Int16
     @NSManaged public var timestamp: Date
+    @NSManaged public var clientChatMsgPb: Data?
+    @NSManaged public var senderClientVersion: String?
+    @NSManaged public var decryptionError: String?
+    @NSManaged public var ephemeralKey: Data?
     @NSManaged public var media: Set<SharedMedia>?
     
     public var status: Status {

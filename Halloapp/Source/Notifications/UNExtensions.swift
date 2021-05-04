@@ -47,6 +47,14 @@ extension UNMutableNotificationContent {
         }
     }
 
+    func populateChatBody(from clientChatMessage: Clients_ChatMessage, using metadata: NotificationMetadata, contactStore: ContactStore) {
+        metadata.populateChatBody(from: clientChatMessage, contactStore: contactStore)
+        body = metadata.body
+        // encode and store metadata - this will be used to handle user response on the notification.
+        userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
+        DDLogInfo("UNExtensions/populateChatBody updated title: \(title), subtitle: \(subtitle), body: \(body)")
+    }
+
 }
 
 extension UNUserNotificationCenter {

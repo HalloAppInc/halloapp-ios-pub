@@ -872,41 +872,6 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    // MARK: Decryption
-
-    private lazy var isPlaintextFallbackSupported = !ServerProperties.isInternalUser
-
-    /// May return a valid message with an error (i.e., there may be plaintext to fall back to even if decryption fails).
-    private func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (Clients_ChatMessage?, DecryptionFailure?) -> Void) {
-        let plainTextMessage = isPlaintextFallbackSupported ? Clients_ChatMessage(containerData: serverChat.payload) : nil
-        AppContext.shared.messageCrypter.decrypt(
-            EncryptedData(
-                data: serverChat.encPayload,
-                identityKey: serverChat.publicKey.isEmpty ? nil : serverChat.publicKey,
-                oneTimeKeyId: Int(serverChat.oneTimePreKeyID)),
-            from: fromUserID) { result in
-            switch result {
-            case .success(let decryptedData):
-                guard let decryptedMessage = Clients_ChatMessage(containerData: decryptedData) else {
-                    // Decryption deserialization failed, fall back to plaintext if possible
-                    completion(plainTextMessage, DecryptionFailure(.deserialization))
-                    return
-                }
-                if let plainTextMessage = plainTextMessage, plainTextMessage.text != decryptedMessage.text {
-                    // Decrypted message does not match plaintext
-                    completion(decryptedMessage, DecryptionFailure(.plaintextMismatch))
-                } else {
-                    if plainTextMessage == nil {
-                        DDLogInfo("proto/decryptChat/plaintext not available")
-                    }
-                    completion(decryptedMessage, nil)
-                }
-            case .failure(let failure):
-                completion(plainTextMessage, failure)
-            }
-        }
-    }
-
     // i dont think this is the right place to generate local notifications.
     // todo(murali@): fix this!
     private func showContactNotification(for msg: Server_Msg) {

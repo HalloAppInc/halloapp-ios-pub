@@ -37,7 +37,7 @@ extension FeedPostMedia {
         }
     }
     @NSManaged var typeValue: Int16
-    @NSManaged var relativeFilePath: String?
+    @NSManaged public var relativeFilePath: String?
     @NSManaged public var url: URL?
     @NSManaged public var uploadUrl: URL?
     @NSManaged var post: FeedPost
@@ -51,8 +51,8 @@ extension FeedPostMedia {
         }
     }
 
-    @NSManaged private var width: Float
-    @NSManaged private var height: Float
+    @NSManaged public var width: Float
+    @NSManaged public var height: Float
     public var size: CGSize {
         get {
             return CGSize(width: CGFloat(self.width), height: CGFloat(self.height))
@@ -65,7 +65,7 @@ extension FeedPostMedia {
 
     @NSManaged public var key: String
     @NSManaged public var sha256: String
-    @NSManaged var order: Int16
+    @NSManaged public var order: Int16
 }
 
 extension FeedPostMedia: MediaUploadable {
@@ -102,6 +102,18 @@ extension FeedPostMedia: FeedMediaProtocol {
     public var id: String {
         get {
             return "\(post.id)-\(order)"
+        }
+    }
+}
+
+
+extension FeedPostMedia: QuotedMedia {
+    public var quotedMediaType: ChatQuoteMediaType {
+        switch type {
+        case .image:
+            return .image
+        case .video:
+            return .video
         }
     }
 }

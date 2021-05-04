@@ -10,12 +10,12 @@
 import Foundation
 import CoreData
 
+public enum ChatQuoteMediaType: Int16 {
+    case image = 0
+    case video = 1
+}
 
 extension ChatQuotedMedia {
-    enum ChatQuoteMediaType: Int16 {
-        case image = 0
-        case video = 1
-    }
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatQuotedMedia> {
         return NSFetchRequest<ChatQuotedMedia>(entityName: "ChatQuotedMedia")
     }
@@ -36,4 +36,19 @@ extension ChatQuotedMedia {
         }
     }
     
+}
+
+// Protocol for quoted media content in chats.
+public protocol QuotedMedia {
+
+    var quotedMediaType: ChatQuoteMediaType { get }
+
+    var order: Int16 { get }
+
+    var height: Float { get }
+
+    var width: Float { get }
+
+    var relativeFilePath: String? { get }
+
 }

@@ -127,3 +127,22 @@ public struct ChatMessageTombstone {
     public var to: UserID
     public var timestamp: Date
 }
+
+extension Clients_ChatMessage {
+    init?(containerData: Data) {
+        if let protoContainer = try? Clients_Container(serializedData: containerData),
+            protoContainer.hasChatMessage
+        {
+            // Binary protocol
+            self = protoContainer.chatMessage
+        } else if let decodedData = Data(base64Encoded: containerData, options: .ignoreUnknownCharacters),
+            let protoContainer = try? Clients_Container(serializedData: decodedData),
+            protoContainer.hasChatMessage
+        {
+            // Legacy Base64 protocol
+            self = protoContainer.chatMessage
+        } else {
+            return nil
+        }
+    }
+}

@@ -57,6 +57,11 @@ class NotificationMetadata: Codable {
     var pushName: String?
     var serverMsgPb: Data?
 
+    // Chat specific fields
+    var serverChatStanzaPb: Data? = nil
+    var senderClientVersion: String? = nil
+
+
     // Fields to set in the actual UNMutableNotificationContent
     var title: String = ""
     var subtitle: String = ""
@@ -292,6 +297,13 @@ class NotificationMetadata: Codable {
             timestamp = Date(timeIntervalSince1970: TimeInterval(chatMsg.timestamp))
             data = chatMsg.payload
             pushName = chatMsg.senderName
+            do {
+                serverChatStanzaPb = try chatMsg.serializedData()
+            } catch {
+                DDLogError("NotificationMetadata/init/chatStanza could not serialize chatMsg: \(msg)")
+                return nil
+            }
+            senderClientVersion = chatMsg.senderClientVersion
         case .chatRetract(let chatRetractStanza):
             contentId = chatRetractStanza.id
             contentType = .chatMessageRetract
@@ -350,11 +362,18 @@ class NotificationMetadata: Codable {
         return ListFormatter.localizedString(byJoining: strings)
     }
 
+    func getMentionNames(contactStore: ContactStore) -> ((UserID) -> String) {
+        let mentionNameProvider: (UserID) -> String = { [self] userID in
+            // TODO: Pass in the push names included with the mentions
+            let pushNameForMention = (userID == fromId) ? pushName : nil
+            return contactStore.mentionNameIfAvailable(for: userID, pushName: pushNameForMention) ?? Localizations.unknownContact
+        }
+        return mentionNameProvider
+    }
+
     func populateContent(contactStore: ContactStore) -> Bool {
 
-        let mentionNameProvider = { [self] fromId in
-            contactStore.mentionNameIfAvailable(for: fromId, pushName: pushName) ?? Localizations.unknownContact
-        }
+        let mentionNameProvider = getMentionNames(contactStore: contactStore)
 
         // Title:
         // "Contact" for feed posts / comments and 1-1 chat messages.
@@ -391,20 +410,8 @@ class NotificationMetadata: Codable {
 
         // ChatMessage or GroupChatMessage
         case .chatMessage, .groupChatMessage:
-            guard let protoContainer = protoContainer else {
-                return false
-            }
-            let protoMessage = protoContainer.chatMessage
-            body = protoContainer.chatMessage.mentionText.expandedText(nameProvider: mentionNameProvider).string
-            if !protoMessage.media.isEmpty {
-                // Display how many photos and videos message contains if there's no caption.
-                if body.isEmpty {
-                    body = Self.notificationBody(forMedia: protoMessage.media)
-                } else {
-                    let mediaIcon = Self.mediaIcon(protoMessage.media.first!)
-                    body = "\(mediaIcon) \(body)"
-                }
-            }
+            // Fallback text in case decryption fails.
+            body = String(format: NSLocalizedString("notification.new.message", value: "New Message", comment: "Fallback text for new message notification."))
 
         // Contact notification for new friend or new invitee
         case .newFriend, .newInvitee, .newContact:
@@ -430,6 +437,20 @@ class NotificationMetadata: Codable {
             break
         }
         return true
+    }
+
+    func populateChatBody(from chatMessage: Clients_ChatMessage, contactStore: ContactStore) {
+        let mentionNameProvider = getMentionNames(contactStore: contactStore)
+        body = chatMessage.mentionText.expandedText(nameProvider: mentionNameProvider).string
+        if !chatMessage.media.isEmpty {
+            // Display how many photos and videos message contains if there's no caption.
+            if body.isEmpty {
+                body = Self.notificationBody(forMedia: chatMessage.media)
+            } else {
+                let mediaIcon = Self.mediaIcon(chatMessage.media.first!)
+                body = "\(mediaIcon) \(body)"
+            }
+        }
     }
 
     // Discuss with team - if we need this - there should be a better way to handle these cases.

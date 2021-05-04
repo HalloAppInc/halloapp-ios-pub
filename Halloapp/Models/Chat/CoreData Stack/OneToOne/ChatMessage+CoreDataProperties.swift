@@ -40,7 +40,7 @@ extension ChatMessage {
     @NSManaged var id: ChatMessageID
     @NSManaged var fromUserId: String
     @NSManaged var toUserId: String
-    @NSManaged var text: String?
+    @NSManaged public var text: String?
     @NSManaged var media: Set<ChatMedia>?
     
     @NSManaged var feedPostId: String?
@@ -86,4 +86,28 @@ extension ChatMessage {
             return media.sorted { $0.order < $1.order }
         }
     }
+}
+
+
+extension ChatMessage: ChatQuotedProtocol {
+    public var userId: String {
+        return fromUserId
+    }
+
+    public var type: ChatQuoteType {
+        return .message
+    }
+
+    public var mentions: Set<FeedMention>? {
+        return nil
+    }
+
+    public var mediaList: [QuotedMedia] {
+        if let media = media {
+            return Array(media)
+        } else {
+            return []
+        }
+    }
+
 }

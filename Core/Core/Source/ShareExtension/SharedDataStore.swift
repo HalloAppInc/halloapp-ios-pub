@@ -116,7 +116,8 @@ open class SharedDataStore {
     public final func messages() -> [SharedChatMessage] {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: false)]
+        // Important to fetch these in ascending order - since there could be quoted content referencing previous messages
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: true)]
         
         do {
             let messages = try managedObjectContext.fetch(fetchRequest)

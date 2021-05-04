@@ -73,7 +73,12 @@ extension SharedMedia {
 
 extension SharedMedia: FeedMediaProtocol {
     public var id: String {
-        "\(post!.id)-\(order)"
+        if let post = post {
+            return "\(post.id)-\(order)"
+        } else if let message = message {
+            return "\(message.id)-\(order)"
+        }
+        return "\(UUID().uuidString)-\(order)"
     }
 }
 

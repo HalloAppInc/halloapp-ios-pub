@@ -42,7 +42,7 @@ extension ChatMedia {
     }
     
     @NSManaged var typeValue: Int16
-    @NSManaged var relativeFilePath: String?
+    @NSManaged public var relativeFilePath: String?
 
     @NSManaged var url: URL?
     @NSManaged var uploadUrl: URL?
@@ -71,8 +71,8 @@ extension ChatMedia {
         }
     }
     
-    @NSManaged private var width: Float
-    @NSManaged private var height: Float
+    @NSManaged public var width: Float
+    @NSManaged public var height: Float
     var size: CGSize {
         get {
             return CGSize(width: CGFloat(self.width), height: CGFloat(self.height))
@@ -85,7 +85,7 @@ extension ChatMedia {
     
     @NSManaged var key: String
     @NSManaged var sha256: String
-    @NSManaged var order: Int16
+    @NSManaged public var order: Int16
     
 }
 
@@ -113,3 +113,15 @@ extension ChatMedia: MediaUploadable {
         }
     }
 }
+
+extension ChatMedia: QuotedMedia {
+    public var quotedMediaType: ChatQuoteMediaType {
+        switch type {
+        case .image:
+            return .image
+        case .video:
+            return .video
+        }
+    }
+}
+

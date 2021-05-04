@@ -137,7 +137,7 @@ class DataStore: ShareExtensionDataStore {
         feedMedia.size = media.size!
         feedMedia.key = ""
         feedMedia.sha256 = ""
-        feedMedia.order = Int16(media.order)
+        feedMedia.order = Int16(media.order) - 1
 
         switch target {
         case .post(let feedPost):
@@ -280,6 +280,10 @@ class DataStore: ShareExtensionDataStore {
         chatMessage.fromUserId = AppContext.shared.userData.userId
         chatMessage.text = text
         chatMessage.status = .none
+        chatMessage.clientChatMsgPb = nil
+        chatMessage.senderClientVersion = nil
+        chatMessage.decryptionError = nil
+        chatMessage.ephemeralKey = nil
         chatMessage.timestamp = Date()
         
         media.forEach { (mediaItem) in

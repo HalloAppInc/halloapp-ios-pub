@@ -36,7 +36,7 @@ extension FeedPost {
     @NSManaged public var groupId: GroupID?
     @NSManaged var comments: Set<FeedPostComment>?
     @NSManaged var media: Set<FeedPostMedia>?
-    @NSManaged var mentions: Set<FeedMention>?
+    @NSManaged public var mentions: Set<FeedMention>?
     @NSManaged var unreadCount: Int32
     @NSManaged var info: FeedPostInfo?
     @NSManaged private var statusValue: Int16
@@ -114,5 +114,20 @@ extension FeedPost {
 
     @objc(removeMedia:)
     @NSManaged func removeFromMedia(_ values: NSSet)
+
+}
+
+extension FeedPost: ChatQuotedProtocol {
+    public var type: ChatQuoteType {
+        return .feedpost
+    }
+
+    public var mediaList: [QuotedMedia] {
+        if let media = media {
+            return Array(media)
+        } else {
+            return []
+        }
+    }
 
 }

@@ -131,7 +131,122 @@ class DataStore: NotificationServiceExtensionDataStore {
         save(managedObjectContext)
     }
 
+    func save(clientChatMsg: Clients_ChatMessage?, metadata: NotificationMetadata, status: SharedChatMessage.Status, failure: DecryptionFailure?) -> SharedChatMessage? {
+        let managedObjectContext = persistentContainer.viewContext
+
+        let messageId = metadata.contentId
+        DDLogInfo("NotificationExtension/SharedDataStore/message/\(messageId)/created")
+
+        // TODO(murali@): add a field for retryCount of this message if necessary.
+        let chatMessage = NSEntityDescription.insertNewObject(forEntityName: "SharedChatMessage", into: managedObjectContext) as! SharedChatMessage
+        chatMessage.id = messageId
+        chatMessage.toUserId = AppContext.shared.userData.userId
+        chatMessage.fromUserId = metadata.fromId
+        chatMessage.text = clientChatMsg?.text
+        chatMessage.status = status
+        chatMessage.decryptionError = failure?.error.rawValue
+        chatMessage.ephemeralKey = failure?.ephemeralKey
+        chatMessage.senderClientVersion = metadata.senderClientVersion
+        chatMessage.timestamp = metadata.timestamp ?? Date()
+
+        switch status {
+        case .received:
+            guard let clientChatMsg = clientChatMsg else {
+                DDLogError("NotificationExtension/SharedDataStore/message/\(messageId)/ clientChatMsg is nil")
+                return nil
+            }
+            let clientChatMsgPb: Data
+            do {
+                clientChatMsgPb = try clientChatMsg.serializedData()
+            } catch {
+                DDLogError("NotificationExtension/SharedDataStore/message/\(messageId)/ could not serialize data")
+                return nil
+            }
+            chatMessage.clientChatMsgPb = clientChatMsgPb
+            for (index, mediaItem) in clientChatMsg.media.enumerated() {
+                guard let mediaType: FeedMediaType = {
+                    switch mediaItem.type {
+                    case .image: return .image
+                    case .video: return .video
+                    default: return nil
+                    }}() else { continue }
+
+                guard let url = URL(string: mediaItem.downloadURL) else { continue }
+
+                let width = CGFloat(mediaItem.width), height = CGFloat(mediaItem.height)
+                guard width > 0 && height > 0 else { continue }
+
+                let chatMedia = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
+                chatMedia.type = mediaType
+                chatMedia.status = .none
+                chatMedia.url = url
+                chatMedia.uploadUrl = nil
+                chatMedia.size = CGSize(width: width, height: height)
+                chatMedia.key = mediaItem.encryptionKey.base64EncodedString()
+                chatMedia.sha256 = mediaItem.ciphertextHash.base64EncodedString()
+                chatMedia.order = Int16(index)
+
+                chatMedia.message = chatMessage
+            }
+        case .decryptionError:
+            break
+        case .acked, .rerequesting:
+            // when we save the message initially - status will always be received/decryptionError.
+            break
+        case .none, .sent, .sendError:
+            // not relevant here.
+            break
+        }
+        save(managedObjectContext)
+        return chatMessage
+    }
+
+    func getChatMessagesToAck() -> [SharedChatMessage] {
+        let managedObjectContext = persistentContainer.viewContext
+
+        let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
+        // Important to fetch these in ascending order - since we always want to ack them in that order only.
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: true)]
+        var messagesToAck = [SharedChatMessage]()
+        do {
+            let chatMessages = try managedObjectContext.fetch(fetchRequest)
+            // We want to ack messages in a specific order - so that the sender of the message can see delivery receipts in order.
+            for message in chatMessages {
+                if message.status == .acked {
+                    continue
+                } else if message.status == .decryptionError {
+                    continue
+                } else if message.status == .received {
+                    messagesToAck.append(message)
+                }
+            }
+        } catch {
+            DDLogError("NotificationExtension/SharedDataStore/getChatMessagesToAck/error  [\(error)]")
+        }
+        return messagesToAck
+    }
+
     func sharedMediaObject(forObjectId objectId: NSManagedObjectID) throws -> SharedMedia? {
         return try persistentContainer.viewContext.existingObject(with: objectId) as? SharedMedia
+    }
+
+    func updateMessageStatus(for msgId: String, status: SharedChatMessage.Status) {
+        let managedObjectContext = persistentContainer.viewContext
+
+        let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id = %@", msgId)
+        do {
+            let chatMessages = try managedObjectContext.fetch(fetchRequest)
+            guard let message = chatMessages.first else {
+                DDLogError("NotificationExtension/SharedDataStore/sharedChatMessage/ no message found for \(msgId)")
+                return
+            }
+            DDLogInfo("NotificationExtension/SharedDataStore/sharedChatMessage/update status to: \(status)")
+            message.status = status
+            save(managedObjectContext)
+        } catch {
+            DDLogError("NotificationExtension/SharedDataStore/sharedChatMessage/error  [\(error)], msgId: \(msgId)")
+        }
+        return
     }
 }

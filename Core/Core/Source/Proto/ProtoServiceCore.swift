@@ -59,6 +59,8 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     private var stream: Stream?
     public let userData: UserData
 
+    private lazy var isPlaintextFallbackSupported = !ServerProperties.isInternalUser
+
     required public init(userData: UserData, passiveMode: Bool = false, automaticallyReconnect: Bool = true) {
         self.userData = userData
         self.isPassiveMode = passiveMode
@@ -597,6 +599,39 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    // MARK: Decryption
+
+    /// May return a valid message with an error (i.e., there may be plaintext to fall back to even if decryption fails).
+    public func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (Clients_ChatMessage?, DecryptionFailure?) -> Void) {
+        let plainTextMessage = isPlaintextFallbackSupported ? Clients_ChatMessage(containerData: serverChat.payload) : nil
+        AppContext.shared.messageCrypter.decrypt(
+            EncryptedData(
+                data: serverChat.encPayload,
+                identityKey: serverChat.publicKey.isEmpty ? nil : serverChat.publicKey,
+                oneTimeKeyId: Int(serverChat.oneTimePreKeyID)),
+            from: fromUserID) { result in
+            switch result {
+            case .success(let decryptedData):
+                guard let decryptedMessage = Clients_ChatMessage(containerData: decryptedData) else {
+                    // Decryption deserialization failed, fall back to plaintext if possible
+                    completion(plainTextMessage, DecryptionFailure(.deserialization))
+                    return
+                }
+                if let plainTextMessage = plainTextMessage, plainTextMessage.text != decryptedMessage.text {
+                    // Decrypted message does not match plaintext
+                    completion(plainTextMessage, DecryptionFailure(.plaintextMismatch))
+                } else {
+                    if plainTextMessage == nil {
+                        DDLogInfo("proto/decryptChat/plaintext not available")
+                    }
+                    completion(decryptedMessage, nil)
+                }
+            case .failure(let failure):
+                completion(plainTextMessage, failure)
+            }
+        }
+    }
+
     public func sendChatMessage(_ message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
         guard self.isConnected else {
             DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) skipping (disconnected)")
@@ -641,6 +676,35 @@ extension ProtoServiceCore: CoreService {
                 DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
                 self.send(packetData)
                 self.sendSilentChats(ServerProperties.silentChatMessages)
+                completion(.success(()))
+            }
+        }
+    }
+
+    public func sendAck(messageId: String, completion: @escaping ServiceRequestCompletion<Void>) {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard self.isConnected else {
+                DDLogInfo("ProtoServiceCore/sendAck/\(messageId) skipping (disconnected)")
+                completion(.failure(RequestError.notConnected))
+                return
+            }
+            var ack = Server_Ack()
+            ack.id = messageId
+            var packet = Server_Packet()
+            packet.stanza = .ack(ack)
+            guard let packetData = try? packet.serializedData() else {
+                DDLogError("ProtoServiceCore/sendAck/\(messageId)/error could not serialize ack!")
+                completion(.failure(.malformedRequest))
+                return
+            }
+            DispatchQueue.main.async {
+                guard self.isConnected else {
+                    DDLogInfo("ProtoServiceCore/sendAck/\(messageId) aborting (disconnected)")
+                    completion(.failure(.notConnected))
+                    return
+                }
+                DDLogInfo("ProtoServiceCore/sendAck/\(messageId))")
+                self.send(packetData)
                 completion(.success(()))
             }
         }

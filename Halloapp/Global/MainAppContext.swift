@@ -127,6 +127,7 @@ class MainAppContext: AppContext {
         mergingSharedData = true
         let mergeGroup = DispatchGroup()
 
+        // Always merge feedData first and then chatData: because chatContent might refer to feedItems.
         DDLogInfo("MainAppContext/merge-data/share-extension")
         
         let shareExtensionDataStore = ShareExtensionDataStore()
@@ -149,6 +150,10 @@ class MainAppContext: AppContext {
 
         mergeGroup.enter()
         feedData.mergeData(from: notificationServiceExtensionDataStore) {
+            mergeGroup.leave()
+        }
+        mergeGroup.enter()
+        chatData.mergeData(from: notificationServiceExtensionDataStore) {
             mergeGroup.leave()
         }
 
