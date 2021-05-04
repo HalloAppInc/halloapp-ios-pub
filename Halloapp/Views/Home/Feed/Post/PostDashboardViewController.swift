@@ -232,9 +232,6 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         case .seen:
             return Localizations.viewedBy
 
-        case .sent:
-            return Localizations.sentTo
-
         default:
             return nil
         }
@@ -257,43 +254,17 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
     }
 
     private func reloadData(from feedPost: FeedPost) {
-        let postAudience: Set<UserID>
-
-        // Only use userIds from receipts if privacy list was actually saved into feedPost.info.
-        if let receiptUserIds = feedPost.info?.receipts?.keys, feedPost.info?.audienceType != nil {
-            postAudience = Set(receiptUserIds)
-        } else {
-            // If there is no post info - then use the group info for group feed posts.
-            if let groupId = feedPost.groupId {
-                if let groupMembers = MainAppContext.shared.chatData.chatGroup(groupId: groupId)?.members {
-                    postAudience = Set(groupMembers.map({ $0.userId }))
-                } else {
-                    postAudience = []
-                }
-            } else {
-                postAudience = Set(MainAppContext.shared.contactStore.allInNetworkContactIDs())
-            }
-        }
-
         var seenReceipts = MainAppContext.shared.feedData.seenReceipts(for: feedPost)
         if seenReceipts.isEmpty {
             seenReceipts.append(FeedPostReceipt(userId: "", type: .placeholder, contactName: nil, phoneNumber: nil, timestamp: Date()))
         }
 
-        // Filter out usedIds in "Seen by" section from "Sent to" section.
         var userIdsInSeenBySection = Set(seenReceipts.map(\.userId))
         userIdsInSeenBySection.insert(AppContext.shared.userData.userId)
-
-        // All other contacts go into "Sent to" section.
-        let sentReceipts = MainAppContext.shared.feedData.sentReceipts(from: postAudience.subtracting(userIdsInSeenBySection))
 
         var snapshot = NSDiffableDataSourceSnapshot<FeedPostReceipt.ReceiptType, FeedPostReceipt>()
         snapshot.appendSections([ .seen ])
         snapshot.appendItems(seenReceipts, toSection: .seen)
-        if !sentReceipts.isEmpty {
-            snapshot.appendSections([ .sent ])
-            snapshot.appendItems(sentReceipts, toSection: .sent)
-        }
         dataSource?.apply(snapshot, animatingDifferences: viewIfLoaded?.window != nil)
     }
 

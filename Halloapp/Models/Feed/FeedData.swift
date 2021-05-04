@@ -1340,35 +1340,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return receipts
     }
 
-    func sentReceipts(from userIds: Set<UserID>) -> [FeedPostReceipt] {
-
-        var unknownContactIDs = userIds
-
-        // Known contacts go first, sorted using Address Book sort.
-        var receipts: [FeedPostReceipt] = []
-        let knownContacts = contactStore.sortedContacts(withUserIds: Array(userIds))
-        var uniqueUserIDs: Set<UserID> = [] // Contacts need to be de-duped by userId.
-        for abContact in knownContacts {
-            if let userId = abContact.userId, uniqueUserIDs.insert(userId).inserted {
-                let phoneNumber = abContact.phoneNumber?.formattedPhoneNumber
-                receipts.append(FeedPostReceipt(userId: userId, type: .sent, contactName: abContact.fullName, phoneNumber: phoneNumber, timestamp: Date()))
-                unknownContactIDs.remove(userId)
-            }
-        }
-
-        // Unknown contacts are at the end, sorted by push name.
-        var receiptsForUnknownContacts: [FeedPostReceipt] = []
-        for userId in unknownContactIDs {
-            let contactName = contactStore.fullName(for: userId)
-            receiptsForUnknownContacts.append(FeedPostReceipt(userId: userId, type: .sent, contactName: contactName, phoneNumber: nil, timestamp: Date()))
-        }
-        receiptsForUnknownContacts.sort(by: { $0.contactName! < $1.contactName! })
-
-        receipts.append(contentsOf: receiptsForUnknownContacts)
-
-        return receipts
-    }
-
     let didGetUnreadFeedCount = PassthroughSubject<Int, Never>()
     
     func checkForUnreadFeed() {
