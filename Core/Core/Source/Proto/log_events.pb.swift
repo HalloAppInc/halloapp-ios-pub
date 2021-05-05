@@ -204,6 +204,7 @@ public struct Server_MediaUpload {
 
     /// 1v1 message or group_message
     case message // = 1
+    case comment // = 2
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -214,6 +215,7 @@ public struct Server_MediaUpload {
       switch rawValue {
       case 0: self = .post
       case 1: self = .message
+      case 2: self = .comment
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -222,6 +224,7 @@ public struct Server_MediaUpload {
       switch self {
       case .post: return 0
       case .message: return 1
+      case .comment: return 2
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -266,6 +269,7 @@ extension Server_MediaUpload.TypeEnum: CaseIterable {
   public static var allCases: [Server_MediaUpload.TypeEnum] = [
     .post,
     .message,
+    .comment,
   ]
 }
 
@@ -317,6 +321,7 @@ public struct Server_MediaDownload {
 
     /// 1v1 message or group_message
     case message // = 1
+    case comment // = 2
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -327,6 +332,7 @@ public struct Server_MediaDownload {
       switch rawValue {
       case 0: self = .post
       case 1: self = .message
+      case 2: self = .comment
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -335,6 +341,7 @@ public struct Server_MediaDownload {
       switch self {
       case .post: return 0
       case .message: return 1
+      case .comment: return 2
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -379,6 +386,7 @@ extension Server_MediaDownload.TypeEnum: CaseIterable {
   public static var allCases: [Server_MediaDownload.TypeEnum] = [
     .post,
     .message,
+    .comment,
   ]
 }
 
@@ -714,6 +722,7 @@ extension Server_MediaUpload.TypeEnum: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "POST"),
     1: .same(proto: "MESSAGE"),
+    2: .same(proto: "COMMENT"),
   ]
 }
 
@@ -802,6 +811,7 @@ extension Server_MediaDownload.TypeEnum: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "POST"),
     1: .same(proto: "MESSAGE"),
+    2: .same(proto: "COMMENT"),
   ]
 }
 

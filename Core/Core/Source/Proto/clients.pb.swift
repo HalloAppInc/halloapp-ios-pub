@@ -145,7 +145,7 @@ public struct Clients_EncryptedResource {
 
   public var encryptionKey: Data = Data()
 
-  public var plaintextHash: Data = Data()
+  public var ciphertextHash: Data = Data()
 
   public var downloadURL: String = String()
 
@@ -866,7 +866,7 @@ extension Clients_EncryptedResource: SwiftProtobuf.Message, SwiftProtobuf._Messa
   public static let protoMessageName: String = _protobuf_package + ".EncryptedResource"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "encryption_key"),
-    2: .standard(proto: "plaintext_hash"),
+    2: .standard(proto: "ciphertext_hash"),
     3: .standard(proto: "download_url"),
   ]
 
@@ -877,7 +877,7 @@ extension Clients_EncryptedResource: SwiftProtobuf.Message, SwiftProtobuf._Messa
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularBytesField(value: &self.encryptionKey) }()
-      case 2: try { try decoder.decodeSingularBytesField(value: &self.plaintextHash) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self.ciphertextHash) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.downloadURL) }()
       default: break
       }
@@ -888,8 +888,8 @@ extension Clients_EncryptedResource: SwiftProtobuf.Message, SwiftProtobuf._Messa
     if !self.encryptionKey.isEmpty {
       try visitor.visitSingularBytesField(value: self.encryptionKey, fieldNumber: 1)
     }
-    if !self.plaintextHash.isEmpty {
-      try visitor.visitSingularBytesField(value: self.plaintextHash, fieldNumber: 2)
+    if !self.ciphertextHash.isEmpty {
+      try visitor.visitSingularBytesField(value: self.ciphertextHash, fieldNumber: 2)
     }
     if !self.downloadURL.isEmpty {
       try visitor.visitSingularStringField(value: self.downloadURL, fieldNumber: 3)
@@ -899,7 +899,7 @@ extension Clients_EncryptedResource: SwiftProtobuf.Message, SwiftProtobuf._Messa
 
   public static func ==(lhs: Clients_EncryptedResource, rhs: Clients_EncryptedResource) -> Bool {
     if lhs.encryptionKey != rhs.encryptionKey {return false}
-    if lhs.plaintextHash != rhs.plaintextHash {return false}
+    if lhs.ciphertextHash != rhs.ciphertextHash {return false}
     if lhs.downloadURL != rhs.downloadURL {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

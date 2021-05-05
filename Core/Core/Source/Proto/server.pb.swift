@@ -1351,6 +1351,8 @@ public struct Server_ChatStanza {
 
   public var senderName: String = String()
 
+  public var senderPhone: String = String()
+
   /// Use >=16 for temporary elements since 1-15 encode smaller
   public var senderLogInfo: String = String()
 
@@ -4917,6 +4919,7 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     4: .standard(proto: "public_key"),
     5: .standard(proto: "one_time_pre_key_id"),
     6: .standard(proto: "sender_name"),
+    7: .standard(proto: "sender_phone"),
     16: .standard(proto: "sender_log_info"),
     17: .standard(proto: "sender_client_version"),
   ]
@@ -4933,6 +4936,7 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       case 4: try { try decoder.decodeSingularBytesField(value: &self.publicKey) }()
       case 5: try { try decoder.decodeSingularInt64Field(value: &self.oneTimePreKeyID) }()
       case 6: try { try decoder.decodeSingularStringField(value: &self.senderName) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self.senderPhone) }()
       case 16: try { try decoder.decodeSingularStringField(value: &self.senderLogInfo) }()
       case 17: try { try decoder.decodeSingularStringField(value: &self.senderClientVersion) }()
       default: break
@@ -4959,6 +4963,9 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if !self.senderName.isEmpty {
       try visitor.visitSingularStringField(value: self.senderName, fieldNumber: 6)
     }
+    if !self.senderPhone.isEmpty {
+      try visitor.visitSingularStringField(value: self.senderPhone, fieldNumber: 7)
+    }
     if !self.senderLogInfo.isEmpty {
       try visitor.visitSingularStringField(value: self.senderLogInfo, fieldNumber: 16)
     }
@@ -4975,6 +4982,7 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if lhs.publicKey != rhs.publicKey {return false}
     if lhs.oneTimePreKeyID != rhs.oneTimePreKeyID {return false}
     if lhs.senderName != rhs.senderName {return false}
+    if lhs.senderPhone != rhs.senderPhone {return false}
     if lhs.senderLogInfo != rhs.senderLogInfo {return false}
     if lhs.senderClientVersion != rhs.senderClientVersion {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
