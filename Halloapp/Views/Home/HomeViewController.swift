@@ -42,20 +42,20 @@ class HomeViewController: UITabBarController {
         UISearchBar.appearance().backgroundColor = .primaryBg
         
         // need to set UITabBarItem in addition to appearance as the very first load does not respect appearance (for font)
-        let fontAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 9.5, weight: .regular),
+        let fontAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 9.5, weight: .semibold),
                                 NSAttributedString.Key.kern: 0.01,
                                 NSAttributedString.Key.foregroundColor: UIColor.tabBar] as [NSAttributedString.Key : Any]
         UITabBarItem.appearance().setTitleTextAttributes(fontAttributes, for: .normal)
         
         let appearance = UITabBarAppearance()
-        appearance.shadowColor = UIColor.white
+        appearance.shadowImage = borderImageForTabBar(color: UIColor.primaryWhiteBlack, height: 2)
         appearance.stackedLayoutAppearance.normal.badgeBackgroundColor = .lavaOrange
         appearance.stackedLayoutAppearance.normal.badgePositionAdjustment = UIOffset(horizontal: 2, vertical: 0 + Self.tabBarItemImageInsets.top)
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = fontAttributes
         tabBar.standardAppearance = appearance
 
         tabBar.tintColor = .primaryBlue
-        
+
         updateTabBarBackgroundEffect()
 
         viewControllers = [
@@ -148,7 +148,7 @@ class HomeViewController: UITabBarController {
     }
 
     private func updateTabBarBackgroundEffect() {
-        let blurStyle: UIBlurEffect.Style = traitCollection.userInterfaceStyle == .light ? .systemThickMaterial : .systemChromeMaterial
+        let blurStyle: UIBlurEffect.Style = traitCollection.userInterfaceStyle == .light ? .systemMaterial : .systemChromeMaterial
         tabBar.standardAppearance.backgroundEffect = UIBlurEffect(style: blurStyle)
     }
 
@@ -234,6 +234,17 @@ class HomeViewController: UITabBarController {
             selectedIndex = 2
         }
 
+    }
+
+    private func borderImageForTabBar(color: UIColor, height: CGFloat) -> UIImage? {
+        let rect = CGRect(x: 0.0, y: 0.0, width: 1.0, height: height)
+        UIGraphicsBeginImageContext(rect.size)
+        guard let context = UIGraphicsGetCurrentContext() else { return nil }
+        context.setFillColor(color.cgColor)
+        context.fill(rect)
+        guard let image = UIGraphicsGetImageFromCurrentImageContext() else { return nil }
+        UIGraphicsEndImageContext()
+        return image
     }
 
     private func setTabBarDot(index: Int, count: Int) {
