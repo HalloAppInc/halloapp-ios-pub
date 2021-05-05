@@ -17,8 +17,11 @@ public struct ServerProperties {
         case internalUser = "dev"
         case groups
         case maxGroupSize = "max_group_size"
+        case groupSyncTime = "group_sync_time"
         case groupFeed = "group_feed"
         case groupChat = "group_chat"
+        case groupInviteLinks = "group_invite_links"
+        case groupBackground = "group_background"
         case combineFeed = "combine_feed"
         case clearTextChat = "cleartext_chat_messages"
         case silentChatMessages = "silent_chat_messages"
@@ -41,8 +44,11 @@ public struct ServerProperties {
         static let groups = true
         static let groupFeed = true
         static let groupChat = true
+        static let groupInviteLinks = false
+        static let groupBackground = true
         static let combineFeed = true
         static let maxGroupSize = 50
+        static let groupSyncTime = 604800
         static let clearTextChat = true
         static let silentChatMessages = 0
         static let maxFeedVideoDuration = 60.0
@@ -189,9 +195,21 @@ public struct ServerProperties {
     public static var maxGroupSize: Int {
         ServerProperties.integer(forKey: .maxGroupSize) ?? Defaults.maxGroupSize
     }
-    
+
+    public static var groupSyncTime: Int {
+        ServerProperties.integer(forKey: .groupSyncTime) ?? Defaults.groupSyncTime
+    }
+
     public static var isGroupChatEnabled: Bool {
         ServerProperties.bool(forKey: .groupChat) ?? Defaults.groupChat
+    }
+
+    public static var isGroupInviteLinksEnabled: Bool {
+        ServerProperties.bool(forKey: .groupInviteLinks) ?? Defaults.groupInviteLinks
+    }
+
+    public static var isGroupBackgroundEnabled: Bool {
+        ServerProperties.bool(forKey: .groupBackground) ?? Defaults.groupBackground
     }
 
     public static var isCombineFeedEnabled: Bool {

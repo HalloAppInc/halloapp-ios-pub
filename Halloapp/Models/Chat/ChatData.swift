@@ -9,6 +9,7 @@ import CocoaLumberjack
 import Combine
 import Core
 import CoreData
+import Foundation
 import UIKit
 
 typealias ChatAck = (id: String, timestamp: Date?)
@@ -113,7 +114,9 @@ class ChatData: ObservableObject {
     private var bgContext: NSManagedObjectContext
     
     private struct UserDefaultsKey {
-        static let persistentStoreUserID = "chat.store.userID"
+        static let persistentStoreUserID = "chat.store.userID"  // deprecated, remove after cleanup
+        static let persistentAppVersion = "ChatDataAppVersion"
+        static let GroupsLastSyncTime = "GroupsLastSyncTime"
     }
     
     private var cancellableSet: Set<AnyCancellable> = []
@@ -142,9 +145,9 @@ class ChatData: ObservableObject {
                 self.didGetMediaUploadProgress.send((chatMessage.id, progress))
             }
         )
-                
+
         var shouldGetGroupsList = false
-        
+
         cancellableSet.insert(
             service.didGetChatAck.sink { [weak self] chatAck in
                 guard let self = self else { return }
@@ -152,13 +155,13 @@ class ChatData: ObservableObject {
                 self.processInboundChatAck(chatAck)
             }
         )
-        
+
         cancellableSet.insert(
             service.didGetNewChatMessage.sink { [weak self] incomingMessage in
                 self?.processIncomingChatMessage(incomingMessage)
             }
         )
-        
+
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.cancellableSet.insert(
@@ -167,32 +170,32 @@ class ChatData: ObservableObject {
                     guard let groupID = feedPost.groupId else { return }
                     let postID = feedPost.id
                     DDLogInfo("ChatData/didReceiveFeedPost/group/\(groupID)")
-                    
+
                     self.didGetAGroupFeed.send(groupID)
-                    
+
                     self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                         guard let self = self else { return }
                         self.updateThreadWithGroupFeed(postID, isInbound: true, using: managedObjectContext)
                     }
                 }
             )
-            
+
             self.cancellableSet.insert(
                 MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] (postID) in
                     guard let self = self else { return }
                     guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postID) else { return }
                     guard let groupID = feedPost.groupId else { return }
                     DDLogInfo("ChatData/didMergeFeedPost")
-                    
+
                     self.didGetAGroupFeed.send(groupID)
-                    
+
                     self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                         guard let self = self else { return }
                         self.updateThreadWithGroupFeed(postID, isInbound: true, using: managedObjectContext)
                     }
                 }
             )
-            
+
             self.cancellableSet.insert(
                 MainAppContext.shared.feedData.didSendGroupFeedPost.sink { [weak self] (feedPost) in
                     guard let self = self else { return }
@@ -205,7 +208,7 @@ class ChatData: ObservableObject {
                     }
                 }
             )
-            
+
             self.cancellableSet.insert(
                 MainAppContext.shared.feedData.didProcessGroupFeedPostRetract.sink { [weak self] (feedPostID) in
                     guard let self = self else { return }
@@ -217,7 +220,7 @@ class ChatData: ObservableObject {
                     }
                 }
             )
-            
+
             self.cancellableSet.insert(
                 MainAppContext.shared.feedData.groupFeedStates.sink{ [weak self] (statesList) in
                     guard let self = self else { return }
@@ -236,19 +239,19 @@ class ChatData: ObservableObject {
                     })
                 }
             )
-            
+
         }
-                
+
         cancellableSet.insert(
             service.didConnect.sink { [weak self] in
                 guard let self = self else { return }
                 DDLogInfo("ChatData/didConnect")
-                
+
                 // include inactive as app is still in foreground (one case found is when app is freshly installed and the scene is in transition)
                 if ([.active, .inactive].contains(UIApplication.shared.applicationState)) {
                     DDLogInfo("ChatData/didConnect/sendPresence \(UIApplication.shared.applicationState.rawValue)")
                     self.sendPresence(type: .available)
-                    
+
                     if let currentUser = self.currentlyChattingWithUserId {
                         if !self.isSubscribedToCurrentUser {
                             self.subscribeToPresence(to: currentUser)
@@ -263,24 +266,38 @@ class ChatData: ObservableObject {
                 self.processPendingChatMsgs()
                 self.processRetractingChatMsgs()
                 self.processPendingSeenReceipts()
-                
+
                 if (UIApplication.shared.applicationState == .active) {
                     self.currentlyDownloading.removeAll()
                     self.processInboundPendingChatMsgMedia()
                 }
-                
-                // temporary setting for builds older than 87 since they don't have the key set yet
-                if MainAppContext.shared.userDefaults?.string(forKey: UserDefaultsKey.persistentStoreUserID) == nil {
-                    DDLogInfo("ChatData/no persistent userID found")
-                    MainAppContext.shared.userDefaults?.setValue(userData.userId, forKey: UserDefaultsKey.persistentStoreUserID)
-                    self.getGroupsList()
+
+                // cleanup: remove old key for at least a few builds from 117 onward
+                if MainAppContext.shared.userDefaults?.string(forKey: UserDefaultsKey.persistentStoreUserID) != nil {
+                    MainAppContext.shared.userDefaults.removeObject(forKey: UserDefaultsKey.persistentStoreUserID)
                 }
-                
+
+                if MainAppContext.shared.userDefaults?.string(forKey: UserDefaultsKey.persistentAppVersion) != MainAppContext.appVersionForDisplay {
+                    DDLogInfo("ChatData/app version change from stored version of: \(MainAppContext.shared.userDefaults?.string(forKey: UserDefaultsKey.persistentAppVersion) ?? "")")
+                    MainAppContext.shared.userDefaults?.setValue(MainAppContext.appVersionForDisplay, forKey: UserDefaultsKey.persistentAppVersion)
+                    shouldGetGroupsList = true
+                }
+
+                if let groupLastSyncDouble = MainAppContext.shared.userDefaults?.double(forKey: UserDefaultsKey.GroupsLastSyncTime) {
+                    let groupLastSyncDate = Date(timeIntervalSince1970: groupLastSyncDouble)
+
+                    if let diff = Calendar.current.dateComponents([.second], from: groupLastSyncDate, to: Date()).second, diff > ServerProperties.groupSyncTime {
+                        DDLogInfo("ChatData/groups haven't sync for a while, sync now")
+                        shouldGetGroupsList = true
+                    }
+                }
+
                 if shouldGetGroupsList {
                     self.getGroupsList()
                     shouldGetGroupsList = false
+                    MainAppContext.shared.userDefaults?.setValue(Date().timeIntervalSince1970, forKey: UserDefaultsKey.GroupsLastSyncTime)
                 }
-                
+
             }
         )
 
@@ -349,25 +366,25 @@ class ChatData: ObservableObject {
             userData.didLogIn.sink { [weak self] in
                 guard let self = self else { return }
                 DDLogInfo("ChatData/didLogIn")
-                
+
                 if let previousID = MainAppContext.shared.userDefaults?.string(forKey: UserDefaultsKey.persistentStoreUserID) {
-                    
+
                     if previousID != self.userData.userId {
                         DDLogInfo("ChatData/didLogIn/userID mismatch previous: [\(previousID)] current [\(self.userData.userId)], clear previous chats and media")
                         self.clearAllChatsAndMedia()
                     } else {
                         DDLogInfo("ChatData/didLogin/userID matches")
                     }
-                    
+
                 } else {
                     DDLogInfo("ChatData/didLogin/fresh app install")
                 }
-                
+
                 MainAppContext.shared.userDefaults?.setValue(self.userData.userId, forKey: UserDefaultsKey.persistentStoreUserID)
                 shouldGetGroupsList = true
             }
         )
-        
+
     }
 
     func clearAllChatsAndMedia() {
@@ -412,7 +429,6 @@ class ChatData: ObservableObject {
         }
         
     }
-    
 
     func populateThreadsWithSymmetricContacts() {
         let contactStore = MainAppContext.shared.contactStore
@@ -2661,155 +2677,6 @@ extension ChatData {
         }
     }
 
-    // MARK: Group Sending Messages
-
-    // TODO: consolidate this with ChatMessage
-    private func uploadGroupChatMsgMediaAndSend(xmppGroupChatMsg: XMPPChatGroupMessage) {
-        let groupChatMsgID = xmppGroupChatMsg.id
-        guard let groupChatMsg = chatGroupMessage(with: groupChatMsgID, in: bgContext) else { return }
-        
-        // Either all media has already been uploaded or post does not contain media.
-        guard let mediaItemsToUpload = groupChatMsg.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
-            service.sendGroupChatMessage(xmppGroupChatMsg)
-            return
-        }
-        
-        var numberOfFailedUploads = 0
-        let totalUploads = mediaItemsToUpload.count
-        DDLogInfo("ChatData/group/upload-media/\(groupChatMsgID)/starting [\(totalUploads)]")
-
-        let uploadGroup = DispatchGroup()
-        let uploadCompletion: (Result<MediaUploader.UploadDetails, Error>) -> Void = { result in
-            switch result {
-            case .failure(_):
-                numberOfFailedUploads += 1
-            default:
-                break
-            }
-
-            uploadGroup.leave()
-        }
-
-        for mediaItem in mediaItemsToUpload {
-            let mediaIndex = mediaItem.order
-            uploadGroup.enter()
-
-            if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
-                let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
-                let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
-                let type: FeedMediaType = mediaItem.type == .image ? .image : .video
-
-                imageServer.prepare(type, url: url, output: output) { [weak self] in
-                    guard let self = self else { return }
-
-                    switch $0 {
-                    case .success(let result):
-                        let path = self.relativePath(from: output)
-                        mediaItem.relativeFilePath = path
-
-                        self.updateChatGroupMessage(with: groupChatMsgID, block: { msg in
-                            guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
-
-                            media.size = result.size
-                            media.key = result.key
-                            media.sha256 = result.sha256
-                            media.relativeFilePath = path
-                        }) {
-                            self.uploadGroupChat(msgID: groupChatMsgID, media: mediaItem, completion: uploadCompletion)
-                        }
-                    case .failure(_):
-                        numberOfFailedUploads += 1
-
-                        self.updateChatGroupMessage(with: groupChatMsgID, block: { msg in
-                            guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
-                            media.outgoingStatus = .error
-                        }) {
-                            uploadGroup.leave()
-                        }
-                    }
-                }
-            } else {
-                uploadGroupChat(msgID: groupChatMsgID, media: mediaItem, completion: uploadCompletion)
-            }
-        }
-
-        uploadGroup.notify(queue: .main) { [weak self] in
-            guard let self = self else { return }
-            DDLogInfo("ChatData/group/upload-media/\(groupChatMsgID)/all/finished [\(numberOfFailedUploads)/\(totalUploads)]")
-            if numberOfFailedUploads > 0 {
-                self.updateChatGroupMessage(with: groupChatMsgID) { msg in
-                    msg.outboundStatus = .error
-                }
-            } else {
-                self.service.sendGroupChatMessage(XMPPChatGroupMessage(chatGroupMessage: groupChatMsg))
-            }
-        }
-    }
-
-    private func uploadGroupChat(msgID: String, media: ChatMedia, completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
-        let index = media.order
-
-        guard let relativeFilePath = media.relativeFilePath else {
-            DDLogError("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(index) missing file path")
-            return completion(.failure(MediaUploadError.invalidUrls))
-        }
-        let processed = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
-
-        MainAppContext.shared.uploadData.fetch(upload: processed) { [weak self] upload in
-            guard let self = self else { return }
-
-            if let url = upload?.url {
-                DDLogInfo("Media \(processed) has been uploaded before at \(url).")
-                if let uploadUrl = media.uploadUrl {
-                    DDLogInfo("ChatData/uploadGroupChat/upload url is supposed to be nil here/\(msgID)/\(media.order), uploadUrl: \(uploadUrl)")
-                    // we set it to be nil here explicitly.
-                    media.uploadUrl = nil
-                }
-                media.url = url
-            }
-
-            self.mediaUploader.upload(media: media, groupId: msgID, didGetURLs: { (mediaURLs) in
-                DDLogInfo("ChatData/group/upload-media/\(msgID)/\(index)/acquired-urls [\(mediaURLs)]")
-
-                // Save URLs acquired during upload to the database.
-                self.updateChatGroupMessage(with: msgID) { msg in
-                    guard let media = msg.media?.first(where: { $0.order == index }) else { return }
-                    switch mediaURLs {
-                    case .getPut(let getURL, let putURL):
-                        media.url = getURL
-                        media.uploadUrl = putURL
-                    case .patch(let patchURL):
-                        media.uploadUrl = patchURL
-                    case .download(let downloadURL):
-                        media.url = downloadURL
-                    }
-                }
-            }) { (uploadResult) in
-                DDLogInfo("ChatData/group/upload-media/\(msgID)/\(index)/finished result=[\(uploadResult)]")
-
-                self.updateChatGroupMessage(with: msgID, block: { msg in
-                    guard let media = msg.media?.first(where: { $0.order == index }) else { return }
-                    switch uploadResult {
-                    case .success(let details):
-                        media.url = details.downloadURL
-                        media.outgoingStatus = .uploaded
-
-                        if media.url == upload?.url, let key = upload?.key, let sha256 = upload?.sha256 {
-                            media.key = key
-                            media.sha256 = sha256
-                        }
-
-                        MainAppContext.shared.uploadData.update(upload: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
-                    case .failure(_):
-                        media.outgoingStatus = .error
-                    }
-                }) {
-                    completion(uploadResult)
-                }
-            }
-        }
-    }
-
     // MARK: Group Core Data Fetching
     
     private func chatGroups(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroup] {
@@ -2899,15 +2766,15 @@ extension ChatData {
             fatalError("Failed to fetch chat group message info")
         }
     }
-    
+
     func chatGroupMessageInfo(messageId: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatGroupMessageInfo? {
         return chatGroupMessageAllInfo(predicate: NSPredicate(format: "chatGroupMessageId == %@", messageId), in: managedObjectContext).first
     }
-    
+
     func chatGroupMessageInfoForUser(messageId: String, userId: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatGroupMessageInfo? {
         return chatGroupMessageAllInfo(predicate: NSPredicate(format: "chatGroupMessageId == %@ && userId == %@", messageId, userId), in: managedObjectContext).first
     }
-    
+
     // MARK: Group Core Data Updating
 
     func updateChatGroup(with groupId: GroupID, block: @escaping (ChatGroup) -> (), performAfterSave: (() -> ())? = nil) {
@@ -2929,7 +2796,7 @@ extension ChatData {
             }
         }
     }
-    
+
     func updateChatGroupMessage(with chatGroupMessageId: String, block: @escaping (ChatGroupMessage) -> (), performAfterSave: (() -> ())? = nil) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             defer {
@@ -2951,7 +2818,7 @@ extension ChatData {
     }
 
     // MARK: Group Core Data Deleting
-    
+
     func deleteChatGroup(groupId: GroupID) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
@@ -2964,27 +2831,27 @@ extension ChatData {
                 }
                 managedObjectContext.delete(chatGroup)
             }
-            
+
             // delete thread
             if let chatThread = self.chatThread(type: .group, id: groupId, in: managedObjectContext) {
                 managedObjectContext.delete(chatThread)
             }
-            
+
             let fetchRequest = NSFetchRequest<ChatGroupMessage>(entityName: ChatGroupMessage.entity().name!)
-            
+
             fetchRequest.predicate = NSPredicate(format: "groupId = %@", groupId)
-            
+
             do {
                 let chatGroupMessages = try managedObjectContext.fetch(fetchRequest)
                 DDLogInfo("ChatData/group/delete-messages/begin count=[\(chatGroupMessages.count)]")
                 chatGroupMessages.forEach {
                     self.deleteGroupMedia(in: $0)
-                    
+
                     // delete message receipts
                     $0.info?.forEach { info in
                         managedObjectContext.delete(info)
                     }
-                    
+
                     managedObjectContext.delete($0)
                 }
             }
@@ -2995,13 +2862,13 @@ extension ChatData {
             self.save(managedObjectContext)
         }
     }
-    
+
     func deleteChatGroupMember(groupId: GroupID, memberUserId: UserID) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             let fetchRequest = NSFetchRequest<ChatGroupMember>(entityName: ChatGroupMember.entity().name!)
             fetchRequest.predicate = NSPredicate(format: "groupId = %@ && userId = %@", groupId, memberUserId)
-            
+
             do {
                 let chatGroupMembers = try managedObjectContext.fetch(fetchRequest)
                 DDLogInfo("ChatData/group/deleteChatGroupMember/begin count=[\(chatGroupMembers.count)]")
@@ -3016,21 +2883,21 @@ extension ChatData {
             self.save(managedObjectContext)
         }
     }
-    
+
     private func deleteGroupChatMessageContent(in groupChatMessage: ChatGroupMessage) {
         DDLogVerbose("ChatData/deleteChatGroupMessageContent/message \(groupChatMessage.id) ")
-        
+
         groupChatMessage.text = nil
-        
+
         groupChatMessage.chatReplyMessageID = nil
         groupChatMessage.chatReplyMessageSenderID = nil
         groupChatMessage.chatReplyMessageMediaIndex = 0
-        
+
         deleteGroupMedia(in: groupChatMessage)
         groupChatMessage.media = nil
         groupChatMessage.quoted = nil
     }
-    
+
     private func deleteGroupMedia(in chatGroupMessage: ChatGroupMessage) {
         DDLogDebug("ChatData/group/delete/message/media \(chatGroupMessage.id) ")
         chatGroupMessage.media?.forEach { (media) in
@@ -3046,9 +2913,7 @@ extension ChatData {
             }
             chatGroupMessage.managedObjectContext?.delete(media)
         }
-
     }
-    
 }
 
 // MARK: Group Process Inbound/Outbound Group Feed
@@ -3501,30 +3366,6 @@ extension ChatData {
         }
     }
 
-    private func showGroupNotification(for xmppChatGroupMessage: XMPPChatGroupMessage) {
-        DDLogVerbose("ChatData/showGroupNotification/id \(xmppChatGroupMessage.id)")
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            
-            switch UIApplication.shared.applicationState {
-            case .background, .inactive:
-                self.presentLocalGroupNotifications(for: xmppChatGroupMessage)
-            case .active:
-                guard !self.isAtChatListViewTop() else {
-                    DDLogVerbose("ChatData/showGroupNotification/isAtChatListViewTop/skip")
-                    return
-                }
-                guard self.currentlyChattingInGroup != xmppChatGroupMessage.groupId else {
-                    DDLogVerbose("ChatData/showGroupNotification/currentlyChattingInGroup/skip")
-                    return
-                }
-                self.presentGroupBanner(for: xmppChatGroupMessage)
-            @unknown default:
-                self.presentLocalGroupNotifications(for: xmppChatGroupMessage)
-            }
-        }
-    }
-
     private func presentGroupAddBanner(for xmppGroup: XMPPGroup) {
         DDLogDebug("ChatData/presentGroupAddBanner/id \(xmppGroup.groupId)")
         let groupID = xmppGroup.groupId
@@ -3539,40 +3380,6 @@ extension ChatData {
         Banner.show(title: title, body: body, groupID: groupID, using: MainAppContext.shared.avatarStore)
     }
 
-    private func presentGroupBanner(for xmppChatGroupMessage: XMPPChatGroupMessage) {
-        DDLogDebug("ChatData/presentGroupBanner/id \(xmppChatGroupMessage.id)")
-        let groupID = xmppChatGroupMessage.groupId
-        guard let userID = xmppChatGroupMessage.userId else { return }
-        guard let groupName = xmppChatGroupMessage.groupName else { return }
-
-        let name = contactStore.fullName(for: userID)
-
-        let title = "\(name) @ \(groupName)"
-
-        var body = ""
-
-        let attrMentionText = contactStore.textWithMentions(xmppChatGroupMessage.text, orderedMentions: xmppChatGroupMessage.orderedMentions)
-
-        body += attrMentionText?.string ?? ""
-
-        if !xmppChatGroupMessage.media.isEmpty {
-            var mediaStr = "📷"
-            if let firstMedia = xmppChatGroupMessage.media.first {
-                if firstMedia.type == .video {
-                    mediaStr = "📹"
-                }
-            }
-
-            if body.isEmpty {
-                body = mediaStr
-            } else {
-                body = "\(mediaStr) \(body)"
-            }
-        }
-        
-        Banner.show(title: title, body: body, groupID: groupID, using: MainAppContext.shared.avatarStore)
-    }
-    
     private func presentLocalGroupAddNotifications(for xmppGroup: XMPPGroup) {
         DDLogDebug("ChatData/presentLocalGroupAddNotifications/groupID \(xmppGroup.groupId)")
         guard let messageID = xmppGroup.messageId else { return }
@@ -3588,41 +3395,14 @@ extension ChatData {
         metadata.groupName = xmppGroup.name
         // create and add a notification to the notification center.
         NotificationRequest.createAndShow(from: metadata)
-        
     }
-    
-    private func presentLocalGroupNotifications(for xmppChatGroupMessage: XMPPChatGroupMessage) {
-        DDLogDebug("ChatData/presentLocalGroupNotifications/id \(xmppChatGroupMessage.id)")
-        guard let userID = xmppChatGroupMessage.userId else { return }
-        let protoContainer = xmppChatGroupMessage.protoContainer
-        let protobufData = try? protoContainer.serializedData()
-        let metadata = NotificationMetadata(contentId: xmppChatGroupMessage.id,
-                                            contentType: .groupChatMessage,
-                                            fromId: userID,
-                                            timestamp: xmppChatGroupMessage.timestamp,
-                                            data: protobufData,
-                                            messageId: xmppChatGroupMessage.id,
-                                            pushName: xmppChatGroupMessage.userName)
-        metadata.groupId = xmppChatGroupMessage.groupId
-        metadata.groupName = xmppChatGroupMessage.groupName
-        // create and add a notification to the notification center.
-        NotificationRequest.createAndShow(from: metadata) { [weak self] error in
-            guard let self = self else {
-                return
-            }
-            if let error = error {
-                DDLogInfo("ChatData/NotificationRequest/failed/error: \(error)")
-            } else {
-                self.incrementApplicationIconBadgeNumber()
-            }
-        }
-    }
+
 }
 
 extension ChatData: HalloChatDelegate {
 
     // MARK: XMPP Chat Delegates
-    
+
     func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?) {
         DDLogDebug("ChatData/didReceiveMessageReceipt [\(receipt.itemId)] \(receipt)")
         guard receipt.thread == .none else { return }

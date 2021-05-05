@@ -328,7 +328,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 headerView.setIsAdmin(true)
                 footerView.setIsMember(true)
 
-                if ServerProperties.isInternalUser {
+                if ServerProperties.isInternalUser && ServerProperties.isGroupInviteLinksEnabled {
                     navigationItem.rightBarButtonItem?.isEnabled = true
                     navigationItem.rightBarButtonItem?.tintColor = UIColor.primaryBlue
                 }
@@ -520,6 +520,11 @@ class GroupInfoHeaderView: UIView {
         } else {
             backgroundSelectionLabel.text = Localizations.chatGroupInfoBgColorLabel
         }
+
+        if !ServerProperties.isGroupBackgroundEnabled {
+            backgroundLabel.isHidden = true
+            backgroundLabelRow.isHidden = true
+        }
     }
 
     public func setIsAdmin(_ isAdmin: Bool) {
@@ -682,7 +687,7 @@ class GroupInfoHeaderView: UIView {
 
         return label
     }()
-    
+
     private lazy var backgroundRow: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
@@ -703,7 +708,7 @@ class GroupInfoHeaderView: UIView {
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
-        
+
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(changeBackgroundAction(_:)))
         view.isUserInteractionEnabled = true
         view.addGestureRecognizer(tapGesture)
