@@ -396,7 +396,7 @@ class ShareComposerViewController: UIViewController {
         pageControl.translatesAutoresizingMaskIntoConstraints = false
         pageControl.numberOfPages = media.count
         pageControl.currentPageIndicatorTintColor = .lavaOrange
-        pageControl.pageIndicatorTintColor = .black.withAlphaComponent(0.2)
+        pageControl.pageIndicatorTintColor = UIColor.black.withAlphaComponent(0.2)
         pageControl.addTarget(self, action: #selector(pageChangeAction), for: .valueChanged)
 
         return pageControl
