@@ -21,7 +21,7 @@ public struct MentionableUser: Hashable {
 public final class Mentions {
     public static func mentionableUsersForNewPost() -> [MentionableUser] {
 
-        let allContactIDs = Set(AppContext.shared.contactStore.allInNetworkContactIDs())
+        let allContactIDs = Set(AppContext.shared.contactStore.allRegisteredContactIDs())
 
         return AppContext.shared.contactStore.fullNames(forUserIds: allContactIDs)
             .map { MentionableUser(userID: $0.key, fullName: $0.value) }

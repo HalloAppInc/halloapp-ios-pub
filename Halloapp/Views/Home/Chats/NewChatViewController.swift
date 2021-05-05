@@ -69,8 +69,7 @@ class NewChatViewController: NewChatTableViewController {
         tableView.backgroundColor = .feedBackground
         
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)",
-                                             ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
+        fetchRequest.predicate = NSPredicate(format: "userId != nil")
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
         fetchedResultsController = NSFetchedResultsController<ABContact>(fetchRequest: fetchRequest,
                                                                          managedObjectContext: AppContext.shared.contactStore.viewContext,

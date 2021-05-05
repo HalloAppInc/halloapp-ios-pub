@@ -19,7 +19,7 @@ struct XMPPContact {
     private(set) var pushName: String?
     var raw: String?
     var isDeletedContact: Bool = false
-    var numPotentialFriends = 0
+    var numPotentialContacts = 0
 
     /** Use to process protobuf server responses */
     init(_ pbContact: Server_Contact) {
@@ -29,7 +29,7 @@ struct XMPPContact {
         if !pbContact.normalized.isEmpty {
             normalized = pbContact.normalized
         }
-        numPotentialFriends = Int(pbContact.numPotentialFriends)
+        numPotentialContacts = Int(pbContact.numPotentialFriends)
         registered = (pbContact.role == .friends && userid != nil)
         pushName = pbContact.name
         raw = pbContact.raw
@@ -45,7 +45,7 @@ struct XMPPContact {
         raw = abContact.phoneNumber
         normalized = abContact.normalizedPhoneNumber
         userid = abContact.userId
-        numPotentialFriends = Int(abContact.numPotentialFriends)
+        numPotentialContacts = Int(abContact.numPotentialContacts)
     }
 
     private init(_ normalizedPhoneNumber: ABContact.NormalizedPhoneNumber) {

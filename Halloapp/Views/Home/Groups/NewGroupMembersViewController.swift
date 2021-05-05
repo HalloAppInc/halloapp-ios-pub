@@ -227,8 +227,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
             fetchRequest.sortDescriptors = [
                 NSSortDescriptor(keyPath: \ABContact.fullName, ascending: true)
             ]
-//            fetchRequest.predicate = NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)", ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
-            fetchRequest.predicate = NSPredicate(format: "(statusValue = %d OR (statusValue = %d AND userId != nil)) AND userId != %@", ABContact.Status.in.rawValue, ABContact.Status.out.rawValue, MainAppContext.shared.userData.userId)
+            fetchRequest.predicate = NSPredicate(format: "userId != nil AND userId != %@", MainAppContext.shared.userData.userId)
             return fetchRequest
         }
     }

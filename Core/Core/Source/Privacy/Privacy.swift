@@ -199,7 +199,7 @@ open class PrivacySettings {
             guard blacklist.isLoaded else { throw PrivacySettingsError.currentListUnavailable }
         }
 
-        let allContacts = Set(contactStore.allInNetworkContactIDs())
+        let allContacts = Set(contactStore.allRegisteredContactIDs())
 
         var results: Set<UserID>
         if selectedListType == .whitelist {

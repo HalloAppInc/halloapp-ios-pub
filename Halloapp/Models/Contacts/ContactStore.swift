@@ -718,7 +718,6 @@ class ContactStoreMain: ContactStore {
 
                 if newStatus == .in {
                     DDLogInfo("contacts/sync/process-results/new-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
-                    newUsers.append(abContact)
                 } else if previousStatus == .in && newStatus == .out {
                     DDLogInfo("contacts/sync/process-results/delete-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
                 }
@@ -744,12 +743,16 @@ class ContactStoreMain: ContactStore {
             if xmppContact.userid != abContact.userId {
                 DDLogInfo("contacts/sync/process-results/userid-update [\(abContact.fullName ?? "<<NO NAME>>")|\(xmppContact.normalized ?? "<missing phone number>")]: [\(abContact.userId ?? "")] -> [\(xmppContact.userid ?? "")]")
                 abContact.userId = xmppContact.userid
+                if (xmppContact.userid != nil) {
+                    DDLogInfo("contacts/sync/process-results/new-uid [\(xmppContact.userid ?? "<missing uid>")]")
+                    newUsers.append(abContact)
+                }
             }
 
             // Update friend count
-            if xmppContact.numPotentialFriends != abContact.numPotentialFriends {
-                DDLogInfo("contacts/sync/process-results/friend-count-update [\(xmppContact.normalized!)]:[\(xmppContact.numPotentialFriends ?? 0)]")
-                abContact.numPotentialFriends = Int64(xmppContact.numPotentialFriends)
+            if xmppContact.numPotentialContacts != abContact.numPotentialContacts {
+                DDLogInfo("contacts/sync/process-results/friend-count-update [\(xmppContact.normalized!)]:[\(xmppContact.numPotentialContacts)]")
+                abContact.numPotentialContacts = Int64(xmppContact.numPotentialContacts)
             }
         }
         return newUsers

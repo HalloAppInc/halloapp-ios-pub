@@ -87,11 +87,9 @@ class PrivacyListViewController: PrivacyListTableViewController {
             guard userId != selfUserId else { continue }
 
             let contactSelected = selectedContactIds.contains(userId)
-            if contact.status == .in || contactSelected {
-                let row = PrivacyListTableRow(contact: contact)
-                row.isSelected = contactSelected
-                contacts.append(row)
-            }
+            let row = PrivacyListTableRow(contact: contact)
+            row.isSelected = contactSelected
+            contacts.append(row)
 
             uniqueUserIds.insert(userId)
         }

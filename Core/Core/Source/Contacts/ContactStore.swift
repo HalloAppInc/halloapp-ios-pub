@@ -122,39 +122,9 @@ open class ContactStore {
         }
     }
 
-    public func allInNetworkContactIDs() -> [UserID] {
-        let fetchRequst = NSFetchRequest<NSDictionary>(entityName: "ABContact")
-        fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
-        fetchRequst.propertiesToFetch = [ "userId" ]
-        fetchRequst.resultType = .dictionaryResultType
-        do {
-            let allContacts = try self.persistentContainer.viewContext.fetch(fetchRequst)
-            return allContacts.compactMap { $0["userId"] as? UserID }
-        }
-        catch {
-            fatalError("Unable to fetch contacts: \(error)")
-        }
-    }
-
     public func allRegisteredContacts(sorted: Bool) -> [ABContact] {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId != nil")
-        fetchRequest.returnsObjectsAsFaults = false
-        if sorted {
-            fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
-        }
-        do {
-            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
-            return contacts
-        }
-        catch {
-            fatalError("Unable to fetch contacts: \(error)")
-        }
-    }
-
-    public func allInNetworkContacts(sorted: Bool) -> [ABContact] {
-        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
         fetchRequest.returnsObjectsAsFaults = false
         if sorted {
             fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]

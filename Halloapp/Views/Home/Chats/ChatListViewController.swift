@@ -127,7 +127,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("ChatListViewController/viewWillAppear")
         super.viewWillAppear(animated)
-        populateWithSymmetricContacts()
+        populateWithAllContacts()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -337,15 +337,15 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         return tableView.contentOffset.y < fromTop
     }
     
-    private func populateWithSymmetricContacts() {
+    private func populateWithAllContacts() {
         var isTimeToCheck = true
         if let lastCheckedForNewContacts = lastCheckedForNewContacts {
             isTimeToCheck = abs(lastCheckedForNewContacts.timeIntervalSinceNow) >= Date.minutes(1)
         }
         
         if isTimeToCheck {
-            DDLogDebug("ChatListViewController/populateWithSymmetricContacts")
-            MainAppContext.shared.chatData.populateThreadsWithSymmetricContacts()
+            DDLogDebug("ChatListViewController/populateWithAllContacts")
+            MainAppContext.shared.chatData.populateThreadsWithAllContacts()
             lastCheckedForNewContacts = Date()
         }
     }

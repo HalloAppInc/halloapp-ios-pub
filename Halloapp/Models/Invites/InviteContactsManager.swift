@@ -14,7 +14,7 @@ final class InviteContactsManager: NSObject {
 
     override init() {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "statusValue == %d OR statusValue == %d", ABContact.Status.out.rawValue, ABContact.Status.in.rawValue)
+        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber != nil")
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
         fetchedResultsController = NSFetchedResultsController<ABContact>(
             fetchRequest: fetchRequest,
@@ -86,6 +86,6 @@ extension InviteContact {
         self.givenName = abContact.givenName
         self.normalizedPhoneNumber = number
         self.userID = abContact.userId
-        self.friendCount = Int(abContact.numPotentialFriends)
+        self.friendCount = Int(abContact.numPotentialContacts)
     }
 }

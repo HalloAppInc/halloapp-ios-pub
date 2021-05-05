@@ -430,10 +430,10 @@ class ChatData: ObservableObject {
         
     }
 
-    func populateThreadsWithSymmetricContacts() {
+    func populateThreadsWithAllContacts() {
         let contactStore = MainAppContext.shared.contactStore
-        let contacts = contactStore.allInNetworkContacts(sorted: true)
-        DDLogInfo("ChatData/populateThreadsWithSymmetricContacts/allInNetworkContacts: \(contacts.count)")
+        let contacts = contactStore.allRegisteredContacts(sorted: true)
+        DDLogInfo("ChatData/populateThreadsWithAllContacts/allInNetworkContacts: \(contacts.count)")
         var contactsDict = [UserID:String]()
         contacts.forEach {
             guard let userID = $0.userId else { return }
@@ -1866,7 +1866,7 @@ extension ChatData {
             
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                self.populateThreadsWithSymmetricContacts()
+                self.populateThreadsWithAllContacts()
                 self.updateUnreadChatsThreadCount()
             }
         }
