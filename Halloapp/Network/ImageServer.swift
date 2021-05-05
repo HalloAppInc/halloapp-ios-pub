@@ -35,7 +35,6 @@ class ImageServer {
     private struct Constants {
         static let jpegCompressionQuality = CGFloat(UserData.compressionQuality)
         static let maxImageSize: CGFloat = 1600
-        static let maxBitrate: Float = 8000000
     }
 
     private static let mediaProcessingSemaphore = DispatchSemaphore(value: 3) // Prevents having more than 3 instances of AVAssetReader
@@ -292,8 +291,8 @@ class ImageServer {
         let asset = AVURLAsset(url: url, options: nil)
 
         for track in asset.tracks {
-            if track.timeRange.duration != .zero && track.estimatedDataRate > Constants.maxBitrate {
-                DDLogInfo("ImageServer/video/prepare/shouldConvert bitrate[\(track.estimatedDataRate)] > max[\(Constants.maxBitrate)]  [\(url.description)]")
+            if track.timeRange.duration != .zero && track.estimatedDataRate > Float(ServerProperties.maxVideoBitRate) {
+                DDLogInfo("ImageServer/video/prepare/shouldConvert bitrate[\(track.estimatedDataRate)] > max[\(ServerProperties.maxVideoBitRate)]  [\(url.description)]")
                 return true
             }
         }

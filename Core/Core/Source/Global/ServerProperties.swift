@@ -27,6 +27,7 @@ public struct ServerProperties {
         case silentChatMessages = "silent_chat_messages"
         case maxFeedVideoDuration = "max_feed_video_duration"
         case maxChatVideoDuration = "max_chat_video_duration"
+        case maxVideoBitRate = "max_video_bit_rate"
     }
 
     private struct UserDefaultsKey {
@@ -53,6 +54,7 @@ public struct ServerProperties {
         static let silentChatMessages = 0
         static let maxFeedVideoDuration = 60.0
         static let maxChatVideoDuration = 120.0
+        static let maxVideoBitRate = 8000000.0
     }
 
     // MARK: Storage
@@ -231,6 +233,10 @@ public struct ServerProperties {
 
     public static var maxChatVideoDuration: TimeInterval {
         ServerProperties.double(forKey: .maxChatVideoDuration) ?? Defaults.maxChatVideoDuration
+    }
+
+    public static var maxVideoBitRate: Double {
+        ServerProperties.double(forKey: .maxVideoBitRate) ?? Defaults.maxVideoBitRate
     }
 
 }
