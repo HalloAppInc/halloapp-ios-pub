@@ -31,14 +31,14 @@
                 SUBQUERY (
                         $extensionItem.attachments,
                         $attachment,
-                        ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.movie"
-                        OR ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.image"
+                        ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO &quot;public.movie&quot;
+                        OR ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO &quot;public.image&quot;
                         ).@count &lt;= 10
                 OR SUBQUERY (
                         $extensionItem.attachments,
                         $attachment,
-                        ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url"
-                        || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.plain-text"
+                        ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO &quot;public.url&quot;
+                        || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO &quot;public.plain-text&quot;
                     ).@count == $extensionItem.attachments.@count
             ).@count == 1</string>
 			<key>NSExtensionJavaScriptPreprocessingFile</key>
@@ -47,7 +47,7 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.share-services</string>
 		<key>NSExtensionPrincipalClass</key>
-		<string>ComposeViewController</string>
+		<string>ShareViewController</string>
 	</dict>
 </dict>
 </plist>

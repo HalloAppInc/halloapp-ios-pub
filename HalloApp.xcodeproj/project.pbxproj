@@ -11,8 +11,8 @@
 		1574C89268C6C26E2539B753 /* Pods_Share_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0069D57E244BE25C44408E11 /* Pods_Share_Extension.framework */; };
 		24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */; };
 		24009E8E24B667FA00155DE2 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
-		24009EB824BE399F00155DE2 /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24009EB724BE399F00155DE2 /* ComposeView.swift */; };
-		24009EBA24BE3FA200155DE2 /* DestinationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24009EB924BE3FA200155DE2 /* DestinationView.swift */; };
+		24009EB824BE399F00155DE2 /* ShareComposerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24009EB724BE399F00155DE2 /* ShareComposerViewController.swift */; };
+		24009EBA24BE3FA200155DE2 /* ShareDestinationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24009EB924BE3FA200155DE2 /* ShareDestinationViewController.swift */; };
 		2446D66924C7E48E005BAD3C /* ExtensionPreprocessing.js in Resources */ = {isa = PBXBuildFile; fileRef = 2446D66824C7E48E005BAD3C /* ExtensionPreprocessing.js */; };
 		2446D67C24CB54F8005BAD3C /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D67B24CB54F8005BAD3C /* VideoUtils.swift */; };
 		2446D67E24CB558F005BAD3C /* ImageServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D67D24CB558F005BAD3C /* ImageServer.swift */; };
@@ -259,6 +259,9 @@
 		F8606DD1257E7340006CD1A6 /* MediaExplorerVideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DD0257E7340006CD1A6 /* MediaExplorerVideoCell.swift */; };
 		F8606DD6257E7402006CD1A6 /* MediaExplorerImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DD5257E7402006CD1A6 /* MediaExplorerImageCell.swift */; };
 		F8606DDB257E7C2A006CD1A6 /* MediaExplorerAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DDA257E7C2A006CD1A6 /* MediaExplorerAnimator.swift */; };
+		F86919DD26395E2500B01306 /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893C86E25E5213000068F00 /* VideoView.swift */; };
+		F86919DF26395E8D00B01306 /* BlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAF43982603F7720037F83D /* BlurView.swift */; };
+		F86919E026395EB300B01306 /* UIFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EDBDA244E344300986617 /* UIFont.swift */; };
 		F878427C24F6C0FB0040B723 /* MediaAlbumsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F878427B24F6C0FB0040B723 /* MediaAlbumsViewController.swift */; };
 		F881ED69261780360013599F /* UploadData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F881ED68261780360013599F /* UploadData.swift */; };
 		F881ED70261B0FDE0013599F /* Upload.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F881ED6E261B0FDE0013599F /* Upload.xcdatamodeld */; };
@@ -267,6 +270,8 @@
 		F893C86F25E5213000068F00 /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893C86E25E5213000068F00 /* VideoView.swift */; };
 		F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */; };
 		F8DA6F38252370BE007833A7 /* MediaExplorerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */; };
+		F8DFCD88262EF4C0003F850F /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCD87262EF4C0003F850F /* ShareViewController.swift */; };
+		F8DFCDAD26304B4F003F850F /* GroupList.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCDA826304B3A003F850F /* GroupList.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -354,8 +359,8 @@
 		230B2983774379C4ECCB29C8 /* Pods-HalloAppTests.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppTests.external beta.xcconfig"; path = "Target Support Files/Pods-HalloAppTests/Pods-HalloAppTests.external beta.xcconfig"; sourceTree = "<group>"; };
 		24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionContext.swift; sourceTree = "<group>"; };
 		24009E8F24B6690E00155DE2 /* Share Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Share Extension.entitlements"; sourceTree = "<group>"; };
-		24009EB724BE399F00155DE2 /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
-		24009EB924BE3FA200155DE2 /* DestinationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationView.swift; sourceTree = "<group>"; };
+		24009EB724BE399F00155DE2 /* ShareComposerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareComposerViewController.swift; sourceTree = "<group>"; };
+		24009EB924BE3FA200155DE2 /* ShareDestinationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareDestinationViewController.swift; sourceTree = "<group>"; };
 		2446D66824C7E48E005BAD3C /* ExtensionPreprocessing.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = ExtensionPreprocessing.js; sourceTree = "<group>"; };
 		2446D67B24CB54F8005BAD3C /* VideoUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
 		2446D67D24CB558F005BAD3C /* ImageServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageServer.swift; sourceTree = "<group>"; };
@@ -619,6 +624,8 @@
 		F893C86E25E5213000068F00 /* VideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
 		F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaEditViewController.swift; sourceTree = "<group>"; };
 		F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerController.swift; sourceTree = "<group>"; };
+		F8DFCD87262EF4C0003F850F /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		F8DFCDA826304B3A003F850F /* GroupList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupList.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -706,14 +713,15 @@
 		24D743D724B3D199001111BF /* Share Extension */ = {
 			isa = PBXGroup;
 			children = (
-				24009EB724BE399F00155DE2 /* ComposeView.swift */,
 				2446D68A24CF732B005BAD3C /* DataStore.swift */,
-				24009EB924BE3FA200155DE2 /* DestinationView.swift */,
 				2446D66824C7E48E005BAD3C /* ExtensionPreprocessing.js */,
 				24D743DD24B3D199001111BF /* Info.plist */,
 				7688FA3E25489E26006B86B3 /* Localizable.strings */,
 				24009E8F24B6690E00155DE2 /* Share Extension.entitlements */,
+				24009EB724BE399F00155DE2 /* ShareComposerViewController.swift */,
+				24009EB924BE3FA200155DE2 /* ShareDestinationViewController.swift */,
 				24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */,
+				F8DFCD87262EF4C0003F850F /* ShareViewController.swift */,
 			);
 			path = "Share Extension";
 			sourceTree = "<group>";
@@ -1049,6 +1057,7 @@
 				24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */,
 				EAA424F024EC71450025CBBE /* XMPPGroup.swift */,
 				68419A922602AAB700C30B6A /* CryptoData.swift */,
+				F8DFCDA826304B3A003F850F /* GroupList.swift */,
 			);
 			path = Chat;
 			sourceTree = "<group>";
@@ -1807,15 +1816,19 @@
 				2446D67F24CB5810005BAD3C /* ImageServer.swift in Sources */,
 				2446D68124CB5867005BAD3C /* VideoUtils.swift in Sources */,
 				76C64E0E24E5AD85007C0F6F /* MediaUploader.swift in Sources */,
-				24009EB824BE399F00155DE2 /* ComposeView.swift in Sources */,
+				24009EB824BE399F00155DE2 /* ShareComposerViewController.swift in Sources */,
 				76936FB824F03C37006DBC2D /* UIView.swift in Sources */,
 				68D2915125096F0700AF5061 /* MentionPickerView.swift in Sources */,
-				24009EBA24BE3FA200155DE2 /* DestinationView.swift in Sources */,
+				24009EBA24BE3FA200155DE2 /* ShareDestinationViewController.swift in Sources */,
 				2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */,
+				F86919E026395EB300B01306 /* UIFont.swift in Sources */,
 				76B5B524250086330055E712 /* UIColor.swift in Sources */,
 				2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */,
 				24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */,
 				2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */,
+				F86919DD26395E2500B01306 /* VideoView.swift in Sources */,
+				F86919DF26395E8D00B01306 /* BlurView.swift in Sources */,
+				F8DFCD88262EF4C0003F850F /* ShareViewController.swift in Sources */,
 				76451C412547960A00B9E268 /* SharedStrings.swift in Sources */,
 				7639BA3A251944920023850E /* NextLevelSessionExporter.swift in Sources */,
 			);
@@ -2000,6 +2013,7 @@
 				76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */,
 				680FB661250C45C000CA5D40 /* OverlayView.swift in Sources */,
 				76A92444244E659600794859 /* FeedViewController.swift in Sources */,
+				F8DFCDAD26304B4F003F850F /* GroupList.swift in Sources */,
 				EAA424FE24ECF1480025CBBE /* ChatGroup+CoreDataClass.swift in Sources */,
 				6829F78724D0A62800207F6B /* UserFeedViewController.swift in Sources */,
 				EABDC977253424E1005FE00A /* InboundMsgViewCell.swift in Sources */,

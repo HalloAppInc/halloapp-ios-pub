@@ -35,6 +35,10 @@ extension Localizations {
     static var buttonShare: String {
         NSLocalizedString("button.share", value: "Share", comment: "Title for generic Share button. Mostly used to complete some modal flow.")
     }
+
+    static var buttonSend: String {
+        NSLocalizedString("button.send", value: "Send", comment: "Title for generic Send button. Mostly used to complete some modal flow.")
+    }
     
     static var buttonDone: String {
         NSLocalizedString("button.done", value: "Done", comment: "Title for generic Done button. Mostly used to complete some modal flow.")

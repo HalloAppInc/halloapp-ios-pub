@@ -10,15 +10,11 @@ import CocoaLumberjack
 import Core
 import CoreData
 
-enum ShareExtensionError: Error {
-    case mediaUploadFailed
-}
-
 class DataStore: ShareExtensionDataStore {
 
     private let service: CoreService
     private let mediaUploader: MediaUploader
-    private let imageServer = ImageServer(maxAllowedAspectRatio: 1.25)
+    private let imageServer = ImageServer()
 
     init(service: CoreService) {
         self.service = service
@@ -172,9 +168,7 @@ class DataStore: ShareExtensionDataStore {
         }
     }
 
-    public typealias SharePostCompletion = (Result<FeedPostID, Error>) -> ()
-    
-    func post(text: MentionText, media: [PendingMedia], completion: @escaping SharePostCompletion) {
+    func post(group: GroupListItem? = nil, text: MentionText, media: [PendingMedia], completion: @escaping (Result<String, Error>) -> ()) {
         let postId: FeedPostID = UUID().uuidString
         DDLogInfo("SharedDataStore/post/\(postId)/created")
 
@@ -206,9 +200,15 @@ class DataStore: ShareExtensionDataStore {
         }
         feedPost.media?.forEach({ $0.status = .uploading })
 
-        let postAudience = try! ShareExtensionContext.shared.privacySettings.currentFeedAudience()
-        feedPost.audienceType = postAudience.audienceType
-        feedPost.audienceUserIds = Array(postAudience.userIds)
+        if let group = group {
+            feedPost.groupId = group.id
+            feedPost.audienceType = .group
+            feedPost.audienceUserIds = group.users
+        } else {
+            let postAudience = try! ShareExtensionContext.shared.privacySettings.currentFeedAudience()
+            feedPost.audienceType = postAudience.audienceType
+            feedPost.audienceUserIds = Array(postAudience.userIds)
+        }
 
         save(managedObjectContext)
 
@@ -219,7 +219,7 @@ class DataStore: ShareExtensionDataStore {
                     // Send if all items have been uploaded.
                     self.send(post: feedPost, completion: completion)
                 } else {
-                    completion(.failure(ShareExtensionError.mediaUploadFailed))
+                    completion(.failure(ShareError.mediaUploadFailed))
                 }
             }
         } else {
@@ -228,19 +228,26 @@ class DataStore: ShareExtensionDataStore {
         }
     }
 
-    private func send(post feedPost: SharedFeedPost, completion: @escaping SharePostCompletion) {
-        guard let postAudience = feedPost.audience else {
-            DDLogError("SharedDataStore/send-post/\(feedPost.id) No audience set")
-            feedPost.status = .sendError
-            save(feedPost.managedObjectContext!)
-            return
+    private func send(post feedPost: SharedFeedPost, completion: @escaping (Result<String, Error>) -> ()) {
+        let feed: Feed
+        if let groupId = feedPost.groupId, !groupId.isEmpty {
+            feed = .group(groupId)
+        } else {
+            guard let postAudience = feedPost.audience else {
+                DDLogError("SharedDataStore/send-post/\(feedPost.id) No audience set")
+                feedPost.status = .sendError
+                save(feedPost.managedObjectContext!)
+                return
+            }
+
+            feed = .personal(postAudience)
         }
 
         let managedObjectContext = feedPost.managedObjectContext!
 
         DDLogError("SharedDataStore/post/\(feedPost.id)/send")
 
-        service.publishPost(feedPost, feed: .personal(postAudience)) { result in
+        service.publishPost(feedPost, feed: feed) { result in
             switch result {
             case .success(let timestamp):
                 DDLogError("SharedDataStore/post/\(feedPost.id)/send/complete")
@@ -263,10 +270,8 @@ class DataStore: ShareExtensionDataStore {
             }
         }
     }
-
-    public typealias SendMessageCompletion = (Result<String, Error>) -> ()
     
-    func send(to userId: UserID, text: String, media: [PendingMedia], completion: @escaping SendMessageCompletion) {
+    func send(to userId: UserID, text: String, media: [PendingMedia], completion: @escaping (Result<String, Error>) -> ()) {
 
         let messageId = UUID().uuidString
         
@@ -300,7 +305,7 @@ class DataStore: ShareExtensionDataStore {
                     // Send if all items have been uploaded.
                     self.send(message: chatMessage, completion: completion)
                 } else {
-                    completion(.failure(ShareExtensionError.mediaUploadFailed))
+                    completion(.failure(ShareError.mediaUploadFailed))
                 }
             }
         } else {
@@ -309,7 +314,7 @@ class DataStore: ShareExtensionDataStore {
         }
     }
 
-    private func send(message: SharedChatMessage, completion: @escaping SendMessageCompletion) {
+    private func send(message: SharedChatMessage, completion: @escaping (Result<String, Error>) -> ()) {
         if let managedObjectContext = message.managedObjectContext {
             message.status = .sent
             save(managedObjectContext)
@@ -318,7 +323,10 @@ class DataStore: ShareExtensionDataStore {
         service.sendChatMessage(message) { result in
             switch result {
             case .success:
-                completion(.success(message.id))
+                // ShareExtensions can die quickly. Give it some time to send enqueued posts or messages.
+                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(500)) {
+                    completion(.success(message.id))
+                }
             case .failure(let error):
                 completion(.failure(error))
             }

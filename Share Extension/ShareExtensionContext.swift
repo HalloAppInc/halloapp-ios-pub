@@ -13,6 +13,7 @@ import Foundation
 class ShareExtensionContext: AppExtensionContext {
 
     // MARK: Global objects
+    private(set) var avatarStore = AvatarStore()
     private(set) var dataStore: DataStore!
     private(set) var privacySettings: PrivacySettings!
     

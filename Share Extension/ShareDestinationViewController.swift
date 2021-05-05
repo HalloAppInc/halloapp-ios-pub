@@ -1,0 +1,353 @@
+//
+//  DestinationViewController.swift
+//  Shared Extension
+//
+//  Copyright © 2021 Halloapp, Inc. All rights reserved.
+//
+
+import CocoaLumberjack
+import Combine
+import Core
+import UIKit
+
+private extension Localizations {
+    static var title: String {
+        NSLocalizedString("share.destination.title", value: "HalloApp", comment: "Destination screen title")
+    }
+
+    static var feed: String {
+        NSLocalizedString("share.destination.feed", value: "Feed", comment: "Share on the feed label")
+    }
+
+    static var contacts: String {
+        NSLocalizedString("share.destination.contacts", value: "Contacts", comment: "Contacts category label")
+    }
+
+    static var groups: String {
+        NSLocalizedString("share.destination.groups", value: "Groups", comment: "Groups category label")
+    }
+}
+
+class ShareDestinationViewController: UITableViewController {
+    private let contacts: [ABContact]
+    private let groups: [GroupListItem]
+    private var filteredContacts: [ABContact] = []
+    private var filteredGroups: [GroupListItem] = []
+    private var searchController: UISearchController!
+
+    private var isFiltering: Bool {
+        return searchController.isActive && !(searchController.searchBar.text?.isEmpty ?? true)
+    }
+    
+    init() {
+        contacts = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: true)
+        groups = GroupListItem.load()
+        
+        super.init(style: .grouped)
+
+        DDLogInfo("ShareDestinationViewController/init loaded \(groups.count) groups and \(contacts.count) contacts")
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        navigationItem.title = Localizations.title
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAciton))
+
+        tableView.register(DestinationCell.self, forCellReuseIdentifier: DestinationCell.reuseIdentifier)
+
+        setupSearch()
+    }
+
+    @objc func cancelAciton() {
+        DDLogInfo("ShareDestinationViewController/cancel")
+
+        ShareExtensionContext.shared.coreService.disconnect()
+        extensionContext?.cancelRequest(withError: ShareError.cancel)
+    }
+
+    private func setupSearch() {
+        searchController = UISearchController(searchResultsController: nil)
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.definesPresentationContext = true
+        searchController.hidesNavigationBarDuringPresentation = true
+        searchController.searchBar.autocapitalizationType = .none
+        searchController.searchBar.delegate = self
+
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+    }
+
+    // MARK: Data Source
+
+    override func numberOfSections(in tableView: UITableView) -> Int {
+        return 3
+    }
+
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        switch section {
+        case 0:
+            return 1
+        case 1:
+            return isFiltering ? filteredGroups.count : groups.count
+        case 2:
+            return isFiltering ? filteredContacts.count : contacts.count
+        default:
+            return 0
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        switch section {
+        case 1:
+            return Localizations.groups
+        case 2:
+            return Localizations.contacts
+        default:
+            return nil
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: DestinationCell.reuseIdentifier, for: indexPath) as! DestinationCell
+
+        switch indexPath.section {
+        case 0:
+            cell.configure(Localizations.feed)
+        case 1:
+            let group = isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row]
+            cell.configure(group)
+        case 2:
+            let contact = isFiltering ? filteredContacts[indexPath.row] : contacts[indexPath.row]
+            cell.configure(contact)
+        default:
+            break
+        }
+
+        return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let destination: ShareDestination
+
+        switch indexPath.section {
+        case 0:
+            DDLogInfo("ShareDestinationViewController/destination feed")
+            destination = .feed
+        case 1:
+            DDLogInfo("ShareDestinationViewController/destination group")
+            destination = .group(isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row])
+        case 2:
+            DDLogInfo("ShareDestinationViewController/destination contact")
+            destination = .contact(isFiltering ? filteredContacts[indexPath.row] : contacts[indexPath.row])
+        default:
+            return
+        }
+
+        navigationController?.pushViewController(ShareComposerViewController(destination: destination), animated: true)
+    }
+}
+
+// MARK: UISearchBarDelegate
+extension ShareDestinationViewController: UISearchBarDelegate {
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        DispatchQueue.main.async { [weak self] in
+            self?.tableView.reloadData()
+            self?.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .middle, animated: true)
+        }
+    }
+}
+
+// MARK: UISearchResultsUpdating
+extension ShareDestinationViewController: UISearchResultsUpdating {
+
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let searchText = searchController.searchBar.text?.lowercased() else { return }
+        let searchItems = searchText.trimmingCharacters(in: CharacterSet.whitespaces).components(separatedBy: " ")
+
+        filteredGroups = groups.filter {
+            let name = $0.name.lowercased()
+
+            for item in searchItems {
+                if name.contains(item) {
+                    return true
+                }
+            }
+
+            return false
+        }
+
+        filteredContacts = contacts.filter {
+            let name = $0.fullName?.lowercased() ?? ""
+            let number = $0.phoneNumber ?? ""
+
+            for item in searchItems {
+                if name.contains(item) || number.contains(item) {
+                    return true
+                }
+            }
+
+            return false
+        }
+
+        tableView.reloadData()
+    }
+}
+
+fileprivate class DestinationCell: UITableViewCell {
+    static var reuseIdentifier: String {
+        return String(describing: DestinationCell.self)
+    }
+
+    private var cancellable: AnyCancellable?
+    private var avatar: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            imageView.widthAnchor.constraint(equalToConstant: 30),
+            imageView.heightAnchor.constraint(equalToConstant: 30),
+        ])
+
+        return imageView
+    }()
+    private lazy var title: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = .preferredFont(forTextStyle: .body)
+        label.textColor = .label
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    private lazy var subtitle: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = .preferredFont(forTextStyle: .footnote)
+        label.textColor = .secondaryLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
+        setup()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setup()
+    }
+
+    private func setup() {
+        let labels = UIStackView(arrangedSubviews: [ title, subtitle ])
+        labels.translatesAutoresizingMaskIntoConstraints = false
+        labels.axis = .vertical
+        labels.distribution = .fill
+        labels.spacing = 3
+
+        let stack = UIStackView(arrangedSubviews: [avatar, labels])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.distribution = .fill
+        stack.spacing = 10
+
+        contentView.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            stack.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 16),
+            stack.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -16),
+        ])
+    }
+
+    public func configure(_ text: String) {
+        cancellable?.cancel()
+
+        title.text = text
+        subtitle.isHidden = true
+        avatar.isHidden = true
+    }
+
+    public func configure(_ group: GroupListItem) {
+        title.text = group.name
+        subtitle.isHidden = true
+        avatar.isHidden = false
+        avatar.layer.cornerRadius = 6
+
+        loadAvatar(group: group.id)
+    }
+
+    public func configure(_ contact: ABContact) {
+        title.text = contact.fullName
+        subtitle.isHidden = false
+        subtitle.text = contact.phoneNumber
+
+        if let id = contact.userId {
+            avatar.isHidden = false
+            avatar.layer.cornerRadius = 15
+            loadAvatar(user: id)
+        } else {
+            avatar.isHidden = true
+        }
+    }
+
+    private func loadAvatar(group id: GroupID) {
+        cancellable?.cancel()
+
+        let avatarData = ShareExtensionContext.shared.avatarStore.groupAvatarData(for: id)
+
+        if let image = avatarData.image {
+            avatar.image = image
+        } else {
+            avatar.image = AvatarView.defaultGroupImage
+
+            if !avatarData.isEmpty {
+                avatarData.loadImage(using: ShareExtensionContext.shared.avatarStore)
+            }
+        }
+
+        cancellable = avatarData.imageDidChange.sink { [weak self] image in
+            guard let self = self else { return }
+
+            if let image = image {
+                self.avatar.image = image
+            } else {
+                self.avatar.image = AvatarView.defaultGroupImage
+            }
+        }
+    }
+
+    private func loadAvatar(user id: UserID) {
+        cancellable?.cancel()
+
+        let userAvatar = ShareExtensionContext.shared.avatarStore.userAvatar(forUserId: id)
+
+        if let image = userAvatar.image {
+            avatar.image = image
+        } else {
+            avatar.image = AvatarView.defaultGroupImage
+
+            if !userAvatar.isEmpty {
+                userAvatar.loadImage(using: ShareExtensionContext.shared.avatarStore)
+            }
+        }
+
+        cancellable = userAvatar.imageDidChange.sink { [weak self] image in
+            guard let self = self else { return }
+
+            if let image = image {
+                self.avatar.image = image
+            } else {
+                self.avatar.image = AvatarView.defaultGroupImage
+            }
+        }
+    }
+}

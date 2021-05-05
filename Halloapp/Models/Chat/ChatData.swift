@@ -52,6 +52,7 @@ class ChatData: ObservableObject {
     private var service: HalloService
     private let mediaUploader: MediaUploader
     private let imageServer = ImageServer()
+    private let groupList = GroupList()
     
     private var currentlyChattingWithUserId: String? = nil
     private var isSubscribedToCurrentUser: Bool = false
@@ -385,6 +386,7 @@ class ChatData: ObservableObject {
             }
         )
 
+        groupList.listenForChanges(using: bgContext)
     }
 
     func clearAllChatsAndMedia() {

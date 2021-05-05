@@ -99,6 +99,8 @@
 		EAAE7B5224DD2C3000946B77 /* MessageKey+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4824DD2C3000946B77 /* MessageKey+CoreDataProperties.swift */; };
 		EAF47E0A251D80930056196F /* GroupAvatar+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF47E08251D80930056196F /* GroupAvatar+CoreDataClass.swift */; };
 		EAF47E0B251D80930056196F /* GroupAvatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF47E09251D80930056196F /* GroupAvatar+CoreDataProperties.swift */; };
+		F86919E226397F0C00B01306 /* UIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86919E126397F0C00B01306 /* UIImageView.swift */; };
+		F8DFCD8F262F0F6E003F850F /* GroupList.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCD8E262F0F6E003F850F /* GroupList.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -197,6 +199,8 @@
 		EAAE7B4824DD2C3000946B77 /* MessageKey+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageKey+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAF47E08251D80930056196F /* GroupAvatar+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupAvatar+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAF47E09251D80930056196F /* GroupAvatar+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupAvatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		F86919E126397F0C00B01306 /* UIImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageView.swift; sourceTree = "<group>"; };
+		F8DFCD8E262F0F6E003F850F /* GroupList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupList.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -349,6 +353,7 @@
 				6832F50224FEE9CB00A9C202 /* CoreService.swift */,
 				7681241C2486C133008C5216 /* Extensions */,
 				768124112486191A008C5216 /* Feed */,
+				F8DFCD8D262F0F51003F850F /* Groups */,
 				768123D52485DC0B008C5216 /* Global */,
 				EAAE7B2E24DBD47800946B77 /* Keys */,
 				768123D02485DB8D008C5216 /* Logging */,
@@ -453,6 +458,7 @@
 				68A64E8124D22E5500F40F1F /* NSRange.swift */,
 				76E00DF024F786A100E06252 /* Data.swift */,
 				EA5A7AD2258B30BE0019BDDB /* UIDevice.swift */,
+				F86919E126397F0C00B01306 /* UIImageView.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -492,6 +498,14 @@
 				EAAE7B3524DCD98C00946B77 /* Keys.xcdatamodeld */,
 			);
 			path = "CoreData Stack";
+			sourceTree = "<group>";
+		};
+		F8DFCD8D262F0F51003F850F /* Groups */ = {
+			isa = PBXGroup;
+			children = (
+				F8DFCD8E262F0F6E003F850F /* GroupList.swift */,
+			);
+			path = Groups;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -654,6 +668,7 @@
 				68A64E8624D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift in Sources */,
 				68D2915525096F9400AF5061 /* Mentions.swift in Sources */,
 				EAAE7B5224DD2C3000946B77 /* MessageKey+CoreDataProperties.swift in Sources */,
+				F8DFCD8F262F0F6E003F850F /* GroupList.swift in Sources */,
 				EAAE7B4E24DD2C3000946B77 /* SignedPreKey+CoreDataProperties.swift in Sources */,
 				68F935BD252BED9A00FA6E75 /* EventMonitor.swift in Sources */,
 				EAAE7B4C24DD2C3000946B77 /* MessageKeyBundle+CoreDataProperties.swift in Sources */,
@@ -674,6 +689,7 @@
 				768123FB2486107E008C5216 /* ContactStore.swift in Sources */,
 				6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
+				F86919E226397F0C00B01306 /* UIImageView.swift in Sources */,
 				688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */,
 				EAAE7B3C24DD039900946B77 /* XMPPWhisperRequests.swift in Sources */,
 				68101F2C25CDE7CA005CD704 /* Keys.swift in Sources */,

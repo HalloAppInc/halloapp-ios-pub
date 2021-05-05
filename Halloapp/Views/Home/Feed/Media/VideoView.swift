@@ -13,12 +13,14 @@ class VideoView: UIView {
     enum PlaybackControls { case simple, advanced }
 
     private var rateObservation: NSKeyValueObservation?
+    private var videoRectObservation: NSKeyValueObservation?
 
     var player: AVPlayer? {
         get {
             return playerLayer.player
         }
         set {
+            playerLayer.mask = nil
             playerLayer.player = newValue
             timeSeekView.player = newValue
 
@@ -116,6 +118,19 @@ class VideoView: UIView {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    public func roundCorner(_ radius: CGFloat) {
+        clipsToBounds = true
+
+        videoRectObservation = playerLayer.observe(\.videoRect) { [weak self] _, _ in
+            guard let self = self else { return }
+            guard self.playerLayer.videoRect.size != .zero else { return }
+
+            let mask = CAShapeLayer()
+            mask.path = UIBezierPath(roundedRect: self.playerLayer.videoRect, cornerRadius: radius).cgPath
+            self.playerLayer.mask = mask
+        }
     }
 
     private func togglePlay() {
