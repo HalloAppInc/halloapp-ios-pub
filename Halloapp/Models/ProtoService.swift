@@ -928,8 +928,12 @@ extension ProtoService: HalloService {
         }
     }
 
-    func retractFeedItem(_ feedItem: FeedItemProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoRetractItemRequest(feedItem: feedItem, completion: completion))
+    func retractComment(_ comment: FeedCommentProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoRetractCommentRequest(id: comment.id, postID: comment.feedPostId, completion: completion))
+    }
+
+    func retractPost(_ post: FeedPostProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoRetractPostRequest(id: post.id, completion: completion))
     }
 
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {

@@ -34,17 +34,11 @@ public enum FeedMediaType: Int {
 
 public protocol FeedItemProtocol {
 
-    // MARK: Data Fields
-
     var id: String { get }
 
     var userId: String { get }
 
     var timestamp: Date { get }
-
-    // MARK: Serialization
-
-    func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item?
 }
 
 // MARK: Feed Mention
@@ -339,20 +333,6 @@ public extension FeedPostProtocol {
         }
         return post
     }
-
-    func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item? {
-        if withData {
-            guard let serverPost = serverPost else {
-                DDLogError("FeedPostProtocol/protoFeedItem/\(id)/error [could not create serverpost]")
-                return nil
-            }
-            return .post(serverPost)
-        } else {
-            var post = Server_Post()
-            post.id = id
-            return .post(post)
-        }
-    }
 }
 
 // MARK: Feed Comment
@@ -406,20 +386,5 @@ public extension FeedCommentProtocol {
         }
 
         return comment
-    }
-
-    func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item? {
-        if withData {
-            guard let serverComment = serverComment else {
-                DDLogError("FeedCommentProtocol/protoFeedItem/\(id)/error [could not create serverComment]")
-                return nil
-            }
-            return .comment(serverComment)
-        } else {
-            var comment = Server_Comment()
-            comment.id = id
-            comment.postID = feedPostId
-            return .comment(comment)
-        }
     }
 }

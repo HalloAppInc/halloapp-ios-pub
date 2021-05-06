@@ -1238,7 +1238,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         save(viewContext)
 
         // Request to retract.
-        service.retractFeedItem(feedPost) { result in
+        service.retractPost(feedPost) { result in
             switch result {
             case .success:
                 self.processPostRetract(postId) {}
@@ -1259,7 +1259,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         save(viewContext)
 
         // Request to retract.
-        service.retractFeedItem(comment) { result in
+        service.retractComment(comment) { result in
             switch result {
             case .success:
                 self.processCommentRetract(commentId) {}

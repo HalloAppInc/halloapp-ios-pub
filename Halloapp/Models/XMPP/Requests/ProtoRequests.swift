@@ -92,12 +92,14 @@ final class ProtoSharePostsRequest: ProtoRequest<Void> {
     }
 }
 
+final class ProtoRetractPostRequest: ProtoRequest<Void> {
 
-final class ProtoRetractItemRequest: ProtoRequest<Void> {
+    init(id: FeedPostID, completion: @escaping Completion) {
+        var post = Server_Post()
+        post.id = id
 
-    init(feedItem: FeedItemProtocol, completion: @escaping Completion) {
         var serverFeedItem = Server_FeedItem()
-        serverFeedItem.item = feedItem.protoFeedItem(withData: false)
+        serverFeedItem.item = .post(post)
         serverFeedItem.action = .retract
 
         super.init(
@@ -107,6 +109,23 @@ final class ProtoRetractItemRequest: ProtoRequest<Void> {
     }
 }
 
+final class ProtoRetractCommentRequest: ProtoRequest<Void> {
+
+    init(id: FeedPostCommentID, postID: FeedPostID, completion: @escaping Completion) {
+        var comment = Server_Comment()
+        comment.id = id
+        comment.postID = postID
+
+        var serverFeedItem = Server_FeedItem()
+        serverFeedItem.item = .comment(comment)
+        serverFeedItem.action = .retract
+
+        super.init(
+            iqPacket: .iqPacket(type: .set, payload: .feedItem(serverFeedItem)),
+            transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
 
 final class ProtoContactSyncRequest: ProtoRequest<[HalloContact]> {
 
