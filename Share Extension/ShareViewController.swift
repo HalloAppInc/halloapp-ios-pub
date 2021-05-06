@@ -29,7 +29,7 @@ extension Localizations {
     }
 
     static var notLoggedInMessage: String {
-        NSLocalizedString("share.notlogged.message", value: "Please open HalloApp and sing in.", comment: "Message of alert when user is not logged in")
+        NSLocalizedString("share.notlogged.message", value: "Please open HalloApp and sign in.", comment: "Message of alert when user is not logged in")
     }
 }
 
