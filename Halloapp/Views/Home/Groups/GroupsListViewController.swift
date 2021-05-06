@@ -48,6 +48,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         }
         return searchController.isActive && !isSearchBarEmpty
     }
+    private var groupIdToPresent: GroupID? = nil
         
     // MARK: Lifecycle
     
@@ -109,6 +110,17 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
                 self.processNotification(metadata: metadata)
             }
         )
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetAGroupEvent.sink { [weak self] (groupId) in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    if self.groupIdToPresent == groupId {
+                        DDLogDebug("GroupsListViewController/presentGroup \(groupId)")
+                        self.openFeed(forGroupId: groupId)
+                        self.groupIdToPresent = nil
+                    }
+                }
+        })
 
         // When the user was not on this view, and HomeView sends user to here
         if let metadata = NotificationMetadata.fromUserDefaults() {
@@ -348,18 +360,14 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
             }
             break
         case .groupAdd:
-            if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                let vc = GroupFeedViewController(groupId: groupId)
-                vc.delegate = self
-                self.navigationController?.pushViewController(vc, animated: false)
-            } else {
-                // for offline groupAdd notifications, the app needs some time to get and create the new group when the user
-                // taps on the notification so we do a simple retry
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                        let vc = GroupFeedViewController(groupId: groupId)
-                        vc.delegate = self
-                        self.navigationController?.pushViewController(vc, animated: false)
+            if let groupId = metadata.groupId {
+                if let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+                    openFeed(forGroupId: groupId)
+                } else {
+                    // for offline groupAdd notifications, the app needs some time to get and create the new group when the user
+                    // taps on the notification so we just wait for the group event here.
+                    DispatchQueue.main.async{
+                        self.groupIdToPresent = groupId
                     }
                 }
             }

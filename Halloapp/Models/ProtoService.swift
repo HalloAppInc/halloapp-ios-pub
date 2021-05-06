@@ -1272,8 +1272,12 @@ extension ProtoService: HalloService {
         sharedServerMessages.forEach{ sharedServerMsg in
             do {
                 if let serverMsgPb = sharedServerMsg.msg {
-                    let serverMsg = try Server_Msg(serializedData: serverMsgPb)
+                    var serverMsg = try Server_Msg(serializedData: serverMsgPb)
                     DDLogInfo("ProtoService/mergeData/handle serverMsg: \(serverMsg.id)")
+                    // Our internal logic is to generate notifications for messages with retryCount = 0.
+                    // Since we now process messages from notification extension: these messages will have retryCount = 0.
+                    // So, we increment the retry count to prevent generating local notifications.
+                    serverMsg.retryCount += 1
                     handleMessage(serverMsg)
                 }
             } catch {

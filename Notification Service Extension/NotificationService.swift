@@ -110,11 +110,11 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             } catch {
                 DDLogError("NotificationExtension/ChatMessage/Failed serverChatStanzaStr: \(String(describing: metadata.serverChatStanzaPb)), error: \(error)")
             }
-        case .newInvitee, .newFriend, .newContact:
+        case .newInvitee, .newFriend, .newContact, .groupAdd:
             // save server message stanzas to process for these notifications.
             // todo(murali@): extend this to other types as well.
             dataStore.saveServerMsg(notificationMetadata: metadata)
-        case .groupChatMessage, .groupAdd, .feedPostRetract, .groupFeedPostRetract,
+        case .groupChatMessage, .feedPostRetract, .groupFeedPostRetract,
              .feedCommentRetract, .groupFeedCommentRetract, .chatMessageRetract, .groupChatMessageRetract:
             // If notification is anything else just invoke completion handler.
             break

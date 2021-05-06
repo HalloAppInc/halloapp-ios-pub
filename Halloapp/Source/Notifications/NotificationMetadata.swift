@@ -312,7 +312,7 @@ class NotificationMetadata: Codable {
             data = nil
             pushName = nil
         case .groupStanza(let groupStanza):
-            if groupStanza.action == .modifyMembers {
+            if groupStanza.action == .modifyMembers || groupStanza.action == .create {
                 contentId = msg.id
                 contentType = .groupAdd
                 fromId = UserID(groupStanza.senderUid)
