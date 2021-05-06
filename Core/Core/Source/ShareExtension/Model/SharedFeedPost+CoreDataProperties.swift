@@ -72,12 +72,6 @@ extension SharedFeedPost {
 
 }
 
-extension SharedFeedPost: FeedItemProtocol {
-    public static var itemType: FeedItemType {
-        .post
-    }
-}
-
 extension SharedFeedPost: FeedPostProtocol {
     public var orderedMentions: [FeedMentionProtocol] {
         guard let mentions = mentions else { return [] }

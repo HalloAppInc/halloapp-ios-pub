@@ -1070,8 +1070,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         dispatchGroup.notify(queue: .main) {
             comments.filter { !commentIdsToFilterOut.contains($0.id) && self.isCommentEligibleForLocalNotification($0) }.forEach { (comment) in
-                guard let protoContainer = comment.protoContainer else { return }
-                let protobufData = try? protoContainer.serializedData()
+                let protobufData = try? comment.clientContainer.serializedData()
                 let contentType: NotificationContentType = comment.post.groupId == nil ? .feedComment : .groupFeedComment
                 let metadata = NotificationMetadata(contentId: comment.id,
                                                     contentType: contentType,
@@ -1104,7 +1103,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         dispatchGroup.notify(queue: .main) {
             feedPosts.filter({ !postIdsToFilterOut.contains($0.id) }).forEach { (feedPost) in
-                guard let protoContainer = feedPost.protoContainer else { return }
+                guard let protoContainer = feedPost.clientContainer else { return }
                 let protobufData = try? protoContainer.serializedData()
                 let metadataContentType: NotificationContentType = feedPost.groupId == nil ? .feedPost : .groupFeedPost
                 let metadata = NotificationMetadata(contentId: feedPost.id,

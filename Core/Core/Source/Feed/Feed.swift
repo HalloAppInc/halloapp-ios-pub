@@ -29,19 +29,12 @@ public enum FeedMediaType: Int {
     case video = 1
 }
 
-public enum FeedItemType {
-    case post
-    case comment
-}
-
 
 // MARK: Feed Item Protocol
 
 public protocol FeedItemProtocol {
 
     // MARK: Data Fields
-
-    static var itemType: FeedItemType { get }
 
     var id: String { get }
 
@@ -51,33 +44,7 @@ public protocol FeedItemProtocol {
 
     // MARK: Serialization
 
-    var protoMessage: SwiftProtobuf.Message? { get }
-
     func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item?
-}
-
-public extension FeedItemProtocol {
-
-    var protoContainer: Clients_Container? {
-        get {
-            var container = Clients_Container()
-            switch Self.itemType {
-            case .post:
-                guard let message = protoMessage as? Clients_Post else {
-                    DDLogError("FeedItemProtocol/protoContainer/\(id)/error [could not create post message]")
-                    return nil
-                }
-                container.post = message
-            case .comment:
-                guard let message = protoMessage as? Clients_Comment else {
-                    DDLogError("FeedItemProtocol/protoContainer/\(id)/error [could not create comment message]")
-                    return nil
-                }
-                container.comment = message
-            }
-            return container
-        }
-    }
 }
 
 // MARK: Feed Mention
@@ -332,20 +299,28 @@ public protocol FeedPostProtocol: FeedItemProtocol {
 
 public extension FeedPostProtocol {
 
-    var protoMessage: SwiftProtobuf.Message? {
-        get {
-            var post = Clients_Post()
-            if let text = text {
-                post.text = text
-            }
-            post.mentions = orderedMentions.map { $0.protoMention }
-            post.media = orderedMedia.compactMap { $0.protoMessage }
-            if post.media.count < orderedMedia.count {
-                DDLogError("FeedPostProtocol/\(id)/error [media not ready]")
-                return nil
-            }
-            return post
+    var clientContainer: Clients_Container? {
+        guard let postLegacy = clientPostLegacy else {
+            return nil
         }
+        var container = Clients_Container()
+        container.post = postLegacy
+        return container
+    }
+
+    /// Legacy format post (will be superseded by Clients_PostContainer)
+    var clientPostLegacy: Clients_Post? {
+        var post = Clients_Post()
+        if let text = text {
+            post.text = text
+        }
+        post.mentions = orderedMentions.map { $0.protoMention }
+        post.media = orderedMedia.compactMap { $0.protoMessage }
+        if post.media.count < orderedMedia.count {
+            DDLogError("FeedPostProtocol/\(id)/error [media not ready]")
+            return nil
+        }
+        return post
     }
 
     var serverPost: Server_Post? {
@@ -356,7 +331,7 @@ public extension FeedPostProtocol {
         }
         post.id = id
         post.timestamp = Int64(timestamp.timeIntervalSince1970)
-        if let payload = try? protoContainer?.serializedData() {
+        if let payload = try? clientContainer?.serializedData() {
             post.payload = payload
         } else {
             DDLogError("FeedPostProtocol/serverPost/\(id)/error [could not create payload]")
@@ -397,17 +372,22 @@ public protocol FeedCommentProtocol: FeedItemProtocol {
 
 public extension FeedCommentProtocol {
 
-    var protoMessage: Message? {
-        get {
-            var comment = Clients_Comment()
-            comment.text = text
-            comment.feedPostID = feedPostId
-            if let parentId = parentId {
-                comment.parentCommentID = parentId
-            }
-            comment.mentions = orderedMentions.map { $0.protoMention }
-            return comment
+    var clientContainer: Clients_Container {
+        var container = Clients_Container()
+        container.comment = clientCommentLegacy
+        return container
+    }
+
+    /// Legacy format comment (will be superseded by Clients_CommentContainer)
+    var clientCommentLegacy: Clients_Comment {
+        var comment = Clients_Comment()
+        comment.text = text
+        comment.feedPostID = feedPostId
+        if let parentId = parentId {
+            comment.parentCommentID = parentId
         }
+        comment.mentions = orderedMentions.map { $0.protoMention }
+        return comment
     }
 
     var serverComment: Server_Comment? {
@@ -418,7 +398,7 @@ public extension FeedCommentProtocol {
         }
         comment.postID = feedPostId
         comment.timestamp = Int64(timestamp.timeIntervalSince1970)
-        if let payload = try? protoContainer?.serializedData() {
+        if let payload = try? clientContainer.serializedData() {
             comment.payload = payload
         } else {
             DDLogError("FeedCommentProtocol/serverComment/\(id)/error [could not create payload]")

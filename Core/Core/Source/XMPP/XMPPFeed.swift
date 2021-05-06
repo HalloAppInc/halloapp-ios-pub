@@ -15,7 +15,6 @@ import SwiftProtobuf
 public struct XMPPFeedPost: FeedPostProtocol {
 
     // MARK: FeedItem
-    public static var itemType: FeedItemType { .post }
     public let id: FeedPostID
     public let userId: UserID
     public var timestamp: Date = Date()
@@ -100,7 +99,6 @@ public struct FeedMediaData: FeedMediaProtocol {
 public struct XMPPComment: FeedCommentProtocol {
 
     // MARK: FeedItem
-    public static var itemType: FeedItemType { .comment }
     public let id: FeedPostCommentID
     public let userId: UserID
     public var timestamp: Date = Date()

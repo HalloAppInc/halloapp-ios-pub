@@ -65,11 +65,6 @@ extension FeedPostComment {
 }
 
 extension FeedPostComment: FeedCommentProtocol {
-
-    public static var itemType: FeedItemType {
-        .comment
-    }
-
     public var feedPostId: String {
         get { post.id }
     }

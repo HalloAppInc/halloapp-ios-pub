@@ -63,11 +63,6 @@ extension FeedPost {
 }
 
 extension FeedPost: FeedPostProtocol {
-
-    public static var itemType: FeedItemType {
-        .post
-    }
-
     public var orderedMentions: [FeedMentionProtocol] {
         get {
             guard let mentions = self.mentions else { return [] }
