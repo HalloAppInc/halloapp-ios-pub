@@ -1,0 +1,772 @@
+/* No comment provided by engineer. */
+"%" = "%";
+
+/* No comment provided by engineer. */
+"%@" = "%@";
+
+/* About screen: body text. */
+"about.body.2" = "Danke fuer die Nutzung und das Teilen von HalloApp mit deinen Freunden und deiner Familie. Wir verbessern diese App wöchentlich.";
+
+/* About screen: footer text. Parameter is support email address. */
+"about.footer" = "Wenn du Fragen oder Feedback hast sende uns eine E-Mail an %@";
+
+/* About screen: greeting. */
+"about.hallo" = "Oh Hallo";
+
+/* About screen: navigation bar title. */
+"about.title" = "Mehr erfahren";
+
+/* Longer title for the button that confirms marking all items in the activity center as read. */
+"activity.center.button.mark.all.read" = "Als gelesen markieren";
+
+/* Short title for the button in activity center. */
+"activity.center.button.read.all" = "Gelesen";
+
+/* Title for the activity center screen. */
+"activity.center.title" = "Aktivität";
+
+/* Translation of iPhone settings app. */
+"app.ios.settings" = "Einstellungen";
+
+/* Text to show on banner when no connection is available */
+"banner.no.connection" = "Keine Internet-Verbindung";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Abbrechen";
+
+/* Title for generic Create button */
+"button.create" = "Erstellen";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Verwerfen";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Erledigt";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Weiter";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Entfernen";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Update";
+
+/* No comment provided by engineer. */
+"camera.init.error.1" = "Die Rückkamera kann nicht initialisiert werden";
+
+/* No comment provided by engineer. */
+"camera.init.error.2" = "Die Frontkamera kann nicht initialisiert werden";
+
+/* No comment provided by engineer. */
+"camera.init.error.3" = "Das Mikrofon kann nicht initialisiert werden";
+
+/* No comment provided by engineer. */
+"camera.init.error.4" = "Zugriff auf den Rückkamera-Eingang nicht möglich";
+
+/* No comment provided by engineer. */
+"camera.init.error.5" = "Zugriff auf den Frontkamera-Eingang nicht möglich";
+
+/* No comment provided by engineer. */
+"camera.init.error.6" = "Kein Zugriff auf den Audio-Eingang";
+
+/* No comment provided by engineer. */
+"camera.init.error.7" = "Fotos können nicht aufgenommen werden";
+
+/* No comment provided by engineer. */
+"camera.init.error.8" = "Filme können nicht aufgenommen werden";
+
+/* Title for a popup alerting about camera initialization error. */
+"camera.init.error.title" = "Initialisierungsfehler";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"chat.create.group.failure.description" = "Bitte prüfe, ob du eine Internetverbindung hast, und versuche es noch einmal.";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"chat.create.group.failure.title" = "Keine Internet-Verbindung";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"chat.create.group.name.placeholder" = "Gruppennamen vergeben";
+
+/* Title of group creation screen */
+"chat.create.group.title" = "Gruppen-Info";
+
+/* Label for creating a new group */
+"chat.create.new.group" = "Neue Gruppe erstellen";
+
+/* Title of group name edit screen */
+"chat.edit.group.title" = "Gruppennamen bearbeiten";
+
+/* Message text shown with the user who demoted a group admin */
+"chat.group.event.demoted.member" = "%1$@ hat %2$@ als Admin entfernt";
+
+/* Message text shown with the user who left the group */
+"chat.group.event.member.left" = "%@ hat die Gruppe verlassen";
+
+/* Action label for adding members to a group */
+"chat.group.info.add.members" = "Mitglieder hinzufügen";
+
+/* Label shown in the members list when member is an admin */
+"chat.group.info.admin.label" = "Admin";
+
+/* Action label for leaving group */
+"chat.group.info.leave.group" = "Gruppe verlassen";
+
+/* Text for menu option of making a group member admin */
+"chat.group.info.make.group.admin" = "Zum Gruppen-Admin machen";
+
+/* Text for menu option of messaging user */
+"chat.group.info.message.user" = "Nachricht erstellen";
+
+/* Text label shown when the user is not a member of the group */
+"chat.group.info.not.a.member.label" = "Du bist kein Mitglied dieser Gruppe";
+
+/* Text for menu option of removing a group member */
+"chat.group.info.remove.from.group" = "Aus Gruppe entfernen";
+
+/* Title of screen that shows group information */
+"chat.group.info.title" = "Gruppen-Info";
+
+/* Text for menu option of viewing profile */
+"chat.group.info.view.profile" = "Profil anzeigen";
+
+/* Label shown above group members list */
+"chat.group.members.label" = "MITGLIEDER";
+
+/* Label shown above group name input box */
+"chat.group.name.label" = "GRUPPENNAME";
+
+/* Title for group photo actions */
+"chat.group.photo.label" = "Gruppenfoto";
+
+/* Action to take a picture or choose a photo from the library to use for the group photo */
+"chat.group.take.or.choose.photo" = "Foto aufnehmen oder auswählen";
+
+/* Label for inviting friends */
+"chat.invite.friends" = "Freunde einladen";
+
+/* Message text shown for the message that was deleted */
+"chat.message.deleted" = "Diese Nachricht wurde gelöscht.";
+
+/* Message text shown in a message that have photo media but no text */
+"chat.message.photo" = "Foto";
+
+/* Text shown when chat input box is empty */
+"chat.message.placeholder" = "Nachricht eingeben";
+
+/* Message text shown in a message that have video media but no text */
+"chat.message.video" = "Video";
+
+/* Title for new message screen where user chooses who to message */
+"chat.new.message.title" = "Neue Nachricht";
+
+/* Label shown when user is typing */
+"chat.typing.capitalized" = "schreibt...";
+
+/* Text shown when user is about to remove the chat */
+"chats.list.remove.message" = "Wenn du diesen Chat entfernst löscht du den Chatverlauf und den Inhalt von deinem Gerät.";
+
+/* Button revealed when user swipes on their comment. */
+"comment.delete" = "Löschen";
+
+/* Title for the button in comment deletion confirmation prompt. */
+"comment.delete.action" = "Kommentar löschen";
+
+/* Confirmation text displayed at comment deletion prompt */
+"comment.delete.confirmation" = "Diesen Kommentar löschen? Diese Aktion kann nicht rückgängig gemacht werden.";
+
+/* Text displayed in place of deleted comment. */
+"comment.deleted" = "Dieser Kommentar wurde gelöscht";
+
+/* Text displayed in place of a comment that is currently being deleted. */
+"comment.deleting" = "Kommentar wird gelöscht";
+
+/* Button in comment input field. Verb. */
+"comment.post" = "Beitrag erstellen";
+
+/* Text displayed in place of comment timestamp while comment is being posted. */
+"comment.posting" = "Beitrag wird erstellt...";
+
+/* Title for the button displayed under feed post comment. Verb. */
+"comment.reply" = "Antworten";
+
+/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment.
+   Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
+"comment.replying.myself" = "%@ antworten";
+
+/* Title for the button in comment resend confirmation prompt. */
+"comment.resend.action" = "Erneut senden";
+
+/* Confirmation prompt for when resending comment that previously failed to send. */
+"comment.resend.confirmation" = "Kommentar erneut senden?";
+
+/* Text displayed in gray inside of the comment input field when there is no user input. */
+"comment.textfield.placeholder" = "Kommentar hinzufügen";
+
+/* Warning text displayed in Comments when post wasn't available. */
+"comments.post.loading.failed" = "Beim Laden dieses Beitrags ist ein Fehler aufgetreten. Bitte versuche es später noch einmal.";
+
+/* Alert message in composer when a video is too long */
+"composer.max.video.length.message" = "Bitte wähle ein anderes Video aus oder tippe auf Bearbeiten.";
+
+/* Alert title in composer when a video is too long */
+"composer.max.video.length.title" = "Das Video ist länger als %.0f Sekunden";
+
+/* Composer subtitle for messages. */
+"composer.message.subtitle" = "Senden an %@";
+
+/* Composer New Message title. */
+"composer.message.title" = "Neue Nachricht";
+
+/* Placeholder text for media caption field in post composer. */
+"composer.placeholder.media.description" = "Beschreibung hinzufügen";
+
+/* Placeholder text in text post composer screen. */
+"composer.placeholder.text.post" = "Schreibe einen Beitrag";
+
+/* Send button title. */
+"composer.post.button.send" = "Senden";
+
+/* Share button title. */
+"composer.post.button.share" = "Teilen";
+
+/* Composer subtitle for group posts. */
+"composer.post.subtitle" = "Mit %@ teilen";
+
+/* Composer New Post title. */
+"composer.post.title" = "Neuer Beitrag";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.excluded" = "Mit bestimmten Kontakten teilen";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.my.contacts" = "Mit meinen Kontakten teilen";
+
+/* No comment provided by engineer. */
+"CONNECTION" = "VERBINDUNG";
+
+/* Text to show on profile for users you are not connected with */
+"exchange.phone.numbers.to.connect" = "Um euch zu verbinden müsst ihr eure Telefonnummern austauschen";
+
+/* VoiceOver label for camera button in floating compose post menu in Home view. */
+"fab.accessibility.camera" = "Kamera";
+
+/* VoiceOver label for photo button in floating compose post menu in Home view. */
+"fab.accessibility.photo.library" = "Fotobibliothek";
+
+/* VoiceOver label for text post button in floating compose post menu in Home view. */
+"fab.accessibility.text" = "Text";
+
+/* Shown while content is being retracted from feed */
+"feed.deleting" = "wird gelöscht...";
+
+/* Text shown in indicator when new posts come in while user is scrolled down */
+"feed.new.posts.indicator" = "Neue Beiträge";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification..other.comment.no.text" = "<$author$> hat auch kommentiert";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.commented.no.text" = "<$author$> hat deinen Beitrag kommentiert";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.commented.w.text" = "<$author$> kommentierte: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.deleted.comment" = "<$author$> hat einen Kommentar gelöscht";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.deleted.post" = "<$author$> hat kommentiert. Dieser Beitrag wurde gelöscht.";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.comment.no.text" = "<$author$> hat dich in einem Kommentar erwähnt";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.comment.w.text" = "<$author$> hat dich in einem Kommentar erwähnt: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.post.no.text" = "<$author$>hat dich in einem Beitrag erwähnt";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.post.w.text" = "<$author$>hat dich in einem Beitrag erwähnt: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.other.comment.w.text" = "<$author$> hat auch folgendes kommentiert: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.replied.no.text" = "<$author$> hat auf deinen Kommentar geantwortet";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.replied.w.text" = "<$author$> hat geantwortet: <$text$>";
+
+/* Shown when post fails or is canceled. */
+"feed.post.failed" = "Fehler beim Posten.";
+
+/* Shown while content is being posted to feed */
+"feed.posting" = "Beitrag wird geposted...";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Mit allen Kontakten teilen";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Mit allen Kontakten, bis auf die von dir ausgewählten Leute, teilen";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Nur mit ausgewählten Kontakten teilen";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.all" = "Meine Kontakte";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.except" = "Meine Kontakte außer...";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.only" = "Nur teilen mit...";
+
+/* Possible Feed Privacy setting value. */
+"feed.privacy.value.my.contacts" = "Meine Kontakte";
+
+/* Button under someone's post. Verb. */
+"feedpost.button.comment" = "Kommentieren";
+
+/* Message text shown with the user who added a group member */
+"group.event.added.member" = "%1$@ hat %2$@ hinzugefügt";
+
+/* Message text shown with the user who changed the group avatar */
+"group.event.changed.avatar" = "%@ hat das Gruppensymbol geändert";
+
+/* Message text shown with the user who changed the group name */
+"group.event.changed.name" = "%1$@ hat den Gruppennamen in \"%2$@\" umbenannt";
+
+/* Message text shown with the user who created the group */
+"group.event.created.group" = "%1$@ hat die Gruppe \"%2$@\" gegründet";
+
+/* Message text shown with the user who promoted a group member */
+"group.event.promoted.member" = "%1$@ hat %2$@ zum Admin gemacht";
+
+/* Message text shown with the user who removed a group member */
+"group.event.removed.member" = "%1$@ hat %2$@ aus der Gruppe entfernt";
+
+/* Text shown to tell user the group title is tappable */
+"group.title.tap.for.info" = "Für Gruppeninfo hier tippen";
+
+/* Text shown when user is about to remove the group */
+"groups.list.remove.message" = "Möchtest du wirklich diese Gruppe und ihren Inhalt von deinem Gerät entfernen?";
+
+/* Title for exit button that closes the app */
+"home.update.notice.button.exit" = "Beenden";
+
+/* Text shown to users who have old versions of the app */
+"home.update.notice.text" = "Bitte installiere die neueste HalloApp-Version";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.notice.title" = "Diese Version ist veraltet";
+
+/* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
+"invite.already.halloapp.user" = "Ist bereits auf HalloApp";
+
+/* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
+"invite.error.alert.message" = "Etwas ist etwas schiefgegangen.  Bitte versuche es später noch einmal.";
+
+/* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
+"invite.error.alert.title" = "Einladung fehlgeschlagen";
+
+/* Displayed when user does not have any invites left. Parameter is date. */
+"invite.out.of.invites.w.date" = "Du hast keine Einladungen mehr. Versuche es nach dem %@ noch einmal";
+
+/* Displayed white user is inviting someone. */
+"invite.please.wait" = "Bitte warten...";
+
+/* Text of invitation to join HalloApp. */
+"invite.text" = "Mach mit bei HalloApp — eine Möglichkeit ganz persönlich, unkompliziert und sicher den Kontakt zu Freunden und zur Familie zu halten. Hole sie dir auf: https://halloapp.com/dl";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Mehr erfahren";
+
+/* Refers to albums in Photo Library. */
+"media.albums" = "Alben";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Verwerfen";
+
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "Zurücksetzen";
+
+/* Alert asking to enable Camera permission after attempting to use in-app camera. */
+"media.camera.access.request" = "HalloApp hat keinen Zugriff auf deine Kamera. Um den Zugriff zu erlauben, gehe zu deinen Einstellungen und aktiviere die Kamera";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "Möchtest du deine Änderungen verwerfen?";
+
+/* Alert asking to enable Camera permission after attempting to use in-app camera. */
+"media.mic.access.request.body" = "Um Videos mit Ton aufzunehmen, benoetigt HalloApp den Zugriff auf das Mikrofon. Um den Zugriff zu erlauben, gehe zu deinen Einstellungen und aktiviere das Mikrofon";
+
+/* Alert asking to enable Microphone permission after attempting to use in-app camera. */
+"media.mic.access.request.title" = "Möchtest du Videos mit Ton aufnehmen?";
+
+/* Error text displayed in post composer when some of the media selected couldn't be sent. */
+"media.prepare.failed.n.count" = "medien.erstellung.fehlgeschlagen.n.anzahl";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "Schließen";
+
+/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+"media.voiceover.button.flip" = "Umdrehen";
+
+/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+"media.voiceover.button.rotate" = "Drehen";
+
+/* Message action. Verb. */
+"message.copy" = "Kopieren";
+
+/* Message action. Verb. */
+"message.delete" = "Löschen";
+
+/* Message action. Verb. */
+"message.info" = "Informieren";
+
+/* Placeholder text displayed in Message Info screen when no one has seen your group chat message yet. */
+"message.info.not.viewed.yet" = "Bislang hat keiner deine Nachricht gesehen";
+
+/* Message Info screen: title for group of contacts who has not yet seen your group chat message. */
+"message.info.sent.to" = "Gesendet an";
+
+/* Message Info screen: title for group of contacts who has seen your group chat message. */
+"message.info.viewed.by" = "Gesehen von";
+
+/* Message action. Verb. */
+"message.reply" = "Antworten";
+
+/* One of the contact actions in My Post screen. */
+"mypost.action.hide.my.posts" = "Meine Beiträge verbergen";
+
+/* One of the contact actions in My Post screen. Verb. */
+"mypost.action.message" = "Nachricht senden";
+
+/* One of the contact actions in My Post screen. */
+"mypost.action.view.profile" = "Profil ansehen";
+
+/* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
+"mypost.hide.posts.confirmation" = "Bist du dir sicher, dass du alle deine zukünftigen Beiträge vor %s verbergen möchtest? Du kannst dies später jederzeit ändern.";
+
+/* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
+"mypost.not.viewed.yet" = "Bislang hat keiner deinen Beitrag gesehen";
+
+/* Your Post screen: title for group of contacts who has not yet seen your post. */
+"mypost.sent.to" = "Senden an";
+
+/* Your Post screen: title for group of contacts who has seen your post. */
+"mypost.viewed.by" = "Gesehen von";
+
+/* Text shown to indicate user is not in the group anymore */
+"not.in.group.banner.text" = "Du bist kein Mitglied dieser Gruppe mehr";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "Kommentar: %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "Einer deiner Kontakte ist jetzt aktiv auf HalloApp";
+
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "Benachrichtigung.n.Fotos";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@ ist jetzt aktiv auf HalloApp";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "Neuer Beitrag";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "📷 Foto";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "📹 Video";
+
+/* Text for new user popup pointing at activity center icon */
+"nux.activity.center.icon" = "Hier ist dein Aktivitäten-Center. Um deine letzte Aktivität zu sehen tippe hier.";
+
+/* Shown on chats list when there are no contacts or messages to display */
+"nux.chat.empty" = "Deine Kontakte & Nachrichten erscheinen hier";
+
+/* Text for new user popup pointing at chat list */
+"nux.chat.list" = "Hier findest du Nachrichten von deinen Freunden & deiner Familie. Du siehst hier auch wenn sich jemand neu bei HalloApp angemeldet hat.";
+
+/* Shown on groups list when there are no groups to display */
+"nux.groups.list.empty" = "Deine Gruppen erscheinen hier";
+
+/* Text for new user popup pointing at new post button */
+"nux.new.post.button" = "Tippe hier, um ein Update mit deinen Freunden & deiner Familie auf HalloApp zu teilen";
+
+/* Message in media picker when access is denied. */
+"picker.access.denied.message" = "Bitte lasse den Zugriff über die Einstellungen zu";
+
+/* An option to give access from settings */
+"picker.access.denied.settings" = "Einstellungen";
+
+/* Alert title in media picker when access is denied. */
+"picker.access.denied.title" = "Zugriff auf Foto abgelehnt";
+
+/* Message shown only limited access to media. */
+"picker.access.limited.message" = "Du hast HalloApp nur Zugriff auf eine bestimmte Anzahl von Fotos und Videos gewährt.";
+
+/* Initial picker screen title. The default source of picker photos */
+"picker.default.title" = "Aufnahmen";
+
+/* Alert message in media picker when unable to load media file. */
+"picker.media.fail.message" = "Versuch es bitte noch einmal oder wähle ein anderes Foto oder Video aus.";
+
+/* Alert title in media picker when unable to load media file. */
+"picker.media.fail.title" = "Fehler beim Laden des Mediums";
+
+/* Button shown to update limited access to media. */
+"picker.media.limit.button" = "Aktualisieren";
+
+/* An option to update limited access. */
+"picker.media.limit.settings" = "Einstellungen ändern";
+
+/* Alert title in media picker when selecting over limit. */
+"picker.media.limit.title" = "Maximale Anzahl ausgewählt";
+
+/* An option to update limited access. */
+"picker.media.limit.updateSelection" = "Bild- & Videoauswahl aktualisieren";
+
+/* Displayed in place of a deleted feed post.
+   Displayed in place of a deleted group feed post at group list screen */
+"post.has.been.deleted" = "Dieser Beitrag wurde gelöscht";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted.by.author" = "%@ hat den Beitrag gelöscht";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted.by.you" = "Du hast deinen Beitrag gelöscht";
+
+/* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
+"privacy.list.blocked" = "Blockierte Kontakte";
+
+/* Title for the button allowing to delete current profile photo. */
+"profile.delete.photo" = "Foto löschen";
+
+/* Text for messaging user under profile header */
+"profile.header.message.user" = "Nachricht senden";
+
+/* Item in Profile > Help screen. */
+"profile.help.faq" = "FAQ";
+
+/* Item in Profile > Help screen. */
+"profile.help.feedback" = "Feedback & Protokolle teilen";
+
+/* Item in Profile > Help screen. */
+"profile.help.pp" = "Datenschutzrichtlinie";
+
+/* Item in Profile > Help screen. */
+"profile.help.share.logs" = "Protokolle teilen";
+
+/* Item in Profile > Help screen. */
+"profile.help.tos" = "Nutzungsbedingungen";
+
+/* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
+"profile.name.length" = "%1$d/%2$d";
+
+/* Row in Profile screen. */
+"profile.row.about" = "Über HalloApp";
+
+/* Row in Profile screen. */
+"profile.row.archive" = "Archiv";
+
+/* Row in Profile screen. */
+"profile.row.help" = "Hilfe";
+
+/* Row in Profile screen. */
+"profile.row.invite" = "Freunde einladen";
+
+/* Row in Settings screen */
+"profile.row.my.posts" = "Meine Beiträge";
+
+/* Title for the button allowing to select a new profile photo. */
+"profile.take.choose.photo" = "Foto aufnehmen oder auswählen";
+
+/* Title for the screen allowing to edit profile name */
+"profile.title.your.name" = "Dein Name";
+
+/* Error message to display when user enters incorrect verification code */
+"registration.code.incorrect" = "Der eingegebene Code ist nicht korrekt.";
+
+/* Instructions for filling in SMS verification code. Parameter is formatted phone number */
+"registration.code.instructions" = "Bitte den Code eingeben, den wir an %s gesendet haben";
+
+/* Error message to display when we cannot send a verification code */
+"registration.code.request.error" = "Der Code konnte nicht gesendet werden. Bitte versuche es später noch einmal.";
+
+/* Button label to resend verification code */
+"registration.code.resend" = "Code noch einmal senden";
+
+/* Text explaining why we need contact permissions */
+"registration.contacts.content" = "Um dich mit deinen Freunden & deiner Familie zu verbinden, benötigen wir die Zugriffsberechtigung auf deine Kontakte.";
+
+/* Title for text explaining why we need contact permissions */
+"registration.contacts.title" = "Ein letzter Hinweis";
+
+/* Popup that appears when user tries to register uninvited number */
+"registration.invite.only" = "Nutzung momentan nur auf Einladungs-Basis. Bitte deine Freude oder Familienmitglieder, die HalloApp nutzen, dich über deine Telefonnummer einzuladen.";
+
+/* Placeholder text for name entry */
+"registration.nameEntry.placeholder" = "Name";
+
+/* Placeholder text for phone entry */
+"registration.phoneEntry.placeholder" = "Telefonnummer";
+
+/* Text for modal describing how we use contacts data */
+"registration.privacy.content" = "Um dich mit deinen Freunden auf HalloApp zu verbinden verwendet HalloApp nur das Telefonnummernfeld und wird keine weiteren Kontaktdaten erfassen.";
+
+/* Title for modal describing how we use contacts data */
+"registration.privacy.title" = "Deine Privatsphäre ist unsere höchste Priorität";
+
+/* Title for popup that appears when user tries to register uninvited number */
+"registration.shucks" = "Ups!";
+
+/* Shown above name and phone inputs */
+"registration.welcome" = "Willkommen!";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"select.group.members.create.group.title" = "Neue Gruppe erstellen";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"select.group.members.title" = "Neue Mitglieder hinzufügen";
+
+/* App version text in Profile > Help. */
+"settings.app.version" = "HalloApp Version %@";
+
+/* Settings menu section. */
+"settings.notifications" = "Benachrichtigungen";
+
+/* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
+"settings.notifications.comments" = "Kommentare";
+
+/* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
+"settings.notifications.posts" = "Beiträge";
+
+/* Settings menu section */
+"settings.privacy" = "Datenschutz";
+
+/* Settings > Privacy: name of a setting that defines who can see your posts. */
+"settings.privacy.posts" = "Beiträge";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.add.reading.list" = "Zur Leseliste hinzufügen";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
+"textlabel.context.menu.call.number" = "%@ anrufen";
+
+/* One of the items in context menu presented upon long press on linkified address in text. */
+"textlabel.context.menu.copy.address" = "Adresse kopieren";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.copy.link" = "Link kopieren";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. */
+"textlabel.context.menu.copy.phone.number" = "Telefonnummer kopieren";
+
+/* One of the items in context menu presented upon long press on linkified address in text. */
+"textlabel.context.menu.get.directions" = "Wegbeschreibung";
+
+/* One of the items in context menu presented upon long press on linkified address in text. */
+"textlabel.context.menu.open.in.maps" = "In Maps öffnen";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.open.link" = "Link öffnen";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.share" = "Teilen...";
+
+/* Link to expand truncated text. */
+"textlabel.more" = "...mehr";
+
+/* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
+"thread.list.preview.already.user.default" = "%@ ist auf HalloApp";
+
+/* Default preview text shown for a symmetric contact who just joined Halloapp */
+"thread.list.preview.new.user.default" = "%@ ist nun auch auf HalloApp! 🎉";
+
+/* Last seen timestamp: full date in short format and time */
+"timestamp.last.seen.date.at.time" = "Zuletzt online %1$@ um %2$@";
+
+/* Last seen timestamp: day of week and time */
+"timestamp.last.seen.dayofweek.at.time" = "Zuletzt online %1$@ um %2$@";
+
+/* Last seen timestamp: today at specific time. */
+"timestamp.last.seen.today.at" = "Zuletzt online heute um %@";
+
+/* Last seen timestamp: yesterday at specific time. */
+"timestamp.last.seen.yesterday.at" = "Zuletzt online gestern um %@";
+
+/* Capitalized translation of `Now` to be used as timestamp. */
+"timestamp.now.capitalized" = "Online";
+
+/* Lowercase translation of `Now` to be used as timestamp. */
+"timestamp.now.lowercase" = "online";
+
+/* Timestamp: `Today` */
+"timestamp.today" = "Heute";
+
+/* Timestamp: `Yesterday` */
+"timestamp.yesterday" = "Gestern";
+
+/* Screen title */
+"title.camera" = "Kamera";
+
+/* Third tab in the main app interface. */
+"title.chats" = "Chats";
+
+/* Title for the Comments screen. */
+"title.comments" = "Kommentare";
+
+/* Second tab in the main app interface. */
+"title.groups" = "Gruppen";
+
+/* First tab in the main app interface. */
+"title.home" = "Home";
+
+/* Row in Settings screen */
+"title.notifications" = "Mitteilungen";
+
+/* Row in Settings screen */
+"title.privacy" = "Datenschutz";
+
+/* Fourth tab in the main app interface */
+"title.settings" = "Einstellungen";
+
+/* Title for the screen with information about who saw your post. */
+"title.your.post" = "Dein Beitrag";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Kontakt unbekannt";
+
+/* Reference to the user, second person pronoun */
+"user.you" = "du";
+
+/* Capitalized reference to the user, second person pronoun */
+"user.you.capitalized" = "Du";
+
+/* No comment provided by engineer. */
+"VIDEO" = "VIDEO";
+
+/* Button title. Refers to resetting video to original version. */
+"video.edit.button.reset" = "Zurücksetzen";
+
+/* Message in video edit when the processing fails. */
+"video.processing.failed.message" = "Bitte noch einmal versuchen oder ein anderes Video auswählen";
+
+/* Alert title in video edit when the processing fails. */
+"video.processing.failed.title" = "Videoverarbeitung fehlgeschlagen";
+
+/* Title for the button that confirms intent to delete your own post. */
+"your.post.deletepost.button" = "Beitrag löschen";
+
+/* Post deletion confirmation. Displayed as action sheet title. */
+"your.post.deletepost.confirmation" = "Diesen Beitrag löschen? Diese Aktion kann nicht widerrufen werden.";
+

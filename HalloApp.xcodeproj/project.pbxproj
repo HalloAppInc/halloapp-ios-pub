@@ -46,6 +46,7 @@
 		686CDFBC2548A6C200DB7266 /* RegistrationDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686CDFBB2548A6C200DB7266 /* RegistrationDemo.swift */; };
 		68766C752631F2DE00399F82 /* Locale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68766C742631F2DE00399F82 /* Locale.swift */; };
 		68781D822600170D0045AB61 /* InviteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68781D812600170D0045AB61 /* InviteViewController.swift */; };
+		68A0A0F126436CA600E9431E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 68A0A0EF26436CA600E9431E /* InfoPlist.strings */; };
 		68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8D24D33DEF00F40F1F /* Mentions.swift */; };
 		68A64E9224D33E0F00F40F1F /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
 		68B47B02260DBAD000D675FC /* InviteContactsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B47B01260DBAD000D675FC /* InviteContactsManager.swift */; };
@@ -390,6 +391,12 @@
 		686CDFBB2548A6C200DB7266 /* RegistrationDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationDemo.swift; sourceTree = "<group>"; };
 		68766C742631F2DE00399F82 /* Locale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Locale.swift; sourceTree = "<group>"; };
 		68781D812600170D0045AB61 /* InviteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteViewController.swift; sourceTree = "<group>"; };
+		68A0A0F026436CA600E9431E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		68A0A0F226436CA600E9431E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		68A0A0F326436CA600E9431E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = de; path = de.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
+		68A0A0F426436CA600E9431E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		68A0A0F526436CA600E9431E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = de; path = ../HalloApp/de.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
+		68A0A0F626436CA600E9431E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		68A64E8D24D33DEF00F40F1F /* Mentions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mentions.swift; sourceTree = "<group>"; };
 		68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MentionPickerView.swift; sourceTree = "<group>"; };
 		68B47B01260DBAD000D675FC /* InviteContactsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactsManager.swift; sourceTree = "<group>"; };
@@ -1363,6 +1370,7 @@
 				76955DE924746E4C0088BE8C /* GoogleService-Info.plist */,
 				EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */,
 				EAF3A1D02334192000805FF9 /* Info.plist */,
+				68A0A0EF26436CA600E9431E /* InfoPlist.strings */,
 				76D566E82550D14900E57185 /* Localizable.strings */,
 				7661D945255A5E3A0063404E /* Localizable.stringsdict */,
 				EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */,
@@ -1562,6 +1570,7 @@
 				en,
 				Base,
 				ru,
+				de,
 			);
 			mainGroup = EAF3A1B62334191E00805FF9;
 			packageReferences = (
@@ -1625,6 +1634,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				762EDBD5244E2EB700986617 /* Gotham-LightIta.otf in Resources */,
+				68A0A0F126436CA600E9431E /* InfoPlist.strings in Resources */,
 				762EDBD0244E2EB700986617 /* Gotham-Ultra.otf in Resources */,
 				762EDBCD244E2EB700986617 /* Gotham-XLightIta.otf in Resources */,
 				7661D947255A5E3A0063404E /* Localizable.stringsdict in Resources */,
@@ -2093,10 +2103,19 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		68A0A0EF26436CA600E9431E /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				68A0A0F026436CA600E9431E /* de */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 		7661D945255A5E3A0063404E /* Localizable.stringsdict */ = {
 			isa = PBXVariantGroup;
 			children = (
 				7661D946255A5E3A0063404E /* Base */,
+				68A0A0F526436CA600E9431E /* de */,
 			);
 			name = Localizable.stringsdict;
 			sourceTree = "<group>";
@@ -2106,6 +2125,7 @@
 			children = (
 				7688FA3F25489E26006B86B3 /* ru */,
 				76E81D27255E485F0068CD62 /* en */,
+				68A0A0F426436CA600E9431E /* de */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -2115,6 +2135,7 @@
 			children = (
 				7688FA4225489E26006B86B3 /* ru */,
 				76E81D26255E48570068CD62 /* en */,
+				68A0A0F226436CA600E9431E /* de */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -2124,6 +2145,7 @@
 			children = (
 				76D566FD2550D6A500E57185 /* ru */,
 				7661D94E255A5ECB0063404E /* Base */,
+				68A0A0F326436CA600E9431E /* de */,
 			);
 			name = Localizable.stringsdict;
 			sourceTree = "<group>";
@@ -2133,6 +2155,7 @@
 			children = (
 				76D566E92550D14900E57185 /* ru */,
 				76E81D24255E482E0068CD62 /* en */,
+				68A0A0F626436CA600E9431E /* de */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";

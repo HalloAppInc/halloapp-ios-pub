@@ -1,0 +1,50 @@
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Abbrechen";
+
+/* Title for generic Create button */
+"button.create" = "Erstellen";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Verwerfen";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Erledigt";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Weiter";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Entfernen";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Aktualisieren";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Mehr erfahren";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "Kommentiert: %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "Einer deiner Kontakte ist jetzt aktiv auf HalloApp";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@ ist jetzt aktiv auf HalloApp";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "Neuer Beitrag";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "📷 Foto";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "📹 Video";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Kontakt unbekannt";
+
