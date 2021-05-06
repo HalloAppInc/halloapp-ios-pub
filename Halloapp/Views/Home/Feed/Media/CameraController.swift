@@ -38,15 +38,15 @@ enum CameraInitError: Error, LocalizedError {
         case .initFailureMicrophone:
             return NSLocalizedString("camera.init.error.3", value: "Cannot initialize the microphone", comment: "")
         case .cannotAddBackInput:
-            return NSLocalizedString("camera.init.error.4", value: "Cannot access back camera input", comment: "")
+            return NSLocalizedString("camera.init.error.4", value: "Cannot access back camera", comment: "")
         case .cannotAddFrontInput:
-            return NSLocalizedString("camera.init.error.5", value: "Cannot access front camera input", comment: "")
+            return NSLocalizedString("camera.init.error.5", value: "Cannot access front camera", comment: "")
         case .cannotAddAudioInput:
-            return NSLocalizedString("camera.init.error.6", value: "Cannot access audio input", comment: "")
+            return NSLocalizedString("camera.init.error.6", value: "Cannot access audio", comment: "")
         case .cannotAddPhotoOutput:
             return NSLocalizedString("camera.init.error.7", value: "Cannot capture photos", comment: "")
         case .cannotAddMovieOutput:
-            return NSLocalizedString("camera.init.error.8", value: "Cannot capture movies", comment: "")
+            return NSLocalizedString("camera.init.error.8", value: "Cannot record video", comment: "")
         }
     }
 }
