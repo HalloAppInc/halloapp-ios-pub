@@ -22,7 +22,7 @@ public struct HalloServiceFeedPayload {
 
     let content: Content
     let group: HalloGroup?
-    let isPushSent: Bool
+    let isEligibleForNotification: Bool
 }
 
 protocol HalloService: CoreService {

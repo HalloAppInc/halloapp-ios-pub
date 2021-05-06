@@ -2368,7 +2368,7 @@ extension FeedData: HalloFeedDelegate {
     func halloService(_ halloService: HalloService, didReceiveFeedPayload payload: HalloServiceFeedPayload, ack: (() -> Void)?) {
         switch payload.content {
         case .newItems(let feedItems):
-            processIncomingFeedItems(feedItems, group: payload.group, presentLocalNotifications: !payload.isPushSent, ack: ack)
+            processIncomingFeedItems(feedItems, group: payload.group, presentLocalNotifications: payload.isEligibleForNotification, ack: ack)
 
         case .retracts(let retracts):
             processIncomingFeedRetracts(retracts, group: payload.group, ack: ack)

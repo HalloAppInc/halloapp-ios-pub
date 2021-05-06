@@ -347,11 +347,9 @@ final class ProtoService: ProtoServiceCore {
 
     // MARK: Feed
 
-    private func handleFeedItems(_ items: [Server_FeedItem], message: Server_Msg) {
-        let messageID = message.id
-
+    private func handleFeedItems(_ items: [Server_FeedItem], isEligibleForNotification: Bool, ack: @escaping () -> Void) {
         guard let delegate = feedDelegate else {
-            sendAck(messageID: messageID)
+            ack()
             return
         }
         var elements = [FeedElement]()
@@ -385,15 +383,15 @@ final class ProtoService: ProtoServiceCore {
             }
         }
         if !elements.isEmpty {
-            let payload = HalloServiceFeedPayload(content: .newItems(elements), group: nil, isPushSent: message.retryCount > 0)
-            delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: messageID) })
+            let payload = HalloServiceFeedPayload(content: .newItems(elements), group: nil, isEligibleForNotification: isEligibleForNotification)
+            delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
         }
         if !retracts.isEmpty {
-            let payload = HalloServiceFeedPayload(content: .retracts(retracts), group: nil, isPushSent: message.retryCount > 0)
-            delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: messageID) })
+            let payload = HalloServiceFeedPayload(content: .retracts(retracts), group: nil, isEligibleForNotification: isEligibleForNotification)
+            delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
         }
         if elements.isEmpty && retracts.isEmpty {
-            sendAck(messageID: messageID)
+            ack()
         }
     }
 
@@ -490,7 +488,7 @@ final class ProtoService: ProtoServiceCore {
                 }
             }
         case .msg(let msg):
-            handleMessage(msg)
+            handleMessage(msg, isEligibleForNotification: msg.retryCount == 0)
         case .haError(let error):
             DDLogError("proto/didReceive/\(requestID) received packet with error \(error)")
         case .presence(let pbPresence):
@@ -546,7 +544,7 @@ final class ProtoService: ProtoServiceCore {
 
     // MARK: Message
 
-    private func handleMessage(_ msg: Server_Msg) {
+    private func handleMessage(_ msg: Server_Msg, isEligibleForNotification: Bool) {
         guard let payload = msg.payload else {
             DDLogError("proto/didReceive/\(msg.id)/error missing payload")
             sendAck(messageID: msg.id)
@@ -573,8 +571,7 @@ final class ProtoService: ProtoServiceCore {
                 self.sendAck(messageID: msg.id)
                 // client might be disconnected - if we generate one and dont send an ack, server will also send one notification.
                 // todo(murali@): check with the team about this.
-                if msg.retryCount == 0 {
-                    // Ignore messages with retryCount > 0 so we don't show duplicate pushes
+                if isEligibleForNotification {
                     self.showContactNotification(for: msg)
                 }
             }
@@ -710,9 +707,13 @@ final class ProtoService: ProtoServiceCore {
             }
             sendAck(messageID: msg.id)
         case .feedItem(let pbFeedItem):
-            handleFeedItems([pbFeedItem], message: msg)
+            handleFeedItems([pbFeedItem], isEligibleForNotification: isEligibleForNotification) {
+                self.sendAck(messageID: msg.id)
+            }
         case .feedItems(let pbFeedItems):
-            handleFeedItems(pbFeedItems.items, message: msg)
+            handleFeedItems(pbFeedItems.items, isEligibleForNotification: isEligibleForNotification) {
+                self.sendAck(messageID: msg.id)
+            }
         case .groupFeedItem(let item):
             guard let delegate = feedDelegate else {
                 sendAck(messageID: msg.id)
@@ -720,7 +721,7 @@ final class ProtoService: ProtoServiceCore {
             }
             let group = HalloGroup(id: item.gid, name: item.name, avatarID: item.avatarID)
             for content in payloadContents(for: [item]) {
-                let payload = HalloServiceFeedPayload(content: content, group: group, isPushSent: msg.retryCount > 0)
+                let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
                 delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: msg.id) })
             }
         case .groupFeedItems(let items):
@@ -731,7 +732,7 @@ final class ProtoService: ProtoServiceCore {
             let group = HalloGroup(id: items.gid, name: items.name, avatarID: items.avatarID)
             for content in payloadContents(for: items.items) {
                 // TODO: Wait until all payloads have been processed before acking.
-                let payload = HalloServiceFeedPayload(content: content, group: group, isPushSent: msg.retryCount > 0)
+                let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
                 delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: msg.id) })
             }
         case .contactHash(let pbContactHash):
@@ -1272,13 +1273,9 @@ extension ProtoService: HalloService {
         sharedServerMessages.forEach{ sharedServerMsg in
             do {
                 if let serverMsgPb = sharedServerMsg.msg {
-                    var serverMsg = try Server_Msg(serializedData: serverMsgPb)
+                    let serverMsg = try Server_Msg(serializedData: serverMsgPb)
                     DDLogInfo("ProtoService/mergeData/handle serverMsg: \(serverMsg.id)")
-                    // Our internal logic is to generate notifications for messages with retryCount = 0.
-                    // Since we now process messages from notification extension: these messages will have retryCount = 0.
-                    // So, we increment the retry count to prevent generating local notifications.
-                    serverMsg.retryCount += 1
-                    handleMessage(serverMsg)
+                    handleMessage(serverMsg, isEligibleForNotification: false)
                 }
             } catch {
                 DDLogError("ProtoService/mergeData/Unable to initialize Server_Msg")
