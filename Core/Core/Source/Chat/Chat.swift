@@ -57,28 +57,32 @@ public protocol ChatMessageProtocol {
 public extension ChatMessageProtocol {
     var protoContainer: Clients_Container {
         get {
-            var protoChatMessage = Clients_ChatMessage()
-            if let text = text {
-                protoChatMessage.text = text
-            }
-
-            if let feedPostId = feedPostId {
-                protoChatMessage.feedPostID = feedPostId
-                protoChatMessage.feedPostMediaIndex = feedPostMediaIndex
-            }
-            
-            if let chatReplyMessageID = chatReplyMessageID, let chatReplyMessageSenderID = chatReplyMessageSenderID {
-                protoChatMessage.chatReplyMessageID = chatReplyMessageID
-                protoChatMessage.chatReplyMessageSenderID = chatReplyMessageSenderID
-                protoChatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
-            }
-
-            protoChatMessage.media = orderedMedia.compactMap { $0.protoMessage }
-
             var protoContainer = Clients_Container()
-            protoContainer.chatMessage = protoChatMessage
+            protoContainer.chatMessage = clientChatLegacy
             return protoContainer
         }
+    }
+
+    /// Legacy format chat (will be superseded by Clients_ChatContainer)
+    var clientChatLegacy: Clients_ChatMessage {
+        var protoChatMessage = Clients_ChatMessage()
+        if let text = text {
+            protoChatMessage.text = text
+        }
+
+        if let feedPostId = feedPostId {
+            protoChatMessage.feedPostID = feedPostId
+            protoChatMessage.feedPostMediaIndex = feedPostMediaIndex
+        }
+
+        if let chatReplyMessageID = chatReplyMessageID, let chatReplyMessageSenderID = chatReplyMessageSenderID {
+            protoChatMessage.chatReplyMessageID = chatReplyMessageID
+            protoChatMessage.chatReplyMessageSenderID = chatReplyMessageSenderID
+            protoChatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
+        }
+
+        protoChatMessage.media = orderedMedia.compactMap { $0.protoMessage }
+        return protoChatMessage
     }
 }
 
