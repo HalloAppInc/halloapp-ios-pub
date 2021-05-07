@@ -15,19 +15,23 @@ import UIKit
 
 typealias MediaEditViewControllerCallback = (MediaEditViewController, [PendingMedia], Int, Bool) -> Void
 
+enum MediaEditCropRegion {
+    case circle, square, any
+}
+
 class MediaEditViewController: UIViewController {
     private let media: [PendingMedia]
     private let initialSelect: Int?
     private let didFinish: MediaEditViewControllerCallback
-    private let cropToCircle: Bool
+    private let cropRegion: MediaEditCropRegion
     private let maxAspectRatio: CGFloat
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
     
-    init(cropToCircle: Bool = false, mediaToEdit media: [PendingMedia], selected: Int?, maxAspectRatio: CGFloat = 5 / 4, didFinish: @escaping MediaEditViewControllerCallback) {
-        self.cropToCircle = cropToCircle
+    init(cropRegion: MediaEditCropRegion = .any, mediaToEdit media: [PendingMedia], selected: Int?, maxAspectRatio: CGFloat = 5 / 4, didFinish: @escaping MediaEditViewControllerCallback) {
+        self.cropRegion = cropRegion
         self.media = media
         self.initialSelect = selected
         self.maxAspectRatio = maxAspectRatio
@@ -47,14 +51,14 @@ class MediaEditViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let items = media.map { MediaEdit(cropToCircle: cropToCircle, maxAspectRatio: maxAspectRatio, media: $0) }
+        let items = media.map { MediaEdit(cropRegion: cropRegion, maxAspectRatio: maxAspectRatio, media: $0) }
         
         guard let selected = MediaEditViewController.firstImage(items: items, position: initialSelect) else {
             didFinish(self, [], -1, true)
             return
         }
 
-        let mediaEditView = MediaEditView(cropToCircle: cropToCircle, maxAspectRatio: maxAspectRatio, media: MediaItems(items), selected: selected) { [weak self] media, selected, cancel in
+        let mediaEditView = MediaEditView(cropRegion: cropRegion, maxAspectRatio: maxAspectRatio, media: MediaItems(items), selected: selected) { [weak self] media, selected, cancel in
             guard let self = self else { return }
             self.didFinish(self, media.map { $0.process() }, selected, cancel)
         }
@@ -102,7 +106,7 @@ fileprivate class MediaEdit : ObservableObject {
     private var vFlipped = false
     private var fileURL : URL?
     private var cancellable: AnyCancellable?
-    private let cropToCircle: Bool
+    private let cropRegion: MediaEditCropRegion
     private let maxAspectRatio: CGFloat
 
     private var defaultEdit: PendingMediaEdit {
@@ -133,8 +137,8 @@ fileprivate class MediaEdit : ObservableObject {
         }
     }
     
-    init(cropToCircle: Bool, maxAspectRatio: CGFloat, media: PendingMedia) {
-        self.cropToCircle = cropToCircle
+    init(cropRegion: MediaEditCropRegion, maxAspectRatio: CGFloat, media: PendingMedia) {
+        self.cropRegion = cropRegion
         self.maxAspectRatio = maxAspectRatio
         self.media = media
         self.type = media.type
@@ -257,10 +261,11 @@ fileprivate class MediaEdit : ObservableObject {
     private func initialCrop() -> CGRect {
         guard let image = original else { return .zero }
 
-        if cropToCircle {
+        switch cropRegion {
+        case .circle, .square:
             let size = min(image.size.width, image.size.height)
             return CGRect(x: image.size.width / 2 - size / 2, y: image.size.height / 2  - size / 2, width: size, height: size)
-        } else {
+        case .any:
             var crop = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
 
             if crop.size.height / crop.size.width > maxAspectRatio {
@@ -268,7 +273,7 @@ fileprivate class MediaEdit : ObservableObject {
                 crop.origin.y = image.size.height / 2 - crop.size.height / 2
             }
 
-            return crop;
+            return crop
         }
     }
     
@@ -391,7 +396,7 @@ fileprivate class MediaEdit : ObservableObject {
 
 fileprivate struct CropRegion: View {
 
-    let cropToCircle: Bool
+    let cropRegion: MediaEditCropRegion
     let region: CGRect
     
     private let borderThickness: CGFloat = 4
@@ -404,9 +409,10 @@ fileprivate struct CropRegion: View {
             Path { path in
                 path.addRect(CGRect(x: -1, y: -1, width: geometry.size.width + 2, height: geometry.size.height + 2))
 
-                if self.cropToCircle {
+                switch cropRegion {
+                case .circle:
                     path.addEllipse(in: region)
-                } else {
+                case .square, .any:
                     path.addRoundedRect(in: region, cornerSize: self.cornerSize)
                 }
             }
@@ -417,9 +423,10 @@ fileprivate struct CropRegion: View {
                 let offset = borderThickness / 2
                 let region = self.region.insetBy(dx: -offset + 1, dy: -offset + 1)
 
-                if self.cropToCircle {
+                switch cropRegion {
+                case .circle:
                     path.addEllipse(in: region)
-                } else {
+                case .square, .any:
                     path.addRoundedRect(in: region, cornerSize: self.cornerSize)
                 }
             }
@@ -728,7 +735,7 @@ fileprivate struct CropImage: View {
     private let outThreshold = CGFloat(22)
     private let epsilon = CGFloat(1e-6)
 
-    let cropToCircle: Bool
+    let cropRegion: MediaEditCropRegion
     let maxAspectRatio: CGFloat
     @ObservedObject var media: MediaEdit
     
@@ -867,7 +874,7 @@ fileprivate struct CropImage: View {
                         .offset(self.scaleOffset(self.media.offset, containerSize: outer.size, imageSize: self.media.image!.size))
                         .clipped()
                         .overlay(GeometryReader { inner in
-                            CropRegion(cropToCircle: self.cropToCircle, region: self.scaleCropRegion(self.media.cropRect, from: self.media.image!.size, to: inner.size))
+                            CropRegion(cropRegion: self.cropRegion, region: self.scaleCropRegion(self.media.cropRect, from: self.media.image!.size, to: inner.size))
                         })
                         .overlay(GeometryReader { inner in
                             CropGestureView(outThreshold: outThreshold)
@@ -899,8 +906,11 @@ fileprivate struct CropImage: View {
                                             return
                                         }
 
-                                        if self.cropToCircle {
+                                        switch self.cropRegion {
+                                        case .circle, .square:
                                             self.lastCropSection = .inside
+                                        case .any:
+                                            break
                                         }
                                     } else {
                                         let valid = crop.insetBy(dx: -2 * outThreshold, dy: -2 * outThreshold)
@@ -966,7 +976,7 @@ private extension Localizations {
 }
 
 fileprivate struct MediaEditView : View {
-    let cropToCircle: Bool
+    let cropRegion: MediaEditCropRegion
     let maxAspectRatio: CGFloat
     @State var media: MediaItems
     @State var selected: MediaEdit
@@ -1070,10 +1080,14 @@ fileprivate struct MediaEditView : View {
 
             VStack {
                 topBar
-                CropImage(cropToCircle: cropToCircle, maxAspectRatio: maxAspectRatio, media: selected)
+                CropImage(cropRegion: cropRegion, maxAspectRatio: maxAspectRatio, media: selected)
                     .padding(8)
-                PreviewCollection(media: media, selected: $selected)
-                    .frame(height: 80)
+
+                if media.items.count > 1 {
+                    PreviewCollection(media: media, selected: $selected)
+                        .frame(height: 80)
+                }
+
                 Spacer()
                     .frame(height: 30)
                 bottomBar

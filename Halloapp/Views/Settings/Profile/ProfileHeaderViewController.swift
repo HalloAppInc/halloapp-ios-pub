@@ -128,7 +128,7 @@ final class ProfileHeaderViewController: UIViewController {
             }
 
             DDLogInfo("profile/edit-photo Presenting photo cropper")
-            let photoCropperViewController = MediaEditViewController(cropToCircle: true, mediaToEdit: media, selected: 0) { (controller, media, index, canceled) in
+            let photoCropperViewController = MediaEditViewController(cropRegion: .circle, mediaToEdit: media, selected: 0) { (controller, media, index, canceled) in
                 guard let selected = media.first, !canceled else {
                     DDLogInfo("profile/edit-photo Photo cropper canceled")
                     controller.dismiss(animated: true)
