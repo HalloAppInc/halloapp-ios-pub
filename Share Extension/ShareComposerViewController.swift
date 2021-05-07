@@ -336,7 +336,7 @@ class ShareComposerViewController: UIViewController {
         let placeholder = UILabel()
         placeholder.translatesAutoresizingMaskIntoConstraints = false
         placeholder.font = .preferredFont(forTextStyle: .body)
-        placeholder.textColor = UIColor.black.withAlphaComponent(0.5)
+        placeholder.textColor = UIColor.label.withAlphaComponent(0.5)
         placeholder.text = media.count > 0 ? Localizations.placeholder : Localizations.placeholderTextOnly
         placeholder.isHidden = text.count > 0
 
