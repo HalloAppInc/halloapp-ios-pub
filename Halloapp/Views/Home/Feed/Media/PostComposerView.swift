@@ -18,7 +18,7 @@ struct PostComposerViewConfiguration {
     var showAddMoreMediaButton = true
     var useTransparentNavigationBar = false
     var mediaCarouselMaxAspectRatio: CGFloat = 1.25
-    var mediaEditMaxAspectRatio: CGFloat = 1.25
+    var mediaEditMaxAspectRatio: CGFloat?
     var imageServerMaxAspectRatio: CGFloat? = 1.25
     var maxVideoLength: TimeInterval = 500
 
@@ -44,7 +44,6 @@ struct PostComposerViewConfiguration {
             titleMode: .message,
             mentionableUsers: [],
             mediaCarouselMaxAspectRatio: 1.0,
-            mediaEditMaxAspectRatio: 100,
             imageServerMaxAspectRatio: nil,
             maxVideoLength: ServerProperties.maxChatVideoDuration
         )

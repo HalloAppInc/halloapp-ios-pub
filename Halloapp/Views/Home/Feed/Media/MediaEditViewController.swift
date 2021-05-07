@@ -24,13 +24,13 @@ class MediaEditViewController: UIViewController {
     private let initialSelect: Int?
     private let didFinish: MediaEditViewControllerCallback
     private let cropRegion: MediaEditCropRegion
-    private let maxAspectRatio: CGFloat
+    private let maxAspectRatio: CGFloat?
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
     
-    init(cropRegion: MediaEditCropRegion = .any, mediaToEdit media: [PendingMedia], selected: Int?, maxAspectRatio: CGFloat = 5 / 4, didFinish: @escaping MediaEditViewControllerCallback) {
+    init(cropRegion: MediaEditCropRegion = .any, mediaToEdit media: [PendingMedia], selected: Int?, maxAspectRatio: CGFloat? = nil, didFinish: @escaping MediaEditViewControllerCallback) {
         self.cropRegion = cropRegion
         self.media = media
         self.initialSelect = selected
@@ -50,6 +50,7 @@ class MediaEditViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        overrideUserInterfaceStyle = .dark
         
         let items = media.map { MediaEdit(cropRegion: cropRegion, maxAspectRatio: maxAspectRatio, media: $0) }
         
@@ -107,7 +108,7 @@ fileprivate class MediaEdit : ObservableObject {
     private var fileURL : URL?
     private var cancellable: AnyCancellable?
     private let cropRegion: MediaEditCropRegion
-    private let maxAspectRatio: CGFloat
+    private let maxAspectRatio: CGFloat?
 
     private var defaultEdit: PendingMediaEdit {
         get {
@@ -137,7 +138,7 @@ fileprivate class MediaEdit : ObservableObject {
         }
     }
     
-    init(cropRegion: MediaEditCropRegion, maxAspectRatio: CGFloat, media: PendingMedia) {
+    init(cropRegion: MediaEditCropRegion, maxAspectRatio: CGFloat?, media: PendingMedia) {
         self.cropRegion = cropRegion
         self.maxAspectRatio = maxAspectRatio
         self.media = media
@@ -268,7 +269,7 @@ fileprivate class MediaEdit : ObservableObject {
         case .any:
             var crop = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
 
-            if crop.size.height / crop.size.width > maxAspectRatio {
+            if let maxAspectRatio = maxAspectRatio, crop.size.height / crop.size.width > maxAspectRatio {
                 crop.size.height = (crop.size.width * maxAspectRatio).rounded()
                 crop.origin.y = image.size.height / 2 - crop.size.height / 2
             }
@@ -309,8 +310,10 @@ fileprivate class MediaEdit : ObservableObject {
         offset.x = oy
         offset.y = -ox
 
-        let ratio = cropRect.size.height / cropRect.size.width
-        cropRect.size.height = cropRect.size.width * min(maxAspectRatio, ratio)
+        if let maxAspectRatio = maxAspectRatio {
+            let ratio = cropRect.size.height / cropRect.size.width
+            cropRect.size.height = cropRect.size.width * min(maxAspectRatio, ratio)
+        }
         
         updateImage()
     }
@@ -456,9 +459,9 @@ fileprivate struct Preview: View {
                     .opacity(0.6)
             }
         }
-        .frame(width: 64, height: 80)
-        .cornerRadius(5)
-        .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.blue, lineWidth: selected === media ? 4 : 0))
+        .frame(width: 50, height: 50)
+        .cornerRadius(3)
+        .overlay(RoundedRectangle(cornerRadius: 3).stroke(Color.blue, lineWidth: selected === media ? 3 : 0))
         .onTapGesture {
             if selected !== media && media.type == .image {
                 selected = media
@@ -483,9 +486,11 @@ fileprivate struct PreviewCollection: UIViewControllerRepresentable {
 
     func makeUIViewController(context: Context) -> UICollectionViewController {
         let layout = UICollectionViewFlowLayout()
-        layout.minimumInteritemSpacing = 7
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 6
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
         layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 65, height: 80)
+        layout.itemSize = CGSize(width: 56, height: 56)
 
         let controller = UICollectionViewController(collectionViewLayout: layout)
         controller.collectionView.showsHorizontalScrollIndicator = false
@@ -571,7 +576,7 @@ fileprivate struct PreviewCollection: UIViewControllerRepresentable {
 
         override init(frame: CGRect) {
             super.init(frame: frame)
-            contentView.layer.cornerRadius = 5
+            contentView.layer.cornerRadius = 3
             contentView.layer.masksToBounds = true
         }
 
@@ -736,7 +741,7 @@ fileprivate struct CropImage: View {
     private let epsilon = CGFloat(1e-6)
 
     let cropRegion: MediaEditCropRegion
-    let maxAspectRatio: CGFloat
+    let maxAspectRatio: CGFloat?
     @ObservedObject var media: MediaEdit
     
     @State private var isDragging = false
@@ -810,7 +815,7 @@ fileprivate struct CropImage: View {
             crop.origin.y += deltaY
         }
         
-        if (crop.size.height / crop.size.width) - maxAspectRatio > epsilon {
+        if let maxAspectRatio = maxAspectRatio, (crop.size.height / crop.size.width) - maxAspectRatio > epsilon {
             switch lastCropSection {
             case .none, .inside:
                 break
@@ -977,7 +982,7 @@ private extension Localizations {
 
 fileprivate struct MediaEditView : View {
     let cropRegion: MediaEditCropRegion
-    let maxAspectRatio: CGFloat
+    let maxAspectRatio: CGFloat?
     @State var media: MediaItems
     @State var selected: MediaEdit
     var complete: (([MediaEdit], Int, Bool) -> Void)?

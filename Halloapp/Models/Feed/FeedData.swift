@@ -39,7 +39,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }()
 
     let mediaUploader: MediaUploader
-    private let imageServer = ImageServer(maxAllowedAspectRatio: 1.25)
+    private let imageServer = ImageServer()
 
     init(service: HalloService, contactStore: ContactStoreMain, userData: UserData) {
         self.service = service
