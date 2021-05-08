@@ -49,6 +49,8 @@ open class AppContext {
         return "\(version).\(buildNumber)"
     }()
 
+    public static let appStoreURL: URL? = URL(string: "itms-apps://apple.com/app/1501583052")
+
     public static let userAgent: String = { UserAgent(platform: .ios, version: appVersionForService).description }()
 
     open var applicationIconBadgeNumber: Int {

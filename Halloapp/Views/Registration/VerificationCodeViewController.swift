@@ -289,11 +289,10 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
             preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: Localizations.buttonUpdate, style: .default, handler: { action in
             DDLogInfo("VerificationCodeViewController/updateNotice/update clicked")
-            let urlString = "itms-apps://apple.com/app/1501583052"
-            guard let customAppURL = URL(string: urlString),
+            guard let customAppURL = AppContext.appStoreURL,
                   UIApplication.shared.canOpenURL(customAppURL) else
             {
-                DDLogError("VerificationCodeViewController/updateNotice/error unable to open \(urlString)")
+                DDLogError("VerificationCodeViewController/updateNotice/error unable to open [\(AppContext.appStoreURL?.absoluteString ?? "nil")]")
                 return
             }
             UIApplication.shared.open(customAppURL, options: [:], completionHandler: nil)

@@ -454,6 +454,7 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
         performLayoutBlock { (textStorage, textContainer, layoutManager) in
             text = textStorage.string
             links += self.userMentions(in: textStorage)
+            links += self.markedLinks(in: textStorage)
         }
         let rangesOfExistingLinks = links.compactMap { Range($0.range, in: text) }
         links += detectSystemDataTypes(in: text, ignoredRanges: rangesOfExistingLinks)
@@ -499,6 +500,26 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
                 resultType: .userMention,
                 range: mentionRange,
                 userID: userID))
+        }
+        return links
+    }
+
+    /// Convert links marked by `NSLinkAttributeName` to `AttributedTextLink`s so they can be handled when tapped.
+    private func markedLinks(in attributedString: NSAttributedString?) -> [AttributedTextLink] {
+        guard let attributedString = attributedString else { return [] }
+        var links = [AttributedTextLink]()
+        attributedString.enumerateAttribute(.link, in: attributedString.utf16Extent, options: .init()) { value, linkRange, _ in
+            let url: URL
+            if let urlValue = value as? URL {
+                url = urlValue
+            } else if let stringValue = value as? String, let urlValue = URL(string: stringValue) {
+                url = urlValue
+            } else {
+                return
+            }
+            links.append(AttributedTextLink(
+                text: attributedString.attributedSubstring(from: linkRange).string,
+                textCheckingResult: NSTextCheckingResultLink(range: linkRange, url: url)))
         }
         return links
     }
@@ -759,4 +780,23 @@ extension TextLabel: UIContextMenuInteractionDelegate {
         return UITargetedPreview(view: self, parameters: previewParameters)
     }
 
+}
+
+final class NSTextCheckingResultLink: NSTextCheckingResult {
+    init(range: NSRange, url: URL) {
+        self._range = range
+        self._url = url
+        super.init()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override var url: URL? { _url }
+    override var range: NSRange { _range }
+    override var resultType: NSTextCheckingResult.CheckingType { .link }
+
+    let _url: URL
+    let _range: NSRange
 }

@@ -198,11 +198,10 @@ private extension SceneDelegate {
         let alert = UIAlertController(title: Localizations.appUpdateNoticeTitle, message: Localizations.appUpdateNoticeText, preferredStyle: UIAlertController.Style.alert)
         let updateAction = UIAlertAction(title: Localizations.buttonUpdate, style: .default, handler: { action in
             DDLogInfo("SceneDelegate/updateNotice/update clicked")
-            let urlString = "itms-apps://apple.com/app/1501583052"
-            guard let customAppURL = URL(string: urlString),
+            guard let customAppURL = AppContext.appStoreURL,
                   UIApplication.shared.canOpenURL(customAppURL) else
             {
-                DDLogError("SceneDelegate/updateNotice/error unable to open \(urlString)")
+                DDLogError("SceneDelegate/updateNotice/error unable to open [\(AppContext.appStoreURL?.absoluteString ?? "nil")]")
                 return
             }
             UIApplication.shared.open(customAppURL, options: [:], completionHandler: nil)

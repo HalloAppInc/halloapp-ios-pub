@@ -66,6 +66,10 @@ extension Localizations {
         NSLocalizedString("link.learnMore", value: "Learn more", comment: "Generic 'learn more' link. Mostly used to present additional information about topic.")
     }
 
+    static var linkUpdateYourApp: String {
+        NSLocalizedString("link.update.your.app", value: "Update your app.", comment: "Link that when tapped will open App Store so user can update to the latest version of the app.")
+    }
+
     // MARK: Misc
 
     static var unknownContact: String {

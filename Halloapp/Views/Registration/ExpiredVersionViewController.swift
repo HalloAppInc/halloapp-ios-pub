@@ -47,7 +47,7 @@ final class ExpiredVersionViewController: UIViewController {
 
     @objc
     private func didTapUpdate() {
-        guard let appStoreURL = URL(string: "itms-apps://apple.com/app/1501583052"),
+        guard let appStoreURL = AppContext.appStoreURL,
               UIApplication.shared.canOpenURL(appStoreURL) else
         {
             DDLogError("ExpiredVersionViewController/error opening App Store URL")
