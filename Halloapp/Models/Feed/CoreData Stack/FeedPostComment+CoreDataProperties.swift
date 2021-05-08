@@ -21,6 +21,7 @@ extension FeedPostComment {
         case incoming = 4
         case retracted = 5
         case retracting = 6
+        case unsupported = 7
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPostComment> {
@@ -55,6 +56,10 @@ extension FeedPostComment {
         get {
             return status == .retracted || status == .retracting
         }
+    }
+
+    var isUnsupported: Bool {
+        return status == .unsupported
     }
 
     var isPosted: Bool {

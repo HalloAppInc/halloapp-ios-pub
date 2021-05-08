@@ -24,6 +24,10 @@ extension Localizations {
         NSLocalizedString("chat.message.waiting", value: "Waiting for this message. This may take a while.", comment: "Text shown in place of a received message we are not able to decrypt yet.")
     }
 
+    static var chatMessageUnsupported: String {
+        NSLocalizedString("chat.message.unsupported", value: "Your version of HalloApp does not support this type of message.", comment: "Text shown in place of a received message we are not able to process yet.")
+    }
+
     static var chatMessagePhoto: String {
         NSLocalizedString("chat.message.photo", value: "Photo", comment: "Message text shown in a message that have photo media but no text")
     }

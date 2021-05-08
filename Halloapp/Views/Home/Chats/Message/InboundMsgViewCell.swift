@@ -341,6 +341,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
     enum DisplayText {
         case retracted
+        case unsupported
         case rerequesting
         case normal(String, orderedMentions: [ChatMention])
     }
@@ -367,6 +368,8 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 return .retracted
             case .rerequesting:
                 return .rerequesting
+            case .unsupported:
+                return .unsupported
             case .error, .haveSeen, .none, .sentSeenReceipt:
                 if ServerProperties.isInternalUser,
                    let decryptionResult = MainAppContext.shared.cryptoData.result(for: chatMessage.id),
@@ -467,13 +470,21 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         case .rerequesting:
             textView.text = "🕓 " + Localizations.chatMessageWaiting
             textView.textColor = .chatTime
-            let baseFont = textView.font ?? UIFont.preferredFont(forTextStyle: TextFontStyle)
-            if let italicDescriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitItalic) {
-                textView.font = UIFont(descriptor: italicDescriptor, size: baseFont.pointSize)
-            }
+            textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle).withItalicsIfAvailable
         case .retracted:
             textView.text = Localizations.chatMessageDeleted
             textView.textColor = .chatTime
+        case .unsupported:
+            let attributedText = NSMutableAttributedString(string: "⚠️ " + Localizations.chatMessageUnsupported)
+            if let url = AppContext.appStoreURL {
+                let link = NSMutableAttributedString(string: Localizations.linkUpdateYourApp)
+                link.addAttribute(.link, value: url, range: link.utf16Extent)
+                attributedText.append(NSAttributedString(string: " "))
+                attributedText.append(link)
+            }
+            textView.attributedText = attributedText.with(
+                font: UIFont.preferredFont(forTextStyle: TextFontStyle).withItalicsIfAvailable,
+                color: .chatTime)
         }
             
         // media

@@ -23,6 +23,7 @@ extension FeedPost {
         case retracting = 6
         case seenSending = 7
         case seen = 8
+        case unsupported = 9
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPost> {
@@ -53,6 +54,10 @@ extension FeedPost {
         get {
             return self.status == .retracted
         }
+    }
+
+    var isPostUnsupported: Bool {
+        return self.status == .unsupported
     }
 
     var audience: FeedAudience? {

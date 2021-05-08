@@ -56,4 +56,11 @@ extension UIFont {
             return UIFontMetrics(forTextStyle: style).scaledFont(for:baseFont)
         }
     }
+
+    var withItalicsIfAvailable: UIFont {
+        guard let italicDescriptor = fontDescriptor.withSymbolicTraits(.traitItalic) else {
+            return self
+        }
+        return UIFont(descriptor: italicDescriptor, size: pointSize)
+    }
 }

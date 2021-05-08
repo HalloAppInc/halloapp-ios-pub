@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Core
 import Combine
 import UIKit
@@ -32,6 +33,10 @@ private extension Localizations {
 
     static var commentIsBeingDeleted: String {
         NSLocalizedString("comment.deleting", value: "Deleting comment", comment: "Text displayed in place of a comment that is currently being deleted.")
+    }
+
+    static var commentIsNotSupported: String {
+        NSLocalizedString("comment.unsupported", value: "Your version of HalloApp does not support this type of comment.", comment: "Text displayed in place of a comment that is not supported in the current app version.")
     }
 
     static var posting: String {
@@ -85,12 +90,14 @@ class CommentView: UIView {
     }()
 
     static let deletedCommentViewTag = 1
-    private var deletedCommentTextLabel: UILabel!
+    private var deletedCommentTextLabel: TextLabel!
     private lazy var deletedCommentView: UIView = {
-        deletedCommentTextLabel = UILabel()
+        deletedCommentTextLabel = TextLabel()
         deletedCommentTextLabel.translatesAutoresizingMaskIntoConstraints = false
         deletedCommentTextLabel.textColor = .secondaryLabel
         deletedCommentTextLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        deletedCommentTextLabel.numberOfLines = 0
+        deletedCommentTextLabel.delegate = self
         let view = UIView()
         view.backgroundColor = .clear
         view.layoutMargins = UIEdgeInsets(top: 4, left: 0, bottom: 4, right: 0)
@@ -187,23 +194,66 @@ class CommentView: UIView {
         profilePictureTrailingSpace.constant = isRootComment ? LayoutConstants.profilePictureTrailingSpaceNormal : LayoutConstants.profilePictureTrailingSpaceSmall
         leadingMargin.constant = isRootComment ? LayoutConstants.profilePictureLeadingMarginNormal : LayoutConstants.profilePictureLeadingMarginReply
 
-        if comment.isRetracted {
-            deletedCommentView.isHidden = false
-            deletedCommentTextLabel.text = comment.status == .retracted ? Localizations.commentDeleted : Localizations.commentIsBeingDeleted
-            if deletedCommentView.superview == nil {
-                vStack.insertArrangedSubview(deletedCommentView, at: vStack.arrangedSubviews.firstIndex(of: textLabel)! + 1)
+        switch comment.status {
+        case .retracted:
+            showDeletedView()
+            deletedCommentTextLabel.text = Localizations.commentDeleted
+        case .retracting:
+            showDeletedView()
+            deletedCommentTextLabel.text = Localizations.commentIsBeingDeleted
+        case .unsupported:
+            showDeletedView()
+            let attributedText = NSMutableAttributedString(string: "⚠️ " + Localizations.commentIsNotSupported)
+            if let url = AppContext.appStoreURL {
+                let link = NSMutableAttributedString(string: Localizations.linkUpdateYourApp)
+                link.addAttribute(.link, value: url, range: link.utf16Extent)
+                attributedText.append(NSAttributedString(string: " "))
+                attributedText.append(link)
             }
-        } else {
-            // Hide "This comment has been deleted" view.
-            // Use tags so as to not trigger lazy initialization of the view.
-            if let deletedCommentView = vStack.arrangedSubviews.first(where: { $0.tag == CommentView.deletedCommentViewTag }) {
-                deletedCommentView.isHidden = true
-            }
+            deletedCommentTextLabel.attributedText = attributedText.with(
+                font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable,
+                color: .secondaryLabel)
+        case .incoming, .sendError, .sending, .sent, .none:
+            hideDeletedView()
         }
         
         profilePictureButton.avatarView.configure(with: comment.userId, using: MainAppContext.shared.avatarStore)
     }
 
+    private func showDeletedView() {
+        deletedCommentView.isHidden = false
+        if deletedCommentView.superview == nil {
+            vStack.insertArrangedSubview(deletedCommentView, at: vStack.arrangedSubviews.firstIndex(of: textLabel)! + 1)
+        }
+    }
+
+    private func hideDeletedView() {
+        // Use tags so as to not trigger lazy initialization of the view.
+        if let deletedCommentView = vStack.arrangedSubviews.first(where: { $0.tag == CommentView.deletedCommentViewTag }) {
+            deletedCommentView.isHidden = true
+        }
+    }
+
+}
+
+extension CommentView: TextLabelDelegate {
+    func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
+        switch link.linkType {
+        case .link:
+            if let url = link.result?.url {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                    UIApplication.shared.open(url, options: [:])
+                }
+            }
+        default:
+            DDLogError("CommentView/textLabelDidRequestHandleLink/error [unsupported link type]")
+            break
+        }
+    }
+
+    func textLabelDidRequestToExpand(_ label: TextLabel) {
+        DDLogError("CommentView/textLabelDidRequestToExpand/error [should not be collapsed]")
+    }
 }
 
 

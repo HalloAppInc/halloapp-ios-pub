@@ -164,15 +164,30 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             }
         }
 
-        // With media or > 180 chars long: System 16 pt (Body - 1)
-        // Text-only under 180 chars long: System 20 pt (Body + 3)
         let postContainsText = !(post.text ?? "").isEmpty
-        if postContainsText {
+        if post.isPostUnsupported  {
+            let text = NSMutableAttributedString(string: "⚠️ " + Localizations.feedPostUnsupported)
+
+            if let url = AppContext.appStoreURL {
+                let link = NSMutableAttributedString(string: Localizations.linkUpdateYourApp)
+                link.addAttribute(.link, value: url, range: link.utf16Extent)
+                text.append(NSAttributedString(string: " "))
+                text.append(link)
+            }
+
+            let font = UIFont.preferredFont(forTextStyle: .body).withItalicsIfAvailable
+
+            textContentView.isHidden = false
+            textLabel.attributedText = text.with(font: font, color: .label)
+            textLabel.numberOfLines = 0
+        } else if postContainsText {
             textContentView.isHidden = false
 
             let postText = MainAppContext.shared.contactStore.textWithMentions(
                 post.text,
                 orderedMentions: post.orderedMentions)
+            // With media or > 180 chars long: System 16 pt (Body - 1)
+            // Text-only under 180 chars long: System 20 pt (Body + 3)
             let postFont: UIFont = {
                 let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
                 let fontSizeDiff: CGFloat = postContainsMedia || (postText?.string ?? "").count > 180 ? -1 : 3
@@ -909,5 +924,8 @@ extension Localizations {
     }
     static var feedPostFailed: String {
         NSLocalizedString("feed.post.failed", value: "Failed to post.", comment: "Shown when post fails or is canceled.")
+    }
+    static var feedPostUnsupported: String {
+        NSLocalizedString("feed.post.unsupported", value: "Your version of HalloApp does not support this type of post.", comment: "Shown when receiving a new (unsupported) type of post.")
     }
 }
