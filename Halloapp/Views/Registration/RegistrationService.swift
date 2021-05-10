@@ -12,7 +12,7 @@ import CryptoKit
 import Sodium
 
 protocol RegistrationService {
-    func requestVerificationCode(for phoneNumber: String, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
+    func requestVerificationCode(for phoneNumber: String, byVoice: Bool, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
     func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
 
     // Temporary (used for Noise migration)
@@ -35,11 +35,11 @@ final class DefaultRegistrationService: RegistrationService {
 
     // MARK: Verification code requests
 
-    func requestVerificationCode(for phoneNumber: String, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void) {
+    func requestVerificationCode(for phoneNumber: String, byVoice: Bool, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void) {
 
         var json: [String : String] = [
             "phone": phoneNumber,
-            "method": "sms",
+            "method": byVoice ? "voice_call" : "sms",
         ]
         if let langID = locale.halloServiceLangID {
             json["lang_id"] = langID

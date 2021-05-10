@@ -46,7 +46,7 @@ final class DemoRegistrationManager: RegistrationManager {
         formattedPhoneNumber = "+\(countryCode) \(nationalNumber)"
     }
 
-    func requestVerificationCode(completion: @escaping (Result<TimeInterval, Error>) -> Void) {
+    func requestVerificationCode(byVoice: Bool = false, completion: @escaping (Result<TimeInterval, Error>) -> Void) {
         DispatchQueue.main.asyncAfter(deadline: .now() + TimeInterval(2)) {
             completion(.success(5))
         }

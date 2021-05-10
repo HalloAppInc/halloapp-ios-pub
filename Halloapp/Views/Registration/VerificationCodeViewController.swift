@@ -12,7 +12,7 @@ import UIKit
 
 protocol VerificationCodeViewControllerDelegate: AnyObject {
     var formattedPhoneNumber: String? { get }
-    func requestVerificationCode(completion: @escaping (Result<TimeInterval, Error>) -> Void)
+    func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void)
     func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void)
     func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController)
 }
@@ -46,6 +46,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     var inputVerticalCenterConstraint: NSLayoutConstraint?
 
     let buttonRetryCodeRequest = UIButton()
+    let buttonRetryCodeByVoiceRequest = UIButton()
     var retryAvailableDate = Date.distantFuture
 
     let activityIndicatorView = UIActivityIndicatorView(style: .large)
@@ -104,11 +105,19 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         buttonRetryCodeRequest.addTarget(self, action: #selector(didTapResendCode), for: .touchUpInside)
         buttonRetryCodeRequest.setContentCompressionResistancePriority(.required, for: .vertical)
 
+        buttonRetryCodeByVoiceRequest.setTitle(Localizations.registrationCodeResendByVoice, for: .normal)
+        buttonRetryCodeByVoiceRequest.titleLabel?.font = .preferredFont(forTextStyle: .footnote)
+        buttonRetryCodeByVoiceRequest.setTitleColor(.secondaryLabel, for: .normal)
+        buttonRetryCodeByVoiceRequest.translatesAutoresizingMaskIntoConstraints = false
+        buttonRetryCodeByVoiceRequest.addTarget(self, action: #selector(didTapResendCodeByVoice), for: .touchUpInside)
+        buttonRetryCodeByVoiceRequest.setContentCompressionResistancePriority(.required, for: .vertical)
+
         // View hierarchy
 
         scrollView.addSubview(logo)
         scrollView.addSubview(stackView)
         scrollView.addSubview(buttonRetryCodeRequest)
+        scrollView.addSubview(buttonRetryCodeByVoiceRequest)
 
         view.addSubview(scrollView)
 
@@ -122,11 +131,14 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
 
         stackView.constrainMargins([.leading, .trailing], to: view)
         stackView.topAnchor.constraint(greaterThanOrEqualTo: logo.bottomAnchor, constant: 32).isActive = true
-        stackView.bottomAnchor.constraint(lessThanOrEqualTo: buttonRetryCodeRequest.topAnchor, constant: -12).isActive = true
+        stackView.bottomAnchor.constraint(lessThanOrEqualTo: buttonRetryCodeRequest.topAnchor).isActive = true
         inputVerticalCenterConstraint = stackView.constrain(anchor: .centerY, to: scrollView, priority: .defaultHigh)
 
+        buttonRetryCodeByVoiceRequest.constrainMargin(anchor: .leading, to: scrollView)
+        buttonRetryCodeByVoiceRequest.constrain(anchor: .bottom, to: scrollView.contentLayoutGuide)
+
         buttonRetryCodeRequest.constrainMargin(anchor: .leading, to: scrollView)
-        buttonRetryCodeRequest.constrain(anchor: .bottom, to: scrollView.contentLayoutGuide)
+        buttonRetryCodeRequest.bottomAnchor.constraint(lessThanOrEqualTo: buttonRetryCodeByVoiceRequest.topAnchor, constant: -15).isActive = true
 
         // Notifications
 
@@ -195,6 +207,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         labelTitle.isHidden = shouldHideInput
         codeEntryField.isHidden = shouldHideInput
         buttonRetryCodeRequest.isHidden = !canRequestNewCode
+        buttonRetryCodeByVoiceRequest.isHidden = !canRequestNewCode
         textFieldCode.isEnabled = canEnterText
         labelError.text = errorText
         labelError.alpha = shouldShowError ? 1 : 0
@@ -203,13 +216,22 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     @objc
     func didTapResendCode() {
         guard state != .requestingCode else { return }
+        DDLogInfo("VerificationCodeViewController/didTapResendCode")
         textFieldCode.text = ""
         requestVerificationCode()
     }
 
+    @objc
+    func didTapResendCodeByVoice() {
+        guard state != .requestingCode else { return }
+        DDLogInfo("VerificationCodeViewController/didTapResendCodeByVoice")
+        textFieldCode.text = ""
+        requestVerificationCode(byVoice: true)
+    }
+
     // MARK: Code Request
 
-    func requestVerificationCode() {
+    func requestVerificationCode(byVoice: Bool = false) {
         guard let delegate = delegate else {
             DDLogError("VerificationCodeViewController/validateCode/error missing delegate")
             return
@@ -218,7 +240,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         state = .requestingCode
         retryAvailableDate = .distantFuture
 
-        delegate.requestVerificationCode() { [weak self] result in
+        delegate.requestVerificationCode(byVoice: byVoice) { [weak self] result in
             guard let self = self else { return }
             DDLogInfo("VerificationCodeViewController/requestVerificationCode/result: \(result)")
             switch result {

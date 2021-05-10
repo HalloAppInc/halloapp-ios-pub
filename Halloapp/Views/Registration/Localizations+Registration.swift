@@ -37,7 +37,11 @@ extension Localizations {
     }
 
     static var registrationCodeResend: String {
-        NSLocalizedString("registration.code.resend", value: "Resend Code", comment: "Button label to resend verification code")
+        NSLocalizedString("registration.code.resend", value: "Resend SMS", comment: "Button label to resend verification code")
+    }
+
+    static var registrationCodeResendByVoice: String {
+        NSLocalizedString("registration.code.resend.by.voice", value: "Call me", comment: "Button label to resend verification code by voice call")
     }
 
     static var registrationCodeIncorrect: String {
