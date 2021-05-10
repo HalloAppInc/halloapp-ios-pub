@@ -100,7 +100,7 @@ class GroupFeedViewController: FeedCollectionViewController {
         super.viewWillAppear(animated)
         titleView.update(with: groupId, isFeedView: true)
 
-        navigationController?.navigationBar.tintColor = ChatData.getThemeTopNavColor(for: theme)
+        navigationController?.navigationBar.tintColor = UIColor.groupFeedTopNav
 
         navigationController?.navigationBar.layer.shadowColor = UIColor.groupFeedTopNavShadow.cgColor
         navigationController?.navigationBar.layer.shadowOffset = CGSize(width: 0.0, height: 4.0)
@@ -147,7 +147,7 @@ class GroupFeedViewController: FeedCollectionViewController {
         view.backgroundColor = backgroundColor
 
         let navAppearance = UINavigationBarAppearance()
-        navAppearance.backgroundColor = backgroundColor
+        navAppearance.backgroundColor = UIColor.primaryBg
         navAppearance.shadowColor = nil
         navAppearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
         navigationItem.standardAppearance = navAppearance

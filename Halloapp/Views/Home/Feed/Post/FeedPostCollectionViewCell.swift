@@ -402,7 +402,7 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
         case .deletedPost:
             textLabel.textColor = .secondaryLabel
         case .event:
-            textLabel.textColor = .black
+            textLabel.textColor = UIColor.feedPostEventText
         }
     }
 

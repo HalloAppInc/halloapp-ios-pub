@@ -191,21 +191,21 @@ public class AvatarView: UIView {
 }
 
 extension AvatarView {
-    
+
     public func configure(groupId: GroupID, squareSize: CGFloat = 0, using avatarStore: AvatarStore) {
-        
+
         let groupAvatarData = avatarStore.groupAvatarData(for: groupId)
-        
+
         let isSquare = squareSize > 0
-        
+
+        let radiusRatio: CGFloat = 16/52
+
         let borderRadius:CGFloat = {
             switch squareSize {
             case 1...50:
                 return 11
-            case 50...80:
-                return 16
             default:
-                return squareSize/3.4
+                return CGFloat(squareSize)*radiusRatio
             }
         }()
 
@@ -219,7 +219,7 @@ extension AvatarView {
                 self.avatarContainerView.layoutIfNeeded()
             }
         }
-        
+
         if let image = groupAvatarData.image {
             avatar.image = image
         } else {
@@ -228,17 +228,17 @@ extension AvatarView {
                 groupAvatarData.loadImage(using: avatarStore)
             }
         }
-                
+
         avatarUpdatingCancellable?.cancel()
         avatarUpdatingCancellable = groupAvatarData.imageDidChange.sink { [weak self] image in
             guard let self = self else { return }
-            
+
             if let image = image {
                 self.avatar.image = image
             } else {
                 self.avatar.image = AvatarView.defaultGroupImage
             }
         }
-        
+
     }
 }

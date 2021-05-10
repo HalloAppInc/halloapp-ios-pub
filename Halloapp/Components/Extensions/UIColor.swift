@@ -100,11 +100,19 @@ extension UIColor {
         UIColor(named: "FeedPostEventDeletedBg")!
     }
 
+    class var feedPostEventText: UIColor {
+        UIColor(named: "FeedPostEventText")!
+    }
+
     class var commentIndicatorUnread: UIColor {
         UIColor(named: "CommentIndicatorUnread")!
     }
 
     // MARK: Group Feed
+
+    class var groupFeedTopNav: UIColor {
+        UIColor(named: "GroupFeedTopNav")!
+    }
 
     class var groupFeedTopNavShadow: UIColor {
         UIColor(named: "GroupFeedTopNavShadow")!

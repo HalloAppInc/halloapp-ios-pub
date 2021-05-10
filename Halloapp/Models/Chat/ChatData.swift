@@ -2580,13 +2580,6 @@ extension ChatData {
         return color
     }
 
-    static public func getThemeTopNavColor(for theme: Int32) -> UIColor {
-        let colorName = "Theme\(String(theme))TopNav"
-        guard let color = UIColor(named: colorName) else { return UIColor.primaryBlue }
-
-        return color
-    }
-
     // MARK: Group Invite Link
 
     static public func parseInviteURL(url: URL?) -> String? {

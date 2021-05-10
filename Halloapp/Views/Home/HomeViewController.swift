@@ -48,7 +48,7 @@ class HomeViewController: UITabBarController {
         UITabBarItem.appearance().setTitleTextAttributes(fontAttributes, for: .normal)
         
         let appearance = UITabBarAppearance()
-        appearance.shadowImage = borderImageForTabBar(color: UIColor.primaryWhiteBlack, height: 2)
+        appearance.shadowColor = nil
         appearance.stackedLayoutAppearance.normal.badgeBackgroundColor = .lavaOrange
         appearance.stackedLayoutAppearance.normal.badgePositionAdjustment = UIOffset(horizontal: 2, vertical: 0 + Self.tabBarItemImageInsets.top)
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = fontAttributes
@@ -234,17 +234,6 @@ class HomeViewController: UITabBarController {
             selectedIndex = 2
         }
 
-    }
-
-    private func borderImageForTabBar(color: UIColor, height: CGFloat) -> UIImage? {
-        let rect = CGRect(x: 0.0, y: 0.0, width: 1.0, height: height)
-        UIGraphicsBeginImageContext(rect.size)
-        guard let context = UIGraphicsGetCurrentContext() else { return nil }
-        context.setFillColor(color.cgColor)
-        context.fill(rect)
-        guard let image = UIGraphicsGetImageFromCurrentImageContext() else { return nil }
-        UIGraphicsEndImageContext()
-        return image
     }
 
     private func setTabBarDot(index: Int, count: Int) {

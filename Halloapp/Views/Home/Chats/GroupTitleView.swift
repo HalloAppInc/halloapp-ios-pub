@@ -36,7 +36,7 @@ class GroupTitleView: UIView {
 
         if let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
             nameLabel.text = chatGroup.name
-            nameLabel.textColor = ChatData.getThemeTopNavColor(for: chatGroup.background)
+            nameLabel.textColor = UIColor.groupFeedTopNav
 
             if !isFeedView {
                 var firstNameList: [String] = []

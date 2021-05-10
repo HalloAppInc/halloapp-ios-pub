@@ -64,20 +64,20 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         let groupInfoFooterView = GroupInfoFooterView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: Constants.FooterHeight))
         groupInfoFooterView.delegate = self
         tableView.tableFooterView = groupInfoFooterView
-        
+
         checkIfMember()
-        
+
         setupFetchedResultsController()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("GroupInfoViewController/viewWillAppear")
-        
+
         chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId)
         if let tableHeaderView = tableView.tableHeaderView as? GroupInfoHeaderView {
             tableHeaderView.configure(chatGroup: chatGroup)
         }
-        
+
         super.viewWillAppear(animated)
     }
 
@@ -89,9 +89,9 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     deinit {
         DDLogDebug("GroupInfoViewController/deinit ")
     }
-    
+
     // MARK: Fetch Results Controller
-    
+
     public var fetchRequest: NSFetchRequest<ChatGroupMember> {
         get {
             let fetchRequest = NSFetchRequest<ChatGroupMember>(entityName: "ChatGroupMember")
@@ -160,7 +160,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 DispatchQueue.main.async {
                     self.tableView.reloadRows(at: [ toIndexPath ], with: .automatic)
                 }
-                
+
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -592,6 +592,10 @@ class GroupInfoHeaderView: UIView {
         photoIcon.frame = CGRect(x: 0 - Constants.PhotoIconSize, y: viewHeight - Constants.PhotoIconSize, width: Constants.PhotoIconSize, height: Constants.PhotoIconSize)
         view.addSubview(photoIcon)
 
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(groupAvatarAction(_:)))
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
+
         return view
     }()
 
@@ -616,11 +620,7 @@ class GroupInfoHeaderView: UIView {
         view.layer.cornerRadius = Constants.PhotoIconSize/2
         view.clipsToBounds = true
         view.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(groupAvatarAction(_:)))
-        view.isUserInteractionEnabled = true
-        view.addGestureRecognizer(tapGesture)
-        
+
         return view
     }()
 
@@ -885,7 +885,7 @@ class GroupInfoFooterView: UIView {
 
     private lazy var leaveGroupLabel: UILabel = {
         let label = UILabel()
-        label.font = .gothamFont(forTextStyle: .body, weight: .regular)
+        label.font = UIFont.preferredFont(forTextStyle: .body)
         label.textColor = .systemRed
         label.textAlignment = .left
         label.text = Localizations.chatGroupInfoLeaveGroup
