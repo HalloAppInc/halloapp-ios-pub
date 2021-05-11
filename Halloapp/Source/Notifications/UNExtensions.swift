@@ -79,7 +79,7 @@ extension UNUserNotificationCenter {
 
             var identifiersToRemove: [String] = []
             for notification in notifications {
-                DDLogDebug("Notification/removeDelivered load from \(notification.request.identifier), userInfo: \(notification.request.content.userInfo)")
+                DDLogDebug("Notification/removeDelivered load from \(notification.request.identifier)")
                 guard let metadata = NotificationMetadata.load(from: notification.request) else { continue }
                 if predicate(metadata) {
                     DDLogDebug("Notification/removeDelivered \(notification.request.identifier) will be removed")
