@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="20D91" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17511" systemVersion="19G73" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="SharedChatMessage" representedClassName="SharedChatMessage" syncable="YES">
         <attribute name="clientChatMsgPb" optional="YES" attributeType="Binary"/>
         <attribute name="decryptionError" optional="YES" attributeType="String"/>
@@ -64,7 +64,7 @@
         <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedChatMessage" inverseName="media" inverseEntity="SharedChatMessage"/>
         <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedPost" inverseName="media" inverseEntity="SharedFeedPost"/>
     </entity>
-    <entity name="SharedServerMessage" representedClassName="SharedServerMessage" syncable="YES" codeGenerationType="class">
+    <entity name="SharedServerMessage" representedClassName="SharedServerMessage" syncable="YES">
         <attribute name="msg" optional="YES" attributeType="Binary"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
@@ -74,6 +74,6 @@
         <element name="SharedFeedMention" positionX="-54" positionY="81" width="128" height="88"/>
         <element name="SharedFeedPost" positionX="-63" positionY="-18" width="128" height="193"/>
         <element name="SharedMedia" positionX="-45" positionY="27" width="128" height="223"/>
-        <element name="SharedServerMessage" positionX="-45" positionY="108" width="128" height="59"/>
+        <element name="SharedServerMessage" positionX="-45" positionY="108" width="128" height="73"/>
     </elements>
 </model>

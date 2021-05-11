@@ -16,7 +16,7 @@ extension SharedServerMessage {
         return NSFetchRequest<SharedServerMessage>(entityName: "SharedServerMessage")
     }
 
-    @NSManaged public var msg: Data
+    @NSManaged public var msg: Data?
     @NSManaged public var timestamp: Date
 
 }

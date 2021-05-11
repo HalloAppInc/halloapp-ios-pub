@@ -2,12 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:Core/Core/Source/ShareExtension/Model/SharedServerMessage+CoreDataClass.swift">
-   </FileRef>
-   <FileRef
-      location = "group:Core/Core/Source/ShareExtension/Model/SharedServerMessage+CoreDataProperties.swift">
-   </FileRef>
-   <FileRef
       location = "group:HalloApp.xcodeproj">
    </FileRef>
    <FileRef
