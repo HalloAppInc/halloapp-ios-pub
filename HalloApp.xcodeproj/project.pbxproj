@@ -29,6 +29,7 @@
 		5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */; };
 		5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF5D12224F5295300F272D8 /* CameraViewController.swift */; };
 		680FB661250C45C000CA5D40 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680FB660250C45C000CA5D40 /* OverlayView.swift */; };
+		68184009264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 68184008264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel */; };
 		681E0DAA24C8E0190073A03E /* NewPostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 681E0DA924C8E0190073A03E /* NewPostViewController.swift */; };
 		6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */; };
 		6829F78324CFA41F00207F6B /* FeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */; };
@@ -375,6 +376,8 @@
 		5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
 		5BF5D12224F5295300F272D8 /* CameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
 		680FB660250C45C000CA5D40 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
+		68184003264B1CAF00408D31 /* Feed3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed3.xcdatamodel; sourceTree = "<group>"; };
+		68184008264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed2ToFeed3.xcmappingmodel; sourceTree = "<group>"; };
 		681E0DA924C8E0190073A03E /* NewPostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPostViewController.swift; sourceTree = "<group>"; };
 		6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedMention+CoreDataClass.swift"; sourceTree = "<group>"; };
 		6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -968,6 +971,7 @@
 				6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */,
 				6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */,
 				6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */,
+				68184008264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel */,
 			);
 			path = "CoreData Stack";
 			sourceTree = "<group>";
@@ -1997,6 +2001,7 @@
 				761BD0FC24B3D75800B567F6 /* InviteManager.swift in Sources */,
 				765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */,
 				6ABBD2502601DE890041B9ED /* FeedMigration.xcmappingmodel in Sources */,
+				68184009264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel in Sources */,
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
@@ -3030,10 +3035,11 @@
 		76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				68184003264B1CAF00408D31 /* Feed3.xcdatamodel */,
 				6ABBD24A2601DD990041B9ED /* Feed2.xcdatamodel */,
 				76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */,
 			);
-			currentVersion = 6ABBD24A2601DD990041B9ED /* Feed2.xcdatamodel */;
+			currentVersion = 68184003264B1CAF00408D31 /* Feed3.xcdatamodel */;
 			path = Feed.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

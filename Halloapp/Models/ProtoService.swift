@@ -359,18 +359,18 @@ final class ProtoService: ProtoServiceCore {
             case .post(let serverPost):
                 switch pbFeedItem.action {
                 case .publish, .share:
-                    if let post = XMPPFeedPost(serverPost) {
+                    if let post = PostData(serverPost) {
                         elements.append(.post(post))
                     }
                 case .retract:
                     retracts.append(.post(serverPost.id))
                 case .UNRECOGNIZED(let action):
-                        DDLogError("ProtoService/handleFeedItems/error unrecognized post action \(action)")
+                    DDLogError("ProtoService/handleFeedItems/error unrecognized post action \(action)")
                 }
             case .comment(let serverComment):
                 switch pbFeedItem.action {
                 case .publish, .share:
-                    if let comment = XMPPComment(serverComment) {
+                    if let comment = CommentData(serverComment) {
                         elements.append(.comment(comment, publisherName: serverComment.publisherName))
                     }
                 case .retract:
@@ -408,7 +408,7 @@ final class ProtoService: ProtoServiceCore {
             case .post(let serverPost):
                 switch item.action {
                 case .publish:
-                    guard let post = XMPPFeedPost(serverPost) else {
+                    guard let post = PostData(serverPost) else {
                         DDLogError("proto/payloadContents/\(serverPost.id)/error could not make post object")
                         continue
                     }
@@ -421,7 +421,7 @@ final class ProtoService: ProtoServiceCore {
             case .comment(let serverComment):
                 switch item.action {
                 case .publish:
-                    guard let comment = XMPPComment(serverComment) else {
+                    guard let comment = CommentData(serverComment) else {
                         DDLogError("proto/payloadContents/\(serverComment.id)/error could not make comment object")
                         continue
                     }

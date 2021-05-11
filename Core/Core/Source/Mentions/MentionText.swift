@@ -9,21 +9,34 @@
 import CocoaLumberjack
 import Foundation
 
-public typealias MentionRangeMap = [NSRange: UserID]
+public typealias MentionRangeMap = [NSRange: MentionedUser]
+
+/// Struct representing user that was mentioned in a post or comment
+public struct MentionedUser {
+    public init(userID: UserID, pushName: String?) {
+        self.userID = userID
+        self.pushName = pushName
+    }
+
+    public var userID: UserID
+
+    // TODO: Remove optional here once pushName is available in MentionableUser
+    public var pushName: String?
+}
 
 /// Contains text with "@" placeholders that can be replaced with the names of mentioned users.
 public struct MentionText {
     public var collapsedText: String
-    public var mentions: [Int: UserID]
+    public var mentions: [Int: MentionedUser]
 
-    public init(collapsedText: String, mentions: [Int: UserID]) {
+    public init(collapsedText: String, mentions: [Int: MentionedUser]) {
         self.collapsedText = collapsedText
         self.mentions = mentions
     }
 
     public init(expandedText: String, mentionRanges: MentionRangeMap) {
         var outputText = expandedText as NSString
-        mentions = [Int: UserID]()
+        mentions = [Int: MentionedUser]()
         var charactersToDrop = mentionRanges.keys.reduce(0) { sum, range in sum + range.length } - mentionRanges.count
         let reverseOrderedMentions = mentionRanges.sorted { $0.key.location > $1.key.location }
         for (range, user) in reverseOrderedMentions {
@@ -61,15 +74,15 @@ public struct MentionText {
         let mutableString = NSMutableAttributedString(string: collapsedText)
         // NB: We replace mention placeholders with usernames in reverse order so we don't change indices
         let reverseOrderedMentions = mentions.sorted { $0.key > $1.key }
-        for (index, userID) in reverseOrderedMentions {
+        for (index, user) in reverseOrderedMentions {
             guard index < mutableString.length else {
                 DDLogError("MentionText/expandedText/error invalid index \(index) for \(mutableString.length) length string")
                 continue
             }
 
             let replacementString = NSAttributedString(
-                string: "@\(nameProvider(userID))",
-                attributes: [NSAttributedString.Key.userMention: userID])
+                string: "@\(nameProvider(user.userID))",
+                attributes: [NSAttributedString.Key.userMention: user.userID])
 
             mutableString.replaceCharacters(
                 in: NSRange(location: index, length: 1),

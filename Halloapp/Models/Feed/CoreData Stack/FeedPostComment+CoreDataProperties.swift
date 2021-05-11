@@ -36,6 +36,7 @@ extension FeedPostComment {
     @NSManaged var parent: FeedPostComment?
     @NSManaged var post: FeedPost
     @NSManaged var replies: Set<FeedPostComment>?
+    @NSManaged var rawData: Data?
     @NSManaged private var statusValue: Int16
     var status: Status {
         get {

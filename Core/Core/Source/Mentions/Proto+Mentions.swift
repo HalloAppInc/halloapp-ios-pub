@@ -27,24 +27,30 @@ public extension Clients_Container {
 
 public extension Clients_Post {
     var mentionText: MentionText {
-        MentionText(
-            collapsedText: text,
-            mentions: Dictionary(uniqueKeysWithValues: mentions.map { (Int($0.index), $0.userID) }))
+        MentionText(collapsedText: text, mentions: mentionDictionary(from: mentions))
     }
 }
 
 public extension Clients_Comment {
     var mentionText: MentionText {
-        MentionText(
-            collapsedText: text,
-            mentions: Dictionary(uniqueKeysWithValues: mentions.map { (Int($0.index), $0.userID) }))
+        MentionText(collapsedText: text, mentions: mentionDictionary(from: mentions))
     }
 }
 
 public extension Clients_ChatMessage {
     var mentionText: MentionText {
-        MentionText(
-            collapsedText: text,
-            mentions: Dictionary(uniqueKeysWithValues: mentions.map { (Int($0.index), $0.userID) }))
+        MentionText(collapsedText: text, mentions: mentionDictionary(from: mentions))
     }
+}
+
+public extension Clients_Text {
+    var mentionText: MentionText {
+        MentionText(collapsedText: text, mentions: mentionDictionary(from: mentions))
+    }
+}
+
+func mentionDictionary(from mentions: [Clients_Mention]) -> [Int: MentionedUser] {
+    Dictionary(uniqueKeysWithValues: mentions.map {
+        (Int($0.index), MentionedUser(userID: $0.userID, pushName: $0.name))
+    })
 }

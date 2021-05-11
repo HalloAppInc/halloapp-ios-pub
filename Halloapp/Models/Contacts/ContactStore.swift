@@ -1008,11 +1008,17 @@ class ContactStoreMain: ContactStore {
 
         let mentionText = MentionText(
             collapsedText: collapsedText,
-            mentions: Dictionary(uniqueKeysWithValues: orderedMentions.map { ($0.index, $0.userID) }))
+            mentions: mentionDictionary(from: orderedMentions))
 
         return mentionText.expandedText { userID in
             self.mentionName(for: userID, pushName: orderedMentions.first(where: { userID == $0.userID })?.name)
         }
     }
 
+}
+
+private func mentionDictionary(from mentions: [FeedMentionProtocol]) -> [Int: MentionedUser] {
+    Dictionary(uniqueKeysWithValues: mentions.map {
+        (Int($0.index), MentionedUser(userID: $0.userID, pushName: $0.name))
+    })
 }

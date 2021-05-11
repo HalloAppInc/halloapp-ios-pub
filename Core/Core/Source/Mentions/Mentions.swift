@@ -8,6 +8,8 @@
 
 import Foundation
 
+// TODO: Add pushname and/or merge this with `MentionedUser`
+/// Struct representing user that can be mentioned in a post or comment
 public struct MentionableUser: Hashable {
     public init(userID: UserID, fullName: String) {
         self.userID = userID
@@ -15,6 +17,8 @@ public struct MentionableUser: Hashable {
     }
 
     public var userID: UserID
+
+    /// Name to be displayed in text and picker UI
     public var fullName: String
 }
 
@@ -59,7 +63,8 @@ public struct MentionInput {
         let replacementString = mentionString + " "
 
         changeText(in: range, to: replacementString)
-        mentions[mentionRange] = userID
+        // Set pushname to `nil` for outgoing mentions (push names will be filled in later)
+        mentions[mentionRange] = MentionedUser(userID: userID, pushName: nil)
     }
 
     public mutating func changeText(in range: NSRange, to replacementText: String) {

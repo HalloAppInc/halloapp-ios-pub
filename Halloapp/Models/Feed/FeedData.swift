@@ -610,7 +610,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     let didReceiveFeedPostComment = PassthroughSubject<FeedPostComment, Never>()
 
-    @discardableResult private func process(posts xmppPosts: [FeedPostProtocol],
+    @discardableResult private func process(posts xmppPosts: [PostData],
                                             receivedIn group: HalloGroup?,
                                             using managedObjectContext: NSManagedObjectContext,
                                             presentLocalNotifications: Bool) -> [FeedPost] {
@@ -633,13 +633,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.groupId = group?.groupId
             feedPost.text = xmppPost.text
             feedPost.timestamp = xmppPost.timestamp
-            
-            if feedPost.userId == userData.userId {
-                // This only happens when the user re-register,
-                // and the server sends us old posts.
-                feedPost.status = .seen
-            } else {
-                feedPost.status = .incoming
+
+            switch xmppPost.content {
+            case .album, .text:
+                // Mark our own posts as seen in case server sends us old posts following re-registration
+                feedPost.status = feedPost.userId == userData.userId ? .seen : .incoming
+            case .retracted:
+                DDLogError("FeedData/process-posts/incoming-retracted-post [\(xmppPost.id)]")
+                feedPost.status = .retracted
+            case .unsupported(let data):
+                feedPost.status = .unsupported
+                feedPost.rawData = data
             }
 
             var mentions = Set<FeedMention>()
@@ -702,7 +706,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return newPosts
     }
 
-    @discardableResult private func process(comments xmppComments: [FeedCommentProtocol],
+    @discardableResult private func process(comments xmppComments: [CommentData],
                                             receivedIn group: HalloGroup?,
                                             using managedObjectContext: NSManagedObjectContext,
                                             presentLocalNotifications: Bool) -> [FeedPostComment] {
@@ -713,7 +717,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let commentIds = Set(xmppComments.map{ $0.id }).union(Set(xmppComments.compactMap{ $0.parentId }))
         var comments = feedComments(with: commentIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         var ignoredCommentIds: Set<String> = []
-        var xmppCommentsMutable = [FeedCommentProtocol](xmppComments)
+        var xmppCommentsMutable = [CommentData](xmppComments)
         var newComments: [FeedPostComment] = []
         var duplicateCount = 0, numRuns = 0
         while !xmppCommentsMutable.isEmpty && numRuns < 100 {
@@ -764,7 +768,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 comment.text = xmppComment.text
                 comment.parent = parentComment
                 comment.post = feedPost
-                comment.status = .incoming
+
+                switch xmppComment.content {
+                case .text:
+                    comment.status = .incoming
+                case .retracted:
+                    DDLogError("FeedData/process-comments/incoming-retracted-comment [\(xmppComment.id)]")
+                    comment.status = .retracted
+                case .unsupported(let data):
+                    comment.status = .unsupported
+                    comment.rawData = data
+                }
                 comment.timestamp = xmppComment.timestamp
 
                 var mentions = Set<FeedMention>()
@@ -812,8 +826,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func processIncomingFeedItems(_ items: [FeedElement], group: HalloGroup?, presentLocalNotifications: Bool, ack: (() -> Void)?) {
-        var feedPosts = [FeedPostProtocol]()
-        var comments = [FeedCommentProtocol]()
+        var feedPosts = [PostData]()
+        var comments = [CommentData]()
         var contactNames = [UserID:String]()
 
         for item in items {
@@ -1610,13 +1624,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Add mentions
         var mentionSet = Set<FeedMention>()
-        for (index, userID) in text.mentions {
+        for (index, user) in text.mentions {
             let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
             feedMention.index = index
-            feedMention.userID = userID
-            feedMention.name = contactStore.pushNames[userID] ?? ""
+            feedMention.userID = user.userID
+            feedMention.name = contactStore.pushNames[user.userID] ?? user.pushName ?? ""
             if feedMention.name == "" {
-                DDLogError("FeedData/new-post/mention/\(userID) missing push name")
+                DDLogError("FeedData/new-post/mention/\(user.userID) missing push name")
             }
             mentionSet.insert(feedMention)
         }
@@ -1703,13 +1717,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         var mentionSet = Set<FeedMention>()
-        for (index, userID) in comment.mentions {
+        for (index, user) in comment.mentions {
             let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
             feedMention.index = index
-            feedMention.userID = userID
-            feedMention.name = contactStore.pushNames[userID] ?? ""
+            feedMention.userID = user.userID
+            feedMention.name = contactStore.pushNames[user.userID] ?? user.pushName ?? ""
             if feedMention.name == "" {
-                DDLogError("FeedData/new-comment/mention/\(userID) missing push name")
+                DDLogError("FeedData/new-comment/mention/\(user.userID) missing push name")
             }
             mentionSet.insert(feedMention)
         }

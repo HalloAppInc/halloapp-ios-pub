@@ -183,13 +183,13 @@ class DataStore: ShareExtensionDataStore {
 
         // Add mentions
         var mentionSet = Set<SharedFeedMention>()
-        for (index, userID) in text.mentions {
+        for (index, user) in text.mentions {
             let feedMention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
             feedMention.index = index
-            feedMention.userID = userID
-            feedMention.name = AppContext.shared.contactStore.pushNames[userID] ?? ""
+            feedMention.userID = user.userID
+            feedMention.name = AppContext.shared.contactStore.pushNames[user.userID] ?? user.pushName ?? ""
             if feedMention.name == "" {
-                DDLogError("SharedDataStore/send-post/mention/\(userID) missing push name")
+                DDLogError("SharedDataStore/send-post/mention/\(user.userID) missing push name")
             }
             mentionSet.insert(feedMention)
         }

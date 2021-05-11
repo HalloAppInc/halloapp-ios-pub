@@ -40,6 +40,7 @@ extension FeedPost {
     @NSManaged public var mentions: Set<FeedMention>?
     @NSManaged var unreadCount: Int32
     @NSManaged var info: FeedPostInfo?
+    @NSManaged var rawData: Data?
     @NSManaged private var statusValue: Int16
     var status: Status {
         get {

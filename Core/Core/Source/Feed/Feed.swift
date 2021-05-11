@@ -271,8 +271,8 @@ public enum MediaURLInfo {
 // MARK: FeedElement
 
 public enum FeedElement {
-    case post(FeedPostProtocol)
-    case comment(FeedCommentProtocol, publisherName: String?)
+    case post(PostData)
+    case comment(CommentData, publisherName: String?)
 }
 
 public enum FeedRetract {
