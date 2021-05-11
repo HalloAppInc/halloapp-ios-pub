@@ -205,19 +205,21 @@ class DataStore: NotificationServiceExtensionDataStore {
         let managedObjectContext = persistentContainer.viewContext
 
         let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
-        // Important to fetch these in ascending order - since we always want to ack them in that order only.
+
+        // We fetch (and ack) these messages in ascending order so the sender receives delivery receipts in order.
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: true)]
+
         var messagesToAck = [SharedChatMessage]()
         do {
             let chatMessages = try managedObjectContext.fetch(fetchRequest)
-            // We want to ack messages in a specific order - so that the sender of the message can see delivery receipts in order.
             for message in chatMessages {
-                if message.status == .acked {
-                    continue
-                } else if message.status == .decryptionError {
-                    continue
-                } else if message.status == .received {
+                switch message.status {
+                case .received:
                     messagesToAck.append(message)
+                case .acked, .decryptionError, .rerequesting:
+                    break
+                case .sent, .sendError, .none:
+                    DDLogError("NotificationExtension/getChatMessagesToAck/unexpected-status [\(message.status)] [\(message.id)]")
                 }
             }
         } catch {
