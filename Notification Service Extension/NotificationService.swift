@@ -188,7 +188,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 switch result {
                 case .success(_):
                     DDLogInfo("sendAck/success sent ack, msgId: \(msgId)")
-                    dataStore.updateMessageStatus(for: msgId, status: .received)
+                    dataStore.updateMessageStatus(for: msgId, status: .acked)
                 case .failure(let error):
                     DDLogError("sendAck/failure sending ack, msgId: \(msgId), error: \(error)")
                 }
