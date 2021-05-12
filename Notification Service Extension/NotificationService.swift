@@ -33,7 +33,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
     }
 
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
-        initAppContext(AppExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self)
+        initAppContext(AppExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self, appTarget: AppTarget.notificationExtension)
         service = AppExtensionContext.shared.coreService
         service?.startConnectingIfNecessary()
 

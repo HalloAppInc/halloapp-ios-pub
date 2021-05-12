@@ -136,6 +136,14 @@ public final class WhisperSession {
         }
     }
 
+    public func reloadKeysFromKeyStore() {
+        sessionQueue.async {
+            if let (keyBundle, messageKeys) = self.loadFromKeyStore() {
+                self.state = .ready(keyBundle, messageKeys)
+            }
+        }
+    }
+
     // MARK: Private
     // MARK: *All private functions should be called on sessionQueue!*
 

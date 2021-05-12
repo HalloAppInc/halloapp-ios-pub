@@ -18,8 +18,8 @@ fileprivate var sharedContext: AppContext?
 
 public typealias ServiceBuilder = (UserData) -> CoreService
 
-public func initAppContext(_ appContextClass: AppContext.Type, serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type) {
-    sharedContext = appContextClass.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass)
+public func initAppContext(_ appContextClass: AppContext.Type, serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
+    sharedContext = appContextClass.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
 }
 
 open class AppContext {
@@ -171,7 +171,7 @@ open class AppContext {
         }
     }
 
-    required public init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type) {
+    required public init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
         let appGroupLogsDirectory = Self.sharedDirectoryURL
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Caches", isDirectory: true)
@@ -208,8 +208,9 @@ open class AppContext {
         userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL)
         coreService = serviceBuilder(userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
-        keyStore = KeyStore(userData: userData)
+        keyStore = KeyStore(userData: userData, appTarget: appTarget)
         messageCrypter = MessageCrypter(service: coreService, keyStore: keyStore)
+        keyStore.delegate = messageCrypter
 
         FirebaseApp.configure()
         let logger = CrashlyticsLogger()

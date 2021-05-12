@@ -27,7 +27,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        initAppContext(MainAppContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStoreMain.self)
+        initAppContext(MainAppContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStoreMain.self, appTarget: AppTarget.mainApp)
 
         DDLogInfo("application/didFinishLaunching")
 

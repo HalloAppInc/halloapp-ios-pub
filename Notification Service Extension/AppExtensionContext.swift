@@ -18,9 +18,9 @@ class AppExtensionContext: AppContext {
         }
     }
 
-    required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type) {
+    required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
         asyncLoggingEnabled = false
-        super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass)
+        super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
     }
 
 }

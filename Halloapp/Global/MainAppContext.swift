@@ -99,8 +99,8 @@ class MainAppContext: AppContext {
         }
     }
 
-    required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type) {
-        super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass)
+    required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
+        super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
         // This is needed to encode/decode protobuf in FeedPostInfo.
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
 

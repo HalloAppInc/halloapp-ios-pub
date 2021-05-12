@@ -43,7 +43,7 @@ class ShareViewController: UINavigationController {
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
 
-        initAppContext(ShareExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self)
+        initAppContext(ShareExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self, appTarget: AppTarget.shareExtension)
         ShareExtensionContext.shared.coreService.startConnectingIfNecessary()
 
         // Reconnect when a user switches between HalloApp and extension

@@ -13,15 +13,55 @@ import CryptoSwift
 import Foundation
 import Sodium
 
+// Delegate to notify changes to current in-memory sessions.
+public protocol KeyStoreDelegate: AnyObject {
+    func keyStoreContextChanged()
+}
+
 open class KeyStore {
     public let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.keys")
     public let userData: UserData
+    public let appTarget: AppTarget
     
     private var bgContext: NSManagedObjectContext
+    public weak var delegate: KeyStoreDelegate?
     
-    required public init(userData: UserData) {
+    required public init(userData: UserData, appTarget: AppTarget) {
         self.userData = userData
         self.bgContext = persistentContainer.newBackgroundContext()
+        // Set the context name and transaction author name.
+        // This is used later to filter out transactions made by own context.
+        self.bgContext.name = appTarget.rawValue + "-context"
+        self.bgContext.transactionAuthor = appTarget.rawValue
+        self.appTarget = appTarget
+        // Add observer to notify us when persistentStore records changes.
+        // These notifications are triggered for all cross process writes to the store.
+        NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges), name: .NSPersistentStoreRemoteChange, object: persistentContainer.persistentStoreCoordinator)
+    }
+
+    // Process persistent history to merge changes from other coordinators.
+    @objc private func processStoreRemoteChanges(_ notification: Notification) {
+        processPersistentHistory()
+    }
+    // Merge Persistent history and clear merged transactions.
+    @objc private func processPersistentHistory() {
+        performSeriallyOnBackgroundContext({ managedObjectContext in
+            do {
+                // Merges latest transactions from other contexts into the current target context.
+                let merger = PersistentHistoryMerger(backgroundContext: managedObjectContext, currentTarget: self.appTarget)
+                let historyMerged = try merger.merge()
+                // Prunes transactions that have been merged into all possible contexts: MainApp, NotificationExtension, ShareExtension
+                let cleaner = PersistentHistoryCleaner(context: managedObjectContext, targets: AppTarget.allCases)
+                try cleaner.clean()
+
+                if historyMerged {
+                    // Call delegate only if there were actual transactions that were merged
+                    self.delegate?.keyStoreContextChanged()
+                }
+            } catch {
+                DDLogError("KeyStore/PersistentHistoryTracking failed with error: \(error)")
+            }
+        })
     }
     
     // MARK: CoreData stack
@@ -49,6 +89,8 @@ open class KeyStore {
         let storeDescription = NSPersistentStoreDescription(url: KeyStore.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
+        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSPersistentHistoryTrackingKey)
+        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
         storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
         storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
         let modelURL = Bundle(for: KeyStore.self).url(forResource: "Keys", withExtension: "momd")!

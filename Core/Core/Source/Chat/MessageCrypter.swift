@@ -12,7 +12,7 @@ import Foundation
 public typealias EncryptionCompletion = (Result<EncryptedData, EncryptionError>) -> Void
 public typealias DecryptionCompletion = (Result<Data, DecryptionFailure>) -> Void
 
-public final class MessageCrypter {
+public final class MessageCrypter: KeyStoreDelegate {
 
     public init(service: CoreService, keyStore: KeyStore) {
         self.service = service
@@ -76,6 +76,17 @@ public final class MessageCrypter {
             let newSession = WhisperSession(userID: userID, service: service, keyStore: keyStore)
             sessions[userID] = newSession
             return newSession
+        }
+    }
+
+    // Triggered when managedObjectContext of the keystore changes.
+    // This indicates that all the keyBundles we loaded in-memory could be void.
+    // We should let those sessions refetch and update their keys.
+    public func keyStoreContextChanged() {
+        queue.async {
+            self.sessions.forEach{ (_, session) in
+                session.reloadKeysFromKeyStore()
+            }
         }
     }
 }
