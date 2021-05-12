@@ -149,7 +149,9 @@ extension SceneDelegate: UIWindowSceneDelegate {
         DispatchQueue.main.async {
             appDelegate.checkNotificationsAuthorizationStatus()
         }
-        
+
+        guard MainAppContext.shared.userData.isLoggedIn else { return }
+
         MainAppContext.shared.mergeSharedData()
 
         // Need to tell XMPPStream to start connecting every time app is foregrounded
