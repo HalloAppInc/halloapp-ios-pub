@@ -208,7 +208,7 @@ open class AppContext {
         userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL)
         coreService = serviceBuilder(userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
-        keyStore = KeyStore(userData: userData, appTarget: appTarget)
+        keyStore = KeyStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
         messageCrypter = MessageCrypter(service: coreService, keyStore: keyStore)
         keyStore.delegate = messageCrypter
 

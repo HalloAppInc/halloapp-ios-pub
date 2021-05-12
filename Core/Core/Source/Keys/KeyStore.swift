@@ -26,8 +26,11 @@ open class KeyStore {
     private var bgContext: NSManagedObjectContext
     public weak var delegate: KeyStoreDelegate?
     
-    required public init(userData: UserData, appTarget: AppTarget) {
+    required public init(userData: UserData, appTarget: AppTarget, userDefaults: UserDefaults) {
         self.userData = userData
+        // Before fetching the latest context for this target.
+        // Let us update their last history timestamp: this will be useful when pruning old transactions later.
+        userDefaults.updateLastHistoryTransactionTimestamp(for: appTarget, to: Date())
         self.bgContext = persistentContainer.newBackgroundContext()
         // Set the context name and transaction author name.
         // This is used later to filter out transactions made by own context.

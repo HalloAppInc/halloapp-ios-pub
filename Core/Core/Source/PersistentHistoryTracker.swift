@@ -30,8 +30,6 @@ extension UserDefaults {
         set(newValue, forKey: key)
     }
 
-    // I think we are not deleting the old transactions.
-    // TODO(murali@): will fix this.
     func lastCommonTransactionTimestamp(in targets: [AppTarget]) -> Date? {
         let timestamp = targets
             .map { lastHistoryTransactionTimestamp(for: $0) ?? .distantPast }
