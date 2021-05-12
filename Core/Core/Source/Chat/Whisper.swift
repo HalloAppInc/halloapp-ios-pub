@@ -15,7 +15,12 @@ final class Whisper {
 
     static func encrypt(_ unencrypted: Data, keyBundle: KeyBundle) -> Result<(encryptedData: Data, chainKey: Data), EncryptionError> {
 
+        DDLogInfo("Whisper/encrypt/outboundChainIndex [\(keyBundle.outboundChainIndex)]")
         DDLogInfo("Whisper/encrypt/chain [\(keyBundle.outboundChainKey.bytes)]")
+        DDLogInfo("Whisper/encrypt/outboundEphemeralKeyId [\(keyBundle.outboundEphemeralKeyId)]")
+        DDLogInfo("Whisper/encrypt/outboundEphemeralPublicKeyBytes [\(keyBundle.outboundEphemeralPublicKey.bytes)]")
+        DDLogInfo("Whisper/encrypt/outboundPreviousChainLength [\(keyBundle.outboundPreviousChainLength)]")
+
         guard let symmetricRatchet = symmetricRatchet(chainKey: keyBundle.outboundChainKey.bytes),
               let messageKey = MessageKeyContents(data: Data(symmetricRatchet.messageKey)) else
         {
