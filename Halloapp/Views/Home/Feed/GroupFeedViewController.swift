@@ -33,6 +33,8 @@ class GroupFeedViewController: FeedCollectionViewController {
     private var currentUnreadThreadGroupCount = 0
     private var currentUnseenGroupFeedList: [GroupID: Int] = [:]
 
+    private var isTopNavShadowShown: Bool = false
+
     private var cancellableSet: Set<AnyCancellable> = []
 
     init(groupId: GroupID) {
@@ -62,8 +64,9 @@ class GroupFeedViewController: FeedCollectionViewController {
         navigationItem.titleView = titleView
         titleView.translatesAutoresizingMaskIntoConstraints = false
         titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-
         titleView.delegate = self
+
+        titleView.animateInfoLabel()
 
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetAGroupFeed.sink { [weak self] (groupID) in
@@ -98,14 +101,11 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        titleView.update(with: groupId, isFeedView: true)
+        titleView.update(with: groupId)
 
         navigationController?.navigationBar.tintColor = UIColor.groupFeedTopNav
 
-        navigationController?.navigationBar.layer.shadowColor = UIColor.groupFeedTopNavShadow.cgColor
-        navigationController?.navigationBar.layer.shadowOffset = CGSize(width: 0.0, height: 4.0)
-        navigationController?.navigationBar.layer.shadowRadius = 15.0
-        navigationController?.navigationBar.layer.shadowOpacity = 1.0
+        updateTopNavShadow()
 
         MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
         UNUserNotificationCenter.current().removeDeliveredChatNotifications(groupId: groupId)
@@ -118,15 +118,30 @@ class GroupFeedViewController: FeedCollectionViewController {
         navigationController?.navigationBar.tintColor = .label
         navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
 
-        navigationController?.navigationBar.layer.shadowOpacity = 0
+        hideTopNavShadow()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
     }
 
     override func showGroupName() -> Bool {
         return false
     }
 
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        updateTopNavShadow()
+    }
+
     private var userBelongsToGroup: Bool {
         MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil
+    }
+
+    private func updateBackButtonUnreadCount(num: Int) {
+        let backButton = UIBarButtonItem()
+        backButton.title = num > 0 ? String(num) : " \u{00a0}"
+
+        navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
     }
 
     private lazy var titleView: GroupTitleView = {
@@ -135,11 +150,36 @@ class GroupFeedViewController: FeedCollectionViewController {
         return titleView
     }()
 
-    private func updateBackButtonUnreadCount(num: Int) {
-        let backButton = UIBarButtonItem()
-        backButton.title = num > 0 ? String(num) : " \u{00a0}"
+    private func updateTopNavShadow() {
+        if isNearTop(100) {
+            hideTopNavShadow()
+        } else {
+            showTopNavShadow()
+        }
+    }
 
-        navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
+    private func showTopNavShadow() {
+        guard !isTopNavShadowShown else { return }
+        isTopNavShadowShown = true
+        
+        UIView.animate(withDuration: 0.6, delay: 0, options: .curveEaseOut, animations: { [weak self] in
+            guard let self = self else { return }
+            self.navigationController?.navigationBar.layer.shadowColor = UIColor.groupFeedTopNavShadow.cgColor
+//            self.navigationController?.navigationBar.layer.shadowColor = UIColor.red.cgColor
+            self.navigationController?.navigationBar.layer.shadowOffset = CGSize(width: 0.0, height: 4.0)
+            self.navigationController?.navigationBar.layer.shadowRadius = 15.0
+            self.navigationController?.navigationBar.layer.shadowOpacity = 1.0
+        })
+
+    }
+
+    private func hideTopNavShadow() {
+        guard isTopNavShadowShown else { return }
+        isTopNavShadowShown = false
+        UIView.animate(withDuration: 0.6, delay: 0, options: .curveEaseOut, animations: { [weak self] in
+            guard let self = self else { return }
+            self.navigationController?.navigationBar.layer.shadowOpacity = 0
+        })
     }
 
     private func setThemeColors(theme: Int32) {
@@ -226,6 +266,10 @@ class GroupFeedViewController: FeedCollectionViewController {
             delegate?.feedCollectionViewController(self, userActioned: true)
             firstActionHappened = true
         }
+    }
+
+    private func isScrolledFromTop(by fromTop: CGFloat) -> Bool {
+        return collectionView.contentOffset.y < fromTop
     }
 }
 

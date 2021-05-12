@@ -191,7 +191,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView == collectionView else { return }
-        if isNearTop() {
+        if isNearTop(100) {
             removeNewPostsIndicator()
         }
 
@@ -230,7 +230,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
         let updatedPostIDs = Set(items.compactMap { $0.post?.id })
         let newPostIDs = updatedPostIDs.subtracting(loadedPostIDs)
-        if !isNearTop() && !newPostIDs.isEmpty {
+        if !isNearTop(100) && !newPostIDs.isEmpty {
             newPostsList.append(contentsOf: newPostIDs)
             showNewPostsIndicator()
             feedLayout.maintainVisualPosition = true
@@ -461,9 +461,9 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         }
     }
 
-    private func isNearTop() -> Bool {
+    func isNearTop(_ fromTop: CGFloat) -> Bool {
         guard let collectionView = collectionView else { return true }
-        return collectionView.contentOffset.y < 100
+        return collectionView.contentOffset.y < fromTop
     }
 
     let feedDataSource: FeedDataSource

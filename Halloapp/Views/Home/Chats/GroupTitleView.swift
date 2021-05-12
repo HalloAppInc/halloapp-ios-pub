@@ -32,52 +32,28 @@ class GroupTitleView: UIView {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
-    func update(with groupId: String, isFeedView: Bool = false) {
+    func update(with groupId: String) {
+        guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) else { return }
 
-        if let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-            nameLabel.text = chatGroup.name
-            nameLabel.textColor = UIColor.groupFeedTopNav
-
-            if !isFeedView {
-                var firstNameList: [String] = []
-                var fullNameList: [String] = []
-                var addYourself = false
-                for member in chatGroup.orderedMembers {
-                    if member.userId == MainAppContext.shared.userData.userId {
-                        addYourself = true
-                    } else {
-                        firstNameList.append(MainAppContext.shared.contactStore.firstName(for: member.userId))
-                        fullNameList.append(MainAppContext.shared.contactStore.fullName(for: member.userId))
-                    }
-                }
-
-                if addYourself {
-                    firstNameList.append(Localizations.userYouCapitalized)
-                    fullNameList.append(Localizations.userYouCapitalized)
-                }
-
-                let localizedFirstNameList = ListFormatter.localizedString(byJoining: firstNameList)
-                let localizedFullNameList = ListFormatter.localizedString(byJoining: fullNameList)
-
-                memberNamesLabel.text = localizedFirstNameList
-
-                memberNamesLabel.isHidden = false
-
-                DDLogDebug("GroupTitleView/memberFirstNamesList [\(localizedFirstNameList)]")
-                DDLogDebug("GroupTitleView/fullNameList [\(localizedFullNameList)]")
-            } else {
-                memberNamesLabel.text = Localizations.groupTitleTapForInfo
-                memberNamesLabel.isHidden = false
-
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-                    UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseOut, animations: {
-                        self?.memberNamesLabel.isHidden = true
-                    })
-                }
-            }
-        }
+        nameLabel.text = group.name
+        nameLabel.textColor = UIColor.groupFeedTopNav
 
         avatarView.configure(groupId: groupId, squareSize: LayoutConstants.avatarSize, using: MainAppContext.shared.avatarStore)
+    }
+
+    func animateInfoLabel() {
+        memberNamesLabel.text = Localizations.groupTitleTapForInfo
+        memberNamesLabel.isHidden = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
+                self?.memberNamesLabel.alpha = 0
+            }, completion: { finished in
+                guard finished else { return }
+                UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseOut, animations: {
+                    self?.memberNamesLabel.isHidden = true
+                })
+            })
+        }
     }
 
     func showChatState(with typingIndicatorStr: String?) {
