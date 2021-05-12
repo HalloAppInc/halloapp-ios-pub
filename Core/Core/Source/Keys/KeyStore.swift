@@ -130,6 +130,7 @@ open class KeyStore {
     public func save(_ managedObjectContext: NSManagedObjectContext) {
         DDLogVerbose("KeyStore/will-save")
         do {
+            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             try managedObjectContext.save()
             DDLogVerbose("KeyStore/did-save")
         } catch {
