@@ -22,8 +22,13 @@ extension Mentions {
             // Allow mentioning poster
             contactSet.insert(post.userId)
         } else {
-            // Otherwise we can mention everyone in our contacts since they should be able to see our post
-            contactSet.formUnion(MainAppContext.shared.contactStore.allRegisteredContactIDs())
+            // If user is the post owner: we can mention everyone in the post audience since they should be able to see our post.
+            // Fallback to all contacts if audience is nil.
+            if let audience = post.audience {
+                contactSet.formUnion(audience.userIds)
+            } else {
+                contactSet.formUnion(MainAppContext.shared.contactStore.allRegisteredContactIDs())
+            }
         }
 
         // Allow mentioning every mention from the post
