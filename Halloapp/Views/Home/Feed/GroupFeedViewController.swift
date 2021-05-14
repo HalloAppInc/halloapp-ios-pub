@@ -165,7 +165,6 @@ class GroupFeedViewController: FeedCollectionViewController {
         UIView.animate(withDuration: 0.6, delay: 0, options: .curveEaseOut, animations: { [weak self] in
             guard let self = self else { return }
             self.navigationController?.navigationBar.layer.shadowColor = UIColor.groupFeedTopNavShadow.cgColor
-//            self.navigationController?.navigationBar.layer.shadowColor = UIColor.red.cgColor
             self.navigationController?.navigationBar.layer.shadowOffset = CGSize(width: 0.0, height: 4.0)
             self.navigationController?.navigationBar.layer.shadowRadius = 15.0
             self.navigationController?.navigationBar.layer.shadowOpacity = 1.0

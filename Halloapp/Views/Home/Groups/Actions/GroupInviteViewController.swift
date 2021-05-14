@@ -399,7 +399,7 @@ private extension Localizations {
     }
 
     static var groupInviteLinkDescription: String {
-        NSLocalizedString("group.invite.link.description", value: "Anyone with Halloapp can use this link to join the group.", comment: "Text to describe what the group invite link is")
+        NSLocalizedString("group.invite.link.description", value: "Anyone with HalloApp can use this link to join the group.", comment: "Text to describe what the group invite link is")
     }
 
     static var groupInviteShareLink: String {

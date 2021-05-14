@@ -25,8 +25,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     private(set) var dataSource: FeedDataSource?
     private let feedLayout = FeedLayout()
 
-    private var newPostsList: [FeedPostID] = []
-
     private var cancellableSet: Set<AnyCancellable> = []
 
     private var cachedCellHeights = [FeedDisplayItem: CGFloat]()
@@ -229,11 +227,18 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         willUpdate(with: items)
 
         let updatedPostIDs = Set(items.compactMap { $0.post?.id })
+
         let newPostIDs = updatedPostIDs.subtracting(loadedPostIDs)
+
         if !isNearTop(100) && !newPostIDs.isEmpty {
-            newPostsList.append(contentsOf: newPostIDs)
-            showNewPostsIndicator()
-            feedLayout.maintainVisualPosition = true
+            let userOwnItems = items.filter { $0.post?.userId == MainAppContext.shared.userData.userId }
+            let userOwnItemsIDs = Set(userOwnItems.compactMap { $0.post?.id })
+            let newPostIDsWithoutUserOwnItems = newPostIDs.subtracting(userOwnItemsIDs)
+
+            if !newPostIDsWithoutUserOwnItems.isEmpty {
+                showNewPostsIndicator()
+                feedLayout.maintainVisualPosition = true
+            }
         }
 
         let newlyDeletedPosts = items.filter {
@@ -384,7 +389,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     private func removeNewPostsIndicator() {
         guard view.subviews.contains(newPostsIndicator) else { return }
-        newPostsList.removeAll()
         newPostsIndicator.removeFromSuperview()
     }
 

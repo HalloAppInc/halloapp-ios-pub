@@ -42,15 +42,15 @@ class GroupTitleView: UIView {
     }
 
     func animateInfoLabel() {
-        memberNamesLabel.text = Localizations.groupTitleTapForInfo
-        memberNamesLabel.isHidden = false
+        infoLabel.text = Localizations.groupTitleTapForInfo
+        infoLabel.isHidden = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
             UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
-                self?.memberNamesLabel.alpha = 0
-            }, completion: { finished in
-                guard finished else { return }
+                self?.infoLabel.alpha = 0
+            }, completion: { _ in
+                // don't check for finished, we want the infoLabel hidden regardless (ie. user navigates away during first animation)
                 UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseOut, animations: {
-                    self?.memberNamesLabel.isHidden = true
+                    self?.infoLabel.isHidden = true
                 })
             })
         }
@@ -59,7 +59,7 @@ class GroupTitleView: UIView {
     func showChatState(with typingIndicatorStr: String?) {
         let show: Bool = typingIndicatorStr != nil
 
-        memberNamesLabel.isHidden = show
+        infoLabel.isHidden = show
         typingLabel.isHidden = !show
         isShowingTypingIndicator = show
 
@@ -69,17 +69,9 @@ class GroupTitleView: UIView {
 
     private func setup() {
         avatarView = AvatarViewButton(type: .custom)
-//        avatarView.hasNewPostsIndicator = ServerProperties.isGroupFeedEnabled
-//        avatarView.newPostsIndicatorRingWidth = 3
-//        avatarView.newPostsIndicatorRingSpacing = 1
         let avatarButtonWidth: CGFloat = LayoutConstants.avatarSize + (avatarView.hasNewPostsIndicator ? 2*(avatarView.newPostsIndicatorRingSpacing + avatarView.newPostsIndicatorRingWidth) : 0)
         avatarView.widthAnchor.constraint(equalToConstant: avatarButtonWidth).isActive = true
         avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
-//        if ServerProperties.isGroupFeedEnabled {
-//            avatarView.addTarget(self, action: #selector(avatarButtonTapped), for: .touchUpInside)
-//        } else {
-//            avatarView.isUserInteractionEnabled = false
-//        }
 
         avatarView.isUserInteractionEnabled = false
 
@@ -109,7 +101,7 @@ class GroupTitleView: UIView {
     private var avatarView: AvatarViewButton!
 
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [nameLabel, memberNamesLabel, typingLabel])
+        let view = UIStackView(arrangedSubviews: [nameLabel, infoLabel, typingLabel])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .vertical
         view.spacing = 0
@@ -125,7 +117,7 @@ class GroupTitleView: UIView {
         return label
     }()
 
-    private lazy var memberNamesLabel: UILabel = {
+    private lazy var infoLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
         label.translatesAutoresizingMaskIntoConstraints = false

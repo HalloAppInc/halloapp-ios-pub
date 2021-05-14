@@ -312,8 +312,14 @@ class GroupBackgroundViewController: UIViewController {
         guard let selectedColorView = colorSelectionDict[theme] else { return }
 
         currentColorView.layer.borderColor = UIColor.groupBgColorSelectionPanelBg.cgColor
+        if let shapeLayer = currentColorView.layer.sublayers?[0] as? CAShapeLayer {
+            shapeLayer.lineWidth = 1
+        }
 
         selectedColorView.layer.borderColor = UIColor.primaryBlue.cgColor
+        if let shapeLayer = selectedColorView.layer.sublayers?[0] as? CAShapeLayer {
+            shapeLayer.lineWidth = 0
+        }
 
         selectedBackground = theme
 
