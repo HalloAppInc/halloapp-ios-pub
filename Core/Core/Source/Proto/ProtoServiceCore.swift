@@ -399,6 +399,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     open func performOnConnect() {
         didConnect.send()
+        retryConnectionTask?.cancel()
         shouldReconnectOnConnectionLoss = isAutoReconnectEnabled
         resendAllPendingRequests()
     }

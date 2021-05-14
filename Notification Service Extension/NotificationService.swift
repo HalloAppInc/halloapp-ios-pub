@@ -127,9 +127,14 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
     }
 
     private func invokeCompletionHandler() {
-        DDLogInfo("Invoking completion handler now")
-        contentHandler(bestAttemptContent)
-        
+        DDLogInfo("Going to try to disconnect and invoke completion handler now")
+        // Try and disconnect after 1 second.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
+            DDLogInfo("disconnect now")
+            service?.disconnect()
+            DDLogInfo("Invoking completion handler now")
+            contentHandler(bestAttemptContent)
+        }
     }
 
     // Decrypt, save and process chats!
@@ -271,6 +276,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
     override func serviceExtensionTimeWillExpire() {
         // Called just before the extension will be terminated by the system.
         // Use this as an opportunity to deliver your "best attempt" at modified content, otherwise the original push payload will be used.
+        service?.disconnectImmediately()
         if let contentHandler = contentHandler, let bestAttemptContent =  bestAttemptContent {
             DDLogWarn("timeWillExpire")
             DDLogInfo("Invoking completion handler now")

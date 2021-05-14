@@ -39,6 +39,9 @@ class ShareViewController: UINavigationController {
     private let serviceBuilder: ServiceBuilder = {
         return ProtoServiceCore(userData: $0, passiveMode: true, automaticallyReconnect: false)
     }
+    // TODO: We should automatically reconnect here in-case of connection loss.
+    // Otherwise, user could end up in a state where the share extension does not have an active connection.
+    // This should be fine for now, enable this after server allows multiple passive connections.
 
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
