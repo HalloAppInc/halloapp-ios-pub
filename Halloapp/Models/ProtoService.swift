@@ -593,6 +593,13 @@ final class ProtoService: ProtoServiceCore {
             if !serverChat.senderName.isEmpty {
                 MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverChat.senderName ])
             }
+            // Dont process messages that were already decrypted and saved.
+            if MainAppContext.shared.cryptoData.result(for: msg.id) == "success",
+               let _ = MainAppContext.shared.chatData.chatMessage(with: msg.id) {
+                sendAck(messageID: msg.id)
+                return
+            }
+
             let receiptTimestamp = Date()
             decryptChat(serverChat, from: UserID(msg.fromUid)) { (clientChat, decryptionFailure) in
                 if let clientChat = clientChat {

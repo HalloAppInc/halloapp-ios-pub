@@ -98,6 +98,7 @@ final class CryptoData {
         reportTimer?.resume()
     }
 
+    // TODO: we should make this result an enum.
     func result(for messageID: String) -> String? {
         return fetchMessageDecryption(id: messageID, in: viewContext)?.decryptionResult
     }
