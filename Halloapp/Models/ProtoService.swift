@@ -445,6 +445,22 @@ final class ProtoService: ProtoServiceCore {
 
     }
 
+    // Checks if the message is decrypted and saved in the main app's data store.
+    private func isMessageDecryptedAndSaved(msgId: String) -> Bool {
+        if MainAppContext.shared.cryptoData.result(for: msgId) == "success",
+           let _ = MainAppContext.shared.chatData.chatMessage(with: msgId) {
+            return true
+        }
+        return false
+    }
+
+    private func rerequestMessageIfNecessary(_ message: Server_Msg, failedEphemeralKey: Data?) {
+        // Dont rerequest messages that were already decrypted and saved.
+        if !isMessageDecryptedAndSaved(msgId: message.id) {
+            rerequestMessage(message, failedEphemeralKey: failedEphemeralKey)
+        }
+    }
+
     private func rerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?) {
         self.updateMessageStatus(id: message.id, status: .rerequested)
 
@@ -594,8 +610,7 @@ final class ProtoService: ProtoServiceCore {
                 MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverChat.senderName ])
             }
             // Dont process messages that were already decrypted and saved.
-            if MainAppContext.shared.cryptoData.result(for: msg.id) == "success",
-               let _ = MainAppContext.shared.chatData.chatMessage(with: msg.id) {
+            if isMessageDecryptedAndSaved(msgId: msg.id) {
                 sendAck(messageID: msg.id)
                 return
             }
@@ -619,7 +634,7 @@ final class ProtoService: ProtoServiceCore {
                 if let failure = decryptionFailure {
                     DDLogError("proto/didReceive/\(msg.id)/decrypt/error \(failure.error)")
                     AppContext.shared.errorLogger?.logError(failure.error)
-                    self.rerequestMessage(msg, failedEphemeralKey: failure.ephemeralKey)
+                    self.rerequestMessageIfNecessary(msg, failedEphemeralKey: failure.ephemeralKey)
                 } else {
                     DDLogInfo("proto/didReceive/\(msg.id)/decrypt/success")
                 }

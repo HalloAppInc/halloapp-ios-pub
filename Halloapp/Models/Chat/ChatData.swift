@@ -777,10 +777,18 @@ class ChatData: ObservableObject {
         for message in messages {
             let messageId: ChatMessageID = message.id
             DDLogInfo("ChatData/mergeSharedData/message/\(messageId)")
-            guard chatMessage(with: messageId, in: managedObjectContext) == nil else {
-                DDLogError("ChatData/mergeSharedData/already-exists [\(messageId)]")
-                continue
+
+            if let existingChatmessage = chatMessage(with: messageId, in: managedObjectContext) {
+                if existingChatmessage.incomingStatus == .rerequesting &&
+                    (message.status == .received || message.status == .acked) {
+                    DDLogInfo("ChatData/mergeSharedData/already-exists [\(messageId)] override failed decryption.")
+                } else {
+                    DDLogError("ChatData/mergeSharedData/already-exists [\(messageId)] dont override.")
+                    continue
+                }
             }
+            DDLogInfo("ChatData/mergeSharedData/merging message/\(messageId)")
+
             var clientChatMsg: Clients_ChatMessage? = nil
             if let clientChatMsgPb = message.clientChatMsgPb {
                 do {

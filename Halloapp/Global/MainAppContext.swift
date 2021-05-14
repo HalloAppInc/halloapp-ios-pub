@@ -29,6 +29,8 @@ class MainAppContext: AppContext {
     private(set) var uploadData: UploadData!
     private(set) var syncManager: SyncManager!
     private(set) var privacySettings: PrivacySettings!
+    private(set) var shareExtensionDataStore: ShareExtensionDataStore!
+    private(set) var notificationServiceExtensionDataStore: NotificationServiceExtensionDataStore!
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
     lazy var cryptoData: CryptoData = { CryptoData() }()
     
@@ -112,11 +114,27 @@ class MainAppContext: AppContext {
         avatarStore = AvatarStore()
         coreService.avatarDelegate = avatarStore
         privacySettings = PrivacySettings(contactStore: contactStore, service: service)
+        shareExtensionDataStore = ShareExtensionDataStore()
+        notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()
+
+        // Add observer to notify us when persistentStore records changes.
+        // These notifications are triggered for all cross process writes to the store.
+        NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
+                                               name: .NSPersistentStoreRemoteChange,
+                                               object: shareExtensionDataStore.persistentContainer.persistentStoreCoordinator)
+        NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
+                                               name: .NSPersistentStoreRemoteChange,
+                                               object: notificationServiceExtensionDataStore.persistentContainer.persistentStoreCoordinator)
 
         let oneHour = TimeInterval(60*60)
         cryptoData.startReporting(interval: oneHour) { [weak self] events in
             self?.eventMonitor.observe(events)
         }
+    }
+
+    // Process persistent history to merge changes from other coordinators.
+    @objc private func processStoreRemoteChanges(_ notification: Notification) {
+        mergeSharedData()
     }
     
     private var mergingSharedData = false
@@ -125,12 +143,12 @@ class MainAppContext: AppContext {
         guard !mergingSharedData else { return }
 
         mergingSharedData = true
+
         let mergeGroup = DispatchGroup()
 
         // Always merge feedData first and then chatData: because chatContent might refer to feedItems.
         DDLogInfo("MainAppContext/merge-data/share-extension")
-        
-        let shareExtensionDataStore = ShareExtensionDataStore()
+
         mergeGroup.enter()
         feedData.mergeData(from: shareExtensionDataStore) {
             mergeGroup.leave()
@@ -141,7 +159,6 @@ class MainAppContext: AppContext {
         }
 
         DDLogInfo("MainAppContext/merge-data/notification-service-extension")
-        let notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()
 
         mergeGroup.enter()
         service.mergeData(from: notificationServiceExtensionDataStore) {

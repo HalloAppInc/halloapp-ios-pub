@@ -29,6 +29,7 @@ open class SharedDataStore {
         let storeDescription = NSPersistentStoreDescription(url: Self.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
+        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
         storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
         storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
         let modelURL = Bundle(for: SharedMedia.self).url(forResource: "SharedData", withExtension: "momd")!
