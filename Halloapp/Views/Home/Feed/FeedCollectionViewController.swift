@@ -513,7 +513,7 @@ extension FeedCollectionViewController {
     }
 
     private var gutterWidth: CGFloat {
-        (1 - FeedPostCollectionViewCellBase.LayoutConstants.backgroundPanelHMarginRatio) * collectionView.layoutMargins.left
+        (1 - FeedPostCollectionViewCell.LayoutConstants.backgroundPanelHMarginRatio) * collectionView.layoutMargins.left
     }
 
     func refreshFooters() {
