@@ -83,11 +83,19 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         navigationItem.standardAppearance = navAppearance
         navigationItem.scrollEdgeAppearance = navAppearance
         navigationItem.compactAppearance = navAppearance
+        if shouldShowVerifyOption() {
+            // TODO: Use localized string here or pop up action sheet with longer description
+            navigationItem.rightBarButtonItem = UIBarButtonItem(
+                title: "Verify",
+                style: .plain,
+                target: self,
+                action: #selector(openSafetyNumberVerification))
+        }
 
-        NSLayoutConstraint.activate([
-            titleView.widthAnchor.constraint(equalToConstant: (self.view.frame.width*0.8))
-        ])
-        
+        let titleWidthConstraint = titleView.widthAnchor.constraint(equalToConstant: (self.view.frame.width*0.8))
+        titleWidthConstraint.priority = .defaultHigh // Lower priority to allow space for trailing button if necessary
+        titleWidthConstraint.isActive = true
+
         navigationItem.titleView = titleView
         titleView.translatesAutoresizingMaskIntoConstraints = false
         titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 3, right: 0)
@@ -318,6 +326,42 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     }
     
     // MARK:
+
+    private func shouldShowVerifyOption() -> Bool {
+        guard ServerProperties.isInternalUser else {
+            return false
+        }
+
+        guard let otherUserID = fromUserId,
+              let otherKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: otherUserID)?.keyBundle,
+              SafetyNumberData(keyBundle: otherKeyBundle) != nil
+        else {
+            // TODO: Allow user to verify without existing key bundle
+            return false
+        }
+
+        return true
+    }
+
+    @objc
+    private func openSafetyNumberVerification() {
+        guard let userKeys = MainAppContext.shared.keyStore.keyBundle(),
+              let contactUserID = fromUserId,
+              let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: contactUserID)?.keyBundle,
+              let contactData = SafetyNumberData(keyBundle: contactKeyBundle) else
+        {
+            return
+        }
+
+        let vc = SafetyNumberViewController(
+            currentUser: SafetyNumberData(
+                userID: MainAppContext.shared.userData.userId,
+                identityKey: userKeys.identityPublicKey),
+            contact: contactData,
+            contactName: MainAppContext.shared.contactStore.fullName(for: contactUserID),
+            dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+        present(vc.withNavigationController(), animated: true)
+    }
 
     private func presentMediaExplorer(media: [ChatMedia], At index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         let controller = MediaExplorerController(media: media, index: index)

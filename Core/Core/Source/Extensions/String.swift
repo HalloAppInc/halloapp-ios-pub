@@ -77,5 +77,16 @@ extension String {
         return self[index(startIndex, offsetBy: offset)]
     }
 
+    public func splitIntoChunks(ofLength length: Int) -> [String] {
+        var chunks = [String]()
+        var cursor = startIndex
+        while cursor < endIndex {
+            let nextChunk = index(cursor, offsetBy: length)
+            chunks.append(String(self[cursor..<nextChunk]))
+            cursor = nextChunk
+        }
+        return chunks
+    }
+
     public var utf16Extent: NSRange { NSRange(location: 0, length: (self as NSString).length) }
 }

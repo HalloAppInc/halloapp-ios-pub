@@ -51,7 +51,7 @@ enum CameraInitError: Error, LocalizedError {
     }
 }
 
-private extension Localizations {
+extension Localizations {
 
     static var cameraAccessPrompt: String {
         NSLocalizedString("media.camera.access.request",

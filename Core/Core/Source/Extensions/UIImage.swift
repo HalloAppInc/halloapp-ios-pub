@@ -301,4 +301,23 @@ extension UIImage {
         UIGraphicsEndImageContext()
         return image
     }
+
+    public static func qrCodeImage(for data: Data, size: CGSize? = nil) -> UIImage? {
+        guard let filter = CIFilter(name: "CIQRCodeGenerator") else {
+            return nil
+        }
+        filter.setValue(data, forKey: "inputMessage")
+        guard let qrCodeImage = filter.outputImage else {
+            return nil
+        }
+        let transform: CGAffineTransform = {
+            guard let size = size, size.width > 0, size.height > 0, !qrCodeImage.extent.isEmpty else {
+                return .identity
+            }
+            return CGAffineTransform(
+                scaleX: size.width / qrCodeImage.extent.width,
+                y: size.height / qrCodeImage.extent.height)
+        }()
+        return UIImage(ciImage: qrCodeImage.transformed(by: transform))
+    }
 }

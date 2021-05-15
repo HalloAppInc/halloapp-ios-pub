@@ -1,7 +1,7 @@
 
 import CryptoKit
 
-extension Digest {
+public extension Digest {
 
     var bytes: [UInt8] { Array(makeIterator()) }
 

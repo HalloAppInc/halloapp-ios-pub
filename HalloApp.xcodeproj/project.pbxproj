@@ -28,6 +28,7 @@
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
 		5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */; };
 		5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF5D12224F5295300F272D8 /* CameraViewController.swift */; };
+		680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680528CC264F14B9001F6A57 /* SafetyNumber.swift */; };
 		680FB661250C45C000CA5D40 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680FB660250C45C000CA5D40 /* OverlayView.swift */; };
 		68184009264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 68184008264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel */; };
 		681E0DAA24C8E0190073A03E /* NewPostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 681E0DA924C8E0190073A03E /* NewPostViewController.swift */; };
@@ -51,6 +52,8 @@
 		68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8D24D33DEF00F40F1F /* Mentions.swift */; };
 		68A64E9224D33E0F00F40F1F /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
 		68B47B02260DBAD000D675FC /* InviteContactsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B47B01260DBAD000D675FC /* InviteContactsManager.swift */; };
+		68B5C22D264C6F3F004C7939 /* SafetyNumberViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B5C22C264C6F3F004C7939 /* SafetyNumberViewController.swift */; };
+		68B5C232264DC710004C7939 /* QRCodeScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B5C231264DC710004C7939 /* QRCodeScannerViewController.swift */; };
 		68C8264B251A77A000BB8F3A /* NUX.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C8264A251A77A000BB8F3A /* NUX.swift */; };
 		68CD603425E463FA0056D13E /* ConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CD603325E463FA0056D13E /* ConnectionBanner.swift */; };
 		68CFF38F2551FF6F009B0D81 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */; };
@@ -375,6 +378,7 @@
 		477D47B0022D866E02A122DB /* Pods-Share Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
 		5BF5D12224F5295300F272D8 /* CameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
+		680528CC264F14B9001F6A57 /* SafetyNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyNumber.swift; sourceTree = "<group>"; };
 		680FB660250C45C000CA5D40 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
 		68184003264B1CAF00408D31 /* Feed3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed3.xcdatamodel; sourceTree = "<group>"; };
 		68184008264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed2ToFeed3.xcmappingmodel; sourceTree = "<group>"; };
@@ -403,6 +407,8 @@
 		68A64E8D24D33DEF00F40F1F /* Mentions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mentions.swift; sourceTree = "<group>"; };
 		68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MentionPickerView.swift; sourceTree = "<group>"; };
 		68B47B01260DBAD000D675FC /* InviteContactsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactsManager.swift; sourceTree = "<group>"; };
+		68B5C22C264C6F3F004C7939 /* SafetyNumberViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyNumberViewController.swift; sourceTree = "<group>"; };
+		68B5C231264DC710004C7939 /* QRCodeScannerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeScannerViewController.swift; sourceTree = "<group>"; };
 		68C8264A251A77A000BB8F3A /* NUX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NUX.swift; sourceTree = "<group>"; };
 		68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.external beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.external beta.xcconfig"; sourceTree = "<group>"; };
 		68CD603325E463FA0056D13E /* ConnectionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionBanner.swift; sourceTree = "<group>"; };
@@ -1026,6 +1032,9 @@
 			children = (
 				76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */,
 				769CD3AB255CDB8D006F21BB /* NameEditViewController.swift */,
+				68B5C22C264C6F3F004C7939 /* SafetyNumberViewController.swift */,
+				68B5C231264DC710004C7939 /* QRCodeScannerViewController.swift */,
+				680528CC264F14B9001F6A57 /* SafetyNumber.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -1901,6 +1910,7 @@
 				76538092243D4B33000AD9A1 /* FeedPostComment+CoreDataClass.swift in Sources */,
 				7665478A252BE44C00379BEF /* GroupFeedViewController.swift in Sources */,
 				76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */,
+				68B5C22D264C6F3F004C7939 /* SafetyNumberViewController.swift in Sources */,
 				EACC34CC24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataProperties.swift in Sources */,
 				F881ED70261B0FDE0013599F /* Upload.xcdatamodeld in Sources */,
 				76B5B52F2501EEBE0055E712 /* UNExtensions.swift in Sources */,
@@ -1922,6 +1932,7 @@
 				24AA69D324DCC1B500ED65CE /* XMPPChatMessage.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				76A9244B244EC49000794859 /* UIView.swift in Sources */,
+				680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */,
 				EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */,
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
 				68419A8526029C2000C30B6A /* CryptoStats.xcdatamodeld in Sources */,
@@ -1935,6 +1946,7 @@
 				68C8264B251A77A000BB8F3A /* NUX.swift in Sources */,
 				68419A932602AAB700C30B6A /* CryptoData.swift in Sources */,
 				EAA0799725AFC71600B384AB /* ThreadListCell.swift in Sources */,
+				68B5C232264DC710004C7939 /* QRCodeScannerViewController.swift in Sources */,
 				EA62C28C2563577D008EA9C9 /* MsgUIProtocol.swift in Sources */,
 				76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */,
 				68D45A0E25544813000BF04E /* ContactsPermissionsViewController.swift in Sources */,
