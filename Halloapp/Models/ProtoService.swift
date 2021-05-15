@@ -40,6 +40,12 @@ final class ProtoService: ProtoServiceCore {
     override func performOnConnect() {
         super.performOnConnect()
 
+        // Check on every connection if we have to send the apns token to the server.
+        if hasValidAPNSPushToken {
+            let token = UserDefaults.standard.string(forKey: userDefaultsKeyForAPNSToken)
+            sendAPNSTokenIfNecessary(token)
+        }
+
         resendNameIfNecessary()
         resendAvatarIfNecessary()
         resendAllPendingReceipts()
@@ -58,6 +64,13 @@ final class ProtoService: ProtoServiceCore {
         propsHash = authResult.propsHash.toHexString()
 
         super.authenticationSucceeded(with: authResult)
+    }
+
+    override func authenticationFailed(with authResult: Server_AuthResult) {
+        // Clear push token sync time on authentication failure.
+        UserDefaults.standard.removeObject(forKey: userDefaultsKeyForAPNSSyncTime)
+
+        super.authenticationFailed(with: authResult)
     }
 
     private var cancellableSet = Set<AnyCancellable>()
