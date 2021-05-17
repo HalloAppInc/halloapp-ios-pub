@@ -157,8 +157,6 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 pageControl.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
             ])
         }
-
-        toggleSystemUI()
     }
 
     override func viewDidLayoutSubviews() {
@@ -407,6 +405,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         if isSystemUIHidden {
             UIView.animate(withDuration: 0.3, animations: {
                 self.navigationController?.navigationBar.alpha = 0.0
+                self.pageControl.alpha = 0.0
             }, completion: { _ in
                 self.navigationController?.setNavigationBarHidden(true, animated: true)
             })
@@ -416,6 +415,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
             UIView.animate(withDuration: 0.3, delay: Double(UINavigationController.hideShowBarDuration), options: [], animations: {
                 self.navigationController?.navigationBar.alpha = 1.0
+                self.pageControl.alpha = 1.0
             }, completion: nil)
         }
 
@@ -461,7 +461,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 return
             }
 
-            if !swipeExitInProgress && translation.y > startThreshold && translation.y > abs(translation.x) {
+            if !swipeExitInProgress && abs(translation.y) > startThreshold && abs(translation.y) > abs(translation.x) {
                 sender.setTranslation(.zero, in: sender.view)
                 swipeExitInProgress = true
                 backAction()
