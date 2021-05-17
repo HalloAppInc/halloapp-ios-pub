@@ -53,6 +53,15 @@
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
 "button.remove" = "Entfernen";
 
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Speichern";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Senden";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Teilen";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Update";
 
@@ -101,8 +110,11 @@
 /* Title of group name edit screen */
 "chat.edit.group.title" = "Gruppennamen bearbeiten";
 
-/* Message text shown with the user who demoted a group admin */
-"chat.group.event.demoted.member" = "%1$@ hat %2$@ als Admin entfernt";
+/* Label shown above background selection row */
+"chat.group.background.label" = "HINTERGRUND";
+
+/* Message text shown with the user who joined the group via invite link */
+"chat.group.event.join" = "%@ ist der Gruppe über den Gruppeneinladungslink beigetreten";
 
 /* Message text shown with the user who left the group */
 "chat.group.event.member.left" = "%@ hat die Gruppe verlassen";
@@ -112,6 +124,15 @@
 
 /* Label shown in the members list when member is an admin */
 "chat.group.info.admin.label" = "Admin";
+
+/* Text label for a color selection of group feed background color */
+"chat.group.info.bg.color.label" = "Farbe";
+
+/* Text label for default selection of group feed background color */
+"chat.group.info.bg.default.label" = "Standardeinstellung";
+
+/* Text for menu option of demoting a group member */
+"chat.group.info.demote" = "Als Admin entfernen";
 
 /* Action label for leaving group */
 "chat.group.info.leave.group" = "Gruppe verlassen";
@@ -160,6 +181,9 @@
 
 /* Message text shown in a message that have video media but no text */
 "chat.message.video" = "Video";
+
+/* Text shown in place of a received message we are not able to decrypt yet. */
+"chat.message.waiting" = "Warten Nachrichteneingang. Dies kann eine Weile dauern.";
 
 /* Title for new message screen where user chooses who to message */
 "chat.new.message.title" = "Neue Nachricht";
@@ -333,14 +357,26 @@
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Kommentieren";
 
+/* Button under someoneelse's post. Verb. */
+"feedpost.button.reply" = "Antworten";
+
+/* Label for choosing a color at the group background preview screen */
+"group.bg.pick.a.color.label" = "FARBE AUSWÄHLEN";
+
+/* Title of group background screen */
+"group.bg.title" = "Hintergrund";
+
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ hat %2$@ hinzugefügt";
 
 /* Message text shown with the user who changed the group avatar */
 "group.event.changed.avatar" = "%@ hat das Gruppensymbol geändert";
 
+/* Message text shown with the user who changed the background */
+"group.event.changed.background" = "%@ hat die Hintergrundfarbe geändert";
+
 /* Message text shown with the user who changed the group name */
-"group.event.changed.name" = "%1$@ hat den Gruppennamen in \"%2$@\" umbenannt";
+"group.event.changed.name" = "%1$@ hast/hat den Gruppennamen in \"%2$@\" umbenannt";
 
 /* Message text shown with the user who created the group */
 "group.event.created.group" = "%1$@ hat die Gruppe \"%2$@\" gegründet";
@@ -351,8 +387,35 @@
 /* Message text shown with the user who removed a group member */
 "group.event.removed.member" = "%1$@ hat %2$@ aus der Gruppe entfernt";
 
+/* Label for copying link */
+"group.invite.copy.link" = "Link kopieren";
+
+/* Text shown when link is copied */
+"group.invite.link.copied" = "Link kopiert";
+
+/* Text shown when link is reset */
+"group.invite.link.reset" = "Link zurückgesetzt";
+
+/* Label for resetting link */
+"group.invite.reset.link" = "Link zurücksetzen";
+
+/* Warning shown when user clicks on reset link action */
+"group.invite.reset.link.warning" = "Wenn dieser Einladungslink zurückgesetzt wird, kann niemand ihn verwenden, um der Gruppe beizutreten.";
+
+/* Label for sharing link */
+"group.invite.share.link" = "Link teilen";
+
+/* Title of group invite screen */
+"group.invite.title" = "Gruppeneinladungslink";
+
+/* Label for joining group action */
+"group.preview.join.group" = "GRUPPE BEITRETEN";
+
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Für Gruppeninfo hier tippen";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "Du wurdest zu einer neuen Gruppe hinzugefügt";
 
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "Möchtest du wirklich diese Gruppe und ihren Inhalt von deinem Gerät entfernen?";
@@ -369,6 +432,15 @@
 /* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
 "invite.already.halloapp.user" = "Ist bereits auf HalloApp";
 
+/* Title for button that launches system SMS app to send invite. As short as possible! */
+"invite.app.sms" = "Text";
+
+/* Title for button that launches WhatsApp to send invite. Should match WhatsApp localization. */
+"invite.app.whatsapp" = "WhatsApp";
+
+/* Shows number of current HalloApp users who have this contact in their list */
+"invite.contact.count" = "%d Kontakte auf HalloApp";
+
 /* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
 "invite.error.alert.message" = "Etwas ist etwas schiefgegangen.  Bitte versuche es später noch einmal.";
 
@@ -381,8 +453,17 @@
 /* Displayed white user is inviting someone. */
 "invite.please.wait" = "Bitte warten...";
 
+/* Indicates how many invites are remaining */
+"invite.remaining.count.unspecified.time" = "Du hast noch %@ Einladungen";
+
 /* Text of invitation to join HalloApp. */
 "invite.text" = "Mach mit bei HalloApp — eine Möglichkeit ganz persönlich, unkompliziert und sicher den Kontakt zu Freunden und zur Familie zu halten. Hole sie dir auf: https://halloapp.com/dl";
+
+/* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
+"invite.text.specific" = "Hallo %s, ich lade dich ein, dich ebenfalls bei HalloApp anzumelden. Eine simple Social-App, um alltägliche Momente zu teilen. Nutze %s zur Registrierung und hol sie dir auf halloapp.com/dl";
+
+/* Title for the screen that allows to select contact to invite. */
+"invite.title" = "Einladen";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Mehr erfahren";
@@ -409,7 +490,7 @@
 "media.mic.access.request.title" = "Möchtest du Videos mit Ton aufnehmen?";
 
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
-"media.prepare.failed.n.count" = "medien.erstellung.fehlgeschlagen.n.anzahl";
+"media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Schließen";
@@ -471,12 +552,18 @@
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Einer deiner Kontakte ist jetzt aktiv auf HalloApp";
 
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@ hat deine HalloApp-Einladung angenommen 🎉";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "Benachrichtigung.n.Fotos";
 
 /* Content for contact notification.
    Content for friend notification. */
 "notification.new.friend.content" = "%@ ist jetzt aktiv auf HalloApp";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "Neue Nachricht";
 
 /* Title for the new feed post notification. */
 "notification.new.post" = "Neuer Beitrag";
@@ -498,6 +585,9 @@
 
 /* Shown on groups list when there are no groups to display */
 "nux.groups.list.empty" = "Deine Gruppen erscheinen hier";
+
+/* Shown on home feed when no posts are available */
+"nux.home.feed.empty" = "Hier werden Beiträge deiner Kontakte angezeigt";
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Tippe hier, um ein Update mit deinen Freunden & deiner Familie auf HalloApp zu teilen";
@@ -602,14 +692,11 @@
 /* Error message to display when we cannot send a verification code */
 "registration.code.request.error" = "Der Code konnte nicht gesendet werden. Bitte versuche es später noch einmal.";
 
-/* Button label to resend verification code */
-"registration.code.resend" = "Code noch einmal senden";
-
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Um dich mit deinen Freunden & deiner Familie zu verbinden, benötigen wir die Zugriffsberechtigung auf deine Kontakte.";
 
 /* Title for text explaining why we need contact permissions */
-"registration.contacts.title" = "Ein letzter Hinweis";
+"registration.contacts.title" = "Eine letzte Sache";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Nutzung momentan nur auf Einladungs-Basis. Bitte deine Freude oder Familienmitglieder, die HalloApp nutzen, dich über deine Telefonnummer einzuladen.";
@@ -637,6 +724,33 @@
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "select.group.members.title" = "Neue Mitglieder hinzufügen";
+
+/* fallback text in notification for a new comment */
+"server.new.comment" = "Neuer Kommentar";
+
+/* fallback text in notification when a new contact joins */
+"server.new.contact" = "%@ ist nun auch auf HalloApp";
+
+/* fallback text in notification when user is added to a new group */
+"server.new.group" = "Du wurdest einer neuen Gruppe hinzugefügt";
+
+/* fallback text in notification for a new group chat message */
+"server.new.group.message" = "Neue Gruppen-Nachricht";
+
+/* fallback text in notification when an invitee joins */
+"server.new.inviter" = "%@ hat deine HalloApp-Einladung angenommen 🎉";
+
+/* fallback text in notification for a new chat message */
+"server.new.message" = "Neue Nachricht";
+
+/* fallback text in notification for a new feed post */
+"server.new.post" = "Neuer Beitrag";
+
+/* text in the sms sent with verification code */
+"server.sms.verification" = "Dein HalloApp Bestätigungscode";
+
+/* text in the voice call sent with verification code */
+"server.voicecall.verification" = "Dein HalloApp Bestätigungscode ist";
 
 /* App version text in Profile > Help. */
 "settings.app.version" = "HalloApp Version %@";

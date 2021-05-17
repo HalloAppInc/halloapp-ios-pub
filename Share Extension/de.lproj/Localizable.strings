@@ -20,11 +20,60 @@
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
 "button.remove" = "Entfernen";
 
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Speichern";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Senden";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Teilen";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Aktualisieren";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Mehr erfahren";
+
+/* Placeholder for media caption. */
+"share.composer.placeholder" = "Bildunterschrift";
+
+/* Placeholder when sharing text only. */
+"share.composer.placeholder.text" = "Beitrag schreiben";
+
+/* Composer subtitle when sharing with a contact */
+"share.composer.subtitle.contact" = "Versendet an %@";
+
+/* Composer subtitle for group posts */
+"share.composer.subtitle.group" = "Geteilt mit %@";
+
+/* Composer title when sharing with a contact */
+"share.composer.title.contact" = "Neue Nachricht";
+
+/* Composer title when sharing to feed */
+"share.composer.title.feed" = "Neuer Beitrag";
+
+/* Alert dialog message shown when uploading fails.
+   Alert dialog title shown when uploading fails. */
+"share.composer.uploading.fail.title" = "Upload fehlgeschlagen";
+
+/* Alert dialog title shown when uploading begins. */
+"share.composer.uploading.title" = "Wird hochgeladen...";
+
+/* Contacts category label */
+"share.destination.contacts" = "Kontakte";
+
+/* Share on the feed label */
+"share.destination.feed" = "Feed";
+
+/* Groups category label */
+"share.destination.groups" = "Gruppen";
+
+/* Destination screen title */
+"share.destination.title" = "HalloApp";
+
+/* Title of alert when user is not logged in */
+"share.notlogged.title" = "Du bist nicht eingeloggt.";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Kontakt unbekannt";

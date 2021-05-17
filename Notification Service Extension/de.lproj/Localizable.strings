@@ -20,8 +20,20 @@
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
 "button.remove" = "Entfernen";
 
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Speichern";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Senden";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Teilen";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Aktualisieren";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "Du wurdest einer neuen Gruppe hinzugefügt";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Mehr erfahren";
@@ -32,9 +44,15 @@
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Einer deiner Kontakte ist jetzt aktiv auf HalloApp";
 
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@ hat deine HalloApp-Einladung angenommen 🎉";
+
 /* Content for contact notification.
    Content for friend notification. */
 "notification.new.friend.content" = "%@ ist jetzt aktiv auf HalloApp";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "Neue Nachricht";
 
 /* Title for the new feed post notification. */
 "notification.new.post" = "Neuer Beitrag";

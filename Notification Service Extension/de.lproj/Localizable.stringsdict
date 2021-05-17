@@ -5,7 +5,7 @@
 	<key>notification.n.photos</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@num_Fotos@</string>
+		<string>%#@num_photos@</string>
 		<key>num_photos</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -21,7 +21,7 @@
 	<key>notification.n.videos</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@num_Videos@</string>
+		<string>%#@num_videos@</string>
 		<key>num_videos</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
