@@ -1,0 +1,80 @@
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Cancelar";
+
+/* Title for generic Create button */
+"button.create" = "Crear";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Descartar";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Listo";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Siguiente";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Eliminar";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Guardar";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Enviar";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Compartir";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Actualizar";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Más información";
+
+/* Placeholder for media caption. */
+"share.composer.placeholder" = "Escribe una descripción";
+
+/* Placeholder when sharing text only. */
+"share.composer.placeholder.text" = "Escribe una publicación";
+
+/* Composer subtitle when sharing with a contact */
+"share.composer.subtitle.contact" = "Enviar a %@";
+
+/* Composer subtitle for group posts */
+"share.composer.subtitle.group" = "Compartir con %@";
+
+/* Composer title when sharing with a contact */
+"share.composer.title.contact" = "Mensaje nuevo";
+
+/* Composer title when sharing to feed */
+"share.composer.title.feed" = "Publicación nueva";
+
+/* Alert dialog message shown when uploading fails.
+   Alert dialog title shown when uploading fails. */
+"share.composer.uploading.fail.title" = "Error al cargar";
+
+/* Alert dialog title shown when uploading begins. */
+"share.composer.uploading.title" = "Cargando...";
+
+/* Contacts category label */
+"share.destination.contacts" = "Contactos";
+
+/* Share on the feed label */
+"share.destination.feed" = "Contenido";
+
+/* Groups category label */
+"share.destination.groups" = "Grupos ";
+
+/* Destination screen title */
+"share.destination.title" = "HalloApp";
+
+/* Title of alert when user is not logged in */
+"share.notlogged.title" = "No has iniciado sesión";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Contacto desconocido";
+

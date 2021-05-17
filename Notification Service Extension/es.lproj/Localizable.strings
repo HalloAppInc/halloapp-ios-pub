@@ -1,0 +1,68 @@
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Cancelar";
+
+/* Title for generic Create button */
+"button.create" = "Crear";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Descartar";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Listo";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Siguiente";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Retirar";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Guardar";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Enviar";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Compartir";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Actualizar";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "Fuiste agregado a un grupo nuevo";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Más información";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "Comentó: %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "Uno de tus contactos está ahora en HalloApp";
+
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@ ya está en HalloApp";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "Mensaje nuevo";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "Publicación nueva";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "📷 foto";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "📹 video";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Contacto desconocido";
+

@@ -1,0 +1,874 @@
+/* No comment provided by engineer. */
+"%" = "%";
+
+/* No comment provided by engineer. */
+"%@" = "\\n %@";
+
+/* About screen: body text. */
+"about.body.2" = "Gracias por usar y compartir HalloApp con tus amigos y familia. Cada semana la optimizamos más.";
+
+/* About screen: footer text. Parameter is support email address. */
+"about.footer" = "Si tienes preguntas o comentarios, envíanos un email a %@";
+
+/* About screen: greeting. */
+"about.hallo" = "Oh Hallo";
+
+/* About screen: navigation bar title. */
+"about.title" = "Acerca de";
+
+/* Longer title for the button that confirms marking all items in the activity center as read. */
+"activity.center.button.mark.all.read" = "Marcar todos como leídos";
+
+/* Short title for the button in activity center. */
+"activity.center.button.read.all" = "Leer todos";
+
+/* Title for the activity center screen. */
+"activity.center.title" = "Actividad";
+
+/* Translation of iPhone settings app. */
+"app.ios.settings" = "Configuración";
+
+/* Text to show on banner when no connection is available */
+"banner.no.connection" = "No hay conexión de Internet";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Cancelar";
+
+/* Title for generic Create button */
+"button.create" = "Crear";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Descartar";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Hecho";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Siguiente";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Retirar";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Guardar";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Enviar";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Compartir";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Actualizar";
+
+/* No comment provided by engineer. */
+"camera.init.error.1" = "No se puede iniciar la cámara trasera";
+
+/* No comment provided by engineer. */
+"camera.init.error.2" = "No se puede iniciar la cámara frontal";
+
+/* No comment provided by engineer. */
+"camera.init.error.3" = "No se puede iniciar el micrófono";
+
+/* No comment provided by engineer. */
+"camera.init.error.7" = "No se puede tomar fotos";
+
+/* Title for a popup alerting about camera initialization error. */
+"camera.init.error.title" = "Error al inicializar";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"chat.create.group.failure.description" = "Revisa si tienes conexión a Internet e inténtalo de nuevo.";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"chat.create.group.failure.title" = "No hay conexión a Internet";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"chat.create.group.name.placeholder" = "Dale un nombre a tu grupo";
+
+/* Title of group creation screen */
+"chat.create.group.title" = "Info. del grupo";
+
+/* Label for creating a new group */
+"chat.create.new.group" = "Crear un grupo nuevo";
+
+/* Title of group name edit screen */
+"chat.edit.group.title" = "Editar";
+
+/* Label shown above background selection row */
+"chat.group.background.label" = "FONDO";
+
+/* Message text shown with the user who joined the group via invite link */
+"chat.group.event.join" = "%@ se unió al grupo con el enlace de invitación";
+
+/* Message text shown with the user who left the group */
+"chat.group.event.member.left" = "%@ se salió";
+
+/* Action label for adding members to a group */
+"chat.group.info.add.members" = "Añadir participantes";
+
+/* Label shown in the members list when member is an admin */
+"chat.group.info.admin.label" = "Admin.";
+
+/* Text label for a color selection of group feed background color */
+"chat.group.info.bg.color.label" = "Color";
+
+/* Text label for default selection of group feed background color */
+"chat.group.info.bg.default.label" = "Por defecto";
+
+/* Text for menu option of demoting a group member */
+"chat.group.info.demote" = "Descartar como admin.";
+
+/* Action label for leaving group */
+"chat.group.info.leave.group" = "Salir del grupo";
+
+/* Text for menu option of making a group member admin */
+"chat.group.info.make.group.admin" = "Hacer admin. del grupo";
+
+/* Text for menu option of messaging user */
+"chat.group.info.message.user" = "Enviar mensaje";
+
+/* Text label shown when the user is not a member of the group */
+"chat.group.info.not.a.member.label" = "No eres un miembro de este grupo";
+
+/* Text for menu option of removing a group member */
+"chat.group.info.remove.from.group" = "Eliminar del grupo";
+
+/* Title of screen that shows group information */
+"chat.group.info.title" = "Info. del grupo";
+
+/* Text for menu option of viewing profile */
+"chat.group.info.view.profile" = "Ver perfil";
+
+/* Label shown above group members list */
+"chat.group.members.label" = "PARTICIPANTES";
+
+/* Label shown above group name input box */
+"chat.group.name.label" = "NOMBRE DEL GRUPO";
+
+/* Title for group photo actions */
+"chat.group.photo.label" = "Foto del grupo";
+
+/* Action to take a picture or choose a photo from the library to use for the group photo */
+"chat.group.take.or.choose.photo" = "Toma o escoge una foto";
+
+/* Label for inviting friends */
+"chat.invite.friends" = "Invita amigos";
+
+/* Message text shown for the message that was deleted */
+"chat.message.deleted" = "Este mensaje fue eliminado";
+
+/* Message text shown in a message that have photo media but no text */
+"chat.message.photo" = "Foto";
+
+/* Text shown when chat input box is empty */
+"chat.message.placeholder" = "Escribir un mensaje";
+
+/* Message text shown in a message that have video media but no text */
+"chat.message.video" = "Video";
+
+/* Text shown in place of a received message we are not able to decrypt yet. */
+"chat.message.waiting" = "Esperando este mensaje. Esto puede tomar un tiempo.";
+
+/* Title for new message screen where user chooses who to message */
+"chat.new.message.title" = "Nuevo mensaje";
+
+/* Label shown when user is typing */
+"chat.typing.capitalized" = "escribiendo...";
+
+/* Text shown when user is about to remove the chat */
+"chats.list.remove.message" = "Al eliminar este chat estarás borrando toda la historia del chat y el contenido de tu dispositivo.";
+
+/* Button revealed when user swipes on their comment. */
+"comment.delete" = "Eliminar";
+
+/* Title for the button in comment deletion confirmation prompt. */
+"comment.delete.action" = "Eliminar comentario";
+
+/* Confirmation text displayed at comment deletion prompt */
+"comment.delete.confirmation" = "¿Eliminar este comentario? Esta acción no se puede deshacer.";
+
+/* Text displayed in place of deleted comment. */
+"comment.deleted" = "Este comentario ha sido eliminado";
+
+/* Text displayed in place of a comment that is currently being deleted. */
+"comment.deleting" = "Eliminar comentario";
+
+/* Button in comment input field. Verb. */
+"comment.post" = "Publicar";
+
+/* Text displayed in place of comment timestamp while comment is being posted. */
+"comment.posting" = "Publicando...";
+
+/* Title for the button displayed under feed post comment. Verb. */
+"comment.reply" = "Responder";
+
+/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment.
+   Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
+"comment.replying.myself" = "Responder a %@";
+
+/* Title for the button in comment resend confirmation prompt. */
+"comment.resend.action" = "Reenviar";
+
+/* Confirmation prompt for when resending comment that previously failed to send. */
+"comment.resend.confirmation" = "¿Reenviar el comentario?";
+
+/* Text displayed in gray inside of the comment input field when there is no user input. */
+"comment.textfield.placeholder" = "Añadir un comentario";
+
+/* Warning text displayed in Comments when post wasn't available. */
+"comments.post.loading.failed" = "Se produjo un error al cargar la publicación. Inténtalo de nuevo más tarde.";
+
+/* Alert message in composer when a video is too long */
+"composer.max.video.length.message" = "Por favor seleccione otro video o toque el botón para editar.";
+
+/* Alert title in composer when a video is too long */
+"composer.max.video.length.title" = "Este video dura más de %.0f ";
+
+/* Composer subtitle for messages. */
+"composer.message.subtitle" = "Enviando a %@";
+
+/* Composer New Message title. */
+"composer.message.title" = "Mensaje nuevo";
+
+/* Placeholder text for media caption field in post composer. */
+"composer.placeholder.media.description" = "Escribir una descripción";
+
+/* Placeholder text in text post composer screen. */
+"composer.placeholder.text.post" = "Escribir un publicación";
+
+/* Send button title. */
+"composer.post.button.send" = "Enviar";
+
+/* Share button title. */
+"composer.post.button.share" = "Compartir";
+
+/* Composer subtitle for group posts. */
+"composer.post.subtitle" = "Compartir con %@";
+
+/* Composer New Post title. */
+"composer.post.title" = "Publicación nueva";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.excluded" = "Compartir con algunos de mis contactos";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.my.contacts" = "Compartir con mis contactos";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.n.selected" = "compositor.privacidad.valor.n.seleccionado";
+
+/* No comment provided by engineer. */
+"CONNECTION" = "CONEXIÓN";
+
+/* Text to show on profile for users you are not connected with */
+"exchange.phone.numbers.to.connect" = "Para conectarse deben intercambiar números de teléfono";
+
+/* VoiceOver label for camera button in floating compose post menu in Home view. */
+"fab.accessibility.camera" = "Cámara";
+
+/* VoiceOver label for photo button in floating compose post menu in Home view. */
+"fab.accessibility.photo.library" = "Galería de fotos";
+
+/* VoiceOver label for text post button in floating compose post menu in Home view. */
+"fab.accessibility.text" = "Enviar mensaje de texto";
+
+/* Shown while content is being retracted from feed */
+"feed.deleting" = "Eliminando...";
+
+/* Text shown in indicator when new posts come in while user is scrolled down */
+"feed.new.posts.indicator" = "Publicaciones nuevas";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification..other.comment.no.text" = "<$author$> también comentó";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.commented.no.text" = "<$author$> comentó en tu publicación";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.commented.w.text" = "<$author$> comentó: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.deleted.comment" = "<$author$> eliminó su comentario";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.deleted.post" = "<$author$> comentó. Esta publicación ha sido eliminada.";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.comment.no.text" = "<$author$> te mencionó en un comentario";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.comment.w.text" = "<$author$> te mencionó en un comentario: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.post.no.text" = "<$author$> te mencionó en una publicación";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.post.w.text" = "<$author$> te mencionó en una publicación <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.other.comment.w.text" = "<$author$> también comentó: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.replied.no.text" = "<$author$> respondió a tu comentario";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.replied.w.text" = "<$author$> respondió: <$text$>";
+
+/* Shown when post fails or is canceled. */
+"feed.post.failed" = "No se pudo publicar.";
+
+/* Shown while content is being posted to feed */
+"feed.posting" = "Publicando...";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Compartir con todos tus contactos";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Compartir con tus contactos excepto con las personas que selecciones";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Compartir solo con los contactos seleccionados";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.all" = "Mis contactos de teléfono";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.except" = "Mis contactos excepto";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.only" = "Solo compartir con...";
+
+/* Possible Feed Privacy setting value. */
+"feed.privacy.value.my.contacts" = "Mis contactos de teléfono";
+
+/* Button under someone's post. Verb. */
+"feedpost.button.comment" = "Comentar";
+
+/* Button under someoneelse's post. Verb. */
+"feedpost.button.reply" = "Responder";
+
+/* Label for choosing a color at the group background preview screen */
+"group.bg.pick.a.color.label" = "Escoge un color";
+
+/* Title of group background screen */
+"group.bg.title" = "Fondo";
+
+/* Message text shown with the user who added a group member */
+"group.event.added.member" = "%1$@ agregó a %2$@";
+
+/* Message text shown with the user who changed the group avatar */
+"group.event.changed.avatar" = "%@ cambió el ícono del grupo";
+
+/* Message text shown with the user who changed the background */
+"group.event.changed.background" = "%@ cambió el color del fondo";
+
+/* Message text shown with the user who changed the group name */
+"group.event.changed.name" = "%1$@ cambió el nombre del grupo a \"%2$@\"";
+
+/* Message text shown with the user who created the group */
+"group.event.created.group" = "%1$@ creó el grupo \"%2$@\"";
+
+/* Message text shown with the user who promoted a group member */
+"group.event.promoted.member" = "%1$@ designó a %2$@ como admin.";
+
+/* Message text shown with the user who removed a group member */
+"group.event.removed.member" = "%1$@ eliminó a %2$@";
+
+/* Label for copying link */
+"group.invite.copy.link" = "Copiar el enlace";
+
+/* Text shown when link is copied */
+"group.invite.link.copied" = "Enlace copiado";
+
+/* Text shown when link is reset */
+"group.invite.link.reset" = "Restablecer el enlace";
+
+/* Label for resetting link */
+"group.invite.reset.link" = "Restablecer el enlace";
+
+/* Warning shown when user clicks on reset link action */
+"group.invite.reset.link.warning" = "Si este enlace se restablece, nadie podrá usarlo para unirse al grupo.";
+
+/* Label for sharing link */
+"group.invite.share.link" = "Compartir el enlace";
+
+/* Title of group invite screen */
+"group.invite.title" = "Enlace de invitación al grupo";
+
+/* Label for joining group action */
+"group.preview.join.group" = "UNIRSE AL GRUPO";
+
+/* Text shown to tell user the group title is tappable */
+"group.title.tap.for.info" = "Toca aquí para ver la info. del grupo";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "Fuiste agregado a un grupo nuevo";
+
+/* Text shown when user is about to remove the group */
+"groups.list.remove.message" = "¿Estás seguro que quieres eliminar este grupo y su contenido de este dispositivo?";
+
+/* Title for exit button that closes the app */
+"home.update.notice.button.exit" = "Salir";
+
+/* Text shown to users who have old versions of the app */
+"home.update.notice.text" = "Actualiza HalloApp a su última versión.";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.notice.title" = "Esta versión está desactualizada";
+
+/* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
+"invite.already.halloapp.user" = "Ya es usuario de HalloApp";
+
+/* Title for button that launches system SMS app to send invite. As short as possible! */
+"invite.app.sms" = "Mensajes";
+
+/* Title for button that launches WhatsApp to send invite. Should match WhatsApp localization. */
+"invite.app.whatsapp" = "WhatsApp";
+
+/* Shows number of current HalloApp users who have this contact in their list */
+"invite.contact.count" = "%d contactos en HalloApp";
+
+/* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
+"invite.error.alert.message" = "Algo salió mal. Inténtalo de nuevo más tarde.";
+
+/* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
+"invite.error.alert.title" = "No se pudo invitar";
+
+/* Displayed when user does not have any invites left. Parameter is date. */
+"invite.out.of.invites.w.date" = "Ya no tienes más invitaciones. Vuelve a revisar después del %@";
+
+/* Displayed white user is inviting someone. */
+"invite.please.wait" = "Por favor espera...";
+
+/* Indicates how many invites are remaining */
+"invite.remaining.count.unspecified.time" = "Te quedan %@ invitaciones";
+
+/* Text of invitation to join HalloApp. */
+"invite.text" = "Acompáñame en HalloApp, una forma privada, simple y segura de seguir en contacto con tus amigos y familia. Obténla en https://halloapp.com/dl";
+
+/* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
+"invite.text.specific" = "Hola %1$@, tengo una invitación para que te unas a mí en HalloApp (una aplicación social simple para compartir los momentos cotidianos). Usa %2$@ para registrarte. Obténla en https://halloapp.com/dl";
+
+/* Title for the screen that allows to select contact to invite. */
+"invite.title" = "Invitación";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Más información";
+
+/* Refers to albums in Photo Library. */
+"media.albums" = "Álbums";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Descartar";
+
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "Restaurar";
+
+/* Alert asking to enable Camera permission after attempting to use in-app camera. */
+"media.camera.access.request" = "HalloApp no tiene acceso a tu cámara. Para permitir acceso, toca configuración y enciende la cámara";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "¿Te gustaría descartar lo que has editado?";
+
+/* Alert asking to enable Camera permission after attempting to use in-app camera. */
+"media.mic.access.request.body" = "Para grabar videos con sonido, HalloApp necesita acceso al micrófono. Para permitir este acceso, toca la Configuración y enciende el micrófono.";
+
+/* Alert asking to enable Microphone permission after attempting to use in-app camera. */
+"media.mic.access.request.title" = "¿Quieres videos con sonido?";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "Cerrar";
+
+/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+"media.voiceover.button.flip" = "Voltear";
+
+/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+"media.voiceover.button.rotate" = "Rotar";
+
+/* Message action. Verb. */
+"message.copy" = "Copiar";
+
+/* Message action. Verb. */
+"message.delete" = "Eliminar";
+
+/* Message action. Verb. */
+"message.info" = "Info.";
+
+/* Placeholder text displayed in Message Info screen when no one has seen your group chat message yet. */
+"message.info.not.viewed.yet" = "Nadie ha visto tu mensaje aún";
+
+/* Message Info screen: title for group of contacts who has not yet seen your group chat message. */
+"message.info.sent.to" = "Enviado a";
+
+/* Message Info screen: title for group of contacts who has seen your group chat message. */
+"message.info.viewed.by" = "Visto por";
+
+/* Message action. Verb. */
+"message.reply" = "Responder";
+
+/* One of the contact actions in My Post screen. */
+"mypost.action.hide.my.posts" = "Esconder mis publicaciones";
+
+/* One of the contact actions in My Post screen. Verb. */
+"mypost.action.message" = "Enviar un mensaje";
+
+/* One of the contact actions in My Post screen. */
+"mypost.action.view.profile" = "Ver perfil";
+
+/* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
+"mypost.hide.posts.confirmation" = "¿Estás seguro que quieres ocultar todas las publicaciones futuras de %@? Este cambio lo puedes hacer más adelante.";
+
+/* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
+"mypost.not.viewed.yet" = "Nadie ha visto tu publicación aún";
+
+/* Your Post screen: title for group of contacts who has not yet seen your post. */
+"mypost.sent.to" = "Enviado a";
+
+/* Your Post screen: title for group of contacts who has seen your post. */
+"mypost.viewed.by" = "Visto por";
+
+/* Text shown to indicate user is not in the group anymore */
+"not.in.group.banner.text" = "Ya no formas parte de este grupo";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "Comentó: %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "Uno de tus contactos está ahora en HalloApp";
+
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@ ahora está en HalloApp";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "Mensaje nuevo";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "Publicación nueva";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "📷 foto";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "📹 video";
+
+/* Text for new user popup pointing at activity center icon */
+"nux.activity.center.icon" = "Este es tu centro de actividades. Toca aquí para ver tu actividad más reciente. ";
+
+/* Shown on chats list when there are no contacts or messages to display */
+"nux.chat.empty" = "Tus contactos y mensajes aparecerán aquí";
+
+/* Text for new user popup pointing at chat list */
+"nux.chat.list" = "Aquí es donde encontrarás mensajes de tus amigos y de tu familia. Cuando alguien nuevo se une a HalloApp los puedes ver aquí.";
+
+/* Shown on groups list when there are no groups to display */
+"nux.groups.list.empty" = "Tus grupos aparecerán aquí";
+
+/* Shown on home feed when no posts are available */
+"nux.home.feed.empty" = "Las publicaciones de tus contactos de teléfono aparecerán aquí";
+
+/* Text for new user popup pointing at new post button */
+"nux.new.post.button" = "Toca para compartir una novedad con tus amigos y familia en HalloApp";
+
+/* Message in media picker when access is denied. */
+"picker.access.denied.message" = "Otorgar acceso en configuración";
+
+/* An option to give access from settings */
+"picker.access.denied.settings" = "Configuración";
+
+/* Alert title in media picker when access is denied. */
+"picker.access.denied.title" = "Acceso denegado a fotos";
+
+/* Message shown only limited access to media. */
+"picker.access.limited.message" = "A ti te dan a ";
+
+/* Initial picker screen title. The default source of picker photos */
+"picker.default.title" = "Rollo de la cámara";
+
+/* Alert message in media picker when unable to load media file. */
+"picker.media.fail.message" = "Intenta de nuevo o selecciona un video o una foto diferente.";
+
+/* Alert title in media picker when unable to load media file. */
+"picker.media.fail.title" = "No se pudo lan";
+
+/* Button shown to update limited access to media. */
+"picker.media.limit.button" = "Actualizar";
+
+/* An option to update limited access. */
+"picker.media.limit.settings" = "Cambiar configuración";
+
+/* Alert title in media picker when selecting over limit. */
+"picker.media.limit.title" = "Cantidad máxima de artículos";
+
+/* An option to update limited access. */
+"picker.media.limit.updateSelection" = "Actualizar imagen y selección de video";
+
+/* Displayed in place of a deleted feed post.
+   Displayed in place of a deleted group feed post at group list screen */
+"post.has.been.deleted" = "Esta publicación ha sido eliminada";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted.by.author" = "%@ eliminó su publicación";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted.by.you" = "Eliminaste tu publicación";
+
+/* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
+"privacy.list.blocked" = "Bloqueado";
+
+/* Generic setting value telling how many contacts are blocked or muted. */
+"privacy.n.contacts" = "privacidad.n.contactos";
+
+/* Title for the button allowing to delete current profile photo. */
+"profile.delete.photo" = "Eliminar fotos";
+
+/* Text for messaging user under profile header */
+"profile.header.message.user" = "Enviar un mensaje";
+
+/* Item in Profile > Help screen. */
+"profile.help.faq" = "Preguntas frecuentes";
+
+/* Item in Profile > Help screen. */
+"profile.help.feedback" = "Compartir comentarios e historial";
+
+/* Item in Profile > Help screen. */
+"profile.help.pp" = "Política de privacidad";
+
+/* Item in Profile > Help screen. */
+"profile.help.share.logs" = "Compartir historial";
+
+/* Item in Profile > Help screen. */
+"profile.help.tos" = "Términos de servicio";
+
+/* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
+"profile.name.length" = "%1$d/%2$d";
+
+/* Row in Profile screen. */
+"profile.row.about" = "Acerca de HalloApp";
+
+/* Row in Profile screen. */
+"profile.row.archive" = "Archivo";
+
+/* Row in Profile screen. */
+"profile.row.help" = "Ayuda";
+
+/* Row in Profile screen. */
+"profile.row.invite" = "Invitar amigos";
+
+/* Row in Settings screen */
+"profile.row.my.posts" = "Mis publicaciones";
+
+/* Title for the button allowing to select a new profile photo. */
+"profile.take.choose.photo" = "Tomar o seleccionar una foto";
+
+/* Title for the screen allowing to edit profile name */
+"profile.title.your.name" = "Tu nombre";
+
+/* Error message to display when user enters incorrect verification code */
+"registration.code.incorrect" = "El código que ingresaste es incorrecto";
+
+/* Instructions for filling in SMS verification code. Parameter is formatted phone number */
+"registration.code.instructions" = "Ingresa el código que enviaste a %@";
+
+/* Error message to display when we cannot send a verification code */
+"registration.code.request.error" = "No se pudo enviar el código. Por favor inténtelo de nuevo más tarde.";
+
+/* Text explaining why we need contact permissions */
+"registration.contacts.content" = "Para conectarte con tus amigos y familia, vamos a necesitar permiso para tener acceso a tus contactos. ";
+
+/* Title for text explaining why we need contact permissions */
+"registration.contacts.title" = "Por último";
+
+/* Popup that appears when user tries to register uninvited number */
+"registration.invite.only" = "Por el momento Hallo App solo se puede usar con invitación. Si tienes un amigo o un familiar que use HalloApp, diles que te inviten usando tu número de teléfono.";
+
+/* Placeholder text for name entry */
+"registration.nameEntry.placeholder" = "Tu nombre";
+
+/* Placeholder text for phone entry */
+"registration.phoneEntry.placeholder" = "Número de teléfono";
+
+/* Text for modal describing how we use contacts data */
+"registration.privacy.content" = "HalloApp solo usa el número de teléfono para conectarte con tus amigos en HalloApp, y no captura ninguna otra información adicional de tu libreta de contactos.";
+
+/* Title for modal describing how we use contacts data */
+"registration.privacy.title" = "Tu privacidad es nuestra prioridad";
+
+/* Title for popup that appears when user tries to register uninvited number */
+"registration.shucks" = "¿Necesitas una invitación? ";
+
+/* Shown above name and phone inputs */
+"registration.welcome" = "¡Bienvenido!";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"select.group.members.create.group.title" = "Crear un grupo nuevo";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"select.group.members.title" = "Añadir participantes nuevos";
+
+/* fallback text in notification for a new comment */
+"server.new.comment" = "Comentario nuevo";
+
+/* fallback text in notification when a new contact joins */
+"server.new.contact" = "%@ ya está en HalloApp";
+
+/* fallback text in notification when user is added to a new group */
+"server.new.group" = "Fuiste agregado a un grupo nuevo";
+
+/* fallback text in notification for a new group chat message */
+"server.new.group.message" = "Mensaje del grupo nuevo";
+
+/* fallback text in notification when an invitee joins */
+"server.new.inviter" = "%@ acaba de aceptar tu invitación en HalloApp 🎉";
+
+/* fallback text in notification for a new chat message */
+"server.new.message" = "Mensaje nuevo";
+
+/* fallback text in notification for a new feed post */
+"server.new.post" = "Publicación nueva";
+
+/* text in the sms sent with verification code */
+"server.sms.verification" = "Tu código de verificación de HalloApp";
+
+/* text in the voice call sent with verification code */
+"server.voicecall.verification" = "Tu código de verificación de HalloApp es";
+
+/* App version text in Profile > Help. */
+"settings.app.version" = "Versión %@ de HalloApp";
+
+/* Settings menu section. */
+"settings.notifications" = "Notificaciones";
+
+/* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
+"settings.notifications.comments" = "Comentarios";
+
+/* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
+"settings.notifications.posts" = "Publicaciones";
+
+/* Settings menu section */
+"settings.privacy" = "Privacidad";
+
+/* Settings > Privacy: name of a setting that defines who can see your posts. */
+"settings.privacy.posts" = "Publicaciones";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.add.reading.list" = "Añadir a la lista de lectura";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
+"textlabel.context.menu.call.number" = "Llamar a %@";
+
+/* One of the items in context menu presented upon long press on linkified address in text. */
+"textlabel.context.menu.copy.address" = "Copiar dirección";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.copy.link" = "Copiar enlace";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. */
+"textlabel.context.menu.copy.phone.number" = "Copiar número de teléfono";
+
+/* One of the items in context menu presented upon long press on linkified address in text. */
+"textlabel.context.menu.get.directions" = "Obtener indicaciones";
+
+/* One of the items in context menu presented upon long press on linkified address in text. */
+"textlabel.context.menu.open.in.maps" = "Abrir en mapas";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.open.link" = "Abrir enlace";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.share" = "Compartir";
+
+/* Link to expand truncated text. */
+"textlabel.more" = "...más";
+
+/* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
+"thread.list.preview.already.user.default" = "%@ está en HalloApp";
+
+/* Default preview text shown for a symmetric contact who just joined Halloapp */
+"thread.list.preview.new.user.default" = "%@ está en HalloApp! 🎉";
+
+/* Last seen timestamp: full date in short format and time */
+"timestamp.last.seen.date.at.time" = "Última vez el %1$@ a la(s) %2$@";
+
+/* Last seen timestamp: day of week and time */
+"timestamp.last.seen.dayofweek.at.time" = "Última vez el %1$@ a la(s) %2$@";
+
+/* Last seen timestamp: today at specific time. */
+"timestamp.last.seen.today.at" = "Última vez hoy a las %@";
+
+/* Last seen timestamp: yesterday at specific time. */
+"timestamp.last.seen.yesterday.at" = "Última vez ayer a las %@ ";
+
+/* Capitalized translation of `Now` to be used as timestamp. */
+"timestamp.now.capitalized" = "Ahora";
+
+/* Lowercase translation of `Now` to be used as timestamp. */
+"timestamp.now.lowercase" = "ahora";
+
+/* Timestamp: `Today` */
+"timestamp.today" = "Hoy";
+
+/* Timestamp: `Yesterday` */
+"timestamp.yesterday" = "Ayer";
+
+/* Screen title */
+"title.camera" = "Cámara";
+
+/* Third tab in the main app interface. */
+"title.chats" = "Chats";
+
+/* Title for the Comments screen. */
+"title.comments" = "Comentarios";
+
+/* Second tab in the main app interface. */
+"title.groups" = "Grupos";
+
+/* First tab in the main app interface. */
+"title.home" = "Inicio";
+
+/* Row in Settings screen */
+"title.notifications" = "Notificaciones";
+
+/* Row in Settings screen */
+"title.privacy" = "Privacidad";
+
+/* Fourth tab in the main app interface */
+"title.settings" = "Configuración";
+
+/* Title for the screen with information about who saw your post. */
+"title.your.post" = "Tu publicación";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Contacto desconocido";
+
+/* Reference to the user, second person pronoun */
+"user.you" = "tú";
+
+/* Capitalized reference to the user, second person pronoun */
+"user.you.capitalized" = "Tú";
+
+/* No comment provided by engineer. */
+"VIDEO" = "VIDEO";
+
+/* Button title. Refers to resetting video to original version. */
+"video.edit.button.reset" = "Restablecer";
+
+/* Message in video edit when the processing fails. */
+"video.processing.failed.message" = "Inténtalo de nuevo o selecciona otro video";
+
+/* Alert title in video edit when the processing fails. */
+"video.processing.failed.title" = "No se pudo procesar el video";
+
+/* Title for the button that confirms intent to delete your own post. */
+"your.post.deletepost.button" = "Eliminar publicación";
+
+/* Post deletion confirmation. Displayed as action sheet title. */
+"your.post.deletepost.confirmation" = "¿Eliminar esta publicación? Está acción no se puede deshacer.";
+
