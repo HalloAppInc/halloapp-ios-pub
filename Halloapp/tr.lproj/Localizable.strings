@@ -1,0 +1,859 @@
+/* About screen: body text. */
+"about.body.2" = "HalloApp kullandığın ve bunu arkadaşların ve ailenle paylaştığın için teşekkürler. Her hafta geliştirmeye devam ediyoruz. ";
+
+/* About screen: footer text. Parameter is support email address. */
+"about.footer" = "Soruların ve geri bildirimlerin için bize %@ adresinden e-posta ile ulaşabilirsin.";
+
+/* About screen: greeting. */
+"about.hallo" = "Oh Hallo";
+
+/* About screen: navigation bar title. */
+"about.title" = "Hakkında";
+
+/* Longer title for the button that confirms marking all items in the activity center as read. */
+"activity.center.button.mark.all.read" = "Hepsini okundu olarak işaretle";
+
+/* Short title for the button in activity center. */
+"activity.center.button.read.all" = "Hepsini oku";
+
+/* Title for the activity center screen. */
+"activity.center.title" = "Hareket";
+
+/* Translation of iPhone settings app. */
+"app.ios.settings" = "Ayarlar";
+
+/* Text to show on banner when no connection is available */
+"banner.no.connection" = "İnternet bağlantısı yok";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "İptal et";
+
+/* Title for generic Create button */
+"button.create" = "Oluştur";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Reddet";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Bitti";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "İleri";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "Tamam";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Kaldır";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Kaydet";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Gönder";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Paylaş";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Güncelle";
+
+/* No comment provided by engineer. */
+"camera.init.error.1" = "Arka kamera açılamıyor";
+
+/* No comment provided by engineer. */
+"camera.init.error.2" = "Ön kamera açılamıyor";
+
+/* No comment provided by engineer. */
+"camera.init.error.3" = "Kamera çalıştırılamıyor";
+
+/* No comment provided by engineer. */
+"camera.init.error.7" = "Fotoğraf çekilemiyor";
+
+/* Title for a popup alerting about camera initialization error. */
+"camera.init.error.title" = "Başlatma hatası";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"chat.create.group.failure.description" = "Lütfen internet bağlantını kontrol et ve tekrar dene. ";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"chat.create.group.failure.title" = "İnternet bağlantısı yok";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"chat.create.group.name.placeholder" = "Grubuna bir ad ver";
+
+/* Title of group creation screen */
+"chat.create.group.title" = "Grup bilgisi";
+
+/* Label for creating a new group */
+"chat.create.new.group" = "Yeni grup oluştur";
+
+/* Title of group name edit screen */
+"chat.edit.group.title" = "Düzenle";
+
+/* Label shown above background selection row */
+"chat.group.background.label" = "ARKA PLAN";
+
+/* Message text shown with the user who joined the group via invite link */
+"chat.group.event.join" = "%@, Grup Davet İlişimi ile gruba katıldı";
+
+/* Message text shown with the user who left the group */
+"chat.group.event.member.left" = "%@ ayrıldı";
+
+/* Action label for adding members to a group */
+"chat.group.info.add.members" = "Üye ekle";
+
+/* Label shown in the members list when member is an admin */
+"chat.group.info.admin.label" = "Yönetici";
+
+/* Text label for a color selection of group feed background color */
+"chat.group.info.bg.color.label" = "Renk";
+
+/* Text label for default selection of group feed background color */
+"chat.group.info.bg.default.label" = "Varsayılan";
+
+/* Text for menu option of demoting a group member */
+"chat.group.info.demote" = "Yöneticilikten çıkar";
+
+/* Action label for leaving group */
+"chat.group.info.leave.group" = "Gruptan ayrıl";
+
+/* Text for menu option of making a group member admin */
+"chat.group.info.make.group.admin" = "Grup yöneticisi yap";
+
+/* Text for menu option of messaging user */
+"chat.group.info.message.user" = "Mesaj";
+
+/* Text label shown when the user is not a member of the group */
+"chat.group.info.not.a.member.label" = "Bu grubun üyesi değilsin";
+
+/* Text for menu option of removing a group member */
+"chat.group.info.remove.from.group" = "Gruptan çıkar";
+
+/* Title of screen that shows group information */
+"chat.group.info.title" = "Grup bilgisi";
+
+/* Text for menu option of viewing profile */
+"chat.group.info.view.profile" = "Profili görüntüle";
+
+/* Label shown above group members list */
+"chat.group.members.label" = "Üyeler";
+
+/* Label shown above group name input box */
+"chat.group.name.label" = "Grup adı";
+
+/* Title for group photo actions */
+"chat.group.photo.label" = "Grup fotoğrafı";
+
+/* Action to take a picture or choose a photo from the library to use for the group photo */
+"chat.group.take.or.choose.photo" = "Fotoğraf çek ya da galeriden seç";
+
+/* Label for inviting friends */
+"chat.invite.friends" = "Arkadaşlarını davet et";
+
+/* Message text shown for the message that was deleted */
+"chat.message.deleted" = "Bu mesaj silindi";
+
+/* Message text shown in a message that have photo media but no text */
+"chat.message.photo" = "Fotoğraf";
+
+/* Text shown when chat input box is empty */
+"chat.message.placeholder" = "Bir mesaj yaz";
+
+/* Message text shown in a message that have video media but no text */
+"chat.message.video" = "Video";
+
+/* Text shown in place of a received message we are not able to decrypt yet. */
+"chat.message.waiting" = "Mesaj bekleniyor. Bu biraz zaman alabilir.";
+
+/* Title for new message screen where user chooses who to message */
+"chat.new.message.title" = "Yeni mesaj";
+
+/* Label shown when user is typing */
+"chat.typing.capitalized" = "yazıyor...";
+
+/* Text shown when user is about to remove the chat */
+"chats.list.remove.message" = "Bu sohbeti silerek sohbet geçmişini ve içeriğini cihazından temizleyeceksin.";
+
+/* Button revealed when user swipes on their comment. */
+"comment.delete" = "Sil";
+
+/* Title for the button in comment deletion confirmation prompt. */
+"comment.delete.action" = "Yorumu sil";
+
+/* Confirmation text displayed at comment deletion prompt */
+"comment.delete.confirmation" = "Bu yorumu sil? Bu eylem geri alınamaz.";
+
+/* Text displayed in place of deleted comment. */
+"comment.deleted" = "Bu yorum silindi.";
+
+/* Text displayed in place of a comment that is currently being deleted. */
+"comment.deleting" = "Yorum siliniyor";
+
+/* Button in comment input field. Verb. */
+"comment.post" = "Gönderi";
+
+/* Text displayed in place of comment timestamp while comment is being posted. */
+"comment.posting" = "Paylaşılıyor...";
+
+/* Title for the button displayed under feed post comment. Verb. */
+"comment.reply" = "Yanıtla";
+
+/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment.
+   Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
+"comment.replying.myself" = "%@ kişisine yanıt ver";
+
+/* Title for the button in comment resend confirmation prompt. */
+"comment.resend.action" = "Tekrar gönder";
+
+/* Confirmation prompt for when resending comment that previously failed to send. */
+"comment.resend.confirmation" = "Yorumu tekrar gönder?";
+
+/* Text displayed in gray inside of the comment input field when there is no user input. */
+"comment.textfield.placeholder" = "Yorum ekle";
+
+/* Warning text displayed in Comments when post wasn't available. */
+"comments.post.loading.failed" = "Bu gönderiyi yüklemeye çalışırken bir hata oldu. Lütfen daha sonra tekrar dene.";
+
+/* Alert message in composer when a video is too long */
+"composer.max.video.length.message" = "Lütfen başka bir video seç ya da düzenle düğmesine bas";
+
+/* Alert title in composer when a video is too long */
+"composer.max.video.length.title" = "Bu video olması gerekenden %.0f saniye daha uzun ";
+
+/* Composer subtitle for messages. */
+"composer.message.subtitle" = "%@ kişisine gönder";
+
+/* Composer New Message title. */
+"composer.message.title" = "Yeni mesaj ";
+
+/* Placeholder text for media caption field in post composer. */
+"composer.placeholder.media.description" = "Bir açıklama yaz ";
+
+/* Placeholder text in text post composer screen. */
+"composer.placeholder.text.post" = "Bir gönderi yaz";
+
+/* Send button title. */
+"composer.post.button.send" = "Gönder";
+
+/* Share button title. */
+"composer.post.button.share" = "Paylaş";
+
+/* Composer subtitle for group posts. */
+"composer.post.subtitle" = "%@ ile paylaşılıyor";
+
+/* Composer New Post title. */
+"composer.post.title" = "Yeni gönderi";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.excluded" = "Kişilerimden bazıları ile paylaşılıyor";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.my.contacts" = "Kişilerimle paylaşılıyor";
+
+/* No comment provided by engineer. */
+"CONNECTION" = "BAĞLANTI";
+
+/* Text to show on profile for users you are not connected with */
+"exchange.phone.numbers.to.connect" = "İletişim kurmak için birbirinize telefon numaralarınızı vermelisiniz";
+
+/* VoiceOver label for camera button in floating compose post menu in Home view. */
+"fab.accessibility.camera" = "Kamera";
+
+/* VoiceOver label for photo button in floating compose post menu in Home view. */
+"fab.accessibility.photo.library" = "Galeri";
+
+/* VoiceOver label for text post button in floating compose post menu in Home view. */
+"fab.accessibility.text" = "Metin";
+
+/* Shown while content is being retracted from feed */
+"feed.deleting" = "Siliniyor...";
+
+/* Text shown in indicator when new posts come in while user is scrolled down */
+"feed.new.posts.indicator" = "Yeni gönderiler";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification..other.comment.no.text" = "<$author$> kişisi de yorum yaptı";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.commented.no.text" = "<$author$>, gönderine yorum yaptı";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.commented.w.text" = "<$author$> yorum yaptı: ";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.deleted.comment" = "<$author$>, yorumunu sildi";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.deleted.post" = "<$author$>, yorum yaptı. Bu gönderi silindi.";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.comment.no.text" = "<$author$>, bir yorumda senden bahsetti";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.comment.w.text" = "<$author$> bir yorumda senden bahsetti:";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.post.no.text" = "<$author$> ";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.post.w.text" = "<$author$> bir gönderide senden bahsetti:";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.other.comment.w.text" = "<$author$> kişisi de yorum yaptı:";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.replied.no.text" = "<$author$>, senin yorumuna cevap verdi";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.replied.w.text" = "<$author$>, cevap verdi: ";
+
+/* Shown when post fails or is canceled. */
+"feed.post.failed" = "Gönderilemedi";
+
+/* Shown while content is being posted to feed */
+"feed.posting" = "Paylaşılıyor..";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Bütün kişilerinle paylaş";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Seçtiğin kişiler hariç, kişilerinle paylaş";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Yalnızca seçtiğin kişilerle paylaş";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.all" = "Rehberimdeki kişiler";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.except" = "... hariç kişilerim";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.only" = "Yalnızca ... kişisiyle paylaş";
+
+/* Possible Feed Privacy setting value. */
+"feed.privacy.value.my.contacts" = "Rehberimdeki kişiler";
+
+/* Button under someone's post. Verb. */
+"feedpost.button.comment" = "Yorum yap";
+
+/* Button under someoneelse's post. Verb. */
+"feedpost.button.reply" = "Yanıtla";
+
+/* Label for choosing a color at the group background preview screen */
+"group.bg.pick.a.color.label" = "BİR RENK SEÇ";
+
+/* Title of group background screen */
+"group.bg.title" = "Arka plan";
+
+/* Message text shown with the user who added a group member */
+"group.event.added.member" = "%1$@, %2$@ kişisini ekledi";
+
+/* Message text shown with the user who changed the group avatar */
+"group.event.changed.avatar" = "%@, grubun simgesini değiştirdi";
+
+/* Message text shown with the user who changed the background */
+"group.event.changed.background" = "%@, arka plan rengini değiştirdi";
+
+/* Message text shown with the user who changed the group name */
+"group.event.changed.name" = "%1$@, grubun adını \"%2$@\" olarak değiştirdi";
+
+/* Message text shown with the user who created the group */
+"group.event.created.group" = "%1$@,  \"%2$@\" adlı grubu kurdu";
+
+/* Message text shown with the user who promoted a group member */
+"group.event.promoted.member" = "%1$@, %2$@ kişisini yönetici yaptı";
+
+/* Message text shown with the user who removed a group member */
+"group.event.removed.member" = "%1$@, %2$@ kişisini sildi";
+
+/* Label for copying link */
+"group.invite.copy.link" = "İlişimi kopyala";
+
+/* Text shown when link is copied */
+"group.invite.link.copied" = "İlişim kopyalandı";
+
+/* Text shown when link is reset */
+"group.invite.link.reset" = "İlişim sıfırlandı";
+
+/* Label for resetting link */
+"group.invite.reset.link" = "İlişimi sıfırla";
+
+/* Warning shown when user clicks on reset link action */
+"group.invite.reset.link.warning" = "Bu davet ilişimi sıfırlanırsa gruba katılmak için onu kullanılamaz.";
+
+/* Label for sharing link */
+"group.invite.share.link" = "İlişimi paylaş";
+
+/* Title of group invite screen */
+"group.invite.title" = "Grup davet ilişimi";
+
+/* Label for joining group action */
+"group.preview.join.group" = "GRUBA KATIL";
+
+/* Text shown to tell user the group title is tappable */
+"group.title.tap.for.info" = "Grup bilgisi için dokun";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "Yeni bir gruba eklendin";
+
+/* Text shown when user is about to remove the group */
+"groups.list.remove.message" = "Bu grubu ve içeriğini telefonundan silmek istediğine emin misin?";
+
+/* Title for exit button that closes the app */
+"home.update.notice.button.exit" = "Çık";
+
+/* Text shown to users who have old versions of the app */
+"home.update.notice.text" = "Lütfen HalloApp'in son sürümünü yükle";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.notice.title" = "Bu sürüm güncel değil";
+
+/* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
+"invite.already.halloapp.user" = "Halihazırda HalloApp kullanıcısı";
+
+/* Title for button that launches system SMS app to send invite. As short as possible! */
+"invite.app.sms" = "Mesajlar";
+
+/* Title for button that launches WhatsApp to send invite. Should match WhatsApp localization. */
+"invite.app.whatsapp" = "WhatsApp";
+
+/* Shows number of current HalloApp users who have this contact in their list */
+"invite.contact.count" = "HalloApp'te %d kişi";
+
+/* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
+"invite.error.alert.message" = "Bir şeyler ters gitti. Lütfen daha sonra tekrar dene.";
+
+/* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
+"invite.error.alert.title" = "Davet edilemiyor";
+
+/* Displayed when user does not have any invites left. Parameter is date. */
+"invite.out.of.invites.w.date" = "Davetiyelerin bitti. Lütfen %@ tarihinden sonra dene.";
+
+/* Displayed white user is inviting someone. */
+"invite.please.wait" = "Lütfen bekle...";
+
+/* Indicates how many invites are remaining */
+"invite.remaining.count.unspecified.time" = "%@ davetiyen kaldı";
+
+/* Text of invitation to join HalloApp. */
+"invite.text" = "HalloApp'te bana katıl — ailen ve arkadaşlarınla iletişimde kalmanın kolay, özel ve güvenli bir yolu. https://halloapp.com/dl adresinden indir.";
+
+/* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
+"invite.text.specific" = "Merhaba %s, seni, günün her anını kolayca paylaşabileceğin bir sosyal medya uygulaması olan HalloApp'te bana katılmaya davet ediyorum. Kaydolmak için %s numarasını kullanabilir ya da halloapp.com/dl adresinden indirebilirsin.";
+
+/* Title for the screen that allows to select contact to invite. */
+"invite.title" = "Davet et";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Daha fazlası öğren";
+
+/* Refers to albums in Photo Library. */
+"media.albums" = "Albümler";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Çıkar";
+
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "Sıfırla";
+
+/* Alert asking to enable Camera permission after attempting to use in-app camera. */
+"media.camera.access.request" = "HalloApp'in kamerana erişimi yok. Erişimi etkinleştirmek için Ayarlar'a dokun ve Kamera'yı aç. ";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "Düzenlemelerini iptal etmek istiyor musun?";
+
+/* Alert asking to enable Camera permission after attempting to use in-app camera. */
+"media.mic.access.request.body" = "Videoları sesli kaydedebilmek için HalloApp'in mikrofona erişmesi gerekir. Erişimi etkinleştirmek için Ayarlar'a dokun ve Mikrofon'u aç.";
+
+/* Alert asking to enable Microphone permission after attempting to use in-app camera. */
+"media.mic.access.request.title" = "Videoları sesli mi kaydetmek istiyorsun?";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "Kapat";
+
+/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+"media.voiceover.button.flip" = "Çevir";
+
+/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+"media.voiceover.button.rotate" = "Döndür";
+
+/* Message action. Verb. */
+"message.copy" = "Kopyala";
+
+/* Message action. Verb. */
+"message.delete" = "Sil";
+
+/* Message action. Verb. */
+"message.info" = "Bilgi";
+
+/* Placeholder text displayed in Message Info screen when no one has seen your group chat message yet. */
+"message.info.not.viewed.yet" = "Mesajını henüz görüntüleyen olmadı";
+
+/* Message Info screen: title for group of contacts who has not yet seen your group chat message. */
+"message.info.sent.to" = "Şuna gönder";
+
+/* Message Info screen: title for group of contacts who has seen your group chat message. */
+"message.info.viewed.by" = ".. tarafından görüldü";
+
+/* Message action. Verb. */
+"message.reply" = "Yanıtla";
+
+/* One of the contact actions in My Post screen. */
+"mypost.action.hide.my.posts" = "Gönderilerimi gizle";
+
+/* One of the contact actions in My Post screen. Verb. */
+"mypost.action.message" = "Mesaj";
+
+/* One of the contact actions in My Post screen. */
+"mypost.action.view.profile" = "Profili görüntüle";
+
+/* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
+"mypost.hide.posts.confirmation" = "Gelecekteki bütün gönderilerini %@ kişisinden gizlemek istediğine emin misin? Bunu daha sonra değiştirebilirsin.";
+
+/* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
+"mypost.not.viewed.yet" = "Gönderini henüz kimse görmedi";
+
+/* Your Post screen: title for group of contacts who has not yet seen your post. */
+"mypost.sent.to" = "%@ kişisine gönderildi";
+
+/* Your Post screen: title for group of contacts who has seen your post. */
+"mypost.viewed.by" = "%@ tarafından görüntülendi";
+
+/* Text shown to indicate user is not in the group anymore */
+"not.in.group.banner.text" = "Artık bu grupta değilsin";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "Yorum yapıldı: %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "Kişilerinden biri şu an HalloApp'te";
+
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@, HalloApp'e katılma davetini kabul etti 🎉";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@ artık HalloApp'te";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "Yeni mesaj";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "Yeni gönderi";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "Fotoğraf";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "Video";
+
+/* Text for new user popup pointing at activity center icon */
+"nux.activity.center.icon" = "Burası senin hareket merkezin. En son etkinliğini görmek için dokun.";
+
+/* Shown on chats list when there are no contacts or messages to display */
+"nux.chat.empty" = "Kişilerin ve mesajların burada görünecek.";
+
+/* Text for new user popup pointing at chat list */
+"nux.chat.list" = "Ailenden ve arkadaşlarından gelen mesajları burada bulabilirsin. HalloApp'e yeni biri katıldığında, onu burada görebilirsin.";
+
+/* Shown on groups list when there are no groups to display */
+"nux.groups.list.empty" = "Grupların burada görünecek";
+
+/* Shown on home feed when no posts are available */
+"nux.home.feed.empty" = "Rehberindeki kişilerin gönderileri, burada görünecek";
+
+/* Text for new user popup pointing at new post button */
+"nux.new.post.button" = "HalloApp'te ailen ve arkadaşlarınla bir gönderi paylaşmak için dokun.";
+
+/* Message in media picker when access is denied. */
+"picker.access.denied.message" = "Lütfen Ayarlar'dan erişim izni ver";
+
+/* An option to give access from settings */
+"picker.access.denied.settings" = "Ayarlar";
+
+/* Alert title in media picker when access is denied. */
+"picker.access.denied.title" = "Fotoğraf erişimi reddedildi";
+
+/* Message shown only limited access to media. */
+"picker.access.limited.message" = "HalloApp'e belli sayıda fotoğraf ve videoya erişim için izin verdin.";
+
+/* Initial picker screen title. The default source of picker photos */
+"picker.default.title" = "Film rulosu";
+
+/* Alert message in media picker when unable to load media file. */
+"picker.media.fail.message" = "Lütfen tekrar dene veya farklı fotoğraf ya da video seç.";
+
+/* Alert title in media picker when unable to load media file. */
+"picker.media.fail.title" = "Görsel yüklenemedi";
+
+/* Button shown to update limited access to media. */
+"picker.media.limit.button" = "Güncelle";
+
+/* An option to update limited access. */
+"picker.media.limit.settings" = "Ayarları değiştir";
+
+/* Alert title in media picker when selecting over limit. */
+"picker.media.limit.title" = "Azami öge seçildi";
+
+/* An option to update limited access. */
+"picker.media.limit.updateSelection" = "Görüntü ve video seçimini güncelle";
+
+/* Displayed in place of a deleted feed post.
+   Displayed in place of a deleted group feed post at group list screen */
+"post.has.been.deleted" = "Bu gönderi silindi";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted.by.author" = "%@, gönderisini sildi";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted.by.you" = "Gönderini sildin";
+
+/* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
+"privacy.list.blocked" = "Engellendi";
+
+/* Title for the button allowing to delete current profile photo. */
+"profile.delete.photo" = "Fotoğrafı sil";
+
+/* Text for messaging user under profile header */
+"profile.header.message.user" = "Mesaj";
+
+/* Item in Profile > Help screen. */
+"profile.help.faq" = "SSS";
+
+/* Item in Profile > Help screen. */
+"profile.help.feedback" = "Geri bildirim paylaş";
+
+/* Item in Profile > Help screen. */
+"profile.help.pp" = "Gizlilik Politikası";
+
+/* Item in Profile > Help screen. */
+"profile.help.share.logs" = "Geri bildirim paylaş";
+
+/* Item in Profile > Help screen. */
+"profile.help.tos" = "Kullanım Şartları";
+
+/* Row in Profile screen. */
+"profile.row.about" = "HalloApp hakkında";
+
+/* Row in Profile screen. */
+"profile.row.archive" = "Arşiv";
+
+/* Row in Profile screen. */
+"profile.row.help" = "Yardım";
+
+/* Row in Profile screen. */
+"profile.row.invite" = "Arkadaşlarını davet et";
+
+/* Row in Settings screen */
+"profile.row.my.posts" = "Gönderilerim";
+
+/* Title for the button allowing to select a new profile photo. */
+"profile.take.choose.photo" = "Fotoğraf çek ya da seç";
+
+/* Title for the screen allowing to edit profile name */
+"profile.title.your.name" = "Adın";
+
+/* Error message to display when user enters incorrect verification code */
+"registration.code.incorrect" = "Girdiğin kod yanlış";
+
+/* Instructions for filling in SMS verification code. Parameter is formatted phone number */
+"registration.code.instructions" = "%@ numarasına gönderdiğimiz kodu gir";
+
+/* Error message to display when we cannot send a verification code */
+"registration.code.request.error" = "Kod gönderilemiyor. Lütfen daha sonra tekrar dene";
+
+/* Text explaining why we need contact permissions */
+"registration.contacts.content" = "Ailen ve arkadaşlarınla bağlantı kurabilmen için kişilerine erişim iznine ihtiyacımız var.";
+
+/* Title for text explaining why we need contact permissions */
+"registration.contacts.title" = "Bir şey daha";
+
+/* Popup that appears when user tries to register uninvited number */
+"registration.invite.only" = "Şu anda yalnızca davet sistemiyle çalışıyoruz. HalloApp kullanan bir aile üyen veya arkadaşın varsa, telefon numaranı kullanarak sana davet göndermelerini isteyebilirsin.";
+
+/* Placeholder text for name entry */
+"registration.nameEntry.placeholder" = "Adın";
+
+/* Placeholder text for phone entry */
+"registration.phoneEntry.placeholder" = "Telefon numaran";
+
+/* Text for modal describing how we use contacts data */
+"registration.privacy.content" = "HalloApp, seni HalloApp kullanan arkadaşlarınla eşleştirmek için yalnızca telefon numaranı kullanır; rehberindeki başka herhangi bir veriyi almaz.";
+
+/* Title for modal describing how we use contacts data */
+"registration.privacy.title" = "Gizliliğin önceliğimizdir";
+
+/* Title for popup that appears when user tries to register uninvited number */
+"registration.shucks" = "Tüh!";
+
+/* Shown above name and phone inputs */
+"registration.welcome" = "Hoş geldin!";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"select.group.members.create.group.title" = "Yeni bir grup oluştur";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"select.group.members.title" = "Yeni üye ekle";
+
+/* fallback text in notification for a new comment */
+"server.new.comment" = "Yeni yorum";
+
+/* fallback text in notification when a new contact joins */
+"server.new.contact" = "%@ şimdi HalloApp'te";
+
+/* fallback text in notification when user is added to a new group */
+"server.new.group" = "Yeni bir gruba eklendin";
+
+/* fallback text in notification for a new group chat message */
+"server.new.group.message" = "Yeni grup mesajı";
+
+/* fallback text in notification when an invitee joins */
+"server.new.inviter" = "%@ HalloApp davetini kabul etti 🎉";
+
+/* fallback text in notification for a new chat message */
+"server.new.message" = "Yeni mesaj";
+
+/* fallback text in notification for a new feed post */
+"server.new.post" = "Yeni gönderi";
+
+/* text in the sms sent with verification code */
+"server.sms.verification" = "HalloApp doğrulama kodun";
+
+/* text in the voice call sent with verification code */
+"server.voicecall.verification" = "HalloApp doğrulama kodun: ";
+
+/* App version text in Profile > Help. */
+"settings.app.version" = "HalloApp %@ sürümü";
+
+/* Settings menu section. */
+"settings.notifications" = "Bildirimler";
+
+/* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
+"settings.notifications.comments" = "Yorumlar";
+
+/* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
+"settings.notifications.posts" = "Gönderiler";
+
+/* Settings menu section */
+"settings.privacy" = "Gizlilik";
+
+/* Settings > Privacy: name of a setting that defines who can see your posts. */
+"settings.privacy.posts" = "Gönderiler";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.add.reading.list" = "Okuma listesine ekle";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
+"textlabel.context.menu.call.number" = "%@ kişisini ara";
+
+/* One of the items in context menu presented upon long press on linkified address in text. */
+"textlabel.context.menu.copy.address" = "Adresi kopyala";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.copy.link" = "İlişimi kopyala";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. */
+"textlabel.context.menu.copy.phone.number" = "Telefon numarasını kopyala";
+
+/* One of the items in context menu presented upon long press on linkified address in text. */
+"textlabel.context.menu.get.directions" = "Yönlendirme al";
+
+/* One of the items in context menu presented upon long press on linkified address in text. */
+"textlabel.context.menu.open.in.maps" = "Haritalarda aç";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.open.link" = "İlişimi aç";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.share" = "Paylaş...";
+
+/* Link to expand truncated text. */
+"textlabel.more" = "...daha fazla";
+
+/* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
+"thread.list.preview.already.user.default" = "%@ Hallopp'te";
+
+/* Default preview text shown for a symmetric contact who just joined Halloapp */
+"thread.list.preview.new.user.default" = "%@ HalloApp'te! 🎉";
+
+/* Last seen timestamp: full date in short format and time */
+"timestamp.last.seen.date.at.time" = "Son görülme %1$@, %2$@";
+
+/* Last seen timestamp: day of week and time */
+"timestamp.last.seen.dayofweek.at.time" = "Son görülme %1$@, %2$@";
+
+/* Last seen timestamp: today at specific time. */
+"timestamp.last.seen.today.at" = "Son görülme bugün %@'de/te";
+
+/* Last seen timestamp: yesterday at specific time. */
+"timestamp.last.seen.yesterday.at" = "Son görülme dün %@'de/te";
+
+/* Capitalized translation of `Now` to be used as timestamp. */
+"timestamp.now.capitalized" = "Şimdi";
+
+/* Lowercase translation of `Now` to be used as timestamp. */
+"timestamp.now.lowercase" = "şimdi";
+
+/* Timestamp: `Today` */
+"timestamp.today" = "Bugün";
+
+/* Timestamp: `Yesterday` */
+"timestamp.yesterday" = "Dün";
+
+/* Screen title */
+"title.camera" = "Kamera";
+
+/* Third tab in the main app interface. */
+"title.chats" = "Sohbetler";
+
+/* Title for the Comments screen. */
+"title.comments" = "Yorumlar";
+
+/* Second tab in the main app interface. */
+"title.groups" = "Gruplar";
+
+/* First tab in the main app interface. */
+"title.home" = "Ana sayfa";
+
+/* Row in Settings screen */
+"title.notifications" = "Bildirimler";
+
+/* Row in Settings screen */
+"title.privacy" = "Gizlilik";
+
+/* Fourth tab in the main app interface */
+"title.settings" = "Ayalar";
+
+/* Title for the screen with information about who saw your post. */
+"title.your.post" = "Gönderin";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Bilinmeyen kişi";
+
+/* Reference to the user, second person pronoun */
+"user.you" = "sen";
+
+/* Capitalized reference to the user, second person pronoun */
+"user.you.capitalized" = "Sen";
+
+/* No comment provided by engineer. */
+"VIDEO" = "VİDEO";
+
+/* Button title. Refers to resetting video to original version. */
+"video.edit.button.reset" = "Sıfırla";
+
+/* Message in video edit when the processing fails. */
+"video.processing.failed.message" = "Lütfen tekrar dene ya da başka bir video seç";
+
+/* Alert title in video edit when the processing fails. */
+"video.processing.failed.title" = "Video işlenemedi";
+
+/* Title for the button that confirms intent to delete your own post. */
+"your.post.deletepost.button" = "Gönderiyi sil";
+
+/* Post deletion confirmation. Displayed as action sheet title. */
+"your.post.deletepost.confirmation" = "Bu gönderiyi sil? Bu eylem geri alınamaz.";
+

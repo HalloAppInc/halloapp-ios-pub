@@ -1,0 +1,68 @@
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "İptal et";
+
+/* Title for generic Create button */
+"button.create" = "Oluştur";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Reddet";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Bitti";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "İleri";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "Tamam";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Kaldır";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Kaydet";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Gönder";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Paylaş";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Güncelle";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "Yeni bir gruba eklendin";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Daha fazla öğren";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "Yorum yapıldı: %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "Kişilerinden biri şimdi HalloApp'te";
+
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@, HalloApp davetini kabul etti 🎉";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@, şimdi HalloApp'te";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "Yeni mesaj";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "Yeni gönderi";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "📷 fotoğraf";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "📹 video";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Bilinmeyen kişi";
+

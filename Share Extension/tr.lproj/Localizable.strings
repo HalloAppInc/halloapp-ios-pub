@@ -1,0 +1,80 @@
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "İptal et";
+
+/* Title for generic Create button */
+"button.create" = "Oluştur";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Reddet";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Bitti";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "İleri";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "Tamam";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Kaldır";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Kaydet";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Gönder";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Paylaş";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Güncelle";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Daha fazla öğren";
+
+/* Placeholder for media caption. */
+"share.composer.placeholder" = "Bir açıklama yaz";
+
+/* Placeholder when sharing text only. */
+"share.composer.placeholder.text" = "Bir gönderi yaz";
+
+/* Composer subtitle when sharing with a contact */
+"share.composer.subtitle.contact" = "%@ kişisine gönderiliyor";
+
+/* Composer subtitle for group posts */
+"share.composer.subtitle.group" = "%@ ile paylaşılıyor";
+
+/* Composer title when sharing with a contact */
+"share.composer.title.contact" = "Yeni mesaj";
+
+/* Composer title when sharing to feed */
+"share.composer.title.feed" = "Yeni gönderi";
+
+/* Alert dialog message shown when uploading fails.
+   Alert dialog title shown when uploading fails. */
+"share.composer.uploading.fail.title" = "Yükleme başarısız";
+
+/* Alert dialog title shown when uploading begins. */
+"share.composer.uploading.title" = "Yükleniyor";
+
+/* Contacts category label */
+"share.destination.contacts" = "Kişiler";
+
+/* Share on the feed label */
+"share.destination.feed" = "Yayın";
+
+/* Groups category label */
+"share.destination.groups" = "Gruplar";
+
+/* Destination screen title */
+"share.destination.title" = "HalloApp";
+
+/* Title of alert when user is not logged in */
+"share.notlogged.title" = "Oturum açmadın.";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Bilinmeyen kişi";
+

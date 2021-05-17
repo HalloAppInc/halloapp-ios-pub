@@ -1,0 +1,15 @@
+/* Bundle name */
+"CFBundleName" = "HalloApp";
+
+/* Privacy - Camera Usage Description */
+"NSCameraUsageDescription" = "Bu, doğrudan HalloApp içinden fotoğraf ve video çekmeni sağlar.";
+
+/* Privacy - Contacts Usage Description */
+"NSContactsUsageDescription" = "Arkadaşlarının gönderilerini görmek ve kendi gönderilerini onlarla paylaşmak için kişilerini HalloApp sunucularına yükle.";
+
+/* Privacy - Microphone Usage Description */
+"NSMicrophoneUsageDescription" = "Bu, sesli videolar kaydetmeni sağlar.";
+
+/* Privacy - Photo Library Usage Description */
+"NSPhotoLibraryUsageDescription" = "Burası, galerindeki fotoğraf ve videolarını arkadaşlarınla paylaşmanı, çektiklerini galerinde saklamanı sağlar.";
+
