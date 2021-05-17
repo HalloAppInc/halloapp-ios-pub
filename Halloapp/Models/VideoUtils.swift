@@ -184,6 +184,8 @@ final class VideoUtils {
         DDLogInfo("video-processing/ Audio output config: [\(audioOutputConfiguration)]")
         exporter.audioOutputConfiguration = audioOutputConfiguration
 
+        exporter.optimizeForNetworkUse = true
+
         DDLogInfo("video-processing/export/start")
         exporter.export(retryOnCancel: 2, progressHandler: { (progress) in
             DDLogInfo("video-processing/export/progress [\(progress)] input=[\(inputUrl.description)]")
@@ -287,6 +289,39 @@ final class VideoUtils {
                         completion(.failure(error))
                     } else {
                         DDLogWarn("video-processing/trim/finished status=[\(exporter.status)] url=[\(exporter.outputURL?.description ?? "")] input=[\(url.description)]")
+                        completion(.failure(VideoUtilsError.processingFailure))
+                    }
+                }
+
+         }
+    }
+
+    static func optimizeForStreaming(url: URL, completion: @escaping (Swift.Result<URL, Error>) -> Void) {
+        let asset: AVAsset = AVURLAsset(url: url, options: nil)
+
+        guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
+            completion(.failure(VideoUtilsError.setupFailure))
+            return
+        }
+
+        exporter.shouldOptimizeForNetworkUse = true
+        exporter.outputFileType = AVFileType.mp4
+        exporter.outputURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingPathComponent(ProcessInfo().globallyUniqueString)
+            .appendingPathExtension("mp4")
+
+        DDLogInfo("video-processing/optimizeForStreaming/start")
+        exporter.exportAsynchronously {
+             switch exporter.status {
+                case .completed:
+                    DDLogInfo("video-processing/optimizeForStreaming/completed url=[\(exporter.outputURL?.description ?? "")] input=[\(url.description)]")
+                    completion(.success(exporter.outputURL!))
+                default:
+                    if let error = exporter.error {
+                        DDLogWarn("video-processing/optimizeForStreaming/error status=[\(exporter.status)] url=[\(exporter.outputURL?.description ?? "")] input=[\(url.description)] error=[\(error.localizedDescription)]")
+                        completion(.failure(error))
+                    } else {
+                        DDLogWarn("video-processing/optimizeForStreaming/finished status=[\(exporter.status)] url=[\(exporter.outputURL?.description ?? "")] input=[\(url.description)]")
                         completion(.failure(VideoUtilsError.processingFailure))
                     }
                 }

@@ -204,12 +204,22 @@ class ImageServer {
         guard shouldConvert(video: url) else {
             DDLogInfo("ImageServer/video/prepare/ready  conversion not required [\(url.description)]")
 
-            if let resolution = VideoUtils.resolutionForLocalVideo(url: url) {
-                return completion(.success((url, resolution)))
-            } else {
-                DDLogError("ImageServer/video/prepare/error  Failed to get resolution. \(url.description)")
-                return completion(.failure(VideoProcessingError.failedToLoad))
+            VideoUtils.optimizeForStreaming(url: url) {
+                switch $0 {
+                case .success(let url):
+                    if let resolution = VideoUtils.resolutionForLocalVideo(url: url) {
+                        return completion(.success((url, resolution)))
+                    } else {
+                        DDLogError("ImageServer/video/prepare/error  Failed to get resolution. \(url.description)")
+                        return completion(.failure(VideoProcessingError.failedToLoad))
+                    }
+                case .failure(let err):
+                    DDLogError("ImageServer/video/prepare/error  Failed to optimize [\(err)] \(url.description)")
+                    return completion(.failure(VideoProcessingError.failedToLoad))
+                }
             }
+
+            return
         }
 
         guard let fileAttrs = try? FileManager.default.attributesOfItem(atPath: url.path) else {
