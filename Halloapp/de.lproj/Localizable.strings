@@ -687,7 +687,7 @@
 "registration.code.incorrect" = "Der eingegebene Code ist nicht korrekt.";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
-"registration.code.instructions" = "Bitte den Code eingeben, den wir an %s gesendet haben";
+"registration.code.instructions" = "Bitte den Code eingeben, den wir an %@ gesendet haben";
 
 /* Error message to display when we cannot send a verification code */
 "registration.code.request.error" = "Der Code konnte nicht gesendet werden. Bitte versuche es später noch einmal.";
