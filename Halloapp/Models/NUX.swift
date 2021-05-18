@@ -71,6 +71,24 @@ final class NUX {
 }
 
 extension Localizations {
+    static func shortInvitesCount(_ count: Int) -> String {
+        let format = NSLocalizedString("invite.count.remaining.unspecified.time.short",
+                                       value: "You have %@ invites.",
+                                       comment: "Indicates how many invites are remaining")
+        return String(format: format, String(count))
+    }
+    static var inviteAFriend: String {
+        NSLocalizedString("link.invite.friend", value: "Invite a friend", comment: "Link text to open invite flow")
+    }
+    static func inviteAcceptedActivityItem(inviter: String) -> String {
+        let format = NSLocalizedString("activity.center.invite.accepted.item",
+                                       value: "You accepted %@'s invite 🎉",
+                                       comment: "Message shown when a user first joins from a friend's invitation (e.g., 'You accepted David's invite 🎉'")
+        return String(format: format, inviter)
+    }
+    static var welcomeToHalloApp: String {
+        NSLocalizedString("activity.center.welcome.item", value: "Welcome to HalloApp!", comment: "Message shown when a user first joins")
+    }
     static var nuxActivityCenterIconContent: String {
         NSLocalizedString(
             "nux.activity.center.icon",
