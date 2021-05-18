@@ -92,7 +92,7 @@ extension Localizations {
     static var nuxActivityCenterIconContent: String {
         NSLocalizedString(
             "nux.activity.center.icon",
-            value: "This is your activity center. Tap to see your most recent activity.",
+            value: "Hallo!",
             comment: "Text for new user popup pointing at activity center icon")
     }
     static var nuxGroupsListEmpty: String {
