@@ -219,6 +219,7 @@
 		EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B9A2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift */; };
 		EA79AEF5260E5D5200F8184F /* GroupInviteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA79AEF4260E5D5200F8184F /* GroupInviteViewController.swift */; };
 		EA79C6FD2554E89400E0525F /* Localizations+Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */; };
+		EA7FBD1226546B5900CE1836 /* UITabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7FBD1126546B5900CE1836 /* UITabBarController.swift */; };
 		EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */; };
 		EA9B750F25A9003B00389A8E /* MsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA9B750E25A9003B00389A8E /* MsgViewCell.swift */; };
 		EAA0798625AEAC9200B384AB /* GroupsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */; };
@@ -597,6 +598,7 @@
 		EA796B9A2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuotedMedia+CoreDataProperties.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuotedMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		EA79AEF4260E5D5200F8184F /* GroupInviteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteViewController.swift; sourceTree = "<group>"; };
 		EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Localizations+Chat.swift"; sourceTree = "<group>"; };
+		EA7FBD1126546B5900CE1836 /* UITabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITabBarController.swift; sourceTree = "<group>"; };
 		EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationViewController.swift; sourceTree = "<group>"; };
 		EA9B750E25A9003B00389A8E /* MsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MsgViewCell.swift; sourceTree = "<group>"; };
 		EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsListViewController.swift; sourceTree = "<group>"; };
@@ -1316,6 +1318,7 @@
 				76A9244A244EC49000794859 /* UIView.swift */,
 				76407DF7245CA3F00031F96A /* UIViewController.swift */,
 				68766C742631F2DE00399F82 /* Locale.swift */,
+				EA7FBD1126546B5900CE1836 /* UITabBarController.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -1956,6 +1959,7 @@
 				24AA69D324DCC1B500ED65CE /* XMPPChatMessage.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				76A9244B244EC49000794859 /* UIView.swift in Sources */,
+				EA7FBD1226546B5900CE1836 /* UITabBarController.swift in Sources */,
 				680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */,
 				EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */,
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,

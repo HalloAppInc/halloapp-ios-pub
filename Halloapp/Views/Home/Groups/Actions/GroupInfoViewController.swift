@@ -25,7 +25,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     private var groupId: GroupID
     private var chatGroup: ChatGroup?
     private var isAdmin: Bool = false
-    
+
     private var fetchedResultsController: NSFetchedResultsController<ChatGroupMember>?
 
     let cellReuseIdentifier = "GroupMembersViewCell"
@@ -84,6 +84,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     override func viewDidAppear(_ animated: Bool) {
         DDLogInfo("GroupInfoViewController/viewDidAppear")
         super.viewDidAppear(animated)
+        self.tabBarController?.hideTabBar()
     }
 
     deinit {
