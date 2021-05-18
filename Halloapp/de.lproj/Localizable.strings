@@ -460,7 +460,7 @@
 "invite.text" = "Mach mit bei HalloApp — eine Möglichkeit ganz persönlich, unkompliziert und sicher den Kontakt zu Freunden und zur Familie zu halten. Hole sie dir auf: https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Hallo %s, ich lade dich ein, dich ebenfalls bei HalloApp anzumelden. Eine simple Social-App, um alltägliche Momente zu teilen. Nutze %s zur Registrierung und hol sie dir auf halloapp.com/dl";
+"invite.text.specific" = "Hallo %1$@, ich lade dich ein, dich ebenfalls bei HalloApp anzumelden. Eine simple Social-App, um alltägliche Momente zu teilen. Nutze %2$@ zur Registrierung und hol sie dir auf https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Einladen";
@@ -532,7 +532,7 @@
 "mypost.action.view.profile" = "Profil ansehen";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
-"mypost.hide.posts.confirmation" = "Bist du dir sicher, dass du alle deine zukünftigen Beiträge vor %s verbergen möchtest? Du kannst dies später jederzeit ändern.";
+"mypost.hide.posts.confirmation" = "Bist du dir sicher, dass du alle deine zukünftigen Beiträge vor %@ verbergen möchtest? Du kannst dies später jederzeit ändern.";
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
 "mypost.not.viewed.yet" = "Bislang hat keiner deinen Beitrag gesehen";
