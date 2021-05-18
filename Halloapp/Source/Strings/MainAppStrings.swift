@@ -71,6 +71,37 @@ extension Localizations {
     static var messageDelete: String {
         NSLocalizedString("message.delete", value: "Delete", comment: "Message action. Verb.")
     }
+
+    // MARK: Contact permissions
+
+    static var contactsPermissionExplanation: String {
+        NSLocalizedString(
+            "contacts.permission.explanation",
+            value: "To help you connect with friends and family allow HalloApp access to your contacts.",
+            comment: "Message requesting the user enable contacts permission")
+    }
+
+    static var contactsTutorialTitle: String {
+        NSLocalizedString(
+            "contacts.permission.tutorial.title",
+            value: "How to turn on “Contacts”",
+            comment: "Title for tutorial explaining how user can enable contacts permission")
+    }
+
+    static var tutorialTapBelow: String {
+        NSLocalizedString(
+            "tutorial.tap.below",
+            value: "Tap “%@” below.",
+            comment: "Instructs user to tap a button (e.g., Tap “Go to Settings” below.)")
+    }
+
+    static var tutorialTurnOnContacts: String {
+        NSLocalizedString(
+            "turn.on.contacts",
+            value: "Turn on “Contacts”.",
+            comment: "Indicates which switch a user needs to turn on to enable contacts permissions.")
+    }
+
     
     // MARK: User
     
