@@ -201,8 +201,7 @@ open class ContactStore {
 
     public func fullNameIfAvailable(for userId: UserID) -> String? {
         if userId == self.userData.userId {
-            // TODO: return correct pronoun.
-            return "Me"
+            return Localizations.meCapitalized
         }
 
         // Fetch from the address book.
@@ -221,8 +220,7 @@ open class ContactStore {
 
     public func fullNameIfAvailable(forNormalizedPhone normalizedPhoneNumber: String) -> String? {
         if normalizedPhoneNumber == self.userData.normalizedPhoneNumber {
-            // TODO: return correct pronoun.
-            return "Me"
+            return Localizations.meCapitalized
         }
 
         // Fetch from the address book.
@@ -281,4 +279,10 @@ open class ContactStore {
         return nil
     }
 
+}
+
+extension Localizations {
+    static var meCapitalized: String {
+        NSLocalizedString("me", value: "Me", comment: "Displayed in place of own name (e.g., next to own comments)")
+    }
 }
