@@ -362,9 +362,18 @@ class NotificationMetadata: Codable {
         return ListFormatter.localizedString(byJoining: strings)
     }
 
-    func getMentionNames(contactStore: ContactStore) -> ((UserID) -> String) {
+    func getMentionNames(contactStore: ContactStore, mentions: [Clients_Mention] = []) -> ((UserID) -> String) {
+        // Add mention names if any in the payload to contactStore and then return dictionary.
+        var contactNames = [UserID:String]()
+        mentions.forEach{
+            guard !$0.name.isEmpty else { return }
+            contactNames[$0.userID] = $0.name
+        }
+        if !contactNames.isEmpty {
+            contactStore.addPushNames(contactNames)
+        }
+
         let mentionNameProvider: (UserID) -> String = { [self] userID in
-            // TODO: Pass in the push names included with the mentions
             let pushNameForMention = (userID == fromId) ? pushName : nil
             return contactStore.mentionNameIfAvailable(for: userID, pushName: pushNameForMention) ?? Localizations.unknownContact
         }
@@ -372,8 +381,6 @@ class NotificationMetadata: Codable {
     }
 
     func populateContent(contactStore: ContactStore) -> Bool {
-
-        let mentionNameProvider = getMentionNames(contactStore: contactStore)
 
         // Title:
         // "Contact" for feed posts / comments and 1-1 chat messages.
@@ -388,6 +395,7 @@ class NotificationMetadata: Codable {
             guard let protoContainer = protoContainer else {
                 return false
             }
+            let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: protoContainer.post.mentions)
             subtitle = NSLocalizedString("notification.new.post", value: "New Post", comment: "Title for the new feed post notification.")
             body = protoContainer.post.mentionText.expandedText(nameProvider: mentionNameProvider).string
             if !protoContainer.post.media.isEmpty {
@@ -405,6 +413,7 @@ class NotificationMetadata: Codable {
             guard let protoContainer = protoContainer else {
                 return false
             }
+            let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: protoContainer.comment.mentions)
             let commentText = protoContainer.comment.mentionText.expandedText(nameProvider: mentionNameProvider).string
             body = String(format: NSLocalizedString("notification.commented.with.text", value: "Commented: %@", comment: "Push notification for a new comment. Parameter is the text of the comment"), commentText)
 
@@ -440,7 +449,7 @@ class NotificationMetadata: Codable {
     }
 
     func populateChatBody(from chatMessage: Clients_ChatMessage, contactStore: ContactStore) {
-        let mentionNameProvider = getMentionNames(contactStore: contactStore)
+        let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: chatMessage.mentions)
         body = chatMessage.mentionText.expandedText(nameProvider: mentionNameProvider).string
         if !chatMessage.media.isEmpty {
             // Display how many photos and videos message contains if there's no caption.
