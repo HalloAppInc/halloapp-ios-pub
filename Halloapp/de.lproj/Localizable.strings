@@ -5,6 +5,9 @@
 "%@" = "%@";
 
 /* About screen: body text. */
+"about.body.1" = "HalloApp ist da! Und wir entwickeln diese App für dich und deine Liebsten. Eine Social-App, die sich wieder auf das Wesentliche besinnt und dabei gleichzeitig ein hohes Sicherheits- und Datenschutzniveau bietet, zu dem, wie wir meinen, jeder weltweit Zugriff haben sollte.\nHalloApp wird niemals deine persönlichen Daten verwenden oder dir Werbung anzeigen. Wir planen vielmehr, unseren Nutzern in Zukunft zusätzliche Funktionen zu einem günstigen Preis anzubieten.";
+
+/* About screen: body text. */
 "about.body.2" = "Danke fuer die Nutzung und das Teilen von HalloApp mit deinen Freunden und deiner Familie. Wir verbessern diese App wöchentlich.";
 
 /* About screen: footer text. Parameter is support email address. */
@@ -75,10 +78,10 @@
 "camera.init.error.3" = "Das Mikrofon kann nicht initialisiert werden";
 
 /* No comment provided by engineer. */
-"camera.init.error.4" = "Zugriff auf den Rückkamera-Eingang nicht möglich";
+"camera.init.error.4" = "Zugriff auf die Rückkamera nicht möglich";
 
 /* No comment provided by engineer. */
-"camera.init.error.5" = "Zugriff auf den Frontkamera-Eingang nicht möglich";
+"camera.init.error.5" = "Zugriff auf die Frontkamera nicht möglich";
 
 /* No comment provided by engineer. */
 "camera.init.error.6" = "Kein Zugriff auf den Audio-Eingang";
@@ -87,7 +90,7 @@
 "camera.init.error.7" = "Fotos können nicht aufgenommen werden";
 
 /* No comment provided by engineer. */
-"camera.init.error.8" = "Filme können nicht aufgenommen werden";
+"camera.init.error.8" = "Videos können nicht aufgenommen werden";
 
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Initialisierungsfehler";
@@ -129,7 +132,7 @@
 "chat.group.info.bg.color.label" = "Farbe";
 
 /* Text label for default selection of group feed background color */
-"chat.group.info.bg.default.label" = "Standardeinstellung";
+"chat.group.info.bg.default.label" = "Standard";
 
 /* Text for menu option of demoting a group member */
 "chat.group.info.demote" = "Als Admin entfernen";
@@ -183,7 +186,7 @@
 "chat.message.video" = "Video";
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
-"chat.message.waiting" = "Warten Nachrichteneingang. Dies kann eine Weile dauern.";
+"chat.message.waiting" = "Auf Nachrichteneingang wird gewartet. Dies kann eine Weile dauern.";
 
 /* Title for new message screen where user chooses who to message */
 "chat.new.message.title" = "Neue Nachricht";
@@ -210,10 +213,10 @@
 "comment.deleting" = "Kommentar wird gelöscht";
 
 /* Button in comment input field. Verb. */
-"comment.post" = "Beitrag erstellen";
+"comment.post" = "Posten";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
-"comment.posting" = "Beitrag wird erstellt...";
+"comment.posting" = "Beitrag wird gepostet...";
 
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Antworten";
@@ -229,7 +232,7 @@
 "comment.resend.confirmation" = "Kommentar erneut senden?";
 
 /* Text displayed in gray inside of the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "Kommentar hinzufügen";
+"comment.textfield.placeholder" = "Kommentieren";
 
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "Beim Laden dieses Beitrags ist ein Fehler aufgetreten. Bitte versuche es später noch einmal.";
@@ -375,11 +378,17 @@
 /* Message text shown with the user who changed the background */
 "group.event.changed.background" = "%@ hat die Hintergrundfarbe geändert";
 
+/* Message text shown when you change the background */
+"group.event.changed.background.you" = "Du hast die Hintergrundfarbe geändert";
+
 /* Message text shown with the user who changed the group name */
-"group.event.changed.name" = "%1$@ hast/hat den Gruppennamen in \"%2$@\" umbenannt";
+"group.event.changed.name" = "%1$@ hat den Gruppennamen in \"%2$@\" umbenannt";
 
 /* Message text shown with the user who created the group */
 "group.event.created.group" = "%1$@ hat die Gruppe \"%2$@\" gegründet";
+
+/* Message text shown with the user who demoted a group admin */
+"group.event.demoted.member" = "%1$@ hat %2$@ als Admin entfernt";
 
 /* Message text shown with the user who promoted a group member */
 "group.event.promoted.member" = "%1$@ hat %2$@ zum Admin gemacht";
@@ -392,6 +401,9 @@
 
 /* Text shown when link is copied */
 "group.invite.link.copied" = "Link kopiert";
+
+/* Text to describe what the group invite link is */
+"group.invite.link.description" = "Jeder auf HalloApp kann dieser Gruppe über diesen Link beitreten.";
 
 /* Text shown when link is reset */
 "group.invite.link.reset" = "Link zurückgesetzt";
@@ -420,6 +432,9 @@
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "Möchtest du wirklich diese Gruppe und ihren Inhalt von deinem Gerät entfernen?";
 
+/* Text shown in the email body when sending logs from the help screen */
+"help.send.logs.email.body" = "\n\nBitte im Feld oben Feedback oder eine Problembeschreibung eingeben.\n\nVersion %1$@ - %2$@\n%3$@";
+
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Beenden";
 
@@ -433,7 +448,7 @@
 "invite.already.halloapp.user" = "Ist bereits auf HalloApp";
 
 /* Title for button that launches system SMS app to send invite. As short as possible! */
-"invite.app.sms" = "Text";
+"invite.app.sms" = "Nachricht";
 
 /* Title for button that launches WhatsApp to send invite. Should match WhatsApp localization. */
 "invite.app.whatsapp" = "WhatsApp";
@@ -460,7 +475,7 @@
 "invite.text" = "Mach mit bei HalloApp — eine Möglichkeit ganz persönlich, unkompliziert und sicher den Kontakt zu Freunden und zur Familie zu halten. Hole sie dir auf: https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Hallo %1$@, ich lade dich ein, dich ebenfalls bei HalloApp anzumelden. Eine simple Social-App, um alltägliche Momente zu teilen. Nutze %2$@ zur Registrierung und hol sie dir auf https://halloapp.com/dl";
+"invite.text.specific" = "Hallo %1$@, ich lade dich ein, dich auch bei HalloApp anzumelden. Eine einfache Social-App, um alltägliche Momente zu teilen. Nutze %2$@ zur Registrierung und hol sie dir auf https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Einladen";
@@ -683,6 +698,9 @@
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Dein Name";
 
+/* Disclaimer text about receiving SMS verification code */
+"registration.code.disclaimer" = "Bestätigungscode wird zugeschickt. \nKosten deines Service-Providers könnten anfallen.";
+
 /* Error message to display when user enters incorrect verification code */
 "registration.code.incorrect" = "Der eingegebene Code ist nicht korrekt.";
 
@@ -692,11 +710,14 @@
 /* Error message to display when we cannot send a verification code */
 "registration.code.request.error" = "Der Code konnte nicht gesendet werden. Bitte versuche es später noch einmal.";
 
+/* Button label to resend verification code */
+"registration.code.resend" = "Code noch einmal senden";
+
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Um dich mit deinen Freunden & deiner Familie zu verbinden, benötigen wir die Zugriffsberechtigung auf deine Kontakte.";
 
 /* Title for text explaining why we need contact permissions */
-"registration.contacts.title" = "Eine letzte Sache";
+"registration.contacts.title" = "Ein wichtiger Hinweis";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Nutzung momentan nur auf Einladungs-Basis. Bitte deine Freude oder Familienmitglieder, die HalloApp nutzen, dich über deine Telefonnummer einzuladen.";
