@@ -31,6 +31,26 @@ class HomeViewController: UITabBarController {
         self.commonSetup()
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        makeTabBarLabelsFullWidth()
+    }
+
+    private func makeTabBarLabelsFullWidth() {
+
+        // Make labels full width to avoid truncation
+        // ("Einstellungen" isn't being sized correctly when we apply a custom font)
+
+        tabBar.traverseViewHierarchyDepthFirst { view in
+            if let label = view as? UILabel, let superview = label.superview {
+                label.frame = CGRect(x: 0, y: label.frame.minY, width: superview.bounds.width, height: label.bounds.height)
+                label.autoresizingMask = .flexibleWidth
+                label.textAlignment = .center
+            }
+        }
+    }
+
     private func commonSetup() {
         self.delegate = self
         
