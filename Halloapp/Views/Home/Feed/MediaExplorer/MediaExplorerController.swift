@@ -21,10 +21,13 @@ protocol MediaExplorerTransitionDelegate: AnyObject {
 class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UIScrollViewDelegate, UIGestureRecognizerDelegate, UIViewControllerTransitioningDelegate {
 
     private let spaceBetweenPages: CGFloat = 20
+    private let swipeExitStartThreshold: CGFloat = 20
+    private let swipeExitFinishThreshold: CGFloat = 100
+    private let swipeExitVeleocityThreshold: CGFloat = 600
 
     private var media: [MediaExplorerMedia]
     private var collectionView: UICollectionView!
-    private var pageControl: UIPageControl!
+    private var pageControl: UIPageControl?
     private var tapRecorgnizer: UITapGestureRecognizer!
     private var swipeExitRecognizer: UIPanGestureRecognizer!
     private var swipeExitInProgress = false
@@ -134,7 +137,16 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         navigationController?.navigationBar.shadowImage = UIImage()
         navigationController?.navigationBar.backgroundColor = .clear
 
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarBack"), style: .plain, target: self, action: #selector(backAction))
+        let backBtn = UIButton(type: .custom)
+        backBtn.contentEdgeInsets = UIEdgeInsets(top: 10, left: -8, bottom: 10, right: 10)
+        backBtn.addTarget(self, action: #selector(backAction), for: [.touchUpInside, .touchUpOutside])
+        backBtn.setImage(UIImage(named: "NavbarBack")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+        backBtn.layer.masksToBounds = false
+        backBtn.layer.shadowColor = UIColor.black.cgColor
+        backBtn.layer.shadowOpacity = 1
+        backBtn.layer.shadowOffset = .zero
+        backBtn.layer.shadowRadius = 0.3
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backBtn)
 
         view.backgroundColor = .black
 
@@ -149,13 +161,15 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         ])
 
         if media.count > 1 && fetchedResultsController == nil {
-            pageControl = makePageControl()
+            let pageControl = makePageControl()
             self.view.addSubview(pageControl)
 
             NSLayoutConstraint.activate([
                 pageControl.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
                 pageControl.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
             ])
+
+            self.pageControl = pageControl
         }
     }
 
@@ -405,7 +419,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         if isSystemUIHidden {
             UIView.animate(withDuration: 0.3, animations: {
                 self.navigationController?.navigationBar.alpha = 0.0
-                self.pageControl.alpha = 0.0
+
+                if let pageControl = self.pageControl, !pageControl.isHidden {
+                    pageControl.alpha = 0.0
+                }
             }, completion: { _ in
                 self.navigationController?.setNavigationBarHidden(true, animated: true)
             })
@@ -415,7 +432,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
             UIView.animate(withDuration: 0.3, delay: Double(UINavigationController.hideShowBarDuration), options: [], animations: {
                 self.navigationController?.navigationBar.alpha = 1.0
-                self.pageControl.alpha = 1.0
+
+                if let pageControl = self.pageControl, !pageControl.isHidden {
+                    pageControl.alpha = 1.0
+                }
             }, completion: nil)
         }
 
@@ -438,7 +458,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 
     @objc private func pageChangeAction() {
-        if currentIndex != pageControl.currentPage {
+        if let pageControl = pageControl, currentIndex != pageControl.currentPage {
             let x = collectionView.frame.width * CGFloat(pageControl.currentPage)
             collectionView.setContentOffset(CGPoint(x: x, y: collectionView.contentOffset.y), animated: true)
         }
@@ -450,9 +470,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     @objc private func onSwipeExitAction(sender: UIPanGestureRecognizer) {
         let translation = sender.translation(in: sender.view)
-
-        let startThreshold: CGFloat = 20
-        let finishThreshold: CGFloat = 100
+        let velocity = sender.velocity(in: sender.view)
 
         switch sender.state {
         case .changed:
@@ -461,7 +479,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 return
             }
 
-            if !swipeExitInProgress && abs(translation.y) > startThreshold && abs(translation.y) > abs(translation.x) {
+            if !swipeExitInProgress && abs(translation.y) > swipeExitStartThreshold && abs(translation.y) > abs(translation.x) {
                 sender.setTranslation(.zero, in: sender.view)
                 swipeExitInProgress = true
                 backAction()
@@ -476,14 +494,25 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             guard swipeExitInProgress else { return }
             swipeExitInProgress = false
 
-            if translation.x * translation.x + translation.y * translation.y > finishThreshold * finishThreshold {
+            if swipeExitShouldFinish(translation: translation, velocity: velocity) {
                 animator.finishInteractiveTransition()
             } else {
                 animator.cancelInteractiveTransition()
             }
+
+            // Restore collectionView position in place.
+            // It alsp prevents brisk diagonal movements to activate collectionView swipe
+            // while swipe exit is in progress
+            let x = collectionView.frame.width * CGFloat(currentIndex)
+            collectionView.setContentOffset(CGPoint(x: x, y: collectionView.contentOffset.y), animated: false)
         default:
             break
         }
+    }
+
+    private func swipeExitShouldFinish(translation: CGPoint, velocity: CGPoint) -> Bool {
+        return (translation.x * translation.x + translation.y * translation.y > swipeExitFinishThreshold * swipeExitFinishThreshold) ||
+            (velocity.x * velocity.x + velocity.y * velocity.y > swipeExitVeleocityThreshold * swipeExitVeleocityThreshold)
     }
 
     // MARK: UIViewControllerTransitioningDelegate
