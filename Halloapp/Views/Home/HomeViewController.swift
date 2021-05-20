@@ -308,6 +308,7 @@ extension HomeViewController: UITabBarControllerDelegate {
                 viewController.scrollToTop(animated: true)
             }
         }
+        makeTabBarLabelsFullWidth()
         return true
     }
 }
