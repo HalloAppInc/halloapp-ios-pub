@@ -460,7 +460,7 @@ final class FeedItemHeaderView: UIView {
             
             let attrText = NSMutableAttributedString(string: "")
             let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")
-            let groupNameColor = ChatData.getThemeColor(for: groupChat.background)
+            let groupNameColor = UIColor.label
 
             if let groupIndicator = groupIndicatorImage, let font = groupNameLabel.font {
                 let iconAttachment = NSTextAttachment(image: groupIndicator)
