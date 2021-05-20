@@ -114,7 +114,7 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.tabBarController?.hideTabBar()
+        tabBarController?.hideTabBar(vc: self)
     }
 
     override func viewWillDisappear(_ animated: Bool) {

@@ -10,17 +10,18 @@ import UIKit
 
 extension UITabBarController {
 
-    func hideTabBar() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            let frame = self.tabBar.frame
+    func hideTabBar(vc: UIViewController) {
+        DispatchQueue.main.async {
+            guard vc.view.window != nil else { return }
+            guard let frame = vc.tabBarController?.tabBar.frame else { return }
             UIView.animate(withDuration: 0.2, animations: {
-                self.tabBar.frame = CGRect(x: frame.origin.x, y: frame.origin.y + frame.height, width: frame.width, height: frame.height)
+                vc.tabBarController?.tabBar.frame = CGRect(x: frame.origin.x, y: frame.origin.y + frame.height, width: frame.width, height: frame.height)
             }, completion: { _ in
                 // put frame back to its original position so it won't affect other views
-                self.tabBar.isHidden = true
-                self.tabBar.frame = UITabBarController().tabBar.frame
+                vc.tabBarController?.tabBar.isHidden = true
+                vc.tabBarController?.tabBar.frame = UITabBarController().tabBar.frame
             })
         }
     }
+
 }

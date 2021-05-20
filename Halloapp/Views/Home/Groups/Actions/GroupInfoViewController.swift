@@ -77,14 +77,13 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         if let tableHeaderView = tableView.tableHeaderView as? GroupInfoHeaderView {
             tableHeaderView.configure(chatGroup: chatGroup)
         }
-
         super.viewWillAppear(animated)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         DDLogInfo("GroupInfoViewController/viewDidAppear")
         super.viewDidAppear(animated)
-        self.tabBarController?.hideTabBar()
+        tabBarController?.hideTabBar(vc: self)
     }
 
     deinit {
