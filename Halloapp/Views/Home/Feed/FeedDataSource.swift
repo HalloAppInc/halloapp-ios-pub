@@ -150,5 +150,5 @@ enum FeedDisplayItem: Hashable, Equatable {
 struct FeedEvent: Hashable, Equatable {
     var description: String
     var timestamp: Date
-    var bgColor: UIColor
+    var isThemed: Bool
 }

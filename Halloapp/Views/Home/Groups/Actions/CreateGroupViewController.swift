@@ -143,9 +143,11 @@ class CreateGroupViewController: UIViewController {
         view.image = AvatarView.defaultGroupImage
         view.backgroundColor = .avatarDefaultBg
         view.contentMode = .scaleAspectFit
-        
+
+        let radiusRatio: CGFloat = 16/52
+
         view.layer.masksToBounds = false
-        view.layer.cornerRadius = Constants.AvatarSize/4
+        view.layer.cornerRadius = Constants.AvatarSize*radiusRatio
         view.clipsToBounds = true
      
         view.translatesAutoresizingMaskIntoConstraints = false
