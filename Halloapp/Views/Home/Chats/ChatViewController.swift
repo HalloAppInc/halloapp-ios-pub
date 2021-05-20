@@ -328,7 +328,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     // MARK:
 
     private func shouldShowVerifyOption() -> Bool {
-        guard ServerProperties.isInternalUser else {
+        guard ServerProperties.isInternalUser || !ServerProperties.shouldSendClearTextChat else {
             return false
         }
 
