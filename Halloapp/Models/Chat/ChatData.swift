@@ -2432,6 +2432,7 @@ extension ChatData {
     
     public func changeGroupAvatar(groupID: GroupID, data: Data, completion: @escaping ServiceRequestCompletion<Void>) {
         DDLogInfo("ChatData/changeGroupAvatar")
+        
         MainAppContext.shared.service.changeGroupAvatar(groupID: groupID, data: data) { [weak self] result in
             guard let self = self else { return }
      
@@ -2448,6 +2449,26 @@ extension ChatData {
                 DDLogError("CreateGroupViewController/createAction/error \(error)")
             }
         }
+    }
+    public func deleteGroupPhoto(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>){
+        
+
+        
+    
+        self.updateChatGroup(with: groupID, block: { (chatGroup) in
+            chatGroup.avatar = ""
+        }, performAfterSave: {
+            MainAppContext.shared.avatarStore.updateOrInsertGroupAvatar(for: groupID, with: "")
+            completion(.success(()))
+        })
+        self.updateChatGroup(with: groupID, block: { (chatGroup) in
+            chatGroup.avatar = ""
+        }, performAfterSave: {
+            MainAppContext.shared.avatarStore.updateOrInsertGroupAvatar(for: groupID, with: "")
+            completion(.success(()))
+        })
+    
+
     }
     
     public func setGroupBackground(groupID: GroupID, background: Int32, completion: @escaping ServiceRequestCompletion<Void>) {

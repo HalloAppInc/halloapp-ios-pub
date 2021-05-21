@@ -219,9 +219,24 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             self.presentPhotoLibraryPicker()
         })
 
-//        actionSheet.addAction(UIAlertAction(title: "Delete Photo", style: .destructive) { _ in
-//
-//        })
+        actionSheet.addAction(UIAlertAction(title: "Delete Photo", style: .destructive) { _ in
+            MainAppContext.shared.chatData.deleteGroupPhoto(groupID: self.groupId) { result in
+                switch result {
+                case .success:
+                    DispatchQueue.main.async() { [weak self] in
+                        guard let self = self else { return }
+
+                        // configure again as avatar listens to cached object that's evicted if app goes into background
+                        if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
+                            tableHeaderView.configure(chatGroup: self.chatGroup)
+                        }
+                    }
+                case .failure(let error):
+                    DDLogError("GroupInfoViewController/createAction/error \(error)")
+                }
+            }
+
+        })
 
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true)
@@ -385,26 +400,37 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     }
 
     private func changeAvatar(image: UIImage) {
-        guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
-            DDLogError("GroupInfoViewController/resizeImage error resize failed")
-            return
+
+        var me = String(MainAppContext.shared.userData.userId)
+        var currentMembers: [UserID] = []
+        if let objects = fetchedResultsController?.fetchedObjects {
+            for groupMember in objects {
+                currentMembers.append(groupMember.userId)
+            }
         }
+        print(currentMembers.contains(me))
+        if (currentMembers.contains(me)) {
+            guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
+                DDLogError("GroupInfoViewController/resizeImage error resize failed")
+                return
+            }
 
-        let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
+            let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
 
-        MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: data) { result in
-            switch result {
-            case .success:
-                DispatchQueue.main.async() { [weak self] in
-                    guard let self = self else { return }
+            MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: data) { result in
+                switch result {
+                case .success:
+                    DispatchQueue.main.async() { [weak self] in
+                        guard let self = self else { return }
 
-                    // configure again as avatar listens to cached object that's evicted if app goes into background
-                    if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
-                        tableHeaderView.configure(chatGroup: self.chatGroup)
+                        // configure again as avatar listens to cached object that's evicted if app goes into background
+                        if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
+                            tableHeaderView.configure(chatGroup: self.chatGroup)
+                        }
                     }
+                case .failure(let error):
+                    DDLogError("GroupInfoViewController/createAction/error \(error)")
                 }
-            case .failure(let error):
-                DDLogError("GroupInfoViewController/createAction/error \(error)")
             }
         }
     }
