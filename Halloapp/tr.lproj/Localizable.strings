@@ -280,7 +280,7 @@
 "feed.notification.commented.no.text" = "<$author$>, gönderine yorum yaptı";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.commented.w.text" = "<$author$> yorum yaptı: ";
+"feed.notification.commented.w.text" = "<$author$> yorum yaptı: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.deleted.comment" = "<$author$>, yorumunu sildi";
@@ -301,7 +301,7 @@
 "feed.notification.mention.post.w.text" = "<$author$> bir gönderide senden bahsetti:";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.other.comment.w.text" = "<$author$> kişisi de yorum yaptı:";
+"feed.notification.other.comment.w.text" = "<$author$> kişisi de yorum yaptı: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.replied.no.text" = "<$author$>, senin yorumuna cevap verdi";
