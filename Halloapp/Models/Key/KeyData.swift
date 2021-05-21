@@ -14,11 +14,20 @@ import CryptoSwift
 import Foundation
 import Sodium
 
+enum KeyDataError: Error {
+    case identityKeyMismatch
+    case identityKeyMissing
+}
+
 class KeyData {
     let oneTimePreKeysToUpload: Int32 = 100
     let thresholdToUploadMoreOTPKeys: Int32 = 5
     var isOneTimePreKeyUploadInProgress = false
-    
+
+    private struct UserDefaultsKey {
+        static let identityKeyVerificationDate = "com.halloapp.identity.key.verification.date"
+    }
+
     private var userData: UserData
     private var service: HalloService
     
@@ -222,6 +231,51 @@ class KeyData {
             return PreKeyPair(id: $0, keyPair: oneTimePreKeyPair.keyPairX25519())
         }
     }
+
+    private var isVerifyingIdentityKey = false
+
+    private func verifyIdentityKeyIfNecessary() {
+        guard !isVerifyingIdentityKey else {
+            DDLogInfo("KeyData/verifyIdentityKey/skipping [in progress]")
+            return
+        }
+
+        let oneDay = TimeInterval(86400)
+
+        if let lastVerificationDate = MainAppContext.shared.userDefaults.object(forKey: UserDefaultsKey.identityKeyVerificationDate) as? Date,
+           lastVerificationDate.advanced(by: oneDay) > Date()
+        {
+            DDLogInfo("KeyData/verifyIdentityKey/skipping [last verified: \(lastVerificationDate)]")
+            return
+        }
+
+        guard let savedIdentityKey = keyStore.keyBundle()?.identityPublicEdKey else {
+            self.didFailIdentityKeyVerification(with: .identityKeyMissing)
+            return
+        }
+
+        isVerifyingIdentityKey = true
+        service.requestWhisperKeyBundle(userID: userData.userId) { result in
+            switch result {
+            case .failure(let error):
+                DDLogError("KeyData/verifyIdentityKey/error [\(error)]")
+            case .success(let bundle):
+                if bundle.identity == savedIdentityKey {
+                    DDLogError("KeyData/verifyIdentityKey/success")
+                    MainAppContext.shared.userDefaults.setValue(Date(), forKey: UserDefaultsKey.identityKeyVerificationDate)
+                } else {
+                    self.didFailIdentityKeyVerification(with: .identityKeyMismatch)
+                }
+            }
+            self.isVerifyingIdentityKey = false
+        }
+    }
+
+    private func didFailIdentityKeyVerification(with error: KeyDataError) {
+        DDLogError("KeyData/didFailIdentityKeyVerification [\(error)]")
+        MainAppContext.shared.errorLogger?.logError(error)
+        userData.logout()
+    }
 }
 
 extension KeyData: HalloKeyDelegate {
@@ -232,6 +286,12 @@ extension KeyData: HalloKeyDelegate {
             self.keyStore.deleteMessageKeyBundles(for: uid)
         case .count(let otpKeyCountNum):
             self.uploadMoreOTPKeysIfNeeded(currentNum: otpKeyCountNum)
+        }
+    }
+
+    public func halloService(_ halloService: HalloService, didReceiveRerequestWithRerequestCount rerequestCount: Int) {
+        if rerequestCount > 2 {
+            verifyIdentityKeyIfNecessary()
         }
     }
 }
