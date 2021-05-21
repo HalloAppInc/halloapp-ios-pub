@@ -12,7 +12,7 @@ import CryptoKit
 import Sodium
 
 protocol RegistrationService {
-    func requestVerificationCode(for phoneNumber: String, byVoice: Bool, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
+    func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
     func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
 
     // Temporary (used for Noise migration)
@@ -35,7 +35,7 @@ final class DefaultRegistrationService: RegistrationService {
 
     // MARK: Verification code requests
 
-    func requestVerificationCode(for phoneNumber: String, byVoice: Bool, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void) {
+    func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String? = nil, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void) {
 
         var json: [String : String] = [
             "phone": phoneNumber,
@@ -43,6 +43,9 @@ final class DefaultRegistrationService: RegistrationService {
         ]
         if let langID = locale.halloServiceLangID {
             json["lang_id"] = langID
+        }
+        if groupInviteToken != nil {
+            json["group_invite_token"] = groupInviteToken
         }
 
         guard let url = URL(string: "https://\(hostName)/api/registration/request_otp"),

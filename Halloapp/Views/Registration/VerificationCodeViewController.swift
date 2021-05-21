@@ -260,8 +260,11 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
                             title: Localizations.registrationInviteOnlyTitle,
                             message: Localizations.registrationInviteOnlyText,
                             preferredStyle: .alert)
-                        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
+                        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel, handler: { [weak self] _ in
+                            self?.navigationController?.popViewController(animated: true)
+                        }))
                         self.present(alert, animated: true)
+
                     case .invalidClientVersion:
                         let alert = self.getAppUpdateAlertController()
                         self.present(alert, animated: true)

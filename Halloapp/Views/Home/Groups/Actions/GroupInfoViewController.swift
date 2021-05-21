@@ -328,7 +328,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 headerView.setIsAdmin(true)
                 footerView.setIsMember(true)
 
-                if ServerProperties.isInternalUser && ServerProperties.isGroupInviteLinksEnabled {
+                if ServerProperties.isGroupInviteLinksEnabled {
                     navigationItem.rightBarButtonItem?.isEnabled = true
                     navigationItem.rightBarButtonItem?.tintColor = UIColor.primaryBlue
                 }

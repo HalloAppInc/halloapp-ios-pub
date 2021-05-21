@@ -54,6 +54,8 @@ public final class UserData: ObservableObject {
 
     public static var compressionQuality: Float = 0.4
 
+    public var groupInviteToken: String? = nil
+
     // Entered by user.
     public var countryCode = "1"
     public var phoneInput = ""
