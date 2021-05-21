@@ -133,7 +133,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         isVisible = true
-        showNUXIfNecessary()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -157,13 +156,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         overlayContainer.constrain(to: view)
         return overlayContainer
     }()
-
-    private func showNUXIfNecessary() {
-        if MainAppContext.shared.nux.isIncomplete(.chatListIntro) {
-            let popover = NUXPopover(Localizations.nuxChatIntroContent) { MainAppContext.shared.nux.didComplete(.chatListIntro) }
-            overlayContainer.display(popover)
-        }
-    }
 
     private lazy var emptyView: UIView = {
         let image = UIImage(named: "ChatEmpty")?.withRenderingMode(.alwaysTemplate)
