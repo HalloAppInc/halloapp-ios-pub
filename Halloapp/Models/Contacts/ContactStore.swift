@@ -901,7 +901,7 @@ class ContactStoreMain: ContactStore {
 
     func fullName(for userID: UserID) -> String {
         // Fallback to a static string.
-        return fullNameIfAvailable(for: userID) ?? Localizations.unknownContact
+        return fullNameIfAvailable(for: userID, ownName: Localizations.meCapitalized) ?? Localizations.unknownContact
     }
 
     func firstName(for userID: UserID) -> String {

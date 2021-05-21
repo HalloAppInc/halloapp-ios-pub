@@ -84,6 +84,10 @@ extension Localizations {
 
     // MARK: Misc
 
+    static var meCapitalized: String {
+        NSLocalizedString("meCapitalized", value: "Me", comment: "Displayed in place of own name (e.g., next to own comments)")
+    }
+
     static var unknownContact: String {
         NSLocalizedString("unknown.contact", value: "Unknown Contact", comment: "Displayed in place of contact name if name is not known.")
     }

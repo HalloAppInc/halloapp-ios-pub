@@ -199,9 +199,9 @@ open class ContactStore {
         }
     }
 
-    public func fullNameIfAvailable(for userId: UserID) -> String? {
+    public func fullNameIfAvailable(for userId: UserID, ownName: String?) -> String? {
         if userId == self.userData.userId {
-            return Localizations.meCapitalized
+            return ownName
         }
 
         // Fetch from the address book.
@@ -218,9 +218,9 @@ open class ContactStore {
         return nil
     }
 
-    public func fullNameIfAvailable(forNormalizedPhone normalizedPhoneNumber: String) -> String? {
+    public func fullNameIfAvailable(forNormalizedPhone normalizedPhoneNumber: String, ownName: String?) -> String? {
         if normalizedPhoneNumber == self.userData.normalizedPhoneNumber {
-            return Localizations.meCapitalized
+            return ownName
         }
 
         // Fetch from the address book.
@@ -267,10 +267,7 @@ open class ContactStore {
 
     /// Name appropriate for use in mention. Does not contain "@" prefix.
     public func mentionNameIfAvailable(for userID: UserID, pushName: String?) -> String? {
-        if userID == userData.userId {
-            return userData.name
-        }
-        if let fullName = fullNameIfAvailable(for: userID) {
+        if let fullName = fullNameIfAvailable(for: userID, ownName: userData.name) {
             return fullName
         }
         if let pushName = pushName, !pushName.isEmpty {
@@ -279,10 +276,4 @@ open class ContactStore {
         return nil
     }
 
-}
-
-extension Localizations {
-    static var meCapitalized: String {
-        NSLocalizedString("me", value: "Me", comment: "Displayed in place of own name (e.g., next to own comments)")
-    }
 }

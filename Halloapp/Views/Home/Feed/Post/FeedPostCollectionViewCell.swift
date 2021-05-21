@@ -420,7 +420,7 @@ extension Localizations {
     static func deletedPost(from userID: UserID) -> String {
         if userID == MainAppContext.shared.userData.userId {
             return  NSLocalizedString("post.has.been.deleted.by.you", value: "You deleted your post", comment: "Displayed in place of a deleted feed post.")
-        } else if let name = MainAppContext.shared.contactStore.fullNameIfAvailable(for: userID) {
+        } else if let name = MainAppContext.shared.contactStore.fullNameIfAvailable(for: userID, ownName: nil) {
             let format = NSLocalizedString("post.has.been.deleted.by.author", value: "%@ deleted their post", comment: "Displayed in place of a deleted feed post.")
             return String(format: format, name)
         } else {
