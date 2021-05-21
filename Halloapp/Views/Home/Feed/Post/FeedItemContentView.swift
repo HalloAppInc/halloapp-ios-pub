@@ -587,9 +587,14 @@ final class FeedItemFooterView: UIView {
 
     }
 
-    private enum State {
-        case normal
+    private enum SenderCategory {
         case ownPost
+        case contact
+        case nonContact
+    }
+
+    private enum State: Equatable {
+        case normal(SenderCategory)
         case sending
         case retracting
         case error
@@ -681,12 +686,22 @@ final class FeedItemFooterView: UIView {
         facePileView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 4).isActive = true
     }
 
+    private class func senderCategory(for post: FeedPost) -> SenderCategory {
+        if post.userId == MainAppContext.shared.userData.userId {
+            return .ownPost
+        }
+        if MainAppContext.shared.contactStore.isContactInAddressBook(userId: post.userId) {
+            return .contact
+        }
+        return .nonContact
+    }
+
     private class func state(for post: FeedPost) -> State {
         switch post.status {
         case .sending: return .sending
         case .sendError: return .error
         case .retracting: return .retracting
-        default: return post.userId == MainAppContext.shared.userData.userId ? .ownPost : .normal
+        default: return .normal(senderCategory(for: post))
         }
     }
 
@@ -694,17 +709,18 @@ final class FeedItemFooterView: UIView {
         let state = Self.state(for: post)
 
         buttonStack.isHidden = state == .sending || state == .error || state == .retracting
-        facePileView.isHidden = state != .ownPost
+        facePileView.isHidden = true
         separator.isHidden = post.hideFooterSeparator
 
         switch state {
-        case .normal, .ownPost:
+        case .normal(let sender):
             hideProgressView()
             hideErrorView()
 
             commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .unread : .read)
-            messageButton.alpha = state == .ownPost ? 0 : 1
-            if state == .ownPost {
+            messageButton.alpha = sender == .contact ? 1 : 0
+            if sender == .ownPost {
+                facePileView.isHidden = false
                 facePileView.configure(with: post)
             }
         case .sending, .retracting:
