@@ -894,7 +894,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         guard let player = avPlayerViewController.player else { return }
         guard let item = player.currentItem else { return }
 
-        let seekTime = FeedMedia.getThumbnailTime(duration: item.duration)
+        let seekTime = VideoUtils.getThumbnailTime(duration: item.duration)
         player.seek(to: seekTime)
     }
 

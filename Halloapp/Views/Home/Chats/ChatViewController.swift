@@ -516,7 +516,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 img = image
             }
         } else if med.type == .video {
-            if let image = VideoUtils.videoPreviewImage(url: fileURL, size: nil) {
+            if let image = VideoUtils.videoPreviewImage(url: fileURL) {
                 img = image
             }
         }

@@ -557,19 +557,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     }
 
     // MARK: Quote Panel
-
-    func videoPreviewImage(url: URL) -> UIImage? {
-        let asset = AVURLAsset(url: url)
-        let generator = AVAssetImageGenerator(asset: asset)
-        generator.appliesPreferredTrackTransform = true
-        
-        if let cgImage = try? generator.copyCGImage(at: CMTime(seconds: 2, preferredTimescale: 60), actualTime: nil) {
-            return UIImage(cgImage: cgImage)
-        }
-        else {
-            return nil
-        }
-    }
     
     func showQuoteFeedPanel(with userId: String, text: String, mediaType: ChatMessageMediaType?, mediaUrl: URL?, groupID: GroupID? = nil, from viewController: UIViewController) {
         quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
@@ -591,7 +578,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                     quoteFeedPanelImage.image = image
                 }
             } else if mediaType == .video {
-                if let image = videoPreviewImage(url: fileUrl) {
+                if let image = VideoUtils.videoPreviewImage(url: fileUrl) {
                     quoteFeedPanelImage.image = image
                 }
             }
