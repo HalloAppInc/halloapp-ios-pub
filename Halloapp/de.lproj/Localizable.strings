@@ -221,9 +221,8 @@
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Antworten";
 
-/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment.
-   Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "%@ antworten";
+/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
+"comment.replying.someone" = "%@ antworten";
 
 /* Title for the button in comment resend confirmation prompt. */
 "comment.resend.action" = "Erneut senden";
@@ -340,7 +339,7 @@
 "feed.privacy.descr.all" = "Mit allen Kontakten teilen";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Mit allen Kontakten, bis auf die von dir ausgewählten Leute, teilen";
+"feed.privacy.descr.except" = "Mit allen Kontakten, mit Ausnahme der von dir ausgewählten Personen, teilen";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Nur mit ausgewählten Kontakten teilen";
@@ -469,7 +468,7 @@
 "invite.please.wait" = "Bitte warten...";
 
 /* Indicates how many invites are remaining */
-"invite.remaining.count.unspecified.time" = "Du hast noch %@ Einladungen";
+"invite.remaining.count.unspecified.time" = "Einladungen verfügbar: %@";
 
 /* Text of invitation to join HalloApp. */
 "invite.text" = "Mach mit bei HalloApp — eine Möglichkeit ganz persönlich, unkompliziert und sicher den Kontakt zu Freunden und zur Familie zu halten. Hole sie dir auf: https://halloapp.com/dl";
@@ -482,6 +481,9 @@
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Mehr erfahren";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Ich";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "Alben";
@@ -590,7 +592,7 @@
 "notification.one.video" = "📹 Video";
 
 /* Text for new user popup pointing at activity center icon */
-"nux.activity.center.icon" = "Hier ist dein Aktivitäten-Center. Um deine letzte Aktivität zu sehen tippe hier.";
+"nux.activity.center.icon" = "Hallo!";
 
 /* Shown on chats list when there are no contacts or messages to display */
 "nux.chat.empty" = "Deine Kontakte & Nachrichten erscheinen hier";
@@ -663,13 +665,13 @@
 "profile.help.faq" = "FAQ";
 
 /* Item in Profile > Help screen. */
-"profile.help.feedback" = "Feedback & Protokolle teilen";
+"profile.help.feedback" = "Feedback & Logs teilen";
 
 /* Item in Profile > Help screen. */
 "profile.help.pp" = "Datenschutzrichtlinie";
 
 /* Item in Profile > Help screen. */
-"profile.help.share.logs" = "Protokolle teilen";
+"profile.help.share.logs" = "Logs teilen";
 
 /* Item in Profile > Help screen. */
 "profile.help.tos" = "Nutzungsbedingungen";
@@ -786,7 +788,7 @@
 "settings.notifications.posts" = "Beiträge";
 
 /* Settings menu section */
-"settings.privacy" = "Datenschutz";
+"settings.privacy" = "Privatsphäre";
 
 /* Settings > Privacy: name of a setting that defines who can see your posts. */
 "settings.privacy.posts" = "Beiträge";
@@ -840,7 +842,7 @@
 "timestamp.last.seen.yesterday.at" = "Zuletzt online gestern um %@";
 
 /* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "Online";
+"timestamp.now.capitalized" = "Gerade eben";
 
 /* Lowercase translation of `Now` to be used as timestamp. */
 "timestamp.now.lowercase" = "online";
@@ -870,7 +872,7 @@
 "title.notifications" = "Mitteilungen";
 
 /* Row in Settings screen */
-"title.privacy" = "Datenschutz";
+"title.privacy" = "Privatsphäre";
 
 /* Fourth tab in the main app interface */
 "title.settings" = "Einstellungen";
@@ -882,10 +884,10 @@
 "unknown.contact" = "Kontakt unbekannt";
 
 /* Reference to the user, second person pronoun */
-"user.you" = "du";
+"user.you" = "dich";
 
 /* Capitalized reference to the user, second person pronoun */
-"user.you.capitalized" = "Du";
+"user.you.capitalized" = "Dich";
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";

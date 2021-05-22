@@ -38,6 +38,9 @@
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Mehr erfahren";
 
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Ich";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Kommentiert: %@";
 

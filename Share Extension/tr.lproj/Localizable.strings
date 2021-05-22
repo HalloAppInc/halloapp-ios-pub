@@ -72,6 +72,9 @@
 /* Destination screen title */
 "share.destination.title" = "HalloApp";
 
+/* Message of alert when user is not logged in */
+"share.notlogged.message" = "Lütfen HalloApp'i aç ve giriş yap.";
+
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "Oturum açmadın.";
 
