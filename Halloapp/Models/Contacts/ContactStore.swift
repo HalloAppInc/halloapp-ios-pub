@@ -938,58 +938,10 @@ class ContactStoreMain: ContactStore {
 
     // MARK: Push names
 
-    private var pushNameUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.push-name")
-
-    private func savePushNames(_ names: [UserID: String]) {
-        performOnBackgroundContextAndWait { (managedObjectContect) in
-            var existingNames: [UserID : PushName] = [:]
-
-            // Fetch existing names.
-            let fetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "userId in %@", Set(names.keys))
-            do {
-                let results = try managedObjectContect.fetch(fetchRequest)
-                existingNames = results.reduce(into: [:]) { $0[$1.userId!] = $1 }
-            }
-            catch {
-                fatalError("Failed to fetch push names  [\(error)]")
-            }
-
-            // Insert new names / update existing
-            names.forEach { (userId, contactName) in
-                if let existingName = existingNames[userId] {
-                    if existingName.name != contactName {
-                        DDLogDebug("contacts/push-name/update  userId=[\(userId)] from=[\(existingName.name ?? "")] to=[\(contactName)]")
-                        existingName.name = contactName
-                    }
-                } else {
-                    DDLogDebug("contacts/push-name/new  userId=[\(userId)] name=[\(contactName)]")
-                    let newPushName = NSEntityDescription.insertNewObject(forEntityName: "PushName", into: managedObjectContect) as! PushName
-                    newPushName.userId = userId
-                    newPushName.name = contactName
-                }
-            }
-
-            // Save
-            if managedObjectContect.hasChanges {
-                do {
-                    try managedObjectContect.save()
-                }
-                catch {
-                    fatalError("Failed to save managed object context [\(error)]")
-                }
-            }
-        }
-    }
-
     override func addPushNames(_ names: [UserID : String]) {
         guard !names.isEmpty else { return }
 
         super.addPushNames(names)
-
-        pushNameUpdateQueue.async {
-            self.savePushNames(names)
-        }
     }
 
     // MARK: Mentions

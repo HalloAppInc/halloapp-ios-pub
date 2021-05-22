@@ -424,6 +424,11 @@ class NotificationMetadata: Codable {
 
         // Contact notification for new friend or new invitee
         case .newFriend, .newInvitee, .newContact:
+            // Save push name for contact
+            var contactNames = [UserID:String]()
+            contactNames[fromId] = pushName
+            contactStore.addPushNames(contactNames)
+
             // Look up contact using phone number as the user ID probably hasn't synced yet
             let contactName = contactStore.fullNameIfAvailable(forNormalizedPhone: normalizedPhone!, ownName: nil)
             title = ""

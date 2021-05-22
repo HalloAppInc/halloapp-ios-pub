@@ -167,7 +167,55 @@ open class ContactStore {
         }
     }
 
+    private var pushNameUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.push-name")
+
+    private func savePushNames(_ names: [UserID: String]) {
+        performOnBackgroundContextAndWait { (managedObjectContext) in
+            var existingNames: [UserID : PushName] = [:]
+
+            // Fetch existing names.
+            let fetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "userId in %@", Set(names.keys))
+            do {
+                let results = try managedObjectContext.fetch(fetchRequest)
+                existingNames = results.reduce(into: [:]) { $0[$1.userId!] = $1 }
+            }
+            catch {
+                fatalError("Failed to fetch push names  [\(error)]")
+            }
+
+            // Insert new names / update existing
+            names.forEach { (userId, contactName) in
+                if let existingName = existingNames[userId] {
+                    if existingName.name != contactName {
+                        DDLogDebug("contacts/push-name/update  userId=[\(userId)] from=[\(existingName.name ?? "")] to=[\(contactName)]")
+                        existingName.name = contactName
+                    }
+                } else {
+                    DDLogDebug("contacts/push-name/new  userId=[\(userId)] name=[\(contactName)]")
+                    let newPushName = NSEntityDescription.insertNewObject(forEntityName: "PushName", into: managedObjectContext) as! PushName
+                    newPushName.userId = userId
+                    newPushName.name = contactName
+                }
+            }
+
+            // Save
+            if managedObjectContext.hasChanges {
+                do {
+                    try managedObjectContext.save()
+                }
+                catch {
+                    fatalError("Failed to save managed object context [\(error)]")
+                }
+            }
+        }
+    }
+
     open func addPushNames(_ names: [UserID: String]) {
+        pushNameUpdateQueue.async { [self] in
+            savePushNames(names)
+        }
+
         pushNames.merge(names) { (existingName, newName) -> String in
             return newName
         }
