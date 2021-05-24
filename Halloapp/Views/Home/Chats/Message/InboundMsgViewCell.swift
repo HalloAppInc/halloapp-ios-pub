@@ -317,7 +317,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         textView.textContainerInset = UIEdgeInsets.zero
         textView.backgroundColor = .clear
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
-        textView.textColor = .label
+        textView.textColor = traitCollection.userInterfaceStyle == .light ? .darkText : .lightText
         textView.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
 
         textView.delegate = self
@@ -583,7 +583,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         textView.isHidden = false
         textView.text = ""
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
-        textView.textColor = .label
+        textView.textColor = traitCollection.userInterfaceStyle == .light ? .darkText : .lightText
         
         timeLabel.isHidden = false
         timeLabel.text = nil

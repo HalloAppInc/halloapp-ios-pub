@@ -459,14 +459,14 @@ final class FeedItemHeaderView: UIView {
         if let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) {
             
             let attrText = NSMutableAttributedString(string: "")
-            let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")
+            let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate)
             let groupNameColor = UIColor.label
 
             if let groupIndicator = groupIndicatorImage, let font = groupNameLabel.font {
                 let iconAttachment = NSTextAttachment(image: groupIndicator)
                 attrText.append(NSAttributedString(attachment: iconAttachment))
                 
-                attrText.addAttributes([.font: font, .foregroundColor: UIColor.label], range: NSRange(location: 0, length: attrText.length))
+                attrText.addAttributes([.font: font, .foregroundColor: groupNameColor], range: NSRange(location: 0, length: attrText.length))
                 
                 let groupNameAttributes = [NSAttributedString.Key.font: font, NSAttributedString.Key.foregroundColor: groupNameColor]
                 let groupNameAttributedStr = NSAttributedString(string: " \(groupChat.name)", attributes: groupNameAttributes)
