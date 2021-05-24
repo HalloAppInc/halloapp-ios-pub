@@ -621,7 +621,7 @@ final class FeedItemFooterView: UIView {
         let button = ButtonWithBadge(type: .system)
         button.setTitle(stringComment, for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
-        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 21)
+        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 18)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.lineBreakMode = .byWordWrapping
         button.contentEdgeInsets.top = 15
@@ -638,7 +638,7 @@ final class FeedItemFooterView: UIView {
         let button = UIButton(type: .system)
         button.setTitle(stringMessage, for: .normal)
         button.setImage(UIImage(named: "FeedPostReply"), for: .normal)
-        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 21)
+        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 18)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.lineBreakMode = .byWordWrapping
         button.contentEdgeInsets.top = 15
