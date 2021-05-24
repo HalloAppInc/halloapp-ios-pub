@@ -210,6 +210,8 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     }
 
     @objc private func openEditAvatarOptions() {
+        guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil else { return }
+        
         let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
         actionSheet.view.tintColor = UIColor.systemBlue
 
