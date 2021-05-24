@@ -719,7 +719,7 @@
 "registration.contacts.content" = "Um dich mit deinen Freunden & deiner Familie zu verbinden, benötigen wir die Zugriffsberechtigung auf deine Kontakte.";
 
 /* Title for text explaining why we need contact permissions */
-"registration.contacts.title" = "Ein wichtiger Hinweis";
+"registration.contacts.title" = "Noch ein letzter Hinweis";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Nutzung momentan nur auf Einladungs-Basis. Bitte deine Freude oder Familienmitglieder, die HalloApp nutzen, dich über deine Telefonnummer einzuladen.";
@@ -779,7 +779,7 @@
 "settings.app.version" = "HalloApp Version %@";
 
 /* Settings menu section. */
-"settings.notifications" = "Benachrichtigungen";
+"settings.notifications" = "Mitteilungen";
 
 /* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
 "settings.notifications.comments" = "Kommentare";
@@ -845,7 +845,7 @@
 "timestamp.now.capitalized" = "Gerade eben";
 
 /* Lowercase translation of `Now` to be used as timestamp. */
-"timestamp.now.lowercase" = "online";
+"timestamp.now.lowercase" = "gerade eben";
 
 /* Timestamp: `Today` */
 "timestamp.today" = "Heute";

@@ -306,13 +306,13 @@
 "feed.notification.mention.comment.no.text" = "<$author$>, bir yorumda senden bahsetti";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.comment.w.text" = "<$author$> bir yorumda senden bahsetti:";
+"feed.notification.mention.comment.w.text" = "<$author$> bir yorumda senden bahsetti: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.no.text" = "<$author$> ";
+"feed.notification.mention.post.no.text" = "<$author$> bir gönderide senden bahsetti";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.w.text" = "<$author$> bir gönderide senden bahsetti:";
+"feed.notification.mention.post.w.text" = "<$author$> bir gönderide senden bahsetti: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.other.comment.w.text" = "<$author$> kişisi de yorum yaptı: <$text$>";
@@ -321,7 +321,7 @@
 "feed.notification.replied.no.text" = "<$author$>, senin yorumuna cevap verdi";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.replied.w.text" = "<$author$>, cevap verdi: ";
+"feed.notification.replied.w.text" = "<$author$>, cevap verdi: <$text$>";
 
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Gönderilemedi";
