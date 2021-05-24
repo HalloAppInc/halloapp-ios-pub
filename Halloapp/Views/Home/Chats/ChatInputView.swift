@@ -115,7 +115,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         
         addSubview(containerView)
 //        containerView.backgroundColor = UIColor.systemBackground
-        containerView.backgroundColor = UIColor.composerBackground
+        containerView.backgroundColor = UIColor.messageFooterBackground
         containerView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
         containerView.topAnchor.constraint(equalTo: topAnchor).isActive = true
         containerView.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
@@ -130,7 +130,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
         // Bottom Safe Area background
         let bottomBackgroundView = UIView()
-        bottomBackgroundView.backgroundColor = UIColor.composerBackground
+        bottomBackgroundView.backgroundColor = UIColor.messageFooterBackground
         bottomBackgroundView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(bottomBackgroundView)
         bottomBackgroundView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor).isActive = true
@@ -238,7 +238,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.alignment = .trailing
     
         let subView = UIView(frame: view.bounds)
-        subView.backgroundColor = UIColor.composerBackground
+        subView.backgroundColor = UIColor.messageFooterBackground
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.insertSubview(subView, at: 0)
         
@@ -380,7 +380,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         let view = InputTextView(frame: .zero)
         view.isScrollEnabled = false
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor.composerBackground
+        view.backgroundColor = UIColor.messageFooterBackground
         view.textContainerInset.left = 8
         view.textContainerInset.right = 8
         view.font = UIFont.preferredFont(forTextStyle: .subheadline)

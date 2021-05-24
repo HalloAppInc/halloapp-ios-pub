@@ -70,8 +70,8 @@ extension UIColor {
         get { UIColor(named: "ComposerButton")! }
     }
     
-    class var composerBackground: UIColor {
-        get { UIColor(named: "ComposerBackground")! }
+    class var messageFooterBackground: UIColor {
+        get { UIColor(named: "MessageFooterBackground")! }
     }
 
     class var avatarDefaultBg: UIColor {
