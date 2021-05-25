@@ -13,6 +13,8 @@ import Core
 import CoreData
 import Foundation
 import SwiftUI
+import Intents
+import IntentsUI
 
 class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate {
 
@@ -1679,6 +1681,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPostInfo.receipts = receipts
             feedPostInfo.audienceType = .group
             feedPost.info = feedPostInfo
+            
+            let recipient = INSpeakableString(spokenPhrase: chatGroup.name)
+            let sendMessageIntent = INSendMessageIntent(recipients: nil, content: nil, speakableGroupName: recipient, conversationIdentifier: "GRUP" + chatGroup.groupId, serviceName: nil, sender: nil)
+            
+            let potentialUserAvatar = MainAppContext.shared.avatarStore.groupAvatarData(for: chatGroup.groupId).image
+            let defaultAvatar = UIImage(named: "AvatarGroup")!
+            let userAvatar = INImage(uiImage: potentialUserAvatar ?? defaultAvatar )
+            
+            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+            
+            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+            interaction.donate(completion: { error in
+                if let error = error {
+                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+                }
+            })
         }
 
         // set a merge policy so that we dont end up with duplicate feedposts.

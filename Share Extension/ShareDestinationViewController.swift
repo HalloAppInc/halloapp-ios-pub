@@ -65,16 +65,29 @@ class ShareDestinationViewController: UITableViewController {
         setupSearch()
         
         if let intent = self.extensionContext?.intent as? INSendMessageIntent {
-            let sendToUserId = intent.conversationIdentifier
+            var sendToUserId = intent.conversationIdentifier
             
-            guard let contact = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: false).first(where: { contact in
-                contact.userId == sendToUserId
-            }) else {
-                return
+            if sendToUserId?.contains("CHAT") ?? false {
+                sendToUserId?.removeFirst(4)
+                guard let contact = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: false).first(where: { contact in
+                    contact.userId == sendToUserId
+                }) else {
+                    return
+                }
+                
+                let destination = ShareDestination.contact(contact)
+                navigationController?.pushViewController(ShareComposerViewController(destination: destination), animated: false)
+            } else if sendToUserId?.contains("GRUP") ?? false {
+                sendToUserId?.removeFirst(4)
+                guard let group = groups.first(where: { group in
+                    group.id == sendToUserId
+                }) else {
+                    return
+                }
+                
+                let destination = ShareDestination.group(group)
+                navigationController?.pushViewController(ShareComposerViewController(destination: destination), animated: false)
             }
-            
-            let destination = ShareDestination.contact(contact)
-            navigationController?.pushViewController(ShareComposerViewController(destination: destination), animated: false)
         }
     }
 
