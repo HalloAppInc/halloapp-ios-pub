@@ -10,6 +10,7 @@ import Combine
 import Core
 import CoreData
 import Photos
+import Intents
 import UIKit
 
 fileprivate struct Constants {
@@ -759,6 +760,25 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                                                    chatReplyMessageID: chatReplyMessageID,
                                                    chatReplyMessageSenderID: chatReplyMessageSenderID,
                                                    chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
+        
+        if #available(iOS 14.0, *) {
+            let recipient = INSpeakableString(spokenPhrase: MainAppContext.shared.contactStore.fullName(for: sendToUserId))
+            let sendMessageIntent = INSendMessageIntent(recipients: nil, content: nil, speakableGroupName: recipient, conversationIdentifier: chatReplyMessageID, serviceName: nil, sender: nil)
+            
+            let image = INImage(named: "AvatarUser")
+            sendMessageIntent.setImage(image, forParameterNamed: \.speakableGroupName)
+            
+            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+            interaction.donate(completion: { error in
+                if let error = error {
+                    print(error.localizedDescription)
+                    exit(-1)
+                } else {
+                    // Do something, e.g. send the content to a contact.
+                    print("Do something, e.g. send the content to a contact.")
+                }
+            })
+        }
         
         chatInputView.closeQuoteFeedPanel()
 
