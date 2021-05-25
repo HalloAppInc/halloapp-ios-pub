@@ -764,7 +764,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         
         if #available(iOS 14.0, *) {
             let recipient = INSpeakableString(spokenPhrase: MainAppContext.shared.contactStore.fullName(for: sendToUserId))
-            let sendMessageIntent = INSendMessageIntent(recipients: nil, content: nil, speakableGroupName: recipient, conversationIdentifier: sendToUserId, serviceName: nil, sender: nil)
+            let sendMessageIntent = INSendMessageIntent(recipients: nil, content: nil, speakableGroupName: recipient, conversationIdentifier: "CHAT" + sendToUserId, serviceName: nil, sender: nil)
             
             let potentialUserAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: sendToUserId).image
             let defaultAvatar = UIImage(named: "AvatarUser")!
