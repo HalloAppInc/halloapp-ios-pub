@@ -11,6 +11,7 @@ import Core
 import CoreData
 import Photos
 import Intents
+import IntentsUI
 import UIKit
 
 fileprivate struct Constants {
@@ -763,10 +764,13 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         
         if #available(iOS 14.0, *) {
             let recipient = INSpeakableString(spokenPhrase: MainAppContext.shared.contactStore.fullName(for: sendToUserId))
-            let sendMessageIntent = INSendMessageIntent(recipients: nil, content: nil, speakableGroupName: recipient, conversationIdentifier: chatReplyMessageID, serviceName: nil, sender: nil)
+            let sendMessageIntent = INSendMessageIntent(recipients: nil, content: nil, speakableGroupName: recipient, conversationIdentifier: sendToUserId, serviceName: nil, sender: nil)
             
-            let image = INImage(named: "AvatarUser")
-            sendMessageIntent.setImage(image, forParameterNamed: \.speakableGroupName)
+            let potentialUserAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: sendToUserId).image
+            let defaultAvatar = UIImage(named: "AvatarUser")!
+            let userAvatar = INImage(uiImage: potentialUserAvatar ?? defaultAvatar )
+            
+            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
             
             let interaction = INInteraction(intent: sendMessageIntent, response: nil)
             interaction.donate(completion: { error in
