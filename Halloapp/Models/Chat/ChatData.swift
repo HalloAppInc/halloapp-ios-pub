@@ -2430,7 +2430,7 @@ extension ChatData {
         }
     }
     
-    public func changeGroupAvatar(groupID: GroupID, data: Data, completion: @escaping ServiceRequestCompletion<Void>) {
+    public func changeGroupAvatar(groupID: GroupID, data: Data?, completion: @escaping ServiceRequestCompletion<Void>) {
         DDLogInfo("ChatData/changeGroupAvatar")
         
         MainAppContext.shared.service.changeGroupAvatar(groupID: groupID, data: data) { [weak self] result in

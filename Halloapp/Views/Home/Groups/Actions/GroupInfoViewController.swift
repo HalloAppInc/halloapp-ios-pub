@@ -210,37 +210,61 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         present(UINavigationController(rootViewController: vc), animated: true)
     }
 
+    
     @objc private func openEditAvatarOptions() {
-        let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
-        actionSheet.view.tintColor = UIColor.systemBlue
+        
 
-        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupTakeOrChoosePhoto, style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            self.presentPhotoLibraryPicker()
-        })
+        if let chatGroupMember = MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) {
+            if (chatGroupMember.type == .admin || chatGroupMember.type == .member) {
+                let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
+                actionSheet.view.tintColor = UIColor.systemBlue
+                
+                actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupTakeOrChoosePhoto, style: .default) { [weak self] _ in
+                    guard let self = self else { return }
+                    self.presentPhotoLibraryPicker()
+                })
+                
+                
+                actionSheet.addAction(UIAlertAction(title: "Delete Photo", style: .destructive) { _ in
+                    MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: nil) { result in
+                        switch result {
+                        case .success:
+                            DispatchQueue.main.async() { [weak self] in
+                                guard let self = self else { return }
 
-        actionSheet.addAction(UIAlertAction(title: "Delete Photo", style: .destructive) { _ in
-            MainAppContext.shared.chatData.deleteGroupPhoto(groupID: self.groupId) { result in
-                switch result {
-                case .success:
-                    DispatchQueue.main.async() { [weak self] in
-                        guard let self = self else { return }
-
-                        // configure again as avatar listens to cached object that's evicted if app goes into background
-                        if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
-                            tableHeaderView.configure(chatGroup: self.chatGroup)
+                                // configure again as avatar listens to cached object that's evicted if app goes into background
+                                if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
+                                    tableHeaderView.configure(chatGroup: self.chatGroup)
+                                }
+                            }
+                        case .failure(let error):
+                            DDLogError("GroupInfoViewController/createAction/error \(error)")
                         }
                     }
-                case .failure(let error):
-                    DDLogError("GroupInfoViewController/createAction/error \(error)")
-                }
+                    MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: nil) { result in
+                        switch result {
+                        case .success:
+                            DispatchQueue.main.async() { [weak self] in
+                                guard let self = self else { return }
+
+                                // configure again as avatar listens to cached object that's evicted if app goes into background
+                                if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
+                                    tableHeaderView.configure(chatGroup: self.chatGroup)
+                                }
+                            }
+                        case .failure(let error):
+                            DDLogError("GroupInfoViewController/createAction/error \(error)")
+                        }
+                    }
+
+                })
+                actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+                present(actionSheet, animated: true)
             }
+        }
 
-        })
-
-        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-        present(actionSheet, animated: true)
     }
+
 
     // MARK: UITableView Delegates
 
@@ -358,6 +382,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             isAdmin = false
             headerView.setIsAdmin(false)
             footerView.setIsMember(false)
+            headerView.removePhotoIcon(true)
         }
     }
 
@@ -401,38 +426,30 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
 
     private func changeAvatar(image: UIImage) {
 
-        var me = String(MainAppContext.shared.userData.userId)
-        var currentMembers: [UserID] = []
-        if let objects = fetchedResultsController?.fetchedObjects {
-            for groupMember in objects {
-                currentMembers.append(groupMember.userId)
-            }
+
+        guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
+            DDLogError("GroupInfoViewController/resizeImage error resize failed")
+            return
         }
-        print(currentMembers.contains(me))
-        if (currentMembers.contains(me)) {
-            guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
-                DDLogError("GroupInfoViewController/resizeImage error resize failed")
-                return
-            }
 
-            let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
+        let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
 
-            MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: data) { result in
-                switch result {
-                case .success:
-                    DispatchQueue.main.async() { [weak self] in
-                        guard let self = self else { return }
+        MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: data) { result in
+            switch result {
+            case .success:
+                DispatchQueue.main.async() { [weak self] in
+                    guard let self = self else { return }
 
-                        // configure again as avatar listens to cached object that's evicted if app goes into background
-                        if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
-                            tableHeaderView.configure(chatGroup: self.chatGroup)
-                        }
+                    // configure again as avatar listens to cached object that's evicted if app goes into background
+                    if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
+                        tableHeaderView.configure(chatGroup: self.chatGroup)
                     }
-                case .failure(let error):
-                    DDLogError("GroupInfoViewController/createAction/error \(error)")
                 }
+            case .failure(let error):
+                DDLogError("GroupInfoViewController/createAction/error \(error)")
             }
         }
+        
     }
 
     private func refreshGroupInfo() {
@@ -617,7 +634,10 @@ class GroupInfoHeaderView: UIView {
         avatarView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
 
         photoIcon.frame = CGRect(x: 0 - Constants.PhotoIconSize, y: viewHeight - Constants.PhotoIconSize, width: Constants.PhotoIconSize, height: Constants.PhotoIconSize)
+        
+
         view.addSubview(photoIcon)
+
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(groupAvatarAction(_:)))
         view.isUserInteractionEnabled = true
@@ -650,6 +670,12 @@ class GroupInfoHeaderView: UIView {
 
         return view
     }()
+    
+    public func removePhotoIcon(_ isMember: Bool) {
+        photoIcon.isHidden = isMember ? true : false
+
+        
+    }
 
     private lazy var groupNameLabelRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [groupNameLabel])
@@ -856,6 +882,9 @@ class GroupInfoFooterView: UIView {
     public func setIsMember(_ isMember: Bool) {
         leaveGroupLabel.isHidden = isMember ? false : true
         notAMemberLabel.isHidden = isMember ? true : false
+
+
+        
     }
 
     private func setup() {
