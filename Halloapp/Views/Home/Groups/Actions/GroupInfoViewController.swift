@@ -225,7 +225,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 })
                 
                 
-                actionSheet.addAction(UIAlertAction(title: "Delete Photo", style: .destructive) { _ in
+                actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive) { _ in
                     MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: nil) { result in
                         switch result {
                         case .success:
