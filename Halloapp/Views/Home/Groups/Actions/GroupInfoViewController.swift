@@ -328,6 +328,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             if chatGroupMember.type == .admin {
                 isAdmin = true
                 headerView.setIsAdmin(true)
+                headerView.setIsMember(true)
                 footerView.setIsMember(true)
 
                 if ServerProperties.isGroupInviteLinksEnabled {
@@ -338,11 +339,13 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             } else if chatGroupMember.type == .member {
                 isAdmin = false
                 headerView.setIsAdmin(false)
+                headerView.setIsMember(true)
                 footerView.setIsMember(true)
             }
         } else {
             isAdmin = false
             headerView.setIsAdmin(false)
+            headerView.setIsMember(false)
             footerView.setIsMember(false)
         }
     }
@@ -531,6 +534,10 @@ class GroupInfoHeaderView: UIView {
 
     public func setIsAdmin(_ isAdmin: Bool) {
         addMembersLabel.isHidden = isAdmin ? false : true
+    }
+    
+    public func setIsMember(_ isMember: Bool) {
+        photoIcon.isHidden = isMember ? false : true
     }
 
     private func setup() {
