@@ -9,6 +9,8 @@ import CocoaLumberjack
 import Combine
 import Core
 import UIKit
+import Social
+import Intents
 
 private extension Localizations {
     static var title: String {
@@ -61,6 +63,19 @@ class ShareDestinationViewController: UITableViewController {
         tableView.register(DestinationCell.self, forCellReuseIdentifier: DestinationCell.reuseIdentifier)
 
         setupSearch()
+        
+        if let intent = self.extensionContext?.intent as? INSendMessageIntent {
+            let sendToUserId = intent.conversationIdentifier
+            
+            guard let contact = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: false).first(where: { contact in
+                contact.userId == sendToUserId
+            }) else {
+                return
+            }
+            
+            let destination = ShareDestination.contact(contact)
+            navigationController?.pushViewController(ShareComposerViewController(destination: destination), animated: false)
+        }
     }
 
     @objc func cancelAciton() {

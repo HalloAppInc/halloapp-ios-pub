@@ -775,11 +775,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             let interaction = INInteraction(intent: sendMessageIntent, response: nil)
             interaction.donate(completion: { error in
                 if let error = error {
-                    print(error.localizedDescription)
-                    exit(-1)
-                } else {
-                    // Do something, e.g. send the content to a contact.
-                    print("Do something, e.g. send the content to a contact.")
+                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
                 }
             })
         }
