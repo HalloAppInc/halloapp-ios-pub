@@ -1682,21 +1682,26 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPostInfo.audienceType = .group
             feedPost.info = feedPostInfo
             
-            let recipient = INSpeakableString(spokenPhrase: chatGroup.name)
-            let sendMessageIntent = INSendMessageIntent(recipients: nil, content: nil, speakableGroupName: recipient, conversationIdentifier: "GRUP" + chatGroup.groupId, serviceName: nil, sender: nil)
-            
-            let potentialUserAvatar = MainAppContext.shared.avatarStore.groupAvatarData(for: chatGroup.groupId).image
-            let defaultAvatar = UIImage(named: "AvatarGroup")!
-            let userAvatar = INImage(uiImage: potentialUserAvatar ?? defaultAvatar )
-            
-            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
-            
-            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
-            interaction.donate(completion: { error in
-                if let error = error {
-                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
-                }
-            })
+            if #available(iOS 14.0, *) {
+                let recipient = INSpeakableString(spokenPhrase: chatGroup.name)
+                let sendMessageIntent = INSendMessageIntent(recipients: nil, content: nil, speakableGroupName: recipient, conversationIdentifier: "GRUP" + chatGroup.groupId, serviceName: nil, sender: nil)
+                
+                let potentialUserAvatar = MainAppContext.shared.avatarStore.groupAvatarData(for: chatGroup.groupId).image
+                let defaultAvatar = UIImage(named: "AvatarGroup")!
+                
+                // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+                let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData()!
+                let userAvatar = INImage(imageData: userAvaterUIImage)
+                
+                sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+                
+                let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+                interaction.donate(completion: { error in
+                    if let error = error {
+                        DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+                    }
+                })
+            }
         }
 
         // set a merge policy so that we dont end up with duplicate feedposts.

@@ -768,7 +768,10 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             
             let potentialUserAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: sendToUserId).image
             let defaultAvatar = UIImage(named: "AvatarUser")!
-            let userAvatar = INImage(uiImage: potentialUserAvatar ?? defaultAvatar )
+            
+            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+            let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData()!
+            let userAvatar = INImage(imageData: userAvaterUIImage)
             
             sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
             
