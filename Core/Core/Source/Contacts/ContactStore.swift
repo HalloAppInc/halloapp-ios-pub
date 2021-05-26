@@ -34,6 +34,13 @@ open class ContactStore {
         }
     }
 
+    /// True if permissions have been explicitly denied. False does not imply contacts are available (e.g., may be undetermined or unavailable due to parental controls).
+    public class var contactsAccessDenied: Bool {
+        get {
+            return ContactStore.contactsAccessStatus == .denied
+        }
+    }
+
     public class var contactsAccessRequestNecessary: Bool {
         get {
             return ContactStore.contactsAccessStatus == .notDetermined

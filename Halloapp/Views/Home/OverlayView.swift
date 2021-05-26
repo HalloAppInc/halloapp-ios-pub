@@ -359,6 +359,13 @@ final class OverlayContainer: UIView {
         overlays.removeAll(where: { $0.overlayID == overlay.overlayID })
     }
 
+    func dismissOverlay(with id: String) {
+        guard let overlay = overlays.first(where: { $0.overlayID == id }) else {
+            return
+        }
+        dismiss(overlay)
+    }
+
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let result: UIView? = overlays.reduce(nil) { hitView, target in
             let convertedPoint = self.convert(point, to: target)

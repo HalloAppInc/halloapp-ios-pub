@@ -24,6 +24,7 @@ class FeedViewController: FeedCollectionViewController {
     }
 
     private var feedPostIdToScrollTo: FeedPostID?
+    private var showContactsPermissionDialogIfNecessary = true
 
     // MARK: UIViewController
 
@@ -88,6 +89,7 @@ class FeedViewController: FeedCollectionViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        updateContactPermissionsAlert()
         showNUXIfNecessary()
     }
 
@@ -240,6 +242,33 @@ class FeedViewController: FeedCollectionViewController {
         floatingMenu.constrain(to: view)
 
         collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: floatingMenu.suggestedContentInsetHeight, right: 0)
+    }
+
+    private func updateContactPermissionsAlert() {
+        let overlayID = "feed.contact.permissions.alert"
+
+        guard showContactsPermissionDialogIfNecessary && ContactStore.contactsAccessDenied else {
+            overlayContainer.dismissOverlay(with: overlayID)
+            return
+        }
+        guard let url = URL(string: UIApplication.openSettingsURLString) else {
+            DDLogError("FeedViewController/showPermissionsDialog/error settings-url-unavailable")
+            return
+        }
+        let alert = FeedPermissionAlert(
+            message: Localizations.contactsPermissionExplanation,
+            acceptAction: .init(title: Localizations.buttonContinue) { [weak self] _ in
+                UIApplication.shared.open(url)
+                self?.dismissOverlay()
+            },
+            dismissAction: .init(title: Localizations.buttonNotNow) { [weak self] _ in
+                self?.showContactsPermissionDialogIfNecessary = false
+                self?.dismissOverlay()
+            })
+        alert.overlayID = overlayID
+
+        overlay = alert
+        overlayContainer.display(alert)
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
