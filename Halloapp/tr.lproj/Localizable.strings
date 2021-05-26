@@ -216,7 +216,7 @@
 "comment.reply" = "Yanıtla";
 
 /* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "%@ kişisine yanıt ver";
+"comment.replying.myself" = "kişisine yanıt ver";
 
 /* Title for the button in comment resend confirmation prompt. */
 "comment.resend.action" = "Tekrar gönder";
@@ -423,7 +423,7 @@
 "groups.list.remove.message" = "Bu grubu ve içeriğini telefonundan silmek istediğine emin misin?";
 
 /* Text shown in the email body when sending logs from the help screen */
-"help.send.logs.email.body" = "Lütfen yukarıya, yaşadığın sorunla ilgili bir açıklama veya geri bildirim yaz.\nSürüm %1$@ - %2$@\n%3$@";
+"help.send.logs.email.body" = "\n\n\nLütfen yukarıya, yaşadığın sorunla ilgili bir açıklama veya geri bildirim yaz.\nSürüm %1$@ - %2$@\n%3$@";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Çık";
@@ -472,6 +472,9 @@
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Daha fazlası öğren";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Kendim";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "Albümler";
@@ -540,7 +543,7 @@
 "mypost.not.viewed.yet" = "Gönderini henüz kimse görmedi";
 
 /* Your Post screen: title for group of contacts who has not yet seen your post. */
-"mypost.sent.to" = "%@ kişisine gönderildi";
+"mypost.sent.to" = "kişisine gönderildi";
 
 /* Your Post screen: title for group of contacts who has seen your post. */
 "mypost.viewed.by" = "Görenler";

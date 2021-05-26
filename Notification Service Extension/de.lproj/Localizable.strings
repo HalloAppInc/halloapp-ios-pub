@@ -2,6 +2,9 @@
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
 "button.cancel" = "Abbrechen";
 
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Weiter";
+
 /* Title for generic Create button */
 "button.create" = "Erstellen";
 
@@ -11,8 +14,14 @@
 /* Title for generic Done button. Mostly used to complete some modal flow. */
 "button.done" = "Erledigt";
 
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Zu Einstellungen gehen";
+
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
 "button.next" = "Weiter";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Jetzt nicht";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
 "button.ok" = "OK";
@@ -37,6 +46,9 @@
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Mehr erfahren";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Meine App aktualisieren.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ich";
