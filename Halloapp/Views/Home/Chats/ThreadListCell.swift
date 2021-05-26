@@ -76,11 +76,11 @@ class ThreadListCell: UITableViewCell {
         let messageStatusIcon: UIImage? = {
             switch chatThread.lastMsgStatus {
             case .sentOut:
-                return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray3)
+                return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray)
             case .delivered:
-                return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray3)
+                return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray)
             case .seen:
-                return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
+                return UIImage(named: "CheckmarkDouble")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
             default:
                 return nil
             }
