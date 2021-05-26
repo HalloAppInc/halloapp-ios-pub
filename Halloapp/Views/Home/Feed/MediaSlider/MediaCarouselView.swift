@@ -111,19 +111,21 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         MediaCarouselVideoCollectionViewCell.videoDidStartPlaying.send(nil)
     }
 
-    class func preferredHeight(for media: [FeedMedia], width: CGFloat, maxAllowedAspectRatio: CGFloat = 5 / 4) -> CGFloat {
+    class func preferredHeight(for media: [FeedMedia], width: CGFloat) -> CGFloat {
+        let maxHeight = UIScreen.main.bounds.height - 320
+
         let aspectRatios: [CGFloat] = media.compactMap {
             guard $0.size.width > 0 else { return nil }
             return $0.size.height / $0.size.width
         }
         guard let tallestItemAspectRatio = aspectRatios.max() else { return 0 }
 
-        var height = (width * min(maxAllowedAspectRatio, tallestItemAspectRatio)).rounded()
-
+        var height = tallestItemAspectRatio * width
         if media.count > 1 {
             height += MediaCarouselView.pageControlAreaHeight
         }
-        return height
+
+        return min(maxHeight, height)
     }
 
     static private let cellReuseIdentifierImage = "MediaCarouselCellImage"
@@ -600,6 +602,7 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
 
         imageView = ZoomableImageView(frame: contentView.bounds)
         imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+        imageView.contentMode = .scaleAspectFit
         contentView.addSubview(imageView)
     }
 
@@ -640,14 +643,6 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
         placeholderImageView.isHidden = true
         imageView.isHidden = false
         imageView.image = image
-
-        let isImageWideEnoughToFit: Bool = {
-            guard image.size.height > 0 && imageView.frame.height > 0 else { return true }
-            let imageAspectRatio = image.size.width / image.size.height
-            let viewAspectRatio = imageView.frame.width / imageView.frame.height
-            return imageAspectRatio >= viewAspectRatio
-        }()
-        imageView.contentMode = isImageWideEnoughToFit || scaleContentToFit ? .scaleAspectFit : .scaleAspectFill
 
         // Loading cancellable is no longer needed
         imageLoadingCancellable?.cancel()
@@ -804,7 +799,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     override func configure(with media: FeedMedia) {
         super.configure(with: media)
 
-        avPlayerViewController.videoGravity = media.size.width > media.size.height || scaleContentToFit ? .resizeAspect : .resizeAspectFill
+        avPlayerViewController.videoGravity = .resizeAspect
 
         if media.isMediaAvailable {
             showPlayer(forVideoURL: media.fileURL!)

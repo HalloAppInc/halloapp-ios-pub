@@ -577,7 +577,7 @@ fileprivate struct PostComposerView: View {
     }
     
     private func getMediaSliderHeight(width: CGFloat) -> CGFloat {
-        return MediaCarouselView.preferredHeight(for: feedMediaItems, width: width - 4 * PostComposerLayoutConstants.horizontalPadding, maxAllowedAspectRatio: mediaCarouselMaxAspectRatio)
+        return MediaCarouselView.preferredHeight(for: feedMediaItems, width: width - 4 * PostComposerLayoutConstants.horizontalPadding)
     }
 
     var picker: some View {
