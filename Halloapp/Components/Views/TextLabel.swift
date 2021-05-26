@@ -438,7 +438,7 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
 
     static private let detectionQueue = DispatchQueue(label: "hyperlink-detection")
 
-    static private let dataDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue | NSTextCheckingResult.CheckingType.phoneNumber.rawValue | NSTextCheckingResult.CheckingType.address.rawValue)
+    static private let dataDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue | NSTextCheckingResult.CheckingType.phoneNumber.rawValue)
 
     private func performHyperlinkDetectionIfNeeded() {
         guard needsDetectHyperlinks else { return }
