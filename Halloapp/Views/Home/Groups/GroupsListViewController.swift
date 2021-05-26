@@ -55,6 +55,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     init(title: String) {
         super.init(nibName: nil, bundle: nil)
         self.title = title
+
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
@@ -101,7 +102,11 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         tableView.tableHeaderView = searchController.searchBar
         tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
         
+
+        
         setupFetchedResultsController()
+        
+
                 
         // When the user was on this view
         cancellableSet.insert(
@@ -480,7 +485,6 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
             let searchItems = strippedString.components(separatedBy: " ")
             cell.highlightTitle(searchItems)
         }
-        
         return cell
     }
 

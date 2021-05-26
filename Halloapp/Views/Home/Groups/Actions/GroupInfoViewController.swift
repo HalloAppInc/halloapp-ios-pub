@@ -226,21 +226,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 
                 
                 actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive) { _ in
-                    MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: nil) { result in
-                        switch result {
-                        case .success:
-                            DispatchQueue.main.async() { [weak self] in
-                                guard let self = self else { return }
-
-                                // configure again as avatar listens to cached object that's evicted if app goes into background
-                                if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
-                                    tableHeaderView.configure(chatGroup: self.chatGroup)
-                                }
-                            }
-                        case .failure(let error):
-                            DDLogError("GroupInfoViewController/createAction/error \(error)")
-                        }
-                    }
+                    
                     MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: nil) { result in
                         switch result {
                         case .success:
@@ -382,7 +368,6 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             isAdmin = false
             headerView.setIsAdmin(false)
             footerView.setIsMember(false)
-            headerView.removePhotoIcon(true)
         }
     }
 
@@ -671,11 +656,7 @@ class GroupInfoHeaderView: UIView {
         return view
     }()
     
-    public func removePhotoIcon(_ isMember: Bool) {
-        photoIcon.isHidden = isMember ? true : false
 
-        
-    }
 
     private lazy var groupNameLabelRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [groupNameLabel])
