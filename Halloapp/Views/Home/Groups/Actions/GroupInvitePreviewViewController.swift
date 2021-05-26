@@ -174,7 +174,7 @@ class GroupInvitePreviewViewController: UIViewController {
 
         return view
     }()
-    
+
     private lazy var cancelLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .left
@@ -212,7 +212,7 @@ class GroupInvitePreviewViewController: UIViewController {
     }
 
     @objc func joinAction(_ sender: UIView) {
-        
+
         MainAppContext.shared.chatData.joinGroupWithLink(inviteLink: inviteLink) { [weak self] result in
             guard let self = self else { return }
             guard let groupID = self.groupID else { return }
@@ -232,8 +232,22 @@ class GroupInvitePreviewViewController: UIViewController {
                         }
                     } else {
                         DDLogDebug("GroupInviteViewController/joinGroupWithLink/error \(error)")
-                        //todo: check what is good UX to handle error cases of max_group_size, invalid_invite, admin_removed
-                        self.dismiss(animated: true)
+
+                        // error cases of max_group_size, invalid_invite, admin_removed
+                        let alertMsg:String = {
+                            switch reason {
+                            case "max_group_size":
+                                return Localizations.groupPreviewJoinErrorGroupFull
+                            default:
+                                return Localizations.groupPreviewJoinErrorInvalidLink
+                            }
+                        }()
+
+                        let alert = UIAlertController( title: Localizations.groupPreviewJoinErrorTitle, message: alertMsg, preferredStyle: .alert)
+                        alert.addAction(.init(title: Localizations.buttonOK, style: .default, handler: { _ in
+                            self.dismiss(animated: true)
+                        }))
+                        self.present(alert, animated: true, completion: nil)
                     }
                 default:
                     self.dismiss(animated: true)
@@ -249,5 +263,17 @@ private extension Localizations {
     static var groupPreviewJoinGroup: String {
         NSLocalizedString("group.preview.join.group", value: "JOIN GROUP", comment: "Label for joining group action")
     }
-}
 
+    static var groupPreviewJoinErrorTitle: String {
+        NSLocalizedString("group.preview.join.error.title", value: "Not able to join group", comment: "Title for alert box when the user can't join the group via group link")
+    }
+
+    static var groupPreviewJoinErrorGroupFull: String {
+        NSLocalizedString("group.preview.join.error.group.full", value: "The group is full", comment: "Text for alert box when the user can't join the group via group link when the group is full")
+    }
+
+    static var groupPreviewJoinErrorInvalidLink: String {
+        NSLocalizedString("group.preview.join.error.invalid.link", value: "The link is invalid", comment: "Text for alert box when the user can't join the group via group link when link is invalid")
+    }
+
+}
