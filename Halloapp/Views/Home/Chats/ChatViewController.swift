@@ -10,8 +10,6 @@ import Combine
 import Core
 import CoreData
 import Photos
-import Intents
-import IntentsUI
 import UIKit
 
 fileprivate struct Constants {
