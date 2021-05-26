@@ -609,10 +609,8 @@ private extension Localizations {
     }
 
     static func invitesRemaining(_ count: Int) -> String {
-        let format = NSLocalizedString("invite.remaining.count.unspecified.time",
-                                       value: "You have %@ invites remaining",
-                                       comment: "Indicates how many invites are remaining")
-        return String(format: format, String(count))
+        let format = NSLocalizedString("n.invites.remaining", comment: "Indicates how many invites are remaining")
+        return String.localizedStringWithFormat(format, count)
     }
 }
 
