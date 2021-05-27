@@ -131,12 +131,16 @@ class HomeViewController: UITabBarController {
         cancellableSet.insert(
             MainAppContext.shared.service.didConnect.sink { [weak self] in
                 guard let self = self else { return }
+                
+                // for registration case where we want to present the group preview
+                // after user registers and connect, and also when user have slow connectivity
+                // when opening the app
                 self.presentGroupPreviewIfNeeded()
             }
         )
 
         cancellableSet.insert(
-            NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] _ in
+            MainAppContext.shared.didGetGroupInviteToken.sink { [weak self] in
                 guard let self = self else { return }
                 self.presentGroupPreviewIfNeeded()
             }

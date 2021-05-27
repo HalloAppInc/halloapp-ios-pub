@@ -37,6 +37,7 @@ class MainAppContext: AppContext {
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
     let groupFeedFromGroupTabPresentRequest = CurrentValueSubject<GroupID?, Never>(nil)
+    let didGetGroupInviteToken = PassthroughSubject<Void, Never>()
 
     var service: HalloService {
         coreService as! HalloService

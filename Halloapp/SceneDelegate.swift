@@ -218,6 +218,7 @@ private extension SceneDelegate {
     
     private func processGroupInviteToken(_ token: String) {
         MainAppContext.shared.userData.groupInviteToken = token
+        MainAppContext.shared.didGetGroupInviteToken.send()
     }
 }
 
