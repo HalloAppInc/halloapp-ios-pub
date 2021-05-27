@@ -8,32 +8,23 @@
 
 import Foundation
 
-enum ConversationType {
-    case chat, group
-    
-    var stringRepresentation: String {
-        switch self {
-        case .chat:
-            return "CHAT"
-        case .group:
-            return "GRUP"
-        }
-    }
+enum ConversationType: String {
+    case chat = "CHAT"
+    case group = "GRUP"
 }
 
 struct ConversationID: CustomStringConvertible {
     var id: String
     var conversationType: ConversationType
     
-    init(_ conversationID: String) {
+    init?(_ conversationID: String) {
         let splitValues = conversationID.split(separator: ":", maxSplits: 1)
+        guard splitValues.count == 2 else { return nil }
+        
         self.id = String(splitValues[1])
         
-        if splitValues[0] == ConversationType.group.stringRepresentation {
-            conversationType = .group
-        } else {
-            conversationType = .chat
-        }
+        guard let conversationType = ConversationType(rawValue: String(splitValues[0])) else { return nil }
+        self.conversationType = conversationType
     }
     
     init(id: String, type: ConversationType) {
@@ -42,6 +33,6 @@ struct ConversationID: CustomStringConvertible {
     }
     
     var description: String {
-        return conversationType.stringRepresentation + ":" + id
+        return conversationType.rawValue + ":" + id
     }
 }

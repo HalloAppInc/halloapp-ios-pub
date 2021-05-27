@@ -65,8 +65,8 @@ class ShareDestinationViewController: UITableViewController {
         setupSearch()
         
         if let intent = self.extensionContext?.intent as? INSendMessageIntent {
-            guard let sendToUserId = intent.conversationIdentifier else { return }
-            let conversationID = ConversationID(sendToUserId)
+            guard let rawConversationID = intent.conversationIdentifier else { return }
+            guard let conversationID = ConversationID(rawConversationID) else { return }
             
             if conversationID.conversationType == .chat {
                 guard let contact = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: false).first(where: { contact in
