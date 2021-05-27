@@ -1298,7 +1298,7 @@ extension ProtoService: HalloService {
     func changeGroupAvatar(groupID: GroupID, data: Data?, completion: @escaping ServiceRequestCompletion<String>) {
         enqueue(request: ProtoChangeGroupAvatarRequest(
             groupID: groupID,
-                    data: data,
+            data: data,
             completion: completion))
     }
     
