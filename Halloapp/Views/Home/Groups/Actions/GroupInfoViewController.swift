@@ -219,45 +219,37 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         present(UINavigationController(rootViewController: vc), animated: true)
     }
 
-    
     @objc private func openEditAvatarOptions() {
+        guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil else { return }
 
-        
+        let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
+        actionSheet.view.tintColor = UIColor.systemBlue
 
-          guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil else { return }
-          let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
-          actionSheet.view.tintColor = UIColor.systemBlue
+        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupTakeOrChoosePhoto, style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.presentPhotoLibraryPicker()
+        })
 
-          actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupTakeOrChoosePhoto, style: .default) { [weak self] _ in
-              guard let self = self else { return }
-              self.presentPhotoLibraryPicker()
-          })
+        actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive) { _ in
+            MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: nil) { result in
+                switch result {
+                case .success:
+                    DispatchQueue.main.async() { [weak self] in
+                        guard let self = self else { return }
 
-
-          actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive) { _ in
-
-              MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: nil) { result in
-                  switch result {
-                  case .success:
-                      DispatchQueue.main.async() { [weak self] in
-                          guard let self = self else { return }
-
-                          // configure again as avatar listens to cached object that's evicted if app goes into background
-                          if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
-                              tableHeaderView.configure(chatGroup: self.chatGroup)
-                          }
-                      }
-                  case .failure(let error):
-                      DDLogError("GroupInfoViewController/createAction/error \(error)")
-                  }
-              }
-
-          })
-          actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-          present(actionSheet, animated: true)
-
+                        // configure again as avatar listens to cached object that's evicted if app goes into background
+                        if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
+                            tableHeaderView.configure(chatGroup: self.chatGroup)
+                        }
+                    }
+                case .failure(let error):
+                    DDLogError("GroupInfoViewController/createAction/error \(error)")
+                }
+            }
+        })
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        present(actionSheet, animated: true)
     }
-
 
     // MARK: UITableView Delegates
 
@@ -455,8 +447,6 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     }
 
     private func changeAvatar(image: UIImage) {
-
-
         guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
             DDLogError("GroupInfoViewController/resizeImage error resize failed")
             return
@@ -479,7 +469,6 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 DDLogError("GroupInfoViewController/createAction/error \(error)")
             }
         }
-        
     }
 
     private func refreshGroupInfo() {
@@ -674,7 +663,6 @@ class GroupInfoHeaderView: UIView {
         photoIcon.frame = CGRect(x: 0 - Constants.PhotoIconSize, y: viewHeight - Constants.PhotoIconSize, width: Constants.PhotoIconSize, height: Constants.PhotoIconSize)
         view.addSubview(photoIcon)
 
-
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(groupAvatarAction(_:)))
         view.isUserInteractionEnabled = true
         view.addGestureRecognizer(tapGesture)
@@ -706,8 +694,6 @@ class GroupInfoHeaderView: UIView {
 
         return view
     }()
-    
-
 
     private lazy var groupNameLabelRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [groupNameLabel])
@@ -914,9 +900,6 @@ class GroupInfoFooterView: UIView {
     public func setIsMember(_ isMember: Bool) {
         leaveGroupLabel.isHidden = isMember ? false : true
         notAMemberLabel.isHidden = isMember ? true : false
-
-
-        
     }
 
     private func setup() {
