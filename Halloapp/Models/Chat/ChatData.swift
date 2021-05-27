@@ -1338,30 +1338,7 @@ extension ChatData {
                                                        chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
         }
         
-        addIntent: if #available(iOS 14.0, *) {
-            let recipient = INSpeakableString(spokenPhrase: MainAppContext.shared.contactStore.fullName(for: toUserId))
-            let sendMessageIntent = INSendMessageIntent(recipients: nil,
-                                                        content: nil,
-                                                        speakableGroupName: recipient,
-                                                        conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
-                                                        serviceName: nil, sender: nil)
-            
-            let potentialUserAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
-            guard let defaultAvatar = UIImage(named: "AvatarUser") else { break addIntent }
-            
-            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
-            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { break addIntent }
-            let userAvatar = INImage(imageData: userAvaterUIImage)
-            
-            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
-            
-            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
-            interaction.donate(completion: { error in
-                if let error = error {
-                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
-                }
-            })
-        }
+        addIntent(toUserId: toUserId)
     }
     
     func createChatMsg(toUserId: String,
@@ -1746,6 +1723,33 @@ extension ChatData {
                 
         self.service.retractChatMessage(messageID: messageID, toUserID: toUserID, messageToRetractID: messageToRetractID)
         
+    }
+    
+    private func addIntent(toUserId: UserID) {
+        if #available(iOS 14.0, *) {
+            let recipient = INSpeakableString(spokenPhrase: MainAppContext.shared.contactStore.fullName(for: toUserId))
+            let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                        content: nil,
+                                                        speakableGroupName: recipient,
+                                                        conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
+                                                        serviceName: nil, sender: nil)
+            
+            let potentialUserAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
+            guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
+            
+            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
+            let userAvatar = INImage(imageData: userAvaterUIImage)
+            
+            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+            
+            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+            interaction.donate(completion: { error in
+                if let error = error {
+                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+                }
+            })
+        }
     }
     
     // MARK: 1-1 Core Data Fetching
