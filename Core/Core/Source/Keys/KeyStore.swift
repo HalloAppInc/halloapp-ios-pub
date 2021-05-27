@@ -126,15 +126,18 @@ open class KeyStore {
             return self.persistentContainer.viewContext
         }
     }
-    
-    public func save(_ managedObjectContext: NSManagedObjectContext) {
+
+    @discardableResult
+    public func save(_ managedObjectContext: NSManagedObjectContext) -> Bool {
         DDLogVerbose("KeyStore/will-save")
         do {
             managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             try managedObjectContext.save()
             DDLogVerbose("KeyStore/did-save")
+            return true
         } catch {
             DDLogError("KeyStore/save-error error=[\(error)]")
+            return false
         }
     }
     

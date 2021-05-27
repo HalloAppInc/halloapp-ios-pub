@@ -141,32 +141,37 @@ class KeyData {
 
         DDLogInfo("KeyStore/uploadMoreOneTimePreKeys")
         isOneTimePreKeyUploadInProgress = true
-        self.keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            guard let userKeyBundle = self.keyStore.keyBundle(in: managedObjectContext) else {
-                DDLogInfo("KeyStore/uploadMoreOneTimePreKeys/noKeysFound")
+
+        guard let userKeyBundle = keyStore.keyBundle() else {
+            DDLogError("KeyStore/uploadMoreOneTimePreKeys/error [noKeysFound]")
+            return
+        }
+
+        let generatedOTPKeys = self.generateOneTimePreKeys(initialCounter: userKeyBundle.oneTimePreKeysCounter)
+
+        saveOneTimePreKeys(generatedOTPKeys) { saveSuccess in
+            guard saveSuccess else {
+                DDLogError("KeyStore/uploadMoreOneTimePreKeys/error [saveError]")
+                self.isOneTimePreKeyUploadInProgress = false
                 return
             }
-            
-            let generatedOTPKeys = self.generateOneTimePreKeys(initialCounter: userKeyBundle.oneTimePreKeysCounter)
 
             self.service.requestAddOneTimeKeys(generatedOTPKeys.map { $0.publicPreKey }) { result in
+                self.isOneTimePreKeyUploadInProgress = false
                 switch result {
                 case .success:
-                    self.saveOneTimePreKeys(generatedOTPKeys) {
-                        self.isOneTimePreKeyUploadInProgress = false
-                    }
+                    DDLogInfo("KeyStore/uploadMoreOneTimePreKeys/complete")
                 case .failure(let error):
                     DDLogError("KeyStore/uploadMoreOneTimePreKeys/error \(error)")
-                    self.isOneTimePreKeyUploadInProgress = false
                 }
             }
         }
     }
 
-    private func saveOneTimePreKeys(_ preKeys: [PreKeyPair<X25519>], completion: (() -> Void)?) {
+    private func saveOneTimePreKeys(_ preKeys: [PreKeyPair<X25519>], completion: ((Bool) -> Void)?) {
         guard let maxKeyID = preKeys.map({ $0.id }).max() else {
             DDLogInfo("KeyData/saveOneTimePreKeys/skipping (empty)")
-            completion?()
+            completion?(false)
             return
         }
 
@@ -174,7 +179,7 @@ class KeyData {
         self.keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let userKeyBundle = self.keyStore.keyBundle(in: managedObjectContext) else {
                 DDLogInfo("KeyData/saveOneTimePreKeys/noKeysFound")
-                completion?()
+                completion?(false)
                 return
             }
 
@@ -194,8 +199,10 @@ class KeyData {
             userKeyBundle.oneTimePreKeysCounter = maxKeyID + 1
 
             if managedObjectContext.hasChanges {
-                self.keyStore.save(managedObjectContext)
-                completion?()
+                let saveSuccess = self.keyStore.save(managedObjectContext)
+                completion?(saveSuccess)
+            } else {
+                completion?(false)
             }
         }
     }
