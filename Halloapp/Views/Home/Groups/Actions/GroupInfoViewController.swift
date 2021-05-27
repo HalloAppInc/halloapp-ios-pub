@@ -519,8 +519,8 @@ extension GroupInfoViewController: GroupInfoFooterViewDelegate {
     func groupInfoFooterView(_ groupInfoFooterView: GroupInfoFooterView) {
         guard let group = chatGroup else { return }
 
-        let actionSheet = UIAlertController(title: nil, message: "Leave \"\(group.name)\"?", preferredStyle: .actionSheet)
-         actionSheet.addAction(UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
+        let actionSheet = UIAlertController(title: nil, message: Localizations.leaveGroupConfirmation(groupName: group.name), preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoLeaveGroup, style: .destructive) { [weak self] _ in
             guard let self = self else { return }
             MainAppContext.shared.service.leaveGroup(groupID: self.groupId) { result in }
          })
@@ -1125,5 +1125,10 @@ private extension Localizations {
 
     static var chatGroupInfoRemoveFromGroup: String {
         NSLocalizedString("chat.group.info.remove.from.group", value: "Remove From Group", comment: "Text for menu option of removing a group member")
+    }
+
+    static func leaveGroupConfirmation(groupName: String) -> String {
+        let format = NSLocalizedString("chat.group.leave.group.confirmation", value: "Leave “%@”?", comment: "Confirmation message presented when leaving a group")
+        return String(format: format, groupName)
     }
 }
