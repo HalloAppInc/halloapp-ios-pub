@@ -255,6 +255,9 @@ class FeedViewController: FeedCollectionViewController {
             overlayContainer.dismissOverlay(with: overlayID)
             return
         }
+        guard overlay == nil else {
+            return
+        }
         guard let url = URL(string: UIApplication.openSettingsURLString) else {
             DDLogError("FeedViewController/showPermissionsDialog/error settings-url-unavailable")
             return
