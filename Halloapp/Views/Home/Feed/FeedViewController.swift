@@ -39,7 +39,7 @@ class FeedViewController: FeedCollectionViewController {
         notificationButton.centerYConstant = 5
         notificationButton.setImage(UIImage(named: "FeedNavbarNotifications")?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal), for: .normal)
         notificationButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
-        notificationButton.addTarget(self, action: #selector(presentNotificationsView), for: .touchUpInside)
+        notificationButton.addTarget(self, action: #selector(didTapNotificationButton), for: .touchUpInside)
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: notificationButton)
         self.notificationButton = notificationButton
 
@@ -107,7 +107,8 @@ class FeedViewController: FeedCollectionViewController {
 
     // MARK: UI Actions
 
-    @objc private func presentNotificationsView() {
+    @objc private func didTapNotificationButton() {
+        overlayContainer.dismissOverlay(with: activityCenterOverlayID)
         self.present(UINavigationController(rootViewController: NotificationsViewController(style: .plain)), animated: true)
     }
 
@@ -187,6 +188,8 @@ class FeedViewController: FeedCollectionViewController {
         overlayContainer.display(popover)
     }
 
+    private let activityCenterOverlayID = "activity.center.nux.id"
+
     private func showActivityCenterNUX() {
         guard let notificationButton = notificationButton else {
             return
@@ -199,6 +202,7 @@ class FeedViewController: FeedCollectionViewController {
             MainAppContext.shared.nux.didComplete(.activityCenterIcon)
             self?.overlay = nil
         }
+        popover.overlayID = activityCenterOverlayID
 
         overlay = popover
         overlayContainer.display(popover)
