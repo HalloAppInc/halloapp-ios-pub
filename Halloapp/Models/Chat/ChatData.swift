@@ -734,7 +734,7 @@ class ChatData: ObservableObject {
         
         pathComponents[0] += "-\(UUID().uuidString)"
         
-        let newPath = "\(pathComponents[0]).\(pathComponents[1])"
+        let newPath = pathComponents.joined(separator: ".")
 
         // todo: the directory for quoted media should follow a similar structure as chat media, should do mini migration also
         
@@ -1003,10 +1003,13 @@ class ChatData: ObservableObject {
 
         // TODO: Why Int16? - other classes have Int32 for the order attribute.
         var mediaIndex: Int16 = 0
+        var mediaFromDir: URL = MainAppContext.mediaDirectoryURL
         if let _ = chatMessage.feedPostId {
             mediaIndex = Int16(chatMessage.feedPostMediaIndex)
+            mediaFromDir = MainAppContext.mediaDirectoryURL
         } else if let _ = chatMessage.chatReplyMessageID {
             mediaIndex = Int16(chatMessage.chatReplyMessageMediaIndex)
+            mediaFromDir = MainAppContext.chatMediaDirectoryURL
         }
         if let chatQuotedMediaItem = chatQuoted.mediaList.first(where: { $0.order == mediaIndex }) {
             DDLogInfo("ChatData/copyQuoted/message/\(chatMessage.id), chatQuotedMediaIndex: \(chatQuotedMediaItem.order)")
@@ -1017,7 +1020,7 @@ class ChatData: ObservableObject {
             quotedMedia.height = Float(chatQuotedMediaItem.height)
             quotedMedia.quoted = quoted
             do {
-                try copyMediaToQuotedMedia(fromDir: MainAppContext.mediaDirectoryURL, fromPath: chatQuotedMediaItem.relativeFilePath, to: quotedMedia)
+                try copyMediaToQuotedMedia(fromDir: mediaFromDir, fromPath: chatQuotedMediaItem.relativeFilePath, to: quotedMedia)
             } catch {
                 DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
             }
