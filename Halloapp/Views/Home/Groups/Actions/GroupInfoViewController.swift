@@ -672,8 +672,6 @@ class GroupInfoHeaderView: UIView {
         avatarView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
 
         photoIcon.frame = CGRect(x: 0 - Constants.PhotoIconSize, y: viewHeight - Constants.PhotoIconSize, width: Constants.PhotoIconSize, height: Constants.PhotoIconSize)
-        
-
         view.addSubview(photoIcon)
 
 
