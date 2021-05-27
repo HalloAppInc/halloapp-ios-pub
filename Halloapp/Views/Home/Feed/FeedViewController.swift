@@ -24,6 +24,7 @@ class FeedViewController: FeedCollectionViewController {
     }
 
     private var feedPostIdToScrollTo: FeedPostID?
+    private var showContactsPermissionDialogIfNecessary = true
 
     // MARK: UIViewController
 
@@ -38,7 +39,7 @@ class FeedViewController: FeedCollectionViewController {
         notificationButton.centerYConstant = 5
         notificationButton.setImage(UIImage(named: "FeedNavbarNotifications")?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal), for: .normal)
         notificationButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
-        notificationButton.addTarget(self, action: #selector(presentNotificationsView), for: .touchUpInside)
+        notificationButton.addTarget(self, action: #selector(didTapNotificationButton), for: .touchUpInside)
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: notificationButton)
         self.notificationButton = notificationButton
 
@@ -88,6 +89,7 @@ class FeedViewController: FeedCollectionViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        updateContactPermissionsAlert()
         showNUXIfNecessary()
     }
 
@@ -105,7 +107,8 @@ class FeedViewController: FeedCollectionViewController {
 
     // MARK: UI Actions
 
-    @objc private func presentNotificationsView() {
+    @objc private func didTapNotificationButton() {
+        overlayContainer.dismissOverlay(with: activityCenterOverlayID)
         self.present(UINavigationController(rootViewController: NotificationsViewController(style: .plain)), animated: true)
     }
 
@@ -185,6 +188,8 @@ class FeedViewController: FeedCollectionViewController {
         overlayContainer.display(popover)
     }
 
+    private let activityCenterOverlayID = "activity.center.nux.id"
+
     private func showActivityCenterNUX() {
         guard let notificationButton = notificationButton else {
             return
@@ -197,6 +202,7 @@ class FeedViewController: FeedCollectionViewController {
             MainAppContext.shared.nux.didComplete(.activityCenterIcon)
             self?.overlay = nil
         }
+        popover.overlayID = activityCenterOverlayID
 
         overlay = popover
         overlayContainer.display(popover)
@@ -240,6 +246,33 @@ class FeedViewController: FeedCollectionViewController {
         floatingMenu.constrain(to: view)
 
         collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: floatingMenu.suggestedContentInsetHeight, right: 0)
+    }
+
+    private func updateContactPermissionsAlert() {
+        let overlayID = "feed.contact.permissions.alert"
+
+        guard showContactsPermissionDialogIfNecessary && ContactStore.contactsAccessDenied else {
+            overlayContainer.dismissOverlay(with: overlayID)
+            return
+        }
+        guard let url = URL(string: UIApplication.openSettingsURLString) else {
+            DDLogError("FeedViewController/showPermissionsDialog/error settings-url-unavailable")
+            return
+        }
+        let alert = FeedPermissionAlert(
+            message: Localizations.contactsPermissionExplanation,
+            acceptAction: .init(title: Localizations.buttonContinue) { [weak self] _ in
+                UIApplication.shared.open(url)
+                self?.dismissOverlay()
+            },
+            dismissAction: .init(title: Localizations.buttonNotNow) { [weak self] _ in
+                self?.showContactsPermissionDialogIfNecessary = false
+                self?.dismissOverlay()
+            })
+        alert.overlayID = overlayID
+
+        overlay = alert
+        overlayContainer.display(alert)
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {

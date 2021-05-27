@@ -1,4 +1,7 @@
 /* About screen: body text. */
+"about.body.1" = "HalloApp burada! Ve bunu, sen ve sevdikleriniz için inşa ediyoruz. Sosyal medya uygulamalarını aslına geri döndürürken dünyadaki herkesin erişmesi gerektiğini düşündüğümüz bir güvenlik ve gizlilik katmanı ekledik. HalloApp kişisel bilgilerini asla kullanmayacak ve sana asla reklam göstermeyecek. Bunun yerine, küçük bir maliyetle ek özellikler sunmayı planlıyoruz.";
+
+/* About screen: body text. */
 "about.body.2" = "HalloApp kullandığın ve bunu arkadaşların ve ailenle paylaştığın için teşekkürler. Her hafta geliştirmeye devam ediyoruz. ";
 
 /* About screen: footer text. Parameter is support email address. */
@@ -69,7 +72,19 @@
 "camera.init.error.3" = "Kamera çalıştırılamıyor";
 
 /* No comment provided by engineer. */
+"camera.init.error.4" = "Arka kamera girişine erişilemiyor";
+
+/* No comment provided by engineer. */
+"camera.init.error.5" = "Ön kamera girişine erişilemiyor";
+
+/* No comment provided by engineer. */
+"camera.init.error.6" = "Ses girişine erişilemiyor";
+
+/* No comment provided by engineer. */
 "camera.init.error.7" = "Fotoğraf çekilemiyor";
+
+/* No comment provided by engineer. */
+"camera.init.error.8" = "Video çekilemiyor";
 
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Başlatma hatası";
@@ -192,7 +207,7 @@
 "comment.deleting" = "Yorum siliniyor";
 
 /* Button in comment input field. Verb. */
-"comment.post" = "Gönderi";
+"comment.post" = "Gönder";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Paylaşılıyor...";
@@ -200,9 +215,8 @@
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Yanıtla";
 
-/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment.
-   Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "%@ kişisine yanıt ver";
+/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
+"comment.replying.myself" = "kişisine yanıt ver";
 
 /* Title for the button in comment resend confirmation prompt. */
 "comment.resend.action" = "Tekrar gönder";
@@ -280,7 +294,7 @@
 "feed.notification.commented.no.text" = "<$author$>, gönderine yorum yaptı";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.commented.w.text" = "<$author$> yorum yaptı: ";
+"feed.notification.commented.w.text" = "<$author$> yorum yaptı: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.deleted.comment" = "<$author$>, yorumunu sildi";
@@ -292,22 +306,22 @@
 "feed.notification.mention.comment.no.text" = "<$author$>, bir yorumda senden bahsetti";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.comment.w.text" = "<$author$> bir yorumda senden bahsetti:";
+"feed.notification.mention.comment.w.text" = "<$author$> bir yorumda senden bahsetti: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.no.text" = "<$author$> ";
+"feed.notification.mention.post.no.text" = "<$author$> bir gönderide senden bahsetti";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.w.text" = "<$author$> bir gönderide senden bahsetti:";
+"feed.notification.mention.post.w.text" = "<$author$> bir gönderide senden bahsetti: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.other.comment.w.text" = "<$author$> kişisi de yorum yaptı:";
+"feed.notification.other.comment.w.text" = "<$author$> kişisi de yorum yaptı: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.replied.no.text" = "<$author$>, senin yorumuna cevap verdi";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.replied.w.text" = "<$author$>, cevap verdi: ";
+"feed.notification.replied.w.text" = "<$author$>, cevap verdi: <$text$>";
 
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Gönderilemedi";
@@ -363,6 +377,9 @@
 /* Message text shown with the user who created the group */
 "group.event.created.group" = "%1$@,  \"%2$@\" adlı grubu kurdu";
 
+/* Message text shown with the user who demoted a group admin */
+"group.event.demoted.member" = "%1$@, %2$@ kişisini yöneticilikten çıkardı";
+
 /* Message text shown with the user who promoted a group member */
 "group.event.promoted.member" = "%1$@, %2$@ kişisini yönetici yaptı";
 
@@ -374,6 +391,9 @@
 
 /* Text shown when link is copied */
 "group.invite.link.copied" = "İlişim kopyalandı";
+
+/* Text to describe what the group invite link is */
+"group.invite.link.description" = "HalloApp'e sahip olan herkes gruba üye olmak için bu ilişimi kullanabilir.";
 
 /* Text shown when link is reset */
 "group.invite.link.reset" = "İlişim sıfırlandı";
@@ -401,6 +421,9 @@
 
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "Bu grubu ve içeriğini telefonundan silmek istediğine emin misin?";
+
+/* Text shown in the email body when sending logs from the help screen */
+"help.send.logs.email.body" = "\n\n\nLütfen yukarıya, yaşadığın sorunla ilgili bir açıklama veya geri bildirim yaz.\nSürüm %1$@ - %2$@\n%3$@";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Çık";
@@ -450,6 +473,9 @@
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Daha fazlası öğren";
 
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Kendim";
+
 /* Refers to albums in Photo Library. */
 "media.albums" = "Albümler";
 
@@ -496,7 +522,7 @@
 "message.info.sent.to" = "Şuna gönder";
 
 /* Message Info screen: title for group of contacts who has seen your group chat message. */
-"message.info.viewed.by" = ".. tarafından görüldü";
+"message.info.viewed.by" = "Görenler";
 
 /* Message action. Verb. */
 "message.reply" = "Yanıtla";
@@ -517,10 +543,10 @@
 "mypost.not.viewed.yet" = "Gönderini henüz kimse görmedi";
 
 /* Your Post screen: title for group of contacts who has not yet seen your post. */
-"mypost.sent.to" = "%@ kişisine gönderildi";
+"mypost.sent.to" = "kişisine gönderildi";
 
 /* Your Post screen: title for group of contacts who has seen your post. */
-"mypost.viewed.by" = "%@ tarafından görüntülendi";
+"mypost.viewed.by" = "Görenler";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Artık bu grupta değilsin";
@@ -656,6 +682,9 @@
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Adın";
 
+/* Disclaimer text about receiving SMS verification code */
+"registration.code.disclaimer" = "Bir onay kodu alacaksın. Bu mesaj ücretli olabilir.";
+
 /* Error message to display when user enters incorrect verification code */
 "registration.code.incorrect" = "Girdiğin kod yanlış";
 
@@ -664,6 +693,9 @@
 
 /* Error message to display when we cannot send a verification code */
 "registration.code.request.error" = "Kod gönderilemiyor. Lütfen daha sonra tekrar dene";
+
+/* Button label to resend verification code */
+"registration.code.resend" = "Yeniden kod gönder";
 
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Ailen ve arkadaşlarınla bağlantı kurabilmen için kişilerine erişim iznine ihtiyacımız var.";
@@ -786,10 +818,10 @@
 "timestamp.last.seen.dayofweek.at.time" = "Son görülme %1$@, %2$@";
 
 /* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "Son görülme bugün %@'de/te";
+"timestamp.last.seen.today.at" = "Son görülme bugün %@";
 
 /* Last seen timestamp: yesterday at specific time. */
-"timestamp.last.seen.yesterday.at" = "Son görülme dün %@'de/te";
+"timestamp.last.seen.yesterday.at" = "Son görülme dün %@";
 
 /* Capitalized translation of `Now` to be used as timestamp. */
 "timestamp.now.capitalized" = "Şimdi";
@@ -825,7 +857,7 @@
 "title.privacy" = "Gizlilik";
 
 /* Fourth tab in the main app interface */
-"title.settings" = "Ayalar";
+"title.settings" = "Ayarlar";
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Gönderin";

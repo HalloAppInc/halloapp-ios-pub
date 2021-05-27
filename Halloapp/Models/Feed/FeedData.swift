@@ -1567,16 +1567,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         case .image:
             self.updateMediaPreview(for: notifications, usingImageAt: mediaURL)
         case .video:
-            let asset = AVURLAsset(url: mediaURL)
-            let seekTime = FeedMedia.getThumbnailTime(duration: asset.duration)
-            let imgGenerator = AVAssetImageGenerator(asset: asset)
-            imgGenerator.appliesPreferredTrackTransform = true
-            do {
-                let cgImage = try imgGenerator.copyCGImage(at: seekTime, actualTime: nil)
-                let image = UIImage(cgImage: cgImage)
+            if let image = VideoUtils.videoPreviewImage(url: mediaURL) {
                 updateMediaPreview(for: notifications, using: image)
-            } catch {
-                DDLogError("FeedData/generateMediaPreview/error \(error)")
+            } else {
+                DDLogError("FeedData/generateMediaPreview/error")
                 return
             }
         }

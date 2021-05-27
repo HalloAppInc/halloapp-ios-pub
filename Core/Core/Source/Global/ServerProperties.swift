@@ -28,6 +28,7 @@ public struct ServerProperties {
         case maxFeedVideoDuration = "max_feed_video_duration"
         case maxChatVideoDuration = "max_chat_video_duration"
         case maxVideoBitRate = "max_video_bit_rate"
+        case useClientContainer = "new_client_container"
     }
 
     private struct UserDefaultsKey {
@@ -55,6 +56,7 @@ public struct ServerProperties {
         static let maxFeedVideoDuration = 60.0
         static let maxChatVideoDuration = 120.0
         static let maxVideoBitRate = 8000000.0
+        static let useClientContainer = false
     }
 
     // MARK: Storage
@@ -237,6 +239,10 @@ public struct ServerProperties {
 
     public static var maxVideoBitRate: Double {
         ServerProperties.double(forKey: .maxVideoBitRate) ?? Defaults.maxVideoBitRate
+    }
+
+    public static var useClientContainer: Bool {
+        ServerProperties.bool(forKey: .useClientContainer) ?? Defaults.useClientContainer
     }
 
 }

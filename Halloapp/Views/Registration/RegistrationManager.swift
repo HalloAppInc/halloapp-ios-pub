@@ -49,7 +49,8 @@ final class DefaultRegistrationManager: RegistrationManager {
     func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void) {
         let userData = MainAppContext.shared.userData
         let phoneNumber = userData.countryCode.appending(userData.phoneInput)
-        registrationService.requestVerificationCode(for: phoneNumber, byVoice: byVoice, locale: Locale.current) { result in
+        let groupInviteToken = userData.groupInviteToken
+        registrationService.requestVerificationCode(for: phoneNumber, byVoice: byVoice, groupInviteToken: groupInviteToken, locale: Locale.current) { result in
             switch result {
             case .success(let response):
                 let userData = MainAppContext.shared.userData

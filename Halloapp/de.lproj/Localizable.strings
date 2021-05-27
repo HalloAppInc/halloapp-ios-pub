@@ -25,8 +25,14 @@
 /* Short title for the button in activity center. */
 "activity.center.button.read.all" = "Gelesen";
 
+/* Message shown when a user first joins from a friend's invitation (e.g., 'You accepted David's invite 🎉' */
+"activity.center.invite.accepted.item" = "Du hast %@'s Einladung angenommen🎉";
+
 /* Title for the activity center screen. */
 "activity.center.title" = "Aktivität";
+
+/* Message shown when a user first joins */
+"activity.center.welcome.item" = "Willkommen zu HalloApp!";
 
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Einstellungen";
@@ -38,6 +44,9 @@
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
 "button.cancel" = "Abbrechen";
 
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Weiter";
+
 /* Title for generic Create button */
 "button.create" = "Erstellen";
 
@@ -47,8 +56,14 @@
 /* Title for generic Done button. Mostly used to complete some modal flow. */
 "button.done" = "Erledigt";
 
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Gehe zu Einstellungen";
+
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
 "button.next" = "Weiter";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Jetzt nicht";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
 "button.ok" = "OK";
@@ -67,6 +82,9 @@
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Update";
+
+/* Generic error when trying to use camera */
+"camera.error" = "Kamerafehler";
 
 /* No comment provided by engineer. */
 "camera.init.error.1" = "Die Rückkamera kann nicht initialisiert werden";
@@ -117,10 +135,16 @@
 "chat.group.background.label" = "HINTERGRUND";
 
 /* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "%@ ist der Gruppe über den Gruppeneinladungslink beigetreten";
+"chat.group.event.join" = "%@ ist der Gruppe über einen Gruppeneinladungslink beigetreten";
+
+/* Message text shown when you join a group via invite link */
+"chat.group.event.join.you" = "Du bist der Gruppe über einen Gruppeneinladungslink  beigetreten";
 
 /* Message text shown with the user who left the group */
 "chat.group.event.member.left" = "%@ hat die Gruppe verlassen";
+
+/* Message text shown when you leave a group */
+"chat.group.event.member.left.you" = "Du hast die Gruppe verlassen";
 
 /* Action label for adding members to a group */
 "chat.group.info.add.members" = "Mitglieder hinzufügen";
@@ -182,6 +206,9 @@
 /* Text shown when chat input box is empty */
 "chat.message.placeholder" = "Nachricht eingeben";
 
+/* Text shown in place of a received message we are not able to process yet. */
+"chat.message.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Nachricht nicht.";
+
 /* Message text shown in a message that have video media but no text */
 "chat.message.video" = "Video";
 
@@ -221,9 +248,11 @@
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Antworten";
 
-/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment.
-   Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "%@ antworten";
+/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
+"comment.replying.myself" = "Mir selbst antworten";
+
+/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
+"comment.replying.someone" = "%@ antworten";
 
 /* Title for the button in comment resend confirmation prompt. */
 "comment.resend.action" = "Erneut senden";
@@ -233,6 +262,9 @@
 
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Kommentieren";
+
+/* Text displayed in place of a comment that is not supported in the current app version. */
+"comment.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Kommentar nicht.";
 
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "Beim Laden dieses Beitrags ist ein Fehler aufgetreten. Bitte versuche es später noch einmal.";
@@ -275,6 +307,12 @@
 
 /* No comment provided by engineer. */
 "CONNECTION" = "VERBINDUNG";
+
+/* Message requesting the user enable contacts permission */
+"contacts.permission.explanation" = "Um dir zu helfen, den Kontakt zu deinen Freunden und deiner Familie herzustellen, erlaube HalloApp den Zugriff auf deine Kontakte.";
+
+/* Title for tutorial explaining how user can enable contacts permission */
+"contacts.permission.tutorial.title" = "Wie man den Zugriff auf Kontakte erlaubt";
 
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Um euch zu verbinden müsst ihr eure Telefonnummern austauschen";
@@ -333,6 +371,9 @@
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Fehler beim Posten.";
 
+/* Shown when receiving a new (unsupported) type of post. */
+"feed.post.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Beitrag nicht.";
+
 /* Shown while content is being posted to feed */
 "feed.posting" = "Beitrag wird geposted...";
 
@@ -340,7 +381,7 @@
 "feed.privacy.descr.all" = "Mit allen Kontakten teilen";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Mit allen Kontakten, bis auf die von dir ausgewählten Leute, teilen";
+"feed.privacy.descr.except" = "Mit allen Kontakten, mit Ausnahme der von dir ausgewählten Personen, teilen";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Nur mit ausgewählten Kontakten teilen";
@@ -372,8 +413,14 @@
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ hat %2$@ hinzugefügt";
 
+/* Message text shown when you add a group member */
+"group.event.added.member.you" = "Du hast %1@ hinzugefügt";
+
 /* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar" = "%@ hat das Gruppensymbol geändert";
+"group.event.changed.avatar" = "%@ hat das Gruppenbild geändert";
+
+/* Message text shown with the user who changed the group avatar */
+"group.event.changed.avatar.you" = "Du hast das Gruppenbild geändert";
 
 /* Message text shown with the user who changed the background */
 "group.event.changed.background" = "%@ hat die Hintergrundfarbe geändert";
@@ -384,17 +431,32 @@
 /* Message text shown with the user who changed the group name */
 "group.event.changed.name" = "%1$@ hat den Gruppennamen in \"%2$@\" umbenannt";
 
+/* Message text shown when you change the group name */
+"group.event.changed.name.you" = "Du hast den Gruppennamen in \"%1@\" umbenannt";
+
 /* Message text shown with the user who created the group */
 "group.event.created.group" = "%1$@ hat die Gruppe \"%2$@\" gegründet";
+
+/* Message text shown when you create a group */
+"group.event.created.group.you" = "Du hast die Gruppe \"%1@\" gegründet";
 
 /* Message text shown with the user who demoted a group admin */
 "group.event.demoted.member" = "%1$@ hat %2$@ als Admin entfernt";
 
+/* Message text shown when you demote a group admin */
+"group.event.demoted.member.you" = "Du hast %1@ als Admin entfernt";
+
 /* Message text shown with the user who promoted a group member */
 "group.event.promoted.member" = "%1$@ hat %2$@ zum Admin gemacht";
 
+/* Message text shown when you promote a group member */
+"group.event.promoted.member.you" = "Du hast %1@ zum Admin gemacht";
+
 /* Message text shown with the user who removed a group member */
 "group.event.removed.member" = "%1$@ hat %2$@ aus der Gruppe entfernt";
+
+/* Message text shown when you remove a group member */
+"group.event.removed.member.you" = "Du hast %1@ entfernt";
 
 /* Label for copying link */
 "group.invite.copy.link" = "Link kopieren";
@@ -456,6 +518,9 @@
 /* Shows number of current HalloApp users who have this contact in their list */
 "invite.contact.count" = "%d Kontakte auf HalloApp";
 
+/* Indicates how many invites are remaining */
+"invite.count.remaining.unspecified.time.short" = "Einladungen verfügbar: %@";
+
 /* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
 "invite.error.alert.message" = "Etwas ist etwas schiefgegangen.  Bitte versuche es später noch einmal.";
 
@@ -469,10 +534,10 @@
 "invite.please.wait" = "Bitte warten...";
 
 /* Indicates how many invites are remaining */
-"invite.remaining.count.unspecified.time" = "Du hast noch %@ Einladungen";
+"invite.remaining.count.unspecified.time" = "Einladungen verfügbar: %@";
 
 /* Text of invitation to join HalloApp. */
-"invite.text" = "Mach mit bei HalloApp — eine Möglichkeit ganz persönlich, unkompliziert und sicher den Kontakt zu Freunden und zur Familie zu halten. Hole sie dir auf: https://halloapp.com/dl";
+"invite.text" = "Mach mit bei HalloApp — eine Möglichkeit ganz persönlich, unkompliziert und sicher den Kontakt zu Freunden und zur Familie zu halten. Hol sie dir auf: https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
 "invite.text.specific" = "Hallo %1$@, ich lade dich ein, dich auch bei HalloApp anzumelden. Eine einfache Social-App, um alltägliche Momente zu teilen. Nutze %2$@ zur Registrierung und hol sie dir auf https://halloapp.com/dl";
@@ -480,8 +545,17 @@
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Einladen";
 
+/* Link text to open invite flow */
+"link.invite.friend" = "Freunde einladen";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Mehr erfahren";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Meine App aktualisieren";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Ich";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "Alben";
@@ -590,7 +664,7 @@
 "notification.one.video" = "📹 Video";
 
 /* Text for new user popup pointing at activity center icon */
-"nux.activity.center.icon" = "Hier ist dein Aktivitäten-Center. Um deine letzte Aktivität zu sehen tippe hier.";
+"nux.activity.center.icon" = "Hallo!";
 
 /* Shown on chats list when there are no contacts or messages to display */
 "nux.chat.empty" = "Deine Kontakte & Nachrichten erscheinen hier";
@@ -663,13 +737,13 @@
 "profile.help.faq" = "FAQ";
 
 /* Item in Profile > Help screen. */
-"profile.help.feedback" = "Feedback & Protokolle teilen";
+"profile.help.feedback" = "Feedback & Logs teilen";
 
 /* Item in Profile > Help screen. */
 "profile.help.pp" = "Datenschutzrichtlinie";
 
 /* Item in Profile > Help screen. */
-"profile.help.share.logs" = "Protokolle teilen";
+"profile.help.share.logs" = "Logs teilen";
 
 /* Item in Profile > Help screen. */
 "profile.help.tos" = "Nutzungsbedingungen";
@@ -713,11 +787,14 @@
 /* Button label to resend verification code */
 "registration.code.resend" = "Code noch einmal senden";
 
+/* Button label to resend verification code by voice call */
+"registration.code.resend.by.voice" = "Ruf mich an";
+
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Um dich mit deinen Freunden & deiner Familie zu verbinden, benötigen wir die Zugriffsberechtigung auf deine Kontakte.";
+"registration.contacts.content" = "Um den Kontakt zu deinen Freunden & deiner Familie herzustellen benötigen wir deine Zugriffserlaubnis auf deine Kontakte.";
 
 /* Title for text explaining why we need contact permissions */
-"registration.contacts.title" = "Ein wichtiger Hinweis";
+"registration.contacts.title" = "Noch ein letzter Hinweis";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Nutzung momentan nur auf Einladungs-Basis. Bitte deine Freude oder Familienmitglieder, die HalloApp nutzen, dich über deine Telefonnummer einzuladen.";
@@ -739,6 +816,21 @@
 
 /* Shown above name and phone inputs */
 "registration.welcome" = "Willkommen!";
+
+/* Instructions for how to use the safety number verification UI */
+"safety.number.instructions" = "Um zu verifizieren ob die Verbindung mit %@ sicher ist, prüfe ob die obige Nummer mit der auf dem Gerät angezeigten übereinstimmt oder scanne den QR-Code auf dem Telefon.";
+
+/* Message to show when safety number cannot be succesfully verified */
+"safety.number.not.verified" = "Sicherheitsnummer für %@ kann nicht verifiziert werden";
+
+/* Title for button that will open QR code scanner used to verify a contact's safety number */
+"safety.number.scan" = "Tippe auf scannen";
+
+/* Title for screen that allows users to verify a contact's safety number */
+"safety.number.title" = "Verifiziere die Sicherheitsnummer";
+
+/* Message to show when safety number is succesfully verified */
+"safety.number.verified" = "Die Sicherheitsnummer für %@ wurde erfolgreich verifiziert!";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "select.group.members.create.group.title" = "Neue Gruppe erstellen";
@@ -777,7 +869,7 @@
 "settings.app.version" = "HalloApp Version %@";
 
 /* Settings menu section. */
-"settings.notifications" = "Benachrichtigungen";
+"settings.notifications" = "Mitteilungen";
 
 /* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
 "settings.notifications.comments" = "Kommentare";
@@ -786,7 +878,7 @@
 "settings.notifications.posts" = "Beiträge";
 
 /* Settings menu section */
-"settings.privacy" = "Datenschutz";
+"settings.privacy" = "Privatsphäre";
 
 /* Settings > Privacy: name of a setting that defines who can see your posts. */
 "settings.privacy.posts" = "Beiträge";
@@ -840,10 +932,10 @@
 "timestamp.last.seen.yesterday.at" = "Zuletzt online gestern um %@";
 
 /* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "Online";
+"timestamp.now.capitalized" = "Gerade eben";
 
 /* Lowercase translation of `Now` to be used as timestamp. */
-"timestamp.now.lowercase" = "online";
+"timestamp.now.lowercase" = "gerade eben";
 
 /* Timestamp: `Today` */
 "timestamp.today" = "Heute";
@@ -870,7 +962,7 @@
 "title.notifications" = "Mitteilungen";
 
 /* Row in Settings screen */
-"title.privacy" = "Datenschutz";
+"title.privacy" = "Privatsphäre";
 
 /* Fourth tab in the main app interface */
 "title.settings" = "Einstellungen";
@@ -878,14 +970,20 @@
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Dein Beitrag";
 
+/* Indicates which switch a user needs to turn on to enable contacts permissions. */
+"turn.on.contacts" = "Aktiviere Zugriff auf Kontakte";
+
+/* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
+"tutorial.tap.below" = "Tippe unten auf \"%@\"";
+
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Kontakt unbekannt";
 
 /* Reference to the user, second person pronoun */
-"user.you" = "du";
+"user.you" = "dich";
 
 /* Capitalized reference to the user, second person pronoun */
-"user.you.capitalized" = "Du";
+"user.you.capitalized" = "Dich";
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";

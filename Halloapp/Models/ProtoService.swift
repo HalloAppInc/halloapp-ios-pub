@@ -695,6 +695,9 @@ final class ProtoService: ProtoServiceCore {
         case .rerequest(let rerequest):
             let userID = UserID(msg.fromUid)
 
+            // Check key integrity
+            MainAppContext.shared.keyData.halloService(self, didReceiveRerequestWithRerequestCount: Int(msg.rerequestCount))
+
             // Protobuf object will contain a 0 if no one time pre key was used
             let oneTimePreKeyID: Int? = rerequest.oneTimePreKeyID > 0 ? Int(rerequest.oneTimePreKeyID) : nil
 

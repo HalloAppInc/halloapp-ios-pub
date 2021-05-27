@@ -355,7 +355,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     func showReplyPanel(with contactName: String?) {
         let formatString: String
         if contactName != nil {
-            formatString = NSLocalizedString("comment.replying.myself", value: "Replying to %@",
+            formatString = NSLocalizedString("comment.replying.someone", value: "Replying to %@",
                                              comment: "Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment.")
         } else {
             formatString = NSLocalizedString("comment.replying.myself", value: "Replying to myself",

@@ -31,6 +31,26 @@ class HomeViewController: UITabBarController {
         self.commonSetup()
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        makeTabBarLabelsFullWidth()
+    }
+
+    private func makeTabBarLabelsFullWidth() {
+
+        // Make labels full width to avoid truncation
+        // ("Einstellungen" isn't being sized correctly when we apply a custom font)
+
+        tabBar.traverseViewHierarchyDepthFirst { view in
+            if let label = view as? UILabel, let superview = label.superview {
+                label.frame = CGRect(x: 0, y: label.frame.minY, width: superview.bounds.width, height: label.bounds.height)
+                label.autoresizingMask = .flexibleWidth
+                label.textAlignment = .center
+            }
+        }
+    }
+
     private func commonSetup() {
         self.delegate = self
         
@@ -71,21 +91,21 @@ class HomeViewController: UITabBarController {
                 self.updateFeedNavigationControllerBadge(count)
         })
         MainAppContext.shared.feedData.checkForUnreadFeed()
-        
+
         cancellableSet.insert(
             MainAppContext.shared.chatData.didChangeUnreadThreadGroupsCount.sink { [weak self] (count) in
                 guard let self = self else { return }
                 self.updateGroupsNavigationControllerBadge(count)
         })
         MainAppContext.shared.chatData.updateUnreadThreadGroupsCount()
-        
+
         cancellableSet.insert(
             MainAppContext.shared.chatData.didChangeUnreadThreadCount.sink { [weak self] (count) in
                 guard let self = self else { return }
                 self.updateChatNavigationControllerBadge(count)
         })
         MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
-        
+
         // When the app was in the background
         cancellableSet.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
@@ -99,7 +119,7 @@ class HomeViewController: UITabBarController {
                 guard let self = self else { return }
                 self.presentActivityViewController(forItems: items)
         })
-        
+
         // navigate to group feed from the tabbar
         cancellableSet.insert(
             MainAppContext.shared.groupFeedFromGroupTabPresentRequest.sink { [weak self] (groupID) in
@@ -107,33 +127,21 @@ class HomeViewController: UITabBarController {
                 guard groupID != nil else { return }
                 self.selectedIndex = 1
         })
-        
-        // Temporary listener for adding/removing the groups tab
+
         cancellableSet.insert(
             MainAppContext.shared.service.didConnect.sink { [weak self] in
                 guard let self = self else { return }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {                    
-                    if ServerProperties.isGroupFeedEnabled {
-                        if self.viewControllers?.count == 3 {
-                            self.viewControllers = [
-                                self.feedNavigationController(),
-                                self.groupsNavigationController(),
-                                self.chatsNavigationController(),
-                                self.profileNavigationController()
-                            ]
-                        }
-                    } else {
-                        if self.viewControllers?.count == 4 {
-                            self.viewControllers = [
-                                self.feedNavigationController(),
-                                self.chatsNavigationController(),
-                                self.profileNavigationController()
-                            ]
-                        }
-                    }
-                }
-        })
-        
+                self.presentGroupPreviewIfNeeded()
+            }
+        )
+
+        cancellableSet.insert(
+            NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] _ in
+                guard let self = self else { return }
+                self.presentGroupPreviewIfNeeded()
+            }
+        )
+
         // When the app just started (had been force-quit before)
         if let metadata = NotificationMetadata.fromUserDefaults() {
             processNotification(metadata: metadata)
@@ -157,7 +165,7 @@ class HomeViewController: UITabBarController {
         let sizeAdjust: CGFloat = -2
         let topInset = vInset + sizeAdjust
         let bottomInset = -vInset + sizeAdjust
-        
+
         return UIEdgeInsets(top: topInset, left: sizeAdjust, bottom: bottomInset, right: sizeAdjust)
     }()
 
@@ -179,7 +187,7 @@ class HomeViewController: UITabBarController {
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
     }
-    
+
     private func chatsNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: ChatListViewController(title: Localizations.titleChats))
         navigationController.tabBarItem.image = UIImage(named: "TabBarChats")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
@@ -187,7 +195,7 @@ class HomeViewController: UITabBarController {
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
     }
-    
+
     private func profileNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: SettingsViewController(title: Localizations.titleSettings))
         navigationController.tabBarItem.image = UIImage(named: "TabBarSettings")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
@@ -195,14 +203,14 @@ class HomeViewController: UITabBarController {
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
     }
-    
+
     private func updateFeedNavigationControllerBadge(_ count: Int) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.setTabBarDot(index: 0, count: count)
         }
     }
-    
+
     private func updateGroupsNavigationControllerBadge(_ count: Int) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -212,7 +220,7 @@ class HomeViewController: UITabBarController {
             }
         }
     }
-    
+
     private func updateChatNavigationControllerBadge(_ count: Int) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -221,10 +229,10 @@ class HomeViewController: UITabBarController {
             }
         }
     }
-    
+
     private func processNotification(metadata: NotificationMetadata) {
         view.window?.rootViewController?.dismiss(animated: false, completion: nil)
-        
+
         if metadata.isFeedNotification {
             selectedIndex = 0
         } else if metadata.isGroupAddNotification {
@@ -234,6 +242,33 @@ class HomeViewController: UITabBarController {
             selectedIndex = 2
         }
 
+    }
+
+    private func presentGroupPreviewIfNeeded() {
+        guard let token = MainAppContext.shared.userData.groupInviteToken else { return }
+        DDLogInfo("HomeViewController/presentGroupPreviewIfNeeded/token/\(token)")
+        guard MainAppContext.shared.userData.isLoggedIn else {
+            DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/token/\(token)/not logged in")
+            return
+        }
+        guard MainAppContext.shared.service.isConnected else {
+            DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/token/\(token)/not connected")
+            return
+        }
+        // delay a little bit for smoother animation (ie. cold starts of app have some stuttering)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            guard let self = self else { return }
+            DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/token/\(token)/present")
+
+            // dismiss any presented views including compose and activity center
+            self.dismiss(animated: false)
+
+            let vc = GroupInvitePreviewViewController(for: token)
+            self.present(vc, animated: true)
+
+            DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/token/\(token)/remove token")
+            MainAppContext.shared.userData.groupInviteToken = nil
+        }
     }
 
     private func setTabBarDot(index: Int, count: Int) {
@@ -288,6 +323,7 @@ extension HomeViewController: UITabBarControllerDelegate {
                 viewController.scrollToTop(animated: true)
             }
         }
+        makeTabBarLabelsFullWidth()
         return true
     }
 }

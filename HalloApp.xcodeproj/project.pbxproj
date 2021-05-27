@@ -44,6 +44,7 @@
 		685B509B25E075FE00F782F9 /* Reachability in Frameworks */ = {isa = PBXBuildFile; productRef = 685B509A25E075FE00F782F9 /* Reachability */; };
 		685B76C124E262AF00BF666A /* MentionInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76BF24E262AF00BF666A /* MentionInputTests.swift */; };
 		685B76CC24E4A37600BF666A /* FloatingMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76CB24E4A37600BF666A /* FloatingMenu.swift */; };
+		68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68629293265C660D00C54367 /* FeedPermissionAlert.swift */; };
 		6867F063261BBB35005875D0 /* LogArchives.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6867F062261BBB35005875D0 /* LogArchives.swift */; };
 		686CDFBC2548A6C200DB7266 /* RegistrationDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686CDFBB2548A6C200DB7266 /* RegistrationDemo.swift */; };
 		68766C752631F2DE00399F82 /* Locale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68766C742631F2DE00399F82 /* Locale.swift */; };
@@ -397,6 +398,8 @@
 		68419A922602AAB700C30B6A /* CryptoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoData.swift; sourceTree = "<group>"; };
 		685B76BF24E262AF00BF666A /* MentionInputTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MentionInputTests.swift; sourceTree = "<group>"; };
 		685B76CB24E4A37600BF666A /* FloatingMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingMenu.swift; sourceTree = "<group>"; };
+		68629293265C660D00C54367 /* FeedPermissionAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionAlert.swift; sourceTree = "<group>"; };
+		686292AD265DD2D000C54367 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6867F062261BBB35005875D0 /* LogArchives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogArchives.swift; sourceTree = "<group>"; };
 		686CDFBB2548A6C200DB7266 /* RegistrationDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationDemo.swift; sourceTree = "<group>"; };
 		68766C742631F2DE00399F82 /* Locale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Locale.swift; sourceTree = "<group>"; };
@@ -1140,6 +1143,7 @@
 				6829F78624D0A62800207F6B /* UserFeedViewController.swift */,
 				EA73DF3F25E88D9B0070875D /* NewPostsIndicator.swift */,
 				68E5E9D925F6FAF100250762 /* FeedDataSource.swift */,
+				68629293265C660D00C54367 /* FeedPermissionAlert.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -2092,6 +2096,7 @@
 				EA0B9917249C1FFB00B05094 /* Character.swift in Sources */,
 				764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */,
 				76A92449244EBCB600794859 /* ShapeView.swift in Sources */,
+				68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */,
 				EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */,
 				76C64E0D24E5AD85007C0F6F /* MediaUploader.swift in Sources */,
 				EAA424FA24ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift in Sources */,
@@ -2153,6 +2158,7 @@
 			children = (
 				687D5EC6265317F8008A3A65 /* es */,
 				687D5ED62653197D008A3A65 /* tr */,
+				686292AD265DD2D000C54367 /* de */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
@@ -2252,7 +2258,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 122;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2312,7 +2318,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 122;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -2387,7 +2393,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 122;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -2491,7 +2497,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 122;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -2557,7 +2563,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 122;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2617,7 +2623,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 122;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -2692,7 +2698,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 122;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -2859,7 +2865,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 122;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -2883,7 +2889,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 122;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;

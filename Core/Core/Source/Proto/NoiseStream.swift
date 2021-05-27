@@ -27,6 +27,10 @@ public protocol NoiseDelegate: AnyObject {
     func receivedServerStaticKey(_ key: Data, for userID: UserID)
 }
 
+public enum NoiseStreamError: Error {
+    case packetDecryptionFailure
+}
+
 public final class NoiseStream: NSObject {
 
     public init(
@@ -100,6 +104,15 @@ public final class NoiseStream: NSObject {
     }
 
     // MARK: Private
+
+    private func disconnectWithError(_ error: NoiseStreamError) {
+        AppContext.shared.errorLogger?.logError(error)
+
+        // Shut down socket immediately without transitioning to `disconnecting` state.
+        // This will prompt service to treat it as any other socket error and reconnect.
+        socket.disconnect()
+        socketBuffer?.removeAll()
+    }
 
     private func reconnect() {
         guard let host = socket.connectedHost else {
@@ -428,6 +441,7 @@ public final class NoiseStream: NSObject {
             case .authorizing(_, let recv):
                 guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: packetData) else {
                     DDLogError("noise/receive/error could not decrypt auth result [\(packetData.base64EncodedString())]")
+                    disconnectWithError(.packetDecryptionFailure)
                     break
                 }
                 guard let authResult = try? Server_AuthResult(serializedData: decryptedData) else {
@@ -439,6 +453,7 @@ public final class NoiseStream: NSObject {
             case .connected(_, let recv):
                 guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: packetData) else {
                     DDLogError("noise/receive/error could not decrypt packet [\(packetData.base64EncodedString())]")
+                    disconnectWithError(.packetDecryptionFailure)
                     break
                 }
                 guard let packet = try? Server_Packet(serializedData: decryptedData) else {

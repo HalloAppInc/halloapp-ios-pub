@@ -114,7 +114,7 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.tabBarController?.hideTabBar()
+        tabBarController?.hideTabBar(vc: self)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -202,11 +202,10 @@ class GroupFeedViewController: FeedCollectionViewController {
     private func populateEvents() {
         let groupFeedEvents = MainAppContext.shared.chatData.groupFeedEvents(with: self.groupId)
         var feedEvents = [FeedEvent]()
-        let eventBgColor = theme == 0 ? UIColor.feedPostEventDefaultBg : UIColor.feedPostEventThemedBg
         groupFeedEvents.forEach {
             let text = $0.event?.text ?? ""
             let timestamp = $0.timestamp ?? Date()
-            feedEvents.append((FeedEvent(description: text, timestamp: timestamp, bgColor: eventBgColor)))
+            feedEvents.append((FeedEvent(description: text, timestamp: timestamp, isThemed: theme != 0)))
         }
 
         feedDataSource.events = feedEvents

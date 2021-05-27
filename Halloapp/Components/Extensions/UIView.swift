@@ -36,6 +36,15 @@ extension UIView {
             return UIEdgeInsets(top: top, left: trailing, bottom: bottom, right: leading)
         }
     }
+
+    // MARK: Hierarchy
+
+    func traverseViewHierarchyDepthFirst(visit: (UIView) -> Void) {
+        for subview in subviews {
+            subview.traverseViewHierarchyDepthFirst(visit: visit)
+        }
+        visit(self)
+    }
     
     // MARK: Constraint helpers
     

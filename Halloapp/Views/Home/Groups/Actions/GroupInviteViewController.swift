@@ -341,7 +341,8 @@ class GroupInviteViewController: UIViewController {
     @objc private func shareLinkAction(_ sender: UIView) {
         guard let link = linkLabel.text else { return }
         if let urlStr = NSURL(string: link) {
-            let objectsToShare = [urlStr]
+            let shareText = "\(Localizations.groupInviteShareLinkMessage) \(urlStr)"
+            let objectsToShare = [shareText]
             let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
 
             self.present(activityVC, animated: true, completion: nil)
@@ -400,6 +401,10 @@ private extension Localizations {
 
     static var groupInviteLinkDescription: String {
         NSLocalizedString("group.invite.link.description", value: "Anyone with HalloApp can use this link to join the group.", comment: "Text to describe what the group invite link is")
+    }
+
+    static var groupInviteShareLinkMessage: String {
+        NSLocalizedString("group.invite.share.link.message", value: "Click on this link to join my HalloApp group: ", comment: "Text shown before the sharing link")
     }
 
     static var groupInviteShareLink: String {

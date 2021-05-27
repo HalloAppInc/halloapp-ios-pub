@@ -117,4 +117,5 @@ protocol HalloChatDelegate: AnyObject {
 
 protocol HalloKeyDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didReceiveWhisperMessage message: WhisperMessage)
+    func halloService(_ halloService: HalloService, didReceiveRerequestWithRerequestCount retryCount: Int)
 }

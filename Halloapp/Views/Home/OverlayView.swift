@@ -122,13 +122,14 @@ final class NUXPopover: UIView, Overlay {
 
         addSubview(panel)
         panel.translatesAutoresizingMaskIntoConstraints = false
-        panel.backgroundColor = .nux
-        panel.layer.cornerRadius = 15
-        panel.layoutMargins = .init(top: 25, left: 25, bottom: 25, right: 25)
+        panel.backgroundColor = .lavaOrange
+        panel.layer.cornerRadius = 25
+        panel.layoutMargins = .init(top: 12, left: 25, bottom: 12, right: 25)
+        panel.heightAnchor.constraint(greaterThanOrEqualToConstant: 50).isActive = true
         panel.constrainMargins([.leading, .trailing], to: self)
 
         addSubview(arrow)
-        arrow.tintColor = .nux
+        arrow.tintColor = .lavaOrange
         arrow.translatesAutoresizingMaskIntoConstraints = false
 
         panel.addSubview(label)
@@ -136,7 +137,7 @@ final class NUXPopover: UIView, Overlay {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = message
         label.numberOfLines = 0
-        label.font = .systemFont(forTextStyle: .callout, weight: .medium)
+        label.font = .systemFont(forTextStyle: .title3, weight: .medium)
         label.constrainMargins([.leading, .trailing, .top], to: panel)
 
         if showButton {
@@ -165,7 +166,8 @@ final class NUXPopover: UIView, Overlay {
     private let completion: (() -> Void)?
     private let targetRect: CGRect?
     private let targetSpace: UICoordinateSpace?
-    private let arrowSpacing: CGFloat = 8
+    private let arrowSpacing: CGFloat = 4
+    private let arrowOverlap: CGFloat = 6
 
     @objc
     func didTapButton() {
@@ -180,7 +182,8 @@ final class NUXPopover: UIView, Overlay {
 
     func display(in container: OverlayContainer) {
         overlayContainer = container
-        constrainMargins([.leading, .trailing], to: container)
+        leadingAnchor.constraint(greaterThanOrEqualTo: container.layoutMarginsGuide.leadingAnchor).isActive = true
+        trailingAnchor.constraint(lessThanOrEqualTo: container.layoutMarginsGuide.trailingAnchor).isActive = true
 
         // We need the container to be positioned correctly in order to convert coordinates
         container.superview?.layoutIfNeeded()
@@ -195,13 +198,13 @@ final class NUXPopover: UIView, Overlay {
                 bottomAnchor.constraint(equalTo: container.topAnchor, constant: convertedRect.minY).isActive = true
                 topAnchor.constraint(greaterThanOrEqualTo: container.layoutMarginsGuide.topAnchor).isActive = true
                 arrow.transform = .init(scaleX: 1, y: -1)
-                arrow.topAnchor.constraint(equalTo: panel.bottomAnchor).isActive = true
+                arrow.topAnchor.constraint(equalTo: panel.bottomAnchor, constant: -arrowOverlap).isActive = true
                 arrow.constrain(anchor: .bottom, to: self, constant: -arrowSpacing)
                 panel.constrain(anchor: .top, to: self)
             } else {
                 topAnchor.constraint(equalTo: container.topAnchor, constant: convertedRect.maxY).isActive = true
                 bottomAnchor.constraint(lessThanOrEqualTo: container.layoutMarginsGuide.bottomAnchor).isActive = true
-                arrow.bottomAnchor.constraint(equalTo: panel.topAnchor).isActive = true
+                arrow.bottomAnchor.constraint(equalTo: panel.topAnchor, constant: arrowOverlap).isActive = true
                 arrow.constrain(anchor: .top, to: self, constant: arrowSpacing)
                 panel.constrain(anchor: .bottom, to: self)
             }
@@ -354,6 +357,13 @@ final class OverlayContainer: UIView {
             }
         )
         overlays.removeAll(where: { $0.overlayID == overlay.overlayID })
+    }
+
+    func dismissOverlay(with id: String) {
+        guard let overlay = overlays.first(where: { $0.overlayID == id }) else {
+            return
+        }
+        dismiss(overlay)
     }
 
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {

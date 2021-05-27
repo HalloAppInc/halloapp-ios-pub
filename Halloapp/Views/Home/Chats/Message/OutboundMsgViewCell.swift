@@ -565,9 +565,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {
         switch status {
         case .pending: return UIImage(named: "CheckmarkSingle")?.withTintColor(.clear)
-        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray3)
-        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray3)
-        case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
+        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray)
+        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray)
+        case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
 //        case .error: return UIImage(systemName: "arrow.counterclockwise.circle")?.withTintColor(.systemRed)
         default: return nil }
     }

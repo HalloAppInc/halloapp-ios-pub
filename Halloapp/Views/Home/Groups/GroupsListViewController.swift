@@ -152,7 +152,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         isVisible = true
-//        showNUXIfNecessary()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -176,13 +175,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         overlayContainer.constrain(to: view)
         return overlayContainer
     }()
-
-    private func showNUXIfNecessary() {
-        if MainAppContext.shared.nux.isIncomplete(.chatListIntro) {
-            let popover = NUXPopover(Localizations.nuxChatIntroContent) { MainAppContext.shared.nux.didComplete(.chatListIntro) }
-            overlayContainer.display(popover)
-        }
-    }
 
     private lazy var emptyView: UIView = {
         let image = UIImage(named: "ChatEmpty")?.withRenderingMode(.alwaysTemplate)

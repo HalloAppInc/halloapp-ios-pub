@@ -69,6 +69,10 @@ extension UIColor {
     class var composerButton: UIColor {
         get { UIColor(named: "ComposerButton")! }
     }
+    
+    class var messageFooterBackground: UIColor {
+        get { UIColor(named: "MessageFooterBackground")! }
+    }
 
     class var avatarDefaultBg: UIColor {
         UIColor(named: "AvatarDefaultBg")!

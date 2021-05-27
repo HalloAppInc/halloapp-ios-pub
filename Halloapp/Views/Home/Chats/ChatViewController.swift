@@ -261,6 +261,17 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             }
         )
 
+        // Update name in title view if we just discovered this new user.
+        cancellableSet.insert(
+            MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIds) in
+                DDLogInfo("ChatViewController/didDiscoverNewUsers/update name if necessary")
+                guard let self = self else { return }
+                guard let userId = self.fromUserId else { return }
+                if newUserIds.contains(userId) {
+                    self.titleView.refreshName(for: userId)
+                }
+            })
+
         configureTitleViewWithTypingIndicator()
 
         guard let thread = MainAppContext.shared.chatData.chatThread(type: .oneToOne, id: fromUserId) else { return }
@@ -328,7 +339,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     // MARK:
 
     private func shouldShowVerifyOption() -> Bool {
-        guard ServerProperties.isInternalUser else {
+        guard ServerProperties.isInternalUser || !ServerProperties.shouldSendClearTextChat else {
             return false
         }
 
@@ -516,7 +527,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 img = image
             }
         } else if med.type == .video {
-            if let image = VideoUtils.videoPreviewImage(url: fileURL, size: nil) {
+            if let image = VideoUtils.videoPreviewImage(url: fileURL) {
                 img = image
             }
         }
@@ -1176,6 +1187,10 @@ fileprivate class TitleView: UIView {
         }
 
         contactImageView.configure(with: fromUserId, using: MainAppContext.shared.avatarStore)
+    }
+
+    func refreshName(for userId: String) {
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
     }
     
     func showChatState(with typingIndicatorStr: String?) {

@@ -432,13 +432,13 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
         return [:]
     }
 
-    private static let addressAttributes: [ NSAttributedString.Key: Any ] =
+    private static let dateAttributes: [ NSAttributedString.Key: Any ] =
         [ .underlineStyle: NSUnderlineStyle.single.rawValue,
           .underlineColor: UIColor.label.withAlphaComponent(0.5) ]
 
     static private let detectionQueue = DispatchQueue(label: "hyperlink-detection")
 
-    static private let dataDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue | NSTextCheckingResult.CheckingType.phoneNumber.rawValue | NSTextCheckingResult.CheckingType.address.rawValue)
+    static private let dataDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue | NSTextCheckingResult.CheckingType.phoneNumber.rawValue)
 
     private func performHyperlinkDetectionIfNeeded() {
         guard needsDetectHyperlinks else { return }
@@ -479,8 +479,8 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
 
     private func textAttributes(for textCheckingType: NSTextCheckingResult.CheckingType, baseFont: UIFont) -> [ NSAttributedString.Key: Any ] {
         switch textCheckingType {
-        case .address, .date:
-            return TextLabel.addressAttributes
+        case .date:
+            return TextLabel.dateAttributes
         case .userMention:
             return [:]
         default:
@@ -639,19 +639,6 @@ private extension Localizations {
     static var copyPhoneNumber: String {
         return NSLocalizedString("textlabel.context.menu.copy.phone.number", value: "Copy Phone Number", comment: "One of the items in context menu presented upon long press on linkified phone number in text.")
     }
-
-    static var getDirections: String {
-        return NSLocalizedString("textlabel.context.menu.get.directions", value: "Get Directions", comment: "One of the items in context menu presented upon long press on linkified address in text.")
-    }
-
-    static var openInMaps: String {
-        return NSLocalizedString("textlabel.context.menu.open.in.maps", value: "Open in Maps", comment: "One of the items in context menu presented upon long press on linkified address in text.")
-    }
-
-    static var copyAddress: String {
-        return NSLocalizedString("textlabel.context.menu.copy.address", value: "Copy Address", comment: "One of the items in context menu presented upon long press on linkified address in text.")
-    }
-
 }
 
 extension TextLabel: UIContextMenuInteractionDelegate {
@@ -705,35 +692,6 @@ extension TextLabel: UIContextMenuInteractionDelegate {
         return items
     }
 
-    private func contextMenuItems(forAddressLink link: AttributedTextLink) -> [UIMenuElement] {
-        var items = [UIMenuElement]()
-
-        // Get Directions
-        if let directionsURL = URL(string: "https://maps.apple.com/?daddr=\(link.text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)"),
-            UIApplication.shared.canOpenURL(directionsURL) {
-            items.append(UIAction(title: Localizations.getDirections, image: UIImage(systemName: "arrow.up.right.diamond")) { (_) in
-                UIApplication.shared.open(directionsURL)
-            })
-        }
-
-        // Open in Maps
-        if let mapsURL = URL(string: "https://maps.apple.com/?address=\(link.text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)"),
-           UIApplication.shared.canOpenURL(mapsURL){
-            items.append(UIAction(title: Localizations.openInMaps, image: UIImage(systemName: "map")) { (_) in
-                UIApplication.shared.open(mapsURL)
-            })
-        }
-
-        /// TODO: "Add to Contacts"
-
-        // Copy Address
-        items.append(UIAction(title: Localizations.copyAddress, image: UIImage(systemName: "doc.on.doc")) { (_) in
-            UIPasteboard.general.string = link.text
-        })
-
-        return items
-    }
-
     private func contextMenuItems(forLink link: AttributedTextLink) -> [UIMenuElement]? {
         switch link.linkType {
         case .link:
@@ -741,9 +699,6 @@ extension TextLabel: UIContextMenuInteractionDelegate {
 
         case .phoneNumber:
             return contextMenuItems(forTelLink: link)
-
-        case .address:
-            return contextMenuItems(forAddressLink: link)
 
         default:
             break
