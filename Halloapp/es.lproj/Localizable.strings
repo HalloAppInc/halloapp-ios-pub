@@ -5,7 +5,7 @@
 "%@" = "\n %@";
 
 /* About screen: body text. */
-"about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \nHemos hecho que las aplicaciones sociales vuelvan a lo esencial, y agregamos un nivel de seguridad y privacidad al que creemos que todo el mundo debe tener acceso.\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nAl contrario, con el tiempo esperamos poder añadir nuevas funciones a un pequeño costo. ";
+"about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \n\nHemos hecho que las aplicaciones sociales vuelvan a lo esencial, y agregamos un nivel de seguridad y privacidad al que creemos que todo el mundo debe tener acceso.\n\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nAl contrario, con el tiempo esperamos poder añadir nuevas funciones a un pequeño costo.";
 
 /* About screen: body text. */
 "about.body.2" = "Gracias por usar y compartir HalloApp con tus amigos y familia. Cada semana la optimizamos más.";
@@ -467,9 +467,6 @@
 /* Displayed white user is inviting someone. */
 "invite.please.wait" = "Por favor espera...";
 
-/* Indicates how many invites are remaining */
-"invite.remaining.count.unspecified.time" = "Te quedan %@ invitaciones";
-
 /* Text of invitation to join HalloApp. */
 "invite.text" = "Acompáñame en HalloApp, una forma privada, simple y segura de seguir en contacto con tus amigos y familia. Obténla en https://halloapp.com/dl";
 
@@ -793,20 +790,11 @@
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "Llamar a %@";
 
-/* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.copy.address" = "Copiar dirección";
-
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.copy.link" = "Copiar enlace";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
 "textlabel.context.menu.copy.phone.number" = "Copiar número de teléfono";
-
-/* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.get.directions" = "Obtener indicaciones";
-
-/* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.open.in.maps" = "Abrir en mapas";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.open.link" = "Abrir enlace";

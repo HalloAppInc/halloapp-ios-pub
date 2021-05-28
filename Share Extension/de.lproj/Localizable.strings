@@ -12,7 +12,7 @@
 "button.dismiss" = "Verwerfen";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Erledigt";
+"button.done" = "Fertig";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
 "button.go.to.settings" = "Zu Einstellungen gehen";

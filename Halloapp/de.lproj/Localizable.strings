@@ -14,7 +14,7 @@
 "about.footer" = "Wenn du Fragen oder Feedback hast sende uns eine E-Mail an %@";
 
 /* About screen: greeting. */
-"about.hallo" = "Oh Hallo";
+"about.hallo" = "Hallo!";
 
 /* About screen: navigation bar title. */
 "about.title" = "Mehr erfahren";
@@ -26,7 +26,7 @@
 "activity.center.button.read.all" = "Gelesen";
 
 /* Message shown when a user first joins from a friend's invitation (e.g., 'You accepted David's invite 🎉' */
-"activity.center.invite.accepted.item" = "Du hast %@'s Einladung angenommen🎉";
+"activity.center.invite.accepted.item" = "Du hast %@'s Einladung angenommen 🎉";
 
 /* Title for the activity center screen. */
 "activity.center.title" = "Aktivität";
@@ -54,7 +54,7 @@
 "button.dismiss" = "Verwerfen";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Erledigt";
+"button.done" = "Fertig";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
 "button.go.to.settings" = "Gehe zu Einstellungen";
@@ -138,7 +138,7 @@
 "chat.group.event.join" = "%@ ist der Gruppe über einen Gruppeneinladungslink beigetreten";
 
 /* Message text shown when you join a group via invite link */
-"chat.group.event.join.you" = "Du bist der Gruppe über einen Gruppeneinladungslink  beigetreten";
+"chat.group.event.join.you" = "Du bist der Gruppe über einen Gruppeneinladungslink beigetreten";
 
 /* Message text shown with the user who left the group */
 "chat.group.event.member.left" = "%@ hat die Gruppe verlassen";
@@ -181,6 +181,9 @@
 
 /* Text for menu option of viewing profile */
 "chat.group.info.view.profile" = "Profil anzeigen";
+
+/* Confirmation message presented when leaving a group */
+"chat.group.leave.group.confirmation" = "“%@” verlassen?";
 
 /* Label shown above group members list */
 "chat.group.members.label" = "MITGLIEDER";
@@ -369,7 +372,7 @@
 "feed.notification.replied.w.text" = "<$author$> hat geantwortet: <$text$>";
 
 /* Shown when post fails or is canceled. */
-"feed.post.failed" = "Fehler beim Posten.";
+"feed.post.failed" = "Fehler beim posten.";
 
 /* Shown when receiving a new (unsupported) type of post. */
 "feed.post.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Beitrag nicht.";
@@ -381,7 +384,7 @@
 "feed.privacy.descr.all" = "Mit allen Kontakten teilen";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Mit allen Kontakten, mit Ausnahme der von dir ausgewählten Personen, teilen";
+"feed.privacy.descr.except" = "Mit allen Kontakten, außer der von dir Ausgewählten, teilen";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Nur mit ausgewählten Kontakten teilen";
@@ -458,6 +461,9 @@
 /* Message text shown when you remove a group member */
 "group.event.removed.member.you" = "Du hast %1@ entfernt";
 
+/* Action label for inviting others to join the group via link */
+"group.info.invite.to.group.via.link" = "Per Link zur Gruppe einladen";
+
 /* Label for copying link */
 "group.invite.copy.link" = "Link kopieren";
 
@@ -465,7 +471,7 @@
 "group.invite.link.copied" = "Link kopiert";
 
 /* Text to describe what the group invite link is */
-"group.invite.link.description" = "Jeder auf HalloApp kann dieser Gruppe über diesen Link beitreten.";
+"group.invite.link.description" = "Jeder auf HalloApp kann der Gruppe über diesen Link beitreten.";
 
 /* Text shown when link is reset */
 "group.invite.link.reset" = "Link zurückgesetzt";
@@ -479,8 +485,20 @@
 /* Label for sharing link */
 "group.invite.share.link" = "Link teilen";
 
+/* Text shown before the sharing link */
+"group.invite.share.link.message" = "Um meiner HalloApp-Gruppe beizutreten klicke diesen Link: ";
+
 /* Title of group invite screen */
 "group.invite.title" = "Gruppeneinladungslink";
+
+/* Text for alert box when the user can't join the group via group link when the group is full */
+"group.preview.join.error.group.full" = "Die Gruppe hat die max. Teilnehmeranzahl erreicht";
+
+/* Text for alert box when the user can't join the group via group link when link is invalid */
+"group.preview.join.error.invalid.link" = "Der Link ist ungültig";
+
+/* Title for alert box when the user can't join the group via group link */
+"group.preview.join.error.title" = "Der Gruppe kann nicht beigetreten werden";
 
 /* Label for joining group action */
 "group.preview.join.group" = "GRUPPE BEITRETEN";
@@ -518,9 +536,6 @@
 /* Shows number of current HalloApp users who have this contact in their list */
 "invite.contact.count" = "%d Kontakte auf HalloApp";
 
-/* Indicates how many invites are remaining */
-"invite.count.remaining.unspecified.time.short" = "Einladungen verfügbar: %@";
-
 /* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
 "invite.error.alert.message" = "Etwas ist etwas schiefgegangen.  Bitte versuche es später noch einmal.";
 
@@ -532,9 +547,6 @@
 
 /* Displayed white user is inviting someone. */
 "invite.please.wait" = "Bitte warten...";
-
-/* Indicates how many invites are remaining */
-"invite.remaining.count.unspecified.time" = "Einladungen verfügbar: %@";
 
 /* Text of invitation to join HalloApp. */
 "invite.text" = "Mach mit bei HalloApp — eine Möglichkeit ganz persönlich, unkompliziert und sicher den Kontakt zu Freunden und zur Familie zu halten. Hol sie dir auf: https://halloapp.com/dl";
@@ -773,7 +785,7 @@
 "profile.title.your.name" = "Dein Name";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Bestätigungscode wird zugeschickt. \nKosten deines Service-Providers könnten anfallen.";
+"registration.code.disclaimer" = "Verifizierungscode wird zugeschickt. \nKosten deines Service-Providers könnten anfallen.";
 
 /* Error message to display when user enters incorrect verification code */
 "registration.code.incorrect" = "Der eingegebene Code ist nicht korrekt.";
@@ -791,10 +803,10 @@
 "registration.code.resend.by.voice" = "Ruf mich an";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Um den Kontakt zu deinen Freunden & deiner Familie herzustellen benötigen wir deine Zugriffserlaubnis auf deine Kontakte.";
+"registration.contacts.content" = "Um den Kontakt zu deinen Freunden & deiner Familie herzustellen benötigen wir deine Erlaubnis, um auf deine Kontakte zugreifen zu können.";
 
 /* Title for text explaining why we need contact permissions */
-"registration.contacts.title" = "Noch ein letzter Hinweis";
+"registration.contacts.title" = "Noch ein Hinweis";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Nutzung momentan nur auf Einladungs-Basis. Bitte deine Freude oder Familienmitglieder, die HalloApp nutzen, dich über deine Telefonnummer einzuladen.";
@@ -860,10 +872,10 @@
 "server.new.post" = "Neuer Beitrag";
 
 /* text in the sms sent with verification code */
-"server.sms.verification" = "Dein HalloApp Bestätigungscode";
+"server.sms.verification" = "Dein HalloApp Verifizierungscode";
 
 /* text in the voice call sent with verification code */
-"server.voicecall.verification" = "Dein HalloApp Bestätigungscode ist";
+"server.voicecall.verification" = "Dein HalloApp Verifizierungscode ist";
 
 /* App version text in Profile > Help. */
 "settings.app.version" = "HalloApp Version %@";
@@ -889,20 +901,11 @@
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "%@ anrufen";
 
-/* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.copy.address" = "Adresse kopieren";
-
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.copy.link" = "Link kopieren";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
 "textlabel.context.menu.copy.phone.number" = "Telefonnummer kopieren";
-
-/* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.get.directions" = "Wegbeschreibung";
-
-/* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.open.in.maps" = "In Maps öffnen";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.open.link" = "Link öffnen";

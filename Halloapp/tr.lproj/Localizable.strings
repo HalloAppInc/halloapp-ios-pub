@@ -458,9 +458,6 @@
 /* Displayed white user is inviting someone. */
 "invite.please.wait" = "Lütfen bekle...";
 
-/* Indicates how many invites are remaining */
-"invite.remaining.count.unspecified.time" = "%@ davetiyen kaldı";
-
 /* Text of invitation to join HalloApp. */
 "invite.text" = "HalloApp'te bana katıl — ailen ve arkadaşlarınla iletişimde kalmanın kolay, özel ve güvenli bir yolu. https://halloapp.com/dl adresinden indir.";
 
@@ -781,20 +778,11 @@
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "%@ kişisini ara";
 
-/* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.copy.address" = "Adresi kopyala";
-
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.copy.link" = "İlişimi kopyala";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
 "textlabel.context.menu.copy.phone.number" = "Telefon numarasını kopyala";
-
-/* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.get.directions" = "Yönlendirme al";
-
-/* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.open.in.maps" = "Haritalarda aç";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.open.link" = "İlişimi aç";
