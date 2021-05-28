@@ -760,6 +760,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                                                    chatReplyMessageSenderID: chatReplyMessageSenderID,
                                                    chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
         
+        
         chatInputView.closeQuoteFeedPanel()
 
         feedPostId = nil

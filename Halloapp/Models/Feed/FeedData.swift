@@ -13,6 +13,8 @@ import Core
 import CoreData
 import Foundation
 import SwiftUI
+import Intents
+import IntentsUI
 
 class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate {
 
@@ -1679,6 +1681,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPostInfo.receipts = receipts
             feedPostInfo.audienceType = .group
             feedPost.info = feedPostInfo
+            
+            addIntent(chatGroup: chatGroup)
         }
 
         // set a merge policy so that we dont end up with duplicate feedposts.
@@ -1865,6 +1869,34 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             case .failure(let error):
                 DDLogError("FeedData/share-posts/\(userId)/error [\(error)]")
             }
+        }
+    }
+    
+    private func addIntent(chatGroup: ChatGroup) {
+        if #available(iOS 14.0, *) {
+            let recipient = INSpeakableString(spokenPhrase: chatGroup.name)
+            let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                        content: nil,
+                                                        speakableGroupName: recipient,
+                                                        conversationIdentifier: ConversationID(id: chatGroup.groupId, type: .group).description,
+                                                        serviceName: nil,
+                                                        sender: nil)
+            
+            let potentialUserAvatar = MainAppContext.shared.avatarStore.groupAvatarData(for: chatGroup.groupId).image
+            guard let defaultAvatar = UIImage(named: "AvatarGroup") else { return }
+            
+            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
+            let userAvatar = INImage(imageData: userAvaterUIImage)
+            
+            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+            
+            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+            interaction.donate(completion: { error in
+                if let error = error {
+                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+                }
+            })
         }
     }
 

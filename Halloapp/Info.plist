@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>INSendMessageIntent</string>
+	</array>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.halloapp.hallo.feed.refresh</string>
@@ -45,7 +49,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>This lets you take photos and videos right from within HalloApp.</string>
 	<key>NSContactsUsageDescription</key>
-	<string>Upload your contacts to HalloApp's servers to see posts of your friends and let them see yours.</string>
+	<string>Upload your contacts to HalloApp&apos;s servers to see posts of your friends and let them see yours.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This lets you record videos with sound.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
