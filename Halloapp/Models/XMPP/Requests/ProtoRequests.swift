@@ -357,10 +357,10 @@ final class ProtoChangeGroupNameRequest: ProtoRequest<Void> {
 
 final class ProtoChangeGroupAvatarRequest: ProtoRequest<String> {
 
-    init(groupID: GroupID, data: Data, completion: @escaping Completion) {
+    init(groupID: GroupID, data: Data?, completion: @escaping Completion) {
         var uploadAvatar = Server_UploadGroupAvatar()
         uploadAvatar.gid = groupID
-        uploadAvatar.data = data
+        uploadAvatar.data = data ?? Data()
 
         super.init(
             iqPacket: .iqPacket(type: .set, payload: .groupAvatar(uploadAvatar)),

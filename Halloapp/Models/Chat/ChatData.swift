@@ -2464,7 +2464,7 @@ extension ChatData {
         }
     }
     
-    public func changeGroupAvatar(groupID: GroupID, data: Data, completion: @escaping ServiceRequestCompletion<Void>) {
+    public func changeGroupAvatar(groupID: GroupID, data: Data?, completion: @escaping ServiceRequestCompletion<Void>) {
         DDLogInfo("ChatData/changeGroupAvatar")
         MainAppContext.shared.service.changeGroupAvatar(groupID: groupID, data: data) { [weak self] result in
             guard let self = self else { return }
@@ -2483,7 +2483,7 @@ extension ChatData {
             }
         }
     }
-    
+
     public func setGroupBackground(groupID: GroupID, background: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
         MainAppContext.shared.service.setGroupBackground(groupID: groupID, background: background) { [weak self] result in
             guard let self = self else { return }

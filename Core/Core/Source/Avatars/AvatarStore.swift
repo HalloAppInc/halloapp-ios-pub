@@ -333,7 +333,7 @@ extension AvatarStore {
         }
         
         if let groupAvatarData = groupAvatarsData.object(forKey: groupID as NSString) {
-            groupAvatarData.skipEmptyStateRenderingOnce = true
+            groupAvatarData.skipEmptyStateRenderingOnce = avatarID != ""
             groupAvatarData.image = nil
             groupAvatarData.data = nil
             groupAvatarData.fileUrl = nil

@@ -221,7 +221,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
 
     @objc private func openEditAvatarOptions() {
         guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil else { return }
-        
+
         let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
         actionSheet.view.tintColor = UIColor.systemBlue
 
@@ -230,10 +230,23 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             self.presentPhotoLibraryPicker()
         })
 
-//        actionSheet.addAction(UIAlertAction(title: "Delete Photo", style: .destructive) { _ in
-//
-//        })
+        actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive) { _ in
+            MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: nil) { result in
+                switch result {
+                case .success:
+                    DispatchQueue.main.async() { [weak self] in
+                        guard let self = self else { return }
 
+                        // configure again as avatar listens to cached object that's evicted if app goes into background
+                        if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
+                            tableHeaderView.configure(chatGroup: self.chatGroup)
+                        }
+                    }
+                case .failure(let error):
+                    DDLogError("GroupInfoViewController/createAction/error \(error)")
+                }
+            }
+        })
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true)
     }

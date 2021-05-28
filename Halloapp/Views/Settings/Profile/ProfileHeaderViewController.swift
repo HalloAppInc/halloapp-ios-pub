@@ -358,7 +358,7 @@ private final class ProfileHeaderView: UIView {
     }()
 }
 
-private extension Localizations {
+extension Localizations {
     static var takeOrChoosePhoto: String {
         NSLocalizedString("profile.take.choose.photo", value: "Take or Choose Photo", comment: "Title for the button allowing to select a new profile photo.")
     }
