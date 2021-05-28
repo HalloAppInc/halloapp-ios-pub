@@ -124,14 +124,14 @@ public final class NoiseStream: NSObject {
         connect(host: host, port: port)
     }
 
-    private func sendNoiseMessage(_ content: Data, type: Server_NoiseMessage.MessageType, timeout: TimeInterval? = 8) {
+    private func sendNoiseMessage(_ content: Data, type: Server_NoiseMessage.MessageType, timeout: TimeInterval? = 8, header: Data? = nil) {
         do {
             var msg = Server_NoiseMessage()
             msg.messageType = type
             msg.content = content
             let data = try msg.serializedData()
             DDLogInfo("noise/send/\(type) [\(data.count)]")
-            writeToSocket(data)
+            writeToSocket(data, header: header)
         } catch {
             DDLogError("noise/sendNoiseMessage/error \(error)")
         }
@@ -148,17 +148,24 @@ public final class NoiseStream: NSObject {
         }
     }
 
-    private func writeToSocket(_ data: Data, prependLengthHeader: Bool = true) {
+    private func writeToSocket(_ data: Data, header: Data? = nil) {
         let finalData: Data = {
-            guard prependLengthHeader else { return data }
             let length = data.count
             guard length < 2<<24 else {
                 DDLogError("noise/writeToSocket/error data exceeds max packet size")
                 return Data()
             }
             let lengthHeader = Data(withUnsafeBytes(of: Int32(length).bigEndian, Array.init))
-            return lengthHeader + data
+            guard let header = header else {
+                return lengthHeader + data
+            }
+            return header + lengthHeader + data
         }()
+        let nagleWarningThreshold: Int = 32
+        if data.count < nagleWarningThreshold {
+            // TODO(@ethan): send to server via client log
+            DDLogWarn("noise/writeToSocket/warning sending \(data.count) bytes. consider coalescing packets as Nagle's is disabled")
+        }
 
         socket.write(finalData, withTimeout: -1, tag: SocketTag.writeStream.rawValue)
     }
@@ -185,8 +192,6 @@ public final class NoiseStream: NSObject {
             return
         }
 
-        writeToSocket(handshakeSignature, prependLengthHeader: false)
-
         let ephemeralKeyPair = ephemeralKeys.makeX25519KeyPair()
         if let serverStaticKey = serverStaticKey {
 
@@ -198,7 +203,7 @@ public final class NoiseStream: NSObject {
                 let serializedConfig = try makeClientConfig().serializedData()
                 let msgA = try handshake.writeMessage(payload: serializedConfig)
 
-                sendNoiseMessage(msgA, type: .ikA)
+                sendNoiseMessage(msgA, type: .ikA, header: handshakeSignature)
                 state = .handshake(handshake)
             } catch {
                 DDLogError("noise/startHandshake/ik/error \(error)")
@@ -217,7 +222,7 @@ public final class NoiseStream: NSObject {
                 let handshake = try HandshakeState(pattern: .XX, initiator: true, prologue: Data(), s: keypair, e: ephemeralKeyPair)
                 let msgA = try handshake.writeMessage(payload: Data())
 
-                sendNoiseMessage(msgA, type: .xxA)
+                sendNoiseMessage(msgA, type: .xxA, header: handshakeSignature)
                 state = .handshake(handshake)
             } catch {
                 DDLogError("noise/startHandshake/xx/error \(error)")
@@ -524,6 +529,18 @@ public final class NoiseStream: NSObject {
 extension NoiseStream: GCDAsyncSocketDelegate {
     public func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) {
         DDLogInfo("noise/socket-did-connect")
+        
+        self.socket.perform {
+            // adapted from https://groups.google.com/g/cocoaasyncsocket/c/DtkL7zd68wE/m/MAxYy994gdgJ
+            var flag: Int = 1
+            let result: Int32 = setsockopt(self.socket.socketFD(), IPPROTO_TCP, TCP_NODELAY, &flag, 32)
+            if result != 0 {
+                DDLogError("noise/socket couldn't set TCP_NODELAY flag (couldn't disable nagle)")
+            } else {
+                DDLogInfo("noise/socket TCP_NODELAY flag is set (nagle is disabled)")
+            }
+        }
+        
         startHandshake()
     }
 
