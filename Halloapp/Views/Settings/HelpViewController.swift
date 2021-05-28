@@ -132,7 +132,7 @@ class HelpViewController: UITableViewController {
     }
 
     private func openFAQ() {
-        let viewController = SFSafariViewController(url: URL(string: "https://www.halloapp.com/")!)
+        let viewController = SFSafariViewController(url: URL(string: "https://www.halloapp.com/help")!)
         present(viewController, animated: true)
     }
 
