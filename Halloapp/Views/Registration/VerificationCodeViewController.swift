@@ -10,6 +10,10 @@ import CocoaLumberjack
 import Core
 import UIKit
 
+fileprivate struct Constants {
+    static let MaxFontPointSize: CGFloat = 30
+}
+
 protocol VerificationCodeViewControllerDelegate: AnyObject {
     var formattedPhoneNumber: String? { get }
     func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void)
@@ -27,6 +31,7 @@ private enum VerificationCodeViewControllerState {
 }
 
 class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
+
     weak var delegate: VerificationCodeViewControllerDelegate?
 
     private var state: VerificationCodeViewControllerState = .requestingCode {
@@ -39,7 +44,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     let logo = UIImageView()
 
     let labelTitle = UILabel()
-    let labelError = UILabel()
+    let errorLabel = UILabel()
 
     let textFieldCode = UITextField()
     lazy var codeEntryField: UIView = { textFieldCode.withTextFieldBackground() }()
@@ -54,7 +59,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .feedBackground
+        view.backgroundColor = .primaryBg
 
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.preservesSuperviewLayoutMargins = true
@@ -65,7 +70,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         logo.setContentCompressionResistancePriority(.required, for: .vertical)
 
         labelTitle.translatesAutoresizingMaskIntoConstraints = false
-        labelTitle.font = .systemFont(forTextStyle: .title1, weight: .medium)
+        labelTitle.font = .systemFont(forTextStyle: .title1, weight: .medium, maximumPointSize: Constants.MaxFontPointSize)
         labelTitle.numberOfLines = 0
         labelTitle.setContentCompressionResistancePriority(.required, for: .vertical)
         if let formattedNumber = delegate?.formattedPhoneNumber {
@@ -75,82 +80,66 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         activityIndicatorView.setContentHuggingPriority(.required, for: .horizontal)
         activityIndicatorView.startAnimating()
 
-        let hStackView = UIStackView(arrangedSubviews: [labelTitle, activityIndicatorView])
-        hStackView.translatesAutoresizingMaskIntoConstraints = false
-        hStackView.axis = .horizontal
-        hStackView.distribution = .fill
-        hStackView.alignment = .center
+        let phoneRow = UIStackView(arrangedSubviews: [labelTitle, activityIndicatorView])
+        phoneRow.translatesAutoresizingMaskIntoConstraints = false
+        phoneRow.axis = .horizontal
+        phoneRow.distribution = .fill
+        phoneRow.alignment = .center
 
         textFieldCode.translatesAutoresizingMaskIntoConstraints = false
-        textFieldCode.font = .monospacedDigitSystemFont(ofSize: UIFontDescriptor.preferredFontDescriptor(withTextStyle: .title3).pointSize, weight: .regular)
+        textFieldCode.font = .systemFont(forTextStyle: .title3, weight: .regular, maximumPointSize: Constants.MaxFontPointSize - 2)
         textFieldCode.delegate = self
         textFieldCode.textContentType = .oneTimeCode
         textFieldCode.keyboardType = .numberPad
         textFieldCode.addTarget(self, action: #selector(textFieldCodeEditingChanged), for: .editingChanged)
 
-        let stackView = UIStackView(arrangedSubviews: [hStackView, codeEntryField, labelError])
+        let stackView = UIStackView(arrangedSubviews: [phoneRow, codeEntryField, errorLabel, resendSMSRow, callMeRow])
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .vertical
-        stackView.spacing = 32
+        stackView.alignment = .fill
+        stackView.spacing = 30
+        stackView.setCustomSpacing(10, after: codeEntryField)
+        stackView.setCustomSpacing(10, after: errorLabel)
+        stackView.setCustomSpacing(15, after: resendSMSRow)
 
-        labelError.textColor = .red
-        labelError.textAlignment = .center
-        labelError.font = .preferredFont(forTextStyle: .footnote)
-        labelError.numberOfLines = 0
+        errorLabel.textColor = .red
+        errorLabel.textAlignment = .center
+        errorLabel.font = .systemFont(forTextStyle: .footnote, maximumPointSize: Constants.MaxFontPointSize - 14)
+        errorLabel.numberOfLines = 0
 
         buttonRetryCodeRequest.setTitle(Localizations.registrationCodeResend, for: .normal)
-        buttonRetryCodeRequest.titleLabel?.font = .preferredFont(forTextStyle: .footnote)
+        buttonRetryCodeRequest.titleLabel?.font = .systemFont(forTextStyle: .footnote, maximumPointSize: Constants.MaxFontPointSize - 10)
         buttonRetryCodeRequest.setTitleColor(.secondaryLabel, for: .normal)
         buttonRetryCodeRequest.translatesAutoresizingMaskIntoConstraints = false
         buttonRetryCodeRequest.addTarget(self, action: #selector(didTapResendCode), for: .touchUpInside)
         buttonRetryCodeRequest.setContentCompressionResistancePriority(.required, for: .vertical)
+        buttonRetryCodeRequest.contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
 
         buttonRetryCodeByVoiceRequest.setTitle(Localizations.registrationCodeResendByVoice, for: .normal)
-        buttonRetryCodeByVoiceRequest.titleLabel?.font = .preferredFont(forTextStyle: .footnote)
+        buttonRetryCodeByVoiceRequest.titleLabel?.font = .systemFont(forTextStyle: .footnote, maximumPointSize: Constants.MaxFontPointSize - 10)
         buttonRetryCodeByVoiceRequest.setTitleColor(.secondaryLabel, for: .normal)
         buttonRetryCodeByVoiceRequest.translatesAutoresizingMaskIntoConstraints = false
         buttonRetryCodeByVoiceRequest.addTarget(self, action: #selector(didTapResendCodeByVoice), for: .touchUpInside)
         buttonRetryCodeByVoiceRequest.setContentCompressionResistancePriority(.required, for: .vertical)
+        buttonRetryCodeByVoiceRequest.contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
 
         // View hierarchy
 
         scrollView.addSubview(logo)
         scrollView.addSubview(stackView)
-        scrollView.addSubview(buttonRetryCodeRequest)
-        scrollView.addSubview(buttonRetryCodeByVoiceRequest)
 
         view.addSubview(scrollView)
 
         // Constraints
 
-        scrollView.constrain([.leading, .trailing, .top], to: view)
-        scrollViewBottomMargin = scrollView.constrain(anchor: .bottom, to: view)
+        scrollView.constrain([.leading, .trailing, .top, .bottom], to: view)
 
-        logo.constrain(anchor: .top, to: scrollView.contentLayoutGuide, constant: 32)
+        logo.constrain(anchor: .top, to: scrollView.contentLayoutGuide, constant: 10)
         logo.constrainMargin(anchor: .leading, to: scrollView)
 
         stackView.constrainMargins([.leading, .trailing], to: view)
         stackView.topAnchor.constraint(greaterThanOrEqualTo: logo.bottomAnchor, constant: 32).isActive = true
-        stackView.bottomAnchor.constraint(lessThanOrEqualTo: buttonRetryCodeRequest.topAnchor).isActive = true
-        inputVerticalCenterConstraint = stackView.constrain(anchor: .centerY, to: scrollView, priority: .defaultHigh)
-
-        buttonRetryCodeByVoiceRequest.constrainMargin(anchor: .leading, to: scrollView)
-        buttonRetryCodeByVoiceRequest.constrain(anchor: .bottom, to: scrollView.contentLayoutGuide)
-
-        buttonRetryCodeRequest.constrainMargin(anchor: .leading, to: scrollView)
-        buttonRetryCodeRequest.bottomAnchor.constraint(lessThanOrEqualTo: buttonRetryCodeByVoiceRequest.topAnchor, constant: -15).isActive = true
-
-        // Notifications
-
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: nil) { [weak self] notification in
-            self?.updateBottomMargin(with: notification)
-        }
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: nil) { [weak self] notification in
-            self?.updateBottomMargin(with: notification)
-        }
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillChangeFrameNotification, object: nil, queue: nil) { [weak self] notification in
-            self?.updateBottomMargin(with: notification)
-        }
+        stackView.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.bottomAnchor).isActive = true
     }
 
     override func viewDidLayoutSubviews() {
@@ -161,21 +150,25 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         inputVerticalCenterConstraint?.constant = -scrollView.adjustedContentInset.top
     }
 
-    private func updateBottomMargin(with notification: Notification) {
-        guard let endFrame = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
-              let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval else
-        {
-            return
-        }
-        let heightInView = endFrame.intersection(view.bounds).height
-        let bottomMargin = -max(heightInView, 0)
-        if scrollViewBottomMargin?.constant != bottomMargin {
-            UIView.animate(withDuration: duration) {
-                self.scrollViewBottomMargin?.constant = bottomMargin
-                self.view.layoutIfNeeded()
-            }
-        }
-    }
+    private lazy var resendSMSRow: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        let view = UIStackView(arrangedSubviews: [ buttonRetryCodeRequest, spacer ])
+        view.axis = .horizontal
+        view.alignment = .leading
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    private lazy var callMeRow: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        let view = UIStackView(arrangedSubviews: [ buttonRetryCodeByVoiceRequest, spacer ])
+        view.axis = .horizontal
+        view.alignment = .leading
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
 
     @objc
     func textFieldCodeEditingChanged(_ sender: Any) {
@@ -206,11 +199,12 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         activityIndicatorView.alpha = isWaiting ? 1 : 0
         labelTitle.isHidden = shouldHideInput
         codeEntryField.isHidden = shouldHideInput
-        buttonRetryCodeRequest.isHidden = !canRequestNewCode
-        buttonRetryCodeByVoiceRequest.isHidden = !canRequestNewCode
+        resendSMSRow.isHidden = !canRequestNewCode
+        callMeRow.isHidden = !canRequestNewCode
+
         textFieldCode.isEnabled = canEnterText
-        labelError.text = errorText
-        labelError.alpha = shouldShowError ? 1 : 0
+        errorLabel.text = errorText
+        errorLabel.alpha = shouldShowError ? 1 : 0
     }
 
     @objc

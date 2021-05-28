@@ -64,7 +64,13 @@ class GroupInvitePreviewViewController: UIViewController {
                 }
             case .failure(let error):
                 DDLogDebug("GroupInviteViewController/getGroupInviteLink/error \(error)")
-                self.dismiss(animated: true, completion: nil)
+
+                let alert = UIAlertController( title: nil, message: Localizations.groupPreviewGetInfoErrorInvalidLink, preferredStyle: .alert)
+                alert.addAction(.init(title: Localizations.buttonOK, style: .default, handler: { _ in
+                    self.dismiss(animated: true)
+                }))
+                self.present(alert, animated: true, completion: nil)
+
             }
         }
     }
@@ -259,6 +265,10 @@ class GroupInvitePreviewViewController: UIViewController {
 }
 
 private extension Localizations {
+
+    static var groupPreviewGetInfoErrorInvalidLink: String {
+        NSLocalizedString("group.preview.get.info.error.invalid.link", value: "The group invite link is invalid", comment: "Text for alert box when the user clicks on an invalid group invite link")
+    }
 
     static var groupPreviewJoinGroup: String {
         NSLocalizedString("group.preview.join.group", value: "JOIN GROUP", comment: "Label for joining group action")

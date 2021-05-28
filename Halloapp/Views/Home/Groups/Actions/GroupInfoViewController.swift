@@ -17,8 +17,10 @@ fileprivate struct Constants {
     static let AvatarSize: CGFloat = 100
     static let PhotoIconSize: CGFloat = 40
     static let ActionIconSize: CGFloat = 30
+    static let ActionRowHeight: CGFloat = 52
     static let HeaderHeight: CGFloat = 350
     static let FooterHeight: CGFloat = 250
+    static let MaxFontPointSize: CGFloat = 28
 }
 
 class GroupInfoViewController: UITableViewController, NSFetchedResultsControllerDelegate {
@@ -576,7 +578,7 @@ class GroupInfoHeaderView: UIView {
 
     public func configure(chatGroup: ChatGroup?) {
         guard let chatGroup = chatGroup else { return }
-        groupNameTextView.text = chatGroup.name
+        groupNameText.text = chatGroup.name
         membersLabel.text = "\(Localizations.chatGroupMembersLabel) (\(String(chatGroup.members?.count ?? 0)))"
 
         avatarView.configure(groupId: chatGroup.groupId, squareSize: Constants.AvatarSize, using: MainAppContext.shared.avatarStore)
@@ -611,12 +613,12 @@ class GroupInfoHeaderView: UIView {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextView, backgroundLabelRow, backgroundRow, membersLabelRow, spacer])
+        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextRow, backgroundLabelRow, backgroundRow, membersLabelRow, spacer])
 
         view.axis = .vertical
         view.spacing = 0
         view.setCustomSpacing(20, after: avatarRow)
-        view.setCustomSpacing(25, after: groupNameTextView)
+        view.setCustomSpacing(25, after: groupNameTextRow)
         view.setCustomSpacing(25, after: backgroundRow)
 
         view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
@@ -716,6 +718,36 @@ class GroupInfoHeaderView: UIView {
         return label
     }()
 
+    private lazy var groupNameTextRow: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+
+        let view = UIStackView(arrangedSubviews: [ groupNameText ])
+
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
+
+        let subView = UIView(frame: view.bounds)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.backgroundColor = .secondarySystemGroupedBackground
+        subView.layer.cornerRadius = 10
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        view.insertSubview(subView, at: 0)
+
+        return view
+    }()
+
+    private lazy var groupNameText: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
+        label.textAlignment = .left
+        return label
+    }()
+
     private lazy var groupNameTextView: UITextView = {
         let view = UITextView()
         view.isScrollEnabled = false
@@ -726,10 +758,12 @@ class GroupInfoHeaderView: UIView {
         view.layer.cornerRadius = 10
 
         view.backgroundColor = .secondarySystemGroupedBackground
-        view.textContainerInset = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 10)
-        view.font = UIFont.preferredFont(forTextStyle: .body)
+        view.textContainerInset = UIEdgeInsets(top: 15, left: 10, bottom: 0, right: 10)
+
+        view.font = .systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
 
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(editAction(_:)))
         view.isUserInteractionEnabled = true
@@ -779,6 +813,7 @@ class GroupInfoHeaderView: UIView {
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(changeBackgroundAction(_:)))
         view.isUserInteractionEnabled = true
@@ -787,19 +822,11 @@ class GroupInfoHeaderView: UIView {
         return view
     }()
 
-    private lazy var backgroundSelectionLabel: UITextView = {
-        let view = UITextView()
-        view.isScrollEnabled = false
-        view.isEditable = false
-        view.isSelectable = false
-
-        view.backgroundColor = .clear
-        view.font = UIFont.preferredFont(forTextStyle: .body)
-        view.text = Localizations.chatGroupInfoBgDefaultLabel
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        return view
+    private lazy var backgroundSelectionLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
+        label.textAlignment = .left
+        return label
     }()
 
     private lazy var backgroundSelectionImage: UIView = {
@@ -938,10 +965,12 @@ class GroupInfoFooterView: UIView {
 
         let view = UIStackView(arrangedSubviews: [ leaveGroupLabel, notAMemberLabel ])
         view.axis = .vertical
-        view.translatesAutoresizingMaskIntoConstraints = false
 
-        view.layoutMargins = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
 
         let subView = UIView(frame: view.bounds)
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -956,7 +985,7 @@ class GroupInfoFooterView: UIView {
 
     private lazy var leaveGroupLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.font = .systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
         label.textColor = .systemRed
         label.textAlignment = .left
         label.text = Localizations.chatGroupInfoLeaveGroup

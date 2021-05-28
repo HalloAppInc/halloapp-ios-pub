@@ -10,6 +10,10 @@ import Core
 import PhoneNumberKit
 import UIKit
 
+fileprivate struct Constants {
+    static let MaxFontPointSize: CGFloat = 30
+}
+
 protocol PhoneInputViewControllerDelegate: AnyObject {
     func phoneInputViewControllerDidFinish(_ viewController: PhoneInputViewController, countryCode: String, nationalNumber: String, name: String)
 }
@@ -48,7 +52,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
 
         let welcomeLabel = UILabel()
         welcomeLabel.text = Localizations.registrationWelcome
-        welcomeLabel.font = .systemFont(forTextStyle: .title1, weight: .medium)
+        welcomeLabel.font = .systemFont(forTextStyle: .title1, weight: .medium, maximumPointSize: Constants.MaxFontPointSize)
 
         textFieldUserName.translatesAutoresizingMaskIntoConstraints = false
         textFieldUserName.autocapitalizationType = .words
@@ -79,7 +83,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         stackView.translatesAutoresizingMaskIntoConstraints = false
 
         disclaimer.text = Localizations.registrationCodeDisclaimer
-        disclaimer.font = .preferredFont(forTextStyle: .footnote)
+        disclaimer.font = .systemFont(forTextStyle: .footnote, maximumPointSize: Constants.MaxFontPointSize - 14)
         disclaimer.textColor = .secondaryLabel
         disclaimer.numberOfLines = 0
         disclaimer.translatesAutoresizingMaskIntoConstraints = false

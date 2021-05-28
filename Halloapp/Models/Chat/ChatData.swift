@@ -2702,13 +2702,13 @@ extension ChatData {
     }
 
     func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
-        DDLogDebug("ChatData/group/getGroupPreviewWithLink/inviteLink \(inviteLink)")
+        DDLogDebug("ChatData/group/joinGroupWithLink/inviteLink \(inviteLink)")
         service.joinGroupWithLink(inviteLink: inviteLink) { result in
             switch result {
             case .success(let groupInviteLink):
                 completion(.success((groupInviteLink)))
             case .failure(let error):
-                DDLogError("ChatData/group/getGroupPreviewWithLink/error \(error)")
+                DDLogError("ChatData/group/joinGroupWithLink/error \(error)")
                 completion(.failure((error)))
             }
         }
