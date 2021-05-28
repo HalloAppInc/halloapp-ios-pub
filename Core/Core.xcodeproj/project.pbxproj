@@ -45,6 +45,7 @@
 		68A64E8624D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */; };
 		68CC420E25B8C254001513C5 /* DiscreteEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CC420D25B8C254001513C5 /* DiscreteEvent.swift */; };
 		68D2915525096F9400AF5061 /* Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2915425096F9400AF5061 /* Mentions.swift */; };
+		68D4BBB6266150DE009D2266 /* PacketID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D4BBB5266150DE009D2266 /* PacketID.swift */; };
 		68D64BFC25EEE220000AB07C /* Whisper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D64BFB25EEE220000AB07C /* Whisper.swift */; };
 		68DB8E6D264AF67E0082AEC2 /* SharedServerMessage+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68DB8E6B264AF67E0082AEC2 /* SharedServerMessage+CoreDataClass.swift */; };
 		68DB8E6E264AF67E0082AEC2 /* SharedServerMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68DB8E6C264AF67E0082AEC2 /* SharedServerMessage+CoreDataProperties.swift */; };
@@ -148,6 +149,7 @@
 		68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		68CC420D25B8C254001513C5 /* DiscreteEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscreteEvent.swift; sourceTree = "<group>"; };
 		68D2915425096F9400AF5061 /* Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mentions.swift; sourceTree = "<group>"; };
+		68D4BBB5266150DE009D2266 /* PacketID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketID.swift; sourceTree = "<group>"; };
 		68D64BFB25EEE220000AB07C /* Whisper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Whisper.swift; sourceTree = "<group>"; };
 		68DB8E6B264AF67E0082AEC2 /* SharedServerMessage+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SharedServerMessage+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68DB8E6C264AF67E0082AEC2 /* SharedServerMessage+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SharedServerMessage+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -372,6 +374,7 @@
 				2490289924C5DDBD0019C4D5 /* ShareExtension */,
 				768123FC248612A9008C5216 /* XMPP */,
 				6A00887E264B3D6200A2353D /* PersistentHistoryTracker.swift */,
+				68D4BBB5266150DE009D2266 /* PacketID.swift */,
 			);
 			path = Source;
 			sourceTree = "<group>";
@@ -700,6 +703,7 @@
 				6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
 				F86919E226397F0C00B01306 /* UIImageView.swift in Sources */,
+				68D4BBB6266150DE009D2266 /* PacketID.swift in Sources */,
 				688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */,
 				EAAE7B3C24DD039900946B77 /* XMPPWhisperRequests.swift in Sources */,
 				68101F2C25CDE7CA005CD704 /* Keys.swift in Sources */,

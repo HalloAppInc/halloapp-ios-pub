@@ -1353,7 +1353,7 @@ extension ChatData {
                      chatReplyMessageSenderID: UserID? = nil,
                      chatReplyMessageMediaIndex: Int32) {
         
-        let messageId = UUID().uuidString
+        let messageId = PacketID.generate()
         let isMsgToYourself: Bool = toUserId == userData.userId
         
         // Create and save new ChatMessage object.
@@ -1705,7 +1705,7 @@ extension ChatData {
     }
 
     func retractChatMessage(toUserID: UserID, messageToRetractID: String) {
-        let messageID = UUID().uuidString
+        let messageID = PacketID.generate()
                 
         updateChatMessage(with: messageToRetractID) { [weak self] (chatMessage) in
             guard let self = self else { return }

@@ -1603,7 +1603,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let didSendGroupFeedPost = PassthroughSubject<FeedPost, Never>()
 
     func post(text: MentionText, media: [PendingMedia], to destination: FeedPostDestination) {
-        let postId: FeedPostID = UUID().uuidString
+        let postId: FeedPostID = PacketID.generate()
 
         // Create and save new FeedPost object.
         let managedObjectContext = persistentContainer.viewContext
@@ -1698,7 +1698,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     @discardableResult
     func post(comment: MentionText, to feedItem: FeedDataItem, replyingTo parentCommentId: FeedPostCommentID? = nil) -> FeedPostCommentID {
-        let commentId: FeedPostCommentID = UUID().uuidString
+        let commentId: FeedPostCommentID = PacketID.generate()
 
         // Create and save FeedPostComment
         let managedObjectContext = self.persistentContainer.viewContext

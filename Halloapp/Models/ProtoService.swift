@@ -125,7 +125,7 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    private func sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = UUID().uuidString) {
+    private func sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = PacketID.generate()) {
         serviceQueue.async {
             self._sendReceipt(receipt, to: toUserID, messageID: messageID)
         }
@@ -153,7 +153,7 @@ final class ProtoService: ProtoServiceCore {
     }
 
     /// Should only be called on serviceQueue.
-    private func _sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = UUID().uuidString) {
+    private func _sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = PacketID.generate()) {
         unackedReceipts[messageID] = (receipt, toUserID)
 
         let threadID: String = {
@@ -1028,7 +1028,7 @@ extension ProtoService: HalloService {
         guard isConnected else { return }
         
         var presence = Server_Presence()
-        presence.id = Utils().randomString(10)
+        presence.id = PacketID.generate(short: true)
         presence.type = {
             switch presenceType {
             case .away:
@@ -1055,7 +1055,7 @@ extension ProtoService: HalloService {
         guard isConnected else { return false }
 
         var presence = Server_Presence()
-        presence.id = Utils().randomString(10)
+        presence.id = PacketID.generate(short: true)
         presence.type = .subscribe
         if let uid = Int64(userID) {
             presence.toUid = uid

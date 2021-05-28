@@ -167,7 +167,7 @@ public final class ProtoStream: XMPPStream {
 public extension Server_Packet {
     static func iqPacketWithID() -> Server_Packet {
         var packet = Server_Packet()
-        packet.iq.id = XMPPIQ.generateUniqueIdentifier()
+        packet.iq.id = PacketID.generate()
         return packet
     }
 
@@ -181,7 +181,7 @@ public extension Server_Packet {
     static func msgPacket(
         from: UserID,
         to: UserID,
-        id: String = UUID().uuidString,
+        id: String = PacketID.generate(),
         type: Server_Msg.TypeEnum = .normal,
         rerequestCount: Int32 = 0,
         payload: Server_Msg.OneOf_Payload) -> Server_Packet
@@ -225,7 +225,7 @@ public extension Server_Packet {
         case .presence(let presence):
             return presence.id
         case .chatState:
-            return UUID().uuidString // throwaway id, chat states don't use them
+            return PacketID.generate(short: true) // throwaway id, chat states don't use them
         case .haError:
             return nil
         }

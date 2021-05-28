@@ -24,7 +24,7 @@ open class ProtoRequestBase {
     private let request: Server_Packet
 
     fileprivate init(request: Server_Packet) {
-        self.requestId = request.requestID ?? UUID().uuidString
+        self.requestId = request.requestID ?? PacketID.generate()
         self.request = request
     }
 
