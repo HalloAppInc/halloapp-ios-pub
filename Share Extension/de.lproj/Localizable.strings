@@ -54,7 +54,7 @@
 "share.composer.placeholder" = "Bildunterschrift";
 
 /* Placeholder when sharing text only. */
-"share.composer.placeholder.text" = "Beitrag schreiben";
+"share.composer.placeholder.text" = "Einen Beitrag schreiben";
 
 /* Composer subtitle when sharing with a contact */
 "share.composer.subtitle.contact" = "Versendet an %@";

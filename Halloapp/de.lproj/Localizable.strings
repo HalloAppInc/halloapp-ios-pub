@@ -17,7 +17,7 @@
 "about.hallo" = "Hallo!";
 
 /* About screen: navigation bar title. */
-"about.title" = "Mehr erfahren";
+"about.title" = "Über HalloApp";
 
 /* Longer title for the button that confirms marking all items in the activity center as read. */
 "activity.center.button.mark.all.read" = "Als gelesen markieren";
@@ -288,7 +288,7 @@
 "composer.placeholder.media.description" = "Beschreibung hinzufügen";
 
 /* Placeholder text in text post composer screen. */
-"composer.placeholder.text.post" = "Schreibe einen Beitrag";
+"composer.placeholder.text.post" = "Einen Beitrag schreiben";
 
 /* Send button title. */
 "composer.post.button.send" = "Senden";
@@ -797,7 +797,7 @@
 "registration.code.request.error" = "Der Code konnte nicht gesendet werden. Bitte versuche es später noch einmal.";
 
 /* Button label to resend verification code */
-"registration.code.resend" = "Code noch einmal senden";
+"registration.code.resend" = "SMS erneut senden";
 
 /* Button label to resend verification code by voice call */
 "registration.code.resend.by.voice" = "Ruf mich an";
@@ -818,7 +818,7 @@
 "registration.phoneEntry.placeholder" = "Telefonnummer";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "Um dich mit deinen Freunden auf HalloApp zu verbinden verwendet HalloApp nur das Telefonnummernfeld und wird keine weiteren Kontaktdaten erfassen.";
+"registration.privacy.content" = "Um den Kontakt mit deinen Freunden auf HalloApp herzustellen verwendet HalloApp nur das Feld für die Telefonnummer und wird keine weiteren Daten aus deinen Kontakten übermitteln.";
 
 /* Title for modal describing how we use contacts data */
 "registration.privacy.title" = "Deine Privatsphäre ist unsere höchste Priorität";
