@@ -91,6 +91,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
         view.addSubview(mainView)
         view.backgroundColor = UIColor.primaryBg
+        isModalInPresentation = true
         
         mainView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
         mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
