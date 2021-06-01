@@ -63,6 +63,7 @@ class UserFeedViewController: FeedCollectionViewController {
         headerViewController = ProfileHeaderViewController()
         if userId == MainAppContext.shared.userData.userId {
             title = Localizations.titleMyPosts
+            
             headerViewController.isEditingAllowed = true
             cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in
                 guard let self = self else { return }
@@ -71,6 +72,7 @@ class UserFeedViewController: FeedCollectionViewController {
             }))
         } else {
             headerViewController.configureWith(userId: userId)
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .plain, target: self, action: #selector(moreButtonTapped))
         }
 
         collectionViewDataSource?.supplementaryViewProvider = { [weak self] (collectionView, kind, path) -> UICollectionReusableView? in
@@ -80,6 +82,43 @@ class UserFeedViewController: FeedCollectionViewController {
             return self.collectionView(collectionView, viewForSupplementaryElementOfKind: kind, at: path)
         }
         collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
+    }
+    
+    @objc func moreButtonTapped() {
+        guard userId != MainAppContext.shared.userData.userId else { return }
+        
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        
+        let blockUserAction = UIAlertAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self] _ in
+            self?.blockUserTapped()
+        }
+        alert.addAction(blockUserAction)
+        
+        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
+        alert.view.tintColor = .systemBlue
+        alert.addAction(cancel)
+        
+        present(alert, animated: true)
+    }
+    
+    private func blockUserTapped() {
+        guard userId != MainAppContext.shared.userData.userId else { return }
+        
+        let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userId))
+        
+        let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
+        let button = UIAlertAction(title: Localizations.blockButton, style: .destructive) { [weak self] _ in
+            guard let privacySettings = MainAppContext.shared.privacySettings else { return }
+            guard let blockedList = privacySettings.blocked else { return }
+            guard let userId = self?.userId else { return }
+            privacySettings.update(privacyList: blockedList, with: [userId])
+        }
+        alert.addAction(button)
+        
+        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
+        alert.addAction(cancel)
+        
+        present(alert, animated: true)
     }
 
     override func viewWillAppear(_ animated: Bool) {
