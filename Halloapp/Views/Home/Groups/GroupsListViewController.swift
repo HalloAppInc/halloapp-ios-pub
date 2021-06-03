@@ -553,11 +553,11 @@ extension GroupsListViewController: UISearchBarDelegate {
 
 // MARK: UISearchController Updating Delegates
 extension GroupsListViewController: UISearchResultsUpdating {
-
-    func updateSearchResultsOriginal(for searchController: UISearchController) {
+    
+    func updateSearchResults(for searchController: UISearchController) {
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
         guard let searchBarText = searchController.searchBar.text else { return }
-        print(allChats)
+    
         let strippedString = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces)
         
         let searchItems = strippedString.components(separatedBy: " ")
@@ -578,60 +578,6 @@ extension GroupsListViewController: UISearchResultsUpdating {
                 }
             }
             return false
-        }
-        DDLogDebug("GroupsListViewController/updateSearchResults/filteredChats count \(filteredChats.count) for: \(searchBarText)")
-        
-        tableView.reloadData()
-    }
-    
-    func updateSearchResults(for searchController: UISearchController) {
-        guard let allChats = fetchedResultsController?.fetchedObjects else { return }
-        guard let searchBarText = searchController.searchBar.text else { return }
-        let strippedString = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces)
-        
-        let searchItems = strippedString.components(separatedBy: " ")
-        
-        filteredChats = allChats.filter {
-            var flag = false
-            
-            var groupIdStr: GroupID? = nil
-            if $0.type == .group {
-                groupIdStr = $0.groupId
-            } else {
-                groupIdStr = MainAppContext.shared.contactStore.fullName(for: $0.chatWithUserId ?? "")
-            }
-
-            guard let Id = groupIdStr else { return false }
-            let group = MainAppContext.shared.chatData.chatGroup(groupId: Id)
-            let members = group!.members
-
-
-            for i in members!{
-                let name = MainAppContext.shared.contactStore.fullName(for: i.userId)
-                print(name)
-                for item in searchItems {
-                    if name.lowercased() == item.lowercased() {
-                        flag = true
-                    }
-                }
-            }
-            
-            var titleText: String? = nil
-            if $0.type == .group {
-                titleText = $0.title
-            } else {
-                titleText = MainAppContext.shared.contactStore.fullName(for: $0.chatWithUserId ?? "")
-            }
-
-            guard let title = titleText else { return false }
-        
-            for item in searchItems {
-                if title.lowercased().contains(item.lowercased()) {
-                    flag = true
-                }
-            }
-            
-            return flag
         }
         DDLogDebug("GroupsListViewController/updateSearchResults/filteredChats count \(filteredChats.count) for: \(searchBarText)")
         

@@ -63,11 +63,14 @@ final class ProfileHeaderViewController: UIViewController {
             headerView.secondaryLabel.text = phoneNumber.formattedPhoneNumber
         } else {
             headerView.messageButton.isHidden = true
+            headerView.groupCommonButton.isHidden = true
             headerView.secondaryLabel.isHidden = true
         }
         if MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId) {
             headerView.canMessage = true
+            headerView.groupCommonButton.isHidden = false
             headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
+            headerView.groupCommonButton.addTarget(self, action: #selector(openGroupCommonview), for: .touchUpInside)
         }
     }
 
@@ -115,6 +118,12 @@ final class ProfileHeaderViewController: UIViewController {
         guard let userID = headerView.userID else { return }
 
         navigationController?.pushViewController(ChatViewController(for: userID), animated: true)
+    }
+    
+    @objc private func openGroupCommonview() {
+        guard let userID = headerView.userID else { return }
+
+        navigationController?.pushViewController(GroupsInCommonViewController(title: userID), animated: true)
     }
     
     private func presentPhotoPicker() {
@@ -334,7 +343,7 @@ private final class ProfileHeaderView: UIView {
     }()
     
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, secondaryLabel, messageButton ])
+        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, secondaryLabel, messageButton, groupCommonButton])
         view.axis = .vertical
         view.alignment = .center
         view.spacing = 5
@@ -351,6 +360,19 @@ private final class ProfileHeaderView: UIView {
         
         button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
         button.setTitle(Localizations.profileHeaderMessageUser, for: .normal)
+        
+        button.isHidden = true
+        return button
+        
+    }()
+    
+    private(set) lazy var groupCommonButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 10)
+        button.tintColor = .primaryBlue
+        
+        button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
+        button.setTitle("Group In Common", for: .normal)
         
         button.isHidden = true
         return button
