@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CocoaLumberjack
 
 // TODO: Add pushname and/or merge this with `MentionedUser`
 /// Struct representing user that can be mentioned in a post or comment
@@ -25,7 +26,13 @@ public struct MentionableUser: Hashable {
 public final class Mentions {
     public static func mentionableUsersForNewPost() -> [MentionableUser] {
 
-        let allContactIDs = Set(AppContext.shared.contactStore.allRegisteredContactIDs())
+        let allContactIDs: Set<UserID>
+        do {
+            allContactIDs = try AppContext.shared.privacySettings.currentFeedAudience().userIds
+        } catch {
+            DDLogError("Mentions/Unable to fetch feed audience for mentions")
+            allContactIDs = Set(AppContext.shared.contactStore.allRegisteredContactIDs())
+        }
 
         return AppContext.shared.contactStore.fullNames(forUserIds: allContactIDs)
             .map { MentionableUser(userID: $0.key, fullName: $0.value) }

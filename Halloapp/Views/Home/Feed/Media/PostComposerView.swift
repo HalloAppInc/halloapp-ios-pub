@@ -218,8 +218,8 @@ class PostComposerViewController: UIViewController {
         switch configuration.titleMode {
         case .userPost:
             titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
-            titleView.subtitleLabel.text = privacySettings?.composerIndicator ?? ""
-            privacySubscription = privacySettings?.$composerIndicator.assign(to: \.text!, on: titleView.subtitleLabel)
+            titleView.subtitleLabel.text = privacySettings.composerIndicator ?? ""
+            privacySubscription = privacySettings.$composerIndicator.assign(to: \.text!, on: titleView.subtitleLabel)
         case .groupPost:
             titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
             if let recipientName = recipientName {

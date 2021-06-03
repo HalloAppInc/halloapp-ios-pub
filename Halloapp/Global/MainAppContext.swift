@@ -28,7 +28,7 @@ class MainAppContext: AppContext {
     private(set) var keyData: KeyData!
     private(set) var uploadData: UploadData!
     private(set) var syncManager: SyncManager!
-    private(set) var privacySettings: PrivacySettings!
+    private(set) var privacySettingsImpl: PrivacySettings!
     private(set) var shareExtensionDataStore: ShareExtensionDataStore!
     private(set) var notificationServiceExtensionDataStore: NotificationServiceExtensionDataStore!
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
@@ -46,6 +46,12 @@ class MainAppContext: AppContext {
     override var contactStore: ContactStoreMain {
         get {
             super.contactStore as! ContactStoreMain
+        }
+    }
+
+    override var privacySettings: PrivacySettings {
+        get {
+            privacySettingsImpl
         }
     }
 
@@ -114,7 +120,7 @@ class MainAppContext: AppContext {
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         avatarStore = AvatarStore()
         coreService.avatarDelegate = avatarStore
-        privacySettings = PrivacySettings(contactStore: contactStore, service: service)
+        privacySettingsImpl = PrivacySettings(contactStore: contactStore, service: service)
         shareExtensionDataStore = ShareExtensionDataStore()
         notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()
 

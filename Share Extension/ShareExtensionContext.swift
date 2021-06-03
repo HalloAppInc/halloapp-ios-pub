@@ -15,7 +15,6 @@ class ShareExtensionContext: AppExtensionContext {
     // MARK: Global objects
     private(set) var avatarStore = AvatarStore()
     private(set) var dataStore: DataStore!
-    private(set) var privacySettings: PrivacySettings!
     
     public var shareExtensionIsActive = false
 
@@ -28,7 +27,6 @@ class ShareExtensionContext: AppExtensionContext {
     required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
         dataStore = DataStore(service: coreService)
-        privacySettings = PrivacySettings(contactStore: contactStore)
     }
 
 }

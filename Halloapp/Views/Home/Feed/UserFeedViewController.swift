@@ -108,7 +108,7 @@ class UserFeedViewController: FeedCollectionViewController {
         
         let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
         let button = UIAlertAction(title: Localizations.blockButton, style: .destructive) { [weak self] _ in
-            guard let privacySettings = MainAppContext.shared.privacySettings else { return }
+            let privacySettings = MainAppContext.shared.privacySettings
             guard let blockedList = privacySettings.blocked else { return }
             guard let userId = self?.userId else { return }
             privacySettings.update(privacyList: blockedList, with: [userId])

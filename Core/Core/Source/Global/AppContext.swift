@@ -89,6 +89,12 @@ open class AppContext {
             contactStoreImpl
         }
     }
+    private let privacySettingsImpl: PrivacySettings
+    open var privacySettings: PrivacySettings {
+        get {
+            privacySettingsImpl
+        }
+    }
 
     // MARK: Event monitoring
 
@@ -208,6 +214,7 @@ open class AppContext {
         userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL)
         coreService = serviceBuilder(userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
+        privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)
         keyStore = KeyStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
         messageCrypter = MessageCrypter(service: coreService, keyStore: keyStore)
         keyStore.delegate = messageCrypter
