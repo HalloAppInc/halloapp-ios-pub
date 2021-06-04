@@ -128,6 +128,10 @@ extension UIColor {
         UIColor(named: "GroupBgColorSelectionPanelBg")!
     }
 
+    class var groupInviteResultBg: UIColor {
+        UIColor(named: "GroupInviteResultBg")!
+    }
+
     // MARK: Media
 
     class var pageIndicatorInactive: UIColor {

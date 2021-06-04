@@ -530,7 +530,7 @@ extension GroupInfoViewController: GroupInfoFooterViewDelegate {
         vController.delegate = self
         self.navigationController?.pushViewController(vController, animated: true)
     }
-    
+
     func groupInfoFooterView(_ groupInfoFooterView: GroupInfoFooterView) {
         guard let group = chatGroup else { return }
 
@@ -726,7 +726,7 @@ class GroupInfoHeaderView: UIView {
 
         view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
         view.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
 
@@ -737,6 +737,10 @@ class GroupInfoHeaderView: UIView {
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
         view.insertSubview(subView, at: 0)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(editAction(_:)))
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
 
         return view
     }()
@@ -748,30 +752,6 @@ class GroupInfoHeaderView: UIView {
         return label
     }()
 
-    private lazy var groupNameTextView: UITextView = {
-        let view = UITextView()
-        view.isScrollEnabled = false
-        view.isEditable = false
-        view.isSelectable = false
-
-        view.clipsToBounds = true
-        view.layer.cornerRadius = 10
-
-        view.backgroundColor = .secondarySystemGroupedBackground
-        view.textContainerInset = UIEdgeInsets(top: 15, left: 10, bottom: 0, right: 10)
-
-        view.font = .systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
-
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(editAction(_:)))
-        view.isUserInteractionEnabled = true
-        view.addGestureRecognizer(tapGesture)
-
-        return view
-    }()
-    
     private lazy var backgroundLabelRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [backgroundLabel])
         view.axis = .horizontal
@@ -781,7 +761,7 @@ class GroupInfoHeaderView: UIView {
 
         return view
     }()
-    
+
     private lazy var backgroundLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .left
@@ -799,6 +779,7 @@ class GroupInfoHeaderView: UIView {
         let view = UIStackView(arrangedSubviews: [ backgroundSelectionLabel, spacer, backgroundSelectionImage ])
 
         view.axis = .horizontal
+        view.alignment = .center
         view.spacing = 20
 
         let subView = UIView(frame: view.bounds)

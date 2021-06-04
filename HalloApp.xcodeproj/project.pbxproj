@@ -224,6 +224,7 @@
 		EA79C6FD2554E89400E0525F /* Localizations+Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */; };
 		EA7FBD1226546B5900CE1836 /* UITabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7FBD1126546B5900CE1836 /* UITabBarController.swift */; };
 		EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */; };
+		EA96D5B626689A0400F85731 /* GroupInviteQRViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA96D5B526689A0400F85731 /* GroupInviteQRViewController.swift */; };
 		EA9B750F25A9003B00389A8E /* MsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA9B750E25A9003B00389A8E /* MsgViewCell.swift */; };
 		EAA0798625AEAC9200B384AB /* GroupsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */; };
 		EAA0799725AFC71600B384AB /* ThreadListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0799625AFC71600B384AB /* ThreadListCell.swift */; };
@@ -606,6 +607,7 @@
 		EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Localizations+Chat.swift"; sourceTree = "<group>"; };
 		EA7FBD1126546B5900CE1836 /* UITabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITabBarController.swift; sourceTree = "<group>"; };
 		EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationViewController.swift; sourceTree = "<group>"; };
+		EA96D5B526689A0400F85731 /* GroupInviteQRViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteQRViewController.swift; sourceTree = "<group>"; };
 		EA9B750E25A9003B00389A8E /* MsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MsgViewCell.swift; sourceTree = "<group>"; };
 		EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsListViewController.swift; sourceTree = "<group>"; };
 		EAA0799625AFC71600B384AB /* ThreadListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadListCell.swift; sourceTree = "<group>"; };
@@ -1341,6 +1343,7 @@
 				EA79AEF4260E5D5200F8184F /* GroupInviteViewController.swift */,
 				EA1CEF5D2617964C00BC0C79 /* GroupInvitePreviewViewController.swift */,
 				EAB533C926265ED700943FDC /* GroupBackgroundViewController.swift */,
+				EA96D5B526689A0400F85731 /* GroupInviteQRViewController.swift */,
 			);
 			path = Actions;
 			sourceTree = "<group>";
@@ -2068,6 +2071,7 @@
 				EAD476F42458F03700EF8591 /* ChatThread+CoreDataClass.swift in Sources */,
 				6AC68EF726399BAE0073CBE9 /* ServerStrings.swift in Sources */,
 				76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */,
+				EA96D5B626689A0400F85731 /* GroupInviteQRViewController.swift in Sources */,
 				68CD603425E463FA0056D13E /* ConnectionBanner.swift in Sources */,
 				68B47B02260DBAD000D675FC /* InviteContactsManager.swift in Sources */,
 				68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */,
