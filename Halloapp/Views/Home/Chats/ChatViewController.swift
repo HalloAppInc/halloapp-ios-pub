@@ -907,6 +907,7 @@ extension ChatViewController {
         }
         
         action.backgroundColor = .systemBlue
+        action.image = UIImage(systemName: "arrowshape.turn.up.left.fill")
         
         let configuration = UISwipeActionsConfiguration(actions: [action])
 
