@@ -942,7 +942,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
             return
         }
 
-        let videoSize = avPlayerViewController.videoBounds.integral.size
+        let videoSize = avPlayerViewController.videoBounds.size
         let cellAspectRatio = contentView.bounds.width / contentView.bounds.height
         let videoAspectRatio = videoSize.width / videoSize.height
 
@@ -959,10 +959,14 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
             rect.size.height = ceil(rect.width / videoAspectRatio)
             rect.origin.y = (contentView.bounds.height - rect.height) / 2
         }
-        setPlayerView(frame: rect)
+        setPlayerView(frame: rect.integral)
     }
 
     private func setPlayerView(frame: CGRect) {
+        guard avPlayerViewController.view.frame != frame else {
+            DDLogInfo("MediaCarouselView/setPlayerViewFrame/skipping [equal]")
+            return
+        }
         avPlayerViewController.view.frame = frame
 
         let maskLayer = CAShapeLayer()
