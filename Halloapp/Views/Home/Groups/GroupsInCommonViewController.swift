@@ -43,11 +43,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         return searchController.searchBar.text?.isEmpty ?? true
     }
     private var isFiltering: Bool {
-        if searchController.isActive {
-            navigationItem.rightBarButtonItem = nil
-        } else {
-            navigationItem.rightBarButtonItem = rightBarButtonItem
-        }
         return searchController.isActive && !isSearchBarEmpty
     }
     private var groupIdToPresent: GroupID? = nil
@@ -59,21 +54,17 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
         
         commonChats = allChats.filter {
-            var flag = false
             var groupIdStr: GroupID? = nil
             if $0.type == .group {
                 groupIdStr = $0.groupId
             } else {
                 groupIdStr = MainAppContext.shared.contactStore.fullName(for: $0.chatWithUserId ?? "")
             }
-            //fix: compare id but not name
             guard let Id = groupIdStr else { return false }
             let group = MainAppContext.shared.chatData.chatGroup(groupId: Id)
             let members = group!.members
-            let fromName = MainAppContext.shared.contactStore.fullName(for: self.fromID!)
             for i in members!{
-                let name = MainAppContext.shared.contactStore.fullName(for: i.userId)
-                if (name == fromName) {
+                if (i.userId == self.fromID) {
                     return true
                 }
             }
@@ -86,7 +77,9 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     
     init(title: String) {
         super.init(nibName: nil, bundle: nil)
-        self.title = title
+        var selfname: String
+        selfname = MainAppContext.shared.contactStore.fullName(for: title)
+        self.title = "With " + selfname
         self.fromID = title
 
     }
@@ -100,7 +93,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         installLargeTitleUsingGothamFont()
 
-        navigationItem.rightBarButtonItem = rightBarButtonItem
+        //navigationItem.rightBarButtonItem = rightBarButtonItem
         
         definesPresentationContext = true
         
@@ -135,14 +128,11 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         tableView.tableHeaderView = searchController.searchBar
         tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
         
-
-        
         setupFetchedResultsController()
         
         //add filter
         updateCommonGroups()
 
-                
         // When the user was on this view
         cancellableSet.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
@@ -474,12 +464,6 @@ extension GroupsInCommonViewController: UITableViewDelegate, UITableViewDataSour
         } else {
             return nil
         }
-        """
-        guard let fetchedObjects = fetchedResultsController?.fetchedObjects, indexPath.row < fetchedObjects.count else {
-            return nil
-        }
-        return fetchedObjects[indexPath.row]
-        """
     }
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -651,7 +635,7 @@ class GroupsInCommonHeaderView: UITableViewHeaderFooterView {
     private func setup() {
         preservesSuperviewLayoutMargins = true
 
-        vStack.addArrangedSubview(createGroupLabel)
+        vStack.addArrangedSubview(groupCommonLabel)
         addSubview(vStack)
 
         vStack.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 20)
@@ -665,17 +649,13 @@ class GroupsInCommonHeaderView: UITableViewHeaderFooterView {
         vStackBottomConstraint.isActive = true
     }
     
-    private lazy var createGroupLabel: UILabel = {
+    private lazy var groupCommonLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 17)
-        label.textColor = .systemBlue
-        label.textAlignment = .right
-        label.text = Localizations.chatCreateNewGroup
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.openNewGroupView(_:)))
-        label.isUserInteractionEnabled = true
-        label.addGestureRecognizer(tapGesture)
-
+        label.textColor = .systemGray
+        label.textAlignment = .left
+        //fix:localization
+        label.text = "Groups In Common"
         return label
     }()
 
