@@ -664,6 +664,8 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
 
     private var placeholderImageView: UIImageView!
     private(set) var videoURL: URL?
+    private var videoSize: CGSize?
+
     private var avPlayerViewController: AVPlayerViewController!
     private var playButton: UIButton!
     private var initialPlaybackTime: CMTime = .zero
@@ -800,6 +802,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         super.configure(with: media)
 
         avPlayerViewController.videoGravity = .resizeAspect
+        videoSize = media.size
 
         if media.isMediaAvailable {
             showPlayer(forVideoURL: media.fileURL!)
@@ -936,30 +939,20 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func updatePlayerViewFrame() {
-        // Video takes entire cell content.
-        if avPlayerViewController.videoBounds.size == .zero || avPlayerViewController.videoGravity == .resizeAspectFill {
+        guard let videoSize = videoSize, videoSize.height > 0 && videoSize.width > 0 && avPlayerViewController.videoGravity != .resizeAspectFill else
+        {
+            // Video takes entire cell content.
             setPlayerView(frame: contentView.bounds)
             return
         }
+        let contentSize = contentView.bounds.size
+        let videoScale = min(contentSize.height/videoSize.height, contentSize.width/videoSize.width)
+        let playerSize = videoSize.applying(.init(scaleX: videoScale, y: videoScale))
+        let playerFrame = CGRect(
+            origin: CGPoint(x: (contentSize.width - playerSize.width) / 2, y: (contentSize.height - playerSize.height) / 2),
+            size: playerSize)
 
-        let videoSize = avPlayerViewController.videoBounds.size
-        let cellAspectRatio = contentView.bounds.width / contentView.bounds.height
-        let videoAspectRatio = videoSize.width / videoSize.height
-
-        // Stop updating frame if desired size was reached.
-        guard abs(cellAspectRatio - videoAspectRatio) > 0.01 else {
-            return
-        }
-
-        var rect = contentView.bounds
-        if cellAspectRatio > videoAspectRatio {
-            rect.size.width = ceil(rect.height * videoAspectRatio)
-            rect.origin.x = (contentView.bounds.width - rect.width) / 2
-        } else {
-            rect.size.height = ceil(rect.width / videoAspectRatio)
-            rect.origin.y = (contentView.bounds.height - rect.height) / 2
-        }
-        setPlayerView(frame: rect.integral)
+        setPlayerView(frame: playerFrame)
     }
 
     private func setPlayerView(frame: CGRect) {
