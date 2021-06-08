@@ -90,9 +90,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
 
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
-        //installLargeTitleUsingGothamFont()
-
-        //navigationItem.rightBarButtonItem = rightBarButtonItem
         
         definesPresentationContext = true
         
@@ -487,8 +484,6 @@ extension GroupsInCommonViewController: UITableViewDelegate, UITableViewDataSour
         }
         
         return commonChats.count
-        //guard let sections = fetchedResultsController?.sections else { return 0 }
-        //return sections[section].numberOfObjects + 1
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -577,7 +572,6 @@ extension GroupsInCommonViewController: UISearchBarDelegate {
 extension GroupsInCommonViewController: UISearchResultsUpdating {
     
     func updateSearchResults(for searchController: UISearchController) {
-        //guard let allChats = fetchedResultsController?.fetchedObjects else { return }
         let allChats = commonChats
         guard let searchBarText = searchController.searchBar.text else { return }
     
