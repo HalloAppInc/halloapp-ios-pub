@@ -52,7 +52,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     
     func updateCommonGroups() {
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
-        
         commonChats = allChats.filter {
             var groupIdStr: GroupID? = nil
             if $0.type == .group {
@@ -91,7 +90,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
 
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
-        installLargeTitleUsingGothamFont()
+        //installLargeTitleUsingGothamFont()
 
         //navigationItem.rightBarButtonItem = rightBarButtonItem
         
@@ -578,7 +577,8 @@ extension GroupsInCommonViewController: UISearchBarDelegate {
 extension GroupsInCommonViewController: UISearchResultsUpdating {
     
     func updateSearchResults(for searchController: UISearchController) {
-        guard let allChats = fetchedResultsController?.fetchedObjects else { return }
+        //guard let allChats = fetchedResultsController?.fetchedObjects else { return }
+        let allChats = commonChats
         guard let searchBarText = searchController.searchBar.text else { return }
     
         let strippedString = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces)
@@ -654,7 +654,6 @@ class GroupsInCommonHeaderView: UITableViewHeaderFooterView {
         label.font = UIFont.systemFont(ofSize: 17)
         label.textColor = .systemGray
         label.textAlignment = .left
-        //fix:localization
         label.text = "Groups In Common"
         return label
     }()
@@ -676,5 +675,10 @@ private extension Localizations {
     static var groupsListRemoveMessage: String {
         NSLocalizedString("groups.list.remove.message", value: "Are you sure you want to remove this group and its content from your device?", comment: "Text shown when user is about to remove the group")
     }
+    
+    static var groupsInCommonLabel: String {
+        NSLocalizedString("groups.common", value: "Groups In Common", comment: "Label for groups in common")
+    }
+    
     
 }
