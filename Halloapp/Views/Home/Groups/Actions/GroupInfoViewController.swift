@@ -85,6 +85,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             tableHeaderView.configure(chatGroup: chatGroup)
         }
         super.viewWillAppear(animated)
+        MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
     }
 
     override func viewDidAppear(_ animated: Bool) {

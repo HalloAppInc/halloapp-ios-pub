@@ -2527,22 +2527,18 @@ extension ChatData {
     }
 
     func syncGroupIfNeeded(for groupId: GroupID) {
+        guard let group = chatGroup(groupId: groupId) else { return }
         guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil else { return }
-        guard let chatGroup = chatGroup(groupId: groupId) else { return }
-        var shouldSync = false
-    
-        if let lastSync = chatGroup.lastSync {
-            if let diff = Calendar.current.dateComponents([.hour], from: lastSync, to: Date()).hour, diff > 24 {
-                shouldSync = true
+
+        if let lastSync = group.lastSync {
+            guard let diff = Calendar.current.dateComponents([.hour], from: lastSync, to: Date()).hour, diff > 24 else {
+                return
             }
-        } else {
-            shouldSync = true
         }
-        if shouldSync {
-            MainAppContext.shared.chatData.getAndSyncGroup(groupId: groupId)
-        }
+
+        MainAppContext.shared.chatData.getAndSyncGroup(groupId: groupId)
     }
-    
+
     func syncGroup(_ xmppGroup: XMPPGroup) {
         DDLogInfo("ChatData/group/syncGroupInfo")
 
@@ -3190,12 +3186,12 @@ extension ChatData {
 
     private func processGroupModifyMembersAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
         DDLogDebug("ChatData/group/processGroupModifyMembersAction")
-        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
-        
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+
         var syncGroup = false
         for xmppGroupMember in xmppGroup.members ?? [] {
             DDLogDebug("ChatData/group/process/modifyMembers [\(xmppGroupMember.userId)]")
-            
+
             // add pushname first before recording message since user could be new
             var contactNames = [UserID:String]()
             if let name = xmppGroupMember.name, !name.isEmpty {
@@ -3204,27 +3200,24 @@ extension ChatData {
             if !contactNames.isEmpty {
                 contactStore.addPushNames(contactNames)
             }
-            
-            if xmppGroupMember.action == .remove {
+
+            switch xmppGroupMember.action {
+            case .add:
+                processGroupAddMemberAction(chatGroup: group, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+                syncGroup = true
+            case .remove:
                 deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
 
                 // if user is removed, there's no need to sync up group
                 if xmppGroupMember.userId != MainAppContext.shared.userData.userId {
                     syncGroup = true
                 }
-                
-            } else {
+            default:
                 syncGroup = true
             }
-            
-//            if xmppGroupMember.action == .add {
-//                processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
-//            } else if xmppGroupMember.action == .remove {
-//                deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
-//            }
-            
+
             recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
-            
+
             if xmppGroupMember.action == .add, xmppGroupMember.userId == MainAppContext.shared.userData.userId, xmppGroup.retryCount == 0 {
                 showGroupAddNotification(for: xmppGroup)
             }
