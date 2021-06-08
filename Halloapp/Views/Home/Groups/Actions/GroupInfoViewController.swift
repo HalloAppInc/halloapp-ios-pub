@@ -283,7 +283,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 return emptyCell
             }
             let cell = tableView.dequeueReusableCell(withIdentifier: staticContactCellReuseIdentifier, for: indexPath) as! StaticContactTableViewCell
-            if let image = UIImage(named: "AddFriend")?.withRenderingMode(.alwaysTemplate) {
+            if let image = UIImage(named: "GroupsAddMembers")?.withRenderingMode(.alwaysTemplate) {
                 cell.configure(icon: image, label: Localizations.chatGroupInfoAddMembers)
             }
             return cell

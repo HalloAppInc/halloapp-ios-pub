@@ -29,7 +29,7 @@ extension Localizations {
     }
 
     static var registrationInviteOnlyText: String {
-        NSLocalizedString("registration.invite.only", value: "We are currently invite only. If you have a friend or family member who uses HalloApp, ask them to invite you using your phone number.", comment: "Popup that appears when user tries to register uninvited number")
+        NSLocalizedString("registration.invite.only", value: "If you followed a Group Invite Link to register, please click on the link again to finish registration and join the group.", comment: "Popup that appears when user tries to register uninvited number")
     }
 
     static var registrationCodeDisclaimer: String {
