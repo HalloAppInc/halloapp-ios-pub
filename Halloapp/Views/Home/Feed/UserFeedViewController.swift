@@ -61,7 +61,7 @@ class UserFeedViewController: FeedCollectionViewController {
         installExchangeNumbersView()
 
         headerViewController = ProfileHeaderViewController()
-        if userId == MainAppContext.shared.userData.userId {
+        if isOwnFeed {
             title = Localizations.titleMyPosts
             
             headerViewController.isEditingAllowed = true
@@ -85,7 +85,7 @@ class UserFeedViewController: FeedCollectionViewController {
     }
     
     @objc func moreButtonTapped() {
-        guard userId != MainAppContext.shared.userData.userId else { return }
+        guard !isOwnFeed else { return }
         
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         
@@ -102,7 +102,7 @@ class UserFeedViewController: FeedCollectionViewController {
     }
     
     private func blockUserTapped() {
-        guard userId != MainAppContext.shared.userData.userId else { return }
+        guard !isOwnFeed else { return }
         
         let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userId))
         
@@ -142,7 +142,11 @@ class UserFeedViewController: FeedCollectionViewController {
     private func updateExchangeNumbersView(isFeedEmpty: Bool) {
         let isKnownContact = MainAppContext.shared.contactStore.contact(withUserId: userId) != nil
 
-        exchangeNumbersView.isHidden = !isFeedEmpty || isKnownContact
+        exchangeNumbersView.isHidden = !isFeedEmpty || isKnownContact || isOwnFeed
+    }
+
+    private var isOwnFeed: Bool {
+        return MainAppContext.shared.userData.userId == userId
     }
     
     // MARK: FeedCollectionViewController
