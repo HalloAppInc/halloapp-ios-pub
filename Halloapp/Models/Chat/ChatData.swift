@@ -2517,11 +2517,23 @@ extension ChatData {
     public func getAndSyncGroup(groupId: GroupID) {
         DDLogDebug("ChatData/group/getAndSyncGroupInfo/group \(groupId)")
         service.getGroupInfo(groupID: groupId) { [weak self] result in
+            guard let self = self else { return }
             switch result {
             case .success(let group):
-                self?.syncGroup(group)
+                self.syncGroup(group)
             case .failure(let error):
-                DDLogError("ChatData/group/getGroupInfo/error \(error)")
+                switch error {
+                case .serverError(let reason):
+                    switch reason {
+                    case "not_member":
+                        DDLogInfo("ChatData/group/getGroupInfo/error/not_member/removing user")
+                        self.deleteChatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId)
+                    default:
+                        DDLogError("ChatData/group/getGroupInfo/error \(error)")
+                    }
+                default:
+                    DDLogError("ChatData/group/getGroupInfo/error \(error)")
+                }
             }
         }
     }
@@ -3188,7 +3200,6 @@ extension ChatData {
         DDLogDebug("ChatData/group/processGroupModifyMembersAction")
         let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
 
-        var syncGroup = false
         for xmppGroupMember in xmppGroup.members ?? [] {
             DDLogDebug("ChatData/group/process/modifyMembers [\(xmppGroupMember.userId)]")
 
@@ -3204,16 +3215,18 @@ extension ChatData {
             switch xmppGroupMember.action {
             case .add:
                 processGroupAddMemberAction(chatGroup: group, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
-                syncGroup = true
             case .remove:
                 deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
-
-                // if user is removed, there's no need to sync up group
-                if xmppGroupMember.userId != MainAppContext.shared.userData.userId {
-                    syncGroup = true
+            case .promote:
+                if let foundMember = group.members?.first(where: { $0.userId == xmppGroupMember.userId }) {
+                    foundMember.type = .admin
+                }
+            case .demote:
+                if let foundMember = group.members?.first(where: { $0.userId == xmppGroupMember.userId }) {
+                    foundMember.type = .member
                 }
             default:
-                syncGroup = true
+                break
             }
 
             recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
@@ -3223,21 +3236,27 @@ extension ChatData {
             }
         }
 
-        if syncGroup {
-            getAndSyncGroup(groupId: xmppGroup.groupId)
-        }
+        getAndSyncGroup(groupId: xmppGroup.groupId)
     }
 
     private func processGroupChangeNameAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("ChatData/group/processGroupChangeNameAction")
-        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        group.name = xmppGroup.name
+        updateChatThread(type: .group, for: xmppGroup.groupId) { (chatThread) in
+            chatThread.title = xmppGroup.name
+        }
         recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
         getAndSyncGroup(groupId: xmppGroup.groupId)
     }
-    
+
     private func processGroupChangeAvatarAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("ChatData/group/processGroupChangeAvatarAction")
-        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        group.avatar = xmppGroup.avatarID
+        if let avatarID = xmppGroup.avatarID {
+            MainAppContext.shared.avatarStore.updateOrInsertGroupAvatar(for: group.groupId, with: avatarID)
+        }
         recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
         getAndSyncGroup(groupId: xmppGroup.groupId)
     }

@@ -277,8 +277,12 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
         if indexPath.row == 0 {
+            guard isAdmin else {
+                let emptyCell = UITableViewCell()
+                emptyCell.isHidden = true
+                return emptyCell
+            }
             let cell = tableView.dequeueReusableCell(withIdentifier: staticContactCellReuseIdentifier, for: indexPath) as! StaticContactTableViewCell
-            cell.isHidden = isAdmin ? false : true
             if let image = UIImage(named: "AddFriend")?.withRenderingMode(.alwaysTemplate) {
                 cell.configure(icon: image, label: Localizations.chatGroupInfoAddMembers)
             }
@@ -286,8 +290,12 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         }
 
         if indexPath.row == 1 {
+            guard showInviteLink else {
+                let emptyCell = UITableViewCell()
+                emptyCell.isHidden = true
+                return emptyCell
+            }
             let cell = tableView.dequeueReusableCell(withIdentifier: staticContactCellReuseIdentifier, for: indexPath) as! StaticContactTableViewCell
-            cell.isHidden = !showInviteLink
             if let image = UIImage(named: "ShareLink")?.withRenderingMode(.alwaysTemplate) {
                 cell.configure(icon: image, label: Localizations.groupInfoInviteToGroupViaLink)
             }
@@ -589,11 +597,6 @@ class GroupInfoHeaderView: UIView {
             backgroundSelectionLabel.text = Localizations.chatGroupInfoBgDefaultLabel
         } else {
             backgroundSelectionLabel.text = Localizations.chatGroupInfoBgColorLabel
-        }
-
-        if !ServerProperties.isGroupBackgroundEnabled {
-            backgroundLabel.isHidden = true
-            backgroundLabelRow.isHidden = true
         }
     }
 
