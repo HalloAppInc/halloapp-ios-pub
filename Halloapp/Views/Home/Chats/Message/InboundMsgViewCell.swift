@@ -407,7 +407,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
             let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.text,
-                orderedMentions: quoted.orderedMentions)
+                mentions: quoted.orderedMentions)
             quotedTextView.attributedText = mentionText?.with(font: quotedTextView.font, color: quotedTextView.textColor)
 
             let text = quotedTextView.text ?? ""
@@ -462,7 +462,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
             if orderedMentions.count > 0 {
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(text, orderedMentions: orderedMentions)
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(text, mentions: orderedMentions)
                 textView.attributedText = mentionText?.with(font: textView.font, color: textView.textColor)
             } else {
                 textView.text = text

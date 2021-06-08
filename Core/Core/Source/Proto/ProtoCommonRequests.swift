@@ -81,7 +81,7 @@ public final class ProtoPublishPostRequest: ProtoRequest<Date> {
 
 public final class ProtoPublishCommentRequest: ProtoRequest<Date> {
 
-    public init?(comment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping Completion) {
+    public init?(comment: CommentData, groupId: GroupID?, completion: @escaping Completion) {
         guard let serverComment = comment.serverComment else {
             return nil
         }

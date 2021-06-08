@@ -185,7 +185,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
             let postText = MainAppContext.shared.contactStore.textWithMentions(
                 post.text,
-                orderedMentions: post.orderedMentions)
+                mentions: post.orderedMentions)
             // With media or > 180 chars long: System 16 pt (Body - 1)
             // Text-only under 180 chars long: System 20 pt (Body + 3)
             let postFont: UIFont = {
@@ -224,7 +224,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         if postContainsText {
             let postText = MainAppContext.shared.contactStore.textWithMentions(
                 post.text,
-                orderedMentions: post.orderedMentions)
+                mentions: post.orderedMentions)
             let postFont: UIFont = {
                 let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
                 let fontSizeDiff: CGFloat = postContainsMedia || (postText?.string ?? "").count > 180 ? -1 : 3

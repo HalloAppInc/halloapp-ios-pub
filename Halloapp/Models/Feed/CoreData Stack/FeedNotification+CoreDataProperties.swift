@@ -79,7 +79,7 @@ extension FeedNotification {
             let orderedMentions = mentions?.sorted(by: { $0.index < $1.index }) ?? []
             return MainAppContext.shared.contactStore.textWithMentions(
                 text,
-                orderedMentions: orderedMentions)
+                mentions: orderedMentions)
         }
     }
 

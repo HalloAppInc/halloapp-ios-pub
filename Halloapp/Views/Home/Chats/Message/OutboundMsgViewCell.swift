@@ -398,7 +398,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
             let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.text,
-                orderedMentions: quoted.orderedMentions)
+                mentions: quoted.orderedMentions)
             quotedTextView.attributedText = mentionText?.with(font: quotedTextView.font, color: quotedTextView.textColor)
 
             let text = quotedTextView.text ?? ""
@@ -532,7 +532,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             let textWithBlanks = text + blanks
             
             if orderedMentions.count > 0 {
-                if let mentionText = MainAppContext.shared.contactStore.textWithMentions(textWithBlanks, orderedMentions: orderedMentions) {
+                if let mentionText = MainAppContext.shared.contactStore.textWithMentions(textWithBlanks, mentions: orderedMentions) {
                     attrText.append(mentionText.with(font: font, color: color))
                 }
             } else {

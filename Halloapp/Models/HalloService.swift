@@ -38,7 +38,7 @@ protocol HalloService: CoreService {
 
     // MARK: Feed requests
     func retractPost(_ post: FeedPostProtocol, completion: @escaping ServiceRequestCompletion<Void>)
-    func retractComment(_ comment: FeedCommentProtocol, completion: @escaping ServiceRequestCompletion<Void>)
+    func retractComment(id: FeedPostCommentID, postID: FeedPostID, completion: @escaping ServiceRequestCompletion<Void>)
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Key requests

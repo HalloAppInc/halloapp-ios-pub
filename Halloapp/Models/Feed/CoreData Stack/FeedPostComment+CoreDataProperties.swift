@@ -70,19 +70,33 @@ extension FeedPostComment {
     }
 }
 
-extension FeedPostComment: FeedCommentProtocol {
-    public var feedPostId: String {
-        get { post.id }
+extension FeedPostComment {
+    public var commentData: CommentData {
+        let mentionText = self.mentionText ?? MentionText(collapsedText: "", mentions: [:])
+        return CommentData(
+            id: id,
+            userId: userId,
+            timestamp: timestamp,
+            feedPostId: post.id,
+            parentId: parent?.id,
+            content: .text(mentionText))
     }
 
-    public var parentId: String? {
-        get { parent?.id }
-    }
-
-    public var orderedMentions: [FeedMentionProtocol] {
-        get {
-            guard let mentions = self.mentions else { return [] }
-            return mentions.sorted { $0.index < $1.index }
+    public var mentionText: MentionText? {
+        guard !text.isEmpty else {
+            return nil
         }
+        guard let mentions = mentions, !mentions.isEmpty else {
+            return MentionText(collapsedText: text, mentions: [:])
+        }
+        return MentionText(
+            collapsedText: text,
+            mentions: mentionDictionary(from: Array(mentions)))
+    }
+
+    private func mentionDictionary(from mentions: [FeedMentionProtocol]) -> [Int: MentionedUser] {
+        Dictionary(uniqueKeysWithValues: mentions.map {
+            (Int($0.index), MentionedUser(userID: $0.userID, pushName: $0.name))
+        })
     }
 }

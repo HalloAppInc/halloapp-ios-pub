@@ -767,13 +767,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
                 comment.id = xmppComment.id
                 comment.userId = xmppComment.userId
-                comment.text = xmppComment.text
                 comment.parent = parentComment
                 comment.post = feedPost
 
                 switch xmppComment.content {
-                case .text:
+                case .text(let mentionText):
                     comment.status = .incoming
+                    comment.text = mentionText.collapsedText
+                    var mentions = Set<FeedMention>()
+                    for (i, user) in mentionText.mentions {
+                        let mention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
+                        mention.index = i
+                        mention.userID = user.userID
+                        mention.name = user.pushName ?? ""
+                        mentions.insert(mention)
+                    }
+                    comment.mentions = mentions
                 case .retracted:
                     DDLogError("FeedData/process-comments/incoming-retracted-comment [\(xmppComment.id)]")
                     comment.status = .retracted
@@ -782,16 +791,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     comment.rawData = data
                 }
                 comment.timestamp = xmppComment.timestamp
-
-                var mentions = Set<FeedMention>()
-                for xmppMention in xmppComment.orderedMentions {
-                    let mention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
-                    mention.index = xmppMention.index
-                    mention.userID = xmppMention.userID
-                    mention.name = xmppMention.name
-                    mentions.insert(mention)
-                }
-                comment.mentions = mentions
 
                 comments[comment.id] = comment
                 newComments.append(comment)
@@ -842,9 +841,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             case .comment(let comment, let name):
                 comments.append(comment)
-                comment.orderedMentions.forEach {
-                    guard !$0.name.isEmpty else { return }
-                    contactNames[$0.userID] = $0.name
+                switch comment.content {
+                case .text(let mentionText):
+                    for (_, user) in mentionText.mentions {
+                        guard let pushName = user.pushName, !pushName.isEmpty else { continue }
+                        contactNames[user.userID] = pushName
+                    }
+                case .retracted, .unsupported:
+                    break
                 }
                 if let name = name, !name.isEmpty {
                     contactNames[comment.userId] = name
@@ -1086,7 +1090,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         dispatchGroup.notify(queue: .main) {
             comments.filter { !commentIdsToFilterOut.contains($0.id) && self.isCommentEligibleForLocalNotification($0) }.forEach { (comment) in
-                let protobufData = try? comment.clientContainer.serializedData()
+                let protobufData = try? comment.commentData.clientContainer.serializedData()
                 let contentType: NotificationContentType = comment.post.groupId == nil ? .feedComment : .groupFeedComment
                 let metadata = NotificationMetadata(contentId: comment.id,
                                                     contentType: contentType,
@@ -1275,7 +1279,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         save(viewContext)
 
         // Request to retract.
-        service.retractComment(comment) { result in
+        service.retractComment(id: comment.id, postID: comment.post.id) { result in
             switch result {
             case .success:
                 self.processCommentRetract(commentId) {}
@@ -1772,7 +1776,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func send(comment: FeedPostComment) {
         let commentId = comment.id
         let groupId = comment.post.groupId
-        service.publishComment(comment, groupId: groupId) { result in
+        service.publishComment(comment.commentData, groupId: groupId) { result in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPostComment(with: commentId) { (feedComment) in

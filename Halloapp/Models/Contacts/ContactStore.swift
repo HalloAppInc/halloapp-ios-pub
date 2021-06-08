@@ -955,18 +955,17 @@ class ContactStoreMain: ContactStore {
     }
 
     /// Returns an attributed string where mention placeholders have been replaced with contact names. User IDs are retrievable via the .userMention attribute.
-    func textWithMentions(_ collapsedText: String?, orderedMentions: [FeedMentionProtocol]) -> NSAttributedString? {
+    func textWithMentions(_ collapsedText: String?, mentions: [FeedMentionProtocol]) -> NSAttributedString? {
         guard let collapsedText = collapsedText else { return nil }
 
         let mentionText = MentionText(
             collapsedText: collapsedText,
-            mentions: mentionDictionary(from: orderedMentions))
+            mentions: mentionDictionary(from: mentions))
 
         return mentionText.expandedText { userID in
-            self.mentionName(for: userID, pushName: orderedMentions.first(where: { userID == $0.userID })?.name)
+            self.mentionName(for: userID, pushName: mentions.first(where: { userID == $0.userID })?.name)
         }
     }
-
 }
 
 private func mentionDictionary(from mentions: [FeedMentionProtocol]) -> [Int: MentionedUser] {

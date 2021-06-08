@@ -210,7 +210,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         
         if let feedPostId = self.feedPostId {
             if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.text, orderedMentions: feedPost.orderedMentions)
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.text, mentions: feedPost.orderedMentions)
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
                     let mediaType: ChatMessageMediaType = mediaItem.type == .video ? .video : .image
                     let mediaUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)

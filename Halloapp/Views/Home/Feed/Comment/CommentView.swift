@@ -171,7 +171,7 @@ class CommentView: UIView {
 
         attributedText.append(NSAttributedString(string: " "))
 
-        if let commentText = MainAppContext.shared.contactStore.textWithMentions(comment.text, orderedMentions: comment.orderedMentions),
+        if let commentText = MainAppContext.shared.contactStore.textWithMentions(comment.text, mentions: Array(comment.mentions ?? Set())),
             !comment.isRetracted
         {
             attributedText.append(commentText.with(font: baseFont).applyingFontForMentions(nameFont))
@@ -367,7 +367,7 @@ class CommentsTableHeaderView: UIView {
         if let feedPostText = feedPost.text, !feedPostText.isEmpty {
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
                 feedPostText,
-                orderedMentions: feedPost.orderedMentions)
+                mentions: feedPost.orderedMentions)
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)

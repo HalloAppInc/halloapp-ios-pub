@@ -2988,7 +2988,7 @@ extension ChatData {
         }
         
         // Update Chat Thread
-        let mentionText = contactStore.textWithMentions(groupFeedPost.text, orderedMentions: groupFeedPost.orderedMentions)
+        let mentionText = contactStore.textWithMentions(groupFeedPost.text, mentions: groupFeedPost.orderedMentions)
         if let chatThread = chatThread(type: .group, id: groupID, in: managedObjectContext) {
             // extra save for fetchedcontroller to notice re-ordering changes mixed in with other changes
             chatThread.lastFeedTimestamp = groupFeedPost.timestamp
