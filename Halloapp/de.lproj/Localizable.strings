@@ -5,10 +5,10 @@
 "%@" = "%@";
 
 /* About screen: body text. */
-"about.body.1" = "HalloApp ist da! Und wir entwickeln diese App für dich und deine Liebsten. Eine Social-App, die sich wieder auf das Wesentliche besinnt und dabei gleichzeitig ein hohes Sicherheits- und Datenschutzniveau bietet, zu dem, wie wir meinen, jeder weltweit Zugriff haben sollte.\nHalloApp wird niemals deine persönlichen Daten verwenden oder dir Werbung anzeigen. Wir planen vielmehr, unseren Nutzern in Zukunft zusätzliche Funktionen zu einem günstigen Preis anzubieten.";
+"about.body.1" = "HalloApp ist da! Wir entwickeln diese App für dich und deine Liebsten. HalloApp ist eine Social-App, die sich wieder auf das Wesentliche besinnt und dabei gleichzeitig ein hohes Sicherheits- und Datenschutzniveau bietet, zu dem, wie wir meinen, jeder weltweit Zugriff haben sollte.\nHalloApp wird niemals deine persönlichen Daten verwenden oder dir Werbung anzeigen. Wir planen vielmehr, unseren Nutzern in Zukunft zusätzliche Funktionen zu einem günstigen Preis anzubieten.";
 
 /* About screen: body text. */
-"about.body.2" = "Danke fuer die Nutzung und das Teilen von HalloApp mit deinen Freunden und deiner Familie. Wir verbessern diese App wöchentlich.";
+"about.body.2" = "Danke, dass du HalloApp nutzt und mit deinen Freunden und deiner Familie teilst. Wir verbessern diese App wöchentlich.";
 
 /* About screen: footer text. Parameter is support email address. */
 "about.footer" = "Wenn du Fragen oder Feedback hast sende uns eine E-Mail an %@";
@@ -273,7 +273,7 @@
 "comments.post.loading.failed" = "Beim Laden dieses Beitrags ist ein Fehler aufgetreten. Bitte versuche es später noch einmal.";
 
 /* Alert message in composer when a video is too long */
-"composer.max.video.length.message" = "Bitte wähle ein anderes Video aus oder tippe auf Bearbeiten.";
+"composer.max.video.length.message" = "Bitte wähle ein anderes Video aus oder tippe auf bearbeiten.";
 
 /* Alert title in composer when a video is too long */
 "composer.max.video.length.title" = "Das Video ist länger als %.0f Sekunden";
@@ -318,7 +318,7 @@
 "contacts.permission.tutorial.title" = "Wie man den Zugriff auf Kontakte erlaubt";
 
 /* Text to show on profile for users you are not connected with */
-"exchange.phone.numbers.to.connect" = "Um euch zu verbinden müsst ihr eure Telefonnummern austauschen";
+"exchange.phone.numbers.to.connect" = "Um den Kontakt herzustellen, müsst ihr eure Handynummern austauschen";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Kamera";
@@ -384,7 +384,7 @@
 "feed.privacy.descr.all" = "Mit allen Kontakten teilen";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Mit allen Kontakten, außer der von dir Ausgewählten, teilen";
+"feed.privacy.descr.except" = "Mit Kontakten teilen außer Ausgewählten";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Nur mit ausgewählten Kontakten teilen";
@@ -486,13 +486,13 @@
 "group.invite.share.link" = "Link teilen";
 
 /* Text shown before the sharing link */
-"group.invite.share.link.message" = "Um meiner HalloApp-Gruppe beizutreten klicke diesen Link: ";
+"group.invite.share.link.message" = "Über diesen Link kannst du meiner HalloApp-Gruppe beitreten: ";
 
 /* Title of group invite screen */
 "group.invite.title" = "Gruppeneinladungslink";
 
 /* Text for alert box when the user can't join the group via group link when the group is full */
-"group.preview.join.error.group.full" = "Die Gruppe hat die max. Teilnehmeranzahl erreicht";
+"group.preview.join.error.group.full" = "Die Gruppe hat die maximale Teilnehmeranzahl erreicht";
 
 /* Text for alert box when the user can't join the group via group link when link is invalid */
 "group.preview.join.error.invalid.link" = "Der Link ist ungültig";
@@ -513,7 +513,7 @@
 "groups.list.remove.message" = "Möchtest du wirklich diese Gruppe und ihren Inhalt von deinem Gerät entfernen?";
 
 /* Text shown in the email body when sending logs from the help screen */
-"help.send.logs.email.body" = "\n\nBitte im Feld oben Feedback oder eine Problembeschreibung eingeben.\n\nVersion %1$@ - %2$@\n%3$@";
+"help.send.logs.email.body" = "\n\nBitte oberhalb dein Feedback oder eine Problembeschreibung eingeben.\n\nVersion %1$@ - %2$@\n%3$@";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Beenden";
@@ -682,7 +682,7 @@
 "nux.chat.empty" = "Deine Kontakte & Nachrichten erscheinen hier";
 
 /* Text for new user popup pointing at chat list */
-"nux.chat.list" = "Hier findest du Nachrichten von deinen Freunden & deiner Familie. Du siehst hier auch wenn sich jemand neu bei HalloApp angemeldet hat.";
+"nux.chat.list" = "Hier findest du Nachrichten von deinen Freunden und deiner Familie. Du siehst hier auch wenn sich jemand neu bei HalloApp angemeldet hat.";
 
 /* Shown on groups list when there are no groups to display */
 "nux.groups.list.empty" = "Deine Gruppen erscheinen hier";
@@ -691,7 +691,7 @@
 "nux.home.feed.empty" = "Hier werden Beiträge deiner Kontakte angezeigt";
 
 /* Text for new user popup pointing at new post button */
-"nux.new.post.button" = "Tippe hier, um ein Update mit deinen Freunden & deiner Familie auf HalloApp zu teilen";
+"nux.new.post.button" = "Tippe hier, um ein Update mit deinen Freunden und deiner Familie auf HalloApp zu teilen";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Bitte lasse den Zugriff über die Einstellungen zu";
@@ -803,22 +803,22 @@
 "registration.code.resend.by.voice" = "Ruf mich an";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Um den Kontakt zu deinen Freunden & deiner Familie herzustellen benötigen wir deine Erlaubnis, um auf deine Kontakte zugreifen zu können.";
+"registration.contacts.content" = "Um den Kontakt zu deinen Freunden und deiner Familie herzustellen, benötigen wir deine Erlaubnis, um auf deine Kontakte zugreifen zu können.";
 
 /* Title for text explaining why we need contact permissions */
 "registration.contacts.title" = "Noch ein Hinweis";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Nutzung momentan nur auf Einladungs-Basis. Bitte deine Freude oder Familienmitglieder, die HalloApp nutzen, dich über deine Telefonnummer einzuladen.";
+"registration.invite.only" = "Die Nutzung ist derzeit nur über Einladung möglich.  Bitte deine Freude oder Familienmitglieder, die auf HalloApp sind, dich über deine Handynummer einzuladen.";
 
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "Name";
 
 /* Placeholder text for phone entry */
-"registration.phoneEntry.placeholder" = "Telefonnummer";
+"registration.phoneEntry.placeholder" = "Handynummer";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "Um den Kontakt mit deinen Freunden auf HalloApp herzustellen verwendet HalloApp nur das Feld für die Telefonnummer und wird keine weiteren Daten aus deinen Kontakten übermitteln.";
+"registration.privacy.content" = "Um den Kontakt mit deinen Freunden auf HalloApp herzustellen, verwendet HalloApp nur das Feld für die Handynummer und wird keine weiteren Daten aus deinen Kontakten übermitteln.";
 
 /* Title for modal describing how we use contacts data */
 "registration.privacy.title" = "Deine Privatsphäre ist unsere höchste Priorität";
@@ -830,7 +830,7 @@
 "registration.welcome" = "Willkommen!";
 
 /* Instructions for how to use the safety number verification UI */
-"safety.number.instructions" = "Um zu verifizieren ob die Verbindung mit %@ sicher ist, prüfe ob die obige Nummer mit der auf dem Gerät angezeigten übereinstimmt oder scanne den QR-Code auf dem Telefon.";
+"safety.number.instructions" = "Um die Sicherheit deiner Verbindung mit %@ zu verifizieren, prüfe bitte, ob die obige Nummer mit der auf dem Gerät angezeigten übereinstimmt oder scanne den QR-Code auf dem Handy.";
 
 /* Message to show when safety number cannot be succesfully verified */
 "safety.number.not.verified" = "Sicherheitsnummer für %@ kann nicht verifiziert werden";
@@ -905,7 +905,7 @@
 "textlabel.context.menu.copy.link" = "Link kopieren";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
-"textlabel.context.menu.copy.phone.number" = "Telefonnummer kopieren";
+"textlabel.context.menu.copy.phone.number" = "Handynummer kopieren";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.open.link" = "Link öffnen";
