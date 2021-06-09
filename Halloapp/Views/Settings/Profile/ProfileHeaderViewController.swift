@@ -123,7 +123,7 @@ final class ProfileHeaderViewController: UIViewController {
     @objc private func openGroupCommonview() {
         guard let userID = headerView.userID else { return }
 
-        navigationController?.pushViewController(GroupsInCommonViewController(title: userID), animated: true)
+        navigationController?.pushViewController(GroupsInCommonViewController(userID: userID), animated: true)
     }
     
     private func presentPhotoPicker() {

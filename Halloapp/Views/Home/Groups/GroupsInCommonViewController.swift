@@ -15,15 +15,9 @@ import UIKit
 
 fileprivate struct Constants {
     static let AvatarSize: CGFloat = 56
-    static let LastMsgFont = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .footnote).pointSize + 1) // 14
-    static let LastMsgColor = UIColor.secondaryLabel
 }
 
-fileprivate enum ChatListViewSection {
-    case main
-}
-
-class GroupsInCommonViewController: UIViewController, NSFetchedResultsControllerDelegate {
+class GroupsInCommonViewController: UIViewController, NSFetchedResultsControllerDelegate, GroupsInCommonHeaderViewDelegate {
 
     private static let cellReuseIdentifier = "ThreadListCell"
     private static let inviteFriendsReuseIdentifier = "GroupsListInviteFriendsCell"
@@ -57,13 +51,13 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
             if $0.type == .group {
                 groupIdStr = $0.groupId
             } else {
-                groupIdStr = MainAppContext.shared.contactStore.fullName(for: $0.chatWithUserId ?? "")
+                return false
             }
             guard let Id = groupIdStr else { return false }
             let group = MainAppContext.shared.chatData.chatGroup(groupId: Id)
-            let members = group!.members
-            for i in members!{
-                if (i.userId == self.fromID) {
+            guard let members = group?.members else { return false}
+            for member in members {
+                if (member.userId == self.fromID) {
                     return true
                 }
             }
@@ -74,12 +68,11 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         
     // MARK: Lifecycle
     
-    init(title: String) {
+    init(userID: String) {
         super.init(nibName: nil, bundle: nil)
-        var selfname: String
-        selfname = MainAppContext.shared.contactStore.fullName(for: title)
-        self.title = "With " + selfname
-        self.fromID = title
+        let fromName = MainAppContext.shared.contactStore.fullName(for: userID)
+        self.title = String(format: "With %@", fromName)
+        self.fromID = userID
 
     }
 
@@ -128,41 +121,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         
         //add filter
         updateCommonGroups()
-
-        // When the user was on this view
-        cancellableSet.insert(
-            MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
-                guard let self = self else { return }
-                self.processNotification(metadata: metadata)
-            }
-        )
-        cancellableSet.insert(
-            MainAppContext.shared.chatData.didGetAGroupEvent.sink { [weak self] (groupId) in
-                guard let self = self else { return }
-                DispatchQueue.main.async {
-                    if self.groupIdToPresent == groupId {
-                        DDLogDebug("GroupsInCommonViewController/presentGroup \(groupId)")
-                        self.openFeed(forGroupId: groupId)
-                        self.groupIdToPresent = nil
-                    }
-                }
-        })
-
-        // When the user was not on this view, and HomeView sends user to here
-        if let metadata = NotificationMetadata.fromUserDefaults() {
-            processNotification(metadata: metadata)
-        }
-
-        cancellableSet.insert(
-            MainAppContext.shared.groupFeedFromGroupTabPresentRequest.sink { [weak self] (groupID) in
-                guard let self = self else { return }
-                guard let groupID = groupID else { return }
-                self.navigationController?.popToRootViewController(animated: false)
-                let vc = GroupFeedViewController(groupId: groupID)
-                vc.delegate = self
-                self.navigationController?.pushViewController(vc, animated: false)
-            }
-        )
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -173,7 +131,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         isVisible = true
-//        showNUXIfNecessary()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -181,12 +138,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         super.viewWillDisappear(animated)
         isVisible = false
     }
-
-    private lazy var rightBarButtonItem: UIBarButtonItem = {
-        let image = UIImage(named: "NavCreateGroup", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
-        let button = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openNewGroupAction))
-        return button
-    }()
 
     // MARK: NUX
 
@@ -197,13 +148,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         overlayContainer.constrain(to: view)
         return overlayContainer
     }()
-
-    private func showNUXIfNecessary() {
-        if MainAppContext.shared.nux.isIncomplete(.chatListIntro) {
-            let popover = NUXPopover(Localizations.nuxChatIntroContent) { MainAppContext.shared.nux.didComplete(.chatListIntro) }
-            overlayContainer.display(popover)
-        }
-    }
 
     private lazy var emptyView: UIView = {
         let image = UIImage(named: "ChatEmpty")?.withRenderingMode(.alwaysTemplate)
@@ -237,16 +181,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     private func updateEmptyView() {
         let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
         emptyView.alpha = isEmpty ? 1 : 0
-    }
-
-    // MARK: Invite friends
-
-    @objc
-    private func startInviteFriendsFlow() {
-        InviteManager.shared.requestInvitesIfNecessary()
-        let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
-        let navController = UINavigationController(rootViewController: inviteVC)
-        present(navController, animated: true)
     }
     
     // MARK: Fetched Results Controller
@@ -405,8 +339,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         default:
             break
         }
-        
-//        metadata.removeFromUserDefaults()
     }
 
     private func openFeed(forGroupId groupId: GroupID) {
@@ -436,13 +368,6 @@ extension GroupsInCommonViewController: FeedCollectionViewControllerDelegate {
         DispatchQueue.main.async {
             self.scrollToTop(animated: false)
         }
-    }
-}
-
-// MARK: Table Header Delegate
-extension GroupsInCommonViewController: GroupsInCommonHeaderViewDelegate {
-    func groupsInCommonHeaderView(_ groupsInCommonHeaderView: GroupsInCommonHeaderView) {
-        openNewGroup()
     }
 }
 
@@ -517,41 +442,6 @@ extension GroupsInCommonViewController: UITableViewDelegate, UITableViewDataSour
         tableView.deselectRow(at: indexPath, animated: true)
     }
 
-    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        guard let chatThread = self.chatThread(at: indexPath) else { return UISwipeActionsConfiguration(actions: []) }
-        guard let groupId = chatThread.groupId else { return UISwipeActionsConfiguration(actions: []) }
-        
-        let moreInfoAction = UIContextualAction(style: .normal, title: "") { [weak self] (_, _, completionHandler) in
-            guard let self = self else { return }
-            let vc = GroupInfoViewController(for: groupId)
-            self.navigationController?.pushViewController(vc, animated: true)
-            completionHandler(true)
-        }
-        moreInfoAction.backgroundColor = .primaryBlue
-        moreInfoAction.image = UIImage(systemName: "ellipsis")
-
-        let removeAction = UIContextualAction(style: .destructive, title: Localizations.buttonRemove) { [weak self] (_, _, completionHandler) in
-            guard let self = self else { return }
-            let actionSheet = UIAlertController(title: chatThread.title, message: Localizations.groupsListRemoveMessage, preferredStyle: .actionSheet)
-            actionSheet.addAction(UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { [weak self] action in
-                guard let self = self else { return }
-                MainAppContext.shared.chatData.deleteChatGroup(groupId: groupId)
-                if self.isFiltering {
-                    self.filteredChats.remove(at: indexPath.row)
-                }
-            })
-            actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-            self.present(actionSheet, animated: true)
-            completionHandler(true)
-        }
-
-        if MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil {
-            return UISwipeActionsConfiguration(actions: [moreInfoAction])
-        } else {
-            return UISwipeActionsConfiguration(actions: [removeAction])
-        }
-    }
-
     // resign keyboard so the entire tableview can be seen
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         searchController.searchBar.resignFirstResponder()
@@ -613,7 +503,6 @@ extension GroupsInCommonViewController: NewGroupMembersViewControllerDelegate {
 }
 
 protocol GroupsInCommonHeaderViewDelegate: AnyObject {
-    func groupsInCommonHeaderView(_ groupsInCommonHeaderView: GroupsInCommonHeaderView)
 }
 
 class GroupsInCommonHeaderView: UITableViewHeaderFooterView {
@@ -648,7 +537,7 @@ class GroupsInCommonHeaderView: UITableViewHeaderFooterView {
         label.font = UIFont.systemFont(ofSize: 17)
         label.textColor = .systemGray
         label.textAlignment = .left
-        label.text = "Groups In Common"
+        label.text = Localizations.groupsInCommonLabel
         return label
     }()
 
@@ -659,20 +548,15 @@ class GroupsInCommonHeaderView: UITableViewHeaderFooterView {
         return view
     }()
 
-    @objc func openNewGroupView (_ sender: UITapGestureRecognizer) {
-        self.delegate?.groupsInCommonHeaderView(self)
-    }
 }
 
 private extension Localizations {
-
-    static var groupsListRemoveMessage: String {
-        NSLocalizedString("groups.list.remove.message", value: "Are you sure you want to remove this group and its content from your device?", comment: "Text shown when user is about to remove the group")
-    }
     
     static var groupsInCommonLabel: String {
-        NSLocalizedString("groups.common", value: "Groups In Common", comment: "Label for groups in common")
+        NSLocalizedString("groups.common", value: "Groups In Common", comment: "A label to show that the groups below are groups in common")
     }
-    
+    static var WithPersonLabel: String {
+        NSLocalizedString("groups.title", value: "With %@", comment: "A label on the header to indicate which person I have groups in common with")
+    }
     
 }
