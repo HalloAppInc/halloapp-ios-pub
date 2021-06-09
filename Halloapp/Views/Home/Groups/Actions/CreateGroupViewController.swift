@@ -188,7 +188,7 @@ class CreateGroupViewController: UIViewController {
         label.textAlignment = .left
         label.textColor = .secondaryLabel
         label.font = UIFont.preferredFont(forTextStyle: .caption1)
-        label.text = "GROUP NAME"
+        label.text = Localizations.chatGroupNameLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         
         return label
@@ -252,7 +252,7 @@ class CreateGroupViewController: UIViewController {
         
         label.font = UIFont.preferredFont(forTextStyle: .caption1)
         label.textColor = .secondaryLabel
-        label.text = "MEMBERS (\(String(selectedMembers.count)))"
+        label.text = Localizations.chatGroupMembersLabel + " (\(String(selectedMembers.count)))"
       
         label.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
       
