@@ -3460,7 +3460,11 @@ extension ChatData: HalloChatDelegate {
 
     func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?) {
         DDLogDebug("ChatData/didReceiveMessageReceipt [\(receipt.itemId)] \(receipt)")
-        guard receipt.thread == .none else { return }
+        guard receipt.thread == .none else {
+            DDLogError("ChatData/didReceiveMessageReceipt/error [unexpected-thread] [\(receipt.thread)]")
+            ack?()
+            return
+        }
         processInboundOneToOneMessageReceipt(with: receipt)
         ack?()
     }
