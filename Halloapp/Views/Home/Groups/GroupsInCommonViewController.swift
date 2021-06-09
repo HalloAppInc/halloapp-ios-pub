@@ -17,7 +17,7 @@ fileprivate struct Constants {
     static let AvatarSize: CGFloat = 56
 }
 
-class GroupsInCommonViewController: UIViewController, NSFetchedResultsControllerDelegate, GroupsInCommonHeaderViewDelegate {
+class GroupsInCommonViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private static let cellReuseIdentifier = "ThreadListCell"
     private static let inviteFriendsReuseIdentifier = "GroupsListInviteFriendsCell"
@@ -26,7 +26,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
     
     private var isVisible: Bool = false
-    private var cancellableSet: Set<AnyCancellable> = []
     
     private var filteredChats: [ChatThread] = []
     private var searchController: UISearchController!
@@ -42,7 +41,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     private var groupIdToPresent: GroupID? = nil
     
     private var fromID : String?
-    
     
     func updateCommonGroups() {
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
@@ -61,7 +59,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
                     return true
                 }
             }
-            
             return false
         }
     }
@@ -286,12 +283,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
 
         updateEmptyView()
     }
-    
-    // MARK: Actions
-    
-    @objc private func openNewGroupAction() {
-        openNewGroup()
-    }
 
     // MARK: Helpers
     
@@ -346,12 +337,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         vc.delegate = self
         navigationController?.pushViewController(vc, animated: true)
     }
-
-    private func openNewGroup() {
-        let viewController = NewGroupMembersViewController(currentMembers: [])
-        viewController.delegate = self
-        present(UINavigationController(rootViewController: viewController), animated: true)
-    }
 }
 
 extension GroupsInCommonViewController: UIViewControllerScrollsToTop {
@@ -389,7 +374,6 @@ extension GroupsInCommonViewController: UITableViewDelegate, UITableViewDataSour
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let view = tableView.dequeueReusableHeaderFooterView(withIdentifier: "sectionHeader2") as! GroupsInCommonHeaderView
-        view.delegate = self
         return view
     }
     
@@ -492,21 +476,7 @@ extension GroupsInCommonViewController: UISearchResultsUpdating {
     }
 }
 
-extension GroupsInCommonViewController: NewGroupMembersViewControllerDelegate {
-    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, selected: [UserID]) {}
-    
-    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, didCreateGroup: GroupID) {
-        let vc = GroupFeedViewController(groupId: didCreateGroup)
-        vc.delegate = self
-        navigationController?.pushViewController(vc, animated: true)
-    }
-}
-
-protocol GroupsInCommonHeaderViewDelegate: AnyObject {
-}
-
 class GroupsInCommonHeaderView: UITableViewHeaderFooterView {
-    weak var delegate: GroupsInCommonHeaderViewDelegate?
     
     override init(reuseIdentifier: String?) {
         super.init(reuseIdentifier: reuseIdentifier)
