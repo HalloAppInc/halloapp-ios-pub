@@ -17,12 +17,15 @@ fileprivate struct Constants {
 
 class GroupInvitePreviewViewController: UIViewController {
 
-    private var inviteLink: String
+    private var groupInviteLink: Server_GroupInviteLink
+    private var inviteToken: String
 
-    private var groupID: GroupID? = nil
+    private var groupID: GroupID
 
-    init(for inviteLink: String) {
-        self.inviteLink = inviteLink
+    init(inviteToken: String, groupInviteLink: Server_GroupInviteLink) {
+        self.inviteToken = inviteToken
+        self.groupInviteLink = groupInviteLink
+        self.groupID = groupInviteLink.group.gid
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -42,37 +45,18 @@ class GroupInvitePreviewViewController: UIViewController {
         mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
-        MainAppContext.shared.chatData.getGroupPreviewWithLink(inviteLink: inviteLink) { [weak self] result in
-            guard let self = self else { return }
-
-            switch result {
-            case .success(let groupInviteLink):
-                self.groupID = groupInviteLink.group.gid
-                var numMembers: Int = 0
-                groupInviteLink.group.members.forEach {
-                    let userID = String($0.uid)
-                    if userID != MainAppContext.shared.userData.userId {
-                        numMembers += 1
-                        self.groupMemberAvatars.insert(with: [userID])
-                    }
-                }
-                DispatchQueue.main.async {
-                    guard let groupID = self.groupID else { return }
-                    self.groupAvatarView.configure(groupId: groupID, squareSize: Constants.AvatarSize, using: MainAppContext.shared.avatarStore)
-                    self.groupNameLabel.text = groupInviteLink.group.name
-                    self.numMembersLabel.text = "\(numMembers) Members"
-                }
-            case .failure(let error):
-                DDLogDebug("GroupInviteViewController/getGroupInviteLink/error \(error)")
-
-                let alert = UIAlertController( title: nil, message: Localizations.groupPreviewGetInfoErrorInvalidLink, preferredStyle: .alert)
-                alert.addAction(.init(title: Localizations.buttonOK, style: .default, handler: { _ in
-                    self.dismiss(animated: true)
-                }))
-                self.present(alert, animated: true, completion: nil)
-
-            }
+        groupInviteLink.group.members.forEach {
+            let userID = String($0.uid)
+            groupMemberAvatars.insert(with: [userID])
         }
+
+        groupAvatarView.configure(groupId: groupID, squareSize: Constants.AvatarSize, using: MainAppContext.shared.avatarStore)
+        let avatarID = groupInviteLink.group.avatarID
+        MainAppContext.shared.avatarStore.updateOrInsertGroupAvatar(for: groupID, with: avatarID)
+
+        groupNameLabel.text = groupInviteLink.group.name
+        let numGroupMembers = groupInviteLink.group.members.count
+        numMembersLabel.text = "\(numGroupMembers) \(Localizations.groupPreviewMembers)"
     }
 
     private lazy var mainView: UIStackView = {
@@ -219,22 +203,21 @@ class GroupInvitePreviewViewController: UIViewController {
 
     @objc func joinAction(_ sender: UIView) {
 
-        MainAppContext.shared.chatData.joinGroupWithLink(inviteLink: inviteLink) { [weak self] result in
+        MainAppContext.shared.chatData.joinGroupWithLink(inviteLink: inviteToken) { [weak self] result in
             guard let self = self else { return }
-            guard let groupID = self.groupID else { return }
 
             switch result {
             case .success(let groupInviteLink):
                 guard groupInviteLink.hasGroup else { break }
                 self.dismiss(animated: true) {
-                    MainAppContext.shared.groupFeedFromGroupTabPresentRequest.send(groupID)
+                    MainAppContext.shared.groupFeedFromGroupTabPresentRequest.send(self.groupID)
                 }
             case .failure(let error):
                 switch error {
                 case .serverError(let reason):
                     if reason == "already_member" {
                         self.dismiss(animated: true) {
-                            MainAppContext.shared.groupFeedFromGroupTabPresentRequest.send(groupID)
+                            MainAppContext.shared.groupFeedFromGroupTabPresentRequest.send(self.groupID)
                         }
                     } else {
                         DDLogDebug("GroupInviteViewController/joinGroupWithLink/error \(error)")
@@ -268,6 +251,10 @@ private extension Localizations {
 
     static var groupPreviewGetInfoErrorInvalidLink: String {
         NSLocalizedString("group.preview.get.info.error.invalid.link", value: "The group invite link is invalid", comment: "Text for alert box when the user clicks on an invalid group invite link")
+    }
+
+    static var groupPreviewMembers: String {
+        NSLocalizedString("group.preview.members", value: "Members", comment: "Label for the number of members in the group")
     }
 
     static var groupPreviewJoinGroup: String {

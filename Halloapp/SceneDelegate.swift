@@ -177,9 +177,9 @@ extension SceneDelegate: UIWindowSceneDelegate {
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         DDLogInfo("application/scene/openURLContexts")
         guard let url = URLContexts.first?.url else { return }
-        guard let token = ChatData.parseInviteURL(url: url) else { return }
+        guard let inviteToken = ChatData.parseInviteURL(url: url) else { return }
         DDLogInfo("application/scene/openURLContexts/url \(url)")
-        processGroupInviteToken(token)
+        processGroupInviteToken(inviteToken)
     }
 
     // handles invite url while app is either in foreground or background
@@ -187,9 +187,9 @@ extension SceneDelegate: UIWindowSceneDelegate {
         DDLogInfo("application/scene/continue")
         guard userActivity.activityType == NSUserActivityTypeBrowsingWeb else { return }
         guard let incomingURL = userActivity.webpageURL else { return }
-        guard let token = ChatData.parseInviteURL(url: incomingURL) else { return }
+        guard let inviteToken = ChatData.parseInviteURL(url: incomingURL) else { return }
         DDLogInfo("application/scene/continue/incomingURL \(incomingURL)")
-        processGroupInviteToken(token)
+        processGroupInviteToken(inviteToken)
     }
 }
 
@@ -216,8 +216,8 @@ private extension SceneDelegate {
         window?.rootViewController?.present(alert, animated: true, completion: nil)
     }
     
-    private func processGroupInviteToken(_ token: String) {
-        MainAppContext.shared.userData.groupInviteToken = token
+    private func processGroupInviteToken(_ inviteToken: String) {
+        MainAppContext.shared.userData.groupInviteToken = inviteToken
         MainAppContext.shared.didGetGroupInviteToken.send()
     }
 }

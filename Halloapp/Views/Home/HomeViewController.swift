@@ -249,29 +249,47 @@ class HomeViewController: UITabBarController {
     }
 
     private func presentGroupPreviewIfNeeded() {
-        guard let token = MainAppContext.shared.userData.groupInviteToken else { return }
-        DDLogInfo("HomeViewController/presentGroupPreviewIfNeeded/token/\(token)")
+        guard let inviteToken = MainAppContext.shared.userData.groupInviteToken else { return }
+        DDLogInfo("HomeViewController/presentGroupPreviewIfNeeded/inviteToken/\(inviteToken)")
         guard MainAppContext.shared.userData.isLoggedIn else {
-            DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/token/\(token)/not logged in")
+            DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/inviteToken/\(inviteToken)/not logged in")
             return
         }
         guard MainAppContext.shared.service.isConnected else {
-            DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/token/\(token)/not connected")
+            DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/inviteToken/\(inviteToken)/not connected")
             return
         }
-        // delay a little bit for smoother animation (ie. cold starts of app have some stuttering)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+
+        MainAppContext.shared.chatData.getGroupPreviewWithLink(inviteLink: inviteToken) { [weak self] result in
             guard let self = self else { return }
-            DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/token/\(token)/present")
 
-            // dismiss any presented views including compose and activity center
-            self.dismiss(animated: false)
+            switch result {
+            case .success(let groupInviteLink):
+                let groupID = groupInviteLink.group.gid
 
-            let vc = GroupInvitePreviewViewController(for: token)
-            self.present(vc, animated: true)
+                if MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId) != nil {
+                    DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/inviteToken/\(inviteToken)/already member")
+                    MainAppContext.shared.groupFeedFromGroupTabPresentRequest.send(groupID)
+                } else {
+                    DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/inviteToken/\(inviteToken)/present")
 
-            DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/token/\(token)/remove token")
-            MainAppContext.shared.userData.groupInviteToken = nil
+                    // dismiss any presented views including compose and activity center
+                    self.dismiss(animated: false)
+
+                    let vc = GroupInvitePreviewViewController(inviteToken: inviteToken, groupInviteLink: groupInviteLink)
+                    self.present(vc, animated: true)
+                }
+                DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/inviteToken/\(inviteToken)/remove inviteToken")
+                MainAppContext.shared.userData.groupInviteToken = nil
+            case .failure(let error):
+                DDLogInfo("HomeViewController/getGroupPreviewWithLink/error \(error)")
+
+                let alert = UIAlertController( title: nil, message: Localizations.groupPreviewGetInfoErrorInvalidLink, preferredStyle: .alert)
+                alert.addAction(.init(title: Localizations.buttonOK, style: .default, handler: { _ in
+                    self.dismiss(animated: true)
+                }))
+                self.present(alert, animated: true, completion: nil)
+            }
         }
     }
 
@@ -378,4 +396,12 @@ extension UITabBar {
         }
         return false
     }
+}
+
+private extension Localizations {
+
+    static var groupPreviewGetInfoErrorInvalidLink: String {
+        NSLocalizedString("group.preview.get.info.error.invalid.link", value: "The group invite link is invalid", comment: "Text for alert box when the user clicks on an invalid group invite link")
+    }
+    
 }

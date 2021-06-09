@@ -83,10 +83,10 @@ class MsgViewCell: UITableViewCell {
 
 extension MsgViewCell: UITextViewDelegate {
     func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
-        guard let inviteLink = ChatData.parseInviteURL(url: URL) else { return true }
+        guard let inviteToken = ChatData.parseInviteURL(url: URL) else { return true }
 
-        let vc = GroupInvitePreviewViewController(for: inviteLink)
-        window?.rootViewController?.present(UINavigationController(rootViewController: vc), animated: true)
+        MainAppContext.shared.userData.groupInviteToken = inviteToken
+        MainAppContext.shared.didGetGroupInviteToken.send()
 
         return false
     }
