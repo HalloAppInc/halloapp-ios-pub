@@ -360,7 +360,7 @@ class ShareComposerViewController: UIViewController {
     private func makeCardView() -> UIView {
         let cardView = UIView()
         cardView.translatesAutoresizingMaskIntoConstraints = false
-        cardView.backgroundColor = .white
+        cardView.backgroundColor = .feedPostBackground
         cardView.layer.cornerRadius = 15
         cardView.layer.shadowColor = UIColor.black.cgColor
         cardView.layer.shadowOpacity = 0.05
