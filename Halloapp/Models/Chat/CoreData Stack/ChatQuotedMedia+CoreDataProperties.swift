@@ -15,6 +15,11 @@ public enum ChatQuoteMediaType: Int16 {
     case video = 1
 }
 
+public enum MediaDirectory: String {
+    case media
+    case chatMedia
+}
+
 extension ChatQuotedMedia {
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatQuotedMedia> {
         return NSFetchRequest<ChatQuotedMedia>(entityName: "ChatQuotedMedia")
@@ -26,6 +31,8 @@ extension ChatQuotedMedia {
     @NSManaged public var height: Float
     @NSManaged public var width: Float
     @NSManaged public var quoted: ChatQuoted?
+    @NSManaged public var previewData: Data?
+    @NSManaged public var mediaDir: String?
 
     var type: ChatQuoteMediaType {
         get {
@@ -33,6 +40,33 @@ extension ChatQuotedMedia {
         }
         set {
             self.typeValue = newValue.rawValue
+        }
+    }
+
+    var mediaDirectory: MediaDirectory? {
+        get {
+            if let mediaDirString = mediaDir {
+                return MediaDirectory(rawValue: mediaDirString)
+            }
+            return nil
+        }
+        set {
+            if let value = newValue {
+                mediaDir = value.rawValue
+            }
+        }
+    }
+
+    var mediaUrl: URL {
+        get {
+            switch mediaDirectory {
+            case .chatMedia:
+                return MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath ?? "", isDirectory: false)
+            case .media:
+                return MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath ?? "", isDirectory: false)
+            case .none:
+                return MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath ?? "", isDirectory: false)
+            }
         }
     }
     

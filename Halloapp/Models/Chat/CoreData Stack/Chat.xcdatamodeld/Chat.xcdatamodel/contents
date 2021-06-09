@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="20D91" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20D91" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="ChatGroup" representedClassName="ChatGroup" syncable="YES">
         <attribute name="avatar" optional="YES" attributeType="String"/>
         <attribute name="background" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -104,7 +104,9 @@
     </entity>
     <entity name="ChatQuotedMedia" representedClassName="ChatQuotedMedia" syncable="YES">
         <attribute name="height" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="mediaDir" optional="YES" attributeType="String"/>
         <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="previewData" optional="YES" attributeType="Binary"/>
         <attribute name="relativeFilePath" optional="YES" attributeType="String"/>
         <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="width" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
@@ -143,7 +145,7 @@
         <element name="ChatMention" positionX="-36" positionY="144" width="128" height="104"/>
         <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="284"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="148"/>
-        <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="133"/>
+        <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="149"/>
         <element name="ChatThread" positionX="-36" positionY="108" width="128" height="344"/>
     </elements>
 </model>

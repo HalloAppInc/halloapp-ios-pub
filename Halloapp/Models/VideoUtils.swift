@@ -244,6 +244,18 @@ final class VideoUtils {
         }
     }
 
+    static func previewImageData(image: UIImage, size: CGSize? = nil) -> Data? {
+        guard let preview = image.resized(to: CGSize(width: 128, height: 128), contentMode: .scaleAspectFill, downscaleOnly: false) else {
+            DDLogError("VideoUtils/previewImage/error  Failed to generate preview")
+            return nil
+        }
+        guard let imageData = preview.jpegData(compressionQuality: 0.5) else {
+            DDLogError("VideoUtils/previewImage/error  Failed to generate jpeg data")
+            return nil
+        }
+        return imageData
+    }
+
     static func trim(start: CMTime, end: CMTime, url: URL, mute: Bool, completion: @escaping (Swift.Result<URL, Error>) -> Void) {
         var asset: AVAsset = AVURLAsset(url: url, options: nil)
 

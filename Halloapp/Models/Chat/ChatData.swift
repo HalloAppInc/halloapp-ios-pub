@@ -719,33 +719,35 @@ class ChatData: ObservableObject {
         return nil
     }
     
+    // TODO(murali@): need to do some sort of migration for the existing media elements in the db.
     func copyMediaToQuotedMedia(fromDir: URL, fromPath: String?, to quotedMedia: ChatQuotedMedia) throws {
         guard let fromRelativePath = fromPath else {
             return
         }
-
         let fromURL = fromDir.appendingPathComponent(fromRelativePath, isDirectory: false)
-        
-        // append unique id to allow multiple quoted messages of the same feedpost so each message can be deleted independently in the future
-        
-        var pathComponents = fromRelativePath.components(separatedBy: ".")
-        
-        guard pathComponents.count > 1 else {
+        DDLogInfo("ChatData/copyMediaToQuotedMedia/fromURL: \(fromURL)")
+
+        // Store references to the quoted media directory and file path.
+        if fromDir == MainAppContext.chatMediaDirectoryURL {
+            quotedMedia.mediaDirectory = .chatMedia
+        } else if fromDir == MainAppContext.mediaDirectoryURL {
+            quotedMedia.mediaDirectory = .media
+        }
+        quotedMedia.relativeFilePath = fromRelativePath
+
+        // Generate thumbnail for the media: so that each message can have its own copy.
+        let previewImage: UIImage?
+        switch quotedMedia.type {
+        case .image:
+            previewImage = UIImage(contentsOfFile: fromURL.path)
+        case .video:
+            previewImage = VideoUtils.videoPreviewImage(url: fromURL)
+        }
+        guard let img = previewImage else {
+            DDLogError("ChatData/copyMediaToQuotedMedia/unable to generate thumbnail image for media url: \(fromURL)")
             return
         }
-        
-        pathComponents[0] += "-\(UUID().uuidString)"
-        
-        let newPath = pathComponents.joined(separator: ".")
-
-        // todo: the directory for quoted media should follow a similar structure as chat media, should do mini migration also
-        
-        let toURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(newPath, isDirectory: false)
-
-        try FileManager.default.createDirectory(at: toURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
-
-        try FileManager.default.copyItem(at: fromURL, to: toURL)
-        quotedMedia.relativeFilePath = newPath
+        quotedMedia.previewData = VideoUtils.previewImageData(image: img)
     }
     
     func sendSeenReceipt(for chatMessage: ChatMessage) {
@@ -1948,19 +1950,23 @@ extension ChatData {
             }
             chatMessage.managedObjectContext?.delete(media)
         }
-        
+
+        // quoted media item will be deleted - when the main chat message containing that media object is deleted.
+        // this message only contains a reference to it - so quoted media should not be deleted.
         if let quoted = chatMessage.quoted {
             DDLogDebug("ChatData/deleteMedia/quoted ")
             if let quotedMedia = quoted.media {
                 quotedMedia.forEach { (media) in
-                    if media.relativeFilePath != nil {
-                        let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
-                        do {
-                            DDLogDebug("ChatData/deleteMedia/quoted/media ")
-                            try FileManager.default.removeItem(at: fileURL)
-                        }
-                        catch {
-                            DDLogError("ChatData/deleteMedia/quoted/media/error [\(error)]")
+                    if media.mediaDir == nil {
+                        if media.relativeFilePath != nil {
+                            let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
+                            do {
+                                DDLogDebug("ChatData/deleteMedia/quoted/media ")
+                                try FileManager.default.removeItem(at: fileURL)
+                            }
+                            catch {
+                                DDLogError("ChatData/deleteMedia/quoted/media/error [\(error)]")
+                            }
                         }
                     }
                     quoted.managedObjectContext?.delete(media)
