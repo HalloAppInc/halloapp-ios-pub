@@ -254,6 +254,10 @@ open class ContactStore {
         }
     }
 
+    /// Returns display name for a user given their user ID. Returns `ownName` if `userID` matches active user ID.
+    /// - Parameters:
+    ///   - userId: `UserID` to look up
+    ///   - ownName: `String?` to return if `userID` matches the active user ID (e.g., "Me" or the user's chosen name)
     public func fullNameIfAvailable(for userId: UserID, ownName: String?) -> String? {
         if userId == self.userData.userId {
             return ownName
