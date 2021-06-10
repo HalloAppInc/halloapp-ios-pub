@@ -86,11 +86,6 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         }
         super.viewWillAppear(animated)
         MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        DDLogInfo("GroupInfoViewController/viewDidAppear")
-        super.viewDidAppear(animated)
         tabBarController?.hideTabBar(vc: self)
     }
 
