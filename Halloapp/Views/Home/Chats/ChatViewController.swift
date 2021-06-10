@@ -835,7 +835,7 @@ extension ChatViewController: PostComposerViewDelegate {
     }
 
     func willDismissWithInput(mentionInput: MentionInput) {
-        chatInputView.text = mentionInput.text
+        
     }
 }
 
