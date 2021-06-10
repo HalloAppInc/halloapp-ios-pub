@@ -6,6 +6,7 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Core
 import UIKit
 
@@ -134,7 +135,7 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
     
     func requestContactsPermissions() {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-//            DDLogError("RegistrationManager/requestContactsPermission/error app delegate unavailable")
+            DDLogError("VerificationViewController/requestContactsPermission/error app delegate unavailable")
             return
         }
         appDelegate.requestAccessToContactsAndNotifications()

@@ -16,7 +16,6 @@ public protocol RegistrationManager: AnyObject {
     func set(countryCode: String, nationalNumber: String, userName: String)
     func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void)
     func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void)
-//    func requestContactsPermissions()
     func didCompleteRegistrationFlow()
 }
 

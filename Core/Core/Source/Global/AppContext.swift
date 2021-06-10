@@ -54,7 +54,7 @@ open class AppContext {
     public static let userAgent: String = { UserAgent(platform: .ios, version: appVersionForService).description }()
 
     open var applicationIconBadgeNumber: Int {
-        get { userDefaults.integer(forKey: "ApplicationIconBadgeNumbeor") }
+        get { userDefaults.integer(forKey: "ApplicationIconBadgeNumber") }
         set { userDefaults.set(newValue, forKey: "ApplicationIconBadgeNumber") }
     }
 
