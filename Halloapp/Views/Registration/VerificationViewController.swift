@@ -6,6 +6,7 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import Core
 import UIKit
 
 struct VerificationPhoneInputContext {
@@ -127,7 +128,15 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
     // MARK: ContactsPermissionsViewControllerDelegate
 
     func didAcknowledgeContactsPermissions() {
-        registrationManager?.requestContactsPermissions()
+        requestContactsPermissions()
         move(to: .complete(VerificationCompleteContext()))
+    }
+    
+    func requestContactsPermissions() {
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+//            DDLogError("RegistrationManager/requestContactsPermission/error app delegate unavailable")
+            return
+        }
+        appDelegate.requestAccessToContactsAndNotifications()
     }
 }

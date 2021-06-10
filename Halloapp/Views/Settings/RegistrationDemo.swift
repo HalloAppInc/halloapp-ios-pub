@@ -7,6 +7,7 @@
 //
 
 import Contacts
+import Core
 import Foundation
 import SwiftUI
 

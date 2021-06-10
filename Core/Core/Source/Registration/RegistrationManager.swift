@@ -1,6 +1,6 @@
 //
 //  RegistrationManager.swift
-//  HalloApp
+//  Core
 //
 //  Created by Garrett on 10/23/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
@@ -10,34 +10,34 @@ import CocoaLumberjack
 import Contacts
 import Foundation
 
-protocol RegistrationManager: AnyObject {
+public protocol RegistrationManager: AnyObject {
     var contactsAccessStatus: CNAuthorizationStatus { get }
     var formattedPhoneNumber: String? { get }
     func set(countryCode: String, nationalNumber: String, userName: String)
     func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void)
     func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void)
-    func requestContactsPermissions()
+//    func requestContactsPermissions()
     func didCompleteRegistrationFlow()
 }
 
-final class DefaultRegistrationManager: RegistrationManager {
+public final class DefaultRegistrationManager: RegistrationManager {
 
-    init(registrationService: RegistrationService = DefaultRegistrationService()) {
+    public init(registrationService: RegistrationService = DefaultRegistrationService()) {
         self.registrationService = registrationService
     }
 
     private let registrationService: RegistrationService
 
-    var contactsAccessStatus: CNAuthorizationStatus {
+    public var contactsAccessStatus: CNAuthorizationStatus {
         return CNContactStore.authorizationStatus(for: .contacts)
     }
 
-    var formattedPhoneNumber: String? {
-        MainAppContext.shared.userData.formattedPhoneNumber
+    public var formattedPhoneNumber: String? {
+        AppContext.shared.userData.formattedPhoneNumber
     }
 
-    func set(countryCode: String, nationalNumber: String, userName: String) {
-        let userData = MainAppContext.shared.userData
+    public func set(countryCode: String, nationalNumber: String, userName: String) {
+        let userData = AppContext.shared.userData
         userData.normalizedPhoneNumber = ""
         userData.countryCode = countryCode
         userData.phoneInput = nationalNumber
@@ -46,14 +46,14 @@ final class DefaultRegistrationManager: RegistrationManager {
     }
 
     /// Completion block includes retry delay
-    func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void) {
-        let userData = MainAppContext.shared.userData
+    public func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void) {
+        let userData = AppContext.shared.userData
         let phoneNumber = userData.countryCode.appending(userData.phoneInput)
         let groupInviteToken = userData.groupInviteToken
         registrationService.requestVerificationCode(for: phoneNumber, byVoice: byVoice, groupInviteToken: groupInviteToken, locale: Locale.current) { result in
             switch result {
             case .success(let response):
-                let userData = MainAppContext.shared.userData
+                let userData = AppContext.shared.userData
                 userData.normalizedPhoneNumber = response.normalizedPhoneNumber
                 userData.save()
                 completion(.success(response.retryDelay))
@@ -63,9 +63,9 @@ final class DefaultRegistrationManager: RegistrationManager {
         }
     }
 
-    func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        let userData = MainAppContext.shared.userData
-        let keyData = MainAppContext.shared.keyData
+    public func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        let userData = AppContext.shared.userData
+        let keyData = AppContext.shared.keyData
 
         guard let noiseKeys = userData.generateNoiseKeysForRegistration(),
               let userKeys = keyData?.generateUserKeys() else
@@ -91,15 +91,7 @@ final class DefaultRegistrationManager: RegistrationManager {
         }
     }
 
-    func requestContactsPermissions() {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            DDLogError("RegistrationManager/requestContactsPermission/error app delegate unavailable")
-            return
-        }
-        appDelegate.requestAccessToContactsAndNotifications()
-    }
-
-    func didCompleteRegistrationFlow() {
-        MainAppContext.shared.userData.tryLogIn()
+    public func didCompleteRegistrationFlow() {
+        AppContext.shared.userData.tryLogIn()
     }
 }

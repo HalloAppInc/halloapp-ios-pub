@@ -25,7 +25,6 @@ class MainAppContext: AppContext {
     private(set) var avatarStore: AvatarStore!
     private(set) var feedData: FeedData!
     private(set) var chatData: ChatData!
-    private(set) var keyData: KeyData!
     private(set) var uploadData: UploadData!
     private(set) var syncManager: SyncManager!
     private(set) var privacySettingsImpl: PrivacySettings!
@@ -115,7 +114,6 @@ class MainAppContext: AppContext {
 
         feedData = FeedData(service: service, contactStore: contactStore, userData: userData)
         chatData = ChatData(service: service, contactStore: contactStore, userData: userData)
-        keyData = KeyData(service: service, userData: userData, keyStore: keyStore)
         uploadData = UploadData()
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         avatarStore = AvatarStore()

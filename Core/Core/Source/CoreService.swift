@@ -52,6 +52,9 @@ public protocol CoreService {
 
     // MARK: Keys
     func requestWhisperKeyBundle(userID: UserID, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>)
+    func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>)
+    func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>)
+    func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Chat
     func sendChatMessage(_ message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>)
@@ -59,15 +62,25 @@ public protocol CoreService {
     func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (Clients_ChatMessage?, DecryptionFailure?) -> Void)
     func rerequestMessage(_ messageID: String, senderID: UserID, rerequestData: RerequestData, completion: @escaping ServiceRequestCompletion<Void>)
 
+    // MARK: Groups
+    func getGroupPreviewWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
+    func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
+
     // MARK: Event Logging
     func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Delegates
     var avatarDelegate: ServiceAvatarDelegate? { get set }
+    var keyDelegate: ServiceKeyDelegate? { get set }
 }
 
 public protocol ServiceAvatarDelegate: AnyObject {
     func service(_ service: CoreService, didReceiveAvatarInfo avatarInfo: AvatarInfo)
+}
+
+public protocol ServiceKeyDelegate: AnyObject {
+    func service(_ service: CoreService, didReceiveWhisperMessage message: WhisperMessage)
+    func service(_ service: CoreService, didReceiveRerequestWithRerequestCount retryCount: Int)
 }
 
 public struct RerequestData {
