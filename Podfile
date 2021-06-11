@@ -15,12 +15,6 @@ target 'HalloApp' do
   pod 'Sodium', :git => 'git@github.com:HalloAppInc/swift-sodium.git'
 end
 
-target 'HalloAppClip' do
-  pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
-  pod 'Firebase/Crashlytics'
-  pod 'Sodium', :git => 'git@github.com:HalloAppInc/swift-sodium.git'
-end
-
 target 'HalloAppTests' do
   pod 'Firebase/Crashlytics'
 end

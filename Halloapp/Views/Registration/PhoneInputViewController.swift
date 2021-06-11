@@ -27,7 +27,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
     }
 
     let logo = UIImageView()
-    let textFieldPhoneNumber = PhoneNumberTextField(withPhoneNumberKit: AppContext.shared.phoneNumberFormatter)
+    let textFieldPhoneNumber = PhoneNumberTextField(withPhoneNumberKit: MainAppContext.shared.phoneNumberFormatter)
     let textFieldUserName = UITextField()
     let buttonSignIn = UIButton()
     var inputVerticalCenterConstraint: NSLayoutConstraint?
