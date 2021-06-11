@@ -260,6 +260,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
                         self.present(alert, animated: true)
 
                     case .invalidClientVersion:
+                        // TODO : how to handle this for AppClip?
                         let alert = self.getAppUpdateAlertController()
                         self.present(alert, animated: true)
                     default:
@@ -303,8 +304,8 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
 
     private func getAppUpdateAlertController() -> UIAlertController {
         let alert = UIAlertController(
-            title: Localizations.appUpdateNoticeTitle,
-            message: Localizations.appUpdateNoticeText,
+            title: "Localizations.appUpdateNoticeTitle",
+            message: "Localizations.appUpdateNoticeText",
             preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: Localizations.buttonUpdate, style: .default, handler: { action in
             DDLogInfo("VerificationCodeViewController/updateNotice/update clicked")
