@@ -138,14 +138,6 @@ public final class WhisperSession {
 
     public func reloadKeysFromKeyStore() {
         sessionQueue.async {
-            // Dont overwrite the state when current target is currently retrieving keys.
-            switch self.state {
-            case .retrievingKeys:
-                AppContext.shared.errorLogger?.logError(NSError.init(domain: "WhisperSessionMergeError", code: 1005, userInfo: nil))
-                return
-            case .ready(_, _), .awaitingSetup(_):
-                break
-            }
             if let (keyBundle, messageKeys) = self.loadFromKeyStore() {
                 self.state = .ready(keyBundle, messageKeys)
             }
@@ -197,13 +189,7 @@ public final class WhisperSession {
 
     private var state: State {
         didSet {
-            switch state {
-            case .awaitingSetup(_):
-                DDLogInfo("WhisperSession/set-state/awaitingSetup")
-            case .retrievingKeys:
-                DDLogInfo("WhisperSession/set-state/retrievingKeys")
-            case .ready(let keyBundle, let messageKeys):
-                DDLogInfo("WhisperSession/set-state/ready")
+            if case .ready(let keyBundle, let messageKeys) = state {
                 keyStore.saveKeyBundle(keyBundle)
                 keyStore.saveMessageKeys(messageKeys, for: userID)
             }

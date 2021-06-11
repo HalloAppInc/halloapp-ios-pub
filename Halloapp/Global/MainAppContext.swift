@@ -33,7 +33,6 @@ class MainAppContext: AppContext {
     private(set) var notificationServiceExtensionDataStore: NotificationServiceExtensionDataStore!
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
     lazy var cryptoData: CryptoData = { CryptoData() }()
-    private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()
     
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
@@ -147,43 +146,44 @@ class MainAppContext: AppContext {
     
     private var mergingSharedData = false
     
-    // needs to run only on mergeDataQueue
     func mergeSharedData() {
-        mergeSharedDataQueue.async {
+        guard !mergingSharedData else { return }
 
-            let mergeGroup = DispatchGroup()
+        mergingSharedData = true
 
-            // Always merge feedData first and then chatData: because chatContent might refer to feedItems.
-            DDLogInfo("MainAppContext/merge-data/share-extension")
+        let mergeGroup = DispatchGroup()
 
-            mergeGroup.enter()
-            feedData.mergeData(from: shareExtensionDataStore) {
-                mergeGroup.leave()
-            }
-            mergeGroup.enter()
-            chatData.mergeData(from: shareExtensionDataStore) {
-                mergeGroup.leave()
-            }
+        // Always merge feedData first and then chatData: because chatContent might refer to feedItems.
+        DDLogInfo("MainAppContext/merge-data/share-extension")
 
-            DDLogInfo("MainAppContext/merge-data/notification-service-extension")
+        mergeGroup.enter()
+        feedData.mergeData(from: shareExtensionDataStore) {
+            mergeGroup.leave()
+        }
+        mergeGroup.enter()
+        chatData.mergeData(from: shareExtensionDataStore) {
+            mergeGroup.leave()
+        }
 
-            mergeGroup.enter()
-            service.mergeData(from: notificationServiceExtensionDataStore) {
-                mergeGroup.leave()
-            }
+        DDLogInfo("MainAppContext/merge-data/notification-service-extension")
 
-            mergeGroup.enter()
-            feedData.mergeData(from: notificationServiceExtensionDataStore) {
-                mergeGroup.leave()
-            }
-            mergeGroup.enter()
-            chatData.mergeData(from: notificationServiceExtensionDataStore) {
-                mergeGroup.leave()
-            }
+        mergeGroup.enter()
+        service.mergeData(from: notificationServiceExtensionDataStore) {
+            mergeGroup.leave()
+        }
 
-            mergeGroup.notify(queue: .main) {
-                DDLogInfo("MainAppContext/merge-data/finished")
-            }
+        mergeGroup.enter()
+        feedData.mergeData(from: notificationServiceExtensionDataStore) {
+            mergeGroup.leave()
+        }
+        mergeGroup.enter()
+        chatData.mergeData(from: notificationServiceExtensionDataStore) {
+            mergeGroup.leave()
+        }
+
+        mergeGroup.notify(queue: .main) {
+            DDLogInfo("MainAppContext/merge-data/finished")
+            self.mergingSharedData = false
         }
     }
 }

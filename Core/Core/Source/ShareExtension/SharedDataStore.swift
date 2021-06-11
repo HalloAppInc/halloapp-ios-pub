@@ -129,19 +129,6 @@ open class SharedDataStore {
         }
     }
 
-    public final func sharedChatMessage(for msgId: String) -> SharedChatMessage? {
-        let managedObjectContext = persistentContainer.viewContext
-        let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id == %@", msgId)
-        do {
-            let messages = try managedObjectContext.fetch(fetchRequest)
-            return messages.first
-        } catch {
-            DDLogError("SharedDataStore/messages/error  [\(error)]")
-            fatalError("Failed to fetch shared messages.")
-        }
-    }
-
     public final func serverMessages() -> [SharedServerMessage] {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedServerMessage> = SharedServerMessage.fetchRequest()

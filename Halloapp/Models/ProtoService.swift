@@ -462,13 +462,8 @@ final class ProtoService: ProtoServiceCore {
     private func isMessageDecryptedAndSaved(msgId: String) -> Bool {
         if MainAppContext.shared.cryptoData.result(for: msgId) == "success",
            let _ = MainAppContext.shared.chatData.chatMessage(with: msgId) {
-            DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is available in local store.")
-            return true
-        } else if let _ = MainAppContext.shared.shareExtensionDataStore.sharedChatMessage(for: msgId) {
-            DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message needs to be stored from nse.")
             return true
         }
-        DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is missing.")
         return false
     }
 
