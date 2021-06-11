@@ -351,6 +351,11 @@ public final class WhisperSession {
                     self.state = .awaitingSetup(attempts: attemptNumber)
                 }
 
+                // if the client is facing connection issues - then we retry immediately for 3 times and then give up after failing.
+                // we should ideally wait until we connect and try again on the next connection.
+                // our service will now anyways discard and wont send anymore messages to this recipient after we fail 3 times.
+                // on the next connection - we'll retry sending all messages to this recipient.
+                // that way - we sort of ensure that messages are sent in-order to the recipient.
                 self.executeTasks()
             }
         }

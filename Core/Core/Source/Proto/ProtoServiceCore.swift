@@ -648,6 +648,15 @@ extension ProtoServiceCore: CoreService {
                 return
             }
 
+            // Dont send chat messages on encryption errors.
+            if let error = error {
+                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id)/error \(error)")
+                AppContext.shared.errorLogger?.logError(error)
+                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) aborted")
+                completion(.failure(RequestError.aborted))
+                return
+            }
+
             let packet = Server_Packet.msgPacket(
                 from: fromUserID,
                 to: message.toUserId,
@@ -669,14 +678,11 @@ extension ProtoServiceCore: CoreService {
                     completion(.failure(RequestError.notConnected))
                     return
                 }
-                if let error = error {
-                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id)/error \(error)")
-                    AppContext.shared.errorLogger?.logError(error)
-                }
                 AppContext.shared.eventMonitor.count(.encryption(error: error))
-                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
+                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending encrypted")
                 self.send(packetData)
                 self.sendSilentChats(ServerProperties.silentChatMessages)
+                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) success")
                 completion(.success(()))
             }
         }
