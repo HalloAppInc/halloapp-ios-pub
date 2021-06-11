@@ -137,13 +137,14 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
                 mediaView.removeFromSuperview()
                 self.mediaView = nil
             } else {
-                DDLogInfo("FeedTableViewCell/content-view/reuse-media-view post=[\(post.id)]")
+                DDLogInfo("FeedItemContentView/reuse-media-view post=[\(post.id)]")
             }
         }
 
         let postContainsMedia = !feedDataItem.media.isEmpty
         if postContainsMedia {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
+            DDLogInfo("FeedItemContentView/media-view-height post=[\(post.id)] height=[\(mediaViewHeight)]")
             if mediaView == nil {
                 // Create new media view
                 var mediaViewConfiguration = MediaCarouselViewConfiguration.default
@@ -429,6 +430,7 @@ final class FeedItemHeaderView: UIView {
         hStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
         hStack.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
+        hStack.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
 
         contentSizeCategoryDidChangeCancellable = NotificationCenter.default
             .publisher(for: UIContentSizeCategory.didChangeNotification)

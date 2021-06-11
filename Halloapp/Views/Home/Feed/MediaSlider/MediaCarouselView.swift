@@ -112,7 +112,17 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     }
 
     class func preferredHeight(for media: [FeedMedia], width: CGFloat) -> CGFloat {
-        let maxHeight = UIScreen.main.bounds.height - 320
+        let maxHeight: CGFloat = {
+            // We're seeing some posts appear with missing media when opening app from notification.
+            // Could be related to screen bounds flakiness immediately after waking? https://developer.apple.com/forums/thread/65337
+            // For now let's assume portrait orientation. This will need to change if we support landscape.
+            let screenBounds = UIScreen.main.bounds
+            let screenLongDimension = max(screenBounds.height, screenBounds.width)
+            if screenLongDimension != screenBounds.height {
+                DDLogInfo("Unexpected landscape screen bounds: [\(screenBounds)]")
+            }
+            return screenLongDimension - 320
+        }()
 
         let aspectRatios: [CGFloat] = media.compactMap {
             guard $0.size.width > 0 else { return nil }
