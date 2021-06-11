@@ -121,7 +121,12 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             if screenLongDimension != screenBounds.height {
                 DDLogInfo("Unexpected landscape screen bounds: [\(screenBounds)]")
             }
-            return screenLongDimension - 320
+            let minScreenHeight: CGFloat = 568 // 2016 iPhone SE
+            if screenLongDimension < minScreenHeight {
+                DDLogError("Screen bounds too small: [\(screenBounds)]")
+                assert(false, "Invalid screen bounds detected!")
+            }
+            return max(screenLongDimension, minScreenHeight) - 320
         }()
 
         let aspectRatios: [CGFloat] = media.compactMap {
