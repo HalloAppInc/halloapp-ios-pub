@@ -125,9 +125,14 @@ class MainAppContext: AppContext {
 
         // Add observer to notify us when persistentStore records changes.
         // These notifications are triggered for all cross process writes to the store.
-        NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
-                                               name: .NSPersistentStoreRemoteChange,
-                                               object: shareExtensionDataStore.persistentContainer.persistentStoreCoordinator)
+
+        // Don't merge and delete in ShareExtensionDataStore while the share process
+        // is still running and operating on that same data. Merge conficlts on core
+        // data level may arise due to race conditions.
+        //
+        // NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
+        //                                        name: .NSPersistentStoreRemoteChange,
+        //                                        object: shareExtensionDataStore.persistentContainer.persistentStoreCoordinator)
         NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
                                                name: .NSPersistentStoreRemoteChange,
                                                object: notificationServiceExtensionDataStore.persistentContainer.persistentStoreCoordinator)
