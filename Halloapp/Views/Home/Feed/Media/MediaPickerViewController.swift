@@ -71,8 +71,8 @@ enum MediaPickerFilter {
     case all, image, video
 }
 
-fileprivate enum MediaPickerMode {
-    case month, day, dayLarge
+fileprivate enum MediaPickerMode: Int {
+    case  day, dayLarge, month
 }
 
 fileprivate enum TransitionState {
@@ -83,7 +83,11 @@ typealias MediaPickerViewControllerCallback = (MediaPickerViewController, [Pendi
 
 class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PHPhotoLibraryChangeObserver, PickerViewCellDelegate {
 
-    fileprivate var mode: MediaPickerMode = .day
+    private struct UserDefaultsKey {
+        static let MediaPickerMode = "MediaPickerMode"
+    }
+
+    fileprivate var mode: MediaPickerMode
     fileprivate var selected = [PHAsset]()
     fileprivate var multiselect: Bool
     
@@ -91,7 +95,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private let camera: Bool
     private let filter: MediaPickerFilter
     private let snapshotManager: MediaPickerSnapshotManager
-    private var dataSource: UICollectionViewDiffableDataSource<Int, PickerItem>!
+    private var dataSource: UICollectionViewDiffableDataSource<Int, PHAsset>!
     private var collectionView: UICollectionView!
     private var transitionLayout: UICollectionViewTransitionLayout?
     private var initialTransitionVelocity: CGFloat = 0
@@ -110,6 +114,9 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         self.multiselect = multiselect
         self.filter = filter
         self.snapshotManager = MediaPickerSnapshotManager(filter: filter)
+
+        let modeRawValue = MainAppContext.shared.userDefaults.integer(forKey: UserDefaultsKey.MediaPickerMode)
+        mode = MediaPickerMode(rawValue: modeRawValue) ?? .day
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -394,6 +401,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             if transitionState == .inprogress {
                 transitionState = .finishing
                 collectionView.finishInteractiveTransition()
+                MainAppContext.shared.userDefaults.set(mode.rawValue, forKey: UserDefaultsKey.MediaPickerMode)
             }
         }
     }
@@ -407,9 +415,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         if sender.state == .began {
             let p = sender.location(in: collectionView)
             guard let indexPath = collectionView.indexPathForItem(at: p) else { return }
-            guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
-            guard item.type == .asset else { return }
-            guard let asset = item.asset else { return }
+            guard let asset = dataSource.itemIdentifier(for: indexPath) else { return }
             guard self.preview == nil else { return }
             
             let manager = PHImageManager.default()
@@ -524,8 +530,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.allowsMultipleSelection = true
         collectionView.register(AssetViewCell.self, forCellWithReuseIdentifier: AssetViewCell.reuseIdentifier)
-        collectionView.register(LabelViewCell.self, forCellWithReuseIdentifier: LabelViewCell.reuseIdentifier)
-        collectionView.register(PlaceHolderViewCell.self, forCellWithReuseIdentifier: PlaceHolderViewCell.reuseIdentifier)
         
         return collectionView
     }
@@ -538,37 +542,25 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         return layout
     }
     
-    private func makeDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, PickerItem> {
-        let source = UICollectionViewDiffableDataSource<Int, PickerItem>(collectionView: collectionView) { [weak self] collectionView, indexPath, asset in
-            guard let self = self else { return nil }
-            guard let source = self.dataSource else { return nil }
-            guard let item = source.itemIdentifier(for: indexPath) else { return nil }
-            
-            switch item.type {
-            case .asset:
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AssetViewCell.reuseIdentifier, for: indexPath) as? AssetViewCell else {
-                    return nil
-                }
-                
-                cell.delegate = self
-                cell.item = item
-
-                let options = PHImageRequestOptions()
-                options.isNetworkAccessAllowed = true
-                PHImageManager.default().requestImage(for: item.asset!, targetSize: CGSize(width: 256, height: 256), contentMode: .aspectFill, options: options) { image, _ in
-                    guard cell.item?.asset?.localIdentifier == item.asset?.localIdentifier else { return }
-                    cell.image.image = image
-                    cell.prepare()
-                }
-                
-                return cell
-            case .day, .month:
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: LabelViewCell.reuseIdentifier, for: indexPath) as? LabelViewCell else { return nil }
-                cell.title.text = item.label
-                return cell
-            case .placeholderDay, .placeholderMonth, .placeholderDayLarge:
-                return collectionView.dequeueReusableCell(withReuseIdentifier: PlaceHolderViewCell.reuseIdentifier, for: indexPath)
+    private func makeDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, PHAsset> {
+        let source = UICollectionViewDiffableDataSource<Int, PHAsset>(collectionView: collectionView) { collectionView, indexPath, asset in
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AssetViewCell.reuseIdentifier, for: indexPath) as? AssetViewCell else {
+                return nil
             }
+
+            cell.delegate = self
+            cell.asset = asset
+            cell.indexPath = indexPath
+
+            let options = PHImageRequestOptions()
+            options.isNetworkAccessAllowed = true
+            PHImageManager.default().requestImage(for: asset, targetSize: CGSize(width: 256, height: 256), contentMode: .aspectFill, options: options) { image, _ in
+                guard cell.asset?.localIdentifier == asset.localIdentifier else { return }
+                cell.image.image = image
+                cell.prepare()
+            }
+
+            return cell
         }
         
         return source
@@ -802,28 +794,19 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        guard let item = dataSource.itemIdentifier(for: indexPath) else { return CGSize.zero }
-        
-        switch (item.type, mode) {
-        case (.asset, .month), (.placeholderMonth, .month):
+        switch mode {
+        case .month:
             let size = (UIScreen.main.bounds.width - 0.1) * 0.2
             return CGSize(width: size, height: size)
-        case (.asset, .day), (.placeholderDay, .day):
-            let size = UIScreen.main.bounds.width * 0.25
+        case .day:
+            let size = UIScreen.main.bounds.width * 0.3333
             return CGSize(width: size, height: size)
-        case (.asset, .dayLarge) where (item.indexInDay % 5) < 2:
+        case .dayLarge where (indexPath.row % 5) < 2:
             let size = UIScreen.main.bounds.width * 0.5
             return CGSize(width: size, height: size * 1.27)
-        case (.placeholderDayLarge, .dayLarge) where (item.indexInDay % 5) < 2:
-            let size = UIScreen.main.bounds.width * 0.5
-            return CGSize(width: size, height: size * 1.27)
-        case (.asset, .dayLarge), (.placeholderDayLarge, .dayLarge):
+        case .dayLarge:
             let size = UIScreen.main.bounds.width * 0.3333
             return CGSize(width: size, height: size * 1.42)
-        case (.day, .day), (.day, .dayLarge), (.month, .month):
-            return CGSize(width: UIScreen.main.bounds.width, height: 50)
-        default:
-            return CGSize.zero
         }
     }
     
@@ -833,7 +816,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     
     func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         guard let cell = collectionView.cellForItem(at: indexPath) as? AssetViewCell else { return false }
-        guard let asset = cell.item?.asset else { return false }
+        guard let asset = cell.asset else { return false }
 
         if selected.contains(asset) {
             deselect(collectionView, cell: cell, asset: asset)
@@ -936,89 +919,10 @@ class PlayerPreviewView: UIView {
     }
 }
 
-fileprivate protocol PickerViewCellDelegate: class {
+fileprivate protocol PickerViewCellDelegate: AnyObject {
     var mode: MediaPickerMode {get}
     var selected: [PHAsset] {get}
     var multiselect: Bool {get}
-}
-
-enum PickerItemType {
-    case asset, day, month, placeholderMonth, placeholderDay, placeholderDayLarge
-}
-
-struct PickerItem: Hashable {
-    let indexInMonth: Int
-    let indexInDay: Int
-    let type: PickerItemType
-    let label: String?
-    let asset: PHAsset?
-    
-    init(type: PickerItemType, indexInMonth: Int, indexInDay: Int) {
-        self.type = type
-        self.label = UUID().uuidString
-        self.asset = nil
-        self.indexInMonth = indexInMonth
-        self.indexInDay = indexInDay
-    }
-    
-    init(type: PickerItemType, label: String) {
-        self.type = type
-        self.label = label
-        self.asset = nil
-        indexInMonth = 0
-        indexInDay = 0
-    }
-    
-    init(asset: PHAsset, indexInMonth: Int, indexInDay: Int) {
-        self.type = .asset
-        self.label = nil
-        self.asset = asset
-        self.indexInMonth = indexInMonth
-        self.indexInDay = indexInDay
-    }
-}
-
-fileprivate class PlaceHolderViewCell: UICollectionViewCell {
-    static var reuseIdentifier: String {
-        return String(describing: PlaceHolderViewCell.self)
-    }
-}
-
-fileprivate class LabelViewCell: UICollectionViewCell {
-    static var reuseIdentifier: String {
-        return String(describing: LabelViewCell.self)
-    }
-    
-    lazy var title: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 15, weight: .medium)
-        label.adjustsFontForContentSizeCategory = true
-        label.textColor = .label
-        label.textAlignment = .left
-        label.numberOfLines = 1
-        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        
-        return label
-    }()
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        backgroundColor = .feedBackground
-        contentView.addSubview(title)
-        contentView.clipsToBounds = true
-        
-        NSLayoutConstraint.activate([
-            title.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 18),
-            title.topAnchor.constraint(equalTo: contentView.topAnchor),
-            title.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-        ])
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
 }
 
 fileprivate class AssetViewCell: UICollectionViewCell {
@@ -1027,7 +931,8 @@ fileprivate class AssetViewCell: UICollectionViewCell {
     }
     
     weak var delegate: PickerViewCellDelegate?
-    var item: PickerItem?
+    var asset: PHAsset?
+    var indexPath: IndexPath?
 
     static private let durationFormatter: DateComponentsFormatter = {
         let formatter = DateComponentsFormatter()
@@ -1096,7 +1001,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
     
     func calculateSpacing() -> (CGFloat, CGFloat, CGFloat) {
         guard let delegate = delegate else { return (0, 0, 0) }
-        guard let item = item else { return (0, 0, 0) }
+        guard let indexPath = indexPath else { return (0, 0, 0) }
         
         let spacing = CGFloat(1)
         
@@ -1105,13 +1010,13 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         
         switch delegate.mode {
         case .month:
-            column = CGFloat(item.indexInMonth % 5)
+            column = CGFloat(indexPath.row % 5)
             columnCount = 5
         case .day:
-            column = CGFloat(item.indexInDay % 4)
-            columnCount = 4
+            column = CGFloat(indexPath.row % 3)
+            columnCount = 3
         case .dayLarge:
-            let indexInBlock = item.indexInDay % 5
+            let indexInBlock = indexPath.row % 5
             
             if indexInBlock < 2 {
                 column = CGFloat(indexInBlock)
@@ -1149,7 +1054,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         
         NSLayoutConstraint.activate(activeConstraints)
 
-        if let asset = item?.asset, delegate?.selected.contains(asset) == true {
+        if let asset = asset, delegate?.selected.contains(asset) == true {
             image.layer.cornerRadius = 15
             image.transform = CGAffineTransform(scaleX: 0.96, y: 0.96)
         } else {
@@ -1157,14 +1062,14 @@ fileprivate class AssetViewCell: UICollectionViewCell {
             image.transform = CGAffineTransform.identity
         }
 
-        if item?.asset?.mediaType == .video, let interval = item?.asset?.duration {
+        if asset?.mediaType == .video, let interval = asset?.duration {
             duration.isHidden = false
             duration.text = Self.durationFormatter.string(from: interval)
         } else {
             duration.isHidden = true
         }
 
-        favorite.isHidden = item?.asset?.isFavorite != true
+        favorite.isHidden = asset?.isFavorite != true
 
         prepareIndicator()
 
@@ -1172,7 +1077,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
     }
 
     func prepareIndicator() {
-        if let asset = item?.asset, let idx = delegate?.selected.firstIndex(of: asset) {
+        if let asset = asset, let idx = delegate?.selected.firstIndex(of: asset) {
             indicator.layer.borderColor = UIColor.lavaOrange.cgColor
             indicator.backgroundColor = .lavaOrange
             indicator.text = "\(1 + idx)"
