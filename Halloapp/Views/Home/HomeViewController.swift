@@ -53,14 +53,12 @@ class HomeViewController: UITabBarController {
 
     private func commonSetup() {
         self.delegate = self
-        
-        // Set background color for navigation bar and search bar system-wide.
-        UINavigationBar.appearance().standardAppearance = .opaqueAppearance
+
         // Setting background color through appearance proxy seems to be the only way
         // to modify navigation bar in SwiftUI's NavigationView.
         UINavigationBar.appearance().backgroundColor = .primaryBg
-        //add devider line below the navigation bar
-        UINavigationBar.appearance().showNavBarSeparator()
+        
+        UINavigationBar.appearance().standardAppearance = .translucentAppearance
         
         UISearchBar.appearance().backgroundColor = .primaryBg
         
@@ -71,10 +69,16 @@ class HomeViewController: UITabBarController {
         UITabBarItem.appearance().setTitleTextAttributes(fontAttributes, for: .normal)
         
         let appearance = UITabBarAppearance()
-        appearance.shadowColor = nil
+        //appearance.shadowColor = nil
         appearance.stackedLayoutAppearance.normal.badgeBackgroundColor = .lavaOrange
         appearance.stackedLayoutAppearance.normal.badgePositionAdjustment = UIOffset(horizontal: 2, vertical: 0 + Self.tabBarItemImageInsets.top)
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = fontAttributes
+        
+        
+        let img = UIImage.pixelImageWithColor(color: UIColor(red:0.8, green:0.8, blue:0.8, alpha: 1.0))
+        appearance.shadowImage = img
+        appearance.shadowColor = .gray
+        
         tabBar.standardAppearance = appearance
 
         tabBar.tintColor = .primaryBlue
@@ -159,13 +163,16 @@ class HomeViewController: UITabBarController {
         super.traitCollectionDidChange(previousTraitCollection)
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
             updateTabBarBackgroundEffect()
+            //updateNavBarBackgroundEffect()
         }
     }
 
     private func updateTabBarBackgroundEffect() {
         let blurStyle: UIBlurEffect.Style = traitCollection.userInterfaceStyle == .light ? .systemMaterial : .systemChromeMaterial
         tabBar.standardAppearance.backgroundEffect = UIBlurEffect(style: blurStyle)
+        
     }
+    
 
     static let tabBarItemImageInsets: UIEdgeInsets = {
         let vInset: CGFloat = UIDevice.current.hasNotch ? 3 : 3 // currently same but can be used to adjust in the future

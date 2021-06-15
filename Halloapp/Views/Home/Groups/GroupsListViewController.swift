@@ -62,8 +62,10 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     override func viewDidLoad() {
         DDLogInfo("GroupsListViewController/viewDidLoad")
 
-        navigationItem.standardAppearance = .transparentAppearance
+        //Comment out this line to make the navigation bar blurring work
+        //navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
+        
         installLargeTitleUsingGothamFont()
 
         navigationItem.rightBarButtonItem = rightBarButtonItem
