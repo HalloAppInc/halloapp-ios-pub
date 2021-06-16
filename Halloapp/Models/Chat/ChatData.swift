@@ -1730,6 +1730,12 @@ extension ChatData {
         
     }
     
+    /// Donates an intent to Siri for improved suggestions when sharing content.
+    ///
+    /// Intents are used by iOS to provide contextual suggestions to the user for certain interactions. In this case, we are suggesting the user send another message to the user they just shared with.
+    /// For more information, see [this documentation](https://developer.apple.com/documentation/sirikit/insendmessageintent)\.
+    /// - Parameter toUserId: The user ID for the person the user just shared with
+    /// - Remark: This is different from the implementation in `ShareComposerViewController.swift` because `MainAppContext` isn't available in the share extension.
     private func addIntent(toUserId: UserID) {
         if #available(iOS 14.0, *) {
             let recipient = INSpeakableString(spokenPhrase: MainAppContext.shared.contactStore.fullName(for: toUserId))

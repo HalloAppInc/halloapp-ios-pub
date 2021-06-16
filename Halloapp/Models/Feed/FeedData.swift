@@ -1744,6 +1744,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Now send data over the wire.
         send(comment: feedComment)
+        
+        if let groupId = feedPost.groupId, let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+            addIntent(chatGroup: chatGroup)
+        }
 
         return commentId
     }
@@ -1876,6 +1880,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
     
+    /// Donates an intent to Siri for improved suggestions when sharing content.
+    ///
+    /// Intents are used by iOS to provide contextual suggestions to the user for certain interactions. In this case, we are suggesting the user send another message to the user they just shared with.
+    /// For more information, see [this documentation](https://developer.apple.com/documentation/sirikit/insendmessageintent)\.
+    /// - Parameter chatGroup: The ID for the group the user is sharing to
+    /// - Remark: This is different from the implementation in `ShareComposerViewController.swift` because `MainAppContext` isn't available in the share extension.
     private func addIntent(chatGroup: ChatGroup) {
         if #available(iOS 14.0, *) {
             let recipient = INSpeakableString(spokenPhrase: chatGroup.name)
