@@ -1,5 +1,6 @@
 //
-//  HalloApp
+//  KeyData.swift
+//  Core
 //
 //  Created by Tony Jiang on 7/15/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
@@ -7,7 +8,6 @@
 
 import CocoaLumberjack
 import Combine
-import Core
 import CoreData
 import CryptoKit
 import CryptoSwift
@@ -19,7 +19,7 @@ enum KeyDataError: Error {
     case identityKeyMissing
 }
 
-class KeyData {
+public class KeyData {
     let oneTimePreKeysToUpload: Int32 = 100
     let thresholdToUploadMoreOTPKeys: Int32 = 5
     var isOneTimePreKeyUploadInProgress = false
@@ -29,13 +29,13 @@ class KeyData {
     }
 
     private var userData: UserData
-    private var service: HalloService
+    private var service: CoreService
     
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var keyStore: KeyStore
     
-    init(service: HalloService, userData: UserData, keyStore: KeyStore) {
+    init(service: CoreService, userData: UserData, keyStore: KeyStore) {
         self.service = service
         self.userData = userData
         self.keyStore = keyStore
@@ -249,7 +249,7 @@ class KeyData {
 
         let oneDay = TimeInterval(86400)
 
-        if let lastVerificationDate = MainAppContext.shared.userDefaults.object(forKey: UserDefaultsKey.identityKeyVerificationDate) as? Date,
+        if let lastVerificationDate = AppContext.shared.userDefaults.object(forKey: UserDefaultsKey.identityKeyVerificationDate) as? Date,
            lastVerificationDate.advanced(by: oneDay) > Date()
         {
             DDLogInfo("KeyData/verifyIdentityKey/skipping [last verified: \(lastVerificationDate)]")
@@ -269,7 +269,7 @@ class KeyData {
             case .success(let bundle):
                 if bundle.identity == savedIdentityKey {
                     DDLogError("KeyData/verifyIdentityKey/success")
-                    MainAppContext.shared.userDefaults.setValue(Date(), forKey: UserDefaultsKey.identityKeyVerificationDate)
+                    AppContext.shared.userDefaults.setValue(Date(), forKey: UserDefaultsKey.identityKeyVerificationDate)
                 } else {
                     self.didFailIdentityKeyVerification(with: .identityKeyMismatch)
                 }
@@ -280,13 +280,13 @@ class KeyData {
 
     private func didFailIdentityKeyVerification(with error: KeyDataError) {
         DDLogError("KeyData/didFailIdentityKeyVerification [\(error)]")
-        MainAppContext.shared.errorLogger?.logError(error)
+        AppContext.shared.errorLogger?.logError(error)
         userData.logout()
     }
 }
 
-extension KeyData: HalloKeyDelegate {
-    public func halloService(_ halloService: HalloService, didReceiveWhisperMessage message: WhisperMessage) {
+extension KeyData: ServiceKeyDelegate {
+    public func service(_ service: CoreService, didReceiveWhisperMessage message: WhisperMessage) {
         DDLogInfo("KeyData/didReceiveWhisperMessage \(message)")
         switch message {
         case .update(let uid):
@@ -296,7 +296,7 @@ extension KeyData: HalloKeyDelegate {
         }
     }
 
-    public func halloService(_ halloService: HalloService, didReceiveRerequestWithRerequestCount rerequestCount: Int) {
+    public func service(_ service: CoreService, didReceiveRerequestWithRerequestCount rerequestCount: Int) {
         if rerequestCount > 2 {
             verifyIdentityKeyIfNecessary()
         }

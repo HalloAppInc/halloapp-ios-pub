@@ -67,6 +67,7 @@ open class AppContext {
     public static let userDefaultsForAppGroup: UserDefaults! = UserDefaults(suiteName: appGroupName)
     public let userDefaults: UserDefaults! = AppContext.userDefaultsForAppGroup
     public let keyStore: KeyStore
+    public var keyData: KeyData!
     public let messageCrypter: MessageCrypter
     public let fileLogger: DDFileLogger
     public let phoneNumberFormatter = PhoneNumberKit(metadataCallback: AppContext.phoneNumberKitMetadataCallback)
@@ -216,6 +217,7 @@ open class AppContext {
         contactStoreImpl = contactStoreClass.init(userData: userData)
         privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)
         keyStore = KeyStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
+        keyData = KeyData(service: coreService, userData: userData, keyStore: keyStore)
         messageCrypter = MessageCrypter(service: coreService, keyStore: keyStore)
         keyStore.delegate = messageCrypter
 

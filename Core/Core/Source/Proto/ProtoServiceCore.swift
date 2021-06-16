@@ -20,6 +20,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     // MARK: Avatar
     public weak var avatarDelegate: ServiceAvatarDelegate?
+    public weak var keyDelegate: ServiceKeyDelegate?
 
     private class ConnectionStateCallback {
         let state: ConnectionState
@@ -723,5 +724,29 @@ extension ProtoServiceCore: CoreService {
 
     public func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoLoggingRequest(countableEvents: countableEvents, discreteEvents: discreteEvents, completion: completion))
+    }
+    
+    // MARK: Key requests
+        
+    public func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoWhisperUploadRequest(keyBundle: bundle, completion: completion))
+    }
+
+    public func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoWhisperAddOneTimeKeysRequest(preKeys: keys, completion: completion))
+    }
+
+    public func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>) {
+        enqueue(request: ProtoWhisperGetCountOfOneTimeKeysRequest(completion: completion))
+    }
+
+    // MARK: Groups
+    
+    public func getGroupPreviewWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
+        enqueue(request: ProtoGroupPreviewWithLinkRequest(inviteLink: inviteLink, completion: completion))
+    }
+
+    public func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
+        enqueue(request: ProtoJoinGroupWithLinkRequest(inviteLink: inviteLink, completion: completion))
     }
 }

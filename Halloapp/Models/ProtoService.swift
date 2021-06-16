@@ -77,7 +77,6 @@ final class ProtoService: ProtoServiceCore {
 
     weak var chatDelegate: HalloChatDelegate?
     weak var feedDelegate: HalloFeedDelegate?
-    weak var keyDelegate: HalloKeyDelegate?
 
     let didGetNewChatMessage = PassthroughSubject<IncomingChatMessage, Never>()
     let didGetChatAck = PassthroughSubject<ChatAck, Never>()
@@ -624,7 +623,7 @@ final class ProtoService: ProtoServiceCore {
             avatarDelegate?.service(self, didReceiveAvatarInfo: (userID: UserID(pbAvatar.uid), avatarID: pbAvatar.id))
         case .whisperKeys(let pbKeys):
             if let whisperMessage = WhisperMessage(pbKeys) {
-                keyDelegate?.halloService(self, didReceiveWhisperMessage: whisperMessage)
+                keyDelegate?.service(self, didReceiveWhisperMessage: whisperMessage)
             } else {
                 DDLogError("proto/didReceive/\(msg.id)/error could not read whisper message")
             }
@@ -709,7 +708,7 @@ final class ProtoService: ProtoServiceCore {
             let userID = UserID(msg.fromUid)
 
             // Check key integrity
-            MainAppContext.shared.keyData.halloService(self, didReceiveRerequestWithRerequestCount: Int(msg.rerequestCount))
+            MainAppContext.shared.keyData.service(self, didReceiveRerequestWithRerequestCount: Int(msg.rerequestCount))
 
             // Protobuf object will contain a 0 if no one time pre key was used
             let oneTimePreKeyID: Int? = rerequest.oneTimePreKeyID > 0 ? Int(rerequest.oneTimePreKeyID) : nil
@@ -973,18 +972,6 @@ extension ProtoService: HalloService {
 
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoSharePostsRequest(postIDs: postIds, userID: userId, completion: completion))
-    }
-
-    func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoWhisperUploadRequest(keyBundle: bundle, completion: completion))
-    }
-
-    func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoWhisperAddOneTimeKeysRequest(preKeys: keys, completion: completion))
-    }
-
-    func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>) {
-        enqueue(request: ProtoWhisperGetCountOfOneTimeKeysRequest(completion: completion))
     }
 
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID) {
@@ -1261,14 +1248,6 @@ extension ProtoService: HalloService {
 
     func resetGroupInviteLink(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
         enqueue(request: ProtoResetGroupInviteLinkRequest(groupID: groupID, completion: completion))
-    }
-    
-    func getGroupPreviewWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
-        enqueue(request: ProtoGroupPreviewWithLinkRequest(inviteLink: inviteLink, completion: completion))
-    }
-    
-    func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
-        enqueue(request: ProtoJoinGroupWithLinkRequest(inviteLink: inviteLink, completion: completion))
     }
     
     func getGroupsList(completion: @escaping ServiceRequestCompletion<HalloGroups>) {

@@ -173,20 +173,6 @@ final class ProtoContactSyncRequest: ProtoRequest<[HalloContact]> {
 }
 
 
-final class ProtoSendNameRequest: ProtoRequest<Void> {
-
-    init(name: String, completion: @escaping Completion) {
-        var serverName = Server_Name()
-        serverName.name = name
-
-        super.init(
-            iqPacket: .iqPacket(type: .set, payload: .name(serverName)),
-            transform: { _ in .success(()) },
-            completion: completion)
-    }
-}
-
-
 final class ProtoGroupCreateRequest: ProtoRequest<String> {
 
     init(name: String, members: [UserID], completion: @escaping Completion) {
@@ -248,38 +234,6 @@ final class ProtoResetGroupInviteLinkRequest: ProtoRequest<Server_GroupInviteLin
         var groupInviteLink = Server_GroupInviteLink()
         groupInviteLink.gid = groupID
         groupInviteLink.action = .reset
-
-        super.init(
-            iqPacket: .iqPacket(type: .set, payload: .groupInviteLink(groupInviteLink)),
-            transform: { (iq) in
-                return .success(iq.groupInviteLink) },
-            completion: completion)
-    }
-}
-
-
-final class ProtoGroupPreviewWithLinkRequest: ProtoRequest<Server_GroupInviteLink> {
-
-    init(inviteLink: String, completion: @escaping Completion) {
-        var groupInviteLink = Server_GroupInviteLink()
-        groupInviteLink.action = .preview
-        groupInviteLink.link = inviteLink
-
-        super.init(
-            iqPacket: .iqPacket(type: .get, payload: .groupInviteLink(groupInviteLink)),
-            transform: { (iq) in
-                return .success(iq.groupInviteLink) },
-            completion: completion)
-    }
-}
-
-
-final class ProtoJoinGroupWithLinkRequest: ProtoRequest<Server_GroupInviteLink> {
-
-    init(inviteLink: String, completion: @escaping Completion) {
-        var groupInviteLink = Server_GroupInviteLink()
-        groupInviteLink.action = .join
-        groupInviteLink.link = inviteLink
 
         super.init(
             iqPacket: .iqPacket(type: .set, payload: .groupInviteLink(groupInviteLink)),

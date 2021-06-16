@@ -1,17 +1,16 @@
 //
 //  RegistrationService.swift
-//  HalloApp
+//  Core
 //
 //  Created by Garrett on 10/26/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
 import CocoaLumberjack
-import Core
 import CryptoKit
 import Sodium
 
-protocol RegistrationService {
+public protocol RegistrationService {
     func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
     func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
 
@@ -19,13 +18,13 @@ protocol RegistrationService {
     func updateNoiseKeys(_ noiseKeys: NoiseKeys, userID: UserID, password: String, completion: @escaping (Result<Credentials, Error>) -> Void)
 }
 
-struct RegistrationResponse {
+public struct RegistrationResponse {
     var normalizedPhoneNumber: String
     var retryDelay: TimeInterval
 }
 
-final class DefaultRegistrationService: RegistrationService {
-    init(hostName: String = "api.halloapp.net", userAgent: String = MainAppContext.userAgent) {
+public final class DefaultRegistrationService: RegistrationService {
+    public init(hostName: String = "api.halloapp.net", userAgent: String = AppContext.userAgent) {
         self.hostName = hostName
         self.userAgent = userAgent
     }
@@ -35,7 +34,7 @@ final class DefaultRegistrationService: RegistrationService {
 
     // MARK: Verification code requests
 
-    func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String? = nil, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void) {
+    public func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String? = nil, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void) {
 
         var json: [String : String] = [
             "phone": phoneNumber,
@@ -119,7 +118,7 @@ final class DefaultRegistrationService: RegistrationService {
         task.resume()
     }
 
-    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void) {
+    public func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void) {
 
         guard let phraseData = "HALLO".data(using: .utf8),
               let signedPhrase = noiseKeys.sign(phraseData) else
@@ -213,7 +212,7 @@ final class DefaultRegistrationService: RegistrationService {
 
     // Support migration to Noise protocol
 
-    func updateNoiseKeys(_ noiseKeys: NoiseKeys, userID: UserID, password: String, completion: @escaping (Result<Credentials, Error>) -> Void) {
+    public func updateNoiseKeys(_ noiseKeys: NoiseKeys, userID: UserID, password: String, completion: @escaping (Result<Credentials, Error>) -> Void) {
         guard let phraseData = "HALLO".data(using: .utf8), let signedPhrase = noiseKeys.sign(phraseData) else {
             completion(.failure(NoiseKeyUpdateError.phraseSigningError))
             return
@@ -305,7 +304,7 @@ final class DefaultRegistrationService: RegistrationService {
 
 }
 
-enum VerificationCodeRequestError: String, Error, RawRepresentable {
+public enum VerificationCodeRequestError: String, Error, RawRepresentable {
     case notInvited = "not_invited"
     case smsFailure = "sms_fail"
     case invalidClientVersion = "invalid_client_version"    // client version has expired.
@@ -313,7 +312,7 @@ enum VerificationCodeRequestError: String, Error, RawRepresentable {
     case malformedResponse // everything else
 }
 
-enum VerificationCodeValidationError: String, Error, RawRepresentable {
+public enum VerificationCodeValidationError: String, Error, RawRepresentable {
     case incorrectCode = "wrong_sms_code"                   // The sms code provided does not match
     case missingPhone = "missing_phone"                     // Request is missing phone field
     case missingCode = "missing_code"                       // Request is missing code field
@@ -327,7 +326,7 @@ enum VerificationCodeValidationError: String, Error, RawRepresentable {
     case malformedResponse                                  // Everything else
 }
 
-enum NoiseKeyUpdateError: String, Error, RawRepresentable {
+public enum NoiseKeyUpdateError: String, Error, RawRepresentable {
     case phraseSigningError
     case requestCreationError
     case invalidKey = "invalid_s_ed_pub"
