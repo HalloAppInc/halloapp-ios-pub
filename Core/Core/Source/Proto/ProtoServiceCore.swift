@@ -47,12 +47,15 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             }
         }
     }
+    
+    public var reachabilityState: ReachablilityState = .reachable
 
     public var isAppVersionKnownExpired = CurrentValueSubject<Bool, Never>(false)
     public var isAppVersionCloseToExpiry = CurrentValueSubject<Bool, Never>(false)
 
     public var isConnected: Bool { get { connectionState == .connected } }
     public var isDisconnected: Bool { get { connectionState == .disconnecting || connectionState == .notConnected } }
+    public var isReachable: Bool { get { reachabilityState == .reachable } }
 
     public let didConnect = PassthroughSubject<Void, Never>()
     public let didDisconnect = PassthroughSubject<Void, Never>()
@@ -145,7 +148,13 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
         // Retry if we're not connected in 10 seconds (cancel pending retry if it exists)
         retryConnectionTask?.cancel()
-        let retryConnection = DispatchWorkItem { self.startConnectingIfNecessary() }
+        let retryConnection = DispatchWorkItem {
+            guard self.isReachable else {
+                DDLogInfo("proto/retryConnectionTask/skipping (client is unreachable)")
+                return
+            }
+            self.startConnectingIfNecessary()
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: retryConnection)
         retryConnectionTask = retryConnection
     }

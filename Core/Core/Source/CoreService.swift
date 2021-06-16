@@ -16,6 +16,11 @@ public enum ConnectionState {
     case disconnecting
 }
 
+public enum ReachablilityState {
+    case reachable
+    case unreachable
+}
+
 public enum Feed {
     case personal(FeedAudience)
     case group(GroupID)
@@ -39,6 +44,8 @@ public protocol CoreService {
     var connectionState: ConnectionState { get }
     var isConnected: Bool { get }
     var isDisconnected: Bool { get }
+    var reachabilityState: ReachablilityState { get set }
+    var isReachable: Bool { get }
     func startConnectingIfNecessary()
     func disconnectImmediately()
     func disconnect()
