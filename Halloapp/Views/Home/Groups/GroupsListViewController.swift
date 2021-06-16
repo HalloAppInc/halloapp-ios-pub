@@ -439,7 +439,7 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 25
+        return section == 1 ? CGFloat.leastNormalMagnitude : 25
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
