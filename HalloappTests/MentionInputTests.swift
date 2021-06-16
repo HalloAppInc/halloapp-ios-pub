@@ -10,6 +10,16 @@ import Core
 import XCTest
 @testable import HalloApp
 
+fileprivate extension MentionInput {
+    func mentionedUser(for range: NSRange) -> UserID! {
+        guard let mention = self.mentions[range] else {
+            XCTFail("Mentioned user was nil")
+            return nil
+        }
+        return mention.userID
+    }
+}
+
 class MentionInputTests: XCTestCase {
 
     override func setUpWithError() throws {
@@ -30,47 +40,47 @@ class MentionInputTests: XCTestCase {
     func testAddMentionToEmptyInput() throws {
         var input = makeInput()
         input.addMention(name: "Alice", userID: "AA", in: NSRange(location: 0, length: 0))
-        XCTAssert(input.text == "@Alice ")
-        XCTAssert(input.mentions[NSRange(location: 0, length: 6)] == "AA")
-        XCTAssert(input.selectedRange == NSRange(location: 7, length: 0))
+        XCTAssertEqual(input.text, "@Alice ")
+        XCTAssertEqual(input.mentionedUser(for: NSRange(location: 0, length: 6)), "AA")
+        XCTAssertEqual(input.selectedRange, NSRange(location: 7, length: 0))
     }
 
     func testAddMentionDoesNotChangeEarlierMentions() throws {
         var input = makeInput()
         input.addMention(name: "Alice", userID: "AA", in: NSRange(location: 0, length: 0))
         input.addMention(name: "Bob", userID: "BBB", in: NSRange(location: 7, length: 0))
-        XCTAssert(input.text == "@Alice @Bob ")
-        XCTAssert(input.mentions[NSRange(location: 0, length: 6)] == "AA")
-        XCTAssert(input.mentions[NSRange(location: 7, length: 4)] == "BBB")
-        XCTAssert(input.selectedRange == NSRange(location: 12, length: 0))
+        XCTAssertEqual(input.text, "@Alice @Bob ")
+        XCTAssertEqual(input.mentionedUser(for: NSRange(location: 0, length: 6)), "AA")
+        XCTAssertEqual(input.mentionedUser(for: NSRange(location: 7, length: 4)), "BBB")
+        XCTAssertEqual(input.selectedRange, NSRange(location: 12, length: 0))
     }
 
     func testAddMentionShiftsLaterMentions() throws {
         var input = makeInput()
         input.addMention(name: "Bob", userID: "BBB", in: NSRange(location: 0, length: 0))
         input.addMention(name: "Alice", userID: "AA", in: NSRange(location: 0, length: 0))
-        XCTAssert(input.text == "@Alice @Bob ")
-        XCTAssert(input.mentions[NSRange(location: 0, length: 6)] == "AA")
-        XCTAssert(input.mentions[NSRange(location: 7, length: 4)] == "BBB")
-        XCTAssert(input.selectedRange == NSRange(location: 7, length: 0))
+        XCTAssertEqual(input.text, "@Alice @Bob ")
+        XCTAssertEqual(input.mentionedUser(for: NSRange(location: 0, length: 6)), "AA")
+        XCTAssertEqual(input.mentionedUser(for: NSRange(location: 7, length: 4)), "BBB")
+        XCTAssertEqual(input.selectedRange, NSRange(location: 7, length: 0))
     }
-
+    
     func testAddMentionRange() throws {
         var input = makeInput(text: "Some @ text")
         input.addMention(name: "Alice", userID: "AA", in: NSRange(location: 5, length: 1))
         // NB: We always insert an extra space after the mention
-        XCTAssert(input.text == "Some @Alice  text")
-        XCTAssert(input.mentions[NSRange(location: 5, length: 6)] == "AA")
-        XCTAssert(input.selectedRange == NSRange(location: 12, length: 0))
+        XCTAssertEqual(input.text, "Some @Alice  text")
+        XCTAssertEqual(input.mentionedUser(for: NSRange(location: 5, length: 6)), "AA")
+        XCTAssertEqual(input.selectedRange, NSRange(location: 12, length: 0))
     }
 
     func testChangeTextShiftsLaterMentions() throws {
         var input = makeInput()
         input.addMention(name: "Alice", userID: "AA", in: NSRange(location: 0, length: 0))
         input.changeText(in: NSRange(location: 0, length: 0), to: "Hello ")
-        XCTAssert(input.text == "Hello @Alice ")
-        XCTAssert(input.mentions[NSRange(location: 6, length: 6)] == "AA")
-        XCTAssert(input.selectedRange == NSRange(location: 6, length: 0))
+        XCTAssertEqual(input.text, "Hello @Alice ")
+        XCTAssertEqual(input.mentionedUser(for: NSRange(location: 6, length: 6)), "AA")
+        XCTAssertEqual(input.selectedRange, NSRange(location: 6, length: 0))
     }
 
     func testImpactedMentionRanges() throws {
@@ -89,17 +99,17 @@ class MentionInputTests: XCTestCase {
         XCTAssert(input.impactedMentionRanges(in: NSRange(location: 12, length: 0)).isEmpty)
 
         // Single intersections
-        XCTAssert(input.impactedMentionRanges(in: aliceRange) == [aliceRange])
-        XCTAssert(input.impactedMentionRanges(in: NSRange(location: 4, length: 0)) == [aliceRange])
-        XCTAssert(input.impactedMentionRanges(in: NSRange(location: 1, length: 2)) == [aliceRange])
-        XCTAssert(input.impactedMentionRanges(in: bobRange) == [bobRange])
-        XCTAssert(input.impactedMentionRanges(in: NSRange(location: 6, length: 3)) == [bobRange])
+        XCTAssertEqual(input.impactedMentionRanges(in: aliceRange), [aliceRange])
+        XCTAssertEqual(input.impactedMentionRanges(in: NSRange(location: 4, length: 0)), [aliceRange])
+        XCTAssertEqual(input.impactedMentionRanges(in: NSRange(location: 1, length: 2)), [aliceRange])
+        XCTAssertEqual(input.impactedMentionRanges(in: bobRange), [bobRange])
+        XCTAssertEqual(input.impactedMentionRanges(in: NSRange(location: 6, length: 3)), [bobRange])
 
         // Multiple intersections
-        XCTAssert(input.impactedMentionRanges(in: input.text.utf16Extent).sorted { $0.location < $1.location } == [aliceRange, bobRange])
-        XCTAssert(input.impactedMentionRanges(in: NSRange(location: 3, length: 8)).sorted { $0.location < $1.location } == [aliceRange, bobRange])
+        XCTAssertEqual(input.impactedMentionRanges(in: input.text.utf16Extent).sorted { $0.location < $1.location }, [aliceRange, bobRange])
+        XCTAssertEqual(input.impactedMentionRanges(in: NSRange(location: 3, length: 8)).sorted { $0.location < $1.location }, [aliceRange, bobRange])
     }
-
+    
     func testRangeOfMentionCandidate() throws {
         var input = makeInput(text: "@@Alice@🇺🇸🤞🏻@Bob \n日本語＠ガーレト　فرسی @Carol", mentions: [:], selectedRange: nil)
 
@@ -134,7 +144,7 @@ class MentionInputTests: XCTestCase {
         XCTAssert(input.rangeOfMentionCandidateAtCurrentPosition() == input.text.range(of: "@Alic"))
 
         // Returns nil if there is an overlapping mention
-        input.mentions[(input.text as NSString).range(of: "@Ali")] = "AA"
+        input.mentions[(input.text as NSString).range(of: "@Ali")] = MentionedUser(userID: "AA", pushName: "Alice")
         XCTAssert(input.rangeOfMentionCandidateAtCurrentPosition() == nil)
 
         // Returns nil if the cursor is contained in an existing mention
