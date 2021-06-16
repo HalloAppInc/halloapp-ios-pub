@@ -207,6 +207,8 @@ class ThreadListCell: UITableViewCell {
         if chatThread.unreadCount > 0 {
             unreadCountView.isHidden = false
             unreadCountView.label.text = String(chatThread.unreadCount)
+            unreadCountView.label.insetsLayoutMarginsFromSafeArea = true
+            unreadCountView.layoutMargins = UIEdgeInsets(top: 1, left: chatThread.unreadCount >= 10 ? 5 : 1, bottom: 1, right: chatThread.unreadCount >= 10 ? 5 : 1)
             timeLabel.textColor = .systemBlue
         } else if chatThread.isNew && chatThread.chatWithUserId != MainAppContext.shared.userData.userId {
             unreadCountView.isHidden = false
