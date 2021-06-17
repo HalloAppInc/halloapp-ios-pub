@@ -682,6 +682,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     private var videoSize: CGSize?
 
     private var avPlayerViewController: AVPlayerViewController!
+    private var looper: AVPlayerLooper?
     private var playButton: UIButton!
     private var initialPlaybackTime: CMTime = .zero
     private var isPlayerAtStart = true
@@ -845,7 +846,9 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerViewController.view.isHidden = false
         placeholderImageView.isHidden = true
 
-        let avPlayer = AVPlayer(url: videoURL)
+        let item = AVPlayerItem(url: videoURL)
+        let avPlayer = AVQueuePlayer(playerItem: item)
+        looper = AVPlayerLooper(player: avPlayer, templateItem: item)
         // Monitor when this cell's video starts playing and send out broadcast when it does.
         avPlayerRateObservation = avPlayer.observe(\.rate, options: [ ], changeHandler: { [weak self] (player, change) in
             if player.rate == 1 {
