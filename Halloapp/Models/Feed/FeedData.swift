@@ -2209,8 +2209,31 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let expiredPostIDs = self.deletePosts(olderThan: cutoffDate, in: managedObjectContext)
             self.deleteNotifications(olderThan: cutoffDate, in: managedObjectContext)
             self.deleteNotifications(forPosts: expiredPostIDs, in: managedObjectContext)
+            self.deletePostCommentDrafts(forPosts: expiredPostIDs)
             self.save(managedObjectContext)
         }
+    }
+    
+    /// Deletes drafts of comments in `userDefaults` for posts that are no longer available to the user.
+    /// - Parameter posts: Posts which are no longer valid. The comment drafts for these posts are deleted.
+    private func deletePostCommentDrafts(forPosts posts: [FeedPostID]) {
+        Self.deletePostCommentDrafts { existingDraft in
+            posts.contains(existingDraft.postID)
+        }
+    }
+    
+    /// Deletes drafts of comments in `userDefaults` that meet the condition argument.
+    /// - Parameter condition: Should return true when the draft passed in needs to be removed. Returns false otherwise.
+    static func deletePostCommentDrafts(when condition: (CommentDraft) -> Bool) {
+        var draftsArray: [CommentDraft] = []
+        
+        if let draftsDecoded: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: CommentsViewController.postCommentDraftKey) {
+            draftsArray = draftsDecoded
+        }
+        
+        draftsArray.removeAll(where: condition)
+        
+        try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: CommentsViewController.postCommentDraftKey)
     }
     
     // MARK: Merge Data

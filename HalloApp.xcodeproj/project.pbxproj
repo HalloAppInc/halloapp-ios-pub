@@ -189,6 +189,7 @@
 		94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */; };
 		E598D4C0265F0188001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
 		E598D4C2265F0558001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
+		E5D66D1C266954A200B23887 /* CommentDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D66D1B266954A200B23887 /* CommentDraft.swift */; };
 		EA0B9917249C1FFB00B05094 /* Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B9916249C1FFB00B05094 /* Character.swift */; };
 		EA0B9919249C205E00B05094 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B9918249C205E00B05094 /* String.swift */; };
 		EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B991A249C228700B05094 /* DateFormatter.swift */; };
@@ -568,6 +569,7 @@
 		D0A0ED7F66A2EB2A804CC6EC /* Pods-Shared Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		E598D4BF265F0188001A436A /* ConversationID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationID.swift; sourceTree = "<group>"; };
+		E5D66D1B266954A200B23887 /* CommentDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentDraft.swift; sourceTree = "<group>"; };
 		EA0B9916249C1FFB00B05094 /* Character.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Character.swift; sourceTree = "<group>"; };
 		EA0B9918249C205E00B05094 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		EA0B991A249C228700B05094 /* DateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatter.swift; sourceTree = "<group>"; };
@@ -1203,6 +1205,7 @@
 				EA45713223EB7DB3008C2E44 /* FeedMedia.swift */,
 				76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */,
 				76649226245119F2009BC368 /* FeedNotifications.swift */,
+				E5D66D1B266954A200B23887 /* CommentDraft.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -2088,6 +2091,7 @@
 				76C64E0D24E5AD85007C0F6F /* MediaUploader.swift in Sources */,
 				EAA424FA24ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift in Sources */,
 				769CD3AC255CDB8D006F21BB /* NameEditViewController.swift in Sources */,
+				E5D66D1C266954A200B23887 /* CommentDraft.swift in Sources */,
 				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,
 				EA3585792450BE3300E6E8AB /* ChatViewController.swift in Sources */,
 				EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */,

@@ -118,6 +118,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         return textView
     }()
 
+
     private lazy var placeholder: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -424,8 +425,22 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     @objc func postButtonClicked() {
         self.acceptAutoCorrection()
-        let mentionText = MentionText(expandedText: textView.text, mentionRanges: textView.mentions)
         self.delegate?.commentInputView(self, wantsToSend: mentionText.trimmed())
+    }
+    
+    var mentionText: MentionText {
+        get {
+            return MentionText(expandedText: textView.text, mentionRanges: textView.mentions)
+        }
+        
+        set {
+            let textAndMentions = newValue.expandedTextAndMentions(nameProvider: { userId in
+                MainAppContext.shared.contactStore.fullName(for: userId)
+            })
+            
+            textView.text = textAndMentions.text.string
+            textView.mentions = textAndMentions.mentions
+        }
     }
 
     private func acceptAutoCorrection() {
@@ -468,6 +483,10 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         placeholder.isHidden = !inputTextView.text.isEmpty
 
         updateMentionPickerContent()
+    }
+    
+    func updateInputView() {
+        inputTextViewDidChange(textView)
     }
 
     func inputTextViewDidChangeSelection(_ inputTextView: InputTextView) {

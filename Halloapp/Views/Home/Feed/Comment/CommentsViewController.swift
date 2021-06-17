@@ -54,8 +54,11 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     static private let cellReuseIdentifier = "CommentCell"
     static private let cellHighlightAnimationDuration = 0.15
     static private let sectionMain = 0
+    
+    /// Key used to encode/decode array of comment drafts from `UserDefaults`.
+    static let postCommentDraftKey = "posts.comments.drafts"
 
-    typealias ReplyContext = (parentCommentId: String, userId: String)
+    typealias ReplyContext = (parentCommentId: FeedPostCommentID, userId: UserID)
 
     private var feedPostId: FeedPostID {
         didSet {
@@ -156,6 +159,8 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
             showNotInGroupBannerIfNeeded(with: feedPost)
         }
+        
+        loadCommentsDraft()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -184,7 +189,49 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
         }
 
+        saveCommentDraft()
+        
         commentsInputView.willDisappear(in: self)
+    }
+    
+    private func saveCommentDraft() {
+        guard !commentsInputView.mentionText.collapsedText.isEmpty else {
+            FeedData.deletePostCommentDrafts { existingDraft in
+                existingDraft.postID == feedPostId
+            }
+            return
+        }
+        
+        let draft = CommentDraft(postID: feedPostId, text: commentsInputView.mentionText, parentComment: replyContext?.parentCommentId)
+        
+        var draftsArray: [CommentDraft] = []
+        
+        if let draftsDecoded: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: Self.postCommentDraftKey) {
+            draftsArray = draftsDecoded
+        }
+        
+        draftsArray.removeAll { existingDraft in
+            existingDraft.postID == draft.postID
+        }
+        
+        draftsArray.append(draft)
+        
+        try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: Self.postCommentDraftKey)
+    }
+    
+    private func loadCommentsDraft() {
+        guard let draftsArray: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: Self.postCommentDraftKey) else { return }
+        
+        guard let draft = draftsArray.first(where: { draft in
+            draft.postID == feedPostId
+        }) else { return }
+        
+        if let parentComment = draft.parentComment {
+            replyContext = (parentComment, MainAppContext.shared.userData.userId)
+        }
+        
+        commentsInputView.mentionText = draft.text
+        commentsInputView.updateInputView()
     }
     
     override func viewDidLayoutSubviews() {
@@ -753,6 +800,10 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
         let parentCommentId = replyContext?.parentCommentId
         commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: parentCommentId)
+        
+        FeedData.deletePostCommentDrafts { existingDraft in
+            existingDraft.postID == feedPostId
+        }
 
         replyContext = nil
         commentsInputView.clear()
