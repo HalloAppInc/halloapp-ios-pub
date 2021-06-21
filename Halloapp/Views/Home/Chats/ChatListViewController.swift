@@ -95,7 +95,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         tableView.backgroundView = UIView() // fixes issue where bg color was off when pulled down from top
         tableView.backgroundColor = .primaryBg
         tableView.separatorStyle = .none
-        tableView.contentInset = UIEdgeInsets(top: -10, left: 0, bottom: 0, right: 0) // -10 to hide top padding on searchBar
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0) // -10 to hide top padding on searchBar (Change: Since the adding of boarder, change it back to 0 so that there is some extra space above the search bar)
 
         tableView.tableHeaderView = searchController.searchBar
         tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
