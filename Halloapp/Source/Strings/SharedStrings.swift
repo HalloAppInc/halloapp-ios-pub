@@ -76,6 +76,10 @@ extension Localizations {
         NSLocalizedString("button.go.to.settings", value: "Go to Settings", comment: "Title for button that will take user to iOS settings (e.g., to enable some permission we need).")
     }
     
+    static var buttonLearnMore: String {
+        NSLocalizedString("button.learn.more", value: "Learn More", comment: "Title for generic Learn More button. Used to provide user with additional context to actions requested.")
+    }
+    
     // MARK: Links
 
     static var linkLearnMore: String {

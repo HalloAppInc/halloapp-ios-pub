@@ -73,6 +73,10 @@ extension Localizations {
     }
 
     // MARK: Contact permissions
+    
+    static var contactsPermissionExplanationTitle: String {
+        NSLocalizedString("contacts.permission.tutorial.title", value: "Contacts", comment: "Title for modal view when showing how to change contact permissions.")
+    }
 
     static var contactsPermissionExplanation: String {
         NSLocalizedString(
@@ -98,7 +102,7 @@ extension Localizations {
     static var tutorialTurnOnContacts: String {
         NSLocalizedString(
             "turn.on.contacts",
-            value: "Turn on “Contacts”.",
+            value: "Turn on “Contacts”",
             comment: "Indicates which switch a user needs to turn on to enable contacts permissions.")
     }
 

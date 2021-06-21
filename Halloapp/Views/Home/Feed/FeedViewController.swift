@@ -117,7 +117,9 @@ class FeedViewController: FeedCollectionViewController {
     private lazy var overlayContainer: OverlayContainer = {
         let overlayContainer = OverlayContainer()
         overlayContainer.translatesAutoresizingMaskIntoConstraints = false
+        
         view.addSubview(overlayContainer)
+        
         overlayContainer.constrain(to: view)
         return overlayContainer
     }()
@@ -255,6 +257,7 @@ class FeedViewController: FeedCollectionViewController {
             overlayContainer.dismissOverlay(with: overlayID)
             return
         }
+      
         guard overlay == nil else {
             return
         }
@@ -262,11 +265,12 @@ class FeedViewController: FeedCollectionViewController {
             DDLogError("FeedViewController/showPermissionsDialog/error settings-url-unavailable")
             return
         }
+      
         let alert = FeedPermissionAlert(
             message: Localizations.contactsPermissionExplanation,
             acceptAction: .init(title: Localizations.buttonContinue) { [weak self] _ in
-                UIApplication.shared.open(url)
                 self?.dismissOverlay()
+                self?.updateContactPermissionsExplanationAlert()
             },
             dismissAction: .init(title: Localizations.buttonNotNow) { [weak self] _ in
                 self?.showContactsPermissionDialogIfNecessary = false
@@ -276,6 +280,41 @@ class FeedViewController: FeedCollectionViewController {
 
         overlay = alert
         overlayContainer.display(alert)
+    }
+    
+    private func updateContactPermissionsExplanationAlert() {
+        let contentView = FeedPermissionExplanationAlert(learnMoreAction: nil, notNowAction: FeedPermissionExplanationAlert.Action(title: Localizations.buttonNotNow, handler: { [weak self] _ in
+            self?.dismissOverlay()
+        }), continueAction: FeedPermissionExplanationAlert.Action(title: Localizations.buttonOK, handler: { [weak self] _ in
+            self?.dismissOverlay()
+            self?.updateContactPermissionsTutorialAlert()
+        }))
+
+        let sheet = BottomSheet(innerView: contentView, completion: {
+            
+        })
+        
+        overlay = sheet
+        overlayContainer.display(sheet)
+    }
+    
+    private func updateContactPermissionsTutorialAlert() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else {
+            DDLogError("FeedViewController/showPermissionsDialog/error settings-url-unavailable")
+            return
+        }
+        
+        let contentView = FeedPermissionTutorialAlert(goToSettingsAction: FeedPermissionTutorialAlert.Action(title: Localizations.buttonGoToSettings, handler: { [weak self] _ in
+            UIApplication.shared.open(url)
+            self?.dismissOverlay()
+        }))
+
+        let sheet = BottomSheet(innerView: contentView, completion: {
+            
+        })
+        
+        overlay = sheet
+        overlayContainer.display(sheet)
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {

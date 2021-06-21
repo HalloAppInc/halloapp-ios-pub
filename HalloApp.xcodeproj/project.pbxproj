@@ -187,6 +187,8 @@
 		76F43F2B2489BC4700D47920 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
 		94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */; };
+		E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */; };
+		E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */; };
 		E598D4C0265F0188001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
 		E598D4C2265F0558001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
 		E5D66D1C266954A200B23887 /* CommentDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D66D1B266954A200B23887 /* CommentDraft.swift */; };
@@ -568,6 +570,8 @@
 		CD26B1DB0D71EF2BBE67ADE9 /* Pods-HalloApp.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.internal beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.internal beta.xcconfig"; sourceTree = "<group>"; };
 		D0A0ED7F66A2EB2A804CC6EC /* Pods-Shared Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.external beta.xcconfig"; sourceTree = "<group>"; };
+		E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPermissionExplanationAlert.swift; sourceTree = "<group>"; };
+		E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionTutorialAlert.swift; sourceTree = "<group>"; };
 		E598D4BF265F0188001A436A /* ConversationID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationID.swift; sourceTree = "<group>"; };
 		E5D66D1B266954A200B23887 /* CommentDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentDraft.swift; sourceTree = "<group>"; };
 		EA0B9916249C1FFB00B05094 /* Character.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Character.swift; sourceTree = "<group>"; };
@@ -1123,6 +1127,8 @@
 				76271381252D247700389FBC /* Post */,
 				7653F2F9255DB4E7001CC946 /* FeedCollectionViewController.swift */,
 				76A92443244E659600794859 /* FeedViewController.swift */,
+				E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */,
+				E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */,
 				76654789252BE44C00379BEF /* GroupFeedViewController.swift */,
 				6829F78624D0A62800207F6B /* UserFeedViewController.swift */,
 				EA73DF3F25E88D9B0070875D /* NewPostsIndicator.swift */,
@@ -1978,6 +1984,7 @@
 				764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */,
 				F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */,
 				EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */,
+				E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */,
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
 				76451C3A254795F500B9E268 /* MainAppStrings.swift in Sources */,
 				EA5975DE252D3CF600810F48 /* GroupMemberAvatars.swift in Sources */,
@@ -1995,6 +2002,7 @@
 				76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */,
 				EA73DF4025E88D9B0070875D /* NewPostsIndicator.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
+				E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */,
 				F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */,
 				F881ED77261B1F6F0013599F /* Upload+CoreDataProperties.swift in Sources */,
 				7639BA39251944920023850E /* NextLevelSessionExporter.swift in Sources */,
