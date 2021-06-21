@@ -458,9 +458,12 @@ final class ProtoService: ProtoServiceCore {
     }
 
     // Checks if the message is decrypted and saved in the main app's data store.
+    // TODO: discuss with garrett on other options here.
+    // We should move the cryptoData keystore to be accessible by all extensions and the main app.
+    // It would be cleaner that way - having these checks after merging still leads to some flakiness in my view.
     private func isMessageDecryptedAndSaved(msgId: String) -> Bool {
-        if MainAppContext.shared.cryptoData.result(for: msgId) == "success",
-           let _ = MainAppContext.shared.chatData.chatMessage(with: msgId) {
+        if let message = MainAppContext.shared.chatData.chatMessage(with: msgId),
+           message.incomingStatus != .rerequesting {
             DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is available in local store.")
             return true
         } else if let _ = MainAppContext.shared.shareExtensionDataStore.sharedChatMessage(for: msgId) {
