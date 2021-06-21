@@ -56,9 +56,9 @@ class HomeViewController: UITabBarController {
 
         // Setting background color through appearance proxy seems to be the only way
         // to modify navigation bar in SwiftUI's NavigationView.
-        UINavigationBar.appearance().backgroundColor = .primaryBg
         
         UINavigationBar.appearance().standardAppearance = .translucentAppearance
+        UINavigationBar.appearance().backgroundColor = .primaryBg
         
         UISearchBar.appearance().backgroundColor = .primaryBg
         
@@ -80,7 +80,7 @@ class HomeViewController: UITabBarController {
         appearance.shadowColor = .gray
         
         tabBar.standardAppearance = appearance
-
+        tabBar.backgroundColor = .primaryBg
         tabBar.tintColor = .primaryBlue
 
         updateTabBarBackgroundEffect()

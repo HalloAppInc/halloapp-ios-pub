@@ -42,7 +42,7 @@ extension UINavigationBarAppearance {
             appearance.configureTitleTextAttributes()
             //TODO: proper mask image.
             appearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
-            appearance.backgroundColor = .feedBackground
+            //appearance.backgroundColor = .feedBackground
             appearance.backButtonAppearance = .transparentAppearance
             //Need to comment out to show the divider
             //appearance.shadowColor = nil
