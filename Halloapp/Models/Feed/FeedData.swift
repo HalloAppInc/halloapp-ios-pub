@@ -1942,10 +1942,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             uploadGroup.leave()
         }
 
+        // mediaItem is a CoreData object and it should not be passed across threads.
         for mediaItem in mediaItemsToUpload {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
-            DDLogDebug("FeedData/process-mediaItem: \(postId)/\(mediaItem.order)")
+            DDLogDebug("FeedData/process-mediaItem: \(postId)/\(mediaItem.order), index: \(mediaIndex)")
             if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
                 let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
@@ -1955,8 +1956,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     switch $0 {
                     case .success(let result):
                         let path = self.downloadManager.relativePath(from: output)
-                        mediaItem.relativeFilePath = path
-                        DDLogDebug("FeedData/process-mediaItem/success: \(postId)/\(mediaItem.order)")
+                        DDLogDebug("FeedData/process-mediaItem/success: \(postId)/\(mediaIndex)")
                         self.updateFeedPost(with: postId, block: { (feedPost) in
                             if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
                                 media.size = result.size
@@ -1965,10 +1965,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                 media.relativeFilePath = path
                             }
                         }) {
-                            self.upload(postId: postId, media: mediaItem, completion: uploadCompletion)
+                            self.upload(postId: postId, mediaIndex: mediaIndex, completion: uploadCompletion)
                         }
                     case .failure(_):
-                        DDLogDebug("FeedData/process-mediaItem/failure: \(postId)/\(mediaItem.order)")
+                        DDLogDebug("FeedData/process-mediaItem/failure: \(postId)/\(mediaIndex)")
                         numberOfFailedUploads += 1
 
                         self.updateFeedPost(with: postId, block: { (feedPost) in
@@ -1981,8 +1981,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 }
             } else {
-                DDLogDebug("FeedData/process-mediaItem/processed already: \(postId)/\(mediaItem.order)")
-                self.upload(postId: postId, media: mediaItem, completion: uploadCompletion)
+                DDLogDebug("FeedData/process-mediaItem/processed already: \(postId)/\(mediaIndex)")
+                self.upload(postId: postId, mediaIndex: mediaIndex, completion: uploadCompletion)
             }
         }
 
@@ -2005,17 +2005,30 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func upload(postId: FeedPostID, media: FeedPostMedia, completion: @escaping (Result<Int, Error>) -> Void) {
-        let index = media.order
-        DDLogDebug("FeedData/upload/media \(postId)/\(media.order), index:\(index)")
-        guard let relativeFilePath = media.relativeFilePath else {
-            DDLogError("FeedData/upload-media/\(postId)/\(index) missing file path")
+    private func upload(postId: FeedPostID, mediaIndex: Int16, completion: @escaping (Result<Int, Error>) -> Void) {
+        guard let post = self.feedPost(with: postId),
+              let postMedia = post.media?.first(where: { $0.order == mediaIndex }) else {
+            DDLogError("FeedData/upload/fetch post and media \(postId)/\(mediaIndex) - missing")
+            return
+        }
+
+        DDLogDebug("FeedData/upload/media \(postId)/\(postMedia.order), index:\(mediaIndex)")
+        guard let relativeFilePath = postMedia.relativeFilePath else {
+            DDLogError("FeedData/upload-media/\(postId)/\(mediaIndex) missing file path")
             return completion(.failure(MediaUploadError.invalidUrls))
         }
         let processed = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
         MainAppContext.shared.uploadData.fetch(upload: processed) { [weak self] upload in
             guard let self = self else { return }
+
+            // Lookup object from coredata again instead of passing around the object across threads.
+            DDLogInfo("FeedData/upload/fetch upload hash \(postId)/\(mediaIndex)")
+            guard let post = self.feedPost(with: postId),
+                  let media = post.media?.first(where: { $0.order == mediaIndex }) else {
+                DDLogError("FeedData/upload/upload hash finished/fetch post and media/ \(postId)/\(mediaIndex) - missing")
+                return
+            }
 
             if let url = upload?.url {
                 DDLogInfo("Media \(processed) has been uploaded before at \(url).")
@@ -2026,15 +2039,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
                 media.url = url
             } else {
-                DDLogInfo("FeedData/uploading media now\(postId)/\(media.order), index:\(index)")
+                DDLogInfo("FeedData/uploading media now\(postId)/\(media.order), index:\(mediaIndex)")
             }
 
             self.mediaUploader.upload(media: media, groupId: postId, didGetURLs: { (mediaURLs) in
-                DDLogInfo("FeedData/upload-media/\(postId)/\(media.order), index:\(index)/acquired-urls [\(mediaURLs)]")
+                DDLogInfo("FeedData/upload-media/\(postId)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
                 // Save URLs acquired during upload to the database.
                 self.updateFeedPost(with: postId) { (feedPost) in
-                    if let media = feedPost.media?.first(where: { $0.order == media.order }) {
+                    if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
                         switch mediaURLs {
                         case .getPut(let getURL, let putURL):
                             media.url = getURL
@@ -2049,11 +2062,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 }
             }) { (uploadResult) in
-                DDLogInfo("FeedData/upload-media/\(postId)/\(media.order), index:\(index)/finished result=[\(uploadResult)]")
+                DDLogInfo("FeedData/upload-media/\(postId)/\(mediaIndex)/finished result=[\(uploadResult)]")
 
                 // Save URLs acquired during upload to the database.
                 self.updateFeedPost(with: postId, block: { feedPost in
-                    if let media = feedPost.media?.first(where: { $0.order == index }) {
+                    if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
                         switch uploadResult {
                         case .success(let details):
                             media.url = details.downloadURL

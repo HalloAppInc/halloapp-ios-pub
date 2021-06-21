@@ -1552,6 +1552,7 @@ extension ChatData {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
 
+            DDLogDebug("ChatData/process-mediaItem: \(msgID)/\(mediaItem.order), index: \(mediaIndex)")
             if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
                 let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
@@ -1563,8 +1564,7 @@ extension ChatData {
                     switch $0 {
                     case .success(let result):
                         let path = self.relativePath(from: output)
-                        mediaItem.relativeFilePath = path
-
+                        DDLogDebug("FeedData/process-mediaItem/success: \(msgID)/\(mediaIndex)")
                         self.updateChatMessage(with: msgID, block: { msg in
                             guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
 
@@ -1573,9 +1573,10 @@ extension ChatData {
                             media.sha256 = result.sha256
                             media.relativeFilePath = path
                         }) {
-                            self.uploadChat(msgID: msgID, media: mediaItem, completion: uploadCompletion)
+                            self.uploadChat(msgID: msgID, mediaIndex: mediaIndex, completion: uploadCompletion)
                         }
                     case .failure(_):
+                        DDLogDebug("ChatData/process-mediaItem/failure: \(msgID)/\(mediaIndex)")
                         numberOfFailedUploads += 1
 
                         self.updateChatMessage(with: msgID, block: { msg in
@@ -1588,7 +1589,8 @@ extension ChatData {
                     }
                 }
             } else {
-                uploadChat(msgID: msgID, media: mediaItem, completion: uploadCompletion)
+                DDLogDebug("ChatData/process-mediaItem/processed already: \(msgID)/\(mediaIndex)")
+                uploadChat(msgID: msgID, mediaIndex: mediaIndex, completion: uploadCompletion)
             }
         }
 
@@ -1608,17 +1610,30 @@ extension ChatData {
         }
     }
 
-    private func uploadChat(msgID: String, media: ChatMedia, completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
-        let index = media.order
+    private func uploadChat(msgID: String, mediaIndex: Int16, completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
+        guard let msg = chatMessage(with: msgID),
+              let chatMedia = msg.media?.first(where: { $0.order == mediaIndex }) else {
+            DDLogError("ChatData/uploadChat/fetch msg and media \(msgID)/\(mediaIndex) - missing")
+            return
+        }
 
-        guard let relativeFilePath = media.relativeFilePath else {
-            DDLogError("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(index) missing file path")
+        DDLogDebug("ChatData/uploadChat/media \(msgID)/\(chatMedia.order), index:\(mediaIndex)")
+        guard let relativeFilePath = chatMedia.relativeFilePath else {
+            DDLogError("ChatData/uploadChat/\(msgID)/\(mediaIndex) missing file path")
             return completion(.failure(MediaUploadError.invalidUrls))
         }
         let processed = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
         MainAppContext.shared.uploadData.fetch(upload: processed) { [weak self] upload in
             guard let self = self else { return }
+
+            // Lookup object from coredata again instead of passing around the object across threads.
+            DDLogInfo("ChatData/uploadChat/fetch upload hash \(msgID)/\(mediaIndex)")
+            guard let msg = self.chatMessage(with: msgID),
+                  let media = msg.media?.first(where: { $0.order == mediaIndex }) else {
+                DDLogError("ChatData/uploadChat/fetch msg and media \(msgID)/\(mediaIndex) - missing")
+                return
+            }
 
             if let url = upload?.url {
                 DDLogInfo("Media \(processed) has been uploaded before at \(url).")
@@ -1628,6 +1643,8 @@ extension ChatData {
                     media.uploadUrl = nil
                 }
                 media.url = url
+            } else {
+                DDLogInfo("ChatData/uploadChat/uploading media now\(msgID)/\(media.order), index:\(mediaIndex)")
             }
 
             self.mediaUploader.upload(media: media, groupId: msgID, didGetURLs: { (mediaURLs) in
@@ -1635,7 +1652,7 @@ extension ChatData {
 
                 // Save URLs acquired during upload to the database.
                 self.updateChatMessage(with: msgID) { msg in
-                    guard let media = msg.media?.first(where: { $0.order == index }) else { return }
+                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
 
                     switch mediaURLs {
                     case .getPut(let getURL, let putURL):
@@ -1648,11 +1665,11 @@ extension ChatData {
                     }
                 }
             }) { (uploadResult) in
-                DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(index)/finished result=[\(uploadResult)]")
+                DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(mediaIndex)/finished result=[\(uploadResult)]")
 
                 // Save URLs acquired during upload to the database.
                 self.updateChatMessage(with: msgID, block: { msg in
-                    guard let media = msg.media?.first(where: { $0.order == index }) else { return }
+                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
 
                     switch uploadResult {
                     case .success(let details):
