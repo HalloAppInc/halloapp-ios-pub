@@ -271,6 +271,7 @@ public class KeyData {
                     DDLogError("KeyData/verifyIdentityKey/success")
                     AppContext.shared.userDefaults.setValue(Date(), forKey: UserDefaultsKey.identityKeyVerificationDate)
                 } else {
+                    DDLogInfo("KeyData/verifyIdentityKey/identityKeyMismatch: saved: \(savedIdentityKey.bytes), received:\(bundle.identity.bytes)")
                     self.didFailIdentityKeyVerification(with: .identityKeyMismatch)
                 }
             }
