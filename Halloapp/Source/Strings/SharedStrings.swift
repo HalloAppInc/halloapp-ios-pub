@@ -60,6 +60,10 @@ extension Localizations {
         NSLocalizedString("button.remove", value: "Remove", comment: "Title for generic Remove button. Mostly used to complete some modal flow.")
     }
 
+    static var buttonMore: String {
+        NSLocalizedString("button.more", value: "More", comment: "Title for generic More button. Mostly used to complete some modal flow.")
+    }
+
     static var buttonContinue: String {
         NSLocalizedString("button.continue", value: "Continue", comment: "Title for generic Continue button. Mostly used to complete some modal flow.")
     }

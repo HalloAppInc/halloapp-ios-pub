@@ -16,7 +16,6 @@ import UIKit
 fileprivate struct Constants {
     static let AvatarSize: CGFloat = 100
     static let PhotoIconSize: CGFloat = 40
-    static let ActionIconSize: CGFloat = 30
     static let ActionRowHeight: CGFloat = 52
     static let HeaderHeight: CGFloat = 350
     static let FooterHeight: CGFloat = 250
@@ -32,7 +31,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     private var fetchedResultsController: NSFetchedResultsController<ChatGroupMember>?
 
     private let cellReuseIdentifier = "ContactViewCell"
-    private let staticContactCellReuseIdentifier = "StaticContactViewCell"
+    private let actionCellReuseIdentifier = "ActionViewCell"
 
     private var numStaticCells: Int = 2
     private var showInviteLink: Bool {
@@ -60,7 +59,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
 
         tableView.separatorStyle = .singleLine
         tableView.backgroundColor = UIColor.feedBackground
-        tableView.register(StaticContactTableViewCell.self, forCellReuseIdentifier: staticContactCellReuseIdentifier)
+        tableView.register(ActionTableViewCell.self, forCellReuseIdentifier: actionCellReuseIdentifier)
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
 
         let groupInfoHeaderView = GroupInfoHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: Constants.HeaderHeight))
@@ -277,7 +276,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 emptyCell.isHidden = true
                 return emptyCell
             }
-            let cell = tableView.dequeueReusableCell(withIdentifier: staticContactCellReuseIdentifier, for: indexPath) as! StaticContactTableViewCell
+            let cell = tableView.dequeueReusableCell(withIdentifier: actionCellReuseIdentifier, for: indexPath) as! ActionTableViewCell
             if let image = UIImage(named: "GroupsAddMembers")?.withRenderingMode(.alwaysTemplate) {
                 cell.configure(icon: image, label: Localizations.chatGroupInfoAddMembers)
             }
@@ -290,7 +289,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 emptyCell.isHidden = true
                 return emptyCell
             }
-            let cell = tableView.dequeueReusableCell(withIdentifier: staticContactCellReuseIdentifier, for: indexPath) as! StaticContactTableViewCell
+            let cell = tableView.dequeueReusableCell(withIdentifier: actionCellReuseIdentifier, for: indexPath) as! ActionTableViewCell
             if let image = UIImage(named: "ShareLink")?.withRenderingMode(.alwaysTemplate) {
                 cell.configure(icon: image, label: Localizations.groupInfoInviteToGroupViaLink)
             }
@@ -583,7 +582,7 @@ class GroupInfoHeaderView: UIView {
     public func configure(chatGroup: ChatGroup?) {
         guard let chatGroup = chatGroup else { return }
         groupNameText.text = chatGroup.name
-        membersLabel.text = "\(Localizations.chatGroupMembersLabel) (\(String(chatGroup.members?.count ?? 0)))"
+        membersLabel.text = Localizations.chatGroupMembersLabel.uppercased() + " (\(String(chatGroup.members?.count ?? 0)))"
 
         avatarView.configure(groupId: chatGroup.groupId, squareSize: Constants.AvatarSize, using: MainAppContext.shared.avatarStore)
 
@@ -711,7 +710,7 @@ class GroupInfoHeaderView: UIView {
         label.textAlignment = .left
         label.textColor = .secondaryLabel
         label.font = .systemFont(ofSize: 12)
-        label.text = Localizations.chatGroupNameLabel
+        label.text = Localizations.chatGroupNameLabel.uppercased()
         label.translatesAutoresizingMaskIntoConstraints = false
 
         return label
@@ -766,7 +765,7 @@ class GroupInfoHeaderView: UIView {
         label.textAlignment = .left
         label.textColor = .secondaryLabel
         label.font = .systemFont(ofSize: 12)
-        label.text = Localizations.chatGroupBackgroundLabel
+        label.text = Localizations.chatGroupBackgroundLabel.uppercased()
         label.translatesAutoresizingMaskIntoConstraints = false
 
         return label
@@ -1024,66 +1023,6 @@ private extension ContactTableViewCell {
     }
 
 }
-
-private class StaticContactTableViewCell: UITableViewCell {
-
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setup()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
-    }
-
-    func configure(icon: UIImage, label: String) {
-        iconView.image = icon
-        bodyLabel.text = label
-    }
-
-    private func setup() {
-        backgroundColor = .secondarySystemGroupedBackground
-
-        contentView.addSubview(iconView)
-        contentView.addSubview(bodyLabel)
-
-        contentView.addConstraints([
-            iconView.widthAnchor.constraint(equalToConstant: Constants.ActionIconSize),
-            iconView.heightAnchor.constraint(equalTo: iconView.widthAnchor),
-            iconView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            iconView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            iconView.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 8),
-
-            bodyLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 10),
-            bodyLabel.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
-            bodyLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            bodyLabel.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
-
-            contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 40),
-        ])
-    }
-
-    lazy var iconView: UIImageView = {
-        let image = UIImage()
-        let view = UIImageView(image: image)
-        view.contentMode = .center
-        view.backgroundColor = .primaryBg
-        view.tintColor = .primaryBlue
-        view.layer.cornerRadius = Constants.ActionIconSize / 2
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
-    lazy var bodyLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(forTextStyle: .body, weight: .regular)
-        label.textColor = .systemBlue
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-}
-
 
 fileprivate extension UIImage {
     func imageResized(to size: CGSize) -> UIImage {
