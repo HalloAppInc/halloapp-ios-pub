@@ -163,7 +163,6 @@ class HomeViewController: UITabBarController {
         super.traitCollectionDidChange(previousTraitCollection)
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
             updateTabBarBackgroundEffect()
-            //updateNavBarBackgroundEffect()
         }
     }
 
