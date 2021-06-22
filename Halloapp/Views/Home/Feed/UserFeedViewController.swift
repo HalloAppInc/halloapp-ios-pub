@@ -87,7 +87,18 @@ class UserFeedViewController: FeedCollectionViewController {
     @objc func moreButtonTapped() {
         guard !isOwnFeed else { return }
         
-        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let alert = UIAlertController(title: MainAppContext.shared.contactStore.fullName(for: userId), message: nil, preferredStyle: .actionSheet)
+        
+        if let userKeys = MainAppContext.shared.keyStore.keyBundle(),
+              let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: userId)?.keyBundle,
+              let contactData = SafetyNumberData(keyBundle: contactKeyBundle)
+        {
+            let verifySafetyNumberAction = UIAlertAction(title: Localizations.safetyNumberTitle, style: .default) { [weak self] _ in
+                self?.viewSafetyNumber(contactData: contactData, userKeyBundle: userKeys)
+            }
+            alert.addAction(verifySafetyNumberAction)
+        }
+        
         
         let blockUserAction = UIAlertAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self] _ in
             self?.blockUserTapped()
@@ -99,6 +110,17 @@ class UserFeedViewController: FeedCollectionViewController {
         alert.addAction(cancel)
         
         present(alert, animated: true)
+    }
+    
+    private func viewSafetyNumber(contactData: SafetyNumberData, userKeyBundle: UserKeyBundle) {
+        let vc = SafetyNumberViewController(
+            currentUser: SafetyNumberData(
+                userID: MainAppContext.shared.userData.userId,
+                identityKey: userKeyBundle.identityPublicKey),
+            contact: contactData,
+            contactName: MainAppContext.shared.contactStore.fullName(for: userId),
+            dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+        present(vc.withNavigationController(), animated: true)
     }
     
     private func blockUserTapped() {
