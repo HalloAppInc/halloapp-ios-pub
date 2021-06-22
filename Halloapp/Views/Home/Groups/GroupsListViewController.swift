@@ -34,7 +34,8 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     private var isVisible: Bool = false
     private var cancellableSet: Set<AnyCancellable> = []
     
-    private var filteredChats: [ChatThread] = []
+    private var filteredChatsMembers: [ChatThread] = []
+    private var filteredChatsTitles: [ChatThread] = []
     private var searchController: UISearchController!
     
     private var isSearchBarEmpty: Bool {
@@ -418,7 +419,11 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
     func chatThread(at indexPath: IndexPath) -> ChatThread? {
         
         if isFiltering {
-            return filteredChats[indexPath.row]
+            if (indexPath.section == 0 && filteredChatsTitles.count > 0) {
+                return filteredChatsTitles[indexPath.row]
+            } else {
+                return filteredChatsMembers[indexPath.row]
+            }
         }
         
         guard let fetchedObjects = fetchedResultsController?.fetchedObjects, indexPath.row < fetchedObjects.count else {
@@ -434,13 +439,17 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 25
+        return section == 1 ? CGFloat.leastNormalMagnitude : 25
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
         
         if isFiltering {
-            return 1
+            if (filteredChatsTitles.count > 0 && filteredChatsMembers.count > 0) {
+                return 2
+            } else {
+                return 1
+            }
         }
         
         return fetchedResultsController?.sections?.count ?? 0
@@ -449,7 +458,11 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
         if isFiltering {
-            return filteredChats.count
+            if (section == 0 && filteredChatsTitles.count > 0) {
+                return filteredChatsTitles.count
+            } else {
+                return filteredChatsMembers.count
+            }
         }
         
         guard let sections = fetchedResultsController?.sections else { return 0 }
@@ -508,7 +521,11 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
                 guard let self = self else { return }
                 MainAppContext.shared.chatData.deleteChatGroup(groupId: groupId)
                 if self.isFiltering {
-                    self.filteredChats.remove(at: indexPath.row)
+                    if (indexPath.section == 0 && self.filteredChatsTitles.count > 0) {
+                        self.filteredChatsTitles.remove(at: indexPath.row)
+                    } else {
+                        self.filteredChatsMembers.remove(at: indexPath.row)
+                    }
                 }
             })
             actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
@@ -545,12 +562,11 @@ extension GroupsListViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
         guard let searchBarText = searchController.searchBar.text else { return }
-    
         let strippedString = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces)
         
         let searchItems = strippedString.components(separatedBy: " ")
         
-        filteredChats = allChats.filter {
+        filteredChatsTitles = allChats.filter {
             var titleText: String? = nil
             if $0.type == .group {
                 titleText = $0.title
@@ -567,7 +583,34 @@ extension GroupsListViewController: UISearchResultsUpdating {
             }
             return false
         }
-        DDLogDebug("GroupsListViewController/updateSearchResults/filteredChats count \(filteredChats.count) for: \(searchBarText)")
+        
+        filteredChatsMembers = allChats.filter {
+            var flag = false
+            var groupIdStr: GroupID? = nil
+            if $0.type == .group {
+                groupIdStr = $0.groupId
+            } else {
+                groupIdStr = MainAppContext.shared.contactStore.fullName(for: $0.chatWithUserId ?? "")
+            }
+
+            guard let Id = groupIdStr else { return false }
+            let group = MainAppContext.shared.chatData.chatGroup(groupId: Id)
+            guard let members = group?.members else {return false}
+
+            for member in members {
+                let name = MainAppContext.shared.contactStore.fullName(for: member.userId)
+                for item in searchItems {
+                    if name.lowercased().contains(item.lowercased()) {
+                        flag = true
+                    }
+                }
+            }
+            
+            if (filteredChatsTitles.contains($0)) {
+                flag = false
+            }
+            return flag
+        }
         
         tableView.reloadData()
     }
