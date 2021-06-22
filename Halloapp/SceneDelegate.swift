@@ -221,18 +221,3 @@ private extension SceneDelegate {
         MainAppContext.shared.didGetGroupInviteToken.send()
     }
 }
-
-extension Localizations {
-
-    static var appUpdateNoticeTitle: String {
-        NSLocalizedString("home.update.notice.title", value: "This version is out of date", comment: "Title of update notice shown to users who have old versions of the app")
-    }
-
-    static var appUpdateNoticeText: String {
-        NSLocalizedString("home.update.notice.text", value: "Please update to the latest version of HalloApp", comment: "Text shown to users who have old versions of the app")
-    }
-
-    static var appUpdateNoticeButtonExit: String {
-        NSLocalizedString("home.update.notice.button.exit", value: "Exit", comment: "Title for exit button that closes the app")
-    }
-}
