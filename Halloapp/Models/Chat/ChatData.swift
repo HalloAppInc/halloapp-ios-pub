@@ -2134,7 +2134,9 @@ extension ChatData {
                 copyQuoted(to: chatMessage, from: quotedChatMessage, using: managedObjectContext)
             }
         }
-        
+
+        save(managedObjectContext) // extra save
+
         // Update Chat Thread
         if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.fromUserId, in: managedObjectContext) {
             // do an extra save since fetchedcontroller have issues with detecting re-ordering changes for properties
@@ -2997,9 +2999,9 @@ extension ChatData {
 
         guard let groupFeedPost = MainAppContext.shared.feedData.feedPost(with: id) else { return }
         guard let groupID = groupFeedPost.groupId else { return }
-        
+
         var groupExist = true
-        
+
         if isInbound {
             // if group doesn't exist yet, create
             if chatGroup(groupId: groupID, in: managedObjectContext) == nil {
@@ -3009,9 +3011,9 @@ extension ChatData {
                 chatGroup.groupId = groupID
             }
         }
-        
+
         var lastFeedMediaType: ChatThread.LastMediaType = .none // going with the first media found
-        
+
         // Process chat media
         if groupFeedPost.orderedMedia.count > 0 {
             if let firstMedia = groupFeedPost.orderedMedia.first {
@@ -3023,7 +3025,9 @@ extension ChatData {
                 }
             }
         }
-        
+
+        save(managedObjectContext) // extra save
+
         // Update Chat Thread
         let mentionText = contactStore.textWithMentions(groupFeedPost.text, mentions: groupFeedPost.orderedMentions)
         if let chatThread = chatThread(type: .group, id: groupID, in: managedObjectContext) {
