@@ -90,6 +90,16 @@ extension Localizations {
         NSLocalizedString("link.update.your.app", value: "Update your app.", comment: "Link that when tapped will open App Store so user can update to the latest version of the app.")
     }
 
+    // MARK: No Internet Connection Alert Box
+
+    static var alertNoInternetTitle: String {
+        NSLocalizedString("alert.no.internet.title", value: "No Internet Connection", comment: "Title for alert shown when there's no internet connectivity")
+    }
+
+    static var alertNoInternetTryAgain: String {
+        NSLocalizedString("alert.no.internet.try.again", value: "Please check if you have internet connectivity, then try again.", comment: "Message to tell the user to try again when they have internet connectivity again")
+    }
+
     // MARK: Misc
 
     static var meCapitalized: String {
@@ -99,5 +109,4 @@ extension Localizations {
     static var unknownContact: String {
         NSLocalizedString("unknown.contact", value: "Unknown Contact", comment: "Displayed in place of contact name if name is not known.")
     }
-
 }

@@ -243,6 +243,7 @@ final class InviteViewController: UIViewController {
     }
 
     private func inviteAction(_ action: InviteActionType, contact: InviteContact) {
+        guard proceedIfConnected() else { return }
         switch action {
         case .sms:
             smsAction(contact: contact)

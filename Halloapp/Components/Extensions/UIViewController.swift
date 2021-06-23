@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjack
+import Core
 import UIKit
 
 protocol UIViewControllerScrollsToTop {
@@ -31,5 +32,15 @@ extension UIViewController {
         titleLabel.attributedText = NSAttributedString(string: title, attributes: attributes)
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
         navigationItem.title = nil
+    }
+    
+    func proceedIfConnected() -> Bool {
+        guard MainAppContext.shared.service.isConnected else {
+            let alert = UIAlertController(title: Localizations.alertNoInternetTitle, message: Localizations.alertNoInternetTryAgain, preferredStyle: .alert)
+            alert.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
+            present(alert, animated: true, completion: nil)
+            return false
+        }
+        return true
     }
 }
