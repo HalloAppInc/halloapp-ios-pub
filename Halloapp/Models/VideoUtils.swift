@@ -316,6 +316,38 @@ final class VideoUtils {
          }
     }
 
+    static func save(composition: AVComposition, to outputURL: URL, slowMotion: Bool = false, completion: @escaping (Swift.Result<URL, Error>) -> Void) {
+        guard let exporter = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
+            completion(.failure(VideoUtilsError.setupFailure))
+            return
+        }
+
+        exporter.outputFileType = AVFileType.mp4
+        exporter.outputURL = outputURL
+        exporter.shouldOptimizeForNetworkUse = true
+
+        if slowMotion {
+            exporter.audioTimePitchAlgorithm = .varispeed
+        }
+
+        DDLogInfo("video-processing/saving-composition/start")
+        exporter.exportAsynchronously {
+            switch exporter.status {
+            case .completed:
+                DDLogInfo("video-processing/saving-composition/completed url=[\(exporter.outputURL?.description ?? "")]")
+                completion(.success(exporter.outputURL!))
+            default:
+                if let error = exporter.error {
+                    DDLogWarn("video-processing/saving-composition/error status=[\(exporter.status)] url=[\(exporter.outputURL?.description ?? "")] error=[\(error.localizedDescription)]")
+                    completion(.failure(error))
+                } else {
+                    DDLogWarn("video-processing/saving-composition/finished status=[\(exporter.status)] url=[\(exporter.outputURL?.description ?? "")]")
+                    completion(.failure(VideoUtilsError.processingFailure))
+                }
+            }
+        }
+    }
+
     static func optimizeForStreaming(url: URL, completion: @escaping (Swift.Result<URL, Error>) -> Void) {
         let asset: AVAsset = AVURLAsset(url: url, options: nil)
 

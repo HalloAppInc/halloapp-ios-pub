@@ -662,7 +662,9 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     options.deliveryMode = .highQualityFormat
                     options.progressHandler = { progress, error, stop, _ in
                         DDLogInfo("MediaPickerViewController/next/video/progress [\(progress)] asset=[\(asset)]")
-                        media.progress.send(Float(progress))
+                        if progress < 1.0 {
+                            media.progress.send(Float(progress))
+                        }
 
                         if let error = error {
                             DDLogError("MediaPickerViewController/next/video error=[\(error)] asset=[\(asset)]")
@@ -671,26 +673,42 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     }
 
                     manager.requestAVAsset(forVideo: asset, options: options) { avasset, _, _ in
-                        guard let video = avasset as? AVURLAsset else {
-                            DDLogWarn("MediaPickerViewController/next/video Unable to fetch video")
-                            return media.error.send(PendingMediaError.loadingError)
-                        }
-
                         // Sometimes NextLevelSessionExporterError/AVAssetReader is unable to process videos if they are not copied first
                         let url = URL(fileURLWithPath: NSTemporaryDirectory())
                             .appendingPathComponent(UUID().uuidString, isDirectory: false)
                             .appendingPathExtension("mp4")
 
-                        do {
-                            try FileManager.default.copyItem(at: video.url, to: url)
-                        } catch {
-                            DDLogError("MediaPickerViewController/next/video/copy/error Failed to copy [\(error)] url=[\(video.url.description)] tmp=[\(url.description)]")
-                            return media.error.send(PendingMediaError.loadingError)
-                        }
-                        DDLogInfo("MediaPickerViewController/next/video/copy/ready  Temporary url: [\(url.description)] url=[\(video.url.description)] original order=[\(media.order)]")
+                        if let video = avasset as? AVURLAsset {
+                            do {
+                                try FileManager.default.copyItem(at: video.url, to: url)
+                            } catch {
+                                DDLogError("MediaPickerViewController/next/video/copy/error Failed to copy [\(error)] url=[\(video.url.description)] tmp=[\(url.description)]")
+                                return media.error.send(PendingMediaError.loadingError)
+                            }
+                            DDLogInfo("MediaPickerViewController/next/video/copy/ready  Temporary url: [\(url.description)] url=[\(video.url.description)] original order=[\(media.order)]")
 
-                        media.originalVideoURL = url
-                        media.fileURL = url
+                            media.originalVideoURL = url
+                            media.fileURL = url
+                        } else if let composition = avasset as? AVComposition {
+                            let slowMotion = (asset.mediaSubtypes.rawValue & PHAssetMediaSubtype.videoHighFrameRate.rawValue) != 0
+
+                            VideoUtils.save(composition: composition, to: url, slowMotion: slowMotion) { result in
+                                DispatchQueue.main.async {
+                                    switch(result) {
+                                    case .success(let url):
+                                        DDLogInfo("MediaPickerViewController/next/video/copy/ready  Temporary url: [\(url.description)] order=[\(media.order)]")
+                                        media.originalVideoURL = url
+                                        media.fileURL = url
+                                    case .failure(let error):
+                                        DDLogError("MediaPickerViewController/next/video/copy/error Failed to save [\(error)] tmp=[\(url.description)]")
+                                        media.error.send(PendingMediaError.loadingError)
+                                    }
+                                }
+                            }
+                        } else {
+                            DDLogWarn("MediaPickerViewController/next/video Unable to fetch video")
+                            media.error.send(PendingMediaError.loadingError)
+                        }
                     }
                     
                     result.append(media)
