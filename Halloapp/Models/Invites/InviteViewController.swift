@@ -274,7 +274,7 @@ final class InviteViewController: UIViewController {
                 #else
                 let vc = MFMessageComposeViewController()
                 vc.body = Localizations.inviteText(name: contact.givenName ?? contact.fullName, number: contact.normalizedPhoneNumber.formattedPhoneNumber)
-                vc.recipients = [contact.normalizedPhoneNumber]
+                vc.recipients = [contact.normalizedPhoneNumber.formattedPhoneNumber]
                 vc.messageComposeDelegate = self
                 self.present(vc, animated: true, completion: nil)
                 #endif
