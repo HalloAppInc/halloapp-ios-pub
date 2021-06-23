@@ -85,6 +85,18 @@ extension Localizations {
             value: "HalloApp only uses the phone number field to match you with your friends on HalloApp, and does not transmit any additional data from your contact book.",
             comment: "Text for modal describing how we use contacts data")
     }
+
+    static var freeAppDownloadText: String {
+        NSLocalizedString("registration.free.app.notice", value: "Free on the iPhone App Store", comment: "Text indicating to the user that HalloApp is available for free on the iPhone App Store")
+    }
+    
+    static var installAppToContinue: String {
+        NSLocalizedString("registration.install.app.to.continue", value: "Install HalloApp to continue", comment: "Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp")
+    }
+    
+    static var buttonInstall: String {
+        NSLocalizedString("button.install", value: "Install", comment: "Title for Install button, takes the user to the HalloApp app store view where they can download the app.")
+    }
     
     static var appUpdateNoticeTitle: String {
         NSLocalizedString("home.update.notice.title", value: "This version is out of date", comment: "Title of update notice shown to users who have old versions of the app")

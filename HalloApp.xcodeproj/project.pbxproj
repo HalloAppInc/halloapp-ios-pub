@@ -53,6 +53,7 @@
 		329E045626824DDF00C2D250 /* UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C8245D4DE500DD9D1A /* UIButton.swift */; };
 		329E045726824E0A00C2D250 /* SharedStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76451C3E2547960A00B9E268 /* SharedStrings.swift */; };
 		329E045826824E0E00C2D250 /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */; };
+		329E045D26826EC100C2D250 /* PhoneNumberMetadata.json in Resources */ = {isa = PBXBuildFile; fileRef = 765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */; };
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
 		5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */; };
 		5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF5D12224F5295300F272D8 /* CameraViewController.swift */; };
@@ -1932,6 +1933,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				329E045D26826EC100C2D250 /* PhoneNumberMetadata.json in Resources */,
 				329E040A268247BD00C2D250 /* LaunchScreen.storyboard in Resources */,
 				329E0442268249E700C2D250 /* GoogleService-Info.plist in Resources */,
 				329E0407268247BD00C2D250 /* Assets.xcassets in Resources */,
