@@ -99,7 +99,7 @@ class VideoView: UIView {
             timeSeekView.heightAnchor.constraint(equalToConstant: 44),
             timeSeekView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 20),
             timeSeekView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -20),
-            timeSeekView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -44),
+            timeSeekView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -64),
         ])
 
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(sender:)))
@@ -112,7 +112,7 @@ class VideoView: UIView {
             timeSeekView.isHidden = true
         case .advanced:
             timeSeekView.isHidden = false
-            timeSeekView.alpha = 0
+            timeSeekView.alpha = 1
         }
     }
 
@@ -133,7 +133,7 @@ class VideoView: UIView {
         }
     }
 
-    private func togglePlay() {
+    public func togglePlay() {
         guard let player = player else { return }
         guard let duration = player.currentItem?.duration else { return }
         guard duration.isNumeric else { return }

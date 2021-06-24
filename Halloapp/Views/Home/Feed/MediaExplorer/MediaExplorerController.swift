@@ -30,6 +30,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var collectionView: UICollectionView!
     private var pageControl: UIPageControl?
     private var tapRecorgnizer: UITapGestureRecognizer!
+    private var doubleTapRecorgnizer: UITapGestureRecognizer!
     private var swipeExitRecognizer: UIPanGestureRecognizer!
     private var swipeExitInProgress = false
     private var isSystemUIHidden = false
@@ -246,6 +247,11 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         tapRecorgnizer.delegate = self
         collectionView.addGestureRecognizer(tapRecorgnizer)
 
+        doubleTapRecorgnizer = UITapGestureRecognizer(target: self, action: #selector(onDoubleTapAction(sender:)))
+        doubleTapRecorgnizer.numberOfTapsRequired = 2
+        doubleTapRecorgnizer.delegate = self
+        collectionView.addGestureRecognizer(doubleTapRecorgnizer)
+
         swipeExitRecognizer = UIPanGestureRecognizer(target: self, action: #selector(onSwipeExitAction(sender:)))
         swipeExitRecognizer.maximumNumberOfTouches = 1
         swipeExitRecognizer.delegate = self
@@ -403,11 +409,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         return false
     }
 
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        if gestureRecognizer == tapRecorgnizer {
-            if let other = otherGestureRecognizer as? UITapGestureRecognizer {
-                return other.numberOfTapsRequired > 1
-            }
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer == doubleTapRecorgnizer, let other = otherGestureRecognizer as? UITapGestureRecognizer {
+            return other.numberOfTapsRequired == 1
         }
 
         return false
@@ -467,6 +471,14 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     @objc private func onTapAction(sender: UITapGestureRecognizer) {
         toggleSystemUI()
+    }
+
+    @objc private func onDoubleTapAction(sender: UITapGestureRecognizer) {
+        let indexPath = IndexPath(item: currentIndex, section: 0)
+
+        if let cell = collectionView.cellForItem(at: indexPath) as? MediaExplorerVideoCell {
+            cell.togglePlay()
+        }
     }
 
     @objc private func onSwipeExitAction(sender: UIPanGestureRecognizer) {
