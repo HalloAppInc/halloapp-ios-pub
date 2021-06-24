@@ -29,7 +29,8 @@ protocol ChatViewControllerDelegate: AnyObject {
 class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     weak var delegate: ChatViewControllerDelegate?
-
+    
+    /// The `userID` of the user the client is receiving messages from
     private var fromUserId: String?
     private var feedPostId: FeedPostID?
     private var feedPostMediaIndex: Int32 = 0
@@ -273,10 +274,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             })
 
         configureTitleViewWithTypingIndicator()
-
-        guard let thread = MainAppContext.shared.chatData.chatThread(type: .oneToOne, id: fromUserId) else { return }
-        guard thread.draft != "", let draft = thread.draft else { return }
-        chatInputView.setDraftText(text: draft)
+        
+        loadChatDraft(id: fromUserId)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -315,7 +314,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         if let id = fromUserId {
-            MainAppContext.shared.chatData.saveDraft(type: .oneToOne, for: id, with: chatInputView.text)
+            saveChatDraft(id: id)
         }
         MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
         chatInputView.willDisappear(in: self)
@@ -334,6 +333,97 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         backButton.title = num > 0 ? String(num) : " \u{00a0}"
 
         navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
+    }
+    
+    /// Saves the text currently in the `ChatInputView` into `UserDefaults` to be restored on the next time the user opens the view.
+    /// - Parameter id: The UserID of the other user in the chat.
+    private func saveChatDraft(id: UserID) {
+        guard !chatInputView.text.isEmpty else {
+            removeChatDraft()
+            return
+        }
+        
+        let draft = ChatDraft(chatID: id, text: chatInputView.text, replyContext: encodeReplyData())
+        
+        var draftsArray = [ChatDraft]()
+        
+        if let draftsDecoded: [ChatDraft] = try? AppContext.shared.userDefaults.codable(forKey: "chats.drafts") {
+            draftsArray = draftsDecoded
+        }
+        
+        draftsArray.removeAll { existingDraft in
+            existingDraft.chatID == draft.chatID
+        }
+        
+        draftsArray.append(draft)
+        
+        try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: "chats.drafts")
+    }
+    
+    private func encodeReplyData() -> ReplyContext? {
+        if let replyMessageID = chatReplyMessageID,
+           let replySenderID = chatReplyMessageSenderID,
+           let replyMessage = MainAppContext.shared.chatData.chatMessage(with: replyMessageID) {
+            
+            if let replyMedia = replyMessage.media, !replyMedia.isEmpty {
+                let replyIndex = replyMedia.index(replyMedia.startIndex, offsetBy: Int(chatReplyMessageMediaIndex))
+                let mediaObject = replyMedia[replyIndex]
+                if let mediaURL = mediaObject.url?.absoluteString {
+                    let media = ChatReplyMedia(type: mediaObject.type, mediaURL: mediaURL)
+                    
+                    let reply = ReplyContext(replyMessageID: replyMessageID,
+                          replySenderID: replySenderID,
+                          replyMediaIndex: chatReplyMessageMediaIndex,
+                          text: replyMessage.text ?? "",
+                          media: media)
+                    
+                    return reply
+                }
+            }
+            
+            let reply = ReplyContext(replyMessageID: replyMessageID,
+                  replySenderID: replySenderID,
+                  replyMediaIndex: chatReplyMessageMediaIndex,
+                  text: replyMessage.text ?? "",
+                  media: nil)
+            
+            return reply
+        }
+        
+        return nil
+    }
+    
+    /// Restores the text from `UserDefaults` into the `ChatInputView` so the user can continue what they last wrote.
+    /// - Parameter id: The UserID of the other user in the chat.
+    private func loadChatDraft(id: UserID) {
+        guard let draftsArray: [ChatDraft] = try? AppContext.shared.userDefaults.codable(forKey: "chats.drafts") else { return }
+        guard let draft = draftsArray.first(where: { existingDraft in
+            existingDraft.chatID == fromUserId
+        }) else { return }
+        
+        chatInputView.setDraftText(text: draft.text)
+        
+        if let reply = draft.replyContext {
+            handleDraftQuotedReply(reply: reply)
+            
+            chatReplyMessageID = reply.replyMessageID
+            chatReplyMessageSenderID = reply.replySenderID
+        }
+    }
+    
+    /// Removes any existing drafts for this chat if there are any.
+    private func removeChatDraft() {
+        var draftsArray: [ChatDraft] = []
+        
+        if let draftsDecoded: [ChatDraft] = try? AppContext.shared.userDefaults.codable(forKey: "chats.drafts") {
+            draftsArray = draftsDecoded
+        }
+        
+        draftsArray.removeAll { existingDraft in
+            existingDraft.chatID == fromUserId
+        }
+        
+        try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: "chats.drafts")
     }
     
     // MARK:
@@ -771,6 +861,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         chatReplyMessageMediaIndex = 0
 
         chatInputView.text = ""
+        
+        removeChatDraft()
 
         if !firstActionHappened {
             delegate?.chatViewController(self, userActioned: true)
@@ -929,7 +1021,14 @@ extension ChatViewController {
         } else {
             chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.text ?? "", mediaType: nil, mediaUrl: nil, from: self)
         }
-
+    }
+    
+    private func handleDraftQuotedReply(reply: ReplyContext) {
+        if let mediaURLString = reply.media?.mediaURL, let mediaURL = URL(string: mediaURLString) {
+            chatInputView.showQuoteFeedPanel(with: reply.replySenderID, text: reply.text, mediaType: reply.media?.type, mediaUrl: mediaURL, from: self)
+        } else {
+            chatInputView.showQuoteFeedPanel(with: reply.replySenderID, text: reply.text, mediaType: nil, mediaUrl: nil, from: self)
+        }
     }
 }
 

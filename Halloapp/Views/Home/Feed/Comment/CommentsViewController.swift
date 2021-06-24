@@ -199,6 +199,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             FeedData.deletePostCommentDrafts { existingDraft in
                 existingDraft.postID == feedPostId
             }
+          
             return
         }
         
@@ -216,9 +217,10 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         
         draftsArray.append(draft)
         
+
         try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: Self.postCommentDraftKey)
     }
-    
+  
     private func loadCommentsDraft() {
         guard let draftsArray: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: Self.postCommentDraftKey) else { return }
         
@@ -232,6 +234,20 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         
         commentsInputView.mentionText = draft.text
         commentsInputView.updateInputView()
+    }
+    
+    private func removeCommentDraft() {
+        var draftsArray: [CommentDraft] = []
+        
+        if let draftsDecoded: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: "posts.comments.drafts") {
+            draftsArray = draftsDecoded
+        }
+        
+        draftsArray.removeAll { existingDraft in
+            existingDraft.postID == feedPostId
+        }
+        
+        try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: "posts.comments.drafts")
     }
     
     override func viewDidLayoutSubviews() {
@@ -800,7 +816,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
         let parentCommentId = replyContext?.parentCommentId
         commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: parentCommentId)
-        
+      
         FeedData.deletePostCommentDrafts { existingDraft in
             existingDraft.postID == feedPostId
         }
