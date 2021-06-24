@@ -25,18 +25,19 @@ class MainAppContext: AppContext {
     private(set) var avatarStore: AvatarStore!
     private(set) var feedData: FeedData!
     private(set) var chatData: ChatData!
-    private(set) var keyData: KeyData!
     private(set) var uploadData: UploadData!
     private(set) var syncManager: SyncManager!
-    private(set) var privacySettings: PrivacySettings!
+    private(set) var privacySettingsImpl: PrivacySettings!
     private(set) var shareExtensionDataStore: ShareExtensionDataStore!
     private(set) var notificationServiceExtensionDataStore: NotificationServiceExtensionDataStore!
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
     lazy var cryptoData: CryptoData = { CryptoData() }()
+    private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()
     
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
     let groupFeedFromGroupTabPresentRequest = CurrentValueSubject<GroupID?, Never>(nil)
+    let didGetGroupInviteToken = PassthroughSubject<Void, Never>()
 
     var service: HalloService {
         coreService as! HalloService
@@ -45,6 +46,12 @@ class MainAppContext: AppContext {
     override var contactStore: ContactStoreMain {
         get {
             super.contactStore as! ContactStoreMain
+        }
+    }
+
+    override var privacySettings: PrivacySettings {
+        get {
+            privacySettingsImpl
         }
     }
 
@@ -108,20 +115,24 @@ class MainAppContext: AppContext {
 
         feedData = FeedData(service: service, contactStore: contactStore, userData: userData)
         chatData = ChatData(service: service, contactStore: contactStore, userData: userData)
-        keyData = KeyData(service: service, userData: userData, keyStore: keyStore)
         uploadData = UploadData()
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         avatarStore = AvatarStore()
         coreService.avatarDelegate = avatarStore
-        privacySettings = PrivacySettings(contactStore: contactStore, service: service)
+        privacySettingsImpl = PrivacySettings(contactStore: contactStore, service: service)
         shareExtensionDataStore = ShareExtensionDataStore()
         notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()
 
         // Add observer to notify us when persistentStore records changes.
         // These notifications are triggered for all cross process writes to the store.
-        NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
-                                               name: .NSPersistentStoreRemoteChange,
-                                               object: shareExtensionDataStore.persistentContainer.persistentStoreCoordinator)
+
+        // Don't merge and delete in ShareExtensionDataStore while the share process
+        // is still running and operating on that same data. Merge conficlts on core
+        // data level may arise due to race conditions.
+        //
+        // NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
+        //                                        name: .NSPersistentStoreRemoteChange,
+        //                                        object: shareExtensionDataStore.persistentContainer.persistentStoreCoordinator)
         NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
                                                name: .NSPersistentStoreRemoteChange,
                                                object: notificationServiceExtensionDataStore.persistentContainer.persistentStoreCoordinator)
@@ -139,44 +150,43 @@ class MainAppContext: AppContext {
     
     private var mergingSharedData = false
     
+    // needs to run only on mergeDataQueue
     func mergeSharedData() {
-        guard !mergingSharedData else { return }
+        mergeSharedDataQueue.async {
 
-        mergingSharedData = true
+            let mergeGroup = DispatchGroup()
 
-        let mergeGroup = DispatchGroup()
+            // Always merge feedData first and then chatData: because chatContent might refer to feedItems.
+            DDLogInfo("MainAppContext/merge-data/share-extension")
 
-        // Always merge feedData first and then chatData: because chatContent might refer to feedItems.
-        DDLogInfo("MainAppContext/merge-data/share-extension")
+            mergeGroup.enter()
+            self.feedData.mergeData(from: self.shareExtensionDataStore) {
+                mergeGroup.leave()
+            }
+            mergeGroup.enter()
+            self.chatData.mergeData(from: self.shareExtensionDataStore) {
+                mergeGroup.leave()
+            }
 
-        mergeGroup.enter()
-        feedData.mergeData(from: shareExtensionDataStore) {
-            mergeGroup.leave()
-        }
-        mergeGroup.enter()
-        chatData.mergeData(from: shareExtensionDataStore) {
-            mergeGroup.leave()
-        }
+            DDLogInfo("MainAppContext/merge-data/notification-service-extension")
 
-        DDLogInfo("MainAppContext/merge-data/notification-service-extension")
+            mergeGroup.enter()
+            self.service.mergeData(from: self.notificationServiceExtensionDataStore) {
+                mergeGroup.leave()
+            }
 
-        mergeGroup.enter()
-        service.mergeData(from: notificationServiceExtensionDataStore) {
-            mergeGroup.leave()
-        }
+            mergeGroup.enter()
+            self.feedData.mergeData(from: self.notificationServiceExtensionDataStore) {
+                mergeGroup.leave()
+            }
+            mergeGroup.enter()
+            self.chatData.mergeData(from: self.notificationServiceExtensionDataStore) {
+                mergeGroup.leave()
+            }
 
-        mergeGroup.enter()
-        feedData.mergeData(from: notificationServiceExtensionDataStore) {
-            mergeGroup.leave()
-        }
-        mergeGroup.enter()
-        chatData.mergeData(from: notificationServiceExtensionDataStore) {
-            mergeGroup.leave()
-        }
-
-        mergeGroup.notify(queue: .main) {
-            DDLogInfo("MainAppContext/merge-data/finished")
-            self.mergingSharedData = false
+            mergeGroup.notify(queue: .main) {
+                DDLogInfo("MainAppContext/merge-data/finished")
+            }
         }
     }
 }

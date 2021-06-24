@@ -60,6 +60,10 @@ extension Localizations {
         NSLocalizedString("button.remove", value: "Remove", comment: "Title for generic Remove button. Mostly used to complete some modal flow.")
     }
 
+    static var buttonMore: String {
+        NSLocalizedString("button.more", value: "More", comment: "Title for generic More button. Mostly used to complete some modal flow.")
+    }
+
     static var buttonContinue: String {
         NSLocalizedString("button.continue", value: "Continue", comment: "Title for generic Continue button. Mostly used to complete some modal flow.")
     }
@@ -72,6 +76,10 @@ extension Localizations {
         NSLocalizedString("button.go.to.settings", value: "Go to Settings", comment: "Title for button that will take user to iOS settings (e.g., to enable some permission we need).")
     }
     
+    static var buttonLearnMore: String {
+        NSLocalizedString("button.learn.more", value: "Learn More", comment: "Title for generic Learn More button. Used to provide user with additional context to actions requested.")
+    }
+    
     // MARK: Links
 
     static var linkLearnMore: String {
@@ -82,10 +90,23 @@ extension Localizations {
         NSLocalizedString("link.update.your.app", value: "Update your app.", comment: "Link that when tapped will open App Store so user can update to the latest version of the app.")
     }
 
+    // MARK: No Internet Connection Alert Box
+
+    static var alertNoInternetTitle: String {
+        NSLocalizedString("alert.no.internet.title", value: "No Internet Connection", comment: "Title for alert shown when there's no internet connectivity")
+    }
+
+    static var alertNoInternetTryAgain: String {
+        NSLocalizedString("alert.no.internet.try.again", value: "Please check if you have internet connectivity, then try again.", comment: "Message to tell the user to try again when they have internet connectivity again")
+    }
+
     // MARK: Misc
+
+    static var meCapitalized: String {
+        NSLocalizedString("meCapitalized", value: "Me", comment: "Displayed in place of own name (e.g., next to own comments)")
+    }
 
     static var unknownContact: String {
         NSLocalizedString("unknown.contact", value: "Unknown Contact", comment: "Displayed in place of contact name if name is not known.")
     }
-
 }

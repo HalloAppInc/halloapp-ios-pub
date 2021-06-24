@@ -2,7 +2,10 @@
 "%" = "%";
 
 /* No comment provided by engineer. */
-"%@" = "\\n %@";
+"%@" = "\n %@";
+
+/* About screen: body text. */
+"about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \n\nHemos hecho que las aplicaciones sociales vuelvan a lo esencial, y agregamos un nivel de seguridad y privacidad al que creemos que todo el mundo debe tener acceso.\n\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nAl contrario, con el tiempo esperamos poder añadir nuevas funciones a un pequeño costo.";
 
 /* About screen: body text. */
 "about.body.2" = "Gracias por usar y compartir HalloApp con tus amigos y familia. Cada semana la optimizamos más.";
@@ -75,7 +78,19 @@
 "camera.init.error.3" = "No se puede iniciar el micrófono";
 
 /* No comment provided by engineer. */
+"camera.init.error.4" = "No hay acceso a la cámara trasera";
+
+/* No comment provided by engineer. */
+"camera.init.error.5" = "No hay acceso a la cámara frontal";
+
+/* No comment provided by engineer. */
+"camera.init.error.6" = "No hay acceso a la entrada de audio";
+
+/* No comment provided by engineer. */
 "camera.init.error.7" = "No se puede tomar fotos";
+
+/* No comment provided by engineer. */
+"camera.init.error.8" = "No puede grabar películas";
 
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Error al inicializar";
@@ -206,8 +221,7 @@
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Responder";
 
-/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment.
-   Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
+/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
 "comment.replying.myself" = "Responder a %@";
 
 /* Title for the button in comment resend confirmation prompt. */
@@ -372,6 +386,9 @@
 /* Message text shown with the user who created the group */
 "group.event.created.group" = "%1$@ creó el grupo \"%2$@\"";
 
+/* Message text shown with the user who demoted a group admin */
+"group.event.demoted.member" = "%1$@ descartó a %2$@ como admin";
+
 /* Message text shown with the user who promoted a group member */
 "group.event.promoted.member" = "%1$@ designó a %2$@ como admin.";
 
@@ -383,6 +400,9 @@
 
 /* Text shown when link is copied */
 "group.invite.link.copied" = "Enlace copiado";
+
+/* Text to describe what the group invite link is */
+"group.invite.link.description" = "Cualquier persona que tenga HalloApp puede usar este enlace para unirse al grupo.";
 
 /* Text shown when link is reset */
 "group.invite.link.reset" = "Restablecer el enlace";
@@ -410,6 +430,9 @@
 
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "¿Estás seguro que quieres eliminar este grupo y su contenido de este dispositivo?";
+
+/* Text shown in the email body when sending logs from the help screen */
+"help.send.logs.email.body" = "Por favor deja un comentario o una descripción del problema en el espacio de arriba. \n\nVersión %1$@ - %2$@\n%3$@";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Salir";
@@ -443,9 +466,6 @@
 
 /* Displayed white user is inviting someone. */
 "invite.please.wait" = "Por favor espera...";
-
-/* Indicates how many invites are remaining */
-"invite.remaining.count.unspecified.time" = "Te quedan %@ invitaciones";
 
 /* Text of invitation to join HalloApp. */
 "invite.text" = "Acompáñame en HalloApp, una forma privada, simple y segura de seguir en contacto con tus amigos y familia. Obténla en https://halloapp.com/dl";
@@ -671,6 +691,9 @@
 /* Title for the screen allowing to edit profile name */
 "profile.title.your.name" = "Tu nombre";
 
+/* Disclaimer text about receiving SMS verification code */
+"registration.code.disclaimer" = "Recibirás un código de verificación.\nEl proveedor de telefonía móvil podría aplicar cargos.";
+
 /* Error message to display when user enters incorrect verification code */
 "registration.code.incorrect" = "El código que ingresaste es incorrecto";
 
@@ -679,6 +702,9 @@
 
 /* Error message to display when we cannot send a verification code */
 "registration.code.request.error" = "No se pudo enviar el código. Por favor inténtelo de nuevo más tarde.";
+
+/* Button label to resend verification code */
+"registration.code.resend" = "Reenviar el código. ";
 
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Para conectarte con tus amigos y familia, vamos a necesitar permiso para tener acceso a tus contactos. ";
@@ -764,20 +790,11 @@
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "Llamar a %@";
 
-/* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.copy.address" = "Copiar dirección";
-
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.copy.link" = "Copiar enlace";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
 "textlabel.context.menu.copy.phone.number" = "Copiar número de teléfono";
-
-/* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.get.directions" = "Obtener indicaciones";
-
-/* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.open.in.maps" = "Abrir en mapas";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.open.link" = "Abrir enlace";

@@ -16,8 +16,10 @@ import UIKit
 fileprivate struct Constants {
     static let AvatarSize: CGFloat = 100
     static let PhotoIconSize: CGFloat = 40
+    static let ActionRowHeight: CGFloat = 52
     static let HeaderHeight: CGFloat = 350
     static let FooterHeight: CGFloat = 250
+    static let MaxFontPointSize: CGFloat = 28
 }
 
 class GroupInfoViewController: UITableViewController, NSFetchedResultsControllerDelegate {
@@ -28,7 +30,13 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
 
     private var fetchedResultsController: NSFetchedResultsController<ChatGroupMember>?
 
-    let cellReuseIdentifier = "GroupMembersViewCell"
+    private let cellReuseIdentifier = "ContactViewCell"
+    private let actionCellReuseIdentifier = "ActionViewCell"
+
+    private var numStaticCells: Int = 2
+    private var showInviteLink: Bool {
+        return isAdmin && ServerProperties.isGroupInviteLinksEnabled
+    }
 
     private var cancellableSet: Set<AnyCancellable> = []
 
@@ -39,7 +47,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         super.init(style: .insetGrouped)
         self.hidesBottomBarWhenPushed = true
     }
-    
+
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func viewDidLoad() {
@@ -48,19 +56,17 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         navigationItem.title = Localizations.chatGroupInfoTitle
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
-        
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonShare, style: .done, target: self, action: #selector(shareAction))
-        navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
 
         tableView.separatorStyle = .singleLine
         tableView.backgroundColor = UIColor.feedBackground
+        tableView.register(ActionTableViewCell.self, forCellReuseIdentifier: actionCellReuseIdentifier)
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
-        
+
         let groupInfoHeaderView = GroupInfoHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: Constants.HeaderHeight))
         groupInfoHeaderView.delegate = self
         groupInfoHeaderView.configure(chatGroup: chatGroup)
         tableView.tableHeaderView = groupInfoHeaderView
-        
+
         let groupInfoFooterView = GroupInfoFooterView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: Constants.FooterHeight))
         groupInfoFooterView.delegate = self
         tableView.tableFooterView = groupInfoFooterView
@@ -77,14 +83,9 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         if let tableHeaderView = tableView.tableHeaderView as? GroupInfoHeaderView {
             tableHeaderView.configure(chatGroup: chatGroup)
         }
-
         super.viewWillAppear(animated)
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        DDLogInfo("GroupInfoViewController/viewDidAppear")
-        super.viewDidAppear(animated)
-        self.tabBarController?.hideTabBar()
+        MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
+        tabBarController?.hideTabBar(vc: self)
     }
 
     deinit {
@@ -138,28 +139,32 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         switch type {
         case .update:
             guard let indexPath = indexPath, let member = anObject as? ChatGroupMember else { return }
-            DDLogDebug("GroupInfoViewController/frc/update [\(member)] at [\(indexPath)]")
+            let indexPathWithActions = IndexPath(row: indexPath.row + numStaticCells, section: indexPath.section)
+            DDLogDebug("GroupInfoViewController/frc/update [\(member)] at [\(indexPathWithActions)]")
             if trackPerRowFRCChanges {
-                tableView.reloadRows(at: [ indexPath ], with: .automatic)
+                tableView.reloadRows(at: [ indexPathWithActions ], with: .automatic)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
         case .insert:
-            guard let indexPath = newIndexPath, let member = anObject as? ChatGroupMember else { break }
-            DDLogDebug("GroupInfoViewController/frc/insert [\(member)] at [\(indexPath)]")
+            guard let toIndexPath = newIndexPath, let member = anObject as? ChatGroupMember else { break }
+            let toIndexPathWithActions = IndexPath(row: toIndexPath.row + numStaticCells, section: toIndexPath.section)
+            DDLogDebug("GroupInfoViewController/frc/insert [\(member)] at [\(toIndexPathWithActions)]")
             if trackPerRowFRCChanges {
-                tableView.insertRows(at: [ indexPath ], with: .automatic)
+                tableView.insertRows(at: [ toIndexPathWithActions ], with: .automatic)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
 
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let member = anObject as? ChatGroupMember else { break }
-            DDLogDebug("GroupInfoViewController/frc/move [\(member)] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            let fromIndexPathWithActions = IndexPath(row: fromIndexPath.row + numStaticCells, section: fromIndexPath.section)
+            let toIndexPathWithActions = IndexPath(row: toIndexPath.row + numStaticCells, section: toIndexPath.section)
+            DDLogDebug("GroupInfoViewController/frc/move [\(member)] from [\(fromIndexPathWithActions)] to [\(toIndexPathWithActions)]")
             if trackPerRowFRCChanges {
-                tableView.moveRow(at: fromIndexPath, to: toIndexPath)
+                tableView.moveRow(at: fromIndexPathWithActions, to: toIndexPathWithActions)
                 DispatchQueue.main.async {
-                    self.tableView.reloadRows(at: [ toIndexPath ], with: .automatic)
+                    self.tableView.reloadRows(at: [ toIndexPathWithActions ], with: .automatic)
                 }
 
             } else {
@@ -167,9 +172,10 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             }
         case .delete:
             guard let indexPath = indexPath, let member = anObject as? ChatGroupMember else { break }
-            DDLogDebug("GroupInfoViewController/frc/delete [\(member)] at [\(indexPath)]")
+            let indexPathWithActions = IndexPath(row: indexPath.row + numStaticCells, section: indexPath.section)
+            DDLogDebug("GroupInfoViewController/frc/delete [\(member)] at [\(indexPathWithActions)]")
             if trackPerRowFRCChanges {
-                tableView.deleteRows(at: [ indexPath ], with: .automatic)
+                tableView.deleteRows(at: [ indexPathWithActions ], with: .automatic)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -210,44 +216,37 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         present(UINavigationController(rootViewController: vc), animated: true)
     }
 
-    
     @objc private func openEditAvatarOptions() {
-        
+        guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil else { return }
 
+        let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
+        actionSheet.view.tintColor = UIColor.systemBlue
 
-            let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
-            actionSheet.view.tintColor = UIColor.systemBlue
-            
-            actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupTakeOrChoosePhoto, style: .default) { [weak self] _ in
-                guard let self = self else { return }
-                self.presentPhotoLibraryPicker()
-            })
-            
-            
-            actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive) { _ in
-                
-                MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: nil) { result in
-                    switch result {
-                    case .success:
-                        DispatchQueue.main.async() { [weak self] in
-                            guard let self = self else { return }
+        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupTakeOrChoosePhoto, style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.presentPhotoLibraryPicker()
+        })
 
-                            // configure again as avatar listens to cached object that's evicted if app goes into background
-                            if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
-                                tableHeaderView.configure(chatGroup: self.chatGroup)
-                            }
+        actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive) { _ in
+            MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: nil) { result in
+                switch result {
+                case .success:
+                    DispatchQueue.main.async() { [weak self] in
+                        guard let self = self else { return }
+
+                        // configure again as avatar listens to cached object that's evicted if app goes into background
+                        if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
+                            tableHeaderView.configure(chatGroup: self.chatGroup)
                         }
-                    case .failure(let error):
-                        DDLogError("GroupInfoViewController/createAction/error \(error)")
                     }
+                case .failure(let error):
+                    DDLogError("GroupInfoViewController/createAction/error \(error)")
                 }
-
-            })
-            actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-            present(actionSheet, animated: true)
-
+            }
+        })
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        present(actionSheet, animated: true)
     }
-
 
     // MARK: UITableView Delegates
 
@@ -257,13 +256,53 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let sections = self.fetchedResultsController?.sections else { return 0 }
-        return sections[section].numberOfObjects
+        return sections[section].numberOfObjects + numStaticCells
+    }
+
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if indexPath.row == 0 {
+            return isAdmin ? UITableView.automaticDimension : 0
+        } else if indexPath.row == 1 {
+            return showInviteLink ? UITableView.automaticDimension : 0
+        }
+        return UITableView.automaticDimension
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+        if indexPath.row == 0 {
+            guard isAdmin else {
+                let emptyCell = UITableViewCell()
+                emptyCell.isHidden = true
+                return emptyCell
+            }
+            let cell = tableView.dequeueReusableCell(withIdentifier: actionCellReuseIdentifier, for: indexPath) as! ActionTableViewCell
+            if let image = UIImage(named: "GroupsAddMembers")?.withRenderingMode(.alwaysTemplate) {
+                cell.configure(icon: image, label: Localizations.chatGroupInfoAddMembers)
+            }
+            return cell
+        }
+
+        if indexPath.row == 1 {
+            guard showInviteLink else {
+                let emptyCell = UITableViewCell()
+                emptyCell.isHidden = true
+                return emptyCell
+            }
+            let cell = tableView.dequeueReusableCell(withIdentifier: actionCellReuseIdentifier, for: indexPath) as! ActionTableViewCell
+            if let image = UIImage(named: "ShareLink")?.withRenderingMode(.alwaysTemplate) {
+                cell.configure(icon: image, label: Localizations.groupInfoInviteToGroupViaLink)
+            }
+            return cell
+        }
+
         let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
-        if let chatGroupMember = fetchedResultsController?.object(at: indexPath) {
+
+        if let chatGroupMember = fetchedResultsController?.object(at: IndexPath(row: indexPath.row - numStaticCells, section: indexPath.section)) {
             cell.configure(with: chatGroupMember)
+        }
+        if !isAdmin, indexPath.row == 2 {
+            cell.addTopRoundedCorners()
         }
         return cell
     }
@@ -273,24 +312,30 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             tableView.deselectRow(at: indexPath, animated: true)
         }
 
-//        guard isAdmin else {
-//            deselectRow()
-//            return
-//        }
-        guard let chatGroupMember = fetchedResultsController?.object(at: indexPath),
+        if isAdmin, indexPath.row == 0 {
+            openAddMembers()
+            deselectRow()
+            return
+        } else if isAdmin, indexPath.row == 1 {
+            shareAction()
+            deselectRow()
+            return
+        }
+
+        guard let chatGroupMember = fetchedResultsController?.object(at: IndexPath(row: indexPath.row - numStaticCells, section: indexPath.section)),
               chatGroupMember.userId != MainAppContext.shared.userData.userId else
         {
             deselectRow()
             return
         }
-        
+
         let userName = MainAppContext.shared.contactStore.fullName(for: chatGroupMember.userId)
         let isUserAContact = MainAppContext.shared.contactStore.isContactInAddressBook(userId: chatGroupMember.userId)
         let selectedMembers = [chatGroupMember.userId]
-        
+
         let actionSheet = UIAlertController(title: "\(userName)", message: nil, preferredStyle: .actionSheet)
         actionSheet.view.tintColor = UIColor.systemBlue
-        
+
         actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoViewProfile, style: .default) { [weak self] _ in
             guard let self = self else { return }
 
@@ -342,29 +387,29 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     func checkIfMember() {
         let headerView = self.tableView.tableHeaderView as! GroupInfoHeaderView
         let footerView = self.tableView.tableFooterView as! GroupInfoFooterView
-        navigationItem.rightBarButtonItem?.isEnabled = false
-        navigationItem.rightBarButtonItem?.tintColor = UIColor.clear
+        var haveAdminPermissionChanged: Bool = false
 
         if let chatGroupMember = MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) {
             if chatGroupMember.type == .admin {
+                if !isAdmin { haveAdminPermissionChanged = true }
                 isAdmin = true
-                headerView.setIsAdmin(true)
+                headerView.setIsMember(true)
                 footerView.setIsMember(true)
-
-                if ServerProperties.isInternalUser && ServerProperties.isGroupInviteLinksEnabled {
-                    navigationItem.rightBarButtonItem?.isEnabled = true
-                    navigationItem.rightBarButtonItem?.tintColor = UIColor.primaryBlue
-                }
-
             } else if chatGroupMember.type == .member {
+                if isAdmin { haveAdminPermissionChanged = true }
                 isAdmin = false
-                headerView.setIsAdmin(false)
+                headerView.setIsMember(true)
                 footerView.setIsMember(true)
             }
         } else {
+            if isAdmin { haveAdminPermissionChanged = true }
             isAdmin = false
-            headerView.setIsAdmin(false)
+            headerView.setIsMember(false)
             footerView.setIsMember(false)
+        }
+
+        if haveAdminPermissionChanged {
+            tableView.reloadData()
         }
     }
 
@@ -407,8 +452,6 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     }
 
     private func changeAvatar(image: UIImage) {
-
-
         guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
             DDLogError("GroupInfoViewController/resizeImage error resize failed")
             return
@@ -431,7 +474,6 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 DDLogError("GroupInfoViewController/createAction/error \(error)")
             }
         }
-        
     }
 
     private func refreshGroupInfo() {
@@ -460,6 +502,10 @@ extension GroupInfoViewController: GroupInfoHeaderViewDelegate {
     }
 
     func groupInfoHeaderViewAddMember(_ groupInfoFooterView: GroupInfoHeaderView) {
+        openAddMembers()
+    }
+    
+    func openAddMembers() {
         var currentMembers: [UserID] = []
         if let objects = fetchedResultsController?.fetchedObjects {
             for groupMember in objects {
@@ -487,12 +533,12 @@ extension GroupInfoViewController: GroupInfoFooterViewDelegate {
         vController.delegate = self
         self.navigationController?.pushViewController(vController, animated: true)
     }
-    
+
     func groupInfoFooterView(_ groupInfoFooterView: GroupInfoFooterView) {
         guard let group = chatGroup else { return }
 
-        let actionSheet = UIAlertController(title: nil, message: "Leave \"\(group.name)\"?", preferredStyle: .actionSheet)
-         actionSheet.addAction(UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
+        let actionSheet = UIAlertController(title: nil, message: Localizations.leaveGroupConfirmation(groupName: group.name), preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoLeaveGroup, style: .destructive) { [weak self] _ in
             guard let self = self else { return }
             MainAppContext.shared.service.leaveGroup(groupID: self.groupId) { result in }
          })
@@ -535,8 +581,8 @@ class GroupInfoHeaderView: UIView {
 
     public func configure(chatGroup: ChatGroup?) {
         guard let chatGroup = chatGroup else { return }
-        groupNameTextView.text = chatGroup.name
-        membersLabel.text = "\(Localizations.chatGroupMembersLabel) (\(String(chatGroup.members?.count ?? 0)))"
+        groupNameText.text = chatGroup.name
+        membersLabel.text = Localizations.chatGroupMembersLabel.uppercased() + " (\(String(chatGroup.members?.count ?? 0)))"
 
         avatarView.configure(groupId: chatGroup.groupId, squareSize: Constants.AvatarSize, using: MainAppContext.shared.avatarStore)
 
@@ -546,15 +592,14 @@ class GroupInfoHeaderView: UIView {
         } else {
             backgroundSelectionLabel.text = Localizations.chatGroupInfoBgColorLabel
         }
-
-        if !ServerProperties.isGroupBackgroundEnabled {
-            backgroundLabel.isHidden = true
-            backgroundLabelRow.isHidden = true
-        }
     }
 
     public func setIsAdmin(_ isAdmin: Bool) {
         addMembersLabel.isHidden = isAdmin ? false : true
+    }
+    
+    public func setIsMember(_ isMember: Bool) {
+        photoIcon.isHidden = isMember ? false : true
     }
 
     private func setup() {
@@ -566,12 +611,12 @@ class GroupInfoHeaderView: UIView {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextView, backgroundLabelRow, backgroundRow, membersLabelRow, spacer])
+        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextRow, backgroundLabelRow, backgroundRow, membersLabelRow, spacer])
 
         view.axis = .vertical
         view.spacing = 0
         view.setCustomSpacing(20, after: avatarRow)
-        view.setCustomSpacing(25, after: groupNameTextView)
+        view.setCustomSpacing(25, after: groupNameTextRow)
         view.setCustomSpacing(25, after: backgroundRow)
 
         view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
@@ -616,10 +661,7 @@ class GroupInfoHeaderView: UIView {
         avatarView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
 
         photoIcon.frame = CGRect(x: 0 - Constants.PhotoIconSize, y: viewHeight - Constants.PhotoIconSize, width: Constants.PhotoIconSize, height: Constants.PhotoIconSize)
-        
-
         view.addSubview(photoIcon)
-
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(groupAvatarAction(_:)))
         view.isUserInteractionEnabled = true
@@ -652,8 +694,6 @@ class GroupInfoHeaderView: UIView {
 
         return view
     }()
-    
-
 
     private lazy var groupNameLabelRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [groupNameLabel])
@@ -670,34 +710,46 @@ class GroupInfoHeaderView: UIView {
         label.textAlignment = .left
         label.textColor = .secondaryLabel
         label.font = .systemFont(ofSize: 12)
-        label.text = Localizations.chatGroupNameLabel
+        label.text = Localizations.chatGroupNameLabel.uppercased()
         label.translatesAutoresizingMaskIntoConstraints = false
 
         return label
     }()
 
-    private lazy var groupNameTextView: UITextView = {
-        let view = UITextView()
-        view.isScrollEnabled = false
-        view.isEditable = false
-        view.isSelectable = false
+    private lazy var groupNameTextRow: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        view.clipsToBounds = true
-        view.layer.cornerRadius = 10
+        let view = UIStackView(arrangedSubviews: [ groupNameText ])
 
-        view.backgroundColor = .secondarySystemGroupedBackground
-        view.textContainerInset = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 10)
-        view.font = UIFont.preferredFont(forTextStyle: .body)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
 
+        let subView = UIView(frame: view.bounds)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.backgroundColor = .secondarySystemGroupedBackground
+        subView.layer.cornerRadius = 10
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        view.insertSubview(subView, at: 0)
+        
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(editAction(_:)))
         view.isUserInteractionEnabled = true
         view.addGestureRecognizer(tapGesture)
 
         return view
     }()
-    
+
+    private lazy var groupNameText: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
+        label.textAlignment = .left
+        return label
+    }()
+
     private lazy var backgroundLabelRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [backgroundLabel])
         view.axis = .horizontal
@@ -707,13 +759,13 @@ class GroupInfoHeaderView: UIView {
 
         return view
     }()
-    
+
     private lazy var backgroundLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .left
         label.textColor = .secondaryLabel
         label.font = .systemFont(ofSize: 12)
-        label.text = Localizations.chatGroupBackgroundLabel
+        label.text = Localizations.chatGroupBackgroundLabel.uppercased()
         label.translatesAutoresizingMaskIntoConstraints = false
 
         return label
@@ -725,6 +777,7 @@ class GroupInfoHeaderView: UIView {
         let view = UIStackView(arrangedSubviews: [ backgroundSelectionLabel, spacer, backgroundSelectionImage ])
 
         view.axis = .horizontal
+        view.alignment = .center
         view.spacing = 20
 
         let subView = UIView(frame: view.bounds)
@@ -739,6 +792,7 @@ class GroupInfoHeaderView: UIView {
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(changeBackgroundAction(_:)))
         view.isUserInteractionEnabled = true
@@ -747,19 +801,11 @@ class GroupInfoHeaderView: UIView {
         return view
     }()
 
-    private lazy var backgroundSelectionLabel: UITextView = {
-        let view = UITextView()
-        view.isScrollEnabled = false
-        view.isEditable = false
-        view.isSelectable = false
-
-        view.backgroundColor = .clear
-        view.font = UIFont.preferredFont(forTextStyle: .body)
-        view.text = Localizations.chatGroupInfoBgDefaultLabel
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        return view
+    private lazy var backgroundSelectionLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
+        label.textAlignment = .left
+        return label
     }()
 
     private lazy var backgroundSelectionImage: UIView = {
@@ -860,9 +906,6 @@ class GroupInfoFooterView: UIView {
     public func setIsMember(_ isMember: Bool) {
         leaveGroupLabel.isHidden = isMember ? false : true
         notAMemberLabel.isHidden = isMember ? true : false
-
-
-        
     }
 
     private func setup() {
@@ -901,10 +944,12 @@ class GroupInfoFooterView: UIView {
 
         let view = UIStackView(arrangedSubviews: [ leaveGroupLabel, notAMemberLabel ])
         view.axis = .vertical
-        view.translatesAutoresizingMaskIntoConstraints = false
 
-        view.layoutMargins = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
 
         let subView = UIView(frame: view.bounds)
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -919,7 +964,7 @@ class GroupInfoFooterView: UIView {
 
     private lazy var leaveGroupLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.font = .systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
         label.textColor = .systemRed
         label.textAlignment = .left
         label.text = Localizations.chatGroupInfoLeaveGroup
@@ -963,12 +1008,20 @@ extension GroupInfoViewController: GroupBackgroundViewControllerDelegate {
 private extension ContactTableViewCell {
 
     func configure(with chatGroupMember: ChatGroupMember) {
-        profilePictureSize = 40
+        backgroundColor = .clear
+        contentView.backgroundColor = .clear
+        contentView.layer.cornerRadius = 0
+        contentView.layer.backgroundColor = UIColor.secondarySystemGroupedBackground.cgColor
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatGroupMember.userId)
         accessoryLabel.text = chatGroupMember.type == .admin ? Localizations.chatGroupInfoAdminLabel : ""
         contactImage.configure(with: chatGroupMember.userId, using: MainAppContext.shared.avatarStore)
     }
-    
+
+    func addTopRoundedCorners() {
+        contentView.layer.cornerRadius = 10
+        contentView.layer.maskedCorners = [.layerMinXMinYCorner,.layerMaxXMinYCorner]
+    }
+
 }
 
 fileprivate extension UIImage {
@@ -995,6 +1048,10 @@ private extension Localizations {
 
     static var chatGroupInfoAddMembers: String {
         NSLocalizedString("chat.group.info.add.members", value: "Add members", comment: "Action label for adding members to a group")
+    }
+    
+    static var groupInfoInviteToGroupViaLink: String {
+        NSLocalizedString("group.info.invite.to.group.via.link", value: "Invite to Group via Link", comment: "Action label for inviting others to join the group via link")
     }
 
     static var chatGroupInfoAdminLabel: String {
@@ -1029,5 +1086,10 @@ private extension Localizations {
 
     static var chatGroupInfoRemoveFromGroup: String {
         NSLocalizedString("chat.group.info.remove.from.group", value: "Remove From Group", comment: "Text for menu option of removing a group member")
+    }
+
+    static func leaveGroupConfirmation(groupName: String) -> String {
+        let format = NSLocalizedString("chat.group.leave.group.confirmation", value: "Leave “%@”?", comment: "Confirmation message presented when leaving a group")
+        return String(format: format, groupName)
     }
 }

@@ -243,6 +243,7 @@ final class InviteViewController: UIViewController {
     }
 
     private func inviteAction(_ action: InviteActionType, contact: InviteContact) {
+        guard proceedIfConnected() else { return }
         switch action {
         case .sms:
             smsAction(contact: contact)
@@ -273,7 +274,7 @@ final class InviteViewController: UIViewController {
                 #else
                 let vc = MFMessageComposeViewController()
                 vc.body = Localizations.inviteText(name: contact.givenName ?? contact.fullName, number: contact.normalizedPhoneNumber.formattedPhoneNumber)
-                vc.recipients = [contact.normalizedPhoneNumber]
+                vc.recipients = [contact.normalizedPhoneNumber.formattedPhoneNumber]
                 vc.messageComposeDelegate = self
                 self.present(vc, animated: true, completion: nil)
                 #endif
@@ -609,10 +610,8 @@ private extension Localizations {
     }
 
     static func invitesRemaining(_ count: Int) -> String {
-        let format = NSLocalizedString("invite.remaining.count.unspecified.time",
-                                       value: "You have %@ invites remaining",
-                                       comment: "Indicates how many invites are remaining")
-        return String(format: format, String(count))
+        let format = NSLocalizedString("n.invites.remaining", comment: "Indicates how many invites are remaining")
+        return String.localizedStringWithFormat(format, count)
     }
 }
 

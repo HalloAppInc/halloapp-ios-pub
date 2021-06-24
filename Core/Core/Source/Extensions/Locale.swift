@@ -1,6 +1,6 @@
 //
 //  Locale.swift
-//  HalloApp
+//  Core
 //
 //  Created by Garrett on 4/22/21.
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension Locale {
+public extension Locale {
     var halloServiceLangID: String? {
         guard let languageCode = languageCode else {
             return nil

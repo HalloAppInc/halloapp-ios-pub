@@ -30,7 +30,6 @@ protocol HalloService: CoreService {
     // MARK: Delegates
     var chatDelegate: HalloChatDelegate? { get set }
     var feedDelegate: HalloFeedDelegate? { get set }
-    var keyDelegate: HalloKeyDelegate? { get set }
 
     // MARK: Profile
     func sendCurrentUserNameIfPossible()
@@ -38,13 +37,8 @@ protocol HalloService: CoreService {
 
     // MARK: Feed requests
     func retractPost(_ post: FeedPostProtocol, completion: @escaping ServiceRequestCompletion<Void>)
-    func retractComment(_ comment: FeedCommentProtocol, completion: @escaping ServiceRequestCompletion<Void>)
+    func retractComment(id: FeedPostCommentID, postID: FeedPostID, completion: @escaping ServiceRequestCompletion<Void>)
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
-
-    // MARK: Key requests
-    func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>)
-    func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>)
-    func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>)
 
     // MARK: Receipts
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID)
@@ -67,8 +61,6 @@ protocol HalloService: CoreService {
     func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>)
     func getGroupInviteLink(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
     func resetGroupInviteLink(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
-    func getGroupPreviewWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
-    func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>)
     func getGroupsList(completion: @escaping ServiceRequestCompletion<HalloGroups>)
     func modifyGroup(groupID: GroupID, with members: [UserID], groupAction: ChatGroupAction,
                      action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>)
@@ -113,8 +105,4 @@ protocol HalloChatDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt)
     func halloService(_ halloService: HalloService, didReceiveGroupMessage group: HalloGroup)
-}
-
-protocol HalloKeyDelegate: AnyObject {
-    func halloService(_ halloService: HalloService, didReceiveWhisperMessage message: WhisperMessage)
 }

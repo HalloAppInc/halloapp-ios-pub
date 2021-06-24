@@ -20,6 +20,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     // MARK: Avatar
     public weak var avatarDelegate: ServiceAvatarDelegate?
+    public weak var keyDelegate: ServiceKeyDelegate?
 
     private class ConnectionStateCallback {
         let state: ConnectionState
@@ -46,12 +47,15 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             }
         }
     }
+    
+    public var reachabilityState: ReachablilityState = .reachable
 
     public var isAppVersionKnownExpired = CurrentValueSubject<Bool, Never>(false)
     public var isAppVersionCloseToExpiry = CurrentValueSubject<Bool, Never>(false)
 
     public var isConnected: Bool { get { connectionState == .connected } }
     public var isDisconnected: Bool { get { connectionState == .disconnecting || connectionState == .notConnected } }
+    public var isReachable: Bool { get { reachabilityState == .reachable } }
 
     public let didConnect = PassthroughSubject<Void, Never>()
     public let didDisconnect = PassthroughSubject<Void, Never>()
@@ -144,7 +148,13 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
         // Retry if we're not connected in 10 seconds (cancel pending retry if it exists)
         retryConnectionTask?.cancel()
-        let retryConnection = DispatchWorkItem { self.startConnectingIfNecessary() }
+        let retryConnection = DispatchWorkItem {
+            guard self.isReachable else {
+                DDLogInfo("proto/retryConnectionTask/skipping (client is unreachable)")
+                return
+            }
+            self.startConnectingIfNecessary()
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: retryConnection)
         retryConnectionTask = retryConnection
     }
@@ -555,7 +565,7 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func publishComment(_ comment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date>) {
+    public func publishComment(_ comment: CommentData, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
@@ -648,6 +658,15 @@ extension ProtoServiceCore: CoreService {
                 return
             }
 
+            // Dont send chat messages on encryption errors.
+            if let error = error {
+                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id)/error \(error)")
+                AppContext.shared.errorLogger?.logError(error)
+                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) aborted")
+                completion(.failure(RequestError.aborted))
+                return
+            }
+
             let packet = Server_Packet.msgPacket(
                 from: fromUserID,
                 to: message.toUserId,
@@ -669,14 +688,11 @@ extension ProtoServiceCore: CoreService {
                     completion(.failure(RequestError.notConnected))
                     return
                 }
-                if let error = error {
-                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id)/error \(error)")
-                    AppContext.shared.errorLogger?.logError(error)
-                }
                 AppContext.shared.eventMonitor.count(.encryption(error: error))
-                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
+                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending encrypted")
                 self.send(packetData)
                 self.sendSilentChats(ServerProperties.silentChatMessages)
+                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) success")
                 completion(.success(()))
             }
         }
@@ -717,5 +733,29 @@ extension ProtoServiceCore: CoreService {
 
     public func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoLoggingRequest(countableEvents: countableEvents, discreteEvents: discreteEvents, completion: completion))
+    }
+    
+    // MARK: Key requests
+        
+    public func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoWhisperUploadRequest(keyBundle: bundle, completion: completion))
+    }
+
+    public func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoWhisperAddOneTimeKeysRequest(preKeys: keys, completion: completion))
+    }
+
+    public func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>) {
+        enqueue(request: ProtoWhisperGetCountOfOneTimeKeysRequest(completion: completion))
+    }
+
+    // MARK: Groups
+    
+    public func getGroupPreviewWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
+        enqueue(request: ProtoGroupPreviewWithLinkRequest(inviteLink: inviteLink, completion: completion))
+    }
+
+    public func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
+        enqueue(request: ProtoJoinGroupWithLinkRequest(inviteLink: inviteLink, completion: completion))
     }
 }

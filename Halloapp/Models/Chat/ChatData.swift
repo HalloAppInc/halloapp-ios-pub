@@ -11,6 +11,8 @@ import Core
 import CoreData
 import Foundation
 import UIKit
+import Intents
+import IntentsUI
 
 typealias ChatAck = (id: String, timestamp: Date?)
 
@@ -717,33 +719,35 @@ class ChatData: ObservableObject {
         return nil
     }
     
+    // TODO(murali@): need to do some sort of migration for the existing media elements in the db.
     func copyMediaToQuotedMedia(fromDir: URL, fromPath: String?, to quotedMedia: ChatQuotedMedia) throws {
         guard let fromRelativePath = fromPath else {
             return
         }
-
         let fromURL = fromDir.appendingPathComponent(fromRelativePath, isDirectory: false)
-        
-        // append unique id to allow multiple quoted messages of the same feedpost so each message can be deleted independently in the future
-        
-        var pathComponents = fromRelativePath.components(separatedBy: ".")
-        
-        guard pathComponents.count > 1 else {
+        DDLogInfo("ChatData/copyMediaToQuotedMedia/fromURL: \(fromURL)")
+
+        // Store references to the quoted media directory and file path.
+        if fromDir == MainAppContext.chatMediaDirectoryURL {
+            quotedMedia.mediaDirectory = .chatMedia
+        } else if fromDir == MainAppContext.mediaDirectoryURL {
+            quotedMedia.mediaDirectory = .media
+        }
+        quotedMedia.relativeFilePath = fromRelativePath
+
+        // Generate thumbnail for the media: so that each message can have its own copy.
+        let previewImage: UIImage?
+        switch quotedMedia.type {
+        case .image:
+            previewImage = UIImage(contentsOfFile: fromURL.path)
+        case .video:
+            previewImage = VideoUtils.videoPreviewImage(url: fromURL)
+        }
+        guard let img = previewImage else {
+            DDLogError("ChatData/copyMediaToQuotedMedia/unable to generate thumbnail image for media url: \(fromURL)")
             return
         }
-        
-        pathComponents[0] += "-\(UUID().uuidString)"
-        
-        let newPath = "\(pathComponents[0]).\(pathComponents[1])"
-
-        // todo: the directory for quoted media should follow a similar structure as chat media, should do mini migration also
-        
-        let toURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(newPath, isDirectory: false)
-
-        try FileManager.default.createDirectory(at: toURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
-
-        try FileManager.default.copyItem(at: fromURL, to: toURL)
-        quotedMedia.relativeFilePath = newPath
+        quotedMedia.previewData = VideoUtils.previewImageData(image: img)
     }
     
     func sendSeenReceipt(for chatMessage: ChatMessage) {
@@ -1003,10 +1007,13 @@ class ChatData: ObservableObject {
 
         // TODO: Why Int16? - other classes have Int32 for the order attribute.
         var mediaIndex: Int16 = 0
+        var mediaFromDir: URL = MainAppContext.mediaDirectoryURL
         if let _ = chatMessage.feedPostId {
             mediaIndex = Int16(chatMessage.feedPostMediaIndex)
+            mediaFromDir = MainAppContext.mediaDirectoryURL
         } else if let _ = chatMessage.chatReplyMessageID {
             mediaIndex = Int16(chatMessage.chatReplyMessageMediaIndex)
+            mediaFromDir = MainAppContext.chatMediaDirectoryURL
         }
         if let chatQuotedMediaItem = chatQuoted.mediaList.first(where: { $0.order == mediaIndex }) {
             DDLogInfo("ChatData/copyQuoted/message/\(chatMessage.id), chatQuotedMediaIndex: \(chatQuotedMediaItem.order)")
@@ -1017,7 +1024,7 @@ class ChatData: ObservableObject {
             quotedMedia.height = Float(chatQuotedMediaItem.height)
             quotedMedia.quoted = quoted
             do {
-                try copyMediaToQuotedMedia(fromDir: MainAppContext.mediaDirectoryURL, fromPath: chatQuotedMediaItem.relativeFilePath, to: quotedMedia)
+                try copyMediaToQuotedMedia(fromDir: mediaFromDir, fromPath: chatQuotedMediaItem.relativeFilePath, to: quotedMedia)
             } catch {
                 DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
             }
@@ -1335,6 +1342,8 @@ extension ChatData {
                                                        chatReplyMessageSenderID: chatReplyMessageSenderID,
                                                        chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
         }
+        
+        addIntent(toUserId: toUserId)
     }
     
     func createChatMsg(toUserId: String,
@@ -1346,7 +1355,7 @@ extension ChatData {
                      chatReplyMessageSenderID: UserID? = nil,
                      chatReplyMessageMediaIndex: Int32) {
         
-        let messageId = UUID().uuidString
+        let messageId = PacketID.generate()
         let isMsgToYourself: Bool = toUserId == userData.userId
         
         // Create and save new ChatMessage object.
@@ -1543,6 +1552,7 @@ extension ChatData {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
 
+            DDLogDebug("ChatData/process-mediaItem: \(msgID)/\(mediaItem.order), index: \(mediaIndex)")
             if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
                 let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
@@ -1554,8 +1564,7 @@ extension ChatData {
                     switch $0 {
                     case .success(let result):
                         let path = self.relativePath(from: output)
-                        mediaItem.relativeFilePath = path
-
+                        DDLogDebug("FeedData/process-mediaItem/success: \(msgID)/\(mediaIndex)")
                         self.updateChatMessage(with: msgID, block: { msg in
                             guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
 
@@ -1564,9 +1573,10 @@ extension ChatData {
                             media.sha256 = result.sha256
                             media.relativeFilePath = path
                         }) {
-                            self.uploadChat(msgID: msgID, media: mediaItem, completion: uploadCompletion)
+                            self.uploadChat(msgID: msgID, mediaIndex: mediaIndex, completion: uploadCompletion)
                         }
                     case .failure(_):
+                        DDLogDebug("ChatData/process-mediaItem/failure: \(msgID)/\(mediaIndex)")
                         numberOfFailedUploads += 1
 
                         self.updateChatMessage(with: msgID, block: { msg in
@@ -1579,7 +1589,8 @@ extension ChatData {
                     }
                 }
             } else {
-                uploadChat(msgID: msgID, media: mediaItem, completion: uploadCompletion)
+                DDLogDebug("ChatData/process-mediaItem/processed already: \(msgID)/\(mediaIndex)")
+                uploadChat(msgID: msgID, mediaIndex: mediaIndex, completion: uploadCompletion)
             }
         }
 
@@ -1599,17 +1610,30 @@ extension ChatData {
         }
     }
 
-    private func uploadChat(msgID: String, media: ChatMedia, completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
-        let index = media.order
+    private func uploadChat(msgID: String, mediaIndex: Int16, completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
+        guard let msg = chatMessage(with: msgID),
+              let chatMedia = msg.media?.first(where: { $0.order == mediaIndex }) else {
+            DDLogError("ChatData/uploadChat/fetch msg and media \(msgID)/\(mediaIndex) - missing")
+            return
+        }
 
-        guard let relativeFilePath = media.relativeFilePath else {
-            DDLogError("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(index) missing file path")
+        DDLogDebug("ChatData/uploadChat/media \(msgID)/\(chatMedia.order), index:\(mediaIndex)")
+        guard let relativeFilePath = chatMedia.relativeFilePath else {
+            DDLogError("ChatData/uploadChat/\(msgID)/\(mediaIndex) missing file path")
             return completion(.failure(MediaUploadError.invalidUrls))
         }
         let processed = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
         MainAppContext.shared.uploadData.fetch(upload: processed) { [weak self] upload in
             guard let self = self else { return }
+
+            // Lookup object from coredata again instead of passing around the object across threads.
+            DDLogInfo("ChatData/uploadChat/fetch upload hash \(msgID)/\(mediaIndex)")
+            guard let msg = self.chatMessage(with: msgID),
+                  let media = msg.media?.first(where: { $0.order == mediaIndex }) else {
+                DDLogError("ChatData/uploadChat/fetch msg and media \(msgID)/\(mediaIndex) - missing")
+                return
+            }
 
             if let url = upload?.url {
                 DDLogInfo("Media \(processed) has been uploaded before at \(url).")
@@ -1619,6 +1643,8 @@ extension ChatData {
                     media.uploadUrl = nil
                 }
                 media.url = url
+            } else {
+                DDLogInfo("ChatData/uploadChat/uploading media now\(msgID)/\(media.order), index:\(mediaIndex)")
             }
 
             self.mediaUploader.upload(media: media, groupId: msgID, didGetURLs: { (mediaURLs) in
@@ -1626,7 +1652,7 @@ extension ChatData {
 
                 // Save URLs acquired during upload to the database.
                 self.updateChatMessage(with: msgID) { msg in
-                    guard let media = msg.media?.first(where: { $0.order == index }) else { return }
+                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
 
                     switch mediaURLs {
                     case .getPut(let getURL, let putURL):
@@ -1639,11 +1665,11 @@ extension ChatData {
                     }
                 }
             }) { (uploadResult) in
-                DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(index)/finished result=[\(uploadResult)]")
+                DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(mediaIndex)/finished result=[\(uploadResult)]")
 
                 // Save URLs acquired during upload to the database.
                 self.updateChatMessage(with: msgID, block: { msg in
-                    guard let media = msg.media?.first(where: { $0.order == index }) else { return }
+                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
 
                     switch uploadResult {
                     case .success(let details):
@@ -1698,7 +1724,7 @@ extension ChatData {
     }
 
     func retractChatMessage(toUserID: UserID, messageToRetractID: String) {
-        let messageID = UUID().uuidString
+        let messageID = PacketID.generate()
                 
         updateChatMessage(with: messageToRetractID) { [weak self] (chatMessage) in
             guard let self = self else { return }
@@ -1719,6 +1745,39 @@ extension ChatData {
                 
         self.service.retractChatMessage(messageID: messageID, toUserID: toUserID, messageToRetractID: messageToRetractID)
         
+    }
+    
+    /// Donates an intent to Siri for improved suggestions when sharing content.
+    ///
+    /// Intents are used by iOS to provide contextual suggestions to the user for certain interactions. In this case, we are suggesting the user send another message to the user they just shared with.
+    /// For more information, see [this documentation](https://developer.apple.com/documentation/sirikit/insendmessageintent)\.
+    /// - Parameter toUserId: The user ID for the person the user just shared with
+    /// - Remark: This is different from the implementation in `ShareComposerViewController.swift` because `MainAppContext` isn't available in the share extension.
+    private func addIntent(toUserId: UserID) {
+        if #available(iOS 14.0, *) {
+            let recipient = INSpeakableString(spokenPhrase: MainAppContext.shared.contactStore.fullName(for: toUserId))
+            let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                        content: nil,
+                                                        speakableGroupName: recipient,
+                                                        conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
+                                                        serviceName: nil, sender: nil)
+            
+            let potentialUserAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
+            guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
+            
+            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
+            let userAvatar = INImage(imageData: userAvaterUIImage)
+            
+            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+            
+            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+            interaction.donate(completion: { error in
+                if let error = error {
+                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+                }
+            })
+        }
     }
     
     // MARK: 1-1 Core Data Fetching
@@ -1914,19 +1973,23 @@ extension ChatData {
             }
             chatMessage.managedObjectContext?.delete(media)
         }
-        
+
+        // quoted media item will be deleted - when the main chat message containing that media object is deleted.
+        // this message only contains a reference to it - so quoted media should not be deleted.
         if let quoted = chatMessage.quoted {
             DDLogDebug("ChatData/deleteMedia/quoted ")
             if let quotedMedia = quoted.media {
                 quotedMedia.forEach { (media) in
-                    if media.relativeFilePath != nil {
-                        let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
-                        do {
-                            DDLogDebug("ChatData/deleteMedia/quoted/media ")
-                            try FileManager.default.removeItem(at: fileURL)
-                        }
-                        catch {
-                            DDLogError("ChatData/deleteMedia/quoted/media/error [\(error)]")
+                    if media.mediaDir == nil {
+                        if media.relativeFilePath != nil {
+                            let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
+                            do {
+                                DDLogDebug("ChatData/deleteMedia/quoted/media ")
+                                try FileManager.default.removeItem(at: fileURL)
+                            }
+                            catch {
+                                DDLogError("ChatData/deleteMedia/quoted/media/error [\(error)]")
+                            }
                         }
                     }
                     quoted.managedObjectContext?.delete(media)
@@ -2071,7 +2134,9 @@ extension ChatData {
                 copyQuoted(to: chatMessage, from: quotedChatMessage, using: managedObjectContext)
             }
         }
-        
+
+        save(managedObjectContext) // extra save
+
         // Update Chat Thread
         if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.fromUserId, in: managedObjectContext) {
             // do an extra save since fetchedcontroller have issues with detecting re-ordering changes for properties
@@ -2432,7 +2497,6 @@ extension ChatData {
     
     public func changeGroupAvatar(groupID: GroupID, data: Data?, completion: @escaping ServiceRequestCompletion<Void>) {
         DDLogInfo("ChatData/changeGroupAvatar")
-        
         MainAppContext.shared.service.changeGroupAvatar(groupID: groupID, data: data) { [weak self] result in
             guard let self = self else { return }
      
@@ -2451,7 +2515,6 @@ extension ChatData {
         }
     }
 
-    
     public func setGroupBackground(groupID: GroupID, background: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
         MainAppContext.shared.service.setGroupBackground(groupID: groupID, background: background) { [weak self] result in
             guard let self = self else { return }
@@ -2485,32 +2548,40 @@ extension ChatData {
     public func getAndSyncGroup(groupId: GroupID) {
         DDLogDebug("ChatData/group/getAndSyncGroupInfo/group \(groupId)")
         service.getGroupInfo(groupID: groupId) { [weak self] result in
+            guard let self = self else { return }
             switch result {
             case .success(let group):
-                self?.syncGroup(group)
+                self.syncGroup(group)
             case .failure(let error):
-                DDLogError("ChatData/group/getGroupInfo/error \(error)")
+                switch error {
+                case .serverError(let reason):
+                    switch reason {
+                    case "not_member":
+                        DDLogInfo("ChatData/group/getGroupInfo/error/not_member/removing user")
+                        self.deleteChatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId)
+                    default:
+                        DDLogError("ChatData/group/getGroupInfo/error \(error)")
+                    }
+                default:
+                    DDLogError("ChatData/group/getGroupInfo/error \(error)")
+                }
             }
         }
     }
 
     func syncGroupIfNeeded(for groupId: GroupID) {
+        guard let group = chatGroup(groupId: groupId) else { return }
         guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil else { return }
-        guard let chatGroup = chatGroup(groupId: groupId) else { return }
-        var shouldSync = false
-    
-        if let lastSync = chatGroup.lastSync {
-            if let diff = Calendar.current.dateComponents([.hour], from: lastSync, to: Date()).hour, diff > 24 {
-                shouldSync = true
+
+        if let lastSync = group.lastSync {
+            guard let diff = Calendar.current.dateComponents([.hour], from: lastSync, to: Date()).hour, diff > 24 else {
+                return
             }
-        } else {
-            shouldSync = true
         }
-        if shouldSync {
-            MainAppContext.shared.chatData.getAndSyncGroup(groupId: groupId)
-        }
+
+        MainAppContext.shared.chatData.getAndSyncGroup(groupId: groupId)
     }
-    
+
     func syncGroup(_ xmppGroup: XMPPGroup) {
         DDLogInfo("ChatData/group/syncGroupInfo")
 
@@ -2670,13 +2741,13 @@ extension ChatData {
     }
 
     func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
-        DDLogDebug("ChatData/group/getGroupPreviewWithLink/inviteLink \(inviteLink)")
+        DDLogDebug("ChatData/group/joinGroupWithLink/inviteLink \(inviteLink)")
         service.joinGroupWithLink(inviteLink: inviteLink) { result in
             switch result {
             case .success(let groupInviteLink):
                 completion(.success((groupInviteLink)))
             case .failure(let error):
-                DDLogError("ChatData/group/getGroupPreviewWithLink/error \(error)")
+                DDLogError("ChatData/group/joinGroupWithLink/error \(error)")
                 completion(.failure((error)))
             }
         }
@@ -2928,9 +2999,9 @@ extension ChatData {
 
         guard let groupFeedPost = MainAppContext.shared.feedData.feedPost(with: id) else { return }
         guard let groupID = groupFeedPost.groupId else { return }
-        
+
         var groupExist = true
-        
+
         if isInbound {
             // if group doesn't exist yet, create
             if chatGroup(groupId: groupID, in: managedObjectContext) == nil {
@@ -2940,9 +3011,9 @@ extension ChatData {
                 chatGroup.groupId = groupID
             }
         }
-        
+
         var lastFeedMediaType: ChatThread.LastMediaType = .none // going with the first media found
-        
+
         // Process chat media
         if groupFeedPost.orderedMedia.count > 0 {
             if let firstMedia = groupFeedPost.orderedMedia.first {
@@ -2954,9 +3025,11 @@ extension ChatData {
                 }
             }
         }
-        
+
+        save(managedObjectContext) // extra save
+
         // Update Chat Thread
-        let mentionText = contactStore.textWithMentions(groupFeedPost.text, orderedMentions: groupFeedPost.orderedMentions)
+        let mentionText = contactStore.textWithMentions(groupFeedPost.text, mentions: groupFeedPost.orderedMentions)
         if let chatThread = chatThread(type: .group, id: groupID, in: managedObjectContext) {
             // extra save for fetchedcontroller to notice re-ordering changes mixed in with other changes
             chatThread.lastFeedTimestamp = groupFeedPost.timestamp
@@ -3158,12 +3231,11 @@ extension ChatData {
 
     private func processGroupModifyMembersAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
         DDLogDebug("ChatData/group/processGroupModifyMembersAction")
-        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
-        
-        var syncGroup = false
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+
         for xmppGroupMember in xmppGroup.members ?? [] {
             DDLogDebug("ChatData/group/process/modifyMembers [\(xmppGroupMember.userId)]")
-            
+
             // add pushname first before recording message since user could be new
             var contactNames = [UserID:String]()
             if let name = xmppGroupMember.name, !name.isEmpty {
@@ -3172,47 +3244,52 @@ extension ChatData {
             if !contactNames.isEmpty {
                 contactStore.addPushNames(contactNames)
             }
-            
-            if xmppGroupMember.action == .remove {
-                deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
 
-                // if user is removed, there's no need to sync up group
-                if xmppGroupMember.userId != MainAppContext.shared.userData.userId {
-                    syncGroup = true
+            switch xmppGroupMember.action {
+            case .add:
+                processGroupAddMemberAction(chatGroup: group, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+            case .remove:
+                deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
+            case .promote:
+                if let foundMember = group.members?.first(where: { $0.userId == xmppGroupMember.userId }) {
+                    foundMember.type = .admin
                 }
-                
-            } else {
-                syncGroup = true
+            case .demote:
+                if let foundMember = group.members?.first(where: { $0.userId == xmppGroupMember.userId }) {
+                    foundMember.type = .member
+                }
+            default:
+                break
             }
-            
-//            if xmppGroupMember.action == .add {
-//                processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
-//            } else if xmppGroupMember.action == .remove {
-//                deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
-//            }
-            
+
             recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
-            
+
             if xmppGroupMember.action == .add, xmppGroupMember.userId == MainAppContext.shared.userData.userId, xmppGroup.retryCount == 0 {
                 showGroupAddNotification(for: xmppGroup)
             }
         }
 
-        if syncGroup {
-            getAndSyncGroup(groupId: xmppGroup.groupId)
-        }
+        getAndSyncGroup(groupId: xmppGroup.groupId)
     }
 
     private func processGroupChangeNameAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("ChatData/group/processGroupChangeNameAction")
-        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        group.name = xmppGroup.name
+        updateChatThread(type: .group, for: xmppGroup.groupId) { (chatThread) in
+            chatThread.title = xmppGroup.name
+        }
         recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
         getAndSyncGroup(groupId: xmppGroup.groupId)
     }
-    
+
     private func processGroupChangeAvatarAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("ChatData/group/processGroupChangeAvatarAction")
-        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        group.avatar = xmppGroup.avatarID
+        if let avatarID = xmppGroup.avatarID {
+            MainAppContext.shared.avatarStore.updateOrInsertGroupAvatar(for: group.groupId, with: avatarID)
+        }
         recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
         getAndSyncGroup(groupId: xmppGroup.groupId)
     }
@@ -3410,7 +3487,11 @@ extension ChatData: HalloChatDelegate {
 
     func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?) {
         DDLogDebug("ChatData/didReceiveMessageReceipt [\(receipt.itemId)] \(receipt)")
-        guard receipt.thread == .none else { return }
+        guard receipt.thread == .none else {
+            DDLogError("ChatData/didReceiveMessageReceipt/error [unexpected-thread] [\(receipt.thread)]")
+            ack?()
+            return
+        }
         processInboundOneToOneMessageReceipt(with: receipt)
         ack?()
     }

@@ -317,7 +317,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         textView.textContainerInset = UIEdgeInsets.zero
         textView.backgroundColor = .clear
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
-        textView.textColor = .label
+        textView.textColor = traitCollection.userInterfaceStyle == .light ? .darkText : .lightText
         textView.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
 
         textView.delegate = self
@@ -407,7 +407,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
             let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.text,
-                orderedMentions: quoted.orderedMentions)
+                mentions: quoted.orderedMentions)
             quotedTextView.attributedText = mentionText?.with(font: quotedTextView.font, color: quotedTextView.textColor)
 
             let text = quotedTextView.text ?? ""
@@ -419,22 +419,25 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             if let media = quoted.media {
 
                 if let med = media.first(where: { $0.order == mediaIndex }) {
-                    let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
-
-                    if med.type == .image {
-                        if let image = UIImage(contentsOfFile: fileURL.path) {
-                            quotedImageView.image = image
-                        } else {
-                            DDLogError("IncomingMsgView/quoted/no-image/fileURL \(fileURL)")
-                        }
-                    } else if med.type == .video {
-                        if let image = VideoUtils.videoPreviewImage(url: fileURL, size: nil) {
-                            quotedImageView.image = image
-                        } else {
-                            DDLogError("IncomingMsgView/quoted/no-video-preview/fileURL \(fileURL)")
+                    let fileURL = med.mediaUrl
+                    if let thumbnailData = med.previewData {
+                        quotedImageView.image = UIImage(data: thumbnailData)
+                    } else {
+                        if med.type == .image {
+                            if let image = UIImage(contentsOfFile: fileURL.path) {
+                                quotedImageView.image = image
+                            } else {
+                                DDLogError("IncomingMsgView/quoted/no-image/fileURL \(fileURL)")
+                            }
+                        } else if med.type == .video {
+                            if let image = VideoUtils.videoPreviewImage(url: fileURL, size: nil) {
+                                quotedImageView.image = image
+                            } else {
+                                DDLogError("IncomingMsgView/quoted/no-video-preview/fileURL \(fileURL)")
+                            }
                         }
                     }
-
+                    quotedImageView.isUserInteractionEnabled = FileManager.default.fileExists(atPath: fileURL.path)
                     quotedImageView.isHidden = false
                 }
 
@@ -462,7 +465,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
             if orderedMentions.count > 0 {
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(text, orderedMentions: orderedMentions)
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(text, mentions: orderedMentions)
                 textView.attributedText = mentionText?.with(font: textView.font, color: textView.textColor)
             } else {
                 textView.text = text
@@ -583,7 +586,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         textView.isHidden = false
         textView.text = ""
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
-        textView.textColor = .label
+        textView.textColor = traitCollection.userInterfaceStyle == .light ? .darkText : .lightText
         
         timeLabel.isHidden = false
         timeLabel.text = nil

@@ -29,7 +29,7 @@ extension Localizations {
     }
 
     static var registrationInviteOnlyText: String {
-        NSLocalizedString("registration.invite.only", value: "We are currently invite only. If you have a friend or family member who uses HalloApp, ask them to invite you using your phone number.", comment: "Popup that appears when user tries to register uninvited number")
+        NSLocalizedString("registration.invite.only", value: "If you followed a Group Invite Link to register, please click on the link again to finish registration and join the group.", comment: "Popup that appears when user tries to register uninvited number")
     }
 
     static var registrationCodeDisclaimer: String {
@@ -84,5 +84,29 @@ extension Localizations {
             "registration.privacy.content",
             value: "HalloApp only uses the phone number field to match you with your friends on HalloApp, and does not transmit any additional data from your contact book.",
             comment: "Text for modal describing how we use contacts data")
+    }
+
+    static var freeAppDownloadText: String {
+        NSLocalizedString("registration.free.app.notice", value: "Free on the iPhone App Store", comment: "Text indicating to the user that HalloApp is available for free on the iPhone App Store")
+    }
+    
+    static var installAppToContinue: String {
+        NSLocalizedString("registration.install.app.to.continue", value: "Install HalloApp to continue", comment: "Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp")
+    }
+    
+    static var buttonInstall: String {
+        NSLocalizedString("button.install", value: "Install", comment: "Title for Install button, takes the user to the HalloApp app store view where they can download the app.")
+    }
+    
+    static var appUpdateNoticeTitle: String {
+        NSLocalizedString("home.update.notice.title", value: "This version is out of date", comment: "Title of update notice shown to users who have old versions of the app")
+    }
+
+    static var appUpdateNoticeText: String {
+        NSLocalizedString("home.update.notice.text", value: "Please update to the latest version of HalloApp", comment: "Text shown to users who have old versions of the app")
+    }
+
+    static var appUpdateNoticeButtonExit: String {
+        NSLocalizedString("home.update.notice.button.exit", value: "Exit", comment: "Title for exit button that closes the app")
     }
 }

@@ -26,6 +26,35 @@
 		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		24D743E824B3D504001111BF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
 		33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */; };
+		2918BD1FA51BFAD142F377E5 /* Pods_HalloAppClip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */; };
+		329E03FB268247BD00C2D250 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E03FA268247BD00C2D250 /* AppDelegate.swift */; };
+		329E03FD268247BD00C2D250 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E03FC268247BD00C2D250 /* SceneDelegate.swift */; };
+		329E0402268247BD00C2D250 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 329E0400268247BD00C2D250 /* Main.storyboard */; };
+		329E0405268247BD00C2D250 /* HalloAppClip.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 329E0403268247BD00C2D250 /* HalloAppClip.xcdatamodeld */; };
+		329E0407268247BD00C2D250 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 329E0406268247BD00C2D250 /* Assets.xcassets */; };
+		329E040A268247BD00C2D250 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 329E0408268247BD00C2D250 /* LaunchScreen.storyboard */; };
+		329E0416268247BE00C2D250 /* HalloAppClipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E0415268247BE00C2D250 /* HalloAppClipTests.swift */; };
+		329E0421268247BE00C2D250 /* HalloAppClipUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E0420268247BE00C2D250 /* HalloAppClipUITests.swift */; };
+		329E0425268247BE00C2D250 /* HalloAppClip.app in Embed App Clips */ = {isa = PBXBuildFile; fileRef = 329E03F8268247BC00C2D250 /* HalloAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		329E0434268247D400C2D250 /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
+		329E0435268247D400C2D250 /* Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		329E04372682481500C2D250 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */; };
+		329E04392682481A00C2D250 /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */; };
+		329E043E2682490300C2D250 /* AppClipContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E043D2682490300C2D250 /* AppClipContext.swift */; };
+		329E0442268249E700C2D250 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 329E0441268249E700C2D250 /* GoogleService-Info.plist */; };
+		329E044326824A4900C2D250 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
+		329E044626824A8C00C2D250 /* AppClipProtoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E044526824A8C00C2D250 /* AppClipProtoService.swift */; };
+		329E044A26824B1F00C2D250 /* AppClipHomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E044926824B1F00C2D250 /* AppClipHomeViewController.swift */; };
+		329E044D26824B8900C2D250 /* VerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E044C26824B8900C2D250 /* VerificationViewController.swift */; };
+		329E045026824DC900C2D250 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41E24A6C5F300D4E354 /* Color.swift */; };
+		329E045226824DCC00C2D250 /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* Font.swift */; };
+		329E045326824DDF00C2D250 /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
+		329E045426824DDF00C2D250 /* UIFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EDBDA244E344300986617 /* UIFont.swift */; };
+		329E045526824DDF00C2D250 /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A9244A244EC49000794859 /* UIView.swift */; };
+		329E045626824DDF00C2D250 /* UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C8245D4DE500DD9D1A /* UIButton.swift */; };
+		329E045726824E0A00C2D250 /* SharedStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76451C3E2547960A00B9E268 /* SharedStrings.swift */; };
+		329E045826824E0E00C2D250 /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */; };
+		329E045D26826EC100C2D250 /* PhoneNumberMetadata.json in Resources */ = {isa = PBXBuildFile; fileRef = 765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */; };
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
 		5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */; };
 		5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF5D12224F5295300F272D8 /* CameraViewController.swift */; };
@@ -36,7 +65,6 @@
 		6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */; };
 		6829F78324CFA41F00207F6B /* FeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */; };
 		6829F78724D0A62800207F6B /* UserFeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F78624D0A62800207F6B /* UserFeedViewController.swift */; };
-		682FFCCD25479B1A00143401 /* RegistrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682FFCCC25479B1A00143401 /* RegistrationService.swift */; };
 		6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4F924FEE97800A9C202 /* HalloService.swift */; };
 		6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FB24FEE97800A9C202 /* ProtoService.swift */; };
 		6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */; };
@@ -45,9 +73,9 @@
 		685B509B25E075FE00F782F9 /* Reachability in Frameworks */ = {isa = PBXBuildFile; productRef = 685B509A25E075FE00F782F9 /* Reachability */; };
 		685B76C124E262AF00BF666A /* MentionInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76BF24E262AF00BF666A /* MentionInputTests.swift */; };
 		685B76CC24E4A37600BF666A /* FloatingMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76CB24E4A37600BF666A /* FloatingMenu.swift */; };
+		68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68629293265C660D00C54367 /* FeedPermissionAlert.swift */; };
 		6867F063261BBB35005875D0 /* LogArchives.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6867F062261BBB35005875D0 /* LogArchives.swift */; };
 		686CDFBC2548A6C200DB7266 /* RegistrationDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686CDFBB2548A6C200DB7266 /* RegistrationDemo.swift */; };
-		68766C752631F2DE00399F82 /* Locale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68766C742631F2DE00399F82 /* Locale.swift */; };
 		68781D822600170D0045AB61 /* InviteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68781D812600170D0045AB61 /* InviteViewController.swift */; };
 		687D5EC7265317F8008A3A65 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 687D5EC5265317F8008A3A65 /* InfoPlist.strings */; };
 		687D5ECB265317F8008A3A65 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 687D5EC9265317F8008A3A65 /* InfoPlist.strings */; };
@@ -64,7 +92,6 @@
 		68D45A0E25544813000BF04E /* ContactsPermissionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D45A0D25544813000BF04E /* ContactsPermissionsViewController.swift */; };
 		68E4619625C9C93B008B5698 /* ExpiredVersionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */; };
 		68E5E9DA25F6FAF100250762 /* FeedDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E5E9D925F6FAF100250762 /* FeedDataSource.swift */; };
-		68F046B22543856E001D602E /* RegistrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F046B12543856E001D602E /* RegistrationManager.swift */; };
 		68F935C5252CD00800FA6E75 /* ChatMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */; };
 		68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */; };
 		6A1BFD30260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */; };
@@ -190,19 +217,22 @@
 		76F43F2B2489BC4700D47920 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
 		94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */; };
+		E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */; };
+		E598D4C0265F0188001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
+		E598D4C2265F0558001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
+		E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */; };
+		E5D66D1C266954A200B23887 /* CommentDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D66D1B266954A200B23887 /* CommentDraft.swift */; };
 		EA0B9917249C1FFB00B05094 /* Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B9916249C1FFB00B05094 /* Character.swift */; };
 		EA0B9919249C205E00B05094 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B9918249C205E00B05094 /* String.swift */; };
 		EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B991A249C228700B05094 /* DateFormatter.swift */; };
 		EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0C315623EB97C800016EDB /* PostComposerView.swift */; };
 		EA0D20152368B04B008B8289 /* FeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20142368B04B008B8289 /* FeedData.swift */; };
 		EA1CEF5E2617964C00BC0C79 /* GroupInvitePreviewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1CEF5D2617964C00BC0C79 /* GroupInvitePreviewViewController.swift */; };
-		EA220B7B24D0EA1500C44CE7 /* KeyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA220B7A24D0EA1500C44CE7 /* KeyData.swift */; };
 		EA27790925B91E58009CA884 /* PrivacyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA27790825B91E58009CA884 /* PrivacyViewController.swift */; };
 		EA3585712450BE2900E6E8AB /* Chat.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = EA35856C2450BE2900E6E8AB /* Chat.xcdatamodeld */; };
 		EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA35856F2450BE2900E6E8AB /* ChatData.swift */; };
 		EA3585792450BE3300E6E8AB /* ChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3585742450BE3300E6E8AB /* ChatViewController.swift */; };
 		EA35857A2450BE3300E6E8AB /* ChatInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3585752450BE3300E6E8AB /* ChatInputView.swift */; };
-		EA36B5F024FDB83700A7E4CE /* MessageSeenByViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */; };
 		EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA388C5B2520EB9500DEAB53 /* Banner.swift */; };
 		EA454B64234E769F002B960D /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* SettingsViewController.swift */; };
 		EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */; };
@@ -220,8 +250,10 @@
 		EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B9A2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift */; };
 		EA79AEF5260E5D5200F8184F /* GroupInviteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA79AEF4260E5D5200F8184F /* GroupInviteViewController.swift */; };
 		EA79C6FD2554E89400E0525F /* Localizations+Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */; };
+		EA7A386626782A4D0028F739 /* ActionTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7A386526782A4D0028F739 /* ActionTableViewCell.swift */; };
 		EA7FBD1226546B5900CE1836 /* UITabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7FBD1126546B5900CE1836 /* UITabBarController.swift */; };
 		EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */; };
+		EA96D5B626689A0400F85731 /* GroupInviteQRViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA96D5B526689A0400F85731 /* GroupInviteQRViewController.swift */; };
 		EA9B750F25A9003B00389A8E /* MsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA9B750E25A9003B00389A8E /* MsgViewCell.swift */; };
 		EAA0798625AEAC9200B384AB /* GroupsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */; };
 		EAA0799725AFC71600B384AB /* ThreadListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0799625AFC71600B384AB /* ThreadListCell.swift */; };
@@ -291,6 +323,27 @@
 			remoteGlobalIDString = 24D743D524B3D199001111BF;
 			remoteInfo = "Shared Extension";
 		};
+		329E0412268247BE00C2D250 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 329E03F7268247BC00C2D250;
+			remoteInfo = HalloAppClip;
+		};
+		329E041D268247BE00C2D250 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 329E03F7268247BC00C2D250;
+			remoteInfo = HalloAppClip;
+		};
+		329E0423268247BE00C2D250 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 329E03F7268247BC00C2D250;
+			remoteInfo = HalloAppClip;
+		};
 		768123DC2485DFA1008C5216 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 768123D82485DFA1008C5216 /* Core.xcodeproj */;
@@ -322,6 +375,28 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		329E0426268247BE00C2D250 /* Embed App Clips */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/AppClips";
+			dstSubfolderSpec = 16;
+			files = (
+				329E0425268247BE00C2D250 /* HalloAppClip.app in Embed App Clips */,
+			);
+			name = "Embed App Clips";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		329E0436268247D400C2D250 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				329E0435268247D400C2D250 /* Core.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		768123A02485A240008C5216 /* Embed App Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -378,11 +453,33 @@
 		24D743D624B3D199001111BF /* Share Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Share Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24D743DD24B3D199001111BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsInCommonViewController.swift; sourceTree = "<group>"; };
+		2762FD6E15286945AA56FCC7 /* Pods-HalloAppClip.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppClip.debug.xcconfig"; path = "Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip.debug.xcconfig"; sourceTree = "<group>"; };
+		329E03F8268247BC00C2D250 /* HalloAppClip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloAppClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		329E03FA268247BD00C2D250 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		329E03FC268247BD00C2D250 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		329E0401268247BD00C2D250 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		329E0404268247BD00C2D250 /* HalloAppClip.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = HalloAppClip.xcdatamodel; sourceTree = "<group>"; };
+		329E0406268247BD00C2D250 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		329E0409268247BD00C2D250 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		329E040B268247BD00C2D250 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		329E040C268247BD00C2D250 /* HalloAppClip.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HalloAppClip.entitlements; sourceTree = "<group>"; };
+		329E0411268247BE00C2D250 /* HalloAppClipTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HalloAppClipTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		329E0415268247BE00C2D250 /* HalloAppClipTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloAppClipTests.swift; sourceTree = "<group>"; };
+		329E0417268247BE00C2D250 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		329E041C268247BE00C2D250 /* HalloAppClipUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HalloAppClipUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		329E0420268247BE00C2D250 /* HalloAppClipUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloAppClipUITests.swift; sourceTree = "<group>"; };
+		329E0422268247BE00C2D250 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		329E043D2682490300C2D250 /* AppClipContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppClipContext.swift; sourceTree = "<group>"; };
+		329E0441268249E700C2D250 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		329E044526824A8C00C2D250 /* AppClipProtoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppClipProtoService.swift; sourceTree = "<group>"; };
+		329E044926824B1F00C2D250 /* AppClipHomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppClipHomeViewController.swift; sourceTree = "<group>"; };
+		329E044C26824B8900C2D250 /* VerificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationViewController.swift; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
 		3B784BE84F86CCDF62B0AAA2 /* Pods-Share Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.debug.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.debug.xcconfig"; sourceTree = "<group>"; };
 		477D47B0022D866E02A122DB /* Pods-Share Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
 		5BF5D12224F5295300F272D8 /* CameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
+		5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HalloAppClip.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		680528CC264F14B9001F6A57 /* SafetyNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyNumber.swift; sourceTree = "<group>"; };
 		680FB660250C45C000CA5D40 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
 		68184003264B1CAF00408D31 /* Feed3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed3.xcdatamodel; sourceTree = "<group>"; };
@@ -391,7 +488,6 @@
 		6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedMention+CoreDataClass.swift"; sourceTree = "<group>"; };
 		6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6829F78624D0A62800207F6B /* UserFeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFeedViewController.swift; sourceTree = "<group>"; };
-		682FFCCC25479B1A00143401 /* RegistrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationService.swift; sourceTree = "<group>"; };
 		6832F4F924FEE97800A9C202 /* HalloService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HalloService.swift; sourceTree = "<group>"; };
 		6832F4FB24FEE97800A9C202 /* ProtoService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoService.swift; sourceTree = "<group>"; };
 		6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequests.swift; sourceTree = "<group>"; };
@@ -399,9 +495,10 @@
 		68419A922602AAB700C30B6A /* CryptoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoData.swift; sourceTree = "<group>"; };
 		685B76BF24E262AF00BF666A /* MentionInputTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MentionInputTests.swift; sourceTree = "<group>"; };
 		685B76CB24E4A37600BF666A /* FloatingMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingMenu.swift; sourceTree = "<group>"; };
+		68629293265C660D00C54367 /* FeedPermissionAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionAlert.swift; sourceTree = "<group>"; };
+		686292AD265DD2D000C54367 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6867F062261BBB35005875D0 /* LogArchives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogArchives.swift; sourceTree = "<group>"; };
 		686CDFBB2548A6C200DB7266 /* RegistrationDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationDemo.swift; sourceTree = "<group>"; };
-		68766C742631F2DE00399F82 /* Locale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Locale.swift; sourceTree = "<group>"; };
 		68781D812600170D0045AB61 /* InviteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteViewController.swift; sourceTree = "<group>"; };
 		687D5EC6265317F8008A3A65 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		687D5EC8265317F8008A3A65 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -437,7 +534,6 @@
 		68D45A0D25544813000BF04E /* ContactsPermissionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsPermissionsViewController.swift; sourceTree = "<group>"; };
 		68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiredVersionViewController.swift; sourceTree = "<group>"; };
 		68E5E9D925F6FAF100250762 /* FeedDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataSource.swift; sourceTree = "<group>"; };
-		68F046B12543856E001D602E /* RegistrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationManager.swift; sourceTree = "<group>"; };
 		68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostCommentToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
@@ -445,6 +541,7 @@
 		6ABBD24A2601DD990041B9ED /* Feed2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed2.xcdatamodel; sourceTree = "<group>"; };
 		6ABBD24F2601DE890041B9ED /* FeedMigration.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = FeedMigration.xcmappingmodel; sourceTree = "<group>"; };
 		6ABBD25E2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
+		6AC671D398B489F4D7779AC6 /* Pods-HalloAppClip.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppClip.internal beta.xcconfig"; path = "Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip.internal beta.xcconfig"; sourceTree = "<group>"; };
 		6AC68EF626399BAE0073CBE9 /* ServerStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStrings.swift; sourceTree = "<group>"; };
 		74296216C820A50656388247 /* Pods-Share Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VerificationCodeViewController.swift; path = HalloApp/Views/Registration/VerificationCodeViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -561,6 +658,7 @@
 		76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Notification Service Extension.entitlements"; sourceTree = "<group>"; };
 		76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactPickerViewController.swift; path = HalloApp/Components/Views/ContactPickerViewController.swift; sourceTree = SOURCE_ROOT; };
 		8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.debug.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.debug.xcconfig"; sourceTree = "<group>"; };
+		8596AA009E9E4E634053285A /* Pods-HalloAppClip.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppClip.external beta.xcconfig"; path = "Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip.external beta.xcconfig"; sourceTree = "<group>"; };
 		A55A3CED55D1C1A5A07E9733 /* Pods-Shared Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		ABDAC4856BD6591F6BD9CDD9 /* Pods-Notification Service Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.debug.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.debug.xcconfig"; sourceTree = "<group>"; };
 		B6B5578700125D5FF5728637 /* Pods_HalloAppTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HalloAppTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -570,19 +668,21 @@
 		CD26B1DB0D71EF2BBE67ADE9 /* Pods-HalloApp.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.internal beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.internal beta.xcconfig"; sourceTree = "<group>"; };
 		D0A0ED7F66A2EB2A804CC6EC /* Pods-Shared Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.external beta.xcconfig"; sourceTree = "<group>"; };
+		E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPermissionExplanationAlert.swift; sourceTree = "<group>"; };
+		E598D4BF265F0188001A436A /* ConversationID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationID.swift; sourceTree = "<group>"; };
+		E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionTutorialAlert.swift; sourceTree = "<group>"; };
+		E5D66D1B266954A200B23887 /* CommentDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentDraft.swift; sourceTree = "<group>"; };
 		EA0B9916249C1FFB00B05094 /* Character.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Character.swift; sourceTree = "<group>"; };
 		EA0B9918249C205E00B05094 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		EA0B991A249C228700B05094 /* DateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatter.swift; sourceTree = "<group>"; };
 		EA0C315623EB97C800016EDB /* PostComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerView.swift; sourceTree = "<group>"; };
 		EA0D20142368B04B008B8289 /* FeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedData.swift; sourceTree = "<group>"; };
 		EA1CEF5D2617964C00BC0C79 /* GroupInvitePreviewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInvitePreviewViewController.swift; sourceTree = "<group>"; };
-		EA220B7A24D0EA1500C44CE7 /* KeyData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyData.swift; sourceTree = "<group>"; };
 		EA27790825B91E58009CA884 /* PrivacyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyViewController.swift; sourceTree = "<group>"; };
 		EA35856D2450BE2900E6E8AB /* Chat.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Chat.xcdatamodel; sourceTree = "<group>"; };
 		EA35856F2450BE2900E6E8AB /* ChatData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatData.swift; sourceTree = "<group>"; wrapsLines = 0; };
 		EA3585742450BE3300E6E8AB /* ChatViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatViewController.swift; sourceTree = "<group>"; };
 		EA3585752450BE3300E6E8AB /* ChatInputView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatInputView.swift; sourceTree = "<group>"; };
-		EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSeenByViewController.swift; sourceTree = "<group>"; };
 		EA388C5B2520EB9500DEAB53 /* Banner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Banner.swift; sourceTree = "<group>"; };
 		EA454B63234E769F002B960D /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataItem.swift; sourceTree = "<group>"; };
@@ -600,8 +700,10 @@
 		EA796B9A2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuotedMedia+CoreDataProperties.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuotedMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		EA79AEF4260E5D5200F8184F /* GroupInviteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteViewController.swift; sourceTree = "<group>"; };
 		EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Localizations+Chat.swift"; sourceTree = "<group>"; };
+		EA7A386526782A4D0028F739 /* ActionTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionTableViewCell.swift; sourceTree = "<group>"; };
 		EA7FBD1126546B5900CE1836 /* UITabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITabBarController.swift; sourceTree = "<group>"; };
 		EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationViewController.swift; sourceTree = "<group>"; };
+		EA96D5B526689A0400F85731 /* GroupInviteQRViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteQRViewController.swift; sourceTree = "<group>"; };
 		EA9B750E25A9003B00389A8E /* MsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MsgViewCell.swift; sourceTree = "<group>"; };
 		EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsListViewController.swift; sourceTree = "<group>"; };
 		EAA0799625AFC71600B384AB /* ThreadListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadListCell.swift; sourceTree = "<group>"; };
@@ -673,6 +775,29 @@
 			files = (
 				24D743E824B3D504001111BF /* Core.framework in Frameworks */,
 				1574C89268C6C26E2539B753 /* Pods_Share_Extension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		329E03F5268247BC00C2D250 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				329E0434268247D400C2D250 /* Core.framework in Frameworks */,
+				2918BD1FA51BFAD142F377E5 /* Pods_HalloAppClip.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		329E040E268247BE00C2D250 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		329E0419268247BE00C2D250 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -765,6 +890,84 @@
 			path = "Share Extension";
 			sourceTree = "<group>";
 		};
+		329E03F9268247BD00C2D250 /* HalloAppClip */ = {
+			isa = PBXGroup;
+			children = (
+				329E043B268248D600C2D250 /* Global */,
+				329E044426824A7200C2D250 /* Models */,
+				329E044726824AE100C2D250 /* Views */,
+				329E03FA268247BD00C2D250 /* AppDelegate.swift */,
+				329E03FC268247BD00C2D250 /* SceneDelegate.swift */,
+				329E0441268249E700C2D250 /* GoogleService-Info.plist */,
+				329E0400268247BD00C2D250 /* Main.storyboard */,
+				329E0406268247BD00C2D250 /* Assets.xcassets */,
+				329E0408268247BD00C2D250 /* LaunchScreen.storyboard */,
+				329E040B268247BD00C2D250 /* Info.plist */,
+				329E040C268247BD00C2D250 /* HalloAppClip.entitlements */,
+				329E0403268247BD00C2D250 /* HalloAppClip.xcdatamodeld */,
+			);
+			path = HalloAppClip;
+			sourceTree = "<group>";
+		};
+		329E0414268247BE00C2D250 /* HalloAppClipTests */ = {
+			isa = PBXGroup;
+			children = (
+				329E0415268247BE00C2D250 /* HalloAppClipTests.swift */,
+				329E0417268247BE00C2D250 /* Info.plist */,
+			);
+			path = HalloAppClipTests;
+			sourceTree = "<group>";
+		};
+		329E041F268247BE00C2D250 /* HalloAppClipUITests */ = {
+			isa = PBXGroup;
+			children = (
+				329E0420268247BE00C2D250 /* HalloAppClipUITests.swift */,
+				329E0422268247BE00C2D250 /* Info.plist */,
+			);
+			path = HalloAppClipUITests;
+			sourceTree = "<group>";
+		};
+		329E043B268248D600C2D250 /* Global */ = {
+			isa = PBXGroup;
+			children = (
+				329E043D2682490300C2D250 /* AppClipContext.swift */,
+			);
+			path = Global;
+			sourceTree = "<group>";
+		};
+		329E044426824A7200C2D250 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				329E044526824A8C00C2D250 /* AppClipProtoService.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		329E044726824AE100C2D250 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				329E044B26824B4400C2D250 /* Registration */,
+				329E044826824B0700C2D250 /* Home */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		329E044826824B0700C2D250 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				329E044926824B1F00C2D250 /* AppClipHomeViewController.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		329E044B26824B4400C2D250 /* Registration */ = {
+			isa = PBXGroup;
+			children = (
+				329E044C26824B8900C2D250 /* VerificationViewController.swift */,
+			);
+			path = Registration;
+			sourceTree = "<group>";
+		};
 		58B000E2ED3FD4F3ACBF0837 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -786,6 +989,9 @@
 				1540AD8831BAFB670A3AB0B2 /* Pods-HalloAppTests.debug.xcconfig */,
 				16E780A4F8E1D17232E3BE88 /* Pods-HalloAppTests.internal beta.xcconfig */,
 				230B2983774379C4ECCB29C8 /* Pods-HalloAppTests.external beta.xcconfig */,
+				2762FD6E15286945AA56FCC7 /* Pods-HalloAppClip.debug.xcconfig */,
+				6AC671D398B489F4D7779AC6 /* Pods-HalloAppClip.internal beta.xcconfig */,
+				8596AA009E9E4E634053285A /* Pods-HalloAppClip.external beta.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -852,6 +1058,7 @@
 				76A92448244EBCB600794859 /* ShapeView.swift */,
 				761C6167242D89F90028AE19 /* TextLabel.swift */,
 				EAAF43982603F7720037F83D /* BlurView.swift */,
+				EA7A386526782A4D0028F739 /* ActionTableViewCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1031,24 +1238,9 @@
 				BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */,
 				0069D57E244BE25C44408E11 /* Pods_Share_Extension.framework */,
 				B6B5578700125D5FF5728637 /* Pods_HalloAppTests.framework */,
+				5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		EA1112DC2527C12200F42D41 /* Seen By */ = {
-			isa = PBXGroup;
-			children = (
-				EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */,
-			);
-			path = "Seen By";
-			sourceTree = "<group>";
-		};
-		EA220B7524D0E7E000C44CE7 /* Key */ = {
-			isa = PBXGroup;
-			children = (
-				EA220B7A24D0EA1500C44CE7 /* KeyData.swift */,
-			);
-			path = Key;
 			sourceTree = "<group>";
 		};
 		EA27791725BA3C66009CA884 /* Profile */ = {
@@ -1103,6 +1295,7 @@
 				EAA424F024EC71450025CBBE /* XMPPGroup.swift */,
 				68419A922602AAB700C30B6A /* CryptoData.swift */,
 				F8DFCDA826304B3A003F850F /* GroupList.swift */,
+				E598D4BF265F0188001A436A /* ConversationID.swift */,
 			);
 			path = Chat;
 			sourceTree = "<group>";
@@ -1117,7 +1310,6 @@
 				EA5414DA23EE1D6900390EF6 /* Contacts */,
 				EA5414D923EE1D2B00390EF6 /* Feed */,
 				761BD0F824B3C68300B567F6 /* Invites */,
-				EA220B7524D0E7E000C44CE7 /* Key */,
 				68A64E8B24D33DEF00F40F1F /* Mentions */,
 				764AB41624A67A3C00D4E354 /* Privacy */,
 				766103A22461E63200728870 /* Receipts */,
@@ -1139,10 +1331,13 @@
 				76271381252D247700389FBC /* Post */,
 				7653F2F9255DB4E7001CC946 /* FeedCollectionViewController.swift */,
 				76A92443244E659600794859 /* FeedViewController.swift */,
+				E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */,
+				E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */,
 				76654789252BE44C00379BEF /* GroupFeedViewController.swift */,
 				6829F78624D0A62800207F6B /* UserFeedViewController.swift */,
 				EA73DF3F25E88D9B0070875D /* NewPostsIndicator.swift */,
 				68E5E9D925F6FAF100250762 /* FeedDataSource.swift */,
+				68629293265C660D00C54367 /* FeedPermissionAlert.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -1151,7 +1346,6 @@
 			isa = PBXGroup;
 			children = (
 				EAD476D124588DB600EF8591 /* MediaSlider */,
-				EA1112DC2527C12200F42D41 /* Seen By */,
 				EA27793225BA4682009CA884 /* Message */,
 				EA52EB17245A012700FB03F6 /* NewChatViewController.swift */,
 				EAD476CC245513EF00EF8591 /* ChatListViewController.swift */,
@@ -1213,6 +1407,7 @@
 				EA45713223EB7DB3008C2E44 /* FeedMedia.swift */,
 				76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */,
 				76649226245119F2009BC368 /* FeedNotifications.swift */,
+				E5D66D1B266954A200B23887 /* CommentDraft.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -1264,8 +1459,6 @@
 				EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */,
 				76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */,
 				761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */,
-				68F046B12543856E001D602E /* RegistrationManager.swift */,
-				682FFCCC25479B1A00143401 /* RegistrationService.swift */,
 				68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */,
 				68D45A0D25544813000BF04E /* ContactsPermissionsViewController.swift */,
 				68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */,
@@ -1320,7 +1513,6 @@
 				764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */,
 				76A9244A244EC49000794859 /* UIView.swift */,
 				76407DF7245CA3F00031F96A /* UIViewController.swift */,
-				68766C742631F2DE00399F82 /* Locale.swift */,
 				EA7FBD1126546B5900CE1836 /* UITabBarController.swift */,
 			);
 			path = Extensions;
@@ -1336,6 +1528,7 @@
 				EA79AEF4260E5D5200F8184F /* GroupInviteViewController.swift */,
 				EA1CEF5D2617964C00BC0C79 /* GroupInvitePreviewViewController.swift */,
 				EAB533C926265ED700943FDC /* GroupBackgroundViewController.swift */,
+				EA96D5B526689A0400F85731 /* GroupInviteQRViewController.swift */,
 			);
 			path = Actions;
 			sourceTree = "<group>";
@@ -1376,6 +1569,9 @@
 				EAF3A1E32334192000805FF9 /* HalloappUITests */,
 				768123952485A240008C5216 /* Notification Service Extension */,
 				24D743D724B3D199001111BF /* Share Extension */,
+				329E03F9268247BD00C2D250 /* HalloAppClip */,
+				329E0414268247BE00C2D250 /* HalloAppClipTests */,
+				329E041F268247BE00C2D250 /* HalloAppClipUITests */,
 				EAF3A1C02334191E00805FF9 /* Products */,
 				58B000E2ED3FD4F3ACBF0837 /* Pods */,
 				8295BD88471C9D5DC2D30C41 /* Frameworks */,
@@ -1390,6 +1586,9 @@
 				EAF3A1E02334192000805FF9 /* HalloAppUITests.xctest */,
 				768123942485A240008C5216 /* Notification Service Extension.appex */,
 				24D743D624B3D199001111BF /* Share Extension.appex */,
+				329E03F8268247BC00C2D250 /* HalloAppClip.app */,
+				329E0411268247BE00C2D250 /* HalloAppClipTests.xctest */,
+				329E041C268247BE00C2D250 /* HalloAppClipUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1487,6 +1686,62 @@
 			productReference = 24D743D624B3D199001111BF /* Share Extension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		329E03F7268247BC00C2D250 /* HalloAppClip */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 329E0431268247BE00C2D250 /* Build configuration list for PBXNativeTarget "HalloAppClip" */;
+			buildPhases = (
+				B25A4B8C5FB4CA50F6307C3E /* [CP] Check Pods Manifest.lock */,
+				329E03F4268247BC00C2D250 /* Sources */,
+				329E03F5268247BC00C2D250 /* Frameworks */,
+				329E03F6268247BC00C2D250 /* Resources */,
+				329E0436268247D400C2D250 /* Embed Frameworks */,
+				8E72513E8AFF95BAA45372B7 /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HalloAppClip;
+			productName = HalloAppClip;
+			productReference = 329E03F8268247BC00C2D250 /* HalloAppClip.app */;
+			productType = "com.apple.product-type.application.on-demand-install-capable";
+		};
+		329E0410268247BE00C2D250 /* HalloAppClipTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 329E0432268247BE00C2D250 /* Build configuration list for PBXNativeTarget "HalloAppClipTests" */;
+			buildPhases = (
+				329E040D268247BE00C2D250 /* Sources */,
+				329E040E268247BE00C2D250 /* Frameworks */,
+				329E040F268247BE00C2D250 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				329E0413268247BE00C2D250 /* PBXTargetDependency */,
+			);
+			name = HalloAppClipTests;
+			productName = HalloAppClipTests;
+			productReference = 329E0411268247BE00C2D250 /* HalloAppClipTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		329E041B268247BE00C2D250 /* HalloAppClipUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 329E0433268247BE00C2D250 /* Build configuration list for PBXNativeTarget "HalloAppClipUITests" */;
+			buildPhases = (
+				329E0418268247BE00C2D250 /* Sources */,
+				329E0419268247BE00C2D250 /* Frameworks */,
+				329E041A268247BE00C2D250 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				329E041E268247BE00C2D250 /* PBXTargetDependency */,
+			);
+			name = HalloAppClipUITests;
+			productName = HalloAppClipUITests;
+			productReference = 329E041C268247BE00C2D250 /* HalloAppClipUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		768123932485A240008C5216 /* Notification Service Extension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7681239C2485A240008C5216 /* Build configuration list for PBXNativeTarget "Notification Service Extension" */;
@@ -1518,12 +1773,14 @@
 				76955DEB2474762D0088BE8C /* ShellScript */,
 				768123A02485A240008C5216 /* Embed App Extensions */,
 				768123CB2485D9F5008C5216 /* Embed Frameworks */,
+				329E0426268247BE00C2D250 /* Embed App Clips */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				76F43F202489979600D47920 /* PBXTargetDependency */,
 				24D743DF24B3D199001111BF /* PBXTargetDependency */,
+				329E0424268247BE00C2D250 /* PBXTargetDependency */,
 			);
 			name = HalloApp;
 			packageProductDependencies = (
@@ -1578,12 +1835,23 @@
 		EAF3A1B72334191E00805FF9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1150;
+				LastSwiftUpdateCheck = 1250;
 				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "HalloApp, Inc.";
 				TargetAttributes = {
 					24D743D524B3D199001111BF = {
 						CreatedOnToolsVersion = 11.5;
+					};
+					329E03F7268247BC00C2D250 = {
+						CreatedOnToolsVersion = 12.5;
+					};
+					329E0410268247BE00C2D250 = {
+						CreatedOnToolsVersion = 12.5;
+						TestTargetID = 329E03F7268247BC00C2D250;
+					};
+					329E041B268247BE00C2D250 = {
+						CreatedOnToolsVersion = 12.5;
+						TestTargetID = 329E03F7268247BC00C2D250;
 					};
 					768123932485A240008C5216 = {
 						CreatedOnToolsVersion = 11.5;
@@ -1634,6 +1902,9 @@
 				EAF3A1DF2334192000805FF9 /* HalloAppUITests */,
 				768123932485A240008C5216 /* Notification Service Extension */,
 				24D743D524B3D199001111BF /* Share Extension */,
+				329E03F7268247BC00C2D250 /* HalloAppClip */,
+				329E0410268247BE00C2D250 /* HalloAppClipTests */,
+				329E041B268247BE00C2D250 /* HalloAppClipUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -1658,6 +1929,33 @@
 				24AA69DC24DDC6DA00ED65CE /* Assets.xcassets in Resources */,
 				2446D66924C7E48E005BAD3C /* ExtensionPreprocessing.js in Resources */,
 				687D5EC7265317F8008A3A65 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		329E03F6268247BC00C2D250 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				329E045D26826EC100C2D250 /* PhoneNumberMetadata.json in Resources */,
+				329E040A268247BD00C2D250 /* LaunchScreen.storyboard in Resources */,
+				329E0442268249E700C2D250 /* GoogleService-Info.plist in Resources */,
+				329E0407268247BD00C2D250 /* Assets.xcassets in Resources */,
+				329E0402268247BD00C2D250 /* Main.storyboard in Resources */,
+				329E044326824A4900C2D250 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		329E040F268247BE00C2D250 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		329E041A268247BE00C2D250 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1798,6 +2096,23 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/FirebaseCrashlytics/run\"\n";
 		};
+		8E72513E8AFF95BAA45372B7 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		A4AC85EF7BFDCB135FC900FF /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1814,6 +2129,28 @@
 			);
 			outputPaths = (
 				"$(DERIVED_FILE_DIR)/Pods-HalloApp-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		B25A4B8C5FB4CA50F6307C3E /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-HalloAppClip-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1875,6 +2212,7 @@
 				24009EBA24BE3FA200155DE2 /* ShareDestinationViewController.swift in Sources */,
 				2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */,
 				F86919E026395EB300B01306 /* UIFont.swift in Sources */,
+				E598D4C2265F0558001A436A /* ConversationID.swift in Sources */,
 				76B5B524250086330055E712 /* UIColor.swift in Sources */,
 				2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */,
 				24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */,
@@ -1884,6 +2222,46 @@
 				F8DFCD88262EF4C0003F850F /* ShareViewController.swift in Sources */,
 				76451C412547960A00B9E268 /* SharedStrings.swift in Sources */,
 				7639BA3A251944920023850E /* NextLevelSessionExporter.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		329E03F4268247BC00C2D250 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				329E045626824DDF00C2D250 /* UIButton.swift in Sources */,
+				329E045726824E0A00C2D250 /* SharedStrings.swift in Sources */,
+				329E045826824E0E00C2D250 /* PhoneInputViewController.swift in Sources */,
+				329E045526824DDF00C2D250 /* UIView.swift in Sources */,
+				329E045326824DDF00C2D250 /* UIColor.swift in Sources */,
+				329E03FB268247BD00C2D250 /* AppDelegate.swift in Sources */,
+				329E044A26824B1F00C2D250 /* AppClipHomeViewController.swift in Sources */,
+				329E044D26824B8900C2D250 /* VerificationViewController.swift in Sources */,
+				329E045026824DC900C2D250 /* Color.swift in Sources */,
+				329E04372682481500C2D250 /* Localizations+Registration.swift in Sources */,
+				329E045426824DDF00C2D250 /* UIFont.swift in Sources */,
+				329E045226824DCC00C2D250 /* Font.swift in Sources */,
+				329E0405268247BD00C2D250 /* HalloAppClip.xcdatamodeld in Sources */,
+				329E043E2682490300C2D250 /* AppClipContext.swift in Sources */,
+				329E03FD268247BD00C2D250 /* SceneDelegate.swift in Sources */,
+				329E04392682481A00C2D250 /* VerificationCodeViewController.swift in Sources */,
+				329E044626824A8C00C2D250 /* AppClipProtoService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		329E040D268247BE00C2D250 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				329E0416268247BE00C2D250 /* HalloAppClipTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		329E0418268247BE00C2D250 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				329E0421268247BE00C2D250 /* HalloAppClipUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1924,10 +2302,8 @@
 				766103A72461EE8200728870 /* receipts.pb.swift in Sources */,
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
 				6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */,
-				68766C752631F2DE00399F82 /* Locale.swift in Sources */,
 				76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */,
 				F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */,
-				682FFCCD25479B1A00143401 /* RegistrationService.swift in Sources */,
 				EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */,
 				EA796B9C2469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift in Sources */,
 				EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */,
@@ -1968,7 +2344,6 @@
 				EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */,
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
 				68419A8526029C2000C30B6A /* CryptoStats.xcdatamodeld in Sources */,
-				68F046B22543856E001D602E /* RegistrationManager.swift in Sources */,
 				7627173B257B0744006F7F3D /* AboutViewController.swift in Sources */,
 				766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */,
 				EABBF72B24E72C6200FE1F1F /* CreateGroupViewController.swift in Sources */,
@@ -1998,6 +2373,7 @@
 				764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */,
 				F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */,
 				EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */,
+				E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */,
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
 				76451C3A254795F500B9E268 /* MainAppStrings.swift in Sources */,
 				EA5975DE252D3CF600810F48 /* GroupMemberAvatars.swift in Sources */,
@@ -2015,6 +2391,7 @@
 				76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */,
 				EA73DF4025E88D9B0070875D /* NewPostsIndicator.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
+				E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */,
 				F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */,
 				F881ED77261B1F6F0013599F /* Upload+CoreDataProperties.swift in Sources */,
 				7639BA39251944920023850E /* NextLevelSessionExporter.swift in Sources */,
@@ -2028,6 +2405,7 @@
 				EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */,
 				F893C86F25E5213000068F00 /* VideoView.swift in Sources */,
 				761BD0FA24B3C6B800B567F6 /* InviteRequests.swift in Sources */,
+				EA7A386626782A4D0028F739 /* ActionTableViewCell.swift in Sources */,
 				EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */,
 				EAD476F22458F03700EF8591 /* ChatMedia+CoreDataClass.swift in Sources */,
 				6867F063261BBB35005875D0 /* LogArchives.swift in Sources */,
@@ -2036,6 +2414,7 @@
 				EAA85A0B25E5D510006D0BC9 /* NotInGroupBannerView.swift in Sources */,
 				EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */,
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
+				E598D4C0265F0188001A436A /* ConversationID.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
 				F878427C24F6C0FB0040B723 /* MediaAlbumsViewController.swift in Sources */,
 				6ABBD25F2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift in Sources */,
@@ -2062,6 +2441,7 @@
 				EAD476F42458F03700EF8591 /* ChatThread+CoreDataClass.swift in Sources */,
 				6AC68EF726399BAE0073CBE9 /* ServerStrings.swift in Sources */,
 				76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */,
+				EA96D5B626689A0400F85731 /* GroupInviteQRViewController.swift in Sources */,
 				68CD603425E463FA0056D13E /* ConnectionBanner.swift in Sources */,
 				68B47B02260DBAD000D675FC /* InviteContactsManager.swift in Sources */,
 				68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */,
@@ -2079,7 +2459,6 @@
 				762EDBDD244E5A7800986617 /* HomeViewController.swift in Sources */,
 				764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */,
 				764AB41F24A6C5F300D4E354 /* Color.swift in Sources */,
-				EA36B5F024FDB83700A7E4CE /* MessageSeenByViewController.swift in Sources */,
 				5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */,
 				5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */,
 				EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */,
@@ -2096,16 +2475,17 @@
 				EA0B9917249C1FFB00B05094 /* Character.swift in Sources */,
 				764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */,
 				76A92449244EBCB600794859 /* ShapeView.swift in Sources */,
+				68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */,
 				EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */,
 				76C64E0D24E5AD85007C0F6F /* MediaUploader.swift in Sources */,
 				EAA424FA24ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift in Sources */,
 				769CD3AC255CDB8D006F21BB /* NameEditViewController.swift in Sources */,
+				E5D66D1C266954A200B23887 /* CommentDraft.swift in Sources */,
 				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,
 				EA3585792450BE3300E6E8AB /* ChatViewController.swift in Sources */,
 				EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */,
 				764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */,
 				EAD476F72458F03700EF8591 /* ChatMessage+CoreDataProperties.swift in Sources */,
-				EA220B7B24D0EA1500C44CE7 /* KeyData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2134,6 +2514,21 @@
 			target = 24D743D524B3D199001111BF /* Share Extension */;
 			targetProxy = 24D743DE24B3D199001111BF /* PBXContainerItemProxy */;
 		};
+		329E0413268247BE00C2D250 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 329E03F7268247BC00C2D250 /* HalloAppClip */;
+			targetProxy = 329E0412268247BE00C2D250 /* PBXContainerItemProxy */;
+		};
+		329E041E268247BE00C2D250 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 329E03F7268247BC00C2D250 /* HalloAppClip */;
+			targetProxy = 329E041D268247BE00C2D250 /* PBXContainerItemProxy */;
+		};
+		329E0424268247BE00C2D250 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 329E03F7268247BC00C2D250 /* HalloAppClip */;
+			targetProxy = 329E0423268247BE00C2D250 /* PBXContainerItemProxy */;
+		};
 		76F43F202489979600D47920 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 768123932485A240008C5216 /* Notification Service Extension */;
@@ -2152,11 +2547,28 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		329E0400268247BD00C2D250 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				329E0401268247BD00C2D250 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		329E0408268247BD00C2D250 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				329E0409268247BD00C2D250 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
 		687D5EC5265317F8008A3A65 /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
 				687D5EC6265317F8008A3A65 /* es */,
 				687D5ED62653197D008A3A65 /* tr */,
+				686292AD265DD2D000C54367 /* de */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
@@ -2256,7 +2668,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 130;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2270,7 +2682,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Share-Extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2316,7 +2728,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 130;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -2340,7 +2752,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.7;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Share-Extension";
@@ -2391,7 +2803,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 130;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -2415,7 +2827,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.7;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Share-Extension";
@@ -2426,6 +2838,501 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "External Beta";
+		};
+		329E0427268247BE00C2D250 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2762FD6E15286945AA56FCC7 /* Pods-HalloAppClip.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 130;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				INFOPLIST_FILE = HalloAppClip/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.7;
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Clip;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		329E0428268247BE00C2D250 /* Internal Beta */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 6AC671D398B489F4D7779AC6 /* Pods-HalloAppClip.internal beta.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 130;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = HalloAppClip/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.7;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Clip;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Internal Beta";
+		};
+		329E0429268247BE00C2D250 /* External Beta */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8596AA009E9E4E634053285A /* Pods-HalloAppClip.external beta.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 130;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = HalloAppClip/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.7;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Clip;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "External Beta";
+		};
+		329E042A268247BE00C2D250 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				INFOPLIST_FILE = HalloAppClipTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.HalloAppClipTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HalloAppClip.app/HalloAppClip";
+			};
+			name = Debug;
+		};
+		329E042B268247BE00C2D250 /* Internal Beta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = HalloAppClipTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.HalloAppClipTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HalloAppClip.app/HalloAppClip";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Internal Beta";
+		};
+		329E042C268247BE00C2D250 /* External Beta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = HalloAppClipTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.HalloAppClipTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HalloAppClip.app/HalloAppClip";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "External Beta";
+		};
+		329E042D268247BE00C2D250 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				INFOPLIST_FILE = HalloAppClipUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.HalloAppClipUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = HalloAppClip;
+			};
+			name = Debug;
+		};
+		329E042E268247BE00C2D250 /* Internal Beta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = HalloAppClipUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.HalloAppClipUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = HalloAppClip;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Internal Beta";
+		};
+		329E042F268247BE00C2D250 /* External Beta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = HalloAppClipUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.HalloAppClipUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = HalloAppClip;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = "External Beta";
@@ -2492,10 +3399,11 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 130;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -2504,7 +3412,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo;
 				PRODUCT_NAME = HalloApp;
 				SWIFT_VERSION = 5.0;
@@ -2561,7 +3469,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 130;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2575,7 +3483,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Service-Extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2621,7 +3529,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 130;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -2645,7 +3553,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.7;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Service-Extension";
@@ -2696,7 +3604,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 130;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -2720,7 +3628,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.7;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Service-Extension";
@@ -2860,10 +3768,11 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 130;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -2872,7 +3781,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo;
 				PRODUCT_NAME = HalloApp;
 				SWIFT_VERSION = 5.0;
@@ -2884,10 +3793,11 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CD26B1DB0D71EF2BBE67ADE9 /* Pods-HalloApp.internal beta.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 130;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -2896,7 +3806,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo;
 				PRODUCT_NAME = HalloApp;
 				SWIFT_VERSION = 5.0;
@@ -3003,6 +3913,36 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = "External Beta";
 		};
+		329E0431268247BE00C2D250 /* Build configuration list for PBXNativeTarget "HalloAppClip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				329E0427268247BE00C2D250 /* Debug */,
+				329E0428268247BE00C2D250 /* Internal Beta */,
+				329E0429268247BE00C2D250 /* External Beta */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "External Beta";
+		};
+		329E0432268247BE00C2D250 /* Build configuration list for PBXNativeTarget "HalloAppClipTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				329E042A268247BE00C2D250 /* Debug */,
+				329E042B268247BE00C2D250 /* Internal Beta */,
+				329E042C268247BE00C2D250 /* External Beta */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "External Beta";
+		};
+		329E0433268247BE00C2D250 /* Build configuration list for PBXNativeTarget "HalloAppClipUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				329E042D268247BE00C2D250 /* Debug */,
+				329E042E268247BE00C2D250 /* Internal Beta */,
+				329E042F268247BE00C2D250 /* External Beta */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "External Beta";
+		};
 		7681239C2485A240008C5216 /* Build configuration list for PBXNativeTarget "Notification Service Extension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -3096,6 +4036,16 @@
 /* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
+		329E0403268247BD00C2D250 /* HalloAppClip.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				329E0404268247BD00C2D250 /* HalloAppClip.xcdatamodel */,
+			);
+			currentVersion = 329E0404268247BD00C2D250 /* HalloAppClip.xcdatamodel */;
+			path = HalloAppClip.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
 		68419A8326029C2000C30B6A /* CryptoStats.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (

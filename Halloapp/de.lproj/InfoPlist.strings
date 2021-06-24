@@ -5,7 +5,7 @@
 "NSCameraUsageDescription" = "Damit kannst du direkt innerhalb von HalloApp Fotos und Videos aufnehmen.";
 
 /* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "Um die Beiträge deiner Freunde zu sehen und sie auch deine sehen zu lassen lade deine Kontakte auf die HalloApp-Server hoch.";
+"NSContactsUsageDescription" = "Um die Beiträge deiner Freunde zu sehen, und sie auch deine sehen zu lassen, lade deine Kontakte auf die HalloApp-Server hoch.";
 
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "Damit kannst du Videos mit Ton aufnehmen.";

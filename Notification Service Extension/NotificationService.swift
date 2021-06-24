@@ -33,11 +33,12 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
     }
 
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+        DDLogInfo("didReceiveRequest/begin \(request)")
         initAppContext(AppExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self, appTarget: AppTarget.notificationExtension)
         service = AppExtensionContext.shared.coreService
         service?.startConnectingIfNecessary()
 
-        DDLogInfo("didReceiveRequest/begin \(request)")
+        DDLogInfo("didReceiveRequest/begin processing \(request)")
 
         guard let content = (request.content.mutableCopy() as? UNMutableNotificationContent) else {
             recordPushEvent(requestID: request.identifier, messageID: nil)

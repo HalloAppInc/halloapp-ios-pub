@@ -901,7 +901,7 @@ class ContactStoreMain: ContactStore {
 
     func fullName(for userID: UserID) -> String {
         // Fallback to a static string.
-        return fullNameIfAvailable(for: userID) ?? Localizations.unknownContact
+        return fullNameIfAvailable(for: userID, ownName: Localizations.meCapitalized) ?? Localizations.unknownContact
     }
 
     func firstName(for userID: UserID) -> String {
@@ -938,58 +938,10 @@ class ContactStoreMain: ContactStore {
 
     // MARK: Push names
 
-    private var pushNameUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.push-name")
-
-    private func savePushNames(_ names: [UserID: String]) {
-        performOnBackgroundContextAndWait { (managedObjectContect) in
-            var existingNames: [UserID : PushName] = [:]
-
-            // Fetch existing names.
-            let fetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "userId in %@", Set(names.keys))
-            do {
-                let results = try managedObjectContect.fetch(fetchRequest)
-                existingNames = results.reduce(into: [:]) { $0[$1.userId!] = $1 }
-            }
-            catch {
-                fatalError("Failed to fetch push names  [\(error)]")
-            }
-
-            // Insert new names / update existing
-            names.forEach { (userId, contactName) in
-                if let existingName = existingNames[userId] {
-                    if existingName.name != contactName {
-                        DDLogDebug("contacts/push-name/update  userId=[\(userId)] from=[\(existingName.name ?? "")] to=[\(contactName)]")
-                        existingName.name = contactName
-                    }
-                } else {
-                    DDLogDebug("contacts/push-name/new  userId=[\(userId)] name=[\(contactName)]")
-                    let newPushName = NSEntityDescription.insertNewObject(forEntityName: "PushName", into: managedObjectContect) as! PushName
-                    newPushName.userId = userId
-                    newPushName.name = contactName
-                }
-            }
-
-            // Save
-            if managedObjectContect.hasChanges {
-                do {
-                    try managedObjectContect.save()
-                }
-                catch {
-                    fatalError("Failed to save managed object context [\(error)]")
-                }
-            }
-        }
-    }
-
     override func addPushNames(_ names: [UserID : String]) {
         guard !names.isEmpty else { return }
 
         super.addPushNames(names)
-
-        pushNameUpdateQueue.async {
-            self.savePushNames(names)
-        }
     }
 
     // MARK: Mentions
@@ -1003,18 +955,17 @@ class ContactStoreMain: ContactStore {
     }
 
     /// Returns an attributed string where mention placeholders have been replaced with contact names. User IDs are retrievable via the .userMention attribute.
-    func textWithMentions(_ collapsedText: String?, orderedMentions: [FeedMentionProtocol]) -> NSAttributedString? {
+    func textWithMentions(_ collapsedText: String?, mentions: [FeedMentionProtocol]) -> NSAttributedString? {
         guard let collapsedText = collapsedText else { return nil }
 
         let mentionText = MentionText(
             collapsedText: collapsedText,
-            mentions: mentionDictionary(from: orderedMentions))
+            mentions: mentionDictionary(from: mentions))
 
         return mentionText.expandedText { userID in
-            self.mentionName(for: userID, pushName: orderedMentions.first(where: { userID == $0.userID })?.name)
+            self.mentionName(for: userID, pushName: mentions.first(where: { userID == $0.userID })?.name)
         }
     }
-
 }
 
 private func mentionDictionary(from mentions: [FeedMentionProtocol]) -> [Int: MentionedUser] {

@@ -177,9 +177,9 @@ extension SceneDelegate: UIWindowSceneDelegate {
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         DDLogInfo("application/scene/openURLContexts")
         guard let url = URLContexts.first?.url else { return }
-        guard let inviteLink = ChatData.parseInviteURL(url: url) else { return }
+        guard let inviteToken = ChatData.parseInviteURL(url: url) else { return }
         DDLogInfo("application/scene/openURLContexts/url \(url)")
-        presentGroupPreview(inviteLink: inviteLink)
+        processGroupInviteToken(inviteToken)
     }
 
     // handles invite url while app is either in foreground or background
@@ -187,9 +187,9 @@ extension SceneDelegate: UIWindowSceneDelegate {
         DDLogInfo("application/scene/continue")
         guard userActivity.activityType == NSUserActivityTypeBrowsingWeb else { return }
         guard let incomingURL = userActivity.webpageURL else { return }
-        guard let inviteLink = ChatData.parseInviteURL(url: incomingURL) else { return }
+        guard let inviteToken = ChatData.parseInviteURL(url: incomingURL) else { return }
         DDLogInfo("application/scene/continue/incomingURL \(incomingURL)")
-        presentGroupPreview(inviteLink: inviteLink)
+        processGroupInviteToken(inviteToken)
     }
 }
 
@@ -216,23 +216,8 @@ private extension SceneDelegate {
         window?.rootViewController?.present(alert, animated: true, completion: nil)
     }
     
-    private func presentGroupPreview(inviteLink: String) {
-        let vc = GroupInvitePreviewViewController(for: inviteLink)
-        window?.rootViewController?.present(UINavigationController(rootViewController: vc), animated: true)
-    }
-}
-
-extension Localizations {
-
-    static var appUpdateNoticeTitle: String {
-        NSLocalizedString("home.update.notice.title", value: "This version is out of date", comment: "Title of update notice shown to users who have old versions of the app")
-    }
-
-    static var appUpdateNoticeText: String {
-        NSLocalizedString("home.update.notice.text", value: "Please update to the latest version of HalloApp", comment: "Text shown to users who have old versions of the app")
-    }
-
-    static var appUpdateNoticeButtonExit: String {
-        NSLocalizedString("home.update.notice.button.exit", value: "Exit", comment: "Title for exit button that closes the app")
+    private func processGroupInviteToken(_ inviteToken: String) {
+        MainAppContext.shared.userData.groupInviteToken = inviteToken
+        MainAppContext.shared.didGetGroupInviteToken.send()
     }
 }

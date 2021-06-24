@@ -218,8 +218,8 @@ class PostComposerViewController: UIViewController {
         switch configuration.titleMode {
         case .userPost:
             titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
-            titleView.subtitleLabel.text = privacySettings?.composerIndicator ?? ""
-            privacySubscription = privacySettings?.$composerIndicator.assign(to: \.text!, on: titleView.subtitleLabel)
+            titleView.subtitleLabel.text = privacySettings.composerIndicator ?? ""
+            privacySubscription = privacySettings.$composerIndicator.assign(to: \.text!, on: titleView.subtitleLabel)
         case .groupPost:
             titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
             if let recipientName = recipientName {
@@ -577,7 +577,7 @@ fileprivate struct PostComposerView: View {
     }
     
     private func getMediaSliderHeight(width: CGFloat) -> CGFloat {
-        return MediaCarouselView.preferredHeight(for: feedMediaItems, width: width - 4 * PostComposerLayoutConstants.horizontalPadding, maxAllowedAspectRatio: mediaCarouselMaxAspectRatio)
+        return MediaCarouselView.preferredHeight(for: feedMediaItems, width: width - 4 * PostComposerLayoutConstants.horizontalPadding)
     }
 
     var picker: some View {

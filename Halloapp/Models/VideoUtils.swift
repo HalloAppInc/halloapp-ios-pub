@@ -216,24 +216,44 @@ final class VideoUtils {
         return CGSize(width: abs(size.width), height: abs(size.height))
     }
     
-    static func videoPreviewImage(url: URL, size: CGSize?) -> UIImage? {
+    static func videoPreviewImage(url: URL, size: CGSize? = nil) -> UIImage? {
         let asset = AVURLAsset(url: url)
         guard asset.duration.value > 0 else { return nil }
+        let seekTime = getThumbnailTime(duration: asset.duration)
 
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
         if let preferredSize = size {
             generator.maximumSize = preferredSize
         }
-        let time = CMTimeMakeWithSeconds(2.0, preferredTimescale: 600)
         do {
-            let img = try generator.copyCGImage(at: time, actualTime: nil)
+            let img = try generator.copyCGImage(at: seekTime, actualTime: nil)
             let thumbnail = UIImage(cgImage: img)
             return thumbnail
         } catch {
             DDLogDebug("VideoUtils/videoPreviewImage/error \(error.localizedDescription) - [\(url)]")
             return nil
         }
+    }
+
+    static func getThumbnailTime(duration: CMTime) -> CMTime {
+        if duration.seconds < 1 {
+            return CMTimeMultiplyByRatio(duration, multiplier: 1, divisor: 2)
+        } else {
+            return CMTime(value: 1, timescale: 1)
+        }
+    }
+
+    static func previewImageData(image: UIImage, size: CGSize? = nil) -> Data? {
+        guard let preview = image.resized(to: CGSize(width: 128, height: 128), contentMode: .scaleAspectFill, downscaleOnly: false) else {
+            DDLogError("VideoUtils/previewImage/error  Failed to generate preview")
+            return nil
+        }
+        guard let imageData = preview.jpegData(compressionQuality: 0.5) else {
+            DDLogError("VideoUtils/previewImage/error  Failed to generate jpeg data")
+            return nil
+        }
+        return imageData
     }
 
     static func trim(start: CMTime, end: CMTime, url: URL, mute: Bool, completion: @escaping (Swift.Result<URL, Error>) -> Void) {

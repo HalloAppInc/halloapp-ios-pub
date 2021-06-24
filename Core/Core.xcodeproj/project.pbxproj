@@ -19,6 +19,10 @@
 		24AA69D924DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D724DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift */; };
 		24AA69DA24DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */; };
 		24D743C724AEA821001111BF /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D743C624AEA821001111BF /* AvatarView.swift */; };
+		327334EC26729E5A006E31E5 /* KeyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327334EB26729E5A006E31E5 /* KeyData.swift */; };
+		327334F02672A2EA006E31E5 /* RegistrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327334EE2672A2EA006E31E5 /* RegistrationService.swift */; };
+		327334F12672A2EA006E31E5 /* RegistrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327334EF2672A2EA006E31E5 /* RegistrationManager.swift */; };
+		327334F32672A5C3006E31E5 /* Locale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327334F22672A5C3006E31E5 /* Locale.swift */; };
 		68101F2C25CDE7CA005CD704 /* Keys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68101F2B25CDE7CA005CD704 /* Keys.swift */; };
 		681811D325E9AB6D00F9126C /* MessageCrypter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 681811D225E9AB6D00F9126C /* MessageCrypter.swift */; };
 		681811D625E9ABB300F9126C /* WhisperSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 681811D525E9ABB300F9126C /* WhisperSession.swift */; };
@@ -45,6 +49,7 @@
 		68A64E8624D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */; };
 		68CC420E25B8C254001513C5 /* DiscreteEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CC420D25B8C254001513C5 /* DiscreteEvent.swift */; };
 		68D2915525096F9400AF5061 /* Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2915425096F9400AF5061 /* Mentions.swift */; };
+		68D4BBB6266150DE009D2266 /* PacketID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D4BBB5266150DE009D2266 /* PacketID.swift */; };
 		68D64BFC25EEE220000AB07C /* Whisper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D64BFB25EEE220000AB07C /* Whisper.swift */; };
 		68DB8E6D264AF67E0082AEC2 /* SharedServerMessage+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68DB8E6B264AF67E0082AEC2 /* SharedServerMessage+CoreDataClass.swift */; };
 		68DB8E6E264AF67E0082AEC2 /* SharedServerMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68DB8E6C264AF67E0082AEC2 /* SharedServerMessage+CoreDataProperties.swift */; };
@@ -120,6 +125,10 @@
 		24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedChatMessage+CoreDataClass.swift"; sourceTree = "<group>"; };
 		24D743C624AEA821001111BF /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		327334EB26729E5A006E31E5 /* KeyData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyData.swift; sourceTree = "<group>"; };
+		327334EE2672A2EA006E31E5 /* RegistrationService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegistrationService.swift; sourceTree = "<group>"; };
+		327334EF2672A2EA006E31E5 /* RegistrationManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegistrationManager.swift; sourceTree = "<group>"; };
+		327334F22672A5C3006E31E5 /* Locale.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Locale.swift; sourceTree = "<group>"; };
 		4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.release.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.release.xcconfig"; sourceTree = "<group>"; };
 		5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.debug.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.debug.xcconfig"; sourceTree = "<group>"; };
 		68101F2B25CDE7CA005CD704 /* Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keys.swift; sourceTree = "<group>"; };
@@ -148,6 +157,7 @@
 		68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		68CC420D25B8C254001513C5 /* DiscreteEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscreteEvent.swift; sourceTree = "<group>"; };
 		68D2915425096F9400AF5061 /* Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mentions.swift; sourceTree = "<group>"; };
+		68D4BBB5266150DE009D2266 /* PacketID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketID.swift; sourceTree = "<group>"; };
 		68D64BFB25EEE220000AB07C /* Whisper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Whisper.swift; sourceTree = "<group>"; };
 		68DB8E6B264AF67E0082AEC2 /* SharedServerMessage+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SharedServerMessage+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68DB8E6C264AF67E0082AEC2 /* SharedServerMessage+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SharedServerMessage+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -269,6 +279,15 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
+		327334ED2672A2AA006E31E5 /* Registration */ = {
+			isa = PBXGroup;
+			children = (
+				327334EF2672A2EA006E31E5 /* RegistrationManager.swift */,
+				327334EE2672A2EA006E31E5 /* RegistrationService.swift */,
+			);
+			path = Registration;
+			sourceTree = "<group>";
+		};
 		65D497413B5EACBECD8FBCC7 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -369,9 +388,11 @@
 				68F935B9252BED9900FA6E75 /* Monitoring */,
 				7605EA1D24F4759400CAD9AB /* Privacy */,
 				76812415248619BB008C5216 /* Proto */,
+				327334ED2672A2AA006E31E5 /* Registration */,
 				2490289924C5DDBD0019C4D5 /* ShareExtension */,
 				768123FC248612A9008C5216 /* XMPP */,
 				6A00887E264B3D6200A2353D /* PersistentHistoryTracker.swift */,
+				68D4BBB5266150DE009D2266 /* PacketID.swift */,
 			);
 			path = Source;
 			sourceTree = "<group>";
@@ -459,6 +480,7 @@
 		7681241C2486C133008C5216 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				327334F22672A5C3006E31E5 /* Locale.swift */,
 				76E5153724A18171003F1273 /* Digest.swift */,
 				7681241E2486C178008C5216 /* String.swift */,
 				2490287824C525030019C4D5 /* UIImage.swift */,
@@ -486,6 +508,7 @@
 			children = (
 				EAAE7B2F24DBD67800946B77 /* CoreData Stack */,
 				EAAE7B3824DCDEBB00946B77 /* KeyStore.swift */,
+				327334EB26729E5A006E31E5 /* KeyData.swift */,
 				68101F2B25CDE7CA005CD704 /* Keys.swift */,
 			);
 			path = Keys;
@@ -637,6 +660,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				327334F32672A5C3006E31E5 /* Locale.swift in Sources */,
 				EAAE7B4924DD2C3000946B77 /* UserKeyBundle+CoreDataClass.swift in Sources */,
 				768124132486193E008C5216 /* Feed.swift in Sources */,
 				686814AE252BA91E003C8784 /* clients.pb.swift in Sources */,
@@ -659,6 +683,7 @@
 				EAAE7B4B24DD2C3000946B77 /* MessageKeyBundle+CoreDataClass.swift in Sources */,
 				249028A924C5E01B0019C4D5 /* SharedData.xcdatamodeld in Sources */,
 				7681240224861487008C5216 /* XMPPError.swift in Sources */,
+				327334F12672A2EA006E31E5 /* RegistrationManager.swift in Sources */,
 				768123F924861068008C5216 /* ABContact+CoreDataClass.swift in Sources */,
 				2490287924C525030019C4D5 /* UIImage.swift in Sources */,
 				6880F354258017C400D1F585 /* ErrorLogger.swift in Sources */,
@@ -684,6 +709,7 @@
 				EAAE7B4C24DD2C3000946B77 /* MessageKeyBundle+CoreDataProperties.swift in Sources */,
 				EA5A7AD3258B30BE0019BDDB /* UIDevice.swift in Sources */,
 				76812406248614BA008C5216 /* XMPPReceipt.swift in Sources */,
+				327334EC26729E5A006E31E5 /* KeyData.swift in Sources */,
 				6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */,
 				6832F50B24FEE9DF00A9C202 /* ProtoStream.swift in Sources */,
 				68F9361C252E759200FA6E75 /* CommonEvents.swift in Sources */,
@@ -700,6 +726,7 @@
 				6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
 				F86919E226397F0C00B01306 /* UIImageView.swift in Sources */,
+				68D4BBB6266150DE009D2266 /* PacketID.swift in Sources */,
 				688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */,
 				EAAE7B3C24DD039900946B77 /* XMPPWhisperRequests.swift in Sources */,
 				68101F2C25CDE7CA005CD704 /* Keys.swift in Sources */,
@@ -711,6 +738,7 @@
 				76C7429624A155E900C7D945 /* FeedDownloadManager.swift in Sources */,
 				249028A024C5DFDE0019C4D5 /* Media+CoreDataClass.swift in Sources */,
 				6832F50324FEE9CB00A9C202 /* CoreService.swift in Sources */,
+				327334F02672A2EA006E31E5 /* RegistrationService.swift in Sources */,
 				7681241F2486C178008C5216 /* String.swift in Sources */,
 				76812405248614BA008C5216 /* XMPPFeed.swift in Sources */,
 				EAAE7B4F24DD2C3000946B77 /* OneTimePreKey+CoreDataClass.swift in Sources */,
@@ -865,7 +893,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 130;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -878,7 +906,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.7;
 				MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Core;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -896,7 +924,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 130;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -909,7 +937,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.7;
 				MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Core;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -986,7 +1014,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 130;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -999,7 +1027,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.7;
 				MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Core;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";

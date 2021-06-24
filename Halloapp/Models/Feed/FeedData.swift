@@ -13,6 +13,8 @@ import Core
 import CoreData
 import Foundation
 import SwiftUI
+import Intents
+import IntentsUI
 
 class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate {
 
@@ -765,13 +767,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
                 comment.id = xmppComment.id
                 comment.userId = xmppComment.userId
-                comment.text = xmppComment.text
                 comment.parent = parentComment
                 comment.post = feedPost
 
                 switch xmppComment.content {
-                case .text:
+                case .text(let mentionText):
                     comment.status = .incoming
+                    comment.text = mentionText.collapsedText
+                    var mentions = Set<FeedMention>()
+                    for (i, user) in mentionText.mentions {
+                        let mention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
+                        mention.index = i
+                        mention.userID = user.userID
+                        mention.name = user.pushName ?? ""
+                        mentions.insert(mention)
+                    }
+                    comment.mentions = mentions
                 case .retracted:
                     DDLogError("FeedData/process-comments/incoming-retracted-comment [\(xmppComment.id)]")
                     comment.status = .retracted
@@ -780,16 +791,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     comment.rawData = data
                 }
                 comment.timestamp = xmppComment.timestamp
-
-                var mentions = Set<FeedMention>()
-                for xmppMention in xmppComment.orderedMentions {
-                    let mention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
-                    mention.index = xmppMention.index
-                    mention.userID = xmppMention.userID
-                    mention.name = xmppMention.name
-                    mentions.insert(mention)
-                }
-                comment.mentions = mentions
 
                 comments[comment.id] = comment
                 newComments.append(comment)
@@ -840,9 +841,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             case .comment(let comment, let name):
                 comments.append(comment)
-                comment.orderedMentions.forEach {
-                    guard !$0.name.isEmpty else { return }
-                    contactNames[$0.userID] = $0.name
+                switch comment.content {
+                case .text(let mentionText):
+                    for (_, user) in mentionText.mentions {
+                        guard let pushName = user.pushName, !pushName.isEmpty else { continue }
+                        contactNames[user.userID] = pushName
+                    }
+                case .retracted, .unsupported:
+                    break
                 }
                 if let name = name, !name.isEmpty {
                     contactNames[comment.userId] = name
@@ -1084,7 +1090,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         dispatchGroup.notify(queue: .main) {
             comments.filter { !commentIdsToFilterOut.contains($0.id) && self.isCommentEligibleForLocalNotification($0) }.forEach { (comment) in
-                let protobufData = try? comment.clientContainer.serializedData()
+                let protobufData = try? comment.commentData.clientContainer.serializedData()
                 let contentType: NotificationContentType = comment.post.groupId == nil ? .feedComment : .groupFeedComment
                 let metadata = NotificationMetadata(contentId: comment.id,
                                                     contentType: contentType,
@@ -1273,7 +1279,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         save(viewContext)
 
         // Request to retract.
-        service.retractComment(comment) { result in
+        service.retractComment(id: comment.id, postID: comment.post.id) { result in
             switch result {
             case .success:
                 self.processCommentRetract(commentId) {}
@@ -1567,16 +1573,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         case .image:
             self.updateMediaPreview(for: notifications, usingImageAt: mediaURL)
         case .video:
-            let asset = AVURLAsset(url: mediaURL)
-            let seekTime = FeedMedia.getThumbnailTime(duration: asset.duration)
-            let imgGenerator = AVAssetImageGenerator(asset: asset)
-            imgGenerator.appliesPreferredTrackTransform = true
-            do {
-                let cgImage = try imgGenerator.copyCGImage(at: seekTime, actualTime: nil)
-                let image = UIImage(cgImage: cgImage)
+            if let image = VideoUtils.videoPreviewImage(url: mediaURL) {
                 updateMediaPreview(for: notifications, using: image)
-            } catch {
-                DDLogError("FeedData/generateMediaPreview/error \(error)")
+            } else {
+                DDLogError("FeedData/generateMediaPreview/error")
                 return
             }
         }
@@ -1607,7 +1607,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let didSendGroupFeedPost = PassthroughSubject<FeedPost, Never>()
 
     func post(text: MentionText, media: [PendingMedia], to destination: FeedPostDestination) {
-        let postId: FeedPostID = UUID().uuidString
+        let postId: FeedPostID = PacketID.generate()
 
         // Create and save new FeedPost object.
         let managedObjectContext = persistentContainer.viewContext
@@ -1685,6 +1685,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPostInfo.receipts = receipts
             feedPostInfo.audienceType = .group
             feedPost.info = feedPostInfo
+            
+            addIntent(chatGroup: chatGroup)
         }
 
         // set a merge policy so that we dont end up with duplicate feedposts.
@@ -1700,7 +1702,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     @discardableResult
     func post(comment: MentionText, to feedItem: FeedDataItem, replyingTo parentCommentId: FeedPostCommentID? = nil) -> FeedPostCommentID {
-        let commentId: FeedPostCommentID = UUID().uuidString
+        let commentId: FeedPostCommentID = PacketID.generate()
 
         // Create and save FeedPostComment
         let managedObjectContext = self.persistentContainer.viewContext
@@ -1742,6 +1744,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Now send data over the wire.
         send(comment: feedComment)
+        
+        if let groupId = feedPost.groupId, let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+            addIntent(chatGroup: chatGroup)
+        }
 
         return commentId
     }
@@ -1774,7 +1780,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func send(comment: FeedPostComment) {
         let commentId = comment.id
         let groupId = comment.post.groupId
-        service.publishComment(comment, groupId: groupId) { result in
+        service.publishComment(comment.commentData, groupId: groupId) { result in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPostComment(with: commentId) { (feedComment) in
@@ -1873,6 +1879,40 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
     }
+    
+    /// Donates an intent to Siri for improved suggestions when sharing content.
+    ///
+    /// Intents are used by iOS to provide contextual suggestions to the user for certain interactions. In this case, we are suggesting the user send another message to the user they just shared with.
+    /// For more information, see [this documentation](https://developer.apple.com/documentation/sirikit/insendmessageintent)\.
+    /// - Parameter chatGroup: The ID for the group the user is sharing to
+    /// - Remark: This is different from the implementation in `ShareComposerViewController.swift` because `MainAppContext` isn't available in the share extension.
+    private func addIntent(chatGroup: ChatGroup) {
+        if #available(iOS 14.0, *) {
+            let recipient = INSpeakableString(spokenPhrase: chatGroup.name)
+            let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                        content: nil,
+                                                        speakableGroupName: recipient,
+                                                        conversationIdentifier: ConversationID(id: chatGroup.groupId, type: .group).description,
+                                                        serviceName: nil,
+                                                        sender: nil)
+            
+            let potentialUserAvatar = MainAppContext.shared.avatarStore.groupAvatarData(for: chatGroup.groupId).image
+            guard let defaultAvatar = UIImage(named: "AvatarGroup") else { return }
+            
+            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
+            let userAvatar = INImage(imageData: userAvaterUIImage)
+            
+            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+            
+            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+            interaction.donate(completion: { error in
+                if let error = error {
+                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+                }
+            })
+        }
+    }
 
     // MARK: Media Upload
     private func uploadMediaAndSend(feedPost: FeedPost) {
@@ -1902,10 +1942,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             uploadGroup.leave()
         }
 
+        // mediaItem is a CoreData object and it should not be passed across threads.
         for mediaItem in mediaItemsToUpload {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
-            DDLogDebug("FeedData/process-mediaItem: \(postId)/\(mediaItem.order)")
+            DDLogDebug("FeedData/process-mediaItem: \(postId)/\(mediaItem.order), index: \(mediaIndex)")
             if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
                 let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
@@ -1915,8 +1956,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     switch $0 {
                     case .success(let result):
                         let path = self.downloadManager.relativePath(from: output)
-                        mediaItem.relativeFilePath = path
-                        DDLogDebug("FeedData/process-mediaItem/success: \(postId)/\(mediaItem.order)")
+                        DDLogDebug("FeedData/process-mediaItem/success: \(postId)/\(mediaIndex)")
                         self.updateFeedPost(with: postId, block: { (feedPost) in
                             if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
                                 media.size = result.size
@@ -1925,10 +1965,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                 media.relativeFilePath = path
                             }
                         }) {
-                            self.upload(postId: postId, media: mediaItem, completion: uploadCompletion)
+                            self.upload(postId: postId, mediaIndex: mediaIndex, completion: uploadCompletion)
                         }
                     case .failure(_):
-                        DDLogDebug("FeedData/process-mediaItem/failure: \(postId)/\(mediaItem.order)")
+                        DDLogDebug("FeedData/process-mediaItem/failure: \(postId)/\(mediaIndex)")
                         numberOfFailedUploads += 1
 
                         self.updateFeedPost(with: postId, block: { (feedPost) in
@@ -1941,8 +1981,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 }
             } else {
-                DDLogDebug("FeedData/process-mediaItem/processed already: \(postId)/\(mediaItem.order)")
-                self.upload(postId: postId, media: mediaItem, completion: uploadCompletion)
+                DDLogDebug("FeedData/process-mediaItem/processed already: \(postId)/\(mediaIndex)")
+                self.upload(postId: postId, mediaIndex: mediaIndex, completion: uploadCompletion)
             }
         }
 
@@ -1965,17 +2005,30 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func upload(postId: FeedPostID, media: FeedPostMedia, completion: @escaping (Result<Int, Error>) -> Void) {
-        let index = media.order
-        DDLogDebug("FeedData/upload/media \(postId)/\(media.order), index:\(index)")
-        guard let relativeFilePath = media.relativeFilePath else {
-            DDLogError("FeedData/upload-media/\(postId)/\(index) missing file path")
+    private func upload(postId: FeedPostID, mediaIndex: Int16, completion: @escaping (Result<Int, Error>) -> Void) {
+        guard let post = self.feedPost(with: postId),
+              let postMedia = post.media?.first(where: { $0.order == mediaIndex }) else {
+            DDLogError("FeedData/upload/fetch post and media \(postId)/\(mediaIndex) - missing")
+            return
+        }
+
+        DDLogDebug("FeedData/upload/media \(postId)/\(postMedia.order), index:\(mediaIndex)")
+        guard let relativeFilePath = postMedia.relativeFilePath else {
+            DDLogError("FeedData/upload-media/\(postId)/\(mediaIndex) missing file path")
             return completion(.failure(MediaUploadError.invalidUrls))
         }
         let processed = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
         MainAppContext.shared.uploadData.fetch(upload: processed) { [weak self] upload in
             guard let self = self else { return }
+
+            // Lookup object from coredata again instead of passing around the object across threads.
+            DDLogInfo("FeedData/upload/fetch upload hash \(postId)/\(mediaIndex)")
+            guard let post = self.feedPost(with: postId),
+                  let media = post.media?.first(where: { $0.order == mediaIndex }) else {
+                DDLogError("FeedData/upload/upload hash finished/fetch post and media/ \(postId)/\(mediaIndex) - missing")
+                return
+            }
 
             if let url = upload?.url {
                 DDLogInfo("Media \(processed) has been uploaded before at \(url).")
@@ -1986,15 +2039,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
                 media.url = url
             } else {
-                DDLogInfo("FeedData/uploading media now\(postId)/\(media.order), index:\(index)")
+                DDLogInfo("FeedData/uploading media now\(postId)/\(media.order), index:\(mediaIndex)")
             }
 
             self.mediaUploader.upload(media: media, groupId: postId, didGetURLs: { (mediaURLs) in
-                DDLogInfo("FeedData/upload-media/\(postId)/\(media.order), index:\(index)/acquired-urls [\(mediaURLs)]")
+                DDLogInfo("FeedData/upload-media/\(postId)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
                 // Save URLs acquired during upload to the database.
                 self.updateFeedPost(with: postId) { (feedPost) in
-                    if let media = feedPost.media?.first(where: { $0.order == media.order }) {
+                    if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
                         switch mediaURLs {
                         case .getPut(let getURL, let putURL):
                             media.url = getURL
@@ -2009,11 +2062,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 }
             }) { (uploadResult) in
-                DDLogInfo("FeedData/upload-media/\(postId)/\(media.order), index:\(index)/finished result=[\(uploadResult)]")
+                DDLogInfo("FeedData/upload-media/\(postId)/\(mediaIndex)/finished result=[\(uploadResult)]")
 
                 // Save URLs acquired during upload to the database.
                 self.updateFeedPost(with: postId, block: { feedPost in
-                    if let media = feedPost.media?.first(where: { $0.order == index }) {
+                    if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
                         switch uploadResult {
                         case .success(let details):
                             media.url = details.downloadURL
@@ -2169,8 +2222,31 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let expiredPostIDs = self.deletePosts(olderThan: cutoffDate, in: managedObjectContext)
             self.deleteNotifications(olderThan: cutoffDate, in: managedObjectContext)
             self.deleteNotifications(forPosts: expiredPostIDs, in: managedObjectContext)
+            self.deletePostCommentDrafts(forPosts: expiredPostIDs)
             self.save(managedObjectContext)
         }
+    }
+    
+    /// Deletes drafts of comments in `userDefaults` for posts that are no longer available to the user.
+    /// - Parameter posts: Posts which are no longer valid. The comment drafts for these posts are deleted.
+    private func deletePostCommentDrafts(forPosts posts: [FeedPostID]) {
+        Self.deletePostCommentDrafts { existingDraft in
+            posts.contains(existingDraft.postID)
+        }
+    }
+    
+    /// Deletes drafts of comments in `userDefaults` that meet the condition argument.
+    /// - Parameter condition: Should return true when the draft passed in needs to be removed. Returns false otherwise.
+    static func deletePostCommentDrafts(when condition: (CommentDraft) -> Bool) {
+        var draftsArray: [CommentDraft] = []
+        
+        if let draftsDecoded: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: CommentsViewController.postCommentDraftKey) {
+            draftsArray = draftsDecoded
+        }
+        
+        draftsArray.removeAll(where: condition)
+        
+        try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: CommentsViewController.postCommentDraftKey)
     }
     
     // MARK: Merge Data

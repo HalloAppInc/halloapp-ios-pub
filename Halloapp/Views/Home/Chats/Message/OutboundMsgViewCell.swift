@@ -9,6 +9,7 @@
 import Combine
 import Core
 import UIKit
+import CocoaLumberjack
 
 fileprivate struct Constants {
     static let QuotedMediaSize: CGFloat = 50
@@ -398,7 +399,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
             let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.text,
-                orderedMentions: quoted.orderedMentions)
+                mentions: quoted.orderedMentions)
             quotedTextView.attributedText = mentionText?.with(font: quotedTextView.font, color: quotedTextView.textColor)
 
             let text = quotedTextView.text ?? ""
@@ -410,18 +411,25 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             if let media = quoted.media {
 
                 if let med = media.first(where: { $0.order == mediaIndex }) {
-                    let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
-
-                    if med.type == .image {
-                        if let image = UIImage(contentsOfFile: fileURL.path) {
-                            quotedImageView.image = image
-                        }
-                    } else if med.type == .video {
-                        if let image = VideoUtils.videoPreviewImage(url: fileURL, size: nil) {
-                            quotedImageView.image = image
+                    let fileURL = med.mediaUrl
+                    if let thumbnailData = med.previewData {
+                        quotedImageView.image = UIImage(data: thumbnailData)
+                    } else {
+                        if med.type == .image {
+                            if let image = UIImage(contentsOfFile: fileURL.path) {
+                                quotedImageView.image = image
+                            } else {
+                                DDLogError("OutgoingMsgView/quoted/no-image/fileURL \(fileURL)")
+                            }
+                        } else if med.type == .video {
+                            if let image = VideoUtils.videoPreviewImage(url: fileURL, size: nil) {
+                                quotedImageView.image = image
+                            } else {
+                                DDLogError("OutgoingMsgView/quoted/no-video-preview/fileURL \(fileURL)")
+                            }
                         }
                     }
-
+                    quotedImageView.isUserInteractionEnabled = FileManager.default.fileExists(atPath: fileURL.path)
                     quotedImageView.isHidden = false
                 }
             }
@@ -532,7 +540,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             let textWithBlanks = text + blanks
             
             if orderedMentions.count > 0 {
-                if let mentionText = MainAppContext.shared.contactStore.textWithMentions(textWithBlanks, orderedMentions: orderedMentions) {
+                if let mentionText = MainAppContext.shared.contactStore.textWithMentions(textWithBlanks, mentions: orderedMentions) {
                     attrText.append(mentionText.with(font: font, color: color))
                 }
             } else {
@@ -565,9 +573,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {
         switch status {
         case .pending: return UIImage(named: "CheckmarkSingle")?.withTintColor(.clear)
-        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray3)
-        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray3)
-        case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
+        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray)
+        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray)
+        case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
 //        case .error: return UIImage(systemName: "arrow.counterclockwise.circle")?.withTintColor(.systemRed)
         default: return nil }
     }

@@ -137,13 +137,14 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
                 mediaView.removeFromSuperview()
                 self.mediaView = nil
             } else {
-                DDLogInfo("FeedTableViewCell/content-view/reuse-media-view post=[\(post.id)]")
+                DDLogInfo("FeedItemContentView/reuse-media-view post=[\(post.id)]")
             }
         }
 
         let postContainsMedia = !feedDataItem.media.isEmpty
         if postContainsMedia {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
+            DDLogInfo("FeedItemContentView/media-view-height post=[\(post.id)] height=[\(mediaViewHeight)]")
             if mediaView == nil {
                 // Create new media view
                 var mediaViewConfiguration = MediaCarouselViewConfiguration.default
@@ -185,7 +186,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
             let postText = MainAppContext.shared.contactStore.textWithMentions(
                 post.text,
-                orderedMentions: post.orderedMentions)
+                mentions: post.orderedMentions)
             // With media or > 180 chars long: System 16 pt (Body - 1)
             // Text-only under 180 chars long: System 20 pt (Body + 3)
             let postFont: UIFont = {
@@ -224,7 +225,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         if postContainsText {
             let postText = MainAppContext.shared.contactStore.textWithMentions(
                 post.text,
-                orderedMentions: post.orderedMentions)
+                mentions: post.orderedMentions)
             let postFont: UIFont = {
                 let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
                 let fontSizeDiff: CGFloat = postContainsMedia || (postText?.string ?? "").count > 180 ? -1 : 3
@@ -429,6 +430,7 @@ final class FeedItemHeaderView: UIView {
         hStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
         hStack.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
+        hStack.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
 
         contentSizeCategoryDidChangeCancellable = NotificationCenter.default
             .publisher(for: UIContentSizeCategory.didChangeNotification)
@@ -459,14 +461,14 @@ final class FeedItemHeaderView: UIView {
         if let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) {
             
             let attrText = NSMutableAttributedString(string: "")
-            let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")
-            let groupNameColor = ChatData.getThemeColor(for: groupChat.background)
+            let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate)
+            let groupNameColor = traitCollection.userInterfaceStyle == .light ? UIColor.gray : UIColor.label
 
             if let groupIndicator = groupIndicatorImage, let font = groupNameLabel.font {
                 let iconAttachment = NSTextAttachment(image: groupIndicator)
                 attrText.append(NSAttributedString(attachment: iconAttachment))
                 
-                attrText.addAttributes([.font: font, .foregroundColor: UIColor.label], range: NSRange(location: 0, length: attrText.length))
+                attrText.addAttributes([.font: font, .foregroundColor: groupNameColor], range: NSRange(location: 0, length: attrText.length))
                 
                 let groupNameAttributes = [NSAttributedString.Key.font: font, NSAttributedString.Key.foregroundColor: groupNameColor]
                 let groupNameAttributedStr = NSAttributedString(string: " \(groupChat.name)", attributes: groupNameAttributes)
@@ -587,9 +589,14 @@ final class FeedItemFooterView: UIView {
 
     }
 
-    private enum State {
-        case normal
+    private enum SenderCategory {
         case ownPost
+        case contact
+        case nonContact
+    }
+
+    private enum State: Equatable {
+        case normal(SenderCategory)
         case sending
         case retracting
         case error
@@ -616,7 +623,7 @@ final class FeedItemFooterView: UIView {
         let button = ButtonWithBadge(type: .system)
         button.setTitle(stringComment, for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
-        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 21)
+        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 18)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.lineBreakMode = .byWordWrapping
         button.contentEdgeInsets.top = 15
@@ -633,7 +640,7 @@ final class FeedItemFooterView: UIView {
         let button = UIButton(type: .system)
         button.setTitle(stringMessage, for: .normal)
         button.setImage(UIImage(named: "FeedPostReply"), for: .normal)
-        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 21)
+        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 18)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.lineBreakMode = .byWordWrapping
         button.contentEdgeInsets.top = 15
@@ -681,12 +688,22 @@ final class FeedItemFooterView: UIView {
         facePileView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 4).isActive = true
     }
 
+    private class func senderCategory(for post: FeedPost) -> SenderCategory {
+        if post.userId == MainAppContext.shared.userData.userId {
+            return .ownPost
+        }
+        if MainAppContext.shared.contactStore.isContactInAddressBook(userId: post.userId) {
+            return .contact
+        }
+        return .nonContact
+    }
+
     private class func state(for post: FeedPost) -> State {
         switch post.status {
         case .sending: return .sending
         case .sendError: return .error
         case .retracting: return .retracting
-        default: return post.userId == MainAppContext.shared.userData.userId ? .ownPost : .normal
+        default: return .normal(senderCategory(for: post))
         }
     }
 
@@ -694,17 +711,18 @@ final class FeedItemFooterView: UIView {
         let state = Self.state(for: post)
 
         buttonStack.isHidden = state == .sending || state == .error || state == .retracting
-        facePileView.isHidden = state != .ownPost
+        facePileView.isHidden = true
         separator.isHidden = post.hideFooterSeparator
 
         switch state {
-        case .normal, .ownPost:
+        case .normal(let sender):
             hideProgressView()
             hideErrorView()
 
             commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .unread : .read)
-            messageButton.alpha = state == .ownPost ? 0 : 1
-            if state == .ownPost {
+            messageButton.alpha = sender == .contact ? 1 : 0
+            if sender == .ownPost {
+                facePileView.isHidden = false
                 facePileView.configure(with: post)
             }
         case .sending, .retracting:

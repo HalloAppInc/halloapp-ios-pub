@@ -47,6 +47,7 @@ class MediaExplorerVideoCell: UICollectionViewCell {
 
         return progressView
     }()
+    private var looper: AVPlayerLooper?
 
     var isSystemUIHidden = false
 
@@ -120,7 +121,11 @@ class MediaExplorerVideoCell: UICollectionViewCell {
         placeHolderView.isHidden = true
         progressView.isHidden = true
         video.isHidden = false
-        video.player = AVPlayer(url: url)
+
+        let item = AVPlayerItem(url: url)
+        let player = AVQueuePlayer(playerItem: item)
+        looper = AVPlayerLooper(player: player, templateItem: item)
+        video.player = player
     }
 
     func show(progress: Float) {

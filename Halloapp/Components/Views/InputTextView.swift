@@ -32,7 +32,7 @@ class InputTextView: UITextView, UITextViewDelegate {
 
     var scrollIndicatorsShown: Bool = false
     private var lastReportedHeight: CGFloat
-    private(set) var mentions = MentionRangeMap()
+    var mentions = MentionRangeMap()
 
     var mentionInput: MentionInput {
         MentionInput(text: text, mentions: mentions, selectedRange: selectedRange)

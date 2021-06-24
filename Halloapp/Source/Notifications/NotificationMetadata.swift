@@ -385,7 +385,7 @@ class NotificationMetadata: Codable {
         // Title:
         // "Contact" for feed posts / comments and 1-1 chat messages.
         // "Contact @ Group" for group feed posts / comments and group chat messages.
-        let contactName = contactStore.fullNameIfAvailable(for: fromId) ?? pushName
+        let contactName = contactStore.fullNameIfAvailable(for: fromId, ownName: nil) ?? pushName
         title = [contactName, groupName].compactMap({ $0 }).joined(separator: " @ ")
 
         switch contentType {
@@ -424,8 +424,13 @@ class NotificationMetadata: Codable {
 
         // Contact notification for new friend or new invitee
         case .newFriend, .newInvitee, .newContact:
+            // Save push name for contact
+            var contactNames = [UserID:String]()
+            contactNames[fromId] = pushName
+            contactStore.addPushNames(contactNames)
+
             // Look up contact using phone number as the user ID probably hasn't synced yet
-            let contactName = contactStore.fullNameIfAvailable(forNormalizedPhone: normalizedPhone!) ?? nil
+            let contactName = contactStore.fullNameIfAvailable(forNormalizedPhone: normalizedPhone!, ownName: nil)
             title = ""
             guard let name = contactName else {
                 body = Localizations.contactNotificationUnknownContent

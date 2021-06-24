@@ -210,7 +210,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         
         if let feedPostId = self.feedPostId {
             if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.text, orderedMentions: feedPost.orderedMentions)
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.text, mentions: feedPost.orderedMentions)
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
                     let mediaType: ChatMessageMediaType = mediaItem.type == .video ? .video : .image
                     let mediaUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
@@ -260,6 +260,17 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 }
             }
         )
+
+        // Update name in title view if we just discovered this new user.
+        cancellableSet.insert(
+            MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIds) in
+                DDLogInfo("ChatViewController/didDiscoverNewUsers/update name if necessary")
+                guard let self = self else { return }
+                guard let userId = self.fromUserId else { return }
+                if newUserIds.contains(userId) {
+                    self.titleView.refreshName(for: userId)
+                }
+            })
 
         configureTitleViewWithTypingIndicator()
 
@@ -328,7 +339,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     // MARK:
 
     private func shouldShowVerifyOption() -> Bool {
-        guard ServerProperties.isInternalUser else {
+        guard ServerProperties.isInternalUser || !ServerProperties.shouldSendClearTextChat else {
             return false
         }
 
@@ -516,7 +527,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 img = image
             }
         } else if med.type == .video {
-            if let image = VideoUtils.videoPreviewImage(url: fileURL, size: nil) {
+            if let image = VideoUtils.videoPreviewImage(url: fileURL) {
                 img = image
             }
         }
@@ -749,6 +760,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                                                    chatReplyMessageSenderID: chatReplyMessageSenderID,
                                                    chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
         
+        
         chatInputView.closeQuoteFeedPanel()
 
         feedPostId = nil
@@ -823,7 +835,7 @@ extension ChatViewController: PostComposerViewDelegate {
     }
 
     func willDismissWithInput(mentionInput: MentionInput) {
-        chatInputView.text = mentionInput.text
+        
     }
 }
 
@@ -895,6 +907,7 @@ extension ChatViewController {
         }
         
         action.backgroundColor = .systemBlue
+        action.image = UIImage(systemName: "arrowshape.turn.up.left.fill")
         
         let configuration = UISwipeActionsConfiguration(actions: [action])
 
@@ -1176,6 +1189,10 @@ fileprivate class TitleView: UIView {
         }
 
         contactImageView.configure(with: fromUserId, using: MainAppContext.shared.avatarStore)
+    }
+
+    func refreshName(for userId: String) {
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
     }
     
     func showChatState(with typingIndicatorStr: String?) {

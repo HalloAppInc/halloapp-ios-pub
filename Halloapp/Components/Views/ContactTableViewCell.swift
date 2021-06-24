@@ -141,7 +141,7 @@ class ContactTableViewCell: UITableViewCell {
         hStack.spacing = 8
         hStack.axis = .horizontal
         hStack.alignment = .center
-        hStack.distribution = .fillProportionally
+        hStack.distribution = .fill
         hStack.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(hStack)
 

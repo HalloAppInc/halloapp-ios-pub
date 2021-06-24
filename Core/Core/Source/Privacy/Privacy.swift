@@ -182,7 +182,7 @@ open class PrivacySettings {
         didSet {
             DDLogInfo("privacy/change-active From [\(oldValue?.rawValue ?? "none")] to [\(activeType?.rawValue ?? "none")]")
             if let listType = activeType {
-                AppContext.shared.userDefaults.set(listType.rawValue, forKey: Core.PrivacySettings.Constants.UserDefaultsKeyActiveListType)
+                AppContext.userDefaultsForAppGroup.setValue(listType.rawValue, forKey: Core.PrivacySettings.Constants.UserDefaultsKeyActiveListType)
             }
         }
     }

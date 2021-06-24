@@ -61,8 +61,9 @@ class UserFeedViewController: FeedCollectionViewController {
         installExchangeNumbersView()
 
         headerViewController = ProfileHeaderViewController()
-        if userId == MainAppContext.shared.userData.userId {
+        if isOwnFeed {
             title = Localizations.titleMyPosts
+            
             headerViewController.isEditingAllowed = true
             cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in
                 guard let self = self else { return }
@@ -71,6 +72,7 @@ class UserFeedViewController: FeedCollectionViewController {
             }))
         } else {
             headerViewController.configureWith(userId: userId)
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .plain, target: self, action: #selector(moreButtonTapped))
         }
 
         collectionViewDataSource?.supplementaryViewProvider = { [weak self] (collectionView, kind, path) -> UICollectionReusableView? in
@@ -80,6 +82,65 @@ class UserFeedViewController: FeedCollectionViewController {
             return self.collectionView(collectionView, viewForSupplementaryElementOfKind: kind, at: path)
         }
         collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
+    }
+    
+    @objc func moreButtonTapped() {
+        guard !isOwnFeed else { return }
+        
+        let alert = UIAlertController(title: MainAppContext.shared.contactStore.fullName(for: userId), message: nil, preferredStyle: .actionSheet)
+        
+        if let userKeys = MainAppContext.shared.keyStore.keyBundle(),
+              let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: userId)?.keyBundle,
+              let contactData = SafetyNumberData(keyBundle: contactKeyBundle)
+        {
+            let verifySafetyNumberAction = UIAlertAction(title: Localizations.safetyNumberTitle, style: .default) { [weak self] _ in
+                self?.viewSafetyNumber(contactData: contactData, userKeyBundle: userKeys)
+            }
+            alert.addAction(verifySafetyNumberAction)
+        }
+        
+        
+        let blockUserAction = UIAlertAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self] _ in
+            self?.blockUserTapped()
+        }
+        alert.addAction(blockUserAction)
+        
+        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
+        alert.view.tintColor = .systemBlue
+        alert.addAction(cancel)
+        
+        present(alert, animated: true)
+    }
+    
+    private func viewSafetyNumber(contactData: SafetyNumberData, userKeyBundle: UserKeyBundle) {
+        let vc = SafetyNumberViewController(
+            currentUser: SafetyNumberData(
+                userID: MainAppContext.shared.userData.userId,
+                identityKey: userKeyBundle.identityPublicKey),
+            contact: contactData,
+            contactName: MainAppContext.shared.contactStore.fullName(for: userId),
+            dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+        present(vc.withNavigationController(), animated: true)
+    }
+    
+    private func blockUserTapped() {
+        guard !isOwnFeed else { return }
+        
+        let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userId))
+        
+        let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
+        let button = UIAlertAction(title: Localizations.blockButton, style: .destructive) { [weak self] _ in
+            let privacySettings = MainAppContext.shared.privacySettings
+            guard let blockedList = privacySettings.blocked else { return }
+            guard let userId = self?.userId else { return }
+            privacySettings.update(privacyList: blockedList, with: [userId])
+        }
+        alert.addAction(button)
+        
+        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
+        alert.addAction(cancel)
+        
+        present(alert, animated: true)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -103,7 +164,11 @@ class UserFeedViewController: FeedCollectionViewController {
     private func updateExchangeNumbersView(isFeedEmpty: Bool) {
         let isKnownContact = MainAppContext.shared.contactStore.contact(withUserId: userId) != nil
 
-        exchangeNumbersView.isHidden = !isFeedEmpty || isKnownContact
+        exchangeNumbersView.isHidden = !isFeedEmpty || isKnownContact || isOwnFeed
+    }
+
+    private var isOwnFeed: Bool {
+        return MainAppContext.shared.userData.userId == userId
     }
     
     // MARK: FeedCollectionViewController

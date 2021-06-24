@@ -72,6 +72,9 @@
 /* Destination screen title */
 "share.destination.title" = "HalloApp";
 
+/* Message of alert when user is not logged in */
+"share.notlogged.message" = "Abre HalloApp e inicia la sesión.";
+
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "No has iniciado sesión";
 

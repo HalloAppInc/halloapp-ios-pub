@@ -138,6 +138,14 @@ public final class WhisperSession {
 
     public func reloadKeysFromKeyStore() {
         sessionQueue.async {
+            // Dont overwrite the state when current target is currently retrieving keys.
+            switch self.state {
+            case .retrievingKeys:
+                AppContext.shared.errorLogger?.logError(NSError.init(domain: "WhisperSessionMergeError", code: 1005, userInfo: nil))
+                return
+            case .ready(_, _), .awaitingSetup(_):
+                break
+            }
             if let (keyBundle, messageKeys) = self.loadFromKeyStore() {
                 self.state = .ready(keyBundle, messageKeys)
             }
@@ -189,7 +197,13 @@ public final class WhisperSession {
 
     private var state: State {
         didSet {
-            if case .ready(let keyBundle, let messageKeys) = state {
+            switch state {
+            case .awaitingSetup(_):
+                DDLogInfo("WhisperSession/set-state/awaitingSetup")
+            case .retrievingKeys:
+                DDLogInfo("WhisperSession/set-state/retrievingKeys")
+            case .ready(let keyBundle, let messageKeys):
+                DDLogInfo("WhisperSession/set-state/ready")
                 keyStore.saveKeyBundle(keyBundle)
                 keyStore.saveMessageKeys(messageKeys, for: userID)
             }
@@ -351,6 +365,11 @@ public final class WhisperSession {
                     self.state = .awaitingSetup(attempts: attemptNumber)
                 }
 
+                // if the client is facing connection issues - then we retry immediately for 3 times and then give up after failing.
+                // we should ideally wait until we connect and try again on the next connection.
+                // our service will now anyways discard and wont send anymore messages to this recipient after we fail 3 times.
+                // on the next connection - we'll retry sending all messages to this recipient.
+                // that way - we sort of ensure that messages are sent in-order to the recipient.
                 self.executeTasks()
             }
         }

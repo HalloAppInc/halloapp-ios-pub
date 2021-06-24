@@ -72,10 +72,8 @@ final class NUX {
 
 extension Localizations {
     static func shortInvitesCount(_ count: Int) -> String {
-        let format = NSLocalizedString("invite.count.remaining.unspecified.time.short",
-                                       value: "You have %@ invites.",
-                                       comment: "Indicates how many invites are remaining")
-        return String(format: format, String(count))
+        let format = NSLocalizedString("n.invites.count", comment: "Indicates how many invites are remaining")
+        return String.localizedStringWithFormat(format, count)
     }
     static var inviteAFriend: String {
         NSLocalizedString("link.invite.friend", value: "Invite a friend", comment: "Link text to open invite flow")

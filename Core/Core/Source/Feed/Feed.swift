@@ -337,18 +337,7 @@ public extension FeedPostProtocol {
 
 // MARK: Feed Comment
 
-public protocol FeedCommentProtocol: FeedItemProtocol {
-
-    var text: String { get }
-
-    var orderedMentions: [FeedMentionProtocol] { get }
-
-    var feedPostId: String { get }
-
-    var parentId: String? { get }
-}
-
-public extension FeedCommentProtocol {
+public extension CommentData {
 
     var clientContainer: Clients_Container {
         var container = Clients_Container()
@@ -359,12 +348,25 @@ public extension FeedCommentProtocol {
     /// Legacy format comment (will be superseded by Clients_CommentContainer)
     var clientCommentLegacy: Clients_Comment {
         var comment = Clients_Comment()
-        comment.text = text
+        switch content {
+        case .text(let mentionText):
+            comment.text = mentionText.collapsedText
+            comment.mentions = mentionText.mentions
+                .map { (i, user) in
+                    var clientMention = Clients_Mention()
+                    clientMention.userID = user.userID
+                    clientMention.name = user.pushName ?? ""
+                    clientMention.index = Int32(i)
+                    return clientMention
+                }
+                .sorted { $0.index < $1.index }
+        case .retracted, .unsupported:
+            break
+        }
         comment.feedPostID = feedPostId
         if let parentId = parentId {
             comment.parentCommentID = parentId
         }
-        comment.mentions = orderedMentions.map { $0.protoMention }
         return comment
     }
 
@@ -379,7 +381,7 @@ public extension FeedCommentProtocol {
         if let payload = try? clientContainer.serializedData() {
             comment.payload = payload
         } else {
-            DDLogError("FeedCommentProtocol/serverComment/\(id)/error [could not create payload]")
+            DDLogError("CommentData/serverComment/\(id)/error [could not create payload]")
             return nil
         }
 

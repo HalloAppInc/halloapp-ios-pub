@@ -143,9 +143,11 @@ class CreateGroupViewController: UIViewController {
         view.image = AvatarView.defaultGroupImage
         view.backgroundColor = .avatarDefaultBg
         view.contentMode = .scaleAspectFit
-        
+
+        let radiusRatio: CGFloat = 16/52
+
         view.layer.masksToBounds = false
-        view.layer.cornerRadius = Constants.AvatarSize/4
+        view.layer.cornerRadius = Constants.AvatarSize*radiusRatio
         view.clipsToBounds = true
      
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -186,7 +188,7 @@ class CreateGroupViewController: UIViewController {
         label.textAlignment = .left
         label.textColor = .secondaryLabel
         label.font = UIFont.preferredFont(forTextStyle: .caption1)
-        label.text = "GROUP NAME"
+        label.text = Localizations.chatGroupNameLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         
         return label
@@ -250,7 +252,7 @@ class CreateGroupViewController: UIViewController {
         
         label.font = UIFont.preferredFont(forTextStyle: .caption1)
         label.textColor = .secondaryLabel
-        label.text = "MEMBERS (\(String(selectedMembers.count)))"
+        label.text = Localizations.chatGroupMembersLabel + " (\(String(selectedMembers.count)))"
       
         label.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
       
@@ -274,12 +276,14 @@ class CreateGroupViewController: UIViewController {
         
         return view
     }()
-    
+
     // MARK: Actions
 
     @objc private func createAction() {
+        guard proceedIfConnected() else { return }
+
         navigationItem.rightBarButtonItem?.isEnabled = false
-        
+
         let name = textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
 
         MainAppContext.shared.chatData.createGroup(name: name, members: selectedMembers, data: avatarData) { [weak self] result in
@@ -296,7 +300,7 @@ class CreateGroupViewController: UIViewController {
                 }
             case .failure(let error):
                 DDLogError("CreateGroupViewController/createAction/error \(error)")
-                let alert = UIAlertController(title: "No Internet Connection", message: "Please check if you have internet connectivity, then try again.", preferredStyle: UIAlertController.Style.alert)
+                let alert = UIAlertController(title: nil, message: Localizations.createGroupError, preferredStyle: UIAlertController.Style.alert)
                 alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: UIAlertAction.Style.default, handler: nil))
                 self.present(alert, animated: true, completion: nil)
 
@@ -304,26 +308,22 @@ class CreateGroupViewController: UIViewController {
             }
         }
     }
-    
+
     @objc private func chooseAvatar() {
         let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
         actionSheet.view.tintColor = UIColor.systemBlue
-        
+
         actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupTakeOrChoosePhoto, style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.presentPhotoLibraryPicker()
         })
-        
-//        actionSheet.addAction(UIAlertAction(title: "Delete Photo", style: .destructive) { _ in
-//
-//        })
-        
+
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true)
     }
-    
+
     // MARK: Helpers
-    
+
     private func updateCount() {
         textView.text = String(textView.text.prefix(Constants.MaxNameLength))
         var label = "0"
@@ -477,21 +477,17 @@ fileprivate extension UIImage {
 }
 
 private extension Localizations {
-    
+
     static var chatCreateGroupTitle: String {
         NSLocalizedString("chat.create.group.title", value: "Group Info", comment: "Title of group creation screen")
     }
-    
+
     static var chatCreateGroupNamePlaceholder: String {
         NSLocalizedString("chat.create.group.name.placeholder", value: "Name your group", comment: "Placeholder text shown inside the group name input box when it's empty")
     }
     
-    static var chatCreateGroupFailureTitle: String {
-        NSLocalizedString("chat.create.group.failure.title", value: "No Internet Connection", comment: "Placeholder text shown inside the group name input box when it's empty")
+    static var createGroupError: String {
+        NSLocalizedString("create.group.error", value: "There was an error creating the group, please try again", comment: "Alert message telling the user to try creating the group again after an error")
     }
-    
-    static var chatCreateGroupFailureDescription: String {
-        NSLocalizedString("chat.create.group.failure.description", value: "Please check if you have internet connectivity, then try again.", comment: "Placeholder text shown inside the group name input box when it's empty")
-    }
-    
+
 }

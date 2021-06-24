@@ -77,7 +77,6 @@ final class ProtoService: ProtoServiceCore {
 
     weak var chatDelegate: HalloChatDelegate?
     weak var feedDelegate: HalloFeedDelegate?
-    weak var keyDelegate: HalloKeyDelegate?
 
     let didGetNewChatMessage = PassthroughSubject<IncomingChatMessage, Never>()
     let didGetChatAck = PassthroughSubject<ChatAck, Never>()
@@ -125,7 +124,7 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    private func sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = UUID().uuidString) {
+    private func sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = PacketID.generate()) {
         serviceQueue.async {
             self._sendReceipt(receipt, to: toUserID, messageID: messageID)
         }
@@ -153,7 +152,7 @@ final class ProtoService: ProtoServiceCore {
     }
 
     /// Should only be called on serviceQueue.
-    private func _sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = UUID().uuidString) {
+    private func _sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = PacketID.generate()) {
         unackedReceipts[messageID] = (receipt, toUserID)
 
         let threadID: String = {
@@ -264,7 +263,7 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    private func handleReceivedReceipt(receipt: ReceivedReceipt, from: UserID, messageID: String) {
+    private func handleReceivedReceipt(receipt: ReceivedReceipt, from: UserID, messageID: String, ack: (() -> Void)?) {
         let ts = TimeInterval(receipt.timestamp)
         let thread: HalloReceipt.Thread = {
             switch receipt.threadID {
@@ -280,11 +279,11 @@ final class ProtoService: ProtoServiceCore {
             timestamp: Date(timeIntervalSince1970: ts),
             thread: thread)
         if thread == .feed, let delegate = feedDelegate {
-            delegate.halloService(self, didReceiveFeedReceipt: receipt, ack: { self.sendAck(messageID: messageID) })
+            delegate.halloService(self, didReceiveFeedReceipt: receipt, ack: ack)
         } else if thread != .feed, let delegate = chatDelegate {
-            delegate.halloService(self, didReceiveMessageReceipt: receipt, ack: { self.sendAck(messageID: messageID) })
+            delegate.halloService(self, didReceiveMessageReceipt: receipt, ack: ack)
         } else {
-            sendAck(messageID: messageID)
+            ack?()
         }
     }
 
@@ -459,11 +458,19 @@ final class ProtoService: ProtoServiceCore {
     }
 
     // Checks if the message is decrypted and saved in the main app's data store.
+    // TODO: discuss with garrett on other options here.
+    // We should move the cryptoData keystore to be accessible by all extensions and the main app.
+    // It would be cleaner that way - having these checks after merging still leads to some flakiness in my view.
     private func isMessageDecryptedAndSaved(msgId: String) -> Bool {
-        if MainAppContext.shared.cryptoData.result(for: msgId) == "success",
-           let _ = MainAppContext.shared.chatData.chatMessage(with: msgId) {
+        if let message = MainAppContext.shared.chatData.chatMessage(with: msgId),
+           message.incomingStatus != .rerequesting {
+            DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is available in local store.")
+            return true
+        } else if let _ = MainAppContext.shared.shareExtensionDataStore.sharedChatMessage(for: msgId) {
+            DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message needs to be stored from nse.")
             return true
         }
+        DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is missing.")
         return false
     }
 
@@ -574,9 +581,19 @@ final class ProtoService: ProtoServiceCore {
     // MARK: Message
 
     private func handleMessage(_ msg: Server_Msg, isEligibleForNotification: Bool) {
+
+        let ack = { self.sendAck(messageID: msg.id) }
+
+        var hasAckBeenDelegated = false
+        defer {
+            // Ack any message where we haven't explicitly delegated the ack to someone else
+            if !hasAckBeenDelegated {
+                ack()
+            }
+        }
+
         guard let payload = msg.payload else {
             DDLogError("proto/didReceive/\(msg.id)/error missing payload")
-            sendAck(messageID: msg.id)
             return
         }
 
@@ -586,18 +603,19 @@ final class ProtoService: ProtoServiceCore {
             updateMessageStatus(id: msg.id, status: .active)
         case .active:
             DDLogInfo("proto/didReceive/\(msg.id)/skipping (actively being processed)")
+            hasAckBeenDelegated = true
             return
         case .processed:
             DDLogInfo("proto/didReceive/\(msg.id)/acking (already processed)")
-            sendAck(messageID: msg.id)
             return
         }
 
         switch payload {
         case .contactList(let pbContactList):
             let contacts = pbContactList.contacts.compactMap { HalloContact($0) }
+            hasAckBeenDelegated = true
             MainAppContext.shared.syncManager.processNotification(contacts: contacts) {
-                self.sendAck(messageID: msg.id)
+                ack()
                 // client might be disconnected - if we generate one and dont send an ack, server will also send one notification.
                 // todo(murali@): check with the team about this.
                 if isEligibleForNotification {
@@ -606,25 +624,24 @@ final class ProtoService: ProtoServiceCore {
             }
         case .avatar(let pbAvatar):
             avatarDelegate?.service(self, didReceiveAvatarInfo: (userID: UserID(pbAvatar.uid), avatarID: pbAvatar.id))
-            sendAck(messageID: msg.id)
         case .whisperKeys(let pbKeys):
             if let whisperMessage = WhisperMessage(pbKeys) {
-                keyDelegate?.halloService(self, didReceiveWhisperMessage: whisperMessage)
+                keyDelegate?.service(self, didReceiveWhisperMessage: whisperMessage)
             } else {
                 DDLogError("proto/didReceive/\(msg.id)/error could not read whisper message")
             }
-            sendAck(messageID: msg.id)
         case .seenReceipt(let pbReceipt):
-            handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
+            handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id, ack: ack)
+            hasAckBeenDelegated = true
         case .deliveryReceipt(let pbReceipt):
-            handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
+            handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id, ack: ack)
+            hasAckBeenDelegated = true
         case .chatStanza(let serverChat):
             if !serverChat.senderName.isEmpty {
                 MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverChat.senderName ])
             }
             // Dont process messages that were already decrypted and saved.
             if isMessageDecryptedAndSaved(msgId: msg.id) {
-                sendAck(messageID: msg.id)
                 return
             }
 
@@ -664,7 +681,6 @@ final class ProtoService: ProtoServiceCore {
                     sender: UserAgent(string: serverChat.senderClientVersion),
                     rerequestCount: Int(msg.rerequestCount),
                     isSilent: false)
-                self.sendAck(messageID: msg.id)
             }
         case .silentChatStanza(let silent):
             let receiptTimestamp = Date()
@@ -690,10 +706,12 @@ final class ProtoService: ProtoServiceCore {
                     sender: UserAgent(string: silent.chatStanza.senderClientVersion),
                     rerequestCount: Int(msg.rerequestCount),
                     isSilent: true)
-                self.sendAck(messageID: msg.id)
             }
         case .rerequest(let rerequest):
             let userID = UserID(msg.fromUid)
+
+            // Check key integrity
+            MainAppContext.shared.keyData.service(self, didReceiveRerequestWithRerequestCount: Int(msg.rerequestCount))
 
             // Protobuf object will contain a 0 if no one time pre key was used
             let oneTimePreKeyID: Int? = rerequest.oneTimePreKeyID > 0 ? Int(rerequest.oneTimePreKeyID) : nil
@@ -708,15 +726,11 @@ final class ProtoService: ProtoServiceCore {
                 from: userID)
             if SilentChatMessage.isSilentChatID(rerequest.id) {
                 self.handleSilentChatRerequest(rerequest.id)
-                self.sendAck(messageID: msg.id)
             } else {
                 DDLogInfo("proto/didReceive/\(msg.id)/rerequest/chat")
                 if let delegate = chatDelegate {
-                    delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID) {
-                        self.sendAck(messageID: msg.id)
-                    }
-                } else {
-                    sendAck(messageID: msg.id)
+                    delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID, ack: ack)
+                    hasAckBeenDelegated = true
                 }
             }
         case .chatRetract(let pbChatRetract):
@@ -729,7 +743,6 @@ final class ProtoService: ProtoServiceCore {
                     messageID: pbChatRetract.id
                 ))
             }
-            sendAck(messageID: msg.id)
         case .groupchatRetract(let pbGroupChatRetract):
             let fromUserID = UserID(msg.fromUid)
             DispatchQueue.main.async {
@@ -740,51 +753,45 @@ final class ProtoService: ProtoServiceCore {
                     messageID: pbGroupChatRetract.id
                 ))
             }
-            sendAck(messageID: msg.id)
         case .feedItem(let pbFeedItem):
-            handleFeedItems([pbFeedItem], isEligibleForNotification: isEligibleForNotification) {
-                self.sendAck(messageID: msg.id)
-            }
+            handleFeedItems([pbFeedItem], isEligibleForNotification: isEligibleForNotification, ack: ack)
+            hasAckBeenDelegated = true
         case .feedItems(let pbFeedItems):
-            handleFeedItems(pbFeedItems.items, isEligibleForNotification: isEligibleForNotification) {
-                self.sendAck(messageID: msg.id)
-            }
+            handleFeedItems(pbFeedItems.items, isEligibleForNotification: isEligibleForNotification, ack: ack)
+            hasAckBeenDelegated = true
         case .groupFeedItem(let item):
             guard let delegate = feedDelegate else {
-                sendAck(messageID: msg.id)
                 break
             }
             let group = HalloGroup(id: item.gid, name: item.name, avatarID: item.avatarID)
             for content in payloadContents(for: [item]) {
                 let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
-                delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: msg.id) })
+                delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
+                hasAckBeenDelegated = true
             }
         case .groupFeedItems(let items):
             guard let delegate = feedDelegate else {
-                sendAck(messageID: msg.id)
                 break
             }
             let group = HalloGroup(id: items.gid, name: items.name, avatarID: items.avatarID)
             for content in payloadContents(for: items.items) {
                 // TODO: Wait until all payloads have been processed before acking.
                 let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
-                delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: msg.id) })
+                delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
+                hasAckBeenDelegated = true
             }
         case .contactHash(let pbContactHash):
             if pbContactHash.hash.isEmpty {
                 // Trigger full sync
                 MainAppContext.shared.syncManager.requestSync(forceFullSync: true)
-                sendAck(messageID: msg.id)
             } else if let decodedData = Data(base64Encoded: pbContactHash.hash) {
                 // Legacy Base64 protocol
-                MainAppContext.shared.syncManager.processNotification(contactHashes: [decodedData]) {
-                    self.sendAck(messageID: msg.id)
-                }
+                MainAppContext.shared.syncManager.processNotification(contactHashes: [decodedData], completion: ack)
+                hasAckBeenDelegated = true
             } else {
                 // Binary protocol
-                MainAppContext.shared.syncManager.processNotification(contactHashes: [pbContactHash.hash]) {
-                    self.sendAck(messageID: msg.id)
-                }
+                MainAppContext.shared.syncManager.processNotification(contactHashes: [pbContactHash.hash], completion: ack)
+                hasAckBeenDelegated = true
             }
         case .groupStanza(let pbGroup):
             if let group = HalloGroup(protoGroup: pbGroup, msgId: msg.id, retryCount: msg.retryCount) {
@@ -792,26 +799,21 @@ final class ProtoService: ProtoServiceCore {
             } else {
                 DDLogError("proto/didReceive/\(msg.id)/error could not read group stanza")
             }
-            sendAck(messageID: msg.id)
         case .groupChat(let pbGroupChat):
             if HalloGroupChatMessage(pbGroupChat, id: msg.id, retryCount: msg.retryCount) != nil {
                 DDLogError("proto/didReceive/\(msg.id)/group chat message - ignore")
             } else {
                 DDLogError("proto/didReceive/\(msg.id)/error could not read group chat message")
             }
-            sendAck(messageID: msg.id)
         case .name(let pbName):
             if !pbName.name.isEmpty {
                 // TODO: Is this necessary? Should we clear push name if name is empty?
                 MainAppContext.shared.contactStore.addPushNames([ UserID(pbName.uid): pbName.name ])
             }
-            sendAck(messageID: msg.id)
         case .endOfQueue:
             DDLogInfo("proto/didReceive/\(msg.id)/endOfQueue")
-            sendAck(messageID: msg.id)
         case .errorStanza(let error):
             DDLogError("proto/didReceive/\(msg.id) received message with error \(error)")
-            sendAck(messageID: msg.id)
         }
     }
 
@@ -963,8 +965,8 @@ extension ProtoService: HalloService {
         }
     }
 
-    func retractComment(_ comment: FeedCommentProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoRetractCommentRequest(id: comment.id, postID: comment.feedPostId, completion: completion))
+    func retractComment(id: FeedPostCommentID, postID: FeedPostID, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoRetractCommentRequest(id: id, postID: postID, completion: completion))
     }
 
     func retractPost(_ post: FeedPostProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
@@ -973,18 +975,6 @@ extension ProtoService: HalloService {
 
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoSharePostsRequest(postIDs: postIds, userID: userId, completion: completion))
-    }
-
-    func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoWhisperUploadRequest(keyBundle: bundle, completion: completion))
-    }
-
-    func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoWhisperAddOneTimeKeysRequest(preKeys: keys, completion: completion))
-    }
-
-    func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>) {
-        enqueue(request: ProtoWhisperGetCountOfOneTimeKeysRequest(completion: completion))
     }
 
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID) {
@@ -1025,7 +1015,7 @@ extension ProtoService: HalloService {
         guard isConnected else { return }
         
         var presence = Server_Presence()
-        presence.id = Utils().randomString(10)
+        presence.id = PacketID.generate(short: true)
         presence.type = {
             switch presenceType {
             case .away:
@@ -1052,7 +1042,7 @@ extension ProtoService: HalloService {
         guard isConnected else { return false }
 
         var presence = Server_Presence()
-        presence.id = Utils().randomString(10)
+        presence.id = PacketID.generate(short: true)
         presence.type = .subscribe
         if let uid = Int64(userID) {
             presence.toUid = uid
@@ -1263,14 +1253,6 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoResetGroupInviteLinkRequest(groupID: groupID, completion: completion))
     }
     
-    func getGroupPreviewWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
-        enqueue(request: ProtoGroupPreviewWithLinkRequest(inviteLink: inviteLink, completion: completion))
-    }
-    
-    func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
-        enqueue(request: ProtoJoinGroupWithLinkRequest(inviteLink: inviteLink, completion: completion))
-    }
-    
     func getGroupsList(completion: @escaping ServiceRequestCompletion<HalloGroups>) {
         enqueue(request: ProtoGroupsListRequest(completion: completion))
     }
@@ -1295,7 +1277,7 @@ extension ProtoService: HalloService {
     func changeGroupAvatar(groupID: GroupID, data: Data?, completion: @escaping ServiceRequestCompletion<String>) {
         enqueue(request: ProtoChangeGroupAvatarRequest(
             groupID: groupID,
-                    data: data,
+            data: data,
             completion: completion))
     }
     

@@ -11,6 +11,8 @@ import Combine
 import Core
 import UIKit
 import Social
+import Intents
+import IntentsUI
 
 private extension Localizations {
     static var titleDestinationFeed: String {
@@ -360,7 +362,7 @@ class ShareComposerViewController: UIViewController {
     private func makeCardView() -> UIView {
         let cardView = UIView()
         cardView.translatesAutoresizingMaskIntoConstraints = false
-        cardView.backgroundColor = .white
+        cardView.backgroundColor = .feedPostBackground
         cardView.layer.cornerRadius = 15
         cardView.layer.shadowColor = UIColor.black.cgColor
         cardView.layer.shadowOpacity = 0.05
@@ -720,10 +722,80 @@ class ShareComposerViewController: UIViewController {
         case .group(let group):
             DDLogInfo("ShareComposerViewController/upload group")
             ShareExtensionContext.shared.dataStore.post(group: group, text: mentionText, media: media, completion: onUploadFinish(_:))
+            addIntent(chatGroup: group)
         case .contact(let contact):
             DDLogInfo("ShareComposerViewController/upload contact")
             guard let userId = contact.userId else { return }
             ShareExtensionContext.shared.dataStore.send(to: userId, text: text, media: media, completion: onUploadFinish(_:))
+            addIntent(toUserId: userId)
+        }
+    }
+    
+    /// Donates an intent to Siri for improved suggestions when sharing content.
+    /// Intents are used by iOS to provide contextual suggestions to the user for certain interactions. In this case, we are suggesting the user send another message to the user they just shared with.
+    /// For more information, see [this documentation](https://developer.apple.com/documentation/sirikit/insendmessageintent)\.
+    /// - Parameter chatGroup: The ID for the group the user is sharing to
+    /// - Remark: This is different from the implementation in `FeedData.swift` because `MainAppContext` isn't available.
+    private func addIntent(chatGroup: GroupListItem) {
+        if #available(iOS 14.0, *) {
+            let recipient = INSpeakableString(spokenPhrase: chatGroup.name)
+            let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                        content: nil,
+                                                        speakableGroupName: recipient,
+                                                        conversationIdentifier: ConversationID(id: chatGroup.id, type: .group).description,
+                                                        serviceName: nil,
+                                                        sender: nil)
+            
+            let potentialUserAvatar = ShareExtensionContext.shared.avatarStore.groupAvatarData(for: chatGroup.id).image
+            guard let defaultAvatar = UIImage(named: "AvatarGroup") else { return }
+            
+            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
+            let userAvatar = INImage(imageData: userAvaterUIImage)
+            
+            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+            
+            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+            interaction.donate(completion: { error in
+                if let error = error {
+                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+                }
+            })
+        }
+    }
+    
+    /// Donates an intent to Siri for improved suggestions when sharing content.
+    ///
+    /// Intents are used by iOS to provide contextual suggestions to the user for certain interactions. In this case, we are suggesting the user send another message to the user they just shared with.
+    /// For more information, see [this documentation](https://developer.apple.com/documentation/sirikit/insendmessageintent)\.
+    /// - Parameter toUserId: The user ID for the person the user just shared with
+    /// - Remark: This is different from the implementation in `ChatData.swift` because `MainAppContext` isn't available in the share extension.
+    private func addIntent(toUserId: UserID) {
+        if #available(iOS 14.0, *) {
+            guard let fullName = ShareExtensionContext.shared.contactStore.fullNameIfAvailable(for: toUserId, ownName: Localizations.meCapitalized) else { return }
+            
+            let recipient = INSpeakableString(spokenPhrase: fullName)
+            let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                        content: nil,
+                                                        speakableGroupName: recipient,
+                                                        conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
+                                                        serviceName: nil, sender: nil)
+            
+            let potentialUserAvatar = ShareExtensionContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
+            guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
+            
+            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
+            let userAvatar = INImage(imageData: userAvaterUIImage)
+            
+            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+            
+            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+            interaction.donate(completion: { error in
+                if let error = error {
+                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+                }
+            })
         }
     }
 

@@ -135,19 +135,19 @@ class PrivacyViewController: UITableViewController {
     }
 
     private func reloadPrivacyValues() {
-        let privacySettings = MainAppContext.shared.privacySettings!
+        let privacySettings = MainAppContext.shared.privacySettings
         cellPostsPrivacy.detailTextLabel?.text = privacySettings.shortFeedSetting
         cellBlockedContacts.detailTextLabel?.text = privacySettings.blockedSetting
     }
 
     private func openPostsPrivacy() {
-        let privacySettings = MainAppContext.shared.privacySettings!
+        let privacySettings = MainAppContext.shared.privacySettings
         let feedPrivacyView = FeedPrivacyView(privacySettings: privacySettings)
         navigationController?.pushViewController(UIHostingController(rootView: feedPrivacyView), animated: true)
     }
 
     private func openBlockedContacts() {
-        let privacySettings = MainAppContext.shared.privacySettings!
+        let privacySettings = MainAppContext.shared.privacySettings
         let viewController = PrivacyListViewController(privacyList: privacySettings.blocked, settings: privacySettings)
         viewController.dismissAction = {
             self.reloadPrivacyValues()

@@ -115,7 +115,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         
         addSubview(containerView)
 //        containerView.backgroundColor = UIColor.systemBackground
-        containerView.backgroundColor = UIColor.clear
+        containerView.backgroundColor = UIColor.messageFooterBackground
         containerView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
         containerView.topAnchor.constraint(equalTo: topAnchor).isActive = true
         containerView.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
@@ -130,7 +130,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
         // Bottom Safe Area background
         let bottomBackgroundView = UIView()
-        bottomBackgroundView.backgroundColor = .systemBackground
+        bottomBackgroundView.backgroundColor = UIColor.messageFooterBackground
         bottomBackgroundView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(bottomBackgroundView)
         bottomBackgroundView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor).isActive = true
@@ -238,7 +238,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.alignment = .trailing
     
         let subView = UIView(frame: view.bounds)
-        subView.backgroundColor = UIColor.systemBackground
+        subView.backgroundColor = UIColor.messageFooterBackground
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.insertSubview(subView, at: 0)
         
@@ -380,7 +380,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         let view = InputTextView(frame: .zero)
         view.isScrollEnabled = false
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor.clear
+        view.backgroundColor = UIColor.messageFooterBackground
         view.textContainerInset.left = 8
         view.textContainerInset.right = 8
         view.font = UIFont.preferredFont(forTextStyle: .subheadline)
@@ -408,7 +408,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         button.isEnabled = true
         button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-        button.tintColor = UIColor.label
+        button.tintColor = UIColor.primaryBlue
         
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -557,19 +557,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     }
 
     // MARK: Quote Panel
-
-    func videoPreviewImage(url: URL) -> UIImage? {
-        let asset = AVURLAsset(url: url)
-        let generator = AVAssetImageGenerator(asset: asset)
-        generator.appliesPreferredTrackTransform = true
-        
-        if let cgImage = try? generator.copyCGImage(at: CMTime(seconds: 2, preferredTimescale: 60), actualTime: nil) {
-            return UIImage(cgImage: cgImage)
-        }
-        else {
-            return nil
-        }
-    }
     
     func showQuoteFeedPanel(with userId: String, text: String, mediaType: ChatMessageMediaType?, mediaUrl: URL?, groupID: GroupID? = nil, from viewController: UIViewController) {
         quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
@@ -591,7 +578,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                     quoteFeedPanelImage.image = image
                 }
             } else if mediaType == .video {
-                if let image = videoPreviewImage(url: fileUrl) {
+                if let image = VideoUtils.videoPreviewImage(url: fileUrl) {
                     quoteFeedPanelImage.image = image
                 }
             }

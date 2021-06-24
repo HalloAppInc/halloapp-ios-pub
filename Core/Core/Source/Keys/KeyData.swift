@@ -1,5 +1,6 @@
 //
-//  HalloApp
+//  KeyData.swift
+//  Core
 //
 //  Created by Tony Jiang on 7/15/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
@@ -7,26 +8,34 @@
 
 import CocoaLumberjack
 import Combine
-import Core
 import CoreData
 import CryptoKit
 import CryptoSwift
 import Foundation
 import Sodium
 
-class KeyData {
+enum KeyDataError: Error {
+    case identityKeyMismatch
+    case identityKeyMissing
+}
+
+public class KeyData {
     let oneTimePreKeysToUpload: Int32 = 100
     let thresholdToUploadMoreOTPKeys: Int32 = 5
     var isOneTimePreKeyUploadInProgress = false
-    
+
+    private struct UserDefaultsKey {
+        static let identityKeyVerificationDate = "com.halloapp.identity.key.verification.date"
+    }
+
     private var userData: UserData
-    private var service: HalloService
+    private var service: CoreService
     
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var keyStore: KeyStore
     
-    init(service: HalloService, userData: UserData, keyStore: KeyStore) {
+    init(service: CoreService, userData: UserData, keyStore: KeyStore) {
         self.service = service
         self.userData = userData
         self.keyStore = keyStore
@@ -132,32 +141,37 @@ class KeyData {
 
         DDLogInfo("KeyStore/uploadMoreOneTimePreKeys")
         isOneTimePreKeyUploadInProgress = true
-        self.keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            guard let userKeyBundle = self.keyStore.keyBundle(in: managedObjectContext) else {
-                DDLogInfo("KeyStore/uploadMoreOneTimePreKeys/noKeysFound")
+
+        guard let userKeyBundle = keyStore.keyBundle() else {
+            DDLogError("KeyStore/uploadMoreOneTimePreKeys/error [noKeysFound]")
+            return
+        }
+
+        let generatedOTPKeys = self.generateOneTimePreKeys(initialCounter: userKeyBundle.oneTimePreKeysCounter)
+
+        saveOneTimePreKeys(generatedOTPKeys) { saveSuccess in
+            guard saveSuccess else {
+                DDLogError("KeyStore/uploadMoreOneTimePreKeys/error [saveError]")
+                self.isOneTimePreKeyUploadInProgress = false
                 return
             }
-            
-            let generatedOTPKeys = self.generateOneTimePreKeys(initialCounter: userKeyBundle.oneTimePreKeysCounter)
 
             self.service.requestAddOneTimeKeys(generatedOTPKeys.map { $0.publicPreKey }) { result in
+                self.isOneTimePreKeyUploadInProgress = false
                 switch result {
                 case .success:
-                    self.saveOneTimePreKeys(generatedOTPKeys) {
-                        self.isOneTimePreKeyUploadInProgress = false
-                    }
+                    DDLogInfo("KeyStore/uploadMoreOneTimePreKeys/complete")
                 case .failure(let error):
                     DDLogError("KeyStore/uploadMoreOneTimePreKeys/error \(error)")
-                    self.isOneTimePreKeyUploadInProgress = false
                 }
             }
         }
     }
 
-    private func saveOneTimePreKeys(_ preKeys: [PreKeyPair<X25519>], completion: (() -> Void)?) {
+    private func saveOneTimePreKeys(_ preKeys: [PreKeyPair<X25519>], completion: ((Bool) -> Void)?) {
         guard let maxKeyID = preKeys.map({ $0.id }).max() else {
             DDLogInfo("KeyData/saveOneTimePreKeys/skipping (empty)")
-            completion?()
+            completion?(false)
             return
         }
 
@@ -165,7 +179,7 @@ class KeyData {
         self.keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let userKeyBundle = self.keyStore.keyBundle(in: managedObjectContext) else {
                 DDLogInfo("KeyData/saveOneTimePreKeys/noKeysFound")
-                completion?()
+                completion?(false)
                 return
             }
 
@@ -185,8 +199,10 @@ class KeyData {
             userKeyBundle.oneTimePreKeysCounter = maxKeyID + 1
 
             if managedObjectContext.hasChanges {
-                self.keyStore.save(managedObjectContext)
-                completion?()
+                let saveSuccess = self.keyStore.save(managedObjectContext)
+                completion?(saveSuccess)
+            } else {
+                completion?(false)
             }
         }
     }
@@ -222,16 +238,68 @@ class KeyData {
             return PreKeyPair(id: $0, keyPair: oneTimePreKeyPair.keyPairX25519())
         }
     }
+
+    private var isVerifyingIdentityKey = false
+
+    private func verifyIdentityKeyIfNecessary() {
+        guard !isVerifyingIdentityKey else {
+            DDLogInfo("KeyData/verifyIdentityKey/skipping [in progress]")
+            return
+        }
+
+        let oneDay = TimeInterval(86400)
+
+        if let lastVerificationDate = AppContext.shared.userDefaults.object(forKey: UserDefaultsKey.identityKeyVerificationDate) as? Date,
+           lastVerificationDate.advanced(by: oneDay) > Date()
+        {
+            DDLogInfo("KeyData/verifyIdentityKey/skipping [last verified: \(lastVerificationDate)]")
+            return
+        }
+
+        guard let savedIdentityKey = keyStore.keyBundle()?.identityPublicEdKey else {
+            self.didFailIdentityKeyVerification(with: .identityKeyMissing)
+            return
+        }
+
+        isVerifyingIdentityKey = true
+        service.requestWhisperKeyBundle(userID: userData.userId) { result in
+            switch result {
+            case .failure(let error):
+                DDLogError("KeyData/verifyIdentityKey/error [\(error)]")
+            case .success(let bundle):
+                if bundle.identity == savedIdentityKey {
+                    DDLogError("KeyData/verifyIdentityKey/success")
+                    AppContext.shared.userDefaults.setValue(Date(), forKey: UserDefaultsKey.identityKeyVerificationDate)
+                } else {
+                    DDLogInfo("KeyData/verifyIdentityKey/identityKeyMismatch: saved: \(savedIdentityKey.bytes), received:\(bundle.identity.bytes)")
+                    self.didFailIdentityKeyVerification(with: .identityKeyMismatch)
+                }
+            }
+            self.isVerifyingIdentityKey = false
+        }
+    }
+
+    private func didFailIdentityKeyVerification(with error: KeyDataError) {
+        DDLogError("KeyData/didFailIdentityKeyVerification [\(error)]")
+        AppContext.shared.errorLogger?.logError(error)
+        userData.logout()
+    }
 }
 
-extension KeyData: HalloKeyDelegate {
-    public func halloService(_ halloService: HalloService, didReceiveWhisperMessage message: WhisperMessage) {
+extension KeyData: ServiceKeyDelegate {
+    public func service(_ service: CoreService, didReceiveWhisperMessage message: WhisperMessage) {
         DDLogInfo("KeyData/didReceiveWhisperMessage \(message)")
         switch message {
         case .update(let uid):
             self.keyStore.deleteMessageKeyBundles(for: uid)
         case .count(let otpKeyCountNum):
             self.uploadMoreOTPKeysIfNeeded(currentNum: otpKeyCountNum)
+        }
+    }
+
+    public func service(_ service: CoreService, didReceiveRerequestWithRerequestCount rerequestCount: Int) {
+        if rerequestCount > 2 {
+            verifyIdentityKeyIfNecessary()
         }
     }
 }

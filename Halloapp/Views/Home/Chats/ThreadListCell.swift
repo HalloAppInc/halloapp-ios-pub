@@ -49,7 +49,7 @@ class ThreadListCell: UITableViewCell {
         avatarView.avatarView.prepareForReuse()
     }
 
-    private func lastMessageText(for chatThread: ChatThread) -> NSAttributedString {
+    private func lastMessageText(for chatThread: ChatThread) -> NSMutableAttributedString {
 
         var contactNamePart = ""
         if chatThread.type == .group {
@@ -76,11 +76,11 @@ class ThreadListCell: UITableViewCell {
         let messageStatusIcon: UIImage? = {
             switch chatThread.lastMsgStatus {
             case .sentOut:
-                return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray3)
+                return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray)
             case .delivered:
-                return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray3)
+                return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray)
             case .seen:
-                return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
+                return UIImage(named: "CheckmarkDouble")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
             default:
                 return nil
             }
@@ -138,7 +138,7 @@ class ThreadListCell: UITableViewCell {
         return result
     }
 
-    private func lastFeedText(for chatThread: ChatThread) -> NSAttributedString {
+    private func lastFeedText(for chatThread: ChatThread) -> NSMutableAttributedString {
 
         var contactNamePart = ""
         if chatThread.type == .group {
@@ -202,11 +202,13 @@ class ThreadListCell: UITableViewCell {
             titleLabel.text = chatThread.title
         }
 
-        lastMsgLabel.attributedText = lastMessageText(for: chatThread)
+        lastMsgLabel.attributedText = lastMessageText(for: chatThread).firstLineWithEllipsisIfNecessary()
 
         if chatThread.unreadCount > 0 {
             unreadCountView.isHidden = false
             unreadCountView.label.text = String(chatThread.unreadCount)
+            unreadCountView.label.insetsLayoutMarginsFromSafeArea = true
+            unreadCountView.layoutMargins = UIEdgeInsets(top: 1, left: chatThread.unreadCount >= 10 ? 5 : 1, bottom: 1, right: chatThread.unreadCount >= 10 ? 5 : 1)
             timeLabel.textColor = .systemBlue
         } else if chatThread.isNew && chatThread.chatWithUserId != MainAppContext.shared.userData.userId {
             unreadCountView.isHidden = false
@@ -233,7 +235,7 @@ class ThreadListCell: UITableViewCell {
         self.chatThread = chatThread
         titleLabel.text = chatThread.title
         
-        lastMsgLabel.attributedText = lastFeedText(for: chatThread)
+        lastMsgLabel.attributedText = lastFeedText(for: chatThread).firstLineWithEllipsisIfNecessary()
 
         if chatThread.unreadFeedCount > 0 {
             unreadCountView.isHidden = false
@@ -426,4 +428,17 @@ private extension Localizations {
         NSLocalizedString("post.has.been.deleted", value: "This post has been deleted", comment: "Displayed in place of a deleted group feed post at group list screen")
     }
 
+}
+
+private extension NSMutableAttributedString {
+    func firstLineWithEllipsisIfNecessary() -> NSAttributedString {
+        if let newLine = string.firstIndex(of: "\n") {
+            replaceCharacters(in: NSRange(location: string.distance(from: string.startIndex, to: newLine), length: 1), with: "...\n")
+            
+            guard let newLine = string.firstIndex(of: "\n") else { return self }
+            return attributedSubstring(from: NSRange(location: 0, length: string.distance(from: string.startIndex, to: newLine)))
+        }
+        
+        return self
+    }
 }

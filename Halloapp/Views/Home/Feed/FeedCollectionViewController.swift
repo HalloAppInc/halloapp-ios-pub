@@ -488,12 +488,12 @@ extension FeedCollectionViewController {
             switch item {
             case .event(let event):
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier, for: indexPath)
-                (cell as? FeedEventCollectionViewCell)?.configure(with: event.description, type: .event, bgColor: event.bgColor)
+                (cell as? FeedEventCollectionViewCell)?.configure(with: event.description, type: .event, isThemed: event.isThemed)
                 return cell
             case .post(let feedPost):
                 guard !feedPost.isPostRetracted else {
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier, for: indexPath)
-                    (cell as? FeedEventCollectionViewCell)?.configure(with: Localizations.deletedPost(from: feedPost.userId), type: .deletedPost, bgColor: UIColor.feedPostEventDeletedBg)
+                    (cell as? FeedEventCollectionViewCell)?.configure(with: Localizations.deletedPost(from: feedPost.userId), type: .deletedPost)
                     return cell
                 }
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier, for: indexPath)

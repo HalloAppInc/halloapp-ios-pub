@@ -111,19 +111,36 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         MediaCarouselVideoCollectionViewCell.videoDidStartPlaying.send(nil)
     }
 
-    class func preferredHeight(for media: [FeedMedia], width: CGFloat, maxAllowedAspectRatio: CGFloat = 5 / 4) -> CGFloat {
+    class func preferredHeight(for media: [FeedMedia], width: CGFloat) -> CGFloat {
+        let maxHeight: CGFloat = {
+            // We're seeing some posts appear with missing media when opening app from notification.
+            // Could be related to screen bounds flakiness immediately after waking? https://developer.apple.com/forums/thread/65337
+            // For now let's assume portrait orientation. This will need to change if we support landscape.
+            let screenBounds = UIScreen.main.bounds
+            let screenLongDimension = max(screenBounds.height, screenBounds.width)
+            if screenLongDimension != screenBounds.height {
+                DDLogInfo("Unexpected landscape screen bounds: [\(screenBounds)]")
+            }
+            let minScreenHeight: CGFloat = 568 // 2016 iPhone SE
+            if screenLongDimension < minScreenHeight {
+                DDLogError("Screen bounds too small: [\(screenBounds)]")
+                assert(false, "Invalid screen bounds detected!")
+            }
+            return max(screenLongDimension, minScreenHeight) - 320
+        }()
+
         let aspectRatios: [CGFloat] = media.compactMap {
             guard $0.size.width > 0 else { return nil }
             return $0.size.height / $0.size.width
         }
         guard let tallestItemAspectRatio = aspectRatios.max() else { return 0 }
 
-        var height = (width * min(maxAllowedAspectRatio, tallestItemAspectRatio)).rounded()
-
+        var height = tallestItemAspectRatio * width
         if media.count > 1 {
             height += MediaCarouselView.pageControlAreaHeight
         }
-        return height
+
+        return min(maxHeight, height)
     }
 
     static private let cellReuseIdentifierImage = "MediaCarouselCellImage"
@@ -600,6 +617,7 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
 
         imageView = ZoomableImageView(frame: contentView.bounds)
         imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+        imageView.contentMode = .scaleAspectFit
         contentView.addSubview(imageView)
     }
 
@@ -641,14 +659,6 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
         imageView.isHidden = false
         imageView.image = image
 
-        let isImageWideEnoughToFit: Bool = {
-            guard image.size.height > 0 && imageView.frame.height > 0 else { return true }
-            let imageAspectRatio = image.size.width / image.size.height
-            let viewAspectRatio = imageView.frame.width / imageView.frame.height
-            return imageAspectRatio >= viewAspectRatio
-        }()
-        imageView.contentMode = isImageWideEnoughToFit || scaleContentToFit ? .scaleAspectFit : .scaleAspectFill
-
         // Loading cancellable is no longer needed
         imageLoadingCancellable?.cancel()
         imageLoadingCancellable = nil
@@ -669,7 +679,10 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
 
     private var placeholderImageView: UIImageView!
     private(set) var videoURL: URL?
+    private var videoSize: CGSize?
+
     private var avPlayerViewController: AVPlayerViewController!
+    private var looper: AVPlayerLooper?
     private var playButton: UIButton!
     private var initialPlaybackTime: CMTime = .zero
     private var isPlayerAtStart = true
@@ -804,7 +817,8 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     override func configure(with media: FeedMedia) {
         super.configure(with: media)
 
-        avPlayerViewController.videoGravity = media.size.width > media.size.height || scaleContentToFit ? .resizeAspect : .resizeAspectFill
+        avPlayerViewController.videoGravity = .resizeAspect
+        videoSize = media.size
 
         if media.isMediaAvailable {
             showPlayer(forVideoURL: media.fileURL!)
@@ -832,7 +846,9 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerViewController.view.isHidden = false
         placeholderImageView.isHidden = true
 
-        let avPlayer = AVPlayer(url: videoURL)
+        let item = AVPlayerItem(url: videoURL)
+        let avPlayer = AVQueuePlayer(playerItem: item)
+        looper = AVPlayerLooper(player: avPlayer, templateItem: item)
         // Monitor when this cell's video starts playing and send out broadcast when it does.
         avPlayerRateObservation = avPlayer.observe(\.rate, options: [ ], changeHandler: { [weak self] (player, change) in
             if player.rate == 1 {
@@ -894,7 +910,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         guard let player = avPlayerViewController.player else { return }
         guard let item = player.currentItem else { return }
 
-        let seekTime = FeedMedia.getThumbnailTime(duration: item.duration)
+        let seekTime = VideoUtils.getThumbnailTime(duration: item.duration)
         player.seek(to: seekTime)
     }
 
@@ -941,33 +957,27 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func updatePlayerViewFrame() {
-        // Video takes entire cell content.
-        if avPlayerViewController.videoBounds.size == .zero || avPlayerViewController.videoGravity == .resizeAspectFill {
+        guard let videoSize = videoSize, videoSize.height > 0 && videoSize.width > 0 && avPlayerViewController.videoGravity != .resizeAspectFill else
+        {
+            // Video takes entire cell content.
             setPlayerView(frame: contentView.bounds)
             return
         }
+        let contentSize = contentView.bounds.size
+        let videoScale = min(contentSize.height/videoSize.height, contentSize.width/videoSize.width)
+        let playerSize = videoSize.applying(.init(scaleX: videoScale, y: videoScale))
+        let playerFrame = CGRect(
+            origin: CGPoint(x: (contentSize.width - playerSize.width) / 2, y: (contentSize.height - playerSize.height) / 2),
+            size: playerSize)
 
-        let videoSize = avPlayerViewController.videoBounds.integral.size
-        let cellAspectRatio = contentView.bounds.width / contentView.bounds.height
-        let videoAspectRatio = videoSize.width / videoSize.height
-
-        // Stop updating frame if desired size was reached.
-        guard abs(cellAspectRatio - videoAspectRatio) > 0.01 else {
-            return
-        }
-
-        var rect = contentView.bounds
-        if cellAspectRatio > videoAspectRatio {
-            rect.size.width = ceil(rect.height * videoAspectRatio)
-            rect.origin.x = (contentView.bounds.width - rect.width) / 2
-        } else {
-            rect.size.height = ceil(rect.width / videoAspectRatio)
-            rect.origin.y = (contentView.bounds.height - rect.height) / 2
-        }
-        setPlayerView(frame: rect)
+        setPlayerView(frame: playerFrame)
     }
 
     private func setPlayerView(frame: CGRect) {
+        guard avPlayerViewController.view.frame != frame else {
+            DDLogInfo("MediaCarouselView/setPlayerViewFrame/skipping [equal]")
+            return
+        }
         avPlayerViewController.view.frame = frame
 
         let maskLayer = CAShapeLayer()

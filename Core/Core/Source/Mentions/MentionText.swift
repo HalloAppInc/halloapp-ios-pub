@@ -12,7 +12,7 @@ import Foundation
 public typealias MentionRangeMap = [NSRange: MentionedUser]
 
 /// Struct representing user that was mentioned in a post or comment
-public struct MentionedUser {
+public struct MentionedUser: Codable {
     public init(userID: UserID, pushName: String?) {
         self.userID = userID
         self.pushName = pushName
@@ -25,7 +25,7 @@ public struct MentionedUser {
 }
 
 /// Contains text with "@" placeholders that can be replaced with the names of mentioned users.
-public struct MentionText {
+public struct MentionText: Codable {
     public var collapsedText: String
     public var mentions: [Int: MentionedUser]
 
@@ -71,7 +71,14 @@ public struct MentionText {
 
     /// Returns an attributed string where mention placeholders have been replaced with provided names. User IDs are retrievable via the .userMention attribute.
     public func expandedText(nameProvider: (UserID) -> String) -> NSAttributedString {
+        return expandedTextAndMentions(nameProvider: nameProvider).text
+    }
+    
+    /// - Parameter nameProvider: This closure returns the user's name given an ID. User IDs are retrievable via the .userMention attribute.
+    /// - Returns: A tuple including an attributed string where mention placeholders have been replaced with provided names and a map of NSRanges to the user being mentioned
+    public func expandedTextAndMentions(nameProvider: (UserID) -> String) -> (text: NSAttributedString, mentions: MentionRangeMap) {
         let mutableString = NSMutableAttributedString(string: collapsedText)
+        var mentionsMap: MentionRangeMap = [:]
         // NB: We replace mention placeholders with usernames in reverse order so we don't change indices
         let reverseOrderedMentions = mentions.sorted { $0.key > $1.key }
         for (index, user) in reverseOrderedMentions {
@@ -87,7 +94,10 @@ public struct MentionText {
             mutableString.replaceCharacters(
                 in: NSRange(location: index, length: 1),
                 with: replacementString)
+            
+            mentionsMap[NSRange(location: index, length: replacementString.length)] = user
         }
-        return mutableString
+        
+        return (mutableString, mentionsMap)
     }
 }

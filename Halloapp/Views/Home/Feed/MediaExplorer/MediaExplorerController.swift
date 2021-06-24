@@ -11,6 +11,7 @@ import Core
 import CoreData
 import Foundation
 import UIKit
+import CocoaLumberjack
 
 protocol MediaExplorerTransitionDelegate: AnyObject {
     func getTransitionView(atPostion index: Int) -> UIView?
@@ -106,7 +107,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     init(media: [ChatQuotedMedia], index: Int) {
         self.media = media.map {
-            let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent($0.relativeFilePath ?? "", isDirectory: false)
+            let url = $0.mediaUrl
             let image: UIImage? = $0.type == .image ? UIImage(contentsOfFile: url.path) : nil
             return MediaExplorerMedia(url: url, image: image, type: ($0.type == .image ? .image : .video), size: .zero)
         }

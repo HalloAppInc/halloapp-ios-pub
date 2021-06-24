@@ -147,13 +147,13 @@ class SettingsNotificationsViewController: UITableViewController {
     }
 
     private func openPostsPrivacy() {
-        let privacySettings = MainAppContext.shared.privacySettings!
+        let privacySettings = MainAppContext.shared.privacySettings
         let feedPrivacyView = FeedPrivacyView(privacySettings: privacySettings)
         navigationController?.pushViewController(UIHostingController(rootView: feedPrivacyView), animated: true)
     }
 
     private func openBlockedContacts() {
-        let privacySettings = MainAppContext.shared.privacySettings!
+        let privacySettings = MainAppContext.shared.privacySettings
         let viewController = PrivacyListViewController(privacyList: privacySettings.blocked, settings: privacySettings)
         viewController.dismissAction = {
             self.reloadSettingValues()

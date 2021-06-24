@@ -31,14 +31,8 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
     }
 
     private func computeSize(containerSize: CGSize, contentSize: CGSize) -> CGSize {
-        var scale = CGFloat(1.0)
-        if contentSize.width > contentSize.height {
-            // .scaleAspectFit
-            scale = min(containerSize.width / contentSize.width, containerSize.height / contentSize.height)
-        } else {
-            // .scaleAspectFill
-            scale = max(containerSize.width / contentSize.width, containerSize.height / contentSize.height)
-        }
+        // .scaleAspectFit
+        let scale = min(containerSize.width / contentSize.width, containerSize.height / contentSize.height)
 
         let width = min(containerSize.width, contentSize.width * scale)
         let height = min(containerSize.height, contentSize.height * scale)
@@ -66,8 +60,7 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
             guard let image = media.image else { return nil }
 
             let imageView = UIImageView(image: image)
-            imageView.contentMode = media.size.width > media.size.height ? .scaleAspectFit : .scaleAspectFill
-            imageView.clipsToBounds = true
+            imageView.contentMode = .scaleAspectFit
 
             return imageView
         } else if media.type == .video {
@@ -75,7 +68,7 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
 
             let videoView = VideoTransitionView()
             videoView.player = AVPlayer(url: url)
-            videoView.playerLayer.videoGravity = media.size.width > media.size.height ? .resizeAspect : .resizeAspectFill
+            videoView.playerLayer.videoGravity = .resizeAspect
 
             if presenting, let index = originIndex, let time = delegate?.currentTimeForVideo(atPostion: index) {
                 videoView.player?.seek(to: time)

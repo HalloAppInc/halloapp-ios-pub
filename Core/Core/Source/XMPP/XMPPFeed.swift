@@ -127,7 +127,6 @@ public struct PostData: FeedPostProtocol {
 }
 
 public struct MentionData: FeedMentionProtocol {
-
     public let index: Int
     public let userID: String
     public let name: String
@@ -227,7 +226,7 @@ public enum CommentContent {
     case retracted
  }
 
-public struct CommentData: FeedCommentProtocol {
+public struct CommentData {
 
     // MARK: FeedItem
     public let id: FeedPostCommentID
@@ -239,26 +238,13 @@ public struct CommentData: FeedCommentProtocol {
     public let parentId: FeedPostCommentID?
     public var content: CommentContent
 
-    public var text: String {
-        switch content {
-        case .retracted, .unsupported:
-            return ""
-        case .text(let mentionText):
-            return mentionText.collapsedText
-        }
-    }
-
-    public var orderedMentions: [FeedMentionProtocol] {
-        switch content {
-        case .retracted, .unsupported:
-            return []
-        case .text(let mentionText):
-            return mentionText.mentions
-                .map { (i, user) in
-                    MentionData(index: i, userID: user.userID, name: user.pushName ?? "")
-                }
-                .sorted { $0.index < $1.index }
-        }
+    public init(id: FeedPostCommentID, userId: UserID, timestamp: Date = Date(), feedPostId: FeedPostID, parentId: FeedPostCommentID?, content: CommentContent) {
+        self.id = id
+        self.userId = userId
+        self.timestamp = timestamp
+        self.feedPostId = feedPostId
+        self.parentId = parentId
+        self.content = content
     }
 
     public init?(_ serverComment: Server_Comment) {

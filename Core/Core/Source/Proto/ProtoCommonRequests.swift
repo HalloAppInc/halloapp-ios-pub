@@ -81,7 +81,7 @@ public final class ProtoPublishPostRequest: ProtoRequest<Date> {
 
 public final class ProtoPublishCommentRequest: ProtoRequest<Date> {
 
-    public init?(comment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping Completion) {
+    public init?(comment: CommentData, groupId: GroupID?, completion: @escaping Completion) {
         guard let serverComment = comment.serverComment else {
             return nil
         }
@@ -207,6 +207,49 @@ public final class ProtoLoggingRequest: ProtoRequest<Void> {
         super.init(
             iqPacket: .iqPacket(type: .set, payload: .clientLog(clientLog)),
             transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
+
+public final class ProtoSendNameRequest: ProtoRequest<Void> {
+
+    public init(name: String, completion: @escaping Completion) {
+        var serverName = Server_Name()
+        serverName.name = name
+
+        super.init(
+            iqPacket: .iqPacket(type: .set, payload: .name(serverName)),
+            transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
+
+public final class ProtoGroupPreviewWithLinkRequest: ProtoRequest<Server_GroupInviteLink> {
+
+    public init(inviteLink: String, completion: @escaping Completion) {
+        var groupInviteLink = Server_GroupInviteLink()
+        groupInviteLink.action = .preview
+        groupInviteLink.link = inviteLink
+
+        super.init(
+            iqPacket: .iqPacket(type: .get, payload: .groupInviteLink(groupInviteLink)),
+            transform: { (iq) in
+                return .success(iq.groupInviteLink) },
+            completion: completion)
+    }
+}
+
+public final class ProtoJoinGroupWithLinkRequest: ProtoRequest<Server_GroupInviteLink> {
+
+    public init(inviteLink: String, completion: @escaping Completion) {
+        var groupInviteLink = Server_GroupInviteLink()
+        groupInviteLink.action = .join
+        groupInviteLink.link = inviteLink
+
+        super.init(
+            iqPacket: .iqPacket(type: .set, payload: .groupInviteLink(groupInviteLink)),
+            transform: { (iq) in
+                return .success(iq.groupInviteLink) },
             completion: completion)
     }
 }

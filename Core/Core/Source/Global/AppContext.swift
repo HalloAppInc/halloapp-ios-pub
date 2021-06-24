@@ -49,7 +49,8 @@ open class AppContext {
         return "\(version).\(buildNumber)"
     }()
 
-    public static let appStoreURL: URL? = URL(string: "itms-apps://apple.com/app/1501583052")
+    public static let appStoreProductID = 1501583052
+    public static let appStoreURL: URL? = URL(string: "itms-apps://apple.com/app/\(appStoreProductID)")
 
     public static let userAgent: String = { UserAgent(platform: .ios, version: appVersionForService).description }()
 
@@ -67,6 +68,7 @@ open class AppContext {
     public static let userDefaultsForAppGroup: UserDefaults! = UserDefaults(suiteName: appGroupName)
     public let userDefaults: UserDefaults! = AppContext.userDefaultsForAppGroup
     public let keyStore: KeyStore
+    public var keyData: KeyData!
     public let messageCrypter: MessageCrypter
     public let fileLogger: DDFileLogger
     public let phoneNumberFormatter = PhoneNumberKit(metadataCallback: AppContext.phoneNumberKitMetadataCallback)
@@ -87,6 +89,12 @@ open class AppContext {
     open var contactStore: ContactStore {
         get {
             contactStoreImpl
+        }
+    }
+    private let privacySettingsImpl: PrivacySettings
+    open var privacySettings: PrivacySettings {
+        get {
+            privacySettingsImpl
         }
     }
 
@@ -208,7 +216,9 @@ open class AppContext {
         userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL)
         coreService = serviceBuilder(userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
+        privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)
         keyStore = KeyStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
+        keyData = KeyData(service: coreService, userData: userData, keyStore: keyStore)
         messageCrypter = MessageCrypter(service: coreService, keyStore: keyStore)
         keyStore.delegate = messageCrypter
 
