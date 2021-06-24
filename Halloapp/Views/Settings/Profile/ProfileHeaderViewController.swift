@@ -372,7 +372,7 @@ private final class ProfileHeaderView: UIView {
         button.tintColor = .primaryBlue
         
         button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
-        button.setTitle("Group In Common", for: .normal)
+        button.setTitle(Localizations.groupInCommonButtonLabel, for: .normal)
         
         button.isHidden = true
         return button
@@ -391,5 +391,9 @@ extension Localizations {
     
     static var profileHeaderMessageUser: String {
         NSLocalizedString("profile.header.message.user", value: "Message", comment: "Text for messaging user under profile header")
+    }
+    
+    static var groupInCommonButtonLabel: String {
+        NSLocalizedString("profile.group.in.common", value: "Group In Common", comment: "A label for the button which leads to the page showing groups in common")
     }
 }

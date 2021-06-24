@@ -40,7 +40,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     }
     private var groupIdToPresent: GroupID? = nil
     
-    private var fromID : String?
+    private var userID : UserID
     
     func updateCommonGroups() {
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
@@ -55,7 +55,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
             let group = MainAppContext.shared.chatData.chatGroup(groupId: Id)
             guard let members = group?.members else { return false}
             for member in members {
-                if (member.userId == self.fromID) {
+                if (member.userId == self.userID) {
                     return true
                 }
             }
@@ -66,10 +66,10 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     // MARK: Lifecycle
     
     init(userID: String) {
+        self.userID = userID
         super.init(nibName: nil, bundle: nil)
         let fromName = MainAppContext.shared.contactStore.fullName(for: userID)
         self.title = String(format: "With %@", fromName)
-        self.fromID = userID
 
     }
 
