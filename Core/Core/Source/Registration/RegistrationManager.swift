@@ -78,6 +78,7 @@ public final class DefaultRegistrationManager: RegistrationManager {
             name: userData.name,
             normalizedPhoneNumber: userData.normalizedPhoneNumber,
             noiseKeys: noiseKeys,
+            groupInviteToken: userData.groupInviteToken,
             whisperKeys: userKeys.whisperKeys) { result in
             switch result {
             case .success(let credentials):

@@ -12,7 +12,7 @@ import Sodium
 
 public protocol RegistrationService {
     func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
-    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
+    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
 
     // Temporary (used for Noise migration)
     func updateNoiseKeys(_ noiseKeys: NoiseKeys, userID: UserID, password: String, completion: @escaping (Result<Credentials, Error>) -> Void)
@@ -43,8 +43,8 @@ public final class DefaultRegistrationService: RegistrationService {
         if let langID = locale.halloServiceLangID {
             json["lang_id"] = langID
         }
-        if groupInviteToken != nil {
-            json["group_invite_token"] = groupInviteToken
+        if let groupToken = groupInviteToken {
+            json["group_invite_token"] = groupToken
         }
 
         guard let url = URL(string: "https://\(hostName)/api/registration/request_otp"),
@@ -118,7 +118,7 @@ public final class DefaultRegistrationService: RegistrationService {
         task.resume()
     }
 
-    public func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void) {
+    public func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void) {
 
         guard let phraseData = "HALLO".data(using: .utf8),
               let signedPhrase = noiseKeys.sign(phraseData) else
@@ -134,7 +134,7 @@ public final class DefaultRegistrationService: RegistrationService {
         }
         let oneTimeKeyData = whisperKeys.oneTime.compactMap { try? $0.protoOneTimePreKey.serializedData() }
 
-        let json: [String : Any] = [
+        var json: [String : Any] = [
             "name": name,
             "phone": normalizedPhoneNumber,
             "code": verificationCode,
@@ -144,6 +144,11 @@ public final class DefaultRegistrationService: RegistrationService {
             "signed_key": signedKeyData.base64EncodedString(),
             "one_time_keys": oneTimeKeyData.map { $0.base64EncodedString() },
         ]
+        
+        if groupInviteToken != nil {
+            json["group_invite_token"] = groupInviteToken
+        }
+
         let url = URL(string: "https://\(hostName)/api/registration/register2")!
 
         var request = URLRequest(url: url)
@@ -200,6 +205,9 @@ public final class DefaultRegistrationService: RegistrationService {
                 return
             }
 
+            if let groupInviteResult = response["group_invite_result"] as? String {
+                DDLogInfo("reg/validate-code/groupInviteResult= \(groupInviteResult)")
+            }
             DDLogInfo("reg/validate-code/success [noise]")
 
             DispatchQueue.main.async {

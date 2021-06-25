@@ -72,6 +72,13 @@ extension SceneDelegate: UIWindowSceneDelegate {
                 guard let self = self else { return }
                 self.transition(to: self.state(isLoggedIn: isLoggedIn))
         })
+        
+        // Parse incoming app clip URL for groupInviteToken
+        if let userActivity = connectionOptions.userActivities.first {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.scene(scene, continue: userActivity)
+            }
+        }
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -102,6 +109,43 @@ extension SceneDelegate: UIWindowSceneDelegate {
         // to restore the scene back to its current state.
         // Save changes in the application's managed object context when the application transitions to the background.
         (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
+    }
+    
+    func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+        DDLogInfo("application/scene/continue")
+        guard userActivity.activityType == NSUserActivityTypeBrowsingWeb else { return }
+        guard let incomingURL = userActivity.webpageURL else { return }
+        DDLogInfo("application/scene/continue/incomingURL \(incomingURL)")
+        guard let inviteToken = parseInviteURL(url: incomingURL) else { return }
+        processGroupInviteToken(inviteToken)
+    }
+
+    func parseInviteURL(url: URL?) -> String? {
+        guard let url = url else { return nil }
+        guard let components = NSURLComponents(url: url, resolvingAgainstBaseURL: true) else { return nil }
+
+        guard let scheme = components.scheme?.lowercased() else { return nil }
+        guard let host = components.host?.lowercased() else { return nil }
+        guard let path = components.path?.lowercased() else { return nil }
+
+        if scheme == "https" {
+            guard host == "halloapp.com" || host == "www.halloapp.com" else { return nil }
+            guard path == "/invite/" else { return nil }
+        } else if scheme == "halloapp" {
+            guard host == "invite" else { return nil }
+            guard path == "/" else { return nil }
+        } else {
+            return nil
+        }
+
+        guard let params = components.queryItems else { return nil }
+        guard let inviteToken = params.first(where: { $0.name == "g" })?.value else { return nil }
+
+        return inviteToken
+    }
+
+    private func processGroupInviteToken(_ inviteToken: String) {
+        AppClipContext.shared.userData.groupInviteToken = inviteToken
     }
 }
 
