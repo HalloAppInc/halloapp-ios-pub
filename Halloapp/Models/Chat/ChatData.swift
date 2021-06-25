@@ -2684,6 +2684,13 @@ extension ChatData {
 
         return inviteLink
     }
+    
+    func proceedIfNotGroupInviteLink(_ url: URL) -> Bool {
+        guard let inviteToken = ChatData.parseInviteURL(url: url) else { return true }
+        MainAppContext.shared.userData.groupInviteToken = inviteToken
+        MainAppContext.shared.didGetGroupInviteToken.send()
+        return false
+    }
 
     // MARK: Group Invite Link Actions
 

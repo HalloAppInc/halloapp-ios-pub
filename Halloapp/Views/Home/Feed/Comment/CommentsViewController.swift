@@ -856,6 +856,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         switch link.linkType {
         case .link, .phoneNumber:
             if let url = link.result?.url {
+                guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { break }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                     UIApplication.shared.open(url, options: [:])
                 }

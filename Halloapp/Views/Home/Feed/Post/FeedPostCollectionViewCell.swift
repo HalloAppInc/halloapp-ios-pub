@@ -304,6 +304,7 @@ extension FeedPostCollectionViewCell: TextLabelDelegate {
         switch link.linkType {
         case .link, .phoneNumber:
             if let url = link.result?.url, let delegate = delegate {
+                guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { break }
                 delegate.feedPostCollectionViewCell(self, didRequestOpen: url)
             }
 
