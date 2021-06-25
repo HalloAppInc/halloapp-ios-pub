@@ -85,12 +85,25 @@ class HomeViewController: UITabBarController {
             profileNavigationController()
         ]
 
-        cancellableSet.insert(
-            MainAppContext.shared.feedData.didGetUnreadFeedCount.sink { [weak self] (count) in
-                guard let self = self else { return }
-                self.updateFeedNavigationControllerBadge(count)
+        /*
+         The home tab indicator starts hidden on each new app open (does not count background/foreground)
+         It shows when a new post comes in if the user is not actively viewing the top of the main feed
+         It's removed when the user scrolls to the top of the main feed or when the total unseen posts is 0
+         (ie. user scrolls to middle of feed, goes to groups tab, views all unread, indicator should go away)
+         */
+        cancellableSet.insert(MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] _ in
+            self?.showHomeTabIndicatorIfNeeded()
         })
-        MainAppContext.shared.feedData.checkForUnreadFeed()
+        cancellableSet.insert(MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] _ in
+            self?.showHomeTabIndicatorIfNeeded()
+        })
+        cancellableSet.insert(MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.sink { [weak self] in
+            self?.removeHomeTabIndicator()
+        })
+        cancellableSet.insert(MainAppContext.shared.feedData.didGetUnreadFeedCount.sink { [weak self] (count) in
+            guard count == 0 else { return }
+            self?.removeHomeTabIndicator()
+        })
 
         cancellableSet.insert(
             MainAppContext.shared.chatData.didChangeUnreadThreadGroupsCount.sink { [weak self] (count) in
@@ -208,13 +221,6 @@ class HomeViewController: UITabBarController {
         return navigationController
     }
 
-    private func updateFeedNavigationControllerBadge(_ count: Int) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.setTabBarDot(index: 0, count: count)
-        }
-    }
-
     private func updateGroupsNavigationControllerBadge(_ count: Int) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -290,6 +296,24 @@ class HomeViewController: UITabBarController {
                 }))
                 self.present(alert, animated: true, completion: nil)
             }
+        }
+    }
+
+    private func showHomeTabIndicatorIfNeeded() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if self.selectedIndex == 0 { // user is on the main feed
+                guard let nc = self.viewControllers?[0] as? UINavigationController else { return }
+                guard let vc = nc.topViewController as? FeedViewController else { return }
+                guard !vc.isNearTop(100) else { return } // exit if user is at the top of the main feed
+            }
+            self.setTabBarDot(index: 0, count: 1)
+        }
+    }
+
+    private func removeHomeTabIndicator() {
+        DispatchQueue.main.async { [weak self] in
+            self?.setTabBarDot(index: 0, count: 0)
         }
     }
 

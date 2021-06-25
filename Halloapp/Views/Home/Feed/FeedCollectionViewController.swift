@@ -165,6 +165,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
         isVisible = true
         checkForOnscreenCells()
+        removeNewPostsIndicatorAfterSeen()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -191,6 +192,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         guard scrollView == collectionView else { return }
         if isNearTop(100) {
             removeNewPostsIndicator()
+            MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.send()
         }
 
         checkForOnscreenCells()
@@ -384,6 +386,15 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
         UIView.animate(withDuration: 0.35) { () -> Void in
             self.newPostsIndicator.alpha = 1.0
+        }
+        
+        removeNewPostsIndicatorAfterSeen()
+    }
+
+    private func removeNewPostsIndicatorAfterSeen() {
+        guard isVisible else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            self?.removeNewPostsIndicator()
         }
     }
 
