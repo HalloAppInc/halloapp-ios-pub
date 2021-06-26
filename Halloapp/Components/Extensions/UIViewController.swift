@@ -22,7 +22,7 @@ extension UIViewController {
         let fontDescriptor = UIFontDescriptor
             .preferredFontDescriptor(withTextStyle: .largeTitle)
             .addingAttributes([ .traits: [ UIFontDescriptor.TraitKey.weight: UIFont.Weight.bold ] ])
-        var fontSize = fontDescriptor.pointSize - 10 // 24 for default text size
+        var fontSize = fontDescriptor.pointSize - 8 // 26 for default text size
         if fontSize > 34 { fontSize = 34 }
         let attributes: [ NSAttributedString.Key : Any ] =
             [ .font: UIFont(descriptor: fontDescriptor, size: fontSize),
@@ -32,6 +32,8 @@ extension UIViewController {
         titleLabel.attributedText = NSAttributedString(string: title, attributes: attributes)
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
         navigationItem.title = nil
+        
+        UINavigationBar.appearance().standardAppearance = .translucentAppearance
     }
     
     func proceedIfConnected() -> Bool {

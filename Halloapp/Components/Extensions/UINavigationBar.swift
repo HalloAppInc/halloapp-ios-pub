@@ -28,6 +28,11 @@ extension UINavigationBarAppearance {
             .foregroundColor: UIColor.label.withAlphaComponent(0.9)
         ]
     }
+    
+    private func showNavBarSeparator() {
+        let img = UIImage.pixelImageWithColor(color: UIColor(red:0.8, green:0.8, blue:0.8, alpha: 1.0))
+        shadowImage = img
+    }
 
     class var opaqueAppearance: UINavigationBarAppearance {
         get {
@@ -36,9 +41,8 @@ extension UINavigationBarAppearance {
             appearance.configureTitleTextAttributes()
             //TODO: proper mask image.
             appearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
-            appearance.backgroundColor = .feedBackground
             appearance.backButtonAppearance = .transparentAppearance
-            appearance.shadowColor = nil
+            appearance.showNavBarSeparator()
             return appearance
         }
     }
@@ -52,7 +56,7 @@ extension UINavigationBarAppearance {
             appearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
             appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial)
             appearance.backButtonAppearance = .transparentAppearance
-            appearance.shadowColor = nil
+            appearance.showNavBarSeparator()
             return appearance
         }
     }
@@ -65,8 +69,23 @@ extension UINavigationBarAppearance {
              //TODO: proper mask image.
             appearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
             appearance.backButtonAppearance = .transparentAppearance
+            appearance.showNavBarSeparator()
             return appearance
         }
     }
+    
 
+}
+extension UIImage {
+    class func pixelImageWithColor(color: UIColor) -> UIImage? {
+        let rect = CGRect(x: 0, y: 0, width: 1.0, height: 1.0 / UIScreen.main.scale)
+        UIGraphicsBeginImageContext(rect.size)
+        guard let context = UIGraphicsGetCurrentContext() else { return nil }
+        context.setFillColor(color.cgColor)
+        context.fill(rect)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        return image
+    }
 }
