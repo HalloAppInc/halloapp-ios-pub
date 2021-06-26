@@ -2901,7 +2901,6 @@ extension ChatData {
     }
 
     // MARK: Group Core Data Deleting
-
     func deleteChatGroup(groupId: GroupID) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
