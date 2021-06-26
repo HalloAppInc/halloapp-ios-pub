@@ -273,6 +273,16 @@ class HomeViewController: UITabBarController {
             case .success(let groupInviteLink):
                 let groupID = groupInviteLink.group.gid
 
+                var pushNames = groupInviteLink.group.members.reduce(into: [UserID: String]()) { (dict, member) in
+                    let userID = String(member.uid)
+                    let pushName = member.name
+                    guard !userID.isEmpty && !pushName.isEmpty else { return }
+                    dict[userID] = pushName
+                }
+                if !pushNames.isEmpty {
+                    MainAppContext.shared.contactStore.addPushNames(pushNames)
+                }
+
                 if MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId) != nil {
                     DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/inviteToken/\(inviteToken)/already member")
                     MainAppContext.shared.groupFeedFromGroupTabPresentRequest.send(groupID)

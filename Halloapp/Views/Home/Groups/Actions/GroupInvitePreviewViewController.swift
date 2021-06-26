@@ -139,6 +139,7 @@ class GroupInvitePreviewViewController: UIViewController {
     private lazy var groupMemberAvatars: GroupMemberAvatars = {
         let view = GroupMemberAvatars()
         view.showActionButton = false
+        view.scrollToLastAfterInsert = false
         view.translatesAutoresizingMaskIntoConstraints = false
 
         view.heightAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true

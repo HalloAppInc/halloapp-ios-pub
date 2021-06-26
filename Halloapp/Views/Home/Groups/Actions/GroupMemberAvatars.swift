@@ -21,7 +21,7 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
     weak var delegate: GroupMemberAvatarsDelegate?
 
     public var showActionButton: Bool = true
-
+    public var scrollToLastAfterInsert: Bool = true
     private var avatarUserIDs: [UserID] = []
 
     override init(frame: CGRect) {
@@ -189,9 +189,10 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
     private func setContentSizeAndOffset() {
         let contentSizeWidth = innerStack.bounds.width + 20
         scrollView.contentSize = CGSize(width: contentSizeWidth, height: 1)
-        
-        let diff = self.scrollView.contentSize.width - self.scrollView.bounds.size.width
-        
+
+        guard scrollToLastAfterInsert else { return }
+
+        let diff = scrollView.contentSize.width - scrollView.bounds.size.width
         let point = CGPoint(x: diff, y: 0)
         
         if diff > 0 {
