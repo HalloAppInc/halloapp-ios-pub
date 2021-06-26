@@ -62,6 +62,10 @@ open class AppContext {
     open var isAppExtension: Bool {
         get { true }
     }
+    
+    open class var isAppClip: Bool {
+        get { false }
+    }
 
     // MARK: Global objects
     public let userData: UserData
@@ -213,7 +217,7 @@ open class AppContext {
             }
         }
 
-        userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL)
+        userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL, isAppClip: Self.isAppClip)
         coreService = serviceBuilder(userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
         privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)

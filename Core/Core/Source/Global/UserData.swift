@@ -24,6 +24,8 @@ public enum Credentials {
 }
 
 public final class UserData: ObservableObject {
+    
+    private var isAppClip: Bool
 
     public let didLogIn = PassthroughSubject<Void, Never>()
     public let didLogOff = PassthroughSubject<Void, Never>()
@@ -116,7 +118,8 @@ public final class UserData: ObservableObject {
         return phoneNumberStr
     }
 
-    init(storeDirectoryURL: URL) {
+    init(storeDirectoryURL: URL, isAppClip: Bool) {
+        self.isAppClip = isAppClip
         persistentStoreURL = storeDirectoryURL.appendingPathComponent("UserData.sqlite")
         if let user = fetch() {
             self.countryCode = user.countryCode ?? "1"
@@ -125,6 +128,17 @@ public final class UserData: ObservableObject {
             self.userId = user.userId ?? ""
             self.password = user.password ?? ""
             self.name = user.name ?? ""
+            
+            // If this is the main app and noise keys are present in shared container, load noiseKeys from the container
+            if !isAppClip, let storePrivateKey = user.noisePrivateKey, let storePublicKey = user.noisePublicKey {
+                DDLogInfo("UserData/init/loading noise keys from persistent store")
+                noiseKeys = NoiseKeys(privateEdKey: storePrivateKey, publicEdKey: storePublicKey)
+                //Migrate the noise keys from persistent store to keychain
+                migrateNoiseKeys()
+            } else {
+                DDLogInfo("UserData/init/loading noise keys from keychain")
+                noiseKeys = Keychain.loadNoiseUserKeypair(for: userId)
+            }
         }
 
         let isPasswordStoredInCoreData = !(password?.isEmpty ?? true)
@@ -139,8 +153,6 @@ public final class UserData: ObservableObject {
         if let password = password, !password.isEmpty {
             self.needsKeychainMigration = isPasswordStoredInCoreData || Keychain.needsKeychainUpdate(userID: userId, password: password)
         }
-
-        noiseKeys = Keychain.loadNoiseUserKeypair(for: userId)
 
         userNamePublisher = CurrentValueSubject(name)
         if credentials != nil {
@@ -264,6 +276,12 @@ public final class UserData: ObservableObject {
             } else {
                 DDLogError("UserData/save/noiseKeys/error keychain save failed")
             }
+            // If this is the AppClip, save noise keys to share with main app via persistent container
+            if (isAppClip) {
+                DDLogInfo("UserData/save/noiseKeys/saving noise keys to persistent store ")
+                user.noisePublicKey = noiseKeys.publicEdKey
+                user.noisePrivateKey = noiseKeys.privateEdKey
+            }
         }
 
         do {
@@ -273,6 +291,36 @@ public final class UserData: ObservableObject {
                 AppContext.shared.coreService.log(countableEvents: [.passwordMigrationSucceeded()], discreteEvents: []) { _ in }
                 needsKeychainMigration = false
             }
+        } catch {
+            DDLogError("usercore/save/error [\(error)]")
+            fatalError()
+        }
+    }
+    
+    private func migrateNoiseKeys() {
+        //Copy noise keys to keychain
+        if let noiseKeys = noiseKeys {
+            if Keychain.saveNoiseUserKeypair(noiseKeys, for: userId) {
+                DDLogInfo("UserData/migrate/noiseKeys/copied from persistent store to keychain")
+                removeNoiseKeysFromStore()
+            } else {
+                DDLogError("UserData/migrate/noiseKeys/error keychain copy from persistent store to keychain")
+            }
+        }
+    }
+    
+    private func removeNoiseKeysFromStore() {
+        let managedObjectContext = persistentContainer.viewContext
+        guard let user = fetch() else {
+            return
+        }
+        
+        user.noisePrivateKey = nil
+        user.noisePublicKey = nil
+
+        do {
+            try managedObjectContext.save()
+            DDLogError("UserData/migrate/noiseKeys/removed from persistent store")
         } catch {
             DDLogError("usercore/save/error [\(error)]")
             fatalError()

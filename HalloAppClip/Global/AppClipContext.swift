@@ -1,18 +1,24 @@
 //
-//  MainAppContext.swift
+//  AppClipContext.swift
 //  HalloAppClip
 //
 //  Created by Nandini Shetty on 6/11/21.
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
+
 import Core
 import Foundation
 
 class AppClipContext: AppContext {
+
     override class var shared: AppClipContext {
         get {
             return super.shared as! AppClipContext
         }
+    }
+    
+    override class var isAppClip: Bool {
+        get { true }
     }
 
     // TODO(@dini) check if you should be extending from AppExtensionContext

@@ -20,7 +20,7 @@ open class AppClipProtoService: ProtoServiceCore {
         func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>) {
             enqueue(request: ProtoWhisperGetCountOfOneTimeKeysRequest(completion: completion))
         }
-        self.userData.logout()
+
         self.cancellableSet.insert(
             userData.didLogIn.sink {
                 DDLogInfo("proto/userdata/didLogIn")
