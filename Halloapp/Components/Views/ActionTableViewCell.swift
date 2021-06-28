@@ -36,9 +36,7 @@ class ActionTableViewCell: UITableViewCell {
     }
 
     func configure(icon: UIImage? = nil, attrText: NSMutableAttributedString? = nil, label: String? = nil) {
-        if let icon = icon {
-            iconView.image = icon
-        }
+        iconView.image = icon
         if let attrText = attrText {
             bodyLabel.attributedText = attrText
         } else if let label = label {
