@@ -441,7 +441,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
                 let currentUserIds = privacyList.userIds
                 if let serverList = lists.first(where: { $0.type == privacyListType }) {
                     privacyList.set(userIds: serverList.userIds)
-                    self.update(privacyList: privacyList, with: currentUserIds, retryOnFailure: false)
+                    self.replaceUserIDs(in: privacyList, with: currentUserIds, retryOnFailure: false)
                 }
             case .failure(let error):
                 DDLogError("privacy/download-lists/error \(error)")
@@ -474,7 +474,8 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         validateState()
     }
 
-    func update<T>(privacyList: PrivacyList, with userIds: T, retryOnFailure: Bool = true) where T: Collection, T.Element == UserID {
+    // TODO: Improve this API to clarify that the new list will be synced
+    func replaceUserIDs<T>(in privacyList: PrivacyList, with userIds: T, retryOnFailure: Bool = true) where T: Collection, T.Element == UserID {
         DDLogInfo("privacy/update-list/\(privacyList.type)\nOld: \(privacyList.items.map({ $0.userId }))\nNew: \(userIds)")
 
         privacyList.update(with: userIds)
@@ -500,7 +501,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
             if whitelistUserIds.remove(userId) != nil {
                 DDLogInfo("privacy/hide-from/\(userId) Removed contact from whitelist.")
 
-                update(privacyList: whitelist, with: whitelistUserIds)
+                replaceUserIDs(in: whitelist, with: whitelistUserIds)
 
                 // Also add userId to "blacklist" if user decides to choose that privacy setting later.
                 if blacklistUserIds.insert(userId).inserted {
@@ -518,7 +519,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
             DDLogInfo("privacy/hide-from/\(userId) Contact is already in blacklist.")
         }
         DDLogWarn("privacy/hide-from/\(userId) Setting blacklist active.")
-        update(privacyList: blacklist, with: blacklistUserIds)
+        replaceUserIDs(in: blacklist, with: blacklistUserIds)
     }
 
     func setFeedSettingToAllContacts() {

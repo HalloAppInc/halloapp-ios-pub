@@ -133,7 +133,7 @@ class UserFeedViewController: FeedCollectionViewController {
             let privacySettings = MainAppContext.shared.privacySettings
             guard let blockedList = privacySettings.blocked else { return }
             guard let userId = self?.userId else { return }
-            privacySettings.update(privacyList: blockedList, with: [userId])
+            privacySettings.replaceUserIDs(in: blockedList, with: blockedList.userIds + [userId])
         }
         alert.addAction(button)
         

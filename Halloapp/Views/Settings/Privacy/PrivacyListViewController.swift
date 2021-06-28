@@ -132,7 +132,7 @@ class PrivacyListViewController: PrivacyListTableViewController {
      */
     @objc private func doneAction() {
         let selectedContactIds = contacts.filter({ $0.isSelected }).map({ $0.userId })
-        privacySettings.update(privacyList: privacyList, with: selectedContactIds)
+        privacySettings.replaceUserIDs(in: privacyList, with: selectedContactIds)
 
         if let dismissAction = dismissAction {
            dismissAction()
