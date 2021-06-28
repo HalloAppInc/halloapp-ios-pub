@@ -90,12 +90,6 @@
 "camera.init.error.title" = "Başlatma hatası";
 
 /* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.failure.description" = "Lütfen internet bağlantını kontrol et ve tekrar dene. ";
-
-/* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.failure.title" = "İnternet bağlantısı yok";
-
-/* Placeholder text shown inside the group name input box when it's empty */
 "chat.create.group.name.placeholder" = "Grubuna bir ad ver";
 
 /* Title of group creation screen */
@@ -512,15 +506,6 @@
 /* Message action. Verb. */
 "message.info" = "Bilgi";
 
-/* Placeholder text displayed in Message Info screen when no one has seen your group chat message yet. */
-"message.info.not.viewed.yet" = "Mesajını henüz görüntüleyen olmadı";
-
-/* Message Info screen: title for group of contacts who has not yet seen your group chat message. */
-"message.info.sent.to" = "Şuna gönder";
-
-/* Message Info screen: title for group of contacts who has seen your group chat message. */
-"message.info.viewed.by" = "Görenler";
-
 /* Message action. Verb. */
 "message.reply" = "Yanıtla";
 
@@ -538,12 +523,6 @@
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
 "mypost.not.viewed.yet" = "Gönderini henüz kimse görmedi";
-
-/* Your Post screen: title for group of contacts who has not yet seen your post. */
-"mypost.sent.to" = "kişisine gönderildi";
-
-/* Your Post screen: title for group of contacts who has seen your post. */
-"mypost.viewed.by" = "Görenler";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Artık bu grupta değilsin";

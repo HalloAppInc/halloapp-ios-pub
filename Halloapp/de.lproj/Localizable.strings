@@ -57,7 +57,7 @@
 "button.done" = "Fertig";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Gehe zu Einstellungen";
+"button.go.to.settings" = "Meine Einstellungen";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
 "button.next" = "Weiter";
@@ -112,12 +112,6 @@
 
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Initialisierungsfehler";
-
-/* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.failure.description" = "Bitte prüfe, ob du eine Internetverbindung hast, und versuche es noch einmal.";
-
-/* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.failure.title" = "Keine Internet-Verbindung";
 
 /* Placeholder text shown inside the group name input box when it's empty */
 "chat.create.group.name.placeholder" = "Gruppennamen vergeben";
@@ -314,8 +308,9 @@
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Um dir zu helfen, den Kontakt zu deinen Freunden und deiner Familie herzustellen, erlaube HalloApp den Zugriff auf deine Kontakte.";
 
-/* Title for tutorial explaining how user can enable contacts permission */
-"contacts.permission.tutorial.title" = "Wie man den Zugriff auf Kontakte erlaubt";
+/* Title for modal view when showing how to change contact permissions.
+   Title for tutorial explaining how user can enable contacts permission */
+"contacts.permission.tutorial.title" = "Wie man den Zugriff auf \"Kontakte\" erlaubt";
 
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Um den Kontakt herzustellen, müsst ihr eure Handynummern austauschen";
@@ -473,8 +468,14 @@
 /* Text to describe what the group invite link is */
 "group.invite.link.description" = "Jeder auf HalloApp kann der Gruppe über diesen Link beitreten.";
 
+/* Text label above the group link section in group invite screen */
+"group.invite.link.label" = "GRUPPENLINK";
+
 /* Text shown when link is reset */
 "group.invite.link.reset" = "Link zurückgesetzt";
+
+/* Label for opening QR screen */
+"group.invite.qr.code" = "QR Code";
 
 /* Label for resetting link */
 "group.invite.reset.link" = "Link zurücksetzen";
@@ -490,6 +491,9 @@
 
 /* Title of group invite screen */
 "group.invite.title" = "Gruppeneinladungslink";
+
+/* Text for alert box when the user clicks on an invalid group invite link */
+"group.preview.get.info.error.invalid.link" = "Der Einladungslink zur Gruppe ist ungültig";
 
 /* Text for alert box when the user can't join the group via group link when the group is full */
 "group.preview.join.error.group.full" = "Die Gruppe hat die maximale Teilnehmeranzahl erreicht";
@@ -611,15 +615,6 @@
 /* Message action. Verb. */
 "message.info" = "Informieren";
 
-/* Placeholder text displayed in Message Info screen when no one has seen your group chat message yet. */
-"message.info.not.viewed.yet" = "Bislang hat keiner deine Nachricht gesehen";
-
-/* Message Info screen: title for group of contacts who has not yet seen your group chat message. */
-"message.info.sent.to" = "Gesendet an";
-
-/* Message Info screen: title for group of contacts who has seen your group chat message. */
-"message.info.viewed.by" = "Gesehen von";
-
 /* Message action. Verb. */
 "message.reply" = "Antworten";
 
@@ -637,12 +632,6 @@
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
 "mypost.not.viewed.yet" = "Bislang hat keiner deinen Beitrag gesehen";
-
-/* Your Post screen: title for group of contacts who has not yet seen your post. */
-"mypost.sent.to" = "Senden an";
-
-/* Your Post screen: title for group of contacts who has seen your post. */
-"mypost.viewed.by" = "Gesehen von";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Du bist kein Mitglied dieser Gruppe mehr";
@@ -700,7 +689,7 @@
 "picker.access.denied.settings" = "Einstellungen";
 
 /* Alert title in media picker when access is denied. */
-"picker.access.denied.title" = "Zugriff auf Foto abgelehnt";
+"picker.access.denied.title" = "Zugriff auf Fotos abgelehnt";
 
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Du hast HalloApp nur Zugriff auf eine bestimmte Anzahl von Fotos und Videos gewährt.";
@@ -809,7 +798,7 @@
 "registration.contacts.title" = "Noch ein Hinweis";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Die Nutzung ist derzeit nur über Einladung möglich.  Bitte deine Freude oder Familienmitglieder, die auf HalloApp sind, dich über deine Handynummer einzuladen.";
+"registration.invite.only" = "Wenn du einem Gruppeneinladungslink gefolgt bist, um dich zu registrieren, klicke bitte erneut auf den Link, um die Registrierung abzuschließen und der Gruppe beizutreten.";
 
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "Name";
@@ -818,7 +807,7 @@
 "registration.phoneEntry.placeholder" = "Handynummer";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "Um den Kontakt mit deinen Freunden auf HalloApp herzustellen, verwendet HalloApp nur das Feld für die Handynummer und wird keine weiteren Daten aus deinen Kontakten übermitteln.";
+"registration.privacy.content" = "HalloApp verwendet nur das Feld für die Handynummer, um den Kontakt mit deinen Freunden auf HalloApp herzustellen. Darüber hinaus werden keine weiteren Daten aus deinen Kontakten übermittelt.";
 
 /* Title for modal describing how we use contacts data */
 "registration.privacy.title" = "Deine Privatsphäre ist unsere höchste Priorität";
@@ -981,6 +970,15 @@
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Kontakt unbekannt";
+
+/* Button to confirm blocking user via profile page */
+"user.block" = "Blocken";
+
+/* Message asking if the user is sure they want to block this user */
+"user.block.message" = "Bist du dir sicher, dass du %@ auf HalloApp blocken möchtest? Du kannst dies später jederzeit ändern.";
+
+/* Option when user taps more on profile page */
+"user.option.block" = "Auf HalloApp blocken";
 
 /* Reference to the user, second person pronoun */
 "user.you" = "dich";

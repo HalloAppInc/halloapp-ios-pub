@@ -96,12 +96,6 @@
 "camera.init.error.title" = "Error al inicializar";
 
 /* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.failure.description" = "Revisa si tienes conexión a Internet e inténtalo de nuevo.";
-
-/* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.failure.title" = "No hay conexión a Internet";
-
-/* Placeholder text shown inside the group name input box when it's empty */
 "chat.create.group.name.placeholder" = "Dale un nombre a tu grupo";
 
 /* Title of group creation screen */
@@ -392,6 +386,9 @@
 /* Message text shown with the user who promoted a group member */
 "group.event.promoted.member" = "%1$@ designó a %2$@ como admin.";
 
+/* Message text shown when you promote a group member */
+"group.event.promoted.member.you" = "Tú asignaste a %1@ como admin";
+
 /* Message text shown with the user who removed a group member */
 "group.event.removed.member" = "%1$@ eliminó a %2$@";
 
@@ -518,15 +515,6 @@
 /* Message action. Verb. */
 "message.info" = "Info.";
 
-/* Placeholder text displayed in Message Info screen when no one has seen your group chat message yet. */
-"message.info.not.viewed.yet" = "Nadie ha visto tu mensaje aún";
-
-/* Message Info screen: title for group of contacts who has not yet seen your group chat message. */
-"message.info.sent.to" = "Enviado a";
-
-/* Message Info screen: title for group of contacts who has seen your group chat message. */
-"message.info.viewed.by" = "Visto por";
-
 /* Message action. Verb. */
 "message.reply" = "Responder";
 
@@ -544,12 +532,6 @@
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
 "mypost.not.viewed.yet" = "Nadie ha visto tu publicación aún";
-
-/* Your Post screen: title for group of contacts who has not yet seen your post. */
-"mypost.sent.to" = "Enviado a";
-
-/* Your Post screen: title for group of contacts who has seen your post. */
-"mypost.viewed.by" = "Visto por";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Ya no formas parte de este grupo";
