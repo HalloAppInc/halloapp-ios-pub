@@ -6,7 +6,7 @@
 //
 
 import AVFoundation
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import UIKit

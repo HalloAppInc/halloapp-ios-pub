@@ -11,7 +11,7 @@ import Core
 import CoreData
 import Foundation
 import UIKit
-import CocoaLumberjack
+import CocoaLumberjackSwift
 
 protocol MediaExplorerTransitionDelegate: AnyObject {
     func getTransitionView(atPostion index: Int) -> UIView?

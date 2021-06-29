@@ -7,7 +7,7 @@
 //
 
 import AVFoundation
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Core
 import CallKit
 import UIKit

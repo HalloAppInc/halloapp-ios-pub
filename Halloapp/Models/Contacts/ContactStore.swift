@@ -10,7 +10,7 @@
  Responsible for synchronization between device's address book and app's contact cache.
  */
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Contacts
 import Core

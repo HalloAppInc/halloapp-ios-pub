@@ -1,10 +1,4 @@
 PODS:
-  - CocoaAsyncSocket (7.6.4)
-  - CocoaLumberjack (3.6.2):
-    - CocoaLumberjack/Core (= 3.6.2)
-  - CocoaLumberjack/Core (3.6.2)
-  - CocoaLumberjack/Swift (3.6.2):
-    - CocoaLumberjack/Core
   - Firebase/CoreOnly (6.32.2):
     - FirebaseCore (= 6.10.2)
   - Firebase/Crashlytics (6.32.2):
@@ -38,15 +32,6 @@ PODS:
     - GoogleUtilities/Environment
   - GoogleUtilities/UserDefaults (6.7.2):
     - GoogleUtilities/Logger
-  - KissXML (5.3.1):
-    - KissXML/All (= 5.3.1)
-  - KissXML/Additions (5.3.1):
-    - KissXML/Core
-  - KissXML/All (5.3.1):
-    - KissXML/Additions
-    - KissXML/Core
-  - KissXML/Core (5.3.1)
-  - libidn (1.35)
   - nanopb (1.30906.0):
     - nanopb/decode (= 1.30906.0)
     - nanopb/encode (= 1.30906.0)
@@ -54,24 +39,13 @@ PODS:
   - nanopb/encode (1.30906.0)
   - PromisesObjC (1.2.10)
   - Sodium (0.8.0)
-  - XMPPFramework/default (4.0.1):
-    - CocoaAsyncSocket (~> 7.6)
-    - CocoaLumberjack
-    - KissXML (~> 5.2)
-    - libidn (~> 1.35)
-  - XMPPFramework/Swift (4.0.1):
-    - CocoaLumberjack/Swift
-    - XMPPFramework/default
 
 DEPENDENCIES:
   - Firebase/Crashlytics
   - "Sodium (from `git@github.com:HalloAppInc/swift-sodium.git`)"
-  - "XMPPFramework/Swift (from `git@github.com:HalloAppInc/XMPPFramework.git`)"
 
 SPEC REPOS:
   trunk:
-    - CocoaAsyncSocket
-    - CocoaLumberjack
     - Firebase
     - FirebaseCore
     - FirebaseCoreDiagnostics
@@ -79,28 +53,19 @@ SPEC REPOS:
     - FirebaseInstallations
     - GoogleDataTransport
     - GoogleUtilities
-    - KissXML
-    - libidn
     - nanopb
     - PromisesObjC
 
 EXTERNAL SOURCES:
   Sodium:
     :git: "git@github.com:HalloAppInc/swift-sodium.git"
-  XMPPFramework:
-    :git: "git@github.com:HalloAppInc/XMPPFramework.git"
 
 CHECKOUT OPTIONS:
   Sodium:
     :commit: e8997517e65ab4ec2766869977cd1bb7f666e905
     :git: "git@github.com:HalloAppInc/swift-sodium.git"
-  XMPPFramework:
-    :commit: 0b10dec12094cebf35e42134e6f744ea3144e326
-    :git: "git@github.com:HalloAppInc/XMPPFramework.git"
 
 SPEC CHECKSUMS:
-  CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
-  CocoaLumberjack: bd155f2dd06c0e0b03f876f7a3ee55693122ec94
   Firebase: 47176280bfba198e531f909cfb1612dad216cb96
   FirebaseCore: 1d697bb944bf2af5fc248f1a66e165c9dd88bf97
   FirebaseCoreDiagnostics: 7415bfb3883b3500c5a95c42b6ba66baae78f600
@@ -108,13 +73,10 @@ SPEC CHECKSUMS:
   FirebaseInstallations: 466c7b4d1f58fe16707693091da253726a731ed2
   GoogleDataTransport: e85fb700c9b027079ce182c3d08e12e0f9618bb4
   GoogleUtilities: 7f2f5a07f888cdb145101d6042bc4422f57e70b3
-  KissXML: 5c8e0f2e8b9f071d3e1ae123dec3eb5da615c10c
-  libidn: e4576a956b797c584c77aaedfc6e3dd639b61bdc
   nanopb: 59317e09cf1f1a0af72f12af412d54edf52603fc
   PromisesObjC: b14b1c6b68e306650688599de8a45e49fae81151
   Sodium: 9ab4cdb17a88b6de0d3e33832b06a664c8d3232c
-  XMPPFramework: 759900cc7eb3c22036d622da72f66a05ae7b6948
 
-PODFILE CHECKSUM: 2670a29cd96e3a12acd3efcce0beeda0970ae645
+PODFILE CHECKSUM: 20a9aee4c1d2e10c898a7fba34e6e46a13f4841e
 
 COCOAPODS: 1.10.1

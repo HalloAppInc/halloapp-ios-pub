@@ -7,7 +7,7 @@
 //
 
 import BackgroundTasks
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Contacts
 import Core
 import CoreData

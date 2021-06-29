@@ -7,7 +7,7 @@
 //
 
 import Core
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Foundation
 import SwiftUI
 

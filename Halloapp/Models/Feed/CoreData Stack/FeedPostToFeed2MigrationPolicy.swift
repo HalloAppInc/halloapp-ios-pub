@@ -8,7 +8,7 @@
 
 import Foundation
 import CoreData
-import CocoaLumberjack
+import CocoaLumberjackSwift
 
 class FeedPostToFeed2MigrationPolicy: NSEntityMigrationPolicy {
     

@@ -6,16 +6,13 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import CryptoKit
 import Sodium
 
 public protocol RegistrationService {
     func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
     func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
-
-    // Temporary (used for Noise migration)
-    func updateNoiseKeys(_ noiseKeys: NoiseKeys, userID: UserID, password: String, completion: @escaping (Result<Credentials, Error>) -> Void)
 }
 
 public struct RegistrationResponse {
@@ -217,99 +214,6 @@ public final class DefaultRegistrationService: RegistrationService {
         }
         task.resume()
     }
-
-    // Support migration to Noise protocol
-
-    public func updateNoiseKeys(_ noiseKeys: NoiseKeys, userID: UserID, password: String, completion: @escaping (Result<Credentials, Error>) -> Void) {
-        guard let phraseData = "HALLO".data(using: .utf8), let signedPhrase = noiseKeys.sign(phraseData) else {
-            completion(.failure(NoiseKeyUpdateError.phraseSigningError))
-            return
-        }
-        let json: [String : String] = [
-            "uid": userID,
-            "password": password,
-            "s_ed_pub": noiseKeys.publicEdKey.base64EncodedString(),
-            "signed_phrase": signedPhrase.base64EncodedString(),
-        ]
-        guard let url = URL(string: "https://\(hostName)/api/registration/update_key"),
-              let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else
-        {
-            completion(.failure(NoiseKeyUpdateError.requestCreationError))
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.httpBody = jsonData
-        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
-        DDLogInfo("reg/update-noise-keys/begin url=[\(url.absoluteString)] [\(userID)]")
-        let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
-            if let error = error {
-                DDLogError("reg/update-noise-keys/error [\(error)]")
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
-                return
-            }
-            guard let data = data else {
-                DDLogError("reg/update-noise-keys/error Data is empty.")
-                DispatchQueue.main.async {
-                    completion(.failure(NoiseKeyUpdateError.malformedResponse))
-                }
-                return
-            }
-            guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                DDLogError("reg/update-noise-keys/error Invalid response. [\(String(describing: urlResponse))]")
-                DispatchQueue.main.async {
-                    completion(.failure(NoiseKeyUpdateError.malformedResponse))
-                }
-                return
-            }
-            guard let response = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-                DDLogError("reg/update-noise-keys/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
-                DispatchQueue.main.async {
-                    completion(.failure(NoiseKeyUpdateError.malformedResponse))
-                }
-                return
-            }
-
-            DDLogInfo("reg/update-noise-keys/finished  status=[\(httpResponse.statusCode)]  response=[\(response)]")
-
-            if let errorString = response["error"] as? String {
-                let error = NoiseKeyUpdateError(rawValue: errorString) ?? .malformedResponse
-                DDLogInfo("reg/update-noise-keys/invalid [\(error)]")
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
-                return
-            }
-
-            guard let result = response["result"] as? String else {
-                DDLogInfo("reg/update-noise-keys/invalid Missing result")
-                DispatchQueue.main.async {
-                    completion(.failure(NoiseKeyUpdateError.malformedResponse))
-                }
-                return
-            }
-
-            guard result == "ok" else {
-                DDLogInfo("reg/update-noise-keys/invalid result [\(result)]")
-                let error = NoiseKeyUpdateError(rawValue: result) ?? .malformedResponse
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
-                return
-            }
-
-            DDLogInfo("reg/update-noise-keys/success [noise]")
-
-            DispatchQueue.main.async {
-                completion(.success(.v2(userID: userID, noiseKeys: noiseKeys)))
-            }
-        }
-        task.resume()
-    }
-
 }
 
 public enum VerificationCodeRequestError: String, Error, RawRepresentable {

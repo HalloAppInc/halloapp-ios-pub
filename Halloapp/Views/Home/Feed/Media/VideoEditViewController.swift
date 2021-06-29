@@ -7,7 +7,7 @@
 
 import AVFoundation
 import AVKit
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Core
 import Dispatch
 import Foundation

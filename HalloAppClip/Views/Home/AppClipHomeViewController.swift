@@ -5,7 +5,7 @@
 //  Created by Nandini Shetty on 6/10/21.
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import StoreKit

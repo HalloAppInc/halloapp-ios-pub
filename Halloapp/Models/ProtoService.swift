@@ -6,11 +6,10 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import SwiftProtobuf
-import XMPPFramework
 
 fileprivate let userDefaultsKeyForAPNSToken = "apnsPushToken"
 fileprivate let userDefaultsKeyForLangID = "langId"
@@ -54,8 +53,6 @@ final class ProtoService: ProtoServiceCore {
         requestServerPropertiesIfNecessary()
         NotificationSettings.current.sendConfigIfNecessary(using: self)
         MainAppContext.shared.startReportingEvents()
-        userData.migratePasswordToKeychain()
-        establishNoiseKeysIfNecessary()
         pruneSilentChatRerequestRecords()
     }
 
@@ -878,35 +875,6 @@ final class ProtoService: ProtoServiceCore {
                 isSilent: isSilent)
         } else {
             DDLogError("proto/didReceive/\(messageID)/decrypt/stats/error missing sender user agent")
-        }
-    }
-
-    // MARK: Noise
-
-    private func establishNoiseKeysIfNecessary() {
-        guard case .v1(let userID, let password) = userData.credentials,
-              userData.noiseKeys == nil else
-        {
-            DDLogInfo("ProtoService/establishNoiseKeys/skipping [already exist]")
-            return
-        }
-        guard let keys = NoiseKeys() else {
-            DDLogError("ProtoService/establishNoiseKeys/error unable to generate keys")
-            AppContext.shared.eventMonitor.count(.noiseMigration(success: false))
-            return
-        }
-
-        let registrationService = DefaultRegistrationService()
-        registrationService.updateNoiseKeys(keys, userID: userID, password: password) { result in
-            switch result {
-            case .success(let credentials):
-                DDLogInfo("ProtoService/establishNoiseKeys/success")
-                self.userData.update(credentials: credentials)
-                AppContext.shared.eventMonitor.count(.noiseMigration(success: true))
-            case .failure(let error):
-                DDLogError("ProtoService/establishNoiseKeys/error [\(error)]")
-                AppContext.shared.eventMonitor.count(.noiseMigration(success: false))
-            }
         }
     }
 

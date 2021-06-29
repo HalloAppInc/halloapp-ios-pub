@@ -29,7 +29,6 @@
 		6832F50324FEE9CB00A9C202 /* CoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50224FEE9CB00A9C202 /* CoreService.swift */; };
 		6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */; };
 		6832F50A24FEE9DF00A9C202 /* ProtoWhisperRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50524FEE9DF00A9C202 /* ProtoWhisperRequests.swift */; };
-		6832F50B24FEE9DF00A9C202 /* ProtoStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50624FEE9DF00A9C202 /* ProtoStream.swift */; };
 		6832F50C24FEE9DF00A9C202 /* ProtoServiceCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */; };
 		6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */; };
 		685B509725E065AD00F782F9 /* UserAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B509625E065AD00F782F9 /* UserAgent.swift */; };
@@ -47,6 +46,9 @@
 		68A64E8224D22E5500F40F1F /* NSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8124D22E5500F40F1F /* NSRange.swift */; };
 		68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */; };
 		68A64E8624D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */; };
+		68BB0047268A776600425EEB /* CocoaAsyncSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 68BB0046268A776600425EEB /* CocoaAsyncSocket */; };
+		68BB004C268A7A1800425EEB /* CocoaLumberjackSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 68BB004B268A7A1800425EEB /* CocoaLumberjackSwift */; };
+		68BB004E268A7A1800425EEB /* CocoaLumberjack in Frameworks */ = {isa = PBXBuildFile; productRef = 68BB004D268A7A1800425EEB /* CocoaLumberjack */; };
 		68CC420E25B8C254001513C5 /* DiscreteEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CC420D25B8C254001513C5 /* DiscreteEvent.swift */; };
 		68D2915525096F9400AF5061 /* Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2915425096F9400AF5061 /* Mentions.swift */; };
 		68D4BBB6266150DE009D2266 /* PacketID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D4BBB5266150DE009D2266 /* PacketID.swift */; };
@@ -137,7 +139,6 @@
 		6832F50224FEE9CB00A9C202 /* CoreService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreService.swift; sourceTree = "<group>"; };
 		6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequest.swift; sourceTree = "<group>"; };
 		6832F50524FEE9DF00A9C202 /* ProtoWhisperRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoWhisperRequests.swift; sourceTree = "<group>"; };
-		6832F50624FEE9DF00A9C202 /* ProtoStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoStream.swift; sourceTree = "<group>"; };
 		6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoServiceCore.swift; sourceTree = "<group>"; };
 		6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoCommonRequests.swift; sourceTree = "<group>"; };
 		685B509625E065AD00F782F9 /* UserAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAgent.swift; sourceTree = "<group>"; };
@@ -227,8 +228,11 @@
 				76E5152F24A1761E003F1273 /* Alamofire in Frameworks */,
 				768124222486CF8E008C5216 /* PhoneNumberKit in Frameworks */,
 				7681242B2486D4E6008C5216 /* CryptoSwift in Frameworks */,
+				68BB0047268A776600425EEB /* CocoaAsyncSocket in Frameworks */,
 				ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */,
 				7681240D24861634008C5216 /* SwiftProtobuf in Frameworks */,
+				68BB004E268A7A1800425EEB /* CocoaLumberjack in Frameworks */,
+				68BB004C268A7A1800425EEB /* CocoaLumberjackSwift in Frameworks */,
 				686A1034259152F100F7B53F /* SwiftNoise in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -470,7 +474,6 @@
 				6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */,
 				6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */,
 				6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */,
-				6832F50624FEE9DF00A9C202 /* ProtoStream.swift */,
 				6832F50524FEE9DF00A9C202 /* ProtoWhisperRequests.swift */,
 				6880F33B257EF5A700D1F585 /* NoiseStream.swift */,
 			);
@@ -575,6 +578,9 @@
 				7681242A2486D4E6008C5216 /* CryptoSwift */,
 				76E5152E24A1761E003F1273 /* Alamofire */,
 				686A1033259152F100F7B53F /* SwiftNoise */,
+				68BB0046268A776600425EEB /* CocoaAsyncSocket */,
+				68BB004B268A7A1800425EEB /* CocoaLumberjackSwift */,
+				68BB004D268A7A1800425EEB /* CocoaLumberjack */,
 			);
 			productName = Core;
 			productReference = 768123B82485D9C7008C5216 /* Core.framework */;
@@ -610,6 +616,8 @@
 				768124292486D4E6008C5216 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
 				76E5152D24A1761E003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */,
+				68BB0045268A776600425EEB /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */,
+				68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */,
 			);
 			productRefGroup = 768123B92485D9C7008C5216 /* Products */;
 			projectDirPath = "";
@@ -711,7 +719,6 @@
 				76812406248614BA008C5216 /* XMPPReceipt.swift in Sources */,
 				327334EC26729E5A006E31E5 /* KeyData.swift in Sources */,
 				6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */,
-				6832F50B24FEE9DF00A9C202 /* ProtoStream.swift in Sources */,
 				68F9361C252E759200FA6E75 /* CommonEvents.swift in Sources */,
 				68F935BC252BED9A00FA6E75 /* CountableEvent.swift in Sources */,
 				EAF47E0A251D80930056196F /* GroupAvatar+CoreDataClass.swift in Sources */,
@@ -1071,20 +1078,36 @@
 				revision = 4fd493ae25cb74e65a2ac2d7635a73a4f2af67a4;
 			};
 		};
+		68BB0045268A776600425EEB /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/robbiehanson/CocoaAsyncSocket";
+			requirement = {
+				kind = exactVersion;
+				version = 7.6.4;
+			};
+		};
+		68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/CocoaLumberjack/CocoaLumberjack";
+			requirement = {
+				kind = exactVersion;
+				version = 3.6.2;
+			};
+		};
 		7681240B24861634008C5216 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:apple/swift-protobuf.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.9.0;
+				kind = exactVersion;
+				version = 1.17.0;
 			};
 		};
 		768124202486CF8E008C5216 /* XCRemoteSwiftPackageReference "PhoneNumberKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:marmelroy/PhoneNumberKit.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.3.3;
+				kind = exactVersion;
+				version = 3.3.3;
 			};
 		};
 		768124292486D4E6008C5216 /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
@@ -1099,8 +1122,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:Alamofire/Alamofire.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.2.0;
+				kind = exactVersion;
+				version = 5.4.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -1110,6 +1133,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */;
 			productName = SwiftNoise;
+		};
+		68BB0046268A776600425EEB /* CocoaAsyncSocket */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 68BB0045268A776600425EEB /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */;
+			productName = CocoaAsyncSocket;
+		};
+		68BB004B268A7A1800425EEB /* CocoaLumberjackSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */;
+			productName = CocoaLumberjackSwift;
+		};
+		68BB004D268A7A1800425EEB /* CocoaLumberjack */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */;
+			productName = CocoaLumberjack;
 		};
 		7681240C24861634008C5216 /* SwiftProtobuf */ = {
 			isa = XCSwiftPackageProductDependency;

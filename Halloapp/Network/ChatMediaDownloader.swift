@@ -5,7 +5,7 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Foundation
 

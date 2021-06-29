@@ -7,7 +7,7 @@
 //
 
 import CocoaAsyncSocket
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Sodium
 import SwiftNoise
 

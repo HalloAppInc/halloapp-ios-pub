@@ -6,7 +6,7 @@
 //  Copyright © 2020 Hallo App, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import CoreGraphics
 import Photos

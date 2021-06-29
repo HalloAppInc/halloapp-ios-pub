@@ -5,9 +5,9 @@
 //  Created by Nandini Shetty on 6/11/21.
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
+import CocoaLumberjackSwift
 import Combine
 import Core
-import XMPPFramework
 
 fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 

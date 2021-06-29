@@ -7,7 +7,7 @@
 //
 
 import Accelerate
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import CoreGraphics
 import SwiftUI
 

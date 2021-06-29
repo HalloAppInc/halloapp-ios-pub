@@ -7,7 +7,7 @@
 //
 
 import Alamofire
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Core
 import UserNotifications
 

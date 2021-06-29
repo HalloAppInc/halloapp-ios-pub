@@ -7,7 +7,7 @@
 //
 
 import AVFoundation
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import UIKit
 
 protocol QRCodeScannerDelegate: AnyObject {

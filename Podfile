@@ -4,19 +4,16 @@ workspace 'Halloapp.xcworkspace'
 
 target 'Core' do
   project './Core/Core.xcodeproj'
-  pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
   pod 'Sodium', :git => 'git@github.com:HalloAppInc/swift-sodium.git'
   pod 'Firebase/Crashlytics'
 end
 
 target 'HalloApp' do
-  pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
   pod 'Firebase/Crashlytics'
   pod 'Sodium', :git => 'git@github.com:HalloAppInc/swift-sodium.git'
 end
 
 target 'HalloAppClip' do
-  pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
   pod 'Firebase/Crashlytics'
   pod 'Sodium', :git => 'git@github.com:HalloAppInc/swift-sodium.git'
 end
@@ -31,7 +28,6 @@ end
 
 target 'Share Extension' do
   pod 'Firebase/Crashlytics'
-  pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
 end
 
 post_install do |pi|

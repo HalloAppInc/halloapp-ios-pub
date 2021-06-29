@@ -7,7 +7,7 @@
 //
 
 import AVKit
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreData

@@ -4,7 +4,7 @@
 //  Copyright © 2021 Hallo App, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Foundation
 
 // Simple way to share existing groups between app and extensions

@@ -29,6 +29,24 @@
         }
       },
       {
+        "package": "CocoaAsyncSocket",
+        "repositoryURL": "https://github.com/robbiehanson/CocoaAsyncSocket",
+        "state": {
+          "branch": null,
+          "revision": "0e00c967a010fc43ce528bd633d032f17158d393",
+          "version": "7.6.4"
+        }
+      },
+      {
+        "package": "CocoaLumberjack",
+        "repositoryURL": "https://github.com/CocoaLumberjack/CocoaLumberjack",
+        "state": {
+          "branch": null,
+          "revision": "24deac32cdf5040297ab957dfd938b1a30d4b49e",
+          "version": "3.6.2"
+        }
+      },
+      {
         "package": "CryptoKit25519",
         "repositoryURL": "https://github.com/christophhagen/CryptoKit25519",
         "state": {

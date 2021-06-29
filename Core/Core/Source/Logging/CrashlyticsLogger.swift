@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import FirebaseCrashlytics
 
 public final class CrashlyticsLogger: DDAbstractLogger {
