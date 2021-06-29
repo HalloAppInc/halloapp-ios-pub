@@ -237,7 +237,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         do {
             try reachability?.startNotifier()
         } catch {
-            DDLogInfo("appdelegate/Reachability/Failed to start notifier/\(reachability?.connection ?? nil)")
+            DDLogInfo("appdelegate/Reachability/Failed to start notifier/\(reachability?.connection.description ?? "nil")")
         }
     }
 

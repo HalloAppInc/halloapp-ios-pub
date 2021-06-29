@@ -1648,7 +1648,7 @@ extension ChatData {
             }
 
             self.mediaUploader.upload(media: media, groupId: msgID, didGetURLs: { (mediaURLs) in
-                DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(index)/acquired-urls [\(mediaURLs)]")
+                DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
                 // Save URLs acquired during upload to the database.
                 self.updateChatMessage(with: msgID) { msg in

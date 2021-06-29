@@ -282,7 +282,7 @@ class HomeViewController: UITabBarController {
             case .success(let groupInviteLink):
                 let groupID = groupInviteLink.group.gid
 
-                var pushNames = groupInviteLink.group.members.reduce(into: [UserID: String]()) { (dict, member) in
+                let pushNames = groupInviteLink.group.members.reduce(into: [UserID: String]()) { (dict, member) in
                     let userID = String(member.uid)
                     let pushName = member.name
                     guard !userID.isEmpty && !pushName.isEmpty else { return }

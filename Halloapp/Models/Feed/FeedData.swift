@@ -1078,9 +1078,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // present local notifications when applicationState is either .background or .inactive
         guard UIApplication.shared.applicationState != .active else { return }
 
-        let userIds = Set(comments.map { $0.userId })
-        let contactNames = contactStore.fullNames(forUserIds: userIds)
-
         var commentIdsToFilterOut = [FeedPostCommentID]()
 
         let dispatchGroup = DispatchGroup()
@@ -1502,7 +1499,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             // Step 1: Update FeedPostMedia
             guard let objectID = task.feedMediaObjectId, let feedPostMedia = try? managedObjectContext.existingObject(with: objectID) as? FeedPostMedia else {
-                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  taskId=[\(task.id)]  objectId=[\(task.feedMediaObjectId ?? nil)))]")
+                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  taskId=[\(task.id)]  objectId=[\(task.feedMediaObjectId?.uriRepresentation().absoluteString ?? "nil")))]")
                 return
             }
 

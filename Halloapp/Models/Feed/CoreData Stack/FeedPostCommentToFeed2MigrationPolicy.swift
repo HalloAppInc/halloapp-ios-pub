@@ -27,7 +27,7 @@ class FeedPostCommentToFeed2MigrationPolicy: NSEntityMigrationPolicy {
                 if let destPost = matchingPosts.first {
                     dInstance.setValue(destPost, forKey: "post")
                 }
-                DDLogInfo("FeedPostCommentToFeed2Migration/createRelationships/commentId: \(dInstance.value(forKey: "id")) postId: \(sPostId)")
+                DDLogInfo("FeedPostCommentToFeed2Migration/createRelationships/commentId: \(dInstance.value(forKey: "id") ?? "nil") postId: \(sPostId)")
             }
         }
     }
