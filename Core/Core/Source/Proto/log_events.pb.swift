@@ -647,57 +647,81 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       case 4: try { try decoder.decodeSingularUInt64Field(value: &self.timestampMs) }()
       case 10: try {
         var v: Server_MediaUpload?
+        var hadOneofValue = false
         if let current = self.edata {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .mediaUpload(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.edata = .mediaUpload(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.edata = .mediaUpload(v)
+        }
       }()
       case 11: try {
         var v: Server_MediaDownload?
+        var hadOneofValue = false
         if let current = self.edata {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .mediaDownload(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.edata = .mediaDownload(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.edata = .mediaDownload(v)
+        }
       }()
       case 12: try {
         var v: Server_MediaComposeLoad?
+        var hadOneofValue = false
         if let current = self.edata {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .mediaComposeLoad(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.edata = .mediaComposeLoad(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.edata = .mediaComposeLoad(v)
+        }
       }()
       case 13: try {
         var v: Server_PushReceived?
+        var hadOneofValue = false
         if let current = self.edata {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .pushReceived(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.edata = .pushReceived(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.edata = .pushReceived(v)
+        }
       }()
       case 14: try {
         var v: Server_DecryptionReport?
+        var hadOneofValue = false
         if let current = self.edata {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .decryptionReport(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.edata = .decryptionReport(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.edata = .decryptionReport(v)
+        }
       }()
       case 15: try {
         var v: Server_Permissions?
+        var hadOneofValue = false
         if let current = self.edata {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .permissions(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.edata = .permissions(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.edata = .permissions(v)
+        }
       }()
       default: break
       }

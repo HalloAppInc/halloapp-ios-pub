@@ -3464,6 +3464,8 @@ public struct Server_ExportData {
 
   public var dataURL: String = String()
 
+  public var availableUntilTs: Int64 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Status: SwiftProtobuf.Enum {
@@ -3471,6 +3473,7 @@ public struct Server_ExportData {
     case unknown // = 0
     case pending // = 1
     case ready // = 2
+    case notStarted // = 3
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -3482,6 +3485,7 @@ public struct Server_ExportData {
       case 0: self = .unknown
       case 1: self = .pending
       case 2: self = .ready
+      case 3: self = .notStarted
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -3491,6 +3495,7 @@ public struct Server_ExportData {
       case .unknown: return 0
       case .pending: return 1
       case .ready: return 2
+      case .notStarted: return 3
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -3508,6 +3513,7 @@ extension Server_ExportData.Status: CaseIterable {
     .unknown,
     .pending,
     .ready,
+    .notStarted,
   ]
 }
 
@@ -4395,21 +4401,29 @@ extension Server_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       case 1: try { try decoder.decodeSingularEnumField(value: &self.action) }()
       case 2: try {
         var v: Server_Post?
+        var hadOneofValue = false
         if let current = self.item {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .post(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.item = .post(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.item = .post(v)
+        }
       }()
       case 3: try {
         var v: Server_Comment?
+        var hadOneofValue = false
         if let current = self.item {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .comment(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.item = .comment(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.item = .comment(v)
+        }
       }()
       case 4: try { try decoder.decodeRepeatedMessageField(value: &self.shareStanzas) }()
       default: break
@@ -4560,21 +4574,29 @@ extension Server_GroupFeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       case 4: try { try decoder.decodeSingularStringField(value: &self.avatarID) }()
       case 5: try {
         var v: Server_Post?
+        var hadOneofValue = false
         if let current = self.item {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .post(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.item = .post(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.item = .post(v)
+        }
       }()
       case 6: try {
         var v: Server_Comment?
+        var hadOneofValue = false
         if let current = self.item {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .comment(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.item = .comment(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.item = .comment(v)
+        }
       }()
       case 7: try { try decoder.decodeRepeatedMessageField(value: &self.senderStateBundles) }()
       case 8: try { try decoder.decodeSingularBytesField(value: &self.encSenderState) }()
@@ -5801,255 +5823,367 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
         case 2: try { try decoder.decodeSingularEnumField(value: &_storage._type) }()
         case 3: try {
           var v: Server_UploadMedia?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .uploadMedia(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .uploadMedia(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .uploadMedia(v)
+          }
         }()
         case 4: try {
           var v: Server_ContactList?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .contactList(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .contactList(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .contactList(v)
+          }
         }()
         case 5: try {
           var v: Server_UploadAvatar?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .uploadAvatar(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .uploadAvatar(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .uploadAvatar(v)
+          }
         }()
         case 6: try {
           var v: Server_Avatar?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .avatar(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .avatar(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .avatar(v)
+          }
         }()
         case 7: try {
           var v: Server_Avatars?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .avatars(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .avatars(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .avatars(v)
+          }
         }()
         case 8: try {
           var v: Server_ClientMode?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .clientMode(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .clientMode(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .clientMode(v)
+          }
         }()
         case 9: try {
           var v: Server_ClientVersion?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .clientVersion(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .clientVersion(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .clientVersion(v)
+          }
         }()
         case 10: try {
           var v: Server_PushRegister?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .pushRegister(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .pushRegister(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .pushRegister(v)
+          }
         }()
         case 11: try {
           var v: Server_WhisperKeys?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .whisperKeys(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .whisperKeys(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .whisperKeys(v)
+          }
         }()
         case 12: try {
           var v: Server_Ping?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .ping(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .ping(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .ping(v)
+          }
         }()
         case 13: try {
           var v: Server_FeedItem?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .feedItem(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .feedItem(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .feedItem(v)
+          }
         }()
         case 14: try {
           var v: Server_PrivacyList?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .privacyList(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .privacyList(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .privacyList(v)
+          }
         }()
         case 16: try {
           var v: Server_PrivacyLists?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .privacyLists(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .privacyLists(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .privacyLists(v)
+          }
         }()
         case 17: try {
           var v: Server_GroupStanza?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .groupStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .groupStanza(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupStanza(v)
+          }
         }()
         case 18: try {
           var v: Server_GroupsStanza?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .groupsStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .groupsStanza(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupsStanza(v)
+          }
         }()
         case 19: try {
           var v: Server_ClientLog?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .clientLog(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .clientLog(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .clientLog(v)
+          }
         }()
         case 20: try {
           var v: Server_Name?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .name(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .name(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .name(v)
+          }
         }()
         case 21: try {
           var v: Server_ErrorStanza?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .errorStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .errorStanza(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .errorStanza(v)
+          }
         }()
         case 22: try {
           var v: Server_Props?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .props(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .props(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .props(v)
+          }
         }()
         case 23: try {
           var v: Server_InvitesRequest?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .invitesRequest(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .invitesRequest(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .invitesRequest(v)
+          }
         }()
         case 24: try {
           var v: Server_InvitesResponse?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .invitesResponse(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .invitesResponse(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .invitesResponse(v)
+          }
         }()
         case 25: try {
           var v: Server_NotificationPrefs?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .notificationPrefs(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .notificationPrefs(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .notificationPrefs(v)
+          }
         }()
         case 26: try {
           var v: Server_GroupFeedItem?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .groupFeedItem(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .groupFeedItem(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupFeedItem(v)
+          }
         }()
         case 27: try {
           var v: Server_UploadGroupAvatar?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .groupAvatar(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .groupAvatar(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupAvatar(v)
+          }
         }()
         case 28: try {
           var v: Server_DeleteAccount?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .deleteAccount(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .deleteAccount(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .deleteAccount(v)
+          }
         }()
         case 31: try {
           var v: Server_GroupInviteLink?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .groupInviteLink(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .groupInviteLink(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupInviteLink(v)
+          }
         }()
         case 32: try {
           var v: Server_HistoryResend?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .historyResend(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .historyResend(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .historyResend(v)
+          }
         }()
         case 33: try {
           var v: Server_ExportData?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .exportData(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .exportData(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .exportData(v)
+          }
         }()
         default: break
         }
@@ -6292,212 +6426,304 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
         case 4: try { try decoder.decodeSingularInt64Field(value: &_storage._fromUid) }()
         case 5: try {
           var v: Server_ContactList?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .contactList(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .contactList(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .contactList(v)
+          }
         }()
         case 6: try {
           var v: Server_Avatar?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .avatar(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .avatar(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .avatar(v)
+          }
         }()
         case 7: try {
           var v: Server_WhisperKeys?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .whisperKeys(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .whisperKeys(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .whisperKeys(v)
+          }
         }()
         case 8: try {
           var v: Server_SeenReceipt?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .seenReceipt(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .seenReceipt(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .seenReceipt(v)
+          }
         }()
         case 9: try {
           var v: Server_DeliveryReceipt?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .deliveryReceipt(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .deliveryReceipt(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .deliveryReceipt(v)
+          }
         }()
         case 10: try {
           var v: Server_ChatStanza?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .chatStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .chatStanza(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .chatStanza(v)
+          }
         }()
         case 11: try {
           var v: Server_FeedItem?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .feedItem(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .feedItem(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .feedItem(v)
+          }
         }()
         case 12: try {
           var v: Server_FeedItems?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .feedItems(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .feedItems(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .feedItems(v)
+          }
         }()
         case 13: try {
           var v: Server_ContactHash?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .contactHash(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .contactHash(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .contactHash(v)
+          }
         }()
         case 14: try {
           var v: Server_GroupStanza?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .groupStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .groupStanza(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupStanza(v)
+          }
         }()
         case 15: try {
           var v: Server_GroupChat?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .groupChat(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .groupChat(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupChat(v)
+          }
         }()
         case 16: try {
           var v: Server_Name?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .name(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .name(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .name(v)
+          }
         }()
         case 17: try {
           var v: Server_ErrorStanza?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .errorStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .errorStanza(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .errorStanza(v)
+          }
         }()
         case 18: try {
           var v: Server_GroupChatRetract?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .groupchatRetract(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .groupchatRetract(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupchatRetract(v)
+          }
         }()
         case 19: try {
           var v: Server_ChatRetract?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .chatRetract(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .chatRetract(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .chatRetract(v)
+          }
         }()
         case 20: try {
           var v: Server_GroupFeedItem?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .groupFeedItem(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .groupFeedItem(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupFeedItem(v)
+          }
         }()
         case 21: try { try decoder.decodeSingularInt32Field(value: &_storage._retryCount) }()
         case 22: try {
           var v: Server_Rerequest?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .rerequest(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .rerequest(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .rerequest(v)
+          }
         }()
         case 23: try {
           var v: Server_SilentChatStanza?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .silentChatStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .silentChatStanza(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .silentChatStanza(v)
+          }
         }()
         case 24: try {
           var v: Server_GroupFeedItems?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .groupFeedItems(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .groupFeedItems(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupFeedItems(v)
+          }
         }()
         case 25: try { try decoder.decodeSingularInt32Field(value: &_storage._rerequestCount) }()
         case 26: try {
           var v: Server_EndOfQueue?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .endOfQueue(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .endOfQueue(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .endOfQueue(v)
+          }
         }()
         case 27: try {
           var v: Server_InviteeNotice?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .inviteeNotice(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .inviteeNotice(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .inviteeNotice(v)
+          }
         }()
         case 28: try {
           var v: Server_GroupFeedRerequest?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .groupFeedRerequest(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .groupFeedRerequest(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupFeedRerequest(v)
+          }
         }()
         case 29: try {
           var v: Server_HistoryResend?
+          var hadOneofValue = false
           if let current = _storage._payload {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .historyResend(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._payload = .historyResend(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .historyResend(v)
+          }
         }()
         default: break
         }
@@ -6894,57 +7120,81 @@ extension Server_Packet: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
       switch fieldNumber {
       case 1: try {
         var v: Server_Msg?
+        var hadOneofValue = false
         if let current = self.stanza {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .msg(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.stanza = .msg(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.stanza = .msg(v)
+        }
       }()
       case 2: try {
         var v: Server_Iq?
+        var hadOneofValue = false
         if let current = self.stanza {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .iq(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.stanza = .iq(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.stanza = .iq(v)
+        }
       }()
       case 3: try {
         var v: Server_Ack?
+        var hadOneofValue = false
         if let current = self.stanza {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .ack(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.stanza = .ack(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.stanza = .ack(v)
+        }
       }()
       case 4: try {
         var v: Server_Presence?
+        var hadOneofValue = false
         if let current = self.stanza {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .presence(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.stanza = .presence(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.stanza = .presence(v)
+        }
       }()
       case 5: try {
         var v: Server_HaError?
+        var hadOneofValue = false
         if let current = self.stanza {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .haError(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.stanza = .haError(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.stanza = .haError(v)
+        }
       }()
       case 6: try {
         var v: Server_ChatState?
+        var hadOneofValue = false
         if let current = self.stanza {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .chatState(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.stanza = .chatState(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.stanza = .chatState(v)
+        }
       }()
       default: break
       }
@@ -7807,6 +8057,7 @@ extension Server_ExportData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     1: .standard(proto: "data_ready_ts"),
     2: .same(proto: "status"),
     3: .standard(proto: "data_url"),
+    4: .standard(proto: "available_until_ts"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -7818,6 +8069,7 @@ extension Server_ExportData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       case 1: try { try decoder.decodeSingularInt64Field(value: &self.dataReadyTs) }()
       case 2: try { try decoder.decodeSingularEnumField(value: &self.status) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.dataURL) }()
+      case 4: try { try decoder.decodeSingularInt64Field(value: &self.availableUntilTs) }()
       default: break
       }
     }
@@ -7833,6 +8085,9 @@ extension Server_ExportData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if !self.dataURL.isEmpty {
       try visitor.visitSingularStringField(value: self.dataURL, fieldNumber: 3)
     }
+    if self.availableUntilTs != 0 {
+      try visitor.visitSingularInt64Field(value: self.availableUntilTs, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -7840,6 +8095,7 @@ extension Server_ExportData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if lhs.dataReadyTs != rhs.dataReadyTs {return false}
     if lhs.status != rhs.status {return false}
     if lhs.dataURL != rhs.dataURL {return false}
+    if lhs.availableUntilTs != rhs.availableUntilTs {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -7850,6 +8106,7 @@ extension Server_ExportData.Status: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "UNKNOWN"),
     1: .same(proto: "PENDING"),
     2: .same(proto: "READY"),
+    3: .same(proto: "NOT_STARTED"),
   ]
 }
 
