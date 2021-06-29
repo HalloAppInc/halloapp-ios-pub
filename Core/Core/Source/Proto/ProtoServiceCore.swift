@@ -353,7 +353,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     open func authenticationFailed(with authResult: Server_AuthResult) {
         DDLogInfo("ProtoServiceCore/authenticationFailed [\(authResult)]")
-        switch authResult.reason {
+        switch authResult.reasonString {
         case "invalid client version":
             DispatchQueue.main.async {
                 self.isAppVersionKnownExpired.send(true)
@@ -412,7 +412,7 @@ extension ProtoServiceCore: NoiseDelegate {
     }
 
     public func receivedAuthResult(_ authResult: Server_AuthResult) {
-        if authResult.result == "success" {
+        if authResult.resultString == "success" {
             authenticationSucceeded(with: authResult)
         } else {
             authenticationFailed(with: authResult)

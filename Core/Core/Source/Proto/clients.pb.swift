@@ -365,12 +365,21 @@ public struct Clients_ChatContainer {
     set {message = .contactCard(newValue)}
   }
 
+  public var voiceNote: Clients_VoiceNote {
+    get {
+      if case .voiceNote(let v)? = message {return v}
+      return Clients_VoiceNote()
+    }
+    set {message = .voiceNote(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Message: Equatable {
     case text(Clients_Text)
     case album(Clients_Album)
     case contactCard(Clients_ContactCard)
+    case voiceNote(Clients_VoiceNote)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Clients_ChatContainer.OneOf_Message, rhs: Clients_ChatContainer.OneOf_Message) -> Bool {
@@ -388,6 +397,10 @@ public struct Clients_ChatContainer {
       }()
       case (.contactCard, .contactCard): return {
         guard case .contactCard(let l) = lhs, case .contactCard(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.voiceNote, .voiceNote): return {
+        guard case .voiceNote(let l) = lhs, case .voiceNote(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -505,11 +518,20 @@ public struct Clients_CommentContainer {
     set {comment = .album(newValue)}
   }
 
+  public var voiceNote: Clients_VoiceNote {
+    get {
+      if case .voiceNote(let v)? = comment {return v}
+      return Clients_VoiceNote()
+    }
+    set {comment = .voiceNote(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Comment: Equatable {
     case text(Clients_Text)
     case album(Clients_Album)
+    case voiceNote(Clients_VoiceNote)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Clients_CommentContainer.OneOf_Comment, rhs: Clients_CommentContainer.OneOf_Comment) -> Bool {
@@ -523,6 +545,10 @@ public struct Clients_CommentContainer {
       }()
       case (.album, .album): return {
         guard case .album(let l) = lhs, case .album(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.voiceNote, .voiceNote): return {
+        guard case .voiceNote(let l) = lhs, case .voiceNote(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -776,6 +802,116 @@ public struct Clients_Album {
   public init() {}
 
   fileprivate var _text: Clients_Text? = nil
+}
+
+public struct Clients_SenderKey {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var chainKey: Data = Data()
+
+  public var publicSignatureKey: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Clients_SenderState {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var senderKey: Clients_SenderKey {
+    get {return _senderKey ?? Clients_SenderKey()}
+    set {_senderKey = newValue}
+  }
+  /// Returns true if `senderKey` has been explicitly set.
+  public var hasSenderKey: Bool {return self._senderKey != nil}
+  /// Clears the value of `senderKey`. Subsequent reads from it will return its default value.
+  public mutating func clearSenderKey() {self._senderKey = nil}
+
+  public var currentChainIndex: Int32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _senderKey: Clients_SenderKey? = nil
+}
+
+public struct Clients_EncryptedPayload {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var payload: Clients_EncryptedPayload.OneOf_Payload? = nil
+
+  public var senderStateEncryptedPayload: Data {
+    get {
+      if case .senderStateEncryptedPayload(let v)? = payload {return v}
+      return Data()
+    }
+    set {payload = .senderStateEncryptedPayload(newValue)}
+  }
+
+  public var oneToOneEncryptedPayload: Data {
+    get {
+      if case .oneToOneEncryptedPayload(let v)? = payload {return v}
+      return Data()
+    }
+    set {payload = .oneToOneEncryptedPayload(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Payload: Equatable {
+    case senderStateEncryptedPayload(Data)
+    case oneToOneEncryptedPayload(Data)
+
+  #if !swift(>=4.1)
+    public static func ==(lhs: Clients_EncryptedPayload.OneOf_Payload, rhs: Clients_EncryptedPayload.OneOf_Payload) -> Bool {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch (lhs, rhs) {
+      case (.senderStateEncryptedPayload, .senderStateEncryptedPayload): return {
+        guard case .senderStateEncryptedPayload(let l) = lhs, case .senderStateEncryptedPayload(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.oneToOneEncryptedPayload, .oneToOneEncryptedPayload): return {
+        guard case .oneToOneEncryptedPayload(let l) = lhs, case .oneToOneEncryptedPayload(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      default: return false
+      }
+    }
+  #endif
+  }
+
+  public init() {}
+}
+
+public struct Clients_VoiceNote {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var audio: Clients_EncryptedResource {
+    get {return _audio ?? Clients_EncryptedResource()}
+    set {_audio = newValue}
+  }
+  /// Returns true if `audio` has been explicitly set.
+  public var hasAudio: Bool {return self._audio != nil}
+  /// Clears the value of `audio`. Subsequent reads from it will return its default value.
+  public mutating func clearAudio() {self._audio = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _audio: Clients_EncryptedResource? = nil
 }
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -1359,6 +1495,7 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     2: .same(proto: "text"),
     3: .same(proto: "album"),
     4: .standard(proto: "contact_card"),
+    5: .standard(proto: "voice_note"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1395,6 +1532,15 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.message = .contactCard(v)}
       }()
+      case 5: try {
+        var v: Clients_VoiceNote?
+        if let current = self.message {
+          try decoder.handleConflictingOneOf()
+          if case .voiceNote(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.message = .voiceNote(v)}
+      }()
       default: break
       }
     }
@@ -1419,6 +1565,10 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     case .contactCard?: try {
       guard case .contactCard(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case .voiceNote?: try {
+      guard case .voiceNote(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
     }()
     case nil: break
     }
@@ -1556,6 +1706,7 @@ extension Clients_CommentContainer: SwiftProtobuf.Message, SwiftProtobuf._Messag
     1: .same(proto: "context"),
     2: .same(proto: "text"),
     3: .same(proto: "album"),
+    4: .standard(proto: "voice_note"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1583,6 +1734,15 @@ extension Clients_CommentContainer: SwiftProtobuf.Message, SwiftProtobuf._Messag
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.comment = .album(v)}
       }()
+      case 4: try {
+        var v: Clients_VoiceNote?
+        if let current = self.comment {
+          try decoder.handleConflictingOneOf()
+          if case .voiceNote(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.comment = .voiceNote(v)}
+      }()
       default: break
       }
     }
@@ -1603,6 +1763,10 @@ extension Clients_CommentContainer: SwiftProtobuf.Message, SwiftProtobuf._Messag
     case .album?: try {
       guard case .album(let v)? = self.comment else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .voiceNote?: try {
+      guard case .voiceNote(let v)? = self.comment else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     }()
     case nil: break
     }
@@ -2017,6 +2181,169 @@ extension Clients_Album: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   public static func ==(lhs: Clients_Album, rhs: Clients_Album) -> Bool {
     if lhs.media != rhs.media {return false}
     if lhs._text != rhs._text {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_SenderKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".SenderKey"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "chain_key"),
+    2: .standard(proto: "public_signature_key"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.chainKey) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self.publicSignatureKey) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.chainKey.isEmpty {
+      try visitor.visitSingularBytesField(value: self.chainKey, fieldNumber: 1)
+    }
+    if !self.publicSignatureKey.isEmpty {
+      try visitor.visitSingularBytesField(value: self.publicSignatureKey, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_SenderKey, rhs: Clients_SenderKey) -> Bool {
+    if lhs.chainKey != rhs.chainKey {return false}
+    if lhs.publicSignatureKey != rhs.publicSignatureKey {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_SenderState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".SenderState"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "sender_key"),
+    2: .standard(proto: "current_chain_index"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._senderKey) }()
+      case 2: try { try decoder.decodeSingularInt32Field(value: &self.currentChainIndex) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if let v = self._senderKey {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }
+    if self.currentChainIndex != 0 {
+      try visitor.visitSingularInt32Field(value: self.currentChainIndex, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_SenderState, rhs: Clients_SenderState) -> Bool {
+    if lhs._senderKey != rhs._senderKey {return false}
+    if lhs.currentChainIndex != rhs.currentChainIndex {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_EncryptedPayload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".EncryptedPayload"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "sender_state_encrypted_payload"),
+    2: .standard(proto: "one_to_one_encrypted_payload"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        if self.payload != nil {try decoder.handleConflictingOneOf()}
+        var v: Data?
+        try decoder.decodeSingularBytesField(value: &v)
+        if let v = v {self.payload = .senderStateEncryptedPayload(v)}
+      }()
+      case 2: try {
+        if self.payload != nil {try decoder.handleConflictingOneOf()}
+        var v: Data?
+        try decoder.decodeSingularBytesField(value: &v)
+        if let v = v {self.payload = .oneToOneEncryptedPayload(v)}
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every case branch when no optimizations are
+    // enabled. https://github.com/apple/swift-protobuf/issues/1034
+    switch self.payload {
+    case .senderStateEncryptedPayload?: try {
+      guard case .senderStateEncryptedPayload(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularBytesField(value: v, fieldNumber: 1)
+    }()
+    case .oneToOneEncryptedPayload?: try {
+      guard case .oneToOneEncryptedPayload(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularBytesField(value: v, fieldNumber: 2)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_EncryptedPayload, rhs: Clients_EncryptedPayload) -> Bool {
+    if lhs.payload != rhs.payload {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_VoiceNote: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".VoiceNote"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "audio"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._audio) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if let v = self._audio {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_VoiceNote, rhs: Clients_VoiceNote) -> Bool {
+    if lhs._audio != rhs._audio {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

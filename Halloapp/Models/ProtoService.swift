@@ -424,6 +424,8 @@ final class ProtoService: ProtoServiceCore {
                     elements.append(.post(post))
                 case .retract:
                     retracts.append(.post(serverPost.id))
+                case .share:
+                    DDLogError("proto/payloadContents/\(serverPost.id)/error unhandled post action share")
                 case .UNRECOGNIZED(let action):
                     DDLogError("proto/payloadContents/\(serverPost.id)/error unrecognized post action \(action)")
                 }
@@ -437,6 +439,8 @@ final class ProtoService: ProtoServiceCore {
                     elements.append(.comment(comment, publisherName: serverComment.publisherName))
                 case .retract:
                     retracts.append(.comment(serverComment.id))
+                case .share:
+                    DDLogError("proto/payloadContents/\(serverComment.id)/error unhandled comment action share")
                 case .UNRECOGNIZED(let action):
                     DDLogError("proto/payloadContents/\(serverComment.id)/error unrecognized comment action \(action)")
                 }
@@ -811,6 +815,8 @@ final class ProtoService: ProtoServiceCore {
             DDLogInfo("proto/didReceive/\(msg.id)/endOfQueue")
         case .errorStanza(let error):
             DDLogError("proto/didReceive/\(msg.id) received message with error \(error)")
+        case .inviteeNotice, .groupFeedRerequest, .historyResend:
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
 
