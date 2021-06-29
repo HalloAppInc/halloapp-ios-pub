@@ -1083,7 +1083,7 @@
 			repositoryURL = "https://github.com/robbiehanson/CocoaAsyncSocket";
 			requirement = {
 				kind = exactVersion;
-				version = 7.6.4;
+				version = 7.6.5;
 			};
 		};
 		68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */ = {
@@ -1091,7 +1091,7 @@
 			repositoryURL = "https://github.com/CocoaLumberjack/CocoaLumberjack";
 			requirement = {
 				kind = exactVersion;
-				version = 3.6.2;
+				version = 3.7.2;
 			};
 		};
 		7681240B24861634008C5216 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
