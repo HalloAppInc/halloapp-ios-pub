@@ -262,7 +262,6 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
         guard let postId = postId else { return }
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else { return }
-        guard feedDataItem.media[index].type == .image else { return }
 
         presentExplorer(media: feedDataItem.media, index: index, delegate: view)
     }
