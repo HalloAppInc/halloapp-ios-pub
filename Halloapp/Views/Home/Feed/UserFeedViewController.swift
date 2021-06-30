@@ -100,6 +100,16 @@ class UserFeedViewController: FeedCollectionViewController {
         let alert = UIAlertController(title: MainAppContext.shared.contactStore.fullName(for: userId), message: nil, preferredStyle: .actionSheet)
         
         if let userKeys = MainAppContext.shared.keyStore.keyBundle(),
+           let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: userId)?.keyBundle,
+           let contactData = SafetyNumberData(keyBundle: contactKeyBundle)
+        {
+            let verifySafetyNumberAction = UIAlertAction(title: Localizations.safetyNumberTitle, style: .default) { [weak self] _ in
+                self?.viewSafetyNumber(contactData: contactData, userKeyBundle: userKeys)
+            }
+            alert.addAction(verifySafetyNumberAction)
+        }
+        
+        if let userKeys = MainAppContext.shared.keyStore.keyBundle(),
               let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: userId)?.keyBundle,
               let contactData = SafetyNumberData(keyBundle: contactKeyBundle)
         {
@@ -126,6 +136,7 @@ class UserFeedViewController: FeedCollectionViewController {
         alert.view.tintColor = .systemBlue
         alert.addAction(cancel)
         
+        
         present(alert, animated: true)
     }
     
@@ -141,8 +152,6 @@ class UserFeedViewController: FeedCollectionViewController {
     }
     
     private func blockUserTapped() {
-        guard !isOwnFeed else { return }
-        
         let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userId))
         
         let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)

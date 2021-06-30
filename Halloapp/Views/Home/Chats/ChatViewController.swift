@@ -84,14 +84,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         navigationItem.standardAppearance = navAppearance
         navigationItem.scrollEdgeAppearance = navAppearance
         navigationItem.compactAppearance = navAppearance
-        if shouldShowVerifyOption() {
-            // TODO: Use localized string here or pop up action sheet with longer description
-            navigationItem.rightBarButtonItem = UIBarButtonItem(
-                title: "Verify",
-                style: .plain,
-                target: self,
-                action: #selector(openSafetyNumberVerification))
-        }
 
         let titleWidthConstraint = titleView.widthAnchor.constraint(equalToConstant: (self.view.frame.width*0.8))
         titleWidthConstraint.priority = .defaultHigh // Lower priority to allow space for trailing button if necessary
@@ -442,26 +434,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
 
         return true
-    }
-
-    @objc
-    private func openSafetyNumberVerification() {
-        guard let userKeys = MainAppContext.shared.keyStore.keyBundle(),
-              let contactUserID = fromUserId,
-              let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: contactUserID)?.keyBundle,
-              let contactData = SafetyNumberData(keyBundle: contactKeyBundle) else
-        {
-            return
-        }
-
-        let vc = SafetyNumberViewController(
-            currentUser: SafetyNumberData(
-                userID: MainAppContext.shared.userData.userId,
-                identityKey: userKeys.identityPublicKey),
-            contact: contactData,
-            contactName: MainAppContext.shared.contactStore.fullName(for: contactUserID),
-            dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
-        present(vc.withNavigationController(), animated: true)
     }
 
     private func presentMediaExplorer(media: [ChatMedia], At index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
