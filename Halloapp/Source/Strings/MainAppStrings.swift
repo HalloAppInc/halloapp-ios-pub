@@ -121,12 +121,24 @@ extension Localizations {
         NSLocalizedString("user.option.block", value: "Block on HalloApp", comment: "Option when user taps more on profile page")
     }
     
+    static var userOptionUnblock: String {
+        NSLocalizedString("user.option.unblock", value: "Unblock on HalloApp", comment: "Option when user taps more on profile page")
+    }
+    
     static func blockMessage(username: String) -> String {
         return NSLocalizedString("user.block.message", value: "Are you sure you want to block %@ on HalloApp? You can always change this later.", comment: "Message asking if the user is sure they want to block this user").replacingOccurrences(of: "%@", with: username)
     }
     
+    static func unBlockMessage(username: String) -> String {
+        return NSLocalizedString("user.unblock.message", value: "Are you sure you want to unblock %@ on HalloApp? You can always change this later.", comment: "Message asking if the user is sure they want to unblock this user").replacingOccurrences(of: "%@", with: username)
+    }
+    
     static var blockButton: String {
         NSLocalizedString("user.block", value: "Block", comment: "Button to confirm blocking user via profile page")
+    }
+    
+    static var unBlockButton: String {
+        NSLocalizedString("user.unblock", value: "Unblock", comment: "Button to confirm unblocking user via profile page")
     }
     
     // MARK: Misc

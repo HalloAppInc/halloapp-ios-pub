@@ -20,7 +20,15 @@ class UserFeedViewController: FeedCollectionViewController {
 
     init(userId: UserID) {
         self.userId = userId
+        self.blockflag = false
         super.init(title: nil, fetchRequest: FeedDataSource.userFeedRequest(userID: userId))
+        
+        guard let blockedList = MainAppContext.shared.privacySettings.blocked else {
+            return
+        }
+        if blockedList.userIds.contains(self.userId) {
+            self.blockflag = true
+        }
     }
 
     required init?(coder: NSCoder) {
@@ -30,6 +38,8 @@ class UserFeedViewController: FeedCollectionViewController {
     private let userId: UserID
     private var headerViewController: ProfileHeaderViewController!
     private var cancellables = Set<AnyCancellable>()
+    
+    private var blockflag: Bool
 
     private lazy var exchangeNumbersView: UIView = {
         let image = UIImage(named: "FeedExchangeNumbers")?.withRenderingMode(.alwaysTemplate)
@@ -100,10 +110,17 @@ class UserFeedViewController: FeedCollectionViewController {
         }
         
         
-        let blockUserAction = UIAlertAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self] _ in
-            self?.blockUserTapped()
+        if !blockflag {
+            let blockUserAction = UIAlertAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self] _ in
+                self?.blockUserTapped()
+            }
+            alert.addAction(blockUserAction)
+        } else {
+            let blockUserAction = UIAlertAction(title: Localizations.userOptionUnblock, style: .destructive) { [weak self] _ in
+                self?.unBlockUserTapped()
+            }
+            alert.addAction(blockUserAction)
         }
-        alert.addAction(blockUserAction)
         
         let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
         alert.view.tintColor = .systemBlue
@@ -134,9 +151,35 @@ class UserFeedViewController: FeedCollectionViewController {
             guard let blockedList = privacySettings.blocked else { return }
             guard let userId = self?.userId else { return }
             privacySettings.replaceUserIDs(in: blockedList, with: blockedList.userIds + [userId])
+            self?.blockflag = true
         }
         alert.addAction(button)
         
+        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
+        alert.addAction(cancel)
+        
+        present(alert, animated: true)
+    }
+    
+    private func unBlockUserTapped() {
+        guard !isOwnFeed else { return }
+
+        let unBlockMessage = Localizations.unBlockMessage(username: MainAppContext.shared.contactStore.fullName(for: userId))
+
+        let alert = UIAlertController(title: nil, message: unBlockMessage, preferredStyle: .actionSheet)
+        let button = UIAlertAction(title: Localizations.unBlockButton, style: .destructive) { [weak self] _ in
+            let privacySettings = MainAppContext.shared.privacySettings
+            guard let blockedList = privacySettings.blocked else { return }
+            guard let userId = self?.userId else { return }
+            
+            var newBlockList = blockedList.userIds
+            newBlockList.removeAll { value in return value == userId}
+            
+            privacySettings.replaceUserIDs(in: blockedList, with: newBlockList)
+            self?.blockflag = false
+        }
+        alert.addAction(button)
+
         let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
         alert.addAction(cancel)
         
