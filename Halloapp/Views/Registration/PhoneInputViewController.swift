@@ -62,6 +62,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         textFieldUserName.placeholder = Localizations.registrationNamePlaceholder
         textFieldUserName.addTarget(self, action: #selector(nameFieldAction), for: .primaryActionTriggered)
         textFieldUserName.addTarget(self, action: #selector(textFieldEditingChanged), for: .editingChanged)
+        textFieldUserName.becomeFirstResponder()
 
         buttonSignIn.layer.masksToBounds = true
         buttonSignIn.setTitle(Localizations.buttonNext, for: .normal)

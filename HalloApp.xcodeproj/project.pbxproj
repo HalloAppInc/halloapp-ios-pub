@@ -88,7 +88,6 @@
 		68CD603425E463FA0056D13E /* ConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CD603325E463FA0056D13E /* ConnectionBanner.swift */; };
 		68CFF38F2551FF6F009B0D81 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */; };
 		68D2915125096F0700AF5061 /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
-		68D45A0E25544813000BF04E /* ContactsPermissionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D45A0D25544813000BF04E /* ContactsPermissionsViewController.swift */; };
 		68E4619625C9C93B008B5698 /* ExpiredVersionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */; };
 		68E5E9DA25F6FAF100250762 /* FeedDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E5E9D925F6FAF100250762 /* FeedDataSource.swift */; };
 		68F935C5252CD00800FA6E75 /* ChatMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */; };
@@ -217,8 +216,6 @@
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
 		94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */; };
 		E537A1B726792AEF0008B286 /* ChatDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E537A1B626792AEF0008B286 /* ChatDraft.swift */; };
-		E598D4C0265F0188001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
-		E598D4C2265F0558001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
 		E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */; };
 		E598D4C0265F0188001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
 		E598D4C2265F0558001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
@@ -532,7 +529,6 @@
 		68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.external beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.external beta.xcconfig"; sourceTree = "<group>"; };
 		68CD603325E463FA0056D13E /* ConnectionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionBanner.swift; sourceTree = "<group>"; };
 		68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Localizations+Registration.swift"; sourceTree = "<group>"; };
-		68D45A0D25544813000BF04E /* ContactsPermissionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsPermissionsViewController.swift; sourceTree = "<group>"; };
 		68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiredVersionViewController.swift; sourceTree = "<group>"; };
 		68E5E9D925F6FAF100250762 /* FeedDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataSource.swift; sourceTree = "<group>"; };
 		68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -670,7 +666,6 @@
 		D0A0ED7F66A2EB2A804CC6EC /* Pods-Shared Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		E537A1B626792AEF0008B286 /* ChatDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatDraft.swift; sourceTree = "<group>"; };
-		E598D4BF265F0188001A436A /* ConversationID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationID.swift; sourceTree = "<group>"; };
 		E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPermissionExplanationAlert.swift; sourceTree = "<group>"; };
 		E598D4BF265F0188001A436A /* ConversationID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationID.swift; sourceTree = "<group>"; };
 		E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionTutorialAlert.swift; sourceTree = "<group>"; };
@@ -1463,7 +1458,6 @@
 				76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */,
 				761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */,
 				68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */,
-				68D45A0D25544813000BF04E /* ContactsPermissionsViewController.swift */,
 				68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */,
 			);
 			path = Registration;
@@ -2360,7 +2354,6 @@
 				68B5C232264DC710004C7939 /* QRCodeScannerViewController.swift in Sources */,
 				EA62C28C2563577D008EA9C9 /* MsgUIProtocol.swift in Sources */,
 				76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */,
-				68D45A0E25544813000BF04E /* ContactsPermissionsViewController.swift in Sources */,
 				EAD476D324588E0000EF8591 /* ChatMediaSlider.swift in Sources */,
 				761905A32459EB07008FC600 /* InputTextView.swift in Sources */,
 				F8606DD1257E7340006CD1A6 /* MediaExplorerVideoCell.swift in Sources */,
