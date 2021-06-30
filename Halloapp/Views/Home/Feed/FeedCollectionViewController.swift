@@ -192,7 +192,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         guard scrollView == collectionView else { return }
         if isNearTop(100) {
             removeNewPostsIndicator()
-            MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.send()
         }
 
         checkForOnscreenCells()

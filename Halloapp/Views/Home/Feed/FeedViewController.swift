@@ -99,6 +99,14 @@ class FeedViewController: FeedCollectionViewController {
         self.cancellables.forEach { $0.cancel() }
     }
 
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        super.scrollViewDidScroll(scrollView)
+        guard scrollView == collectionView else { return }
+        if isNearTop(100) {
+            MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.send()
+        }
+    }
+
     // MARK: FeedCollectionViewController
 
     override func willUpdate(with items: [FeedDisplayItem]) {
