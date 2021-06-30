@@ -791,6 +791,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 case .unsupported(let data):
                     comment.status = .unsupported
                     comment.rawData = data
+
+                    // populate text with empty string as text is required, could be removed if this changes
+                    if comment.text.isEmpty {
+                        comment.text = ""
+                    }
                 }
                 comment.timestamp = xmppComment.timestamp
 
