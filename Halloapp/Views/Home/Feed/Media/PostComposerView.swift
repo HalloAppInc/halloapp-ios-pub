@@ -585,9 +585,14 @@ fileprivate struct PostComposerView: View {
             presentPicker = false
             guard !cancel else { return }
 
+            let newItemIndex = newMediaItems.firstIndex { newItem in
+                !mediaItems.value.contains { oldItem in
+                    newItem.asset == oldItem.asset
+                }
+            }
             let lastAsset = mediaItems.value[currentPosition.value].asset
             mediaItems.value = newMediaItems
-            currentPosition.value = newMediaItems.firstIndex { $0.asset == lastAsset } ?? 0
+            currentPosition.value = newItemIndex ?? newMediaItems.firstIndex { $0.asset == lastAsset } ?? 0
             mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
         }
     }
