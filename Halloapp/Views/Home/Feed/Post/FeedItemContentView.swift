@@ -461,14 +461,15 @@ final class FeedItemHeaderView: UIView {
             
             let attrText = NSMutableAttributedString(string: "")
             let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate)
-            let groupNameColor = traitCollection.userInterfaceStyle == .light ? UIColor.gray : UIColor.label
+            let groupIndicatorColor = traitCollection.userInterfaceStyle == .light ? UIColor.gray : UIColor.label
+            let groupNameColor = UIColor.label
 
             if let groupIndicator = groupIndicatorImage, let font = groupNameLabel.font {
                 let iconAttachment = NSTextAttachment(image: groupIndicator)
                 attrText.append(NSAttributedString(attachment: iconAttachment))
-                
-                attrText.addAttributes([.font: font, .foregroundColor: groupNameColor], range: NSRange(location: 0, length: attrText.length))
-                
+
+                attrText.addAttributes([.font: font, .foregroundColor: groupIndicatorColor], range: NSRange(location: 0, length: attrText.length))
+
                 let groupNameAttributes = [NSAttributedString.Key.font: font, NSAttributedString.Key.foregroundColor: groupNameColor]
                 let groupNameAttributedStr = NSAttributedString(string: " \(groupChat.name)", attributes: groupNameAttributes)
                 attrText.append(groupNameAttributedStr)
@@ -482,8 +483,7 @@ final class FeedItemHeaderView: UIView {
                 shortAttrText.deleteCharacters(in: range)
                 groupNameLabel.attributedText = shortAttrText
 
-                let secondLineGroupNameAttributes = [NSAttributedString.Key.foregroundColor: groupNameColor]
-                let secondLineGroupNameAttributedStr = NSAttributedString(string: "\(groupChat.name)", attributes: secondLineGroupNameAttributes)
+                let secondLineGroupNameAttributedStr = NSAttributedString(string: "\(groupChat.name)")
                 secondLineGroupNameLabel.attributedText = secondLineGroupNameAttributedStr
                 secondLineGroupNameLabel.isHidden = false
             } else {
@@ -497,8 +497,9 @@ final class FeedItemHeaderView: UIView {
         avatarViewButton.avatarView.prepareForReuse()
         groupNameLabel.attributedText = nil
         groupNameLabel.textColor = .label
+        groupNameLabel.isHidden = true
         secondLineGroupNameLabel.attributedText = nil
-        secondLineGroupNameLabel.textColor = .label
+        secondLineGroupNameLabel.isHidden = true
     }
 
     @objc func showUser() {

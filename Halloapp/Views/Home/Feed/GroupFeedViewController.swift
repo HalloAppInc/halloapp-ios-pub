@@ -143,6 +143,7 @@ class GroupFeedViewController: FeedCollectionViewController {
         backButton.title = num > 0 ? String(num) : " \u{00a0}"
 
         navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
+        navigationController?.navigationBar.tintColor = .primaryBlue
     }
 
     private lazy var titleView: GroupTitleView = {

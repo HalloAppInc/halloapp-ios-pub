@@ -44,6 +44,8 @@ fileprivate extension ContactTableViewCell {
 
         nameLabel.text = receipt.contactName
         subtitleLabel.text = receipt.phoneNumber
+
+        contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 62).isActive = true
     }
 }
 
