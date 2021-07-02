@@ -816,6 +816,6 @@ private class FeedLayout: UICollectionViewFlowLayout {
 
 extension Localizations {
     static var saveAllButton: String = {
-        return NSLocalizedString("media.save.all", "Save All To Camera Roll", comment: "Button that, when pressed, saves all the post's media to the user's camera roll")
+        return NSLocalizedString("media.save.all", value: "Save All To Camera Roll", comment: "Button that, when pressed, saves all the post's media to the user's camera roll")
     }()
 }
