@@ -20,10 +20,11 @@ public extension ABContact {
 
     // Raw values are persisted as ABContact.statusValue. Do not change.
     enum Status: Int16 {
-        case unknown = 0
-        case `in` = 1
-        case `out` = 2
-        case invalid = 3
+        case unknown = 0    // indicates contact is new and unprocessed yet.
+        case `in` = 1       // deprecated value - no longer used.
+        case `out` = 2      // deprecated value - no longer used.
+        case invalid = 3    // indicates contact is invalid.
+        case processed = 4  // indicates contact has been processed and sent to the server.
     }
 
     @NSManaged var fullName: String?

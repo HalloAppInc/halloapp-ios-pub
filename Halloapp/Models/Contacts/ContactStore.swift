@@ -706,22 +706,12 @@ class ContactStoreMain: ContactStore {
      */
     private func update(contacts: [ABContact], with xmppContact: XMPPContact) -> [ABContact] {
         var newUsers: [ABContact] = []
-        let newStatus: ABContact.Status = xmppContact.registered ? .in : (xmppContact.normalized == nil ? .invalid : .out)
-        if newStatus == .invalid {
+        if xmppContact.normalized == nil {
             DDLogInfo("contacts/sync/process-results/invalid [\(xmppContact.raw!)]")
         }
         for abContact in contacts {
-            // Update status.
-            let previousStatus = abContact.status
-            if newStatus != previousStatus {
-                abContact.status = newStatus
-
-                if newStatus == .in {
-                    DDLogInfo("contacts/sync/process-results/new-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
-                } else if previousStatus == .in && newStatus == .out {
-                    DDLogInfo("contacts/sync/process-results/delete-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
-                }
-            }
+            // status field is not modified in the sync anymore.
+            abContact.status = .processed
 
             // Store normalized phone number.
             if xmppContact.normalized != abContact.normalizedPhoneNumber {
@@ -762,7 +752,7 @@ class ContactStoreMain: ContactStore {
         self.didDiscoverNewUsers.send(userIds)
     }
 
-    func processSync(results: [XMPPContact], isFullSync: Bool, using managedObjectContext: NSManagedObjectContext) {
+    func processSync(results: [XMPPContact], using managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("contacts/sync/process-results/start")
 
         let startTime = Date()

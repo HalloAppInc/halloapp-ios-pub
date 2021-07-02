@@ -14,7 +14,6 @@ typealias HalloContact = XMPPContact
 struct XMPPContact {
     private(set) var userid: String?
     private(set) var normalized: String?
-    private(set) var registered: Bool = false
     private(set) var avatarid: AvatarID?
     private(set) var pushName: String?
     var raw: String?
@@ -30,7 +29,6 @@ struct XMPPContact {
             normalized = pbContact.normalized
         }
         numPotentialContacts = Int(pbContact.numPotentialFriends)
-        registered = (pbContact.role == .friends && userid != nil)
         pushName = pbContact.name
         raw = pbContact.raw
         if !pbContact.avatarID.isEmpty {
