@@ -337,6 +337,7 @@ final class FeedItemHeaderView: UIView {
         let view = UIStackView(arrangedSubviews: [ userAndGroupNameRow, secondLineGroupNameLabel, timestampLabel ])
         view.axis = .vertical
         view.spacing = 0
+        view.heightAnchor.constraint(equalToConstant: 54).isActive = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
 
@@ -412,7 +413,7 @@ final class FeedItemHeaderView: UIView {
         return label
     }()
     
-    private lazy var moreButton: UIButton = {
+    private lazy var moreButton: UIView = {
         let image = UIImage(systemName: "ellipsis")
         let button = UIButton()
         button.setImage(image, for: .normal)
@@ -424,7 +425,16 @@ final class FeedItemHeaderView: UIView {
             button.widthAnchor.constraint(equalToConstant: image.size.width).isActive = true
         }
         
-        return button
+        let wrapperView = UIView()
+        wrapperView.addSubview(button)
+        wrapperView.translatesAutoresizingMaskIntoConstraints = false
+        
+        button.topAnchor.constraint(equalTo: wrapperView.topAnchor).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 18).isActive = true
+        
+        wrapperView.widthAnchor.constraint(equalToConstant: 18).isActive = true
+        
+        return wrapperView
     }()
     
     @objc private func showMoreTapped() {
@@ -449,13 +459,13 @@ final class FeedItemHeaderView: UIView {
         avatarViewButton.heightAnchor.constraint(equalToConstant: 36).isActive = true
         avatarViewButton.heightAnchor.constraint(equalTo: avatarViewButton.widthAnchor).isActive = true
         avatarViewButton.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
-        avatarViewButton.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
-        avatarViewButton.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        avatarViewButton.topAnchor.constraint(equalTo: topAnchor).isActive = true
         hStack.leadingAnchor.constraint(equalToSystemSpacingAfter: avatarViewButton.trailingAnchor, multiplier: 1).isActive = true
         hStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
         hStack.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+        moreButton.topAnchor.constraint(equalTo: hStack.topAnchor).isActive = true
 
         contentSizeCategoryDidChangeCancellable = NotificationCenter.default
             .publisher(for: UIContentSizeCategory.didChangeNotification)
