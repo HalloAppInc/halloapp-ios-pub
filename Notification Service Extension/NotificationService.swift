@@ -116,9 +116,10 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             // todo(murali@): extend this to other types as well.
             dataStore.saveServerMsg(notificationMetadata: metadata)
         case .groupChatMessage, .feedPostRetract, .groupFeedPostRetract,
-             .feedCommentRetract, .groupFeedCommentRetract, .chatMessageRetract, .groupChatMessageRetract:
-            // If notification is anything else just invoke completion handler.
-            break
+             .feedCommentRetract, .groupFeedCommentRetract, .chatMessageRetract, .groupChatMessageRetract, .chatRerequest:
+            // If notification is anything else just invoke completion handler and return
+            dismissNotification()
+            return
         }
 
         // Invoke completion handler now if there was nothing to download.
@@ -135,6 +136,17 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             service?.disconnect()
             DDLogInfo("Invoking completion handler now")
             contentHandler(bestAttemptContent)
+        }
+    }
+
+    private func dismissNotification() {
+        DDLogInfo("Going to try to disconnect and dismiss notification now")
+        // Try and disconnect after 1 second.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
+            DDLogInfo("disconnect now")
+            service?.disconnect()
+            DDLogInfo("Invoking completion handler now")
+            contentHandler(UNNotificationContent())
         }
     }
 
