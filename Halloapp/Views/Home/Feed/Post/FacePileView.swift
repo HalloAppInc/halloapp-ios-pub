@@ -28,7 +28,7 @@ class FacePileView: UIControl {
             // The avatars are added from right to left
             let avatarView = AvatarView()
             avatarView.borderColor = .secondarySystemGroupedBackground
-            avatarView.borderWidth = 2
+            avatarView.borderWidth = 3
             avatarView.isHidden = true
             avatarView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -44,7 +44,7 @@ class FacePileView: UIControl {
             }
 
             avatarView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-            avatarView.heightAnchor.constraint(equalToConstant: 25).isActive = true
+            avatarView.heightAnchor.constraint(equalToConstant: 27).isActive = true
             avatarView.widthAnchor.constraint(equalTo: avatarView.heightAnchor).isActive = true
         }
 
@@ -64,15 +64,6 @@ class FacePileView: UIControl {
                 let avatarView = avatarViews[userIndex]
                 avatarView.isHidden = false
                 avatarView.configure(with: avatar, using: MainAppContext.shared.avatarStore)
-
-                switch avatarsToShow.count - userIndex {
-                case 3:
-                    avatarView.imageAlpha = 0.7 // The rightmost avatar
-                case 2:
-                    avatarView.imageAlpha = 0.9 // The middle avatar
-                default:
-                    avatarView.imageAlpha = 1 // The leftmost avatar
-                }
             }
         } else { // No one has seen this post. Just show a dummy avatar.
             guard let avatarView = avatarViews.first else { return }

@@ -56,7 +56,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
     struct LayoutConstants {
         static let interCardSpacing: CGFloat = 50
-        static let backgroundCornerRadius: CGFloat = 15
+        static let backgroundCornerRadius: CGFloat = 20
         /**
          Content view (vertical stack takes standard table view content width: tableView.width - tableView.layoutMargins.left - tableView.layoutMargins.right
          Background "card" horizontal insets are 1/2 of the layout margin.

@@ -400,10 +400,10 @@ final class FeedItemHeaderView: UIView {
         return label
     }()
 
-    // Gotham Medium, 14 pt (Footnote + 1)
+    // Gotham Medium, 13 pt
     private lazy var timestampLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.gothamFont(forTextStyle: .footnote, pointSizeChange: 1, weight: .medium)
+        label.font = UIFont.systemFont(forTextStyle: .footnote, weight: .medium)
         label.adjustsFontForContentSizeCategory = true
         label.textColor = .tertiaryLabel
         label.textAlignment = .natural
@@ -416,7 +416,7 @@ final class FeedItemHeaderView: UIView {
         let image = UIImage(systemName: "ellipsis")
         let button = UIButton()
         button.setImage(image, for: .normal)
-        button.tintColor = .tertiaryLabel
+        button.tintColor = .label
         button.addTarget(self, action: #selector(showMoreTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         
@@ -446,7 +446,7 @@ final class FeedItemHeaderView: UIView {
         configure(stackView: hStack, forVerticalLayout: UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory)
         addSubview(hStack)
 
-        avatarViewButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        avatarViewButton.heightAnchor.constraint(equalToConstant: 36).isActive = true
         avatarViewButton.heightAnchor.constraint(equalTo: avatarViewButton.widthAnchor).isActive = true
         avatarViewButton.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
         avatarViewButton.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
@@ -481,7 +481,7 @@ final class FeedItemHeaderView: UIView {
         timestampLabel.text = post.timestamp.feedTimestamp()
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
         
-        moreButton.isHidden = post.userId != MainAppContext.shared.userData.userId && post.groupId == nil
+        moreButton.isHidden = post.userId != MainAppContext.shared.userData.userId && !post.canSaveMedia
     }
     
     func configureGroupLabel(with groupID: String?) {
