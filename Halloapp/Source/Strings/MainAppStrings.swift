@@ -144,7 +144,7 @@ extension Localizations {
     // MARK: Misc
 
     static var inviteFriendsAndFamily: String {
-        "Invite friends & family"
+        NSLocalizedString("invite.friends.family", value: "Invite friends & family", comment: "Button to start invite flow")
     }
 
     static var settingsAppName: String {
