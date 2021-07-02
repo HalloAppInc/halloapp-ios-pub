@@ -91,6 +91,14 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     deinit {
         DDLogDebug("GroupInfoViewController/deinit ")
     }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        DDLogDebug("GroupInfoViewController/traitCollectionDidChange")
+
+        for cell in tableView.visibleCells {
+            cell.contentView.layer.backgroundColor = UIColor.secondarySystemGroupedBackground.cgColor
+        }
+    }
 
     // MARK: Fetch Results Controller
 
