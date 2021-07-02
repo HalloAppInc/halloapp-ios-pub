@@ -478,13 +478,12 @@ final class ProtoService: ProtoServiceCore {
     private func rerequestMessageIfNecessary(_ message: Server_Msg, failedEphemeralKey: Data?) {
         // Dont rerequest messages that were already decrypted and saved.
         if !isMessageDecryptedAndSaved(msgId: message.id) {
-            rerequestMessage(message, failedEphemeralKey: failedEphemeralKey)
+            updateStatusAndRerequestMessage(message, failedEphemeralKey: failedEphemeralKey)
         }
     }
 
-    private func rerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?) {
+    private func updateStatusAndRerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?) {
         self.updateMessageStatus(id: message.id, status: .rerequested)
-
         guard let identityKey = AppContext.shared.keyStore.keyBundle()?.identityPublicEdKey else {
             DDLogError("ProtoService/rerequestMessage/\(message.id)/error could not retrieve identity key")
             return
@@ -690,7 +689,7 @@ final class ProtoService: ProtoServiceCore {
                 if let failure = decryptionFailure {
                     DDLogError("proto/didReceive/\(msg.id)/silent-decrypt/error \(failure.error)")
                     AppContext.shared.errorLogger?.logError(failure.error)
-                    self.rerequestMessage(msg, failedEphemeralKey: failure.ephemeralKey)
+                    self.updateStatusAndRerequestMessage(msg, failedEphemeralKey: failure.ephemeralKey)
                 } else {
                     DDLogInfo("proto/didReceive/\(msg.id)/silent-decrypt/success")
                 }

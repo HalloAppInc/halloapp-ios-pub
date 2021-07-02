@@ -614,6 +614,27 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func rerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let identityKey = AppContext.shared.keyStore.keyBundle()?.identityPublicEdKey else {
+            DDLogError("ProtoService/rerequestMessage/\(message.id)/error could not retrieve identity key")
+            return
+        }
+
+        let fromUserID = UserID(message.fromUid)
+
+        AppContext.shared.messageCrypter.sessionSetupInfoForRerequest(from: fromUserID) { setupInfo in
+            let rerequestData = RerequestData(
+                identityKey: identityKey,
+                signedPreKeyID: 0,
+                oneTimePreKeyID: setupInfo?.1,
+                sessionSetupEphemeralKey: setupInfo?.0 ?? Data(),
+                messageEphemeralKey: failedEphemeralKey)
+
+            DDLogInfo("ProtoService/rerequestMessage/\(message.id) rerequesting")
+            self.rerequestMessage(message.id, senderID: fromUserID, rerequestData: rerequestData, completion: completion)
+        }
+    }
+
     public func rerequestMessage(_ messageID: String, senderID: UserID, rerequestData: RerequestData, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoMessageRerequest(messageID: messageID, fromUserID: userData.userId, toUserID: senderID, rerequestData: rerequestData, completion: completion))
     }
