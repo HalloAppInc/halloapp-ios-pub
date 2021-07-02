@@ -100,16 +100,6 @@ class UserFeedViewController: FeedCollectionViewController {
         let alert = UIAlertController(title: MainAppContext.shared.contactStore.fullName(for: userId), message: nil, preferredStyle: .actionSheet)
         
         if let userKeys = MainAppContext.shared.keyStore.keyBundle(),
-           let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: userId)?.keyBundle,
-           let contactData = SafetyNumberData(keyBundle: contactKeyBundle)
-        {
-            let verifySafetyNumberAction = UIAlertAction(title: Localizations.safetyNumberTitle, style: .default) { [weak self] _ in
-                self?.viewSafetyNumber(contactData: contactData, userKeyBundle: userKeys)
-            }
-            alert.addAction(verifySafetyNumberAction)
-        }
-        
-        if let userKeys = MainAppContext.shared.keyStore.keyBundle(),
               let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: userId)?.keyBundle,
               let contactData = SafetyNumberData(keyBundle: contactKeyBundle)
         {
