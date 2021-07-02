@@ -63,6 +63,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private let scaleThreshold: CGFloat = 1.3
     private var postId: FeedPostID? = nil
+    private var feedPost: FeedPost?
 
     private enum LayoutConstants {
         static let topMargin: CGFloat = 5
@@ -129,6 +130,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, isTextExpanded: Bool) {
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) else { return }
+        
+        feedPost = post
 
         if let mediaView = mediaView {
             let keepMediaView = postId == post.id && mediaView.configuration.gutterWidth == gutterWidth
@@ -284,7 +287,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     }
 
     private func presentExplorer(media: [FeedMedia], index: Int, delegate: MediaExplorerTransitionDelegate? = nil) {
-        let explorerController = MediaExplorerController(media: media, index: index)
+        guard let post = feedPost else { return }
+        let explorerController = MediaExplorerController(media: media, index: index, canSaveMedia: post.canSaveMedia)
         explorerController.delegate = delegate
 
         if let controller = findController() {
@@ -318,6 +322,7 @@ final class FeedItemHeaderView: UIView {
 
     var showUserAction: (() -> ())? = nil
     var showGroupFeedAction: (() -> ())? = nil
+    var showMoreAction: (() -> ())? = nil
 
     private var contentSizeCategoryDidChangeCancellable: AnyCancellable!
 
@@ -329,7 +334,7 @@ final class FeedItemHeaderView: UIView {
     }()
 
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ userAndGroupNameRow, secondLineGroupNameLabel ])
+        let view = UIStackView(arrangedSubviews: [ userAndGroupNameRow, secondLineGroupNameLabel, timestampLabel ])
         view.axis = .vertical
         view.spacing = 0
         
@@ -406,13 +411,34 @@ final class FeedItemHeaderView: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+    
+    private lazy var moreButton: UIButton = {
+        let image = UIImage(systemName: "ellipsis")
+        let button = UIButton()
+        button.setImage(image, for: .normal)
+        button.tintColor = .tertiaryLabel
+        button.addTarget(self, action: #selector(showMoreTapped), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        
+        if let image = image {
+            button.widthAnchor.constraint(equalToConstant: image.size.width).isActive = true
+        }
+        
+        return button
+    }()
+    
+    @objc private func showMoreTapped() {
+        if let action = showMoreAction {
+            action()
+        }
+    }
 
     private func setupView() {
         isUserInteractionEnabled = true
 
         addSubview(avatarViewButton)
 
-        let hStack = UIStackView(arrangedSubviews: [ nameColumn, timestampLabel ])
+        let hStack = UIStackView(arrangedSubviews: [ nameColumn, moreButton ])
         hStack.axis = .horizontal
         hStack.spacing = 4
         hStack.translatesAutoresizingMaskIntoConstraints = false
@@ -454,6 +480,8 @@ final class FeedItemHeaderView: UIView {
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
         timestampLabel.text = post.timestamp.feedTimestamp()
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
+        
+        moreButton.isHidden = post.userId != MainAppContext.shared.userData.userId && post.groupId == nil
     }
     
     func configureGroupLabel(with groupID: String?) {

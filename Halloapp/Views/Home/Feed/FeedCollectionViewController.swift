@@ -11,6 +11,7 @@ import Combine
 import Core
 import CoreData
 import UIKit
+import Photos
 
 protocol FeedCollectionViewControllerDelegate: AnyObject {
     func feedCollectionViewController(_ feedCollectionViewController: FeedCollectionViewController, userActioned: Bool)
@@ -568,6 +569,41 @@ extension FeedCollectionViewController {
             guard let self = self else { return }
             self.showGroupFeed(for: groupID)
         }
+        cell.showMoreAction = { [weak self] userID in
+            guard let self = self else { return }
+            
+            let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+            alert.addAction(UIAlertAction(title: Localizations.saveAllButton, style: .default, handler:  { [weak self] _ in
+                PHPhotoLibrary.requestAuthorization { status in
+                    // `.limited` was introduced in iOS 14, and only gives us partial access to the photo album. In this case we can still save to the camera roll
+                    if #available(iOS 14, *) {
+                        guard status == .authorized || status == .limited else {
+                            self?.handleMediaAuthorizationFailure()
+                            return
+                        }
+                    } else {
+                        guard status == .authorized else {
+                            self?.handleMediaAuthorizationFailure()
+                            return
+                        }
+                    }
+                    
+                    guard let expectedMedia = feedPost.media, let self = self else { return } // Get the media data to determine how many should be downloaded
+                    let media = self.getMedia(feedPost: feedPost) // Get the media from memory
+                    
+                    // Make sure the media in memory is the correct number or items
+                    guard expectedMedia.count == media.count else {
+                        DDLogError("FeedCollectionViewController/saveAllButton/error: Downloaded media not same size as expected")
+                        return
+                    }
+                    
+                    self.saveMedia(media: media)
+                }
+            }))
+            alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil))
+            alert.view.tintColor = .systemBlue
+            self.present(alert, animated: true, completion: nil)
+        }
         cell.cancelSendingAction = { [weak self] in
             guard let self = self else { return }
             self.cancelSending(postId: postId)
@@ -581,6 +617,55 @@ extension FeedCollectionViewController {
             self.deleteUnsentPost(postID: postId)
         }
         cell.delegate = self
+    }
+    
+    private func handleMediaAuthorizationFailure() {
+        let alert = UIAlertController(title: Localizations.mediaPermissionsError, message: Localizations.mediaPermissionsErrorDescription, preferredStyle: .alert)
+        
+        DDLogInfo("FeedCollectionViewController/shareAllButtonPressed: User denied photos permissions")
+        
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+        
+        present(alert, animated: true)
+    }
+    
+    private func getMedia(feedPost: FeedPost) -> [(type: FeedMediaType, url: URL)] {
+        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id) else { return [] }
+        let feedMedia = feedDataItem.media
+        
+        var mediaItems: [(type: FeedMediaType, url: URL)] = []
+        
+        for media in feedMedia {
+            if media.isMediaAvailable, let url = media.fileURL {
+                mediaItems.append((type: media.type, url: url))
+            }
+        }
+        
+        return mediaItems
+    }
+    
+    private func saveMedia(media: [(type: FeedMediaType, url: URL)]) {
+        PHPhotoLibrary.shared().performChanges({
+            for media in media {
+                if media.type == .image {
+                    PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: media.url)
+                } else if media.type == .video {
+                    PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: media.url)
+                }
+            }
+        }, completionHandler: { [weak self] success, error in
+            DispatchQueue.main.async {
+                if !success {
+                    self?.handleMediaSaveError(error: error)
+                }
+            }
+        })
+    }
+    
+    private func handleMediaSaveError(error: Error?) {
+        let alert = UIAlertController(title: Localizations.mediaSaveError, message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
     }
 }
 
@@ -727,4 +812,10 @@ private class FeedLayout: UICollectionViewFlowLayout {
         newItemsHeight = 0.0
         return offset
     }
+}
+
+extension Localizations {
+    static var saveAllButton: String = {
+        return NSLocalizedString("media.save.all", "Save All To Camera Roll", comment: "Button that, when pressed, saves all the post's media to the user's camera roll")
+    }()
 }

@@ -66,6 +66,10 @@ extension FeedPost {
         guard let receipts = info?.receipts else { return nil }
         return FeedAudience(audienceType: audienceType, userIds: Set(receipts.keys))
     }
+    
+    var canSaveMedia: Bool {
+        return groupId != nil || userId == MainAppContext.shared.userData.userId
+    }
 }
 
 extension FeedPost: FeedPostProtocol {

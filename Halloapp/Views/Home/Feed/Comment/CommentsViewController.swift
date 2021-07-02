@@ -881,8 +881,14 @@ extension CommentsViewController: MediaCarouselViewDelegate {
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
         guard let item = MainAppContext.shared.feedData.feedDataItem(with: feedPostId) else { return }
+        
+        var canSavePost = false
+        
+        if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            canSavePost = post.canSaveMedia
+        }
 
-        let controller = MediaExplorerController(media: item.media, index: index)
+        let controller = MediaExplorerController(media: item.media, index: index, canSaveMedia: canSavePost)
         controller.delegate = view
 
         present(controller.withNavigationController(), animated: true)

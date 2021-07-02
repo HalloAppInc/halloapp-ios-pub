@@ -30,6 +30,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
     var showUserAction: ((UserID) -> ())?
     var showGroupFeedAction: ((GroupID) -> ())?
+    var showMoreAction: ((UserID) -> ())?
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
     var showSeenByAction: (() -> ())?
@@ -231,6 +232,10 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         headerView.showGroupFeedAction = { [weak self] in
             guard let groupID = post.groupId else { return }
             self?.showGroupFeedAction?(groupID)
+        }
+        headerView.showMoreAction = { [weak self] in
+            guard let self = self, let showMoreAction = self.showMoreAction else { return }
+            showMoreAction(post.userId)
         }
         itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, isTextExpanded: isTextExpanded)
         footerView.configure(with: post, contentWidth: contentWidth)
