@@ -17,8 +17,8 @@ private extension Localizations {
         NSLocalizedString("share.destination.title", value: "HalloApp", comment: "Destination screen title")
     }
 
-    static var feed: String {
-        NSLocalizedString("share.destination.feed", value: "Feed", comment: "Share on the feed label")
+    static var home: String {
+        NSLocalizedString("share.destination.home", value: "Home", comment: "Share on the home feed label")
     }
 
     static var contacts: String {
@@ -145,7 +145,7 @@ class ShareDestinationViewController: UITableViewController {
 
         switch indexPath.section {
         case 0:
-            cell.configure(Localizations.feed)
+            cell.configure(Localizations.home)
         case 1:
             let group = isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row]
             cell.configure(group)
