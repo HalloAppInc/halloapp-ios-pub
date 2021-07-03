@@ -58,6 +58,8 @@
 		5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */; };
 		5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF5D12224F5295300F272D8 /* CameraViewController.swift */; };
 		680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680528CC264F14B9001F6A57 /* SafetyNumber.swift */; };
+		680AFE0E269031C500D80D7F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 680AFE0C269031C500D80D7F /* InfoPlist.strings */; };
+		680AFE11269031C500D80D7F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 680AFE0F269031C500D80D7F /* Localizable.strings */; };
 		680FB661250C45C000CA5D40 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680FB660250C45C000CA5D40 /* OverlayView.swift */; };
 		68130169268D369A001BBDC6 /* ContactSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68130168268D369A001BBDC6 /* ContactSelectionViewController.swift */; };
 		68184009264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 68184008264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel */; };
@@ -479,6 +481,10 @@
 		5BF5D12224F5295300F272D8 /* CameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
 		5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HalloAppClip.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		680528CC264F14B9001F6A57 /* SafetyNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyNumber.swift; sourceTree = "<group>"; };
+		680AFE0D269031C500D80D7F /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		680AFE10269031C500D80D7F /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		680AFE18269031E400D80D7F /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		680AFE19269031E400D80D7F /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		680FB660250C45C000CA5D40 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
 		68130168268D369A001BBDC6 /* ContactSelectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactSelectionViewController.swift; sourceTree = "<group>"; };
 		68184003264B1CAF00408D31 /* Feed3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed3.xcdatamodel; sourceTree = "<group>"; };
@@ -901,6 +907,8 @@
 				329E0406268247BD00C2D250 /* Assets.xcassets */,
 				329E0408268247BD00C2D250 /* LaunchScreen.storyboard */,
 				329E040B268247BD00C2D250 /* Info.plist */,
+				680AFE0F269031C500D80D7F /* Localizable.strings */,
+				680AFE0C269031C500D80D7F /* InfoPlist.strings */,
 				329E040C268247BD00C2D250 /* HalloAppClip.entitlements */,
 				329E0403268247BD00C2D250 /* HalloAppClip.xcdatamodeld */,
 			);
@@ -1936,9 +1944,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				329E045D26826EC100C2D250 /* PhoneNumberMetadata.json in Resources */,
+				680AFE0E269031C500D80D7F /* InfoPlist.strings in Resources */,
 				329E040A268247BD00C2D250 /* LaunchScreen.storyboard in Resources */,
 				329E0442268249E700C2D250 /* GoogleService-Info.plist in Resources */,
 				329E0407268247BD00C2D250 /* Assets.xcassets in Resources */,
+				680AFE11269031C500D80D7F /* Localizable.strings in Resources */,
 				329E0402268247BD00C2D250 /* Main.storyboard in Resources */,
 				329E044326824A4900C2D250 /* Assets.xcassets in Resources */,
 			);
@@ -2559,6 +2569,24 @@
 				329E0409268247BD00C2D250 /* Base */,
 			);
 			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		680AFE0C269031C500D80D7F /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				680AFE0D269031C500D80D7F /* es */,
+				680AFE18269031E400D80D7F /* de */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		680AFE0F269031C500D80D7F /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				680AFE10269031C500D80D7F /* es */,
+				680AFE19269031E400D80D7F /* de */,
+			);
+			name = Localizable.strings;
 			sourceTree = "<group>";
 		};
 		687D5EC5265317F8008A3A65 /* InfoPlist.strings */ = {

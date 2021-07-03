@@ -1,6 +1,15 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "No hay conexión a Internet";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Comprueba si tienes conexión a Internet y vuelve a intentarlo.";
+
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
 "button.cancel" = "Cancelar";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Continuar";
 
 /* Title for generic Create button */
 "button.create" = "Crear";
@@ -11,8 +20,20 @@
 /* Title for generic Done button. Mostly used to complete some modal flow. */
 "button.done" = "Listo";
 
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Ir a la configuración";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Más información";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Más";
+
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
 "button.next" = "Siguiente";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Ahora no";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
 "button.ok" = "OK";
@@ -34,6 +55,12 @@
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Más información";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Actualiza tu aplicación.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Yo";
 
 /* Placeholder for media caption. */
 "share.composer.placeholder" = "Escribe una descripción";
@@ -62,9 +89,6 @@
 
 /* Contacts category label */
 "share.destination.contacts" = "Contactos";
-
-/* Share on the feed label */
-"share.destination.feed" = "Contenido";
 
 /* Groups category label */
 "share.destination.groups" = "Grupos ";

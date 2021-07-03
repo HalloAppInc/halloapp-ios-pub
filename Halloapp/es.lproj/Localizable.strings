@@ -25,8 +25,20 @@
 /* Short title for the button in activity center. */
 "activity.center.button.read.all" = "Leer todos";
 
+/* Message shown when a user first joins from a friend's invitation (e.g., 'You accepted David's invite 🎉' */
+"activity.center.invite.accepted.item" = "Has aceptado la invitación de %@ 🎉";
+
 /* Title for the activity center screen. */
 "activity.center.title" = "Actividad";
+
+/* Message shown when a user first joins */
+"activity.center.welcome.item" = "¡Bienvenido a HalloApp!";
+
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "No hay conexión a Internet";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Comprueba si tienes conexión a Internet y vuelve a intentarlo.";
 
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Configuración";
@@ -38,6 +50,9 @@
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
 "button.cancel" = "Cancelar";
 
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Continuar";
+
 /* Title for generic Create button */
 "button.create" = "Crear";
 
@@ -47,8 +62,23 @@
 /* Title for generic Done button. Mostly used to complete some modal flow. */
 "button.done" = "Hecho";
 
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Ir a la configuración";
+
+/* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
+"button.install" = "Instalar";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Saber más";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Más";
+
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
 "button.next" = "Siguiente";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Ahora no";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
 "button.ok" = "OK";
@@ -67,6 +97,9 @@
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Actualizar";
+
+/* Generic error when trying to use camera */
+"camera.error" = "Error de cámara";
 
 /* No comment provided by engineer. */
 "camera.init.error.1" = "No se puede iniciar la cámara trasera";
@@ -113,8 +146,14 @@
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ se unió al grupo con el enlace de invitación";
 
+/* Message text shown when you join a group via invite link */
+"chat.group.event.join.you" = "Te has unido al grupo a través de un enlace de invitación al grupo";
+
 /* Message text shown with the user who left the group */
 "chat.group.event.member.left" = "%@ se salió";
+
+/* Message text shown when you leave a group */
+"chat.group.event.member.left.you" = "Te has ido";
 
 /* Action label for adding members to a group */
 "chat.group.info.add.members" = "Añadir participantes";
@@ -152,6 +191,9 @@
 /* Text for menu option of viewing profile */
 "chat.group.info.view.profile" = "Ver perfil";
 
+/* Confirmation message presented when leaving a group */
+"chat.group.leave.group.confirmation" = "¿Abandonar \"%@\"?";
+
 /* Label shown above group members list */
 "chat.group.members.label" = "PARTICIPANTES";
 
@@ -175,6 +217,9 @@
 
 /* Text shown when chat input box is empty */
 "chat.message.placeholder" = "Escribir un mensaje";
+
+/* Text shown in place of a received message we are not able to process yet. */
+"chat.message.unsupported" = "Tu versión de HalloApp no admite este tipo de mensajes.";
 
 /* Message text shown in a message that have video media but no text */
 "chat.message.video" = "Video";
@@ -218,6 +263,9 @@
 /* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
 "comment.replying.myself" = "Responder a %@";
 
+/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
+"comment.replying.someone" = "Respondiendo a %@";
+
 /* Title for the button in comment resend confirmation prompt. */
 "comment.resend.action" = "Reenviar";
 
@@ -226,6 +274,9 @@
 
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Añadir un comentario";
+
+/* Text displayed in place of a comment that is not supported in the current app version. */
+"comment.unsupported" = "Tu versión de HalloApp no admite este tipo de comentarios.";
 
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "Se produjo un error al cargar la publicación. Inténtalo de nuevo más tarde.";
@@ -271,6 +322,16 @@
 
 /* No comment provided by engineer. */
 "CONNECTION" = "CONEXIÓN";
+
+/* Message requesting the user enable contacts permission */
+"contacts.permission.explanation" = "Para ayudarte a conectar con tus amigos y familiares, permite a HalloApp acceder a tus contactos.";
+
+/* Title for modal view when showing how to change contact permissions.
+   Title for tutorial explaining how user can enable contacts permission */
+"contacts.permission.tutorial.title" = "Contactos";
+
+/* Alert message telling the user to try creating the group again after an error */
+"create.group.error" = "Se ha producido un error al crear el grupo, inténtalo de nuevo";
 
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Para conectarse deben intercambiar números de teléfono";
@@ -329,6 +390,9 @@
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "No se pudo publicar.";
 
+/* Shown when receiving a new (unsupported) type of post. */
+"feed.post.unsupported" = "Tu versión de HalloApp no admite este tipo de mensaje.";
+
 /* Shown while content is being posted to feed */
 "feed.posting" = "Publicando...";
 
@@ -353,6 +417,18 @@
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mis contactos de teléfono";
 
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.excluded" = "feed.privacy.value.n.contacts.excluded";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.selected" = "feed.privacy.value.n.contacts.selected";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.excluded" = "feed.privacy.value.n.excluded";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
+
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Comentar";
 
@@ -368,20 +444,38 @@
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ agregó a %2$@";
 
+/* Message text shown when you add a group member */
+"group.event.added.member.you" = "Has añadido %1@";
+
 /* Message text shown with the user who changed the group avatar */
 "group.event.changed.avatar" = "%@ cambió el ícono del grupo";
+
+/* Message text shown with the user who changed the group avatar */
+"group.event.changed.avatar.you" = "Has cambiado el icono del grupo";
 
 /* Message text shown with the user who changed the background */
 "group.event.changed.background" = "%@ cambió el color del fondo";
 
+/* Message text shown when you change the background */
+"group.event.changed.background.you" = "Has cambiado el color de fondo";
+
 /* Message text shown with the user who changed the group name */
 "group.event.changed.name" = "%1$@ cambió el nombre del grupo a \"%2$@\"";
+
+/* Message text shown when you change the group name */
+"group.event.changed.name.you" = "Has cambiado el nombre del grupo por el de \"%1@\".";
 
 /* Message text shown with the user who created the group */
 "group.event.created.group" = "%1$@ creó el grupo \"%2$@\"";
 
+/* Message text shown when you create a group */
+"group.event.created.group.you" = "Has creado el grupo \"%1@\"";
+
 /* Message text shown with the user who demoted a group admin */
 "group.event.demoted.member" = "%1$@ descartó a %2$@ como admin";
+
+/* Message text shown when you demote a group admin */
+"group.event.demoted.member.you" = "Has eliminado a %1@ como administrador";
 
 /* Message text shown with the user who promoted a group member */
 "group.event.promoted.member" = "%1$@ designó a %2$@ como admin.";
@@ -392,6 +486,12 @@
 /* Message text shown with the user who removed a group member */
 "group.event.removed.member" = "%1$@ eliminó a %2$@";
 
+/* Message text shown when you remove a group member */
+"group.event.removed.member.you" = "Has eliminado a %1@";
+
+/* Action label for inviting others to join the group via link */
+"group.info.invite.to.group.via.link" = "Invitar al grupo a través de un enlace";
+
 /* Label for copying link */
 "group.invite.copy.link" = "Copiar el enlace";
 
@@ -401,8 +501,14 @@
 /* Text to describe what the group invite link is */
 "group.invite.link.description" = "Cualquier persona que tenga HalloApp puede usar este enlace para unirse al grupo.";
 
+/* Text label above the group link section in group invite screen */
+"group.invite.link.label" = "ENLACE DE GRUPO";
+
 /* Text shown when link is reset */
 "group.invite.link.reset" = "Restablecer el enlace";
+
+/* Label for opening QR screen */
+"group.invite.qr.code" = "Código QR";
 
 /* Label for resetting link */
 "group.invite.reset.link" = "Restablecer el enlace";
@@ -413,11 +519,29 @@
 /* Label for sharing link */
 "group.invite.share.link" = "Compartir el enlace";
 
+/* Text shown before the sharing link */
+"group.invite.share.link.message" = "Haz clic en este enlace para unirte a mi grupo de HalloApp:";
+
 /* Title of group invite screen */
 "group.invite.title" = "Enlace de invitación al grupo";
 
+/* Text for alert box when the user clicks on an invalid group invite link */
+"group.preview.get.info.error.invalid.link" = "El enlace de invitación al grupo no es válido";
+
+/* Text for alert box when the user can't join the group via group link when the group is full */
+"group.preview.join.error.group.full" = "El grupo está lleno";
+
+/* Text for alert box when the user can't join the group via group link when link is invalid */
+"group.preview.join.error.invalid.link" = "El enlace no es válido";
+
+/* Title for alert box when the user can't join the group via group link */
+"group.preview.join.error.title" = "No se puede unir al grupo";
+
 /* Label for joining group action */
 "group.preview.join.group" = "UNIRSE AL GRUPO";
+
+/* Label for the number of members in the group */
+"group.preview.members" = "Miembros";
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Toca aquí para ver la info. del grupo";
@@ -473,8 +597,17 @@
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Invitación";
 
+/* Link text to open invite flow */
+"link.invite.friend" = "Invita a un amigo";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Más información";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Actualiza tu aplicación.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Yo";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "Álbums";
@@ -496,6 +629,9 @@
 
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
 "media.mic.access.request.title" = "¿Quieres videos con sonido?";
+
+/* Error text displayed in post composer when some of the media selected couldn't be sent. */
+"media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Cerrar";
@@ -527,11 +663,26 @@
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Ver perfil";
 
+/* Message displayed to say when posts will disappear */
+"mypost.disappear.time.label" = "Tus mensajes desaparecerán después de 30 días.";
+
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
 "mypost.hide.posts.confirmation" = "¿Estás seguro que quieres ocultar todas las publicaciones futuras de %@? Este cambio lo puedes hacer más adelante.";
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
 "mypost.not.viewed.yet" = "Nadie ha visto tu publicación aún";
+
+/* Your Post screen: label for the row that opens the invite screen */
+"mypost.row.invite.to.halloapp" = "Invitar a Halloapp";
+
+/* Your Post screen: label for the row that opens the privacy screen */
+"mypost.row.manage.privacy" = "Gestionar la privacidad";
+
+/* Indicates how many invites are remaining */
+"n.invites.count" = "n.invites.count";
+
+/* Indicates how many invites are remaining */
+"n.invites.remaining" = "n.invites.remaining";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Ya no formas parte de este grupo";
@@ -544,6 +695,12 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
+
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "notification.n.photos";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "notification.n.videos";
 
 /* Content for contact notification.
    Content for friend notification. */
@@ -611,6 +768,9 @@
 
 /* An option to update limited access. */
 "picker.media.limit.updateSelection" = "Actualizar imagen y selección de video";
+
+/* Message in media picker when selecting over limit. */
+"picker.media.n.limit" = "picker.media.n.limit";
 
 /* Displayed in place of a deleted feed post.
    Displayed in place of a deleted group feed post at group list screen */
@@ -688,11 +848,20 @@
 /* Button label to resend verification code */
 "registration.code.resend" = "Reenviar el código. ";
 
+/* Button label to resend verification code by voice call */
+"registration.code.resend.by.voice" = "Llámame";
+
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Para conectarte con tus amigos y familia, vamos a necesitar permiso para tener acceso a tus contactos. ";
 
 /* Title for text explaining why we need contact permissions */
 "registration.contacts.title" = "Por último";
+
+/* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
+"registration.free.app.notice" = "Gratis en el App Store de iPhone";
+
+/* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
+"registration.install.app.to.continue" = "Instala HalloApp para continuar";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Por el momento Hallo App solo se puede usar con invitación. Si tienes un amigo o un familiar que use HalloApp, diles que te inviten usando tu número de teléfono.";
@@ -714,6 +883,21 @@
 
 /* Shown above name and phone inputs */
 "registration.welcome" = "¡Bienvenido!";
+
+/* Instructions for how to use the safety number verification UI */
+"safety.number.instructions" = "Para verificar la seguridad de tu conexión con %@, comprueba que los números anteriores coinciden con los que aparecen en su dispositivo, o escanea el código QR de su teléfono.";
+
+/* Message to show when safety number cannot be succesfully verified */
+"safety.number.not.verified" = "No se puede verificar el número de seguridad de %@";
+
+/* Title for button that will open QR code scanner used to verify a contact's safety number */
+"safety.number.scan" = "Toca para escanear";
+
+/* Title for screen that allows users to verify a contact's safety number */
+"safety.number.title" = "Verificar el número de seguridad";
+
+/* Message to show when safety number is succesfully verified */
+"safety.number.verified" = "¡Se ha verificado con éxito el número de seguridad de %@!";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "select.group.members.create.group.title" = "Crear un grupo nuevo";
@@ -844,8 +1028,23 @@
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Tu publicación";
 
+/* Indicates which switch a user needs to turn on to enable contacts permissions. */
+"turn.on.contacts" = "Activar \"Contactos\"";
+
+/* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
+"tutorial.tap.below" = "Pulsa \"%@\" a continuación.";
+
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Contacto desconocido";
+
+/* Button to confirm blocking user via profile page */
+"user.block" = "Bloquear";
+
+/* Message asking if the user is sure they want to block this user */
+"user.block.message" = "¿Estás seguro de que quieres bloquear a %@ en HalloApp? Siempre puedes cambiarlo más tarde.";
+
+/* Option when user taps more on profile page */
+"user.option.block" = "Bloquear en HalloApp";
 
 /* Reference to the user, second person pronoun */
 "user.you" = "tú";

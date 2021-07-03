@@ -143,9 +143,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>You have %d invite.</string>
+			<string>Tienes %d invitaciones.</string>
 			<key>other</key>
-			<string>You have %d invites.</string>
+			<string>Tienes %d invitación.</string>
 		</dict>
 	</dict>
 	<key>n.invites.remaining</key>
@@ -159,9 +159,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>You have %d invite remaining</string>
+			<string>Te queda %d invitación</string>
 			<key>other</key>
-			<string>You have %d invites remaining</string>
+			<string>Te quedan %d invitaciones</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

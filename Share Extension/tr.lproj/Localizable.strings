@@ -63,9 +63,6 @@
 /* Contacts category label */
 "share.destination.contacts" = "Kişiler";
 
-/* Share on the feed label */
-"share.destination.feed" = "Yayın";
-
 /* Groups category label */
 "share.destination.groups" = "Gruplar";
 
