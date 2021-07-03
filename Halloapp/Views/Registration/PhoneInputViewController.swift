@@ -6,6 +6,8 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjackSwift
+import Combine
 import Core
 import PhoneNumberKit
 import UIKit
@@ -16,9 +18,13 @@ fileprivate struct Constants {
 
 protocol PhoneInputViewControllerDelegate: AnyObject {
     func phoneInputViewControllerDidFinish(_ viewController: PhoneInputViewController, countryCode: String, nationalNumber: String, name: String)
+    func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void)
 }
 
 class PhoneInputViewController: UIViewController, UITextFieldDelegate {
+    
+    private var cancellableSet: Set<AnyCancellable> = []
+
     weak var delegate: PhoneInputViewControllerDelegate?
 
     enum UserInputStatus {
@@ -27,6 +33,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
     }
 
     let logo = UIImageView()
+    let groupInviteLabel = UILabel()
     let textFieldPhoneNumber = PhoneNumberTextField(withPhoneNumberKit: AppContext.shared.phoneNumberFormatter)
     let textFieldUserName = UITextField()
     let buttonSignIn = UIButton()
@@ -36,9 +43,17 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
 
     let scrollView = UIScrollView()
     var scrollViewBottomMargin: NSLayoutConstraint?
+    var groupName: String?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        cancellableSet.insert(
+            AppContext.shared.didGetGroupInviteToken.sink { [weak self] in
+                guard let self = self else { return }
+                self.getGroupNameIfNeeded()
+            }
+        )
 
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.preservesSuperviewLayoutMargins = true
@@ -50,9 +65,8 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         logo.tintColor = .lavaOrange
         logo.setContentCompressionResistancePriority(.required, for: .vertical)
 
-        let welcomeLabel = UILabel()
-        welcomeLabel.text = Localizations.registrationWelcome
-        welcomeLabel.font = .systemFont(forTextStyle: .title1, weight: .medium, maximumPointSize: Constants.MaxFontPointSize)
+        groupInviteLabel.font = .systemFont(forTextStyle: .headline, weight: .regular, maximumPointSize: Constants.MaxFontPointSize - 12)
+        groupInviteLabel.numberOfLines = 0
 
         textFieldUserName.translatesAutoresizingMaskIntoConstraints = false
         textFieldUserName.autocapitalizationType = .words
@@ -76,7 +90,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         let nameField = textFieldUserName.withTextFieldBackground()
         let phoneField = textFieldPhoneNumber.withTextFieldBackground()
 
-        let stackView = UIStackView(arrangedSubviews: [welcomeLabel, nameField, phoneField, buttonSignIn])
+        let stackView = UIStackView(arrangedSubviews: [groupInviteLabel, nameField, phoneField, buttonSignIn])
         stackView.alignment = .fill
         stackView.axis = .vertical
         stackView.spacing = 16
@@ -179,6 +193,37 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
             return .invalid(textFieldUserName)
         }
         return .valid(textFieldPhoneNumber.phoneNumber!, userName)
+    }
+    
+    private func getGroupNameIfNeeded() {
+        guard let groupInviteToken = AppContext.shared.userData.groupInviteToken else {
+            return
+        }
+        delegate?.getGroupName(groupInviteToken: groupInviteToken) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let groupName):
+                if let groupName = groupName {
+                    DDLogInfo("PhoneInputViewController/getGroupNameIfNeeded/fetched group name \(groupName)")
+                    let font = UIFont.systemFont(forTextStyle: .headline, weight: .regular, maximumPointSize: Constants.MaxFontPointSize - 12)
+                    let inviteString = Localizations.registrationGroupName(formattedGroupName: groupName)
+                    self.groupInviteLabel.attributedText = self.getAttributedText(withString: inviteString, boldString: groupName, font: font)
+                } else {
+                    DDLogInfo("PhoneInputViewController/getGroupNameIfNeeded/group name not found")
+                }
+            case .failure(let error):
+                //TODO(@dini) : Ask if we should flag invalid client?
+                DDLogError("PhoneInputViewController/getGroupNameIfNeeded/error fetching group name got group token \(groupInviteToken) with error [\(error)]")
+            }
+        }
+    }
+    
+    private func getAttributedText(withString string: String, boldString: String, font: UIFont) -> NSAttributedString {
+        let attributedString = NSMutableAttributedString(string: string, attributes: [NSAttributedString.Key.font: font])
+        let boldFontAttribute: [NSAttributedString.Key: Any] = [NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: font.pointSize)]
+        let range = (string as NSString).range(of: boldString, options: NSString.CompareOptions.caseInsensitive)
+        attributedString.addAttributes(boldFontAttribute, range: range)
+        return attributedString
     }
 
     @objc

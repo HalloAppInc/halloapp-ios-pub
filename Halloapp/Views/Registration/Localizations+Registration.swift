@@ -86,6 +86,15 @@ extension Localizations {
             comment: "Text for modal describing how we use contacts data")
     }
 
+    static func registrationGroupName(formattedGroupName: String) -> String {
+        String(
+            format: NSLocalizedString(
+                "registration.group.name",
+                value: "You're invited to join the group %@",
+                comment: "When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen"),
+            formattedGroupName)
+    }
+
     static var freeAppDownloadText: String {
         NSLocalizedString("registration.free.app.notice", value: "Free on the iPhone App Store", comment: "Text indicating to the user that HalloApp is available for free on the iPhone App Store")
     }

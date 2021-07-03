@@ -81,6 +81,10 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
         registrationManager?.set(countryCode: countryCode, nationalNumber: nationalNumber, userName: name)
         move(to: .verifyCode(VerificationVerifyCodeContext(fromUserAction: true)))
     }
+    
+    func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void) {
+        registrationManager?.getGroupName(groupInviteToken: groupInviteToken, completion: completion)
+    }
 
     // MARK: VerificationCodeViewControllerDelegate
     var formattedPhoneNumber: String? {

@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjackSwift
+import Combine
 import Contacts
 import CoreData
 import Foundation
@@ -53,6 +54,8 @@ open class AppContext {
     public static let appStoreURL: URL? = URL(string: "itms-apps://apple.com/app/\(appStoreProductID)")
 
     public static let userAgent: String = { UserAgent(platform: .ios, version: appVersionForService).description }()
+
+    public let didGetGroupInviteToken = PassthroughSubject<Void, Never>()
 
     open var applicationIconBadgeNumber: Int {
         get { userDefaults.integer(forKey: "ApplicationIconBadgeNumber") }

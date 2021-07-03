@@ -146,6 +146,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
 
     private func processGroupInviteToken(_ inviteToken: String) {
         AppClipContext.shared.userData.groupInviteToken = inviteToken
+        AppClipContext.shared.didGetGroupInviteToken.send()
     }
 }
 

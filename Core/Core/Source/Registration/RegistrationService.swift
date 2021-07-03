@@ -13,6 +13,7 @@ import Sodium
 public protocol RegistrationService {
     func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
     func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
+    func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void)
 }
 
 public struct RegistrationResponse {
@@ -214,6 +215,72 @@ public final class DefaultRegistrationService: RegistrationService {
         }
         task.resume()
     }
+
+    public func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void) {
+        let json: [String : Any] = [
+            "group_invite_token" : groupInviteToken
+        ]
+
+        let url = URL(string: "https://\(hostName)/api/registration/get_group_info")!
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = try! JSONSerialization.data(withJSONObject: json, options: [])
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        DDLogInfo("reg/get-group-info/begin url=[\(request.url!)]  data=[\(json)]")
+        let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
+            if let error = error {
+                DDLogError("reg/get-group-info/error [\(error)]")
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+                return
+            }
+            guard let data = data else {
+                DDLogError("reg/get-group-info/error Data is empty.")
+                DispatchQueue.main.async {
+                    completion(.failure(GetGroupNameError.malformedResponse))
+                }
+                return
+            }
+            guard let httpResponse = urlResponse as? HTTPURLResponse else {
+                DDLogError("reg/get-group-info/error Invalid response. [\(String(describing: urlResponse))]")
+                DispatchQueue.main.async {
+                    completion(.failure(GetGroupNameError.malformedResponse))
+                }
+                return
+            }
+            guard let response = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
+                DDLogError("reg/get-group-info/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
+                DispatchQueue.main.async {
+                    completion(.failure(GetGroupNameError.malformedResponse))
+                }
+                return
+            }
+
+            DDLogInfo("reg/get-group-info/finished  status=[\(httpResponse.statusCode)]  response=[\(response)]")
+
+            if let errorString = response["error"] as? String {
+                let error = GetGroupNameError(rawValue: errorString) ?? .malformedResponse
+                DDLogInfo("reg/get-group-info/error [\(error)]")
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+                return
+            }
+
+            if let groupName = response["name"] as? String {
+                DDLogInfo("reg/get-group-info/Name= \(groupName)")
+                DispatchQueue.main.async {
+                    completion(.success(groupName))
+                }
+            } else {
+                //Group not found
+                completion(.success(nil))
+            }
+        }
+        task.resume()
+    }
 }
 
 public enum VerificationCodeRequestError: String, Error, RawRepresentable {
@@ -221,6 +288,11 @@ public enum VerificationCodeRequestError: String, Error, RawRepresentable {
     case smsFailure = "sms_fail"
     case invalidClientVersion = "invalid_client_version"    // client version has expired.
     case requestCreationError
+    case malformedResponse // everything else
+}
+
+public enum GetGroupNameError: String, Error, RawRepresentable {
+    case invalidClientVersion = "invalid_client_version"    // client version has expired.
     case malformedResponse // everything else
 }
 
