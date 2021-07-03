@@ -148,12 +148,11 @@ class PrivacyViewController: UITableViewController {
 
     private func openBlockedContacts() {
         let privacySettings = MainAppContext.shared.privacySettings
-        let viewController = PrivacyListViewController(privacyList: privacySettings.blocked, settings: privacySettings)
-        viewController.dismissAction = {
-            self.reloadPrivacyValues()
-            self.dismiss(animated: true)
+        let vc = ContactSelectionViewController.forPrivacyList(privacySettings.blocked, in: privacySettings) { [weak self] in
+            self?.reloadPrivacyValues()
+            self?.dismiss(animated: true)
         }
-        present(UINavigationController(rootViewController: viewController), animated: true) {
+        present(UINavigationController(rootViewController: vc), animated: true) {
             if let indexPathForSelectedRow = self.tableView.indexPathForSelectedRow {
                 self.tableView.deselectRow(at: indexPathForSelectedRow, animated: false)
             }

@@ -22,7 +22,7 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
 
     public var showActionButton: Bool = true
     public var scrollToLastAfterInsert: Bool = true
-    private var avatarUserIDs: [UserID] = []
+    private(set) var avatarUserIDs: [UserID] = []
 
     override init(frame: CGRect) {
         super.init(frame: frame)

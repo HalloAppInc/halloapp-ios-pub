@@ -145,25 +145,4 @@ class SettingsNotificationsViewController: UITableViewController {
         switchPostNotifications.isOn = notificationSettings.isPostsEnabled
         switchCommentNotifications.isOn = notificationSettings.isCommentsEnabled
     }
-
-    private func openPostsPrivacy() {
-        let privacySettings = MainAppContext.shared.privacySettings
-        let feedPrivacyView = FeedPrivacyView(privacySettings: privacySettings)
-        navigationController?.pushViewController(UIHostingController(rootView: feedPrivacyView), animated: true)
-    }
-
-    private func openBlockedContacts() {
-        let privacySettings = MainAppContext.shared.privacySettings
-        let viewController = PrivacyListViewController(privacyList: privacySettings.blocked, settings: privacySettings)
-        viewController.dismissAction = {
-            self.reloadSettingValues()
-            self.dismiss(animated: true)
-        }
-        present(UINavigationController(rootViewController: viewController), animated: true) {
-            if let indexPathForSelectedRow = self.tableView.indexPathForSelectedRow {
-                self.tableView.deselectRow(at: indexPathForSelectedRow, animated: false)
-            }
-        }
-    }
-
 }

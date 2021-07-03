@@ -59,6 +59,7 @@
 		5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF5D12224F5295300F272D8 /* CameraViewController.swift */; };
 		680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680528CC264F14B9001F6A57 /* SafetyNumber.swift */; };
 		680FB661250C45C000CA5D40 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680FB660250C45C000CA5D40 /* OverlayView.swift */; };
+		68130169268D369A001BBDC6 /* ContactSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68130168268D369A001BBDC6 /* ContactSelectionViewController.swift */; };
 		68184009264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 68184008264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel */; };
 		681E0DAA24C8E0190073A03E /* NewPostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 681E0DA924C8E0190073A03E /* NewPostViewController.swift */; };
 		6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */; };
@@ -204,7 +205,6 @@
 		76B95CDE24295AB5007435AC /* CommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CDD24295AB5007435AC /* CommentView.swift */; };
 		76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE3242A7A3F007435AC /* CommentInputView.swift */; };
 		76C1F50B2537D6FD0060FBF5 /* AvatarViewButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C1F50A2537D6FD0060FBF5 /* AvatarViewButton.swift */; };
-		76C2D1F924AA6B9700930320 /* PrivacyListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */; };
 		76C64E0D24E5AD85007C0F6F /* MediaUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C64E0C24E5AD85007C0F6F /* MediaUploader.swift */; };
 		76C64E0E24E5AD85007C0F6F /* MediaUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C64E0C24E5AD85007C0F6F /* MediaUploader.swift */; };
 		76D566EA2550D14900E57185 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 76D566E82550D14900E57185 /* Localizable.strings */; };
@@ -480,6 +480,7 @@
 		5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HalloAppClip.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		680528CC264F14B9001F6A57 /* SafetyNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyNumber.swift; sourceTree = "<group>"; };
 		680FB660250C45C000CA5D40 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
+		68130168268D369A001BBDC6 /* ContactSelectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactSelectionViewController.swift; sourceTree = "<group>"; };
 		68184003264B1CAF00408D31 /* Feed3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed3.xcdatamodel; sourceTree = "<group>"; };
 		68184008264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed2ToFeed3.xcmappingmodel; sourceTree = "<group>"; };
 		681E0DA924C8E0190073A03E /* NewPostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPostViewController.swift; sourceTree = "<group>"; };
@@ -641,7 +642,6 @@
 		76B95CDD24295AB5007435AC /* CommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentView.swift; sourceTree = SOURCE_ROOT; };
 		76B95CE3242A7A3F007435AC /* CommentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentInputView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentInputView.swift; sourceTree = SOURCE_ROOT; };
 		76C1F50A2537D6FD0060FBF5 /* AvatarViewButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AvatarViewButton.swift; path = HalloApp/Components/Views/AvatarViewButton.swift; sourceTree = SOURCE_ROOT; };
-		76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PrivacyListViewController.swift; path = HalloApp/Views/Settings/Privacy/PrivacyListViewController.swift; sourceTree = SOURCE_ROOT; };
 		76C64E0C24E5AD85007C0F6F /* MediaUploader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MediaUploader.swift; path = HalloApp/Network/MediaUploader.swift; sourceTree = SOURCE_ROOT; };
 		76D566E92550D14900E57185 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		76D566FD2550D6A500E57185 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = ru; path = ru.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
@@ -1120,7 +1120,7 @@
 				EA27790825B91E58009CA884 /* PrivacyViewController.swift */,
 				764AB42024A7188600D4E354 /* FeedPrivacyView.swift */,
 				764AB42324A71D6900D4E354 /* PrivacyListView.swift */,
-				76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */,
+				68130168268D369A001BBDC6 /* ContactSelectionViewController.swift */,
 			);
 			path = Privacy;
 			sourceTree = "<group>";
@@ -2340,6 +2340,7 @@
 				EA7FBD1226546B5900CE1836 /* UITabBarController.swift in Sources */,
 				680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */,
 				EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */,
+				68130169268D369A001BBDC6 /* ContactSelectionViewController.swift in Sources */,
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
 				68419A8526029C2000C30B6A /* CryptoStats.xcdatamodeld in Sources */,
 				7627173B257B0744006F7F3D /* AboutViewController.swift in Sources */,
@@ -2445,7 +2446,6 @@
 				F881ED76261B1F6F0013599F /* Upload+CoreDataClass.swift in Sources */,
 				76538093243D4B33000AD9A1 /* FeedPost+CoreDataProperties.swift in Sources */,
 				F851E9512500E47300BC0FAA /* MediaPickerSnapshotManager.swift in Sources */,
-				76C2D1F924AA6B9700930320 /* PrivacyListViewController.swift in Sources */,
 				76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */,
 				680FB661250C45C000CA5D40 /* OverlayView.swift in Sources */,
 				76A92444244E659600794859 /* FeedViewController.swift in Sources */,
