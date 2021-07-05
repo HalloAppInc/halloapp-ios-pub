@@ -744,6 +744,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             controller.dismiss(animated: true)
             
             if !cancel {
+                self.collectionView.scrollToItem(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
                 self.setupNavigationBar(title: album?.localizedTitle)
                 self.fetchAssets(album: album)
             }
