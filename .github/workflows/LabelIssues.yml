@@ -1,0 +1,30 @@
+name: Label Issues
+
+on:
+  issues:
+    types:
+      - closed
+      
+jobs:
+  label:
+    name: Label Closed Issue
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: Get Version number
+        id: get-version-number
+        run: echo |
+          cat HalloApp.xcodeproj/project.pbxproj | grep -m1 'MARKETING_VERSION' | cut -d'=' -f2 | tr -d ';' | tr -d ' ' >> versionNum.txt
+          echo '::set-output name=VERSION_NUMBER::${cat versionNum.txt}'
+      - name: Get Build number
+        id: get-build-number
+        run: |
+          cat HalloApp.xcodeproj/project.pbxproj | grep -m1 'CURRENT_PROJECT_VERSION' | cut -d'=' -f2 | tr -d ';' | tr -d ' ' >> buildNum.txt
+          echo '::set-output name=BUILD_NUMBER::${buildNum.txt}'
+      - name: Add Label
+        uses: andymckay/labeler@master
+        with:
+          add-labels: "merged, Build-${{steps.get-build-number.outputs.BUILD_NUMBER}}"
+      
