@@ -71,6 +71,27 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         isSystemUIHidden
     }
 
+    private class BackButton: UIButton {
+        override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+            return bounds.insetBy(dx: -16, dy: -16).contains(point)
+        }
+    }
+
+    private lazy var backBtn: UIButton = {
+        let backBtn = BackButton(type: .custom)
+        backBtn.contentEdgeInsets = UIEdgeInsets(top: 10, left: -8, bottom: 10, right: 10)
+        backBtn.addTarget(self, action: #selector(backAction), for: [.touchUpInside, .touchUpOutside])
+        backBtn.setImage(UIImage(named: "NavbarBack")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+        backBtn.layer.masksToBounds = false
+        backBtn.layer.shadowColor = UIColor.black.cgColor
+        backBtn.layer.shadowOpacity = 1
+        backBtn.layer.shadowOffset = .zero
+        backBtn.layer.shadowRadius = 0.3
+        backBtn.translatesAutoresizingMaskIntoConstraints = false
+
+        return backBtn
+    }()
+
     init(media: [FeedMedia], index: Int, canSaveMedia: Bool) {
         self.media = media.map { item in
             let type: MediaExplorerMediaType = (item.type == .image ? .image : .video)
@@ -142,15 +163,6 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         navigationController?.navigationBar.shadowImage = UIImage()
         navigationController?.navigationBar.backgroundColor = .clear
 
-        let backBtn = UIButton(type: .custom)
-        backBtn.contentEdgeInsets = UIEdgeInsets(top: 10, left: -8, bottom: 10, right: 10)
-        backBtn.addTarget(self, action: #selector(backAction), for: [.touchUpInside, .touchUpOutside])
-        backBtn.setImage(UIImage(named: "NavbarBack")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        backBtn.layer.masksToBounds = false
-        backBtn.layer.shadowColor = UIColor.black.cgColor
-        backBtn.layer.shadowOpacity = 1
-        backBtn.layer.shadowOffset = .zero
-        backBtn.layer.shadowRadius = 0.3
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backBtn)
         
         if canSaveMedia {
