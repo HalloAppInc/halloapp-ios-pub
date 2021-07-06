@@ -70,6 +70,13 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     override var prefersStatusBarHidden: Bool {
         isSystemUIHidden
     }
+    
+    init(avatarImage image: UIImage) {
+        let imageMedia = MediaExplorerMedia(url: nil, image: image, type: .image, size: image.size, update: nil, progress: nil)
+        self.media = [imageMedia]
+        self.currentIndex = 0
+        super.init(nibName: nil, bundle: nil)
+    }
 
     private class BackButton: UIButton {
         override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {

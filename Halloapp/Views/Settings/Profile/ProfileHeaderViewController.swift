@@ -10,13 +10,13 @@ import CocoaLumberjackSwift
 import Combine
 import Core
 import UIKit
+import CoreMedia
 
 fileprivate struct Constants {
     static let MaxFontPointSize: CGFloat = 34
 }
 
 final class ProfileHeaderViewController: UIViewController {
-
     var isEditingAllowed: Bool = false {
         didSet {
             if let view = viewIfLoaded as? ProfileHeaderView {
@@ -51,7 +51,6 @@ final class ProfileHeaderViewController: UIViewController {
         headerView.nameButton.addTarget(self, action: #selector(editName), for: .touchUpInside)
         
         headerView.secondaryLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(editName)))
-        headerView.secondaryLabel.isUserInteractionEnabled = true
     }
 
     func configureWith(userId: UserID) {
@@ -69,6 +68,8 @@ final class ProfileHeaderViewController: UIViewController {
             headerView.canMessage = true
             headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
         }
+        
+        headerView.avatarViewButton.addTarget(self, action: #selector(avatarViewTapped), for: .touchUpInside)
     }
 
     func configureAsHorizontal() {
@@ -109,6 +110,36 @@ final class ProfileHeaderViewController: UIViewController {
         }))
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil))
         present(actionSheet, animated: true)
+    }
+    
+    @objc private func avatarViewTapped() {
+        guard headerView.avatarViewButton.avatarView.hasImage, let userID = headerView.userID else { return }
+        
+        guard let image = MainAppContext.shared.avatarStore.userAvatar(forUserId: userID).image else { return }
+        
+        let mediaController = MediaExplorerController(avatarImage: maskRoundedImage(image: image, radius: image.size.width / 2))
+        mediaController.delegate = self
+
+        present(mediaController.withNavigationController(), animated: true)
+    }
+    
+    /// - Author: [StackOverflow](https://stackoverflow.com/a/29046647)
+    private func maskRoundedImage(image: UIImage, radius: CGFloat) -> UIImage {
+        let imageView: UIImageView = UIImageView(image: image)
+        let layer = imageView.layer
+        layer.masksToBounds = true
+        layer.cornerRadius = radius
+        UIGraphicsBeginImageContext(imageView.bounds.size)
+        layer.render(in: UIGraphicsGetCurrentContext()!)
+        let roundedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return roundedImage!
+    }
+    
+    @objc private func dismissFullscreenImage(_ sender: UITapGestureRecognizer) {
+        navigationController?.isNavigationBarHidden = false
+        tabBarController?.tabBar.isHidden = false
+        sender.view?.removeFromSuperview()
     }
 
     @objc private func openChatView() {
@@ -209,12 +240,10 @@ private final class ProfileHeaderView: UIView {
         didSet {
             if isEditingAllowed {
                 addCameraOverlayToAvatarViewButton()
-                avatarViewButton.isUserInteractionEnabled = true
                 nameButton.isHidden = false
                 nameLabel.isHidden = true
             } else {
                 avatarViewButton.avatarView.placeholderOverlayView = nil
-                avatarViewButton.isUserInteractionEnabled = false
                 nameButton.isHidden = true
                 nameLabel.isHidden = false
             }
@@ -280,7 +309,6 @@ private final class ProfileHeaderView: UIView {
         preservesSuperviewLayoutMargins = true
         
         avatarViewButton = AvatarViewButton(type: .custom)
-        avatarViewButton.isUserInteractionEnabled = isEditingAllowed
         avatarViewButton.translatesAutoresizingMaskIntoConstraints = false
         
         avatarViewButtonHeightAnchor = avatarViewButton.heightAnchor.constraint(equalToConstant: 100)
@@ -356,6 +384,20 @@ private final class ProfileHeaderView: UIView {
         return button
         
     }()
+}
+
+extension ProfileHeaderViewController: MediaExplorerTransitionDelegate {
+    func getTransitionView(atPostion index: Int) -> UIView? {
+        return headerView.avatarViewButton
+    }
+    
+    func scrollMediaToVisible(atPostion index: Int) {
+        return
+    }
+    
+    func currentTimeForVideo(atPostion index: Int) -> CMTime? {
+        return nil
+    }
 }
 
 extension Localizations {
