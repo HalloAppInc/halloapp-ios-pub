@@ -29,13 +29,12 @@ class FeedViewController: FeedCollectionViewController {
     // MARK: UIViewController
 
     override func viewDidLoad() {
+        DDLogDebug("FeedViewController/viewDidLoad/begin")
         super.viewDidLoad()
 
         installLargeTitleUsingGothamFont()
         installEmptyView()
         installFloatingActionMenu()
-
-        showFirstTimeContactPermissionFlowIfNecessary()
 
         let notificationButton = BadgedButton(type: .system)
         notificationButton.centerYConstant = 5
@@ -157,23 +156,6 @@ class FeedViewController: FeedCollectionViewController {
     }()
 
     private weak var overlay: Overlay?
-
-    private func showFirstTimeContactPermissionFlowIfNecessary() {
-        guard showContactsPermissionDialogIfNecessary && ContactStore.contactsAccessRequestNecessary else {
-            return
-        }
-        
-        let alert = UIAlertController(title: Localizations.registrationContactPermissionsTitle, message: Localizations.registrationContactPermissionsContent, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: Localizations.buttonNext, style: .default, handler: { _ in
-            guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-                DDLogError("FeedViewController/showFirstTimeContactPermissionFlow/error app delegate unavailable")
-                return
-            }
-            self.showContactsPermissionDialogIfNecessary = false
-            appDelegate.requestAccessToContactsAndNotifications()
-        }))
-        present(alert, animated: true, completion: nil)
-    }
 
     private func showNUXIfNecessary() {
         guard view.window != nil else {

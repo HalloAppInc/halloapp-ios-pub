@@ -195,6 +195,10 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     // MARK: New Chat
 
     private func showComposeChat() {
+        guard ContactStore.contactsAccessAuthorized else {
+            present(UINavigationController(rootViewController: NewChatPermissionDeniedController()), animated: true)
+            return
+        }
         present(UINavigationController(rootViewController: NewChatViewController(delegate: self)), animated: true)
     }
 
@@ -202,6 +206,11 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     @objc
     private func startInviteFriendsFlow() {
+        guard ContactStore.contactsAccessAuthorized else {
+            let inviteVC = InvitePermissionDeniedViewController()
+            present(UINavigationController(rootViewController: inviteVC), animated: true)
+            return
+        }
         InviteManager.shared.requestInvitesIfNecessary()
         let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
         let navController = UINavigationController(rootViewController: inviteVC)

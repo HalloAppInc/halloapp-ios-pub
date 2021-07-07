@@ -23,6 +23,18 @@ extension Localizations {
     static var titleChats: String {
         NSLocalizedString("title.chats", value: "Chats", comment: "Third tab in the main app interface.")
     }
+        
+    static var titleChatNewMessage: String {
+        NSLocalizedString("title.chat.new.message", value: "New Message", comment: "Title for new message screen where user chooses who to message")
+    }
+
+    static var titleSelectGroupMembersCreateGroup: String {
+        NSLocalizedString("title.select.group.members.create.group", value: "Create New Group", comment: "Title of screen where user chooses members to add to either a new group or an existing one")
+    }
+
+    static var titleSelectGroupMembers: String {
+        NSLocalizedString("title.select.group.members.title", value: "Add New Members", comment: "Title of screen where user chooses members to add to either a new group or an existing one")
+    }
 
     static var titleSettings: String {
         NSLocalizedString("title.settings", value: "Settings", comment: "Fourth tab in the main app interface")
@@ -144,7 +156,11 @@ extension Localizations {
     // MARK: Misc
 
     static var inviteFriendsAndFamily: String {
-        NSLocalizedString("invite.friends.family", value: "Invite friends & family", comment: "Button to start invite flow")
+        NSLocalizedString("app.ios.invite.friends", value: "Invite friends & family", comment: "Title of view where users can invite friends and family.")
+    }
+
+    static var inviteTitle: String {
+        NSLocalizedString("invite.title", value: "Invite", comment: "Title for the screen that allows to select contact to invite.")
     }
 
     static var settingsAppName: String {

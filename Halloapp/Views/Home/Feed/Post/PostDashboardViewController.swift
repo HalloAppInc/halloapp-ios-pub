@@ -330,6 +330,11 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
                 viewController.hidesBottomBarWhenPushed = false
                 navigationController?.pushViewController(viewController, animated: true)
             case .invite:
+                guard ContactStore.contactsAccessAuthorized else {
+                    let inviteVC = InvitePermissionDeniedViewController()
+                    present(UINavigationController(rootViewController: inviteVC), animated: true)
+                    return
+                }
                 InviteManager.shared.requestInvitesIfNecessary()
                 let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
                 present(UINavigationController(rootViewController: inviteVC), animated: true)

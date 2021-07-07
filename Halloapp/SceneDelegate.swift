@@ -124,7 +124,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
 
         // Initial permissions request initiated by RegistrationManager. Request here only if we're already logged in when the app starts.
         if let appDelegate = UIApplication.shared.delegate as? AppDelegate, MainAppContext.shared.userData.isLoggedIn && scene.activationState == .foregroundActive {
-            appDelegate.requestAccessToContactsAndNotifications()
+            appDelegate.requestAccessToContactsAndNotifications() {}
         }
 
         // Called when the scene has moved from an inactive state to an active state.

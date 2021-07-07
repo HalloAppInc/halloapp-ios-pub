@@ -13,10 +13,10 @@ import ContactsUI
 import Core
 import UIKit
 
-class HomeViewController: UITabBarController {
+class HomeViewController: UITabBarController, FeedPermissionDeniedControllerDelegate {
 
     private var cancellableSet: Set<AnyCancellable> = []
-    
+    private var tabBarViewControllers: [UIViewController] = []
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
@@ -85,12 +85,15 @@ class HomeViewController: UITabBarController {
 
         updateTabBarBackgroundEffect()
 
-        viewControllers = [
+        
+        tabBarViewControllers = [
             feedNavigationController(),
             groupsNavigationController(),
             chatsNavigationController(),
             profileNavigationController()
         ]
+        
+        setViewControllers(tabBarViewControllers, animated: true)
 
         /*
          The home tab indicator starts hidden on each new app open (does not count background/foreground)
@@ -196,14 +199,34 @@ class HomeViewController: UITabBarController {
     }()
 
     private func feedNavigationController() -> UINavigationController {
-        let navigationController = UINavigationController(
-            rootViewController: FeedViewController(
-                title: Localizations.titleHome,
-                fetchRequest: FeedDataSource.homeFeedRequest(combinedFeed: ServerProperties.isCombineFeedEnabled)))
+        let feedViewController = getFeedViewController()
+        let navigationController = UINavigationController(rootViewController: feedViewController)
         navigationController.tabBarItem.image = UIImage(named: "TabBarHome")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
         navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarHomeActive")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
+    }
+    
+    func feedPermissionDeniedControllerDidFinish() {
+        DDLogInfo("HomeViewController/feedPermissionDeniedControllerDidFinish/begin")
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.tabBarViewControllers[0] = self.feedNavigationController()
+            self.setViewControllers(self.tabBarViewControllers, animated: true)
+        }
+    }
+    
+    private func getFeedViewController() -> UIViewController {
+        guard ContactStore.contactsAccessAuthorized else {
+            DDLogInfo("HomeViewController/getFeedViewController/loading FeedPermissionDeniedController")
+            let feedPermissionDeniedViewController = FeedPermissionDeniedController(title: Localizations.titleHome)
+            feedPermissionDeniedViewController.delegate = self
+            return feedPermissionDeniedViewController
+        }
+        DDLogInfo("HomeViewController/getFeedViewController/loading FeedViewController")
+        return FeedViewController(
+            title: Localizations.titleHome,
+            fetchRequest: FeedDataSource.homeFeedRequest(combinedFeed: ServerProperties.isCombineFeedEnabled))
     }
 
     private func groupsNavigationController() -> UINavigationController {

@@ -597,10 +597,6 @@ private extension Localizations {
         return String(format: format, count)
     }
 
-    static var inviteTitle: String {
-        NSLocalizedString("invite.title", value: "Invite", comment: "Title for the screen that allows to select contact to invite.")
-    }
-
     static var appNameSMS: String {
         NSLocalizedString("invite.app.sms", value: "Messages", comment: "Title for button that launches system SMS app to send invite. As short as possible!")
     }

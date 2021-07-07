@@ -213,12 +213,24 @@ class SettingsViewController: UITableViewController {
     }
     
     private func openPrivacy() {
+        
+        guard ContactStore.contactsAccessAuthorized else {
+            let viewController = PrivacyPermissionDeniedController()
+            viewController.hidesBottomBarWhenPushed = false
+            navigationController?.pushViewController(viewController, animated: true)
+            return
+        }
         let viewController = PrivacyViewController()
         viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }
     
     private func openInviteFriends() {
+        guard ContactStore.contactsAccessAuthorized else {
+            let inviteVC = InvitePermissionDeniedViewController()
+            present(UINavigationController(rootViewController: inviteVC), animated: true)
+            return
+        }
         InviteManager.shared.requestInvitesIfNecessary()
         let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
         present(UINavigationController(rootViewController: inviteVC), animated: true) {

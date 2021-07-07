@@ -63,7 +63,7 @@ class NewChatViewController: NewChatTableViewController {
 
         DDLogInfo("NewChatViewController/viewDidLoad")
 
-        navigationItem.title = Localizations.chatNewMessageTitle
+        navigationItem.title = Localizations.titleChatNewMessage
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
 
         tableView.backgroundColor = .feedBackground
@@ -250,14 +250,6 @@ private extension ContactTableViewCell {
             contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
         }
     }
-}
-
-private extension Localizations {
-
-    static var chatNewMessageTitle: String {
-        NSLocalizedString("chat.new.message.title", value: "New Message", comment: "Title for new message screen where user chooses who to message")
-    }
-
 }
 
 extension ABContact: IndexableContact {

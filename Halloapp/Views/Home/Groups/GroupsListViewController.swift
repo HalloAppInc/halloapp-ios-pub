@@ -210,6 +210,11 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 
     @objc
     private func startInviteFriendsFlow() {
+        guard ContactStore.contactsAccessAuthorized else {
+            let inviteVC = InvitePermissionDeniedViewController()
+            present(UINavigationController(rootViewController: inviteVC), animated: true)
+            return
+        }
         InviteManager.shared.requestInvitesIfNecessary()
         let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
         let navController = UINavigationController(rootViewController: inviteVC)
@@ -383,6 +388,10 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     }
 
     private func openNewGroup() {
+        guard ContactStore.contactsAccessAuthorized else {
+            present(UINavigationController(rootViewController: NewGroupMembersPermissionDeniedController()), animated: true)
+            return
+        }
         let viewController = NewGroupMembersViewController(currentMembers: [])
         viewController.delegate = self
         present(UINavigationController(rootViewController: viewController), animated: true)

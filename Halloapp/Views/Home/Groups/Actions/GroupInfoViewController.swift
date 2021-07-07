@@ -520,7 +520,11 @@ extension GroupInfoViewController: GroupInfoHeaderViewDelegate {
                 currentMembers.append(groupMember.userId)
             }
         }
-
+        guard ContactStore.contactsAccessAuthorized else {
+            let vController = NewGroupMembersPermissionDeniedController(currentMembers: currentMembers)
+            navigationController?.pushViewController(vController, animated: true)
+            return
+        }
         let vController = NewGroupMembersViewController(currentMembers: currentMembers)
         vController.delegate = self
         self.navigationController?.pushViewController(vController, animated: true)
@@ -536,7 +540,11 @@ extension GroupInfoViewController: GroupInfoFooterViewDelegate {
                 currentMembers.append(groupMember.userId)
             }
         }
-
+        guard ContactStore.contactsAccessAuthorized else {
+            let vController = NewGroupMembersPermissionDeniedController(currentMembers: currentMembers)
+            navigationController?.pushViewController(vController, animated: true)
+            return
+        }
         let vController = NewGroupMembersViewController(currentMembers: currentMembers)
         vController.delegate = self
         self.navigationController?.pushViewController(vController, animated: true)

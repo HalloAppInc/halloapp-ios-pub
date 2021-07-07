@@ -199,7 +199,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
 
-    func requestAccessToContactsAndNotifications() {
+    func requestAccessToContactsAndNotifications(onAccessAuthorized: @escaping () -> ()) {
         guard !contactsAccessRequestInProgress else {
             DDLogWarn("appdelegate/contacts/access-request Already in progress")
             return
@@ -213,6 +213,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 // This is likely the first app launch and now that Contacts access popup is gone,
                 // time to request access to notifications.
                 self.checkNotificationsAuthorizationStatus()
+            }
+            if accessAuthorized {
+                onAccessAuthorized()
             }
         }
     }
