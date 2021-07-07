@@ -89,11 +89,19 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             dataStore.save(protoComment: protoContainer.comment, notificationMetadata: metadata)
         case .chatMessage:
             // TODO: add id as the constraint to the db and then remove this check.
-            guard let messageId = metadata.messageId, !dataStore.messages().contains(where: { $0.id == metadata.messageId }) else {
-                DDLogError("didReceiveRequest/error duplicate message ID [\(String(describing: metadata.messageId))]")
-                contentHandler(bestAttemptContent)
+            guard let messageId = metadata.messageId else {
+                DDLogError("didReceiveRequest/error missing messageId [\(String(describing: metadata))]")
+                dismissNotification()
                 return
             }
+            // Check if message has already been received and decrypted successfully.
+            // If yes - then dismiss notification, else continue processing.
+            if let sharedChatMessage = dataStore.sharedChatMessage(for: messageId), sharedChatMessage.status == .received {
+                DDLogError("didReceiveRequest/error duplicate message ID that was already decrypted[\(String(describing: metadata.messageId))]")
+                dismissNotification()
+                return
+            }
+
             // Update application badge number.
             let badgeNum = AppExtensionContext.shared.applicationIconBadgeNumber
             let applicationIconBadgeNumber = badgeNum == -1 ? 1 : badgeNum + 1

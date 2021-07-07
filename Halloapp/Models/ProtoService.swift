@@ -648,7 +648,7 @@ final class ProtoService: ProtoServiceCore {
             let receiptTimestamp = Date()
             decryptChat(serverChat, from: UserID(msg.fromUid)) { (clientChat, decryptionFailure) in
                 if let clientChat = clientChat {
-                    let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount)
+                    let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount, rerequestCount: msg.rerequestCount)
                     DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId) [length=\(chatMessage.text?.count ?? 0)] [media=\(chatMessage.media.count)]")
                     self.didGetNewChatMessage.send(.decrypted(chatMessage))
                 } else {

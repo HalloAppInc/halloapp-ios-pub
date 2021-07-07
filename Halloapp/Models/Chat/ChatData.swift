@@ -941,18 +941,24 @@ class ChatData: ObservableObject {
         mergedMessages.forEach({ (sharedMsg, chatMsg) in
             unreadMessageCount += 1
             updateUnreadChatsThreadCount()
-            if let senderClientVersion = sharedMsg.senderClientVersion, let chatTimestamp = chatMsg.timestamp {
-                var error: DecryptionError? = nil
-                if let rawValue = sharedMsg.decryptionError {
-                    error = DecryptionError(rawValue: rawValue)
+            if let senderClientVersion = sharedMsg.senderClientVersion, let chatTimestamp = chatMsg.timestamp, let serverMsgPb = sharedMsg.serverMsgPb {
+                do {
+                    var error: DecryptionError? = nil
+                    if let rawValue = sharedMsg.decryptionError {
+                        error = DecryptionError(rawValue: rawValue)
+                    }
+                    let serverMsg = try Server_Msg(serializedData: serverMsgPb)
+                    reportDecryptionResult(
+                        error: error,
+                        messageID: chatMsg.id,
+                        timestamp: chatTimestamp,
+                        sender: UserAgent(string: senderClientVersion),
+                        rerequestCount: Int(serverMsg.rerequestCount),
+                        isSilent: false)
+                    DDLogInfo("ChatData/mergeSharedData/reported decryption result \(error) for msg: \(chatMsg.id)")
+                } catch {
+                    DDLogError("ChatData/mergeSharedData/Unable to initialize Server_Msg")
                 }
-                reportDecryptionResult(
-                    error: error,
-                    messageID: chatMsg.id,
-                    timestamp: chatTimestamp,
-                    sender: UserAgent(string: senderClientVersion),
-                    rerequestCount: 0,  // Hardcoding this for now - server always sends pushes only for rerequestCount = 0.
-                    isSilent: false)
             } else {
                 DDLogError("ChatData/mergeSharedData/could not report decryption result, messageId: \(chatMsg.id)")
             }
@@ -3551,13 +3557,13 @@ extension XMPPChatMessage {
         }
     }
 
-    init(_ protoChat: Clients_ChatMessage, timestamp: Int64, from fromUserID: UserID, to toUserID: UserID, id: String, retryCount: Int32) {
+    init(_ protoChat: Clients_ChatMessage, timestamp: Int64, from fromUserID: UserID, to toUserID: UserID, id: String, retryCount: Int32, rerequestCount: Int32) {
         self.id = id
         self.fromUserId = fromUserID
         self.toUserId = toUserID
         self.timestamp = TimeInterval(timestamp)
         self.retryCount = retryCount
-        self.rerequestCount = 0 // we don't care about rerequest count for incoming messages
+        self.rerequestCount = rerequestCount
         
         text = protoChat.text.isEmpty ? nil : protoChat.text
         media = protoChat.media.compactMap { XMPPChatMedia(protoMedia: $0) }
