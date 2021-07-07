@@ -694,7 +694,6 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
 
     private var avPlayerRateObservation: NSKeyValueObservation?
     private var avPlayerStatusObservation: NSKeyValueObservation?
-    private var avPlayerVCVideoBoundsObservation: NSKeyValueObservation?
 
     private var cornerRadius: CGFloat = 0 {
         didSet {
@@ -765,12 +764,6 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerViewController.view.backgroundColor = .clear
         avPlayerViewController.showsPlaybackControls = false
         contentView.addSubview(avPlayerViewController.view)
-
-        avPlayerVCVideoBoundsObservation = avPlayerViewController.observe(\.videoBounds, options: [ ], changeHandler: { [weak self] (_, _) in
-            guard let self = self else { return }
-            self.updatePlayerViewFrame()
-        })
-
         
         playButton.isHidden = true
     }
@@ -929,7 +922,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func updatePlayerViewFrame() {
-        guard let videoSize = videoSize, videoSize.height > 0 && videoSize.width > 0 && avPlayerViewController.videoGravity != .resizeAspectFill else
+        guard let url = videoURL, let videoSize = VideoUtils.resolutionForLocalVideo(url: url), videoSize.height > 0 && videoSize.width > 0 && avPlayerViewController.videoGravity != .resizeAspectFill else
         {
             // Video takes entire cell content.
             setPlayerView(frame: contentView.bounds)
