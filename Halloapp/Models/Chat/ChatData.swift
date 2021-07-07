@@ -793,7 +793,7 @@ class ChatData: ObservableObject {
             }
             DDLogInfo("ChatData/mergeSharedData/merging message/\(messageId)")
 
-            var clientChatMsg: Clients_ChatMessage? = nil
+            var clientChatMsg: Clients_ChatMessage
             if let clientChatMsgPb = message.clientChatMsgPb {
                 do {
                     clientChatMsg = try Clients_ChatMessage(serializedData: clientChatMsgPb)
@@ -801,18 +801,20 @@ class ChatData: ObservableObject {
                     DDLogError("ChatData/mergeSharedData/failed to extract clientChatMsg: [\(clientChatMsgPb)]")
                     continue
                 }
+            } else {
+                continue
             }
 
             let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
             chatMessage.id = messageId
             chatMessage.toUserId = message.toUserId
             chatMessage.fromUserId = message.fromUserId
-            chatMessage.text = clientChatMsg?.text ?? message.text
-            chatMessage.feedPostId = clientChatMsg?.feedPostID
-            chatMessage.feedPostMediaIndex = clientChatMsg?.feedPostMediaIndex ?? 0
-            chatMessage.chatReplyMessageID = clientChatMsg?.chatReplyMessageID
-            chatMessage.chatReplyMessageSenderID = clientChatMsg?.chatReplyMessageSenderID
-            chatMessage.chatReplyMessageMediaIndex = clientChatMsg?.chatReplyMessageMediaIndex ?? 0
+            chatMessage.text = clientChatMsg.text
+            chatMessage.feedPostId = clientChatMsg.feedPostID.isEmpty ? nil : clientChatMsg.feedPostID
+            chatMessage.feedPostMediaIndex = clientChatMsg.feedPostMediaIndex
+            chatMessage.chatReplyMessageID = clientChatMsg.chatReplyMessageID.isEmpty ? nil : clientChatMsg.chatReplyMessageID
+            chatMessage.chatReplyMessageSenderID = clientChatMsg.chatReplyMessageSenderID
+            chatMessage.chatReplyMessageMediaIndex = clientChatMsg.chatReplyMessageMediaIndex
             chatMessage.timestamp = message.timestamp // is this okay for tombstones?
 
             // message could be incoming or outgoing.
@@ -1008,10 +1010,11 @@ class ChatData: ObservableObject {
         // TODO: Why Int16? - other classes have Int32 for the order attribute.
         var mediaIndex: Int16 = 0
         var mediaFromDir: URL = MainAppContext.mediaDirectoryURL
-        if let _ = chatMessage.feedPostId {
+        // Ensure Id of the quoted object is not empty - postId/msgId.
+        if let feedPostId = chatMessage.feedPostId, !feedPostId.isEmpty {
             mediaIndex = Int16(chatMessage.feedPostMediaIndex)
             mediaFromDir = MainAppContext.mediaDirectoryURL
-        } else if let _ = chatMessage.chatReplyMessageID {
+        } else if let chatReplyMessageID = chatMessage.chatReplyMessageID, !chatReplyMessageID.isEmpty {
             mediaIndex = Int16(chatMessage.chatReplyMessageMediaIndex)
             mediaFromDir = MainAppContext.chatMediaDirectoryURL
         }
