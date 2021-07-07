@@ -21,8 +21,8 @@ jobs:
       - name: Get Build number
         id: get-build-number
         run: |
-          export build=`HalloApp.xcodeproj/project.pbxproj | grep -m1 'CURRENT_PROJECT_VERSION' | cut -d'=' -f2 | tr -d ';' | tr -d ' '`
-          echo ::set-output name=BUILD_NUMBER::$version
+          export build=`cat HalloApp.xcodeproj/project.pbxproj | grep -m1 'CURRENT_PROJECT_VERSION' | cut -d'=' -f2 | tr -d ';' | tr -d ' '`
+          echo ::set-output name=BUILD_NUMBER::$build
       - name: Add Label
         uses: andymckay/labeler@master
         with:
