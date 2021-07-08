@@ -416,7 +416,7 @@ final class ProtoService: ProtoServiceCore {
             switch item.item {
             case .post(let serverPost):
                 switch item.action {
-                case .publish:
+                case .publish, .share:
                     guard let post = PostData(serverPost) else {
                         DDLogError("proto/payloadContents/\(serverPost.id)/error could not make post object")
                         continue
@@ -424,14 +424,12 @@ final class ProtoService: ProtoServiceCore {
                     elements.append(.post(post))
                 case .retract:
                     retracts.append(.post(serverPost.id))
-                case .share:
-                    DDLogError("proto/payloadContents/\(serverPost.id)/error unhandled post action share")
                 case .UNRECOGNIZED(let action):
                     DDLogError("proto/payloadContents/\(serverPost.id)/error unrecognized post action \(action)")
                 }
             case .comment(let serverComment):
                 switch item.action {
-                case .publish:
+                case .publish, .share:
                     guard let comment = CommentData(serverComment) else {
                         DDLogError("proto/payloadContents/\(serverComment.id)/error could not make comment object")
                         continue
@@ -439,8 +437,6 @@ final class ProtoService: ProtoServiceCore {
                     elements.append(.comment(comment, publisherName: serverComment.publisherName))
                 case .retract:
                     retracts.append(.comment(serverComment.id))
-                case .share:
-                    DDLogError("proto/payloadContents/\(serverComment.id)/error unhandled comment action share")
                 case .UNRECOGNIZED(let action):
                     DDLogError("proto/payloadContents/\(serverComment.id)/error unrecognized comment action \(action)")
                 }
