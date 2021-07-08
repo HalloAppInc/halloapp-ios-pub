@@ -654,6 +654,27 @@ class ContactStoreMain: ContactStore {
         }
     }
 
+    func addUserToAddressBook(userID: UserID) -> Bool {
+        guard !isContactInAddressBook(userId: userID) else { return false }
+        guard let name = pushNames[userID] else { return false }
+        guard let phoneNumber = pushNumbers[userID] else { return false }
+
+        let newContact = CNMutableContact()
+        newContact.givenName = name
+        newContact.phoneNumbers.append(CNLabeledValue(label: "mobile", value: CNPhoneNumber(stringValue: phoneNumber)))
+
+        let store = CNContactStore()
+        let saveRequest = CNSaveRequest()
+        saveRequest.add(newContact, toContainerWithIdentifier: nil)
+
+        do {
+            try store.execute(saveRequest)
+            return true
+        } catch {
+            return false
+        }
+    }
+
     // MARK: Server Sync
 
     func contactsFor(fullSync: Bool, in managedObjectContext: NSManagedObjectContext) -> [ABContact] {
@@ -932,6 +953,14 @@ class ContactStoreMain: ContactStore {
         guard !names.isEmpty else { return }
 
         super.addPushNames(names)
+    }
+    
+    // MARK: Push numbers
+
+    override func addPushNumbers(_ numbers: [UserID : String]) {
+        guard !numbers.isEmpty else { return }
+
+        super.addPushNumbers(numbers)
     }
 
     // MARK: Mentions

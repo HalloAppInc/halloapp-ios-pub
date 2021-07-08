@@ -33,7 +33,7 @@ class MainAppContext: AppContext {
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
     lazy var cryptoData: CryptoData = { CryptoData() }()
     private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()
-    
+
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
     let groupFeedFromGroupTabPresentRequest = CurrentValueSubject<GroupID?, Never>(nil)

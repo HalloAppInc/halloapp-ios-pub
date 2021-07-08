@@ -228,6 +228,88 @@ open class ContactStore {
         }
     }
 
+    // MARK: Push numbers
+
+    public private(set) lazy var pushNumbers: [UserID: String] = {
+        var pushNumbers: [UserID: String] = [:]
+        performOnBackgroundContextAndWait { (managedObjectContext) in
+            pushNumbers = self.fetchAllPushNumbers(using: managedObjectContext)
+        }
+        return pushNumbers
+    }()
+
+    private func fetchAllPushNumbers(using managedObjectContext: NSManagedObjectContext) -> [UserID: String] {
+        let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
+        do {
+            let results = try managedObjectContext.fetch(fetchRequest)
+            let numbers: [UserID: String] = results.reduce(into: [:]) {
+                guard let userID = $1.userID else {
+                    DDLogError("contactStore/fetchAllPushNumbers/fetch/error push number missing userID [\($1.normalizedPhoneNumber ?? "")]")
+                    return
+                }
+                $0[userID] = $1.normalizedPhoneNumber
+            }
+            DDLogVerbose("contactStore/fetchAllPushNumbers/fetched count=[\(numbers.count)]")
+            return numbers
+        }
+        catch {
+            fatalError("contactStore/fetchAllPushNumbers/error [\(error)]")
+        }
+    }
+
+    private var pushNumberUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.pushNumber")
+
+    private func savePushNumbers(_ numbers: [UserID: String]) {
+        performOnBackgroundContextAndWait { (managedObjectContext) in
+            var existingNumbers: [UserID : PushNumber] = [:]
+
+            // Fetch existing numbers
+            let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "userID in %@", Set(numbers.keys))
+            do {
+                let results = try managedObjectContext.fetch(fetchRequest)
+                existingNumbers = results.reduce(into: [:]) { $0[$1.userID!] = $1 }
+            }
+            catch {
+                fatalError("contactStore/savePushNumbers/error  [\(error)]")
+            }
+
+            // Insert new numbers / update existing
+            numbers.forEach { (userID, number) in
+                if let existingNumber = existingNumbers[userID] {
+                    if existingNumber.normalizedPhoneNumber != number {
+                        DDLogDebug("contactStore/savePushNumbers/update  userId=[\(userID)] from=[\(existingNumber.normalizedPhoneNumber ?? "")] to=[\(number)]")
+                        existingNumber.normalizedPhoneNumber = number
+                    }
+                } else {
+                    DDLogDebug("contactStore/savePushNumbers/new  userId=[\(userID)] name=[\(number)]")
+                    let newPushNumber = NSEntityDescription.insertNewObject(forEntityName: "PushNumber", into: managedObjectContext) as! PushNumber
+                    newPushNumber.userID = userID
+                    newPushNumber.normalizedPhoneNumber = number
+                }
+            }
+
+            if managedObjectContext.hasChanges {
+                do {
+                    try managedObjectContext.save()
+                }
+                catch {
+                    fatalError("Failed to save managed object context [\(error)]")
+                }
+            }
+        }
+    }
+
+    open func addPushNumbers(_ numbers: [UserID: String]) {
+        pushNumberUpdateQueue.async { [self] in
+            savePushNumbers(numbers)
+        }
+
+        pushNumbers.merge(numbers) { (existingNumber, newNumber) -> String in
+            return newNumber
+        }
+    }
+
     // MARK: UI Support
 
     public func contact(withUserId userId: UserID) -> ABContact? {

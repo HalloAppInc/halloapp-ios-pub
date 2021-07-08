@@ -284,6 +284,7 @@
 		EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */; };
 		EABBF72B24E72C6200FE1F1F /* CreateGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */; };
 		EABDC977253424E1005FE00A /* InboundMsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */; };
+		EABDCEDB2697825C009053C7 /* UnknownContactActionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABDCEDA2697825C009053C7 /* UnknownContactActionBanner.swift */; };
 		EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC46555251484FE00783821 /* EditGroupViewController.swift */; };
 		EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */; };
 		EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EACC34C924FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift */; };
@@ -747,6 +748,7 @@
 		EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGroupMembersViewController.swift; sourceTree = "<group>"; };
 		EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupViewController.swift; sourceTree = "<group>"; };
 		EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundMsgViewCell.swift; sourceTree = "<group>"; };
+		EABDCEDA2697825C009053C7 /* UnknownContactActionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnknownContactActionBanner.swift; sourceTree = "<group>"; };
 		EAC46555251484FE00783821 /* EditGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGroupViewController.swift; sourceTree = "<group>"; };
 		EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMediaDownloader.swift; sourceTree = "<group>"; };
 		EACC34C924FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageInfo+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -1148,7 +1150,6 @@
 				EA27790825B91E58009CA884 /* PrivacyViewController.swift */,
 				764AB42024A7188600D4E354 /* FeedPrivacyView.swift */,
 				764AB42324A71D6900D4E354 /* PrivacyListView.swift */,
-				76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */,
 				32C83FC32690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift */,
 				68130168268D369A001BBDC6 /* ContactSelectionViewController.swift */,
 			);
@@ -1404,6 +1405,7 @@
 				EA3585752450BE3300E6E8AB /* ChatInputView.swift */,
 				EA388C5B2520EB9500DEAB53 /* Banner.swift */,
 				EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */,
+				EABDCEDA2697825C009053C7 /* UnknownContactActionBanner.swift */,
 			);
 			path = Chats;
 			sourceTree = "<group>";
@@ -2517,6 +2519,7 @@
 				EAA424FE24ECF1480025CBBE /* ChatGroup+CoreDataClass.swift in Sources */,
 				6829F78724D0A62800207F6B /* UserFeedViewController.swift in Sources */,
 				EABDC977253424E1005FE00A /* InboundMsgViewCell.swift in Sources */,
+				EABDCEDB2697825C009053C7 /* UnknownContactActionBanner.swift in Sources */,
 				762EDBDD244E5A7800986617 /* HomeViewController.swift in Sources */,
 				764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */,
 				764AB41F24A6C5F300D4E354 /* Color.swift in Sources */,

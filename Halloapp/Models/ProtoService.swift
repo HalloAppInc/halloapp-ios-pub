@@ -640,6 +640,9 @@ final class ProtoService: ProtoServiceCore {
             if !serverChat.senderName.isEmpty {
                 MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverChat.senderName ])
             }
+            if !serverChat.senderPhone.isEmpty {
+                MainAppContext.shared.contactStore.addPushNumbers([ UserID(msg.fromUid) : serverChat.senderPhone ])
+            }
             // Dont process messages that were already decrypted and saved.
             if isMessageDecryptedAndSaved(msgId: msg.id) {
                 return

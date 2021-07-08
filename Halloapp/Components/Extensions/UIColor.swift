@@ -54,6 +54,16 @@ extension UIColor {
         UIColor(named: "CameraButton")!
     }
 
+    // MARK: Chats
+
+    class var chatInfoBubble: UIColor {
+        UIColor(named: "ChatInfoBubble")!
+    }
+
+    class var chatInfoBubbleBg: UIColor {
+        UIColor(named: "ChatInfoBubbleBg")!
+    }
+
     class var chatOwnBubbleBg: UIColor {
         UIColor(named: "ChatOwnBubbleBg")!
     }
