@@ -31,6 +31,8 @@ extension SharedChatMessage {
     @NSManaged public var text: String?
     @NSManaged public var statusValue: Int16
     @NSManaged public var timestamp: Date
+    @NSManaged public var serverTimestamp: Date?
+    @NSManaged public var serialID: Int32
     @NSManaged public var clientChatMsgPb: Data?
     // TODO(murali@): it is not good to have both clientChatMsgPb and serverMsgPb
     // We should just use serverMsgPb.

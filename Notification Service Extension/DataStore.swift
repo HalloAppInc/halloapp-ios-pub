@@ -147,8 +147,12 @@ class DataStore: NotificationServiceExtensionDataStore {
         chatMessage.decryptionError = failure?.error.rawValue
         chatMessage.ephemeralKey = failure?.ephemeralKey
         chatMessage.senderClientVersion = metadata.senderClientVersion
-        chatMessage.timestamp = metadata.timestamp ?? Date()
         chatMessage.serverMsgPb = metadata.serverMsgPb
+        chatMessage.serverTimestamp = metadata.timestamp
+        chatMessage.timestamp = Date()
+        let serialID = AppContext.shared.getchatMsgSerialId()
+        DDLogInfo("SharedDataStore/message/\(messageId)/created/serialId \(serialID)")
+        chatMessage.serialID = serialID
 
         switch status {
         case .received:

@@ -249,4 +249,11 @@ open class AppContext {
         let data = try Data(contentsOf: URL(fileURLWithPath: jsonPath))
         return data
     }
+
+    public func getchatMsgSerialId() -> Int32 {
+        // TODO: make the key name a separate variable.
+        let serialID = userDefaults.integer(forKey: "chatMessageSerialId") + 1
+        userDefaults.set(serialID, forKey: "chatMessageSerialId")
+        return Int32(serialID)
+    }
 }

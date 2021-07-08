@@ -86,8 +86,6 @@ class ChatData: ObservableObject {
     }
     
     private let uploadQueue = DispatchQueue(label: "com.halloapp.chat.upload")
-    private var currentlyUploadingDict: [String:String] = [:]
-    private let maxNumUploads: Int = 3
     
     private let downloadQueue = DispatchQueue(label: "com.halloapp.chat.download", qos: .userInitiated)
     private let maxNumDownloads: Int = 3
@@ -263,8 +261,6 @@ class ChatData: ObservableObject {
                 } else {
                     DDLogDebug("ChatData/didConnect/app is in background \(UIApplication.shared.applicationState.rawValue)")
                 }
-
-                self.currentlyUploadingDict.removeAll()
 
                 self.processPendingChatMsgs()
                 self.processRetractingChatMsgs()
@@ -648,11 +644,8 @@ class ChatData: ObservableObject {
             // rerequests should not, with the assumption resendAttempts are only used for rerequests
             guard chatMessage.resendAttempts == 0 else { return }
             guard let serverTimestamp = chatAck.timestamp else { return }
-            chatMessage.timestamp = serverTimestamp
-            
-            if let chatMessageId = self.currentlyUploadingDict[chatMessage.toUserId], chatMessageId == chatMessage.id {
-                self.currentlyUploadingDict.removeValue(forKey: chatMessage.toUserId)
-            }
+            chatMessage.serverTimestamp = serverTimestamp
+
             self.processPendingChatMsgs()
         }
 
@@ -816,6 +809,9 @@ class ChatData: ObservableObject {
             chatMessage.chatReplyMessageSenderID = clientChatMsg.chatReplyMessageSenderID
             chatMessage.chatReplyMessageMediaIndex = clientChatMsg.chatReplyMessageMediaIndex
             chatMessage.timestamp = message.timestamp // is this okay for tombstones?
+            chatMessage.serverTimestamp = message.serverTimestamp
+            DDLogDebug("ChatData/mergeSharedData/ChatData/\(messageId)/serialId [\(message.serialID)]")
+            chatMessage.serialID = message.serialID
 
             // message could be incoming or outgoing.
             DDLogInfo("ChatData/mergeSharedData/message/\(messageId), status: \(message.status)")
@@ -1382,6 +1378,9 @@ extension ChatData {
         chatMessage.incomingStatus = .none
         chatMessage.outgoingStatus = isMsgToYourself ? .seen : .pending
         chatMessage.timestamp = Date()
+        let serialID = MainAppContext.shared.getchatMsgSerialId()
+        DDLogDebug("ChatData/createChatMsg/\(messageId)/serialId [\(serialID)]")
+        chatMessage.serialID = serialID
 
         var lastMsgMediaType: ChatThread.LastMediaType = .none // going with the first media
         
@@ -1815,6 +1814,7 @@ extension ChatData {
     // includes seen but not sent messages
     func unseenChatMessages(with fromUserId: String, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
         let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatMessage.serialID, ascending: true),
             NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
         ]
         return self.chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && toUserId = %@ && (incomingStatusValue = %d OR incomingStatusValue = %d)", fromUserId, userData.userId, ChatMessage.IncomingStatus.none.rawValue, ChatMessage.IncomingStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
@@ -2046,6 +2046,9 @@ extension ChatData {
         chatMessage.toUserId = tombstone.to
         chatMessage.fromUserId = tombstone.from
         chatMessage.timestamp = tombstone.timestamp
+        let serialID = MainAppContext.shared.getchatMsgSerialId()
+        DDLogDebug("ChatData/processInboundTombstone/\(tombstone.id)/serialId [\(serialID)]")
+        chatMessage.serialID = serialID
         chatMessage.incomingStatus = .rerequesting
         chatMessage.outgoingStatus = .none
 
@@ -2099,6 +2102,9 @@ extension ChatData {
         } else {
             chatMessage.timestamp = Date()
         }
+        let serialID = MainAppContext.shared.getchatMsgSerialId()
+        DDLogDebug("ChatData/processInboundChatMessage/\(xmppChatMessage.id)/serialId [\(serialID)]")
+        chatMessage.serialID = serialID
         
         var lastMsgMediaType: ChatThread.LastMediaType = .none // going with the first media found
         
@@ -2299,22 +2305,12 @@ extension ChatData {
             let pendingOutgoingChatMessages = self.pendingOutgoingChatMessages(in: self.bgContext)
             DDLogInfo("ChatData/processPendingChatMsgs/num: \(pendingOutgoingChatMessages.count)")
 
-            guard let pendingMsg = pendingOutgoingChatMessages.first(where: {
-                guard self.currentlyUploadingDict.count < self.maxNumUploads else { return false }
-                guard self.currentlyUploadingDict[$0.toUserId] == nil else { return false }
-                return true
-            }) else { return }
-
-            self.currentlyUploadingDict[pendingMsg.toUserId] = pendingMsg.id
-
-            let xmppChatMsg = XMPPChatMessage(chatMessage: pendingMsg)
-
-            // inject delay between sends so that they won't be timestamped the same time,
-            // which causes display of messages to be in mixed order
-            // will refactor in the future to display messages based on db insertion instead of time
-            self.backgroundProcessingQueue.asyncAfter(deadline: .now() + 1) { [weak self] in
-                guard let self = self else { return }
-                self.uploadChatMsgMediaAndSend(xmppChatMsg)
+            pendingOutgoingChatMessages.forEach{ pendingMsg in
+                let xmppChatMsg = XMPPChatMessage(chatMessage: pendingMsg)
+                self.backgroundProcessingQueue.async { [weak self] in
+                    guard let self = self else { return }
+                    self.uploadChatMsgMediaAndSend(xmppChatMsg)
+                }
             }
         }
     }
