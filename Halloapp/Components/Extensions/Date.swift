@@ -172,4 +172,8 @@ extension Date {
             return String(format: formatString, date, time)
         }
     }
+    
+    func shortDateFormat() -> String {
+        return DateFormatter.dateTimeFormatterShortDate.string(from: self)
+    }
 }

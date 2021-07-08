@@ -364,6 +364,17 @@ final class ProtoUpdateNotificationSettingsRequest: ProtoRequest<Void> {
     }
 }
 
+final class ProtoGetDataExportStatusRequest: ProtoRequest<Server_ExportData> {
+    init(isSetRequest: Bool = false, completion: @escaping Completion) {
+        let iqPacket: Server_Packet = .iqPacket(type: isSetRequest ? .set : .get, payload: .exportData(Server_ExportData()))
+        
+        super.init(iqPacket: iqPacket, transform: { response in
+            return .success(response.exportData)
+        }, completion: completion)
+
+    }
+}
+
 extension Server_PushPref.Name {
     init(_ configKey: NotificationSettings.ConfigKey) {
         switch configKey {

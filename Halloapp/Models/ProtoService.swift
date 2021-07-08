@@ -1145,6 +1145,10 @@ extension ProtoService: HalloService {
     func getServerProperties(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>) {
         enqueue(request: ProtoGetServerPropertiesRequest(completion: completion))
     }
+    
+    func exportDataStatus(isSetRequest: Bool = false, completion: @escaping ServiceRequestCompletion<Server_ExportData>) {
+        enqueue(request: ProtoGetDataExportStatusRequest(isSetRequest: isSetRequest, completion: completion))
+    }
 
     func sendGroupChatMessage(_ message: HalloGroupChatMessage) {
         guard let messageData = try? message.protoContainer.serializedData() else {

@@ -29,6 +29,10 @@ private extension Localizations {
     static var about: String {
         NSLocalizedString("profile.row.about", value: "About HalloApp", comment: "Row in Profile screen.")
     }
+    
+    static var accountRow: String {
+        NSLocalizedString("profile.row.account", value: "Account", comment: "Row in Profile Screen")
+    }
 }
 
 class SettingsViewController: UITableViewController {
@@ -42,6 +46,7 @@ class SettingsViewController: UITableViewController {
         case one
         case two
         case three
+        case four
     }
 
     private enum Row {
@@ -54,6 +59,7 @@ class SettingsViewController: UITableViewController {
         case invite
         case help
         case about
+        case account
     }
 
     private var dataSource: UITableViewDiffableDataSource<Section, Row>!
@@ -63,9 +69,10 @@ class SettingsViewController: UITableViewController {
     private let cellSettings = SettingsTableViewCell(text: Localizations.titleSettings, image: UIImage(named: "settingsSettings"))
     private let cellNotifications = SettingsTableViewCell(text: Localizations.titleNotifications, image: UIImage(named: "settingsNotifications"))
     private let cellPrivacy = SettingsTableViewCell(text: Localizations.titlePrivacy, image: UIImage(named: "settingsPrivacy"))
-    private let cellInviteFriends = SettingsTableViewCell(text: Localizations.inviteFriends, image: UIImage(named: "settingsInvite"))
+    private let cellInviteFriends = SettingsTableViewCell(text: Localizations.inviteFriends, image: UIImage(systemName: "person.badge.plus")?.applyingSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)))
     private let cellHelp = SettingsTableViewCell(text: Localizations.help, image: UIImage(named: "settingsHelp"))
     private let cellAbout = SettingsTableViewCell(text: Localizations.about, image: UIImage(named: "settingsAbout"))
+    private let cellAccount = SettingsTableViewCell(text: Localizations.accountRow, image: UIImage(systemName: "person")?.applyingSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)))
 
     // MARK: View Controller
 
@@ -110,13 +117,15 @@ class SettingsViewController: UITableViewController {
             case .invite: return self.cellInviteFriends
             case .help: return self.cellHelp
             case .about: return self.cellAbout
+            case .account: return self.cellAccount
             }
         })
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
-        snapshot.appendSections([ .one, .two, .three ])
+        snapshot.appendSections([ .one, .two, .three, .four ])
         snapshot.appendItems([ .profile, .feed ], toSection: .one)
-        snapshot.appendItems([ .notifications, .privacy ], toSection: .two)
-        snapshot.appendItems([ .help, .about, .invite ], toSection: .three)
+        snapshot.appendItems([.account], toSection: .two)
+        snapshot.appendItems([ .notifications, .privacy ], toSection: .three)
+        snapshot.appendItems([ .help, .about, .invite ], toSection: .four)
         dataSource.apply(snapshot, animatingDifferences: false)
 
         headerViewController = ProfileHeaderViewController()
@@ -188,6 +197,8 @@ class SettingsViewController: UITableViewController {
             openHelp()
         case .about:
             openAbout()
+        case .account:
+            openAccountSettings()
         }
     }
 
@@ -251,6 +262,12 @@ class SettingsViewController: UITableViewController {
             viewController.hidesBottomBarWhenPushed = false
             navigationController?.pushViewController(viewController, animated: true)
         }
+    }
+    
+    private func openAccountSettings() {
+        let viewController = UIHostingController(rootView: AccountSettingsList())
+        viewController.hidesBottomBarWhenPushed = false
+        navigationController?.pushViewController(viewController, animated: true)
     }
 
     @objc private func openDeveloperMenu() {
