@@ -135,6 +135,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         fetchedResultsController = makeFetchedResultsController(media[index])
         fetchedResultsController?.delegate = self
         try? fetchedResultsController?.performFetch()
+        
+        canSaveMedia = true
     }
 
     init(media: [ChatQuotedMedia], index: Int) {
