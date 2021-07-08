@@ -336,8 +336,7 @@ final class FeedItemHeaderView: UIView {
     private lazy var nameColumn: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ userAndGroupNameRow, secondLineGroupNameLabel, timestampLabel ])
         view.axis = .vertical
-        view.spacing = 0
-        view.heightAnchor.constraint(equalToConstant: 54).isActive = true
+        view.spacing = 3
         
         view.translatesAutoresizingMaskIntoConstraints = false
 
@@ -406,7 +405,7 @@ final class FeedItemHeaderView: UIView {
         let label = UILabel()
         label.font = UIFont.systemFont(forTextStyle: .footnote, weight: .medium)
         label.adjustsFontForContentSizeCategory = true
-        label.textColor = .tertiaryLabel
+        label.textColor = UIColor(named: "TimestampLabel")
         label.textAlignment = .natural
         label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .horizontal) // higher than contact name
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -453,7 +452,6 @@ final class FeedItemHeaderView: UIView {
         hStack.spacing = 4
         hStack.translatesAutoresizingMaskIntoConstraints = false
  
-        configure(stackView: hStack, forVerticalLayout: UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory)
         addSubview(hStack)
 
         avatarViewButton.heightAnchor.constraint(equalToConstant: 36).isActive = true
@@ -491,7 +489,7 @@ final class FeedItemHeaderView: UIView {
         timestampLabel.text = post.timestamp.feedTimestamp()
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
         
-        moreButton.isHidden = post.userId != MainAppContext.shared.userData.userId && !post.canSaveMedia
+        moreButton.isHidden = !post.canSaveMedia && post.userId != MainAppContext.shared.userData.userId
     }
     
     func configureGroupLabel(with groupID: String?) {
@@ -499,7 +497,7 @@ final class FeedItemHeaderView: UIView {
             
             let attrText = NSMutableAttributedString(string: "")
             let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate)
-            let groupIndicatorColor = traitCollection.userInterfaceStyle == .light ? UIColor.gray : UIColor.label
+            let groupIndicatorColor = UIColor(named: "GroupNameArrow")
             let groupNameColor = UIColor.label
 
             if let groupIndicator = groupIndicatorImage, let font = groupNameLabel.font {
