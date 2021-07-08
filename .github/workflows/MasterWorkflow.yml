@@ -48,3 +48,7 @@ jobs:
         run: xcodebuild clean build-for-testing -workspace "Halloapp.xcworkspace" -scheme "Halloapp" -destination "${{matrix.destination}}"
       - name: Run Unit Tests
         run: xcodebuild test-without-building -workspace "Halloapp.xcworkspace" -scheme "Halloapp" -destination "${{matrix.destination}}" -only-testing "HalloAppTests"
+      - name: Build Localizations
+        run: xcodebuild -exportLocalizations -localizationPath . -project HalloApp.xcodeproj
+      - name: Upload Localizations
+        run: curl -X POST https://api.poeditor.com/v2/projects/upload -F api_token=${{secrets.POEDITOR_API_KEY}} -F id="420915" -F updating="terms" -F file=@"en.xcloc/Localized Contents/en.xliff" -F tags="{\"obsolete\":\"removed-strings\"}"
