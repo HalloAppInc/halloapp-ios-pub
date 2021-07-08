@@ -190,9 +190,9 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
 
     private func updateUI() {
         let isWaiting = state == .requestingCode || state == .validatingCode
-        let shouldHideInput = state == .requestingCode || state == .requestError
-        let canEnterText = state == .enteringCode || state == .invalidCode
-        let canRequestNewCode = (state == .enteringCode && Date() > retryAvailableDate) || state == .invalidCode
+        let shouldHideInput = state == .requestingCode
+        let canEnterText = state == .enteringCode || state == .invalidCode || state == .requestError
+        let canRequestNewCode = (state == .enteringCode && Date() > retryAvailableDate) || state == .invalidCode || state == .requestError
         let shouldShowError = state == .invalidCode || state == .requestError
         let errorText = state == .invalidCode ? Localizations.registrationCodeIncorrect : Localizations.registrationCodeRequestError
 
@@ -203,6 +203,9 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         callMeRow.isHidden = !canRequestNewCode
 
         textFieldCode.isEnabled = canEnterText
+        if (canEnterText) {
+            self.textFieldCode.becomeFirstResponder()
+        }
         errorLabel.text = errorText
         errorLabel.alpha = shouldShowError ? 1 : 0
     }
