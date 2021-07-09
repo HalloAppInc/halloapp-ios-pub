@@ -61,8 +61,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     private var stream: Stream?
     public let userData: UserData
 
-    private lazy var isPlaintextFallbackSupported = !ServerProperties.isInternalUser
-
     required public init(userData: UserData, passiveMode: Bool = false, automaticallyReconnect: Bool = true) {
         self.userData = userData
         self.isPassiveMode = passiveMode
@@ -483,25 +481,17 @@ extension ProtoServiceCore: CoreService {
                 } else {
                     DDLogInfo("ProtoServiceCore/makeChatStanza/\(message.id)/ skipping public key")
                 }
-                if ServerProperties.shouldSendClearTextChat {
-                    chat.payload = messageData
-                }
                 completion(chat, nil)
             case .failure(let error):
-                var chat = Server_ChatStanza()
-                if ServerProperties.shouldSendClearTextChat {
-                    chat.payload = messageData
-                }
-                completion(chat, error)
+                completion(nil, error)
             }
         }
     }
 
     // MARK: Decryption
 
-    /// May return a valid message with an error (i.e., there may be plaintext to fall back to even if decryption fails).
+    /// TODO: Convert to Result<Clients_ChatMessage,DecryptionFailure> now that they're mutually exclusive (no more plaintext)
     public func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (Clients_ChatMessage?, DecryptionFailure?) -> Void) {
-        let plainTextMessage = isPlaintextFallbackSupported ? Clients_ChatMessage(containerData: serverChat.payload) : nil
         AppContext.shared.messageCrypter.decrypt(
             EncryptedData(
                 data: serverChat.encPayload,
@@ -511,21 +501,12 @@ extension ProtoServiceCore: CoreService {
             switch result {
             case .success(let decryptedData):
                 guard let decryptedMessage = Clients_ChatMessage(containerData: decryptedData) else {
-                    // Decryption deserialization failed, fall back to plaintext if possible
-                    completion(plainTextMessage, DecryptionFailure(.deserialization))
+                    completion(nil, DecryptionFailure(.deserialization))
                     return
                 }
-                if let plainTextMessage = plainTextMessage, plainTextMessage.text != decryptedMessage.text {
-                    // Decrypted message does not match plaintext
-                    completion(plainTextMessage, DecryptionFailure(.plaintextMismatch))
-                } else {
-                    if plainTextMessage == nil {
-                        DDLogInfo("proto/decryptChat/plaintext not available")
-                    }
-                    completion(decryptedMessage, nil)
-                }
+                completion(decryptedMessage, nil)
             case .failure(let failure):
-                completion(plainTextMessage, failure)
+                completion(nil, failure)
             }
         }
     }

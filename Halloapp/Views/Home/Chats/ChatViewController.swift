@@ -446,10 +446,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     // MARK:
 
     private func shouldShowVerifyOption() -> Bool {
-        guard ServerProperties.isInternalUser || !ServerProperties.shouldSendClearTextChat else {
-            return false
-        }
-
         guard let otherUserID = fromUserId,
               let otherKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: otherUserID)?.keyBundle,
               SafetyNumberData(keyBundle: otherKeyBundle) != nil

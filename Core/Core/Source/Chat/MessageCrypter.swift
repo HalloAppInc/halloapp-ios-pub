@@ -115,7 +115,6 @@ public enum DecryptionError: String, Error {
     case missingPublicKey
     case missingSignedPreKey
     case missingUserKeys
-    case plaintextMismatch
     case ratchetFailure
     case x25519Conversion
     case teardownKeyMatch
