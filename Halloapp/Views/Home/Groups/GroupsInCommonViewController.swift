@@ -69,7 +69,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         self.userID = userID
         super.init(nibName: nil, bundle: nil)
         let fromName = MainAppContext.shared.contactStore.fullName(for: userID)
-        self.title = String(format: "With %@", fromName)
+        self.title = String(format: Localizations.withPersonLabel, fromName)
 
     }
 
@@ -138,14 +138,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
 
     // MARK: NUX
 
-    private lazy var overlayContainer: OverlayContainer = {
-        let overlayContainer = OverlayContainer()
-        overlayContainer.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(overlayContainer)
-        overlayContainer.constrain(to: view)
-        return overlayContainer
-    }()
-
     private lazy var emptyView: UIView = {
         let image = UIImage(named: "ChatEmpty")?.withRenderingMode(.alwaysTemplate)
         let imageView = UIImageView(image: image)
@@ -155,7 +147,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 0
-        label.text = Localizations.nuxGroupsListEmpty
+        label.text = Localizations.nuxGroupsInCommonListEmpty
         label.textAlignment = .center
         label.textColor = .secondaryLabel
 
@@ -288,48 +280,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     
     func isScrolledFromTop(by fromTop: CGFloat) -> Bool {
         return tableView.contentOffset.y < fromTop
-    }
-
-    // MARK: Tap Notification
-    
-    private func processNotification(metadata: NotificationMetadata) {
-        guard metadata.isGroupNotification else {
-            return
-        }
-        
-        // If the user tapped on a notification, move to group feed
-        DDLogInfo("GroupsListViewController/processNotification/open group feed [\(metadata.groupId ?? "")]")
-
-        navigationController?.popToRootViewController(animated: false)
-        
-        switch metadata.contentType {
-        case .groupFeedPost, .groupFeedComment:
-            if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                let vc = GroupFeedViewController(groupId: groupId)
-                vc.delegate = self
-                self.navigationController?.pushViewController(vc, animated: false)
-            }
-            break
-        case .groupAdd:
-            if let groupId = metadata.groupId {
-                if let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                    openFeed(forGroupId: groupId)
-                } else {
-                    // for offline groupAdd notifications, the app needs some time to get and create the new group when the user
-                    // taps on the notification so we just wait for the group event here.
-                    DispatchQueue.main.async{
-                        self.groupIdToPresent = groupId
-                    }
-                }
-            }
-            metadata.removeFromUserDefaults()
-            break
-        case .groupChatMessage:
-            metadata.removeFromUserDefaults()
-            break
-        default:
-            break
-        }
     }
 
     private func openFeed(forGroupId groupId: GroupID) {
@@ -525,7 +475,7 @@ private extension Localizations {
     static var groupsInCommonLabel: String {
         NSLocalizedString("groups.common", value: "Groups In Common", comment: "A label to show that the groups below are groups in common")
     }
-    static var WithPersonLabel: String {
+    static var withPersonLabel: String {
         NSLocalizedString("groups.title", value: "With %@", comment: "A label on the header to indicate which person I have groups in common with")
     }
     
