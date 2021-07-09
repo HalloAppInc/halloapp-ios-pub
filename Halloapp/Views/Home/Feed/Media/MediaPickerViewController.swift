@@ -576,7 +576,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
 
                 let media = PendingMedia(type: .image)
                 media.order = 1
-                media.image = image
+                media.image = image.correctlyOrientedImage()
 
                 self.didFinish(self, [media], false)
             },
