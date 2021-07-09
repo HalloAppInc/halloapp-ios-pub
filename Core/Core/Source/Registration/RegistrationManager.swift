@@ -38,9 +38,9 @@ public final class DefaultRegistrationManager: RegistrationManager {
 
     public func set(countryCode: String, nationalNumber: String, userName: String) {
         let userData = AppContext.shared.userData
-        userData.normalizedPhoneNumber = ""
         userData.countryCode = countryCode
         userData.phoneInput = nationalNumber
+        userData.normalizedPhoneNumber = countryCode.appending(nationalNumber)
         userData.name = userName
         userData.save()
     }
