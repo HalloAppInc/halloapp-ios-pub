@@ -256,8 +256,9 @@ class GroupFeedViewController: FeedCollectionViewController {
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
-        let newPostViewController = NewPostViewController(source: source, destination: .groupFeed(groupId)) {
+        let newPostViewController = NewPostViewController(source: source, destination: .groupFeed(groupId)) { didPost in
             self.dismiss(animated: true)
+            if didPost { self.scrollToTop(animated: true) }
         }
         newPostViewController.modalPresentationStyle = .fullScreen
         present(newPostViewController, animated: true)

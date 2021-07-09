@@ -39,7 +39,7 @@ final class NewPostViewController: UIViewController {
         return .portrait
     }
 
-    init(source: NewPostMediaSource, destination: FeedPostDestination, didFinish: @escaping (() -> Void)) {
+    init(source: NewPostMediaSource, destination: FeedPostDestination, didFinish: @escaping ((Bool) -> Void)) {
         self.didFinish = didFinish
         self.state = NewPostState(mediaSource: source)
         self.destination = destination
@@ -62,7 +62,7 @@ final class NewPostViewController: UIViewController {
 
     // MARK: Private
 
-    private let didFinish: (() -> Void)
+    private let didFinish: ((Bool) -> Void)
     private var state: NewPostState
     private let destination: FeedPostDestination
 
@@ -70,7 +70,7 @@ final class NewPostViewController: UIViewController {
         return makeNavigationController()
     }()
 
-    private func cleanupAndFinish() {
+    private func cleanupAndFinish(didPost: Bool = false) {
         for media in state.pendingMedia {
             guard let encryptedFileURL = media.encryptedFileUrl else { continue }
             do {
@@ -80,7 +80,7 @@ final class NewPostViewController: UIViewController {
                 DDLogInfo("NewPostViewController/cleanup/\(encryptedFileURL.absoluteString)/error [\(error)]")
             }
         }
-        didFinish()
+        didFinish(didPost)
     }
 
     private func didFinishPickingMedia(showAddMoreMediaButton: Bool = true) {
@@ -206,7 +206,7 @@ extension NewPostViewController: UINavigationControllerDelegate {}
 extension NewPostViewController: PostComposerViewDelegate {
     func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia]) {
         MainAppContext.shared.feedData.post(text: mentionText, media: media, to: destination)
-        cleanupAndFinish()
+        cleanupAndFinish(didPost: true)
     }
 
     func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia]) {

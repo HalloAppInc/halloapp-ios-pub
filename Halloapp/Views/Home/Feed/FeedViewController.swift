@@ -328,8 +328,9 @@ class FeedViewController: FeedCollectionViewController {
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
-        let newPostViewController = NewPostViewController(source: source, destination: .userFeed) {
+        let newPostViewController = NewPostViewController(source: source, destination: .userFeed) { didPost in
             self.dismiss(animated: true)
+            if didPost { self.scrollToTop(animated: true) }
         }
         newPostViewController.modalPresentationStyle = .fullScreen
         present(newPostViewController, animated: true)
