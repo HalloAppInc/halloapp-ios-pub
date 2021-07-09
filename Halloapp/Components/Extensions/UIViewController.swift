@@ -32,8 +32,6 @@ extension UIViewController {
         titleLabel.attributedText = NSAttributedString(string: title, attributes: attributes)
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
         navigationItem.title = nil
-        
-        UINavigationBar.appearance().standardAppearance = .translucentAppearance
     }
     
     func proceedIfConnected() -> Bool {

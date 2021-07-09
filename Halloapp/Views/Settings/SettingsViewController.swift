@@ -112,7 +112,6 @@ class SettingsViewController: UITableViewController {
         tableView.backgroundColor = .feedBackground
         tableView.separatorStyle = .none
         tableView.tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 10))
-        tableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
 
         dataSource = UITableViewDiffableDataSource<Section, Row>(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
             guard let self = self else { return nil }
