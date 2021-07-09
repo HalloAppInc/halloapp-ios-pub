@@ -154,6 +154,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
                     return cell
                 case .invite:
                     if let image = UIImage(named: "settingsInvite")?.withRenderingMode(.alwaysTemplate) {
+                        cell.color = .secondaryLabel
                         cell.imageBgColor = .clear
                         cell.configure(icon: image, label: Localizations.myPostRowInvite)
                     }
