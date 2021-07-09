@@ -795,7 +795,7 @@ class ChatData: ObservableObject {
             }
             DDLogInfo("ChatData/mergeSharedData/merging message/\(messageId)")
 
-            var clientChatMsg: Clients_ChatMessage
+            var clientChatMsg: Clients_ChatMessage? = nil
             if let clientChatMsgPb = message.clientChatMsgPb {
                 do {
                     clientChatMsg = try Clients_ChatMessage(serializedData: clientChatMsgPb)
@@ -803,20 +803,18 @@ class ChatData: ObservableObject {
                     DDLogError("ChatData/mergeSharedData/failed to extract clientChatMsg: [\(clientChatMsgPb)]")
                     continue
                 }
-            } else {
-                continue
             }
 
             let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
             chatMessage.id = messageId
             chatMessage.toUserId = message.toUserId
             chatMessage.fromUserId = message.fromUserId
-            chatMessage.text = clientChatMsg.text
-            chatMessage.feedPostId = clientChatMsg.feedPostID.isEmpty ? nil : clientChatMsg.feedPostID
-            chatMessage.feedPostMediaIndex = clientChatMsg.feedPostMediaIndex
-            chatMessage.chatReplyMessageID = clientChatMsg.chatReplyMessageID.isEmpty ? nil : clientChatMsg.chatReplyMessageID
-            chatMessage.chatReplyMessageSenderID = clientChatMsg.chatReplyMessageSenderID
-            chatMessage.chatReplyMessageMediaIndex = clientChatMsg.chatReplyMessageMediaIndex
+            chatMessage.text = clientChatMsg?.text ?? message.text
+            chatMessage.feedPostId = (clientChatMsg?.feedPostID.isEmpty ?? true) ? nil : clientChatMsg?.feedPostID
+            chatMessage.feedPostMediaIndex = clientChatMsg?.feedPostMediaIndex ?? 0
+            chatMessage.chatReplyMessageID = (clientChatMsg?.chatReplyMessageID.isEmpty ?? true) ? nil : clientChatMsg?.chatReplyMessageID
+            chatMessage.chatReplyMessageSenderID = clientChatMsg?.chatReplyMessageSenderID
+            chatMessage.chatReplyMessageMediaIndex = clientChatMsg?.chatReplyMessageMediaIndex ?? 0
             chatMessage.timestamp = message.timestamp // is this okay for tombstones?
             chatMessage.serverTimestamp = message.serverTimestamp
             DDLogDebug("ChatData/mergeSharedData/ChatData/\(messageId)/serialId [\(message.serialID)]")
