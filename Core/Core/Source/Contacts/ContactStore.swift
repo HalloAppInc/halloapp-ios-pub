@@ -345,10 +345,12 @@ open class ContactStore {
             return ownName
         }
 
-        // Fetch from the address book.
-        if let contact = contact(withUserId: userId),
-           let fullName = contact.fullName {
-            return fullName
+        // Fetch from the address book, only if contacts permission is granted
+        if ContactStore.contactsAccessAuthorized {
+            if let contact = contact(withUserId: userId),
+               let fullName = contact.fullName {
+                return fullName
+            }
         }
 
         // Try push name as necessary.
