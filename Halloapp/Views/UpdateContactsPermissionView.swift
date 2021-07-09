@@ -31,7 +31,7 @@ class UpdateContactsPermissionView: UIView {
         let settingsButton = UIButton()
         settingsButton.layer.masksToBounds = true
         settingsButton.setTitle(Localizations.buttonGoToSettings, for: .normal)
-        settingsButton.setBackgroundColor(.lavaOrange, for: .normal)
+        settingsButton.setBackgroundColor(.systemBlue, for: .normal)
         settingsButton.setBackgroundColor(UIColor.lavaOrange.withAlphaComponent(0.5), for: .highlighted)
         settingsButton.setBackgroundColor(.systemGray4, for: .disabled)
         settingsButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 38).isActive = true

@@ -42,13 +42,12 @@ class AppClipHomeViewController: UIViewController {
         navigationItem.backButtonTitle = ""
 
         logo.translatesAutoresizingMaskIntoConstraints = false
-        logo.image = UIImage(named: "RegistrationLogo")?.withRenderingMode(.alwaysTemplate)
+        logo.image = UIImage(named: "AppIconRounded")
         logo.tintColor = .lavaOrange
-        logo.setContentCompressionResistancePriority(.required, for: .vertical)
 
         let installAppTitle = UILabel()
         installAppTitle.translatesAutoresizingMaskIntoConstraints = false
-        installAppTitle.font = .systemFont(forTextStyle: .title1, weight: .medium, maximumPointSize: Constants.MaxFontPointSize)
+        installAppTitle.font = .systemFont(forTextStyle: .title1, weight: .medium, maximumPointSize: Constants.MaxFontPointSize - 10)
         installAppTitle.numberOfLines = 0
         installAppTitle.setContentCompressionResistancePriority(.required, for: .vertical)
         installAppTitle.textAlignment = .center
@@ -64,37 +63,33 @@ class AppClipHomeViewController: UIViewController {
 
         buttonInstall.layer.masksToBounds = true
         buttonInstall.setTitle(Localizations.buttonInstall, for: .normal)
-        buttonInstall.setBackgroundColor(.lavaOrange, for: .normal)
+        buttonInstall.setBackgroundColor(.systemBlue, for: .normal)
         buttonInstall.setBackgroundColor(UIColor.lavaOrange.withAlphaComponent(0.5), for: .highlighted)
         buttonInstall.setBackgroundColor(.systemGray4, for: .disabled)
         buttonInstall.heightAnchor.constraint(greaterThanOrEqualToConstant: 50).isActive = true
 
         buttonInstall.addTarget(self, action: #selector(didTapInstall), for: .touchUpInside)
 
-
-        let stackView = UIStackView(arrangedSubviews: [installAppTitle, buttonInstall, freeDownloadLabel])
-        stackView.alignment = .fill
+        let stackView = UIStackView(arrangedSubviews: [logo, installAppTitle, buttonInstall, freeDownloadLabel])
+        stackView.alignment = .center
         stackView.axis = .vertical
         stackView.spacing = 16
         stackView.translatesAutoresizingMaskIntoConstraints = false
-
         view.backgroundColor = .feedBackground
 
         // View hierarchy
-        scrollView.addSubview(logo)
         scrollView.addSubview(stackView)
-
         view.addSubview(scrollView)
 
         // Constraints
+        let imageSize: CGFloat = 94
+        logo.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
+        logo.heightAnchor.constraint(equalToConstant: imageSize).isActive = true
+        
         scrollView.constrain([.leading, .trailing, .top], to: view)
         scrollViewBottomMargin = scrollView.constrain(anchor: .bottom, to: view)
-
-        logo.constrain(anchor: .centerX, to: scrollView.contentLayoutGuide, constant: 100)
-        logo.constrainMargin(anchor: .leading, to: scrollView)
-
+        buttonInstall.constrain([.leading, .trailing], to: stackView)
         stackView.constrainMargins([.leading, .trailing], to: view)
-        stackView.topAnchor.constraint(greaterThanOrEqualTo: logo.bottomAnchor, constant: 32).isActive = true
         inputVerticalCenterConstraint = stackView.constrain(anchor: .centerY, to: scrollView, priority: .defaultHigh)
     }
     
