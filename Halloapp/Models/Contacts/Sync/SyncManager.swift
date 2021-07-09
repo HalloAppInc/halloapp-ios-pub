@@ -30,7 +30,8 @@ class SyncManager {
     private var processedDeletes: Set<ABContact.NormalizedPhoneNumber> = []
 
     private(set) var isSyncEnabled = false
-    private var isSyncInProgress = false
+    @Published private(set) var isSyncInProgress = false
+    public let syncProgress = PassthroughSubject<Double, Never>()
 
     private var nextFullSyncDate: Date? {
         didSet {
@@ -231,9 +232,10 @@ class SyncManager {
         isSyncInProgress = true
 
         DDLogInfo("syncmanager/sync/start/\(syncMode) [\(xmppContacts.count)]")
-        let syncSession = SyncSession(mode: syncMode, contacts: xmppContacts, processResultsAsyncBlock: { results in
+        let syncSession = SyncSession(mode: syncMode, contacts: xmppContacts, processResultsAsyncBlock: { results, progress in
             self.queue.async {
                 self.processSyncBatchResults(mode: syncMode, contacts: results)
+                self.syncProgress.send(Double(progress.processed)/Double(progress.total))
             }
         }){ error in
             self.queue.async {
@@ -272,6 +274,8 @@ class SyncManager {
             finishSync(withMode: mode, result: .failure(.serverError(error!)))
             return
         }
+
+        contactStore.isInitialSyncCompleted = true
 
         // Clear deletes only on successful sync completion.
         pendingDeletes.subtract(processedDeletes)

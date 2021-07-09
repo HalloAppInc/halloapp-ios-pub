@@ -11,6 +11,7 @@
  */
 
 import CocoaLumberjackSwift
+import Combine
 import Contacts
 import CoreData
 
@@ -27,6 +28,8 @@ open class ContactStore {
     }
 
     // MARK: Access to Contacts
+
+    public var contactsAccessRequestCompleted = PassthroughSubject<Bool, Never>()
 
     public class var contactsAccessAuthorized: Bool {
         get {

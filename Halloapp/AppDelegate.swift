@@ -8,6 +8,7 @@
 
 import BackgroundTasks
 import CocoaLumberjackSwift
+import Combine
 import Contacts
 import Core
 import CoreData
@@ -191,6 +192,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let contactStore = CNContactStore()
             contactStore.requestAccess(for: .contacts) { authorized, error in
                 DispatchQueue.main.async {
+                    AppContext.shared.contactStore.contactsAccessRequestCompleted.send(authorized)
                     completion(true, authorized)
                 }
             }
@@ -199,7 +201,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
 
-    func requestAccessToContactsAndNotifications(onAccessAuthorized: @escaping () -> ()) {
+    func requestAccessToContactsAndNotifications() {
         guard !contactsAccessRequestInProgress else {
             DDLogWarn("appdelegate/contacts/access-request Already in progress")
             return
@@ -213,9 +215,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 // This is likely the first app launch and now that Contacts access popup is gone,
                 // time to request access to notifications.
                 self.checkNotificationsAuthorizationStatus()
-            }
-            if accessAuthorized {
-                onAccessAuthorized()
             }
         }
     }

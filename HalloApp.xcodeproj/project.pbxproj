@@ -94,6 +94,7 @@
 		68B5C22D264C6F3F004C7939 /* SafetyNumberViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B5C22C264C6F3F004C7939 /* SafetyNumberViewController.swift */; };
 		68B5C232264DC710004C7939 /* QRCodeScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B5C231264DC710004C7939 /* QRCodeScannerViewController.swift */; };
 		68C8264B251A77A000BB8F3A /* NUX.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C8264A251A77A000BB8F3A /* NUX.swift */; };
+		68CCB16726964851007015FA /* InitializingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CCB16626964851007015FA /* InitializingViewController.swift */; };
 		68CD603425E463FA0056D13E /* ConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CD603325E463FA0056D13E /* ConnectionBanner.swift */; };
 		68CFF38F2551FF6F009B0D81 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */; };
 		68D2915125096F0700AF5061 /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
@@ -552,6 +553,7 @@
 		68B5C231264DC710004C7939 /* QRCodeScannerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeScannerViewController.swift; sourceTree = "<group>"; };
 		68C8264A251A77A000BB8F3A /* NUX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NUX.swift; sourceTree = "<group>"; };
 		68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.external beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.external beta.xcconfig"; sourceTree = "<group>"; };
+		68CCB16626964851007015FA /* InitializingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitializingViewController.swift; sourceTree = "<group>"; };
 		68CD603325E463FA0056D13E /* ConnectionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionBanner.swift; sourceTree = "<group>"; };
 		68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Localizations+Registration.swift"; sourceTree = "<group>"; };
 		68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiredVersionViewController.swift; sourceTree = "<group>"; };
@@ -1527,6 +1529,7 @@
 				761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */,
 				68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */,
 				68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */,
+				68CCB16626964851007015FA /* InitializingViewController.swift */,
 			);
 			path = Registration;
 			sourceTree = "<group>";
@@ -2555,6 +2558,7 @@
 				764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */,
 				76A92449244EBCB600794859 /* ShapeView.swift in Sources */,
 				68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */,
+				68CCB16726964851007015FA /* InitializingViewController.swift in Sources */,
 				EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */,
 				76C64E0D24E5AD85007C0F6F /* MediaUploader.swift in Sources */,
 				EAA424FA24ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift in Sources */,

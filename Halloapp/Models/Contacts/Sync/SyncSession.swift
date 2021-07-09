@@ -27,10 +27,11 @@ enum ContactSyncRequestType: String, RawRepresentable {
 
 class SyncSession {
     typealias Completion = (Error?) -> Void
+    typealias SyncProgress = (processed: Int, total: Int)
 
     private let syncMode: SyncMode
     private let completion: Completion
-    private let processResultsAsyncBlock: ([XMPPContact]) -> Void
+    private let processResultsAsyncBlock: ([XMPPContact], SyncProgress) -> Void
 
     /**
      Set to `0` to turn off chuncked sync.
@@ -44,7 +45,7 @@ class SyncSession {
     private var results: [XMPPContact] = []
     private var error: Error? = nil
 
-    init(mode: SyncMode, contacts: [XMPPContact], processResultsAsyncBlock: @escaping ([XMPPContact]) -> Void, completion: @escaping Completion) {
+    init(mode: SyncMode, contacts: [XMPPContact], processResultsAsyncBlock: @escaping ([XMPPContact], SyncProgress) -> Void, completion: @escaping Completion) {
         self.syncMode = mode
         self.contacts = contacts
         self.processResultsAsyncBlock = processResultsAsyncBlock
@@ -82,13 +83,15 @@ class SyncSession {
             let contactsToSend = self.contacts[range]
             let requestType: ContactSyncRequestType = self.syncMode == .full ? .full : .delta
             let batchIndex = self.batchIndex
+            let previouslyProcessed = batchIndex * batchSize
+            let batchProgress: SyncProgress = (processed: previouslyProcessed + range.count, total: previouslyProcessed + contacts.count)
             MainAppContext.shared.service.syncContacts(with: contactsToSend, type: requestType, syncID: self.syncID,
                                                  batchIndex: batchIndex, isLastBatch: isLastBatch) { (result) in
                 DDLogInfo("sync-session/\(self.syncMode)/request/end/batch/\(batchIndex)")
                 switch result {
                 case .success(let batchResults):
                     DDLogInfo("sync-session/\(self.syncMode)/finished/\(batchIndex)/success, count:/\(batchResults.count)")
-                    self.processResultsAsyncBlock(batchResults)
+                    self.processResultsAsyncBlock(batchResults, batchProgress)
                     
                 case .failure(let error):
                     DDLogInfo("sync-session/\(self.syncMode)/finished/\(batchIndex)/failure, error:/\(error)")

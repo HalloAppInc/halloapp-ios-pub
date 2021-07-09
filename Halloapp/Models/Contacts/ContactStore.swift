@@ -237,6 +237,20 @@ class ContactStoreMain: ContactStore {
         return result
     }()
 
+    var isInitialSyncCompleted: Bool {
+        get {
+            guard let result = databaseMetadata?[ContactsStoreMetadataContactsSynced] as? Bool else {
+                return false
+            }
+            return result
+        }
+        set {
+            mutateDatabaseMetadata { metadata in
+                metadata[ContactsStoreMetadataContactsSynced] = newValue
+            }
+        }
+    }
+
     /**
      Synchronize all device contacts with app's internal contacts store.
 
@@ -247,7 +261,7 @@ class ContactStoreMain: ContactStore {
             return
         }
 
-        guard let scene = UIApplication.shared.openSessions.first?.scene, scene.activationState == .foregroundActive else {
+        guard let scene = UIApplication.shared.openSessions.first?.scene, scene.activationState == .foregroundActive || scene.activationState == .foregroundInactive else {
             DDLogDebug("contacts/reload/app-backgrounded")
             return
         }
@@ -804,12 +818,7 @@ class ContactStoreMain: ContactStore {
             DDLogError("contacts/sync/process-results/save-error error=[\(error)]")
         }
 
-        let initialSyncCompleted = databaseMetadata?[ContactsStoreMetadataContactsSynced] as? Bool ?? false
-        if !initialSyncCompleted {
-            mutateDatabaseMetadata { (metadata) in
-                metadata[ContactsStoreMetadataContactsSynced] = true
-            }
-        } else {
+        if isInitialSyncCompleted {
             let userIdsToSharePostsWith = discoveredUsers.compactMap({ $0.userId })
             if !userIdsToSharePostsWith.isEmpty {
                 DispatchQueue.main.async {

@@ -13,7 +13,7 @@ import ContactsUI
 import Core
 import UIKit
 
-class HomeViewController: UITabBarController, FeedPermissionDeniedControllerDelegate {
+class HomeViewController: UITabBarController {
 
     private var cancellableSet: Set<AnyCancellable> = []
     private var tabBarViewControllers: [UIViewController] = []
@@ -207,20 +207,10 @@ class HomeViewController: UITabBarController, FeedPermissionDeniedControllerDele
         return navigationController
     }
     
-    func feedPermissionDeniedControllerDidFinish() {
-        DDLogInfo("HomeViewController/feedPermissionDeniedControllerDidFinish/begin")
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.tabBarViewControllers[0] = self.feedNavigationController()
-            self.setViewControllers(self.tabBarViewControllers, animated: true)
-        }
-    }
-    
     private func getFeedViewController() -> UIViewController {
         guard ContactStore.contactsAccessAuthorized else {
             DDLogInfo("HomeViewController/getFeedViewController/loading FeedPermissionDeniedController")
             let feedPermissionDeniedViewController = FeedPermissionDeniedController(title: Localizations.titleHome)
-            feedPermissionDeniedViewController.delegate = self
             return feedPermissionDeniedViewController
         }
         DDLogInfo("HomeViewController/getFeedViewController/loading FeedViewController")

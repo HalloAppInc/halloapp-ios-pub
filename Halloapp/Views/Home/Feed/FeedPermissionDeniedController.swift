@@ -11,13 +11,8 @@ import Combine
 import Core
 import UIKit
 
-protocol FeedPermissionDeniedControllerDelegate: AnyObject {
-    func feedPermissionDeniedControllerDidFinish()
-}
-
 class FeedPermissionDeniedController: UIViewController {
 
-    weak var delegate: FeedPermissionDeniedControllerDelegate?
     private var cancellables: Set<AnyCancellable> = []
     private var notificationButton: BadgedButton?
 
@@ -40,7 +35,6 @@ class FeedPermissionDeniedController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .feedBackground
         installLargeTitleUsingGothamFont()
-        showFirstTimeContactPermissionFlowIfNecessary()
 
         let contactsPermissionView = UpdateContactsPermissionView()
         view.addSubview(contactsPermissionView)
@@ -76,24 +70,5 @@ class FeedPermissionDeniedController: UIViewController {
 
     @objc private func didTapNotificationButton() {
         self.present(UINavigationController(rootViewController: NotificationsViewController(style: .plain)), animated: true)
-    }
-    
-    private func showFirstTimeContactPermissionFlowIfNecessary() {
-        DDLogInfo("FeedViewController/showFirstTimeContactPermissionFlow/begin")
-        guard ContactStore.contactsAccessRequestNecessary else {
-            return
-        }
-        
-        let alert = UIAlertController(title: Localizations.registrationContactPermissionsTitle, message: Localizations.registrationContactPermissionsContent, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: Localizations.buttonNext, style: .default, handler: { _ in
-            guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-                DDLogError("FeedPermissionDeniedController/showFirstTimeContactPermissionFlow/error app delegate unavailable")
-                return
-            }
-            appDelegate.requestAccessToContactsAndNotifications() {
-                self.delegate?.feedPermissionDeniedControllerDidFinish()
-            }
-        }))
-        present(alert, animated: true, completion: nil)
     }
 }
