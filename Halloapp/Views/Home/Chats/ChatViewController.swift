@@ -928,11 +928,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
 // MARK: ChatHeaderViewDelegates
 extension ChatViewController: ChatHeaderViewDelegate {
-    func chatHeaderViewOpenPrivacy(_ chatHeaderView: ChatHeaderView) {
-        let viewController = SFSafariViewController(url: URL(string: "https://www.halloapp.com/privacy")!)
+    func chatHeaderViewOpenEncryptionBlog(_ chatHeaderView: ChatHeaderView) {
+        let viewController = SFSafariViewController(url: URL(string: "https://halloapp.com/blog/encrypted-chat")!)
         present(viewController, animated: true)
     }
-    
+
     func chatHeaderViewAddToContactsBook(_ chatHeaderView: ChatHeaderView) {
         guard let userID = fromUserId else { return }
         if MainAppContext.shared.contactStore.addUserToAddressBook(userID: userID) {
@@ -1424,7 +1424,7 @@ class UnselectableUITextView: UITextView {
 }
 
 protocol ChatHeaderViewDelegate: AnyObject {
-    func chatHeaderViewOpenPrivacy(_ chatHeaderView: ChatHeaderView)
+    func chatHeaderViewOpenEncryptionBlog(_ chatHeaderView: ChatHeaderView)
     func chatHeaderViewAddToContactsBook(_ chatHeaderView: ChatHeaderView)
 }
 
@@ -1555,7 +1555,7 @@ class ChatHeaderView: UIView {
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.insertSubview(subView, at: 0)
 
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(openPrivacyPolicy)))
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(openEncryptionBlog)))
 
         return view
     }()
@@ -1610,9 +1610,9 @@ class ChatHeaderView: UIView {
         return label
     }()
     
-    @objc private func openPrivacyPolicy() {
+    @objc private func openEncryptionBlog() {
         guard let delegate = delegate else { return }
-        delegate.chatHeaderViewOpenPrivacy(self)
+        delegate.chatHeaderViewOpenEncryptionBlog(self)
     }
 
     @objc private func addToContactsBook() {
