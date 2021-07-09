@@ -35,6 +35,7 @@ struct FeedPrivacyView: View {
 
     @State private var isBlacklistScreenPresented: Bool = false
     @State private var isWhitelistScreenPresented: Bool = false
+    @State private var shouldShowEnableContactPermissionView: Bool = false
 
     init(privacySettings: PrivacySettings) {
         self.privacySettings = privacySettings
@@ -56,7 +57,10 @@ struct FeedPrivacyView: View {
 
             Form {
                 Section {
-                    Button(action: { self.selectAllContacts() }) {
+                    Button(action: {
+                            self.selectAllContacts()
+                            self.shouldShowEnableContactPermissionView = !ContactStore.contactsAccessAuthorized
+                    }) {
                         HStack {
                             Image(systemName: "checkmark")
                                 .foregroundColor(self.privacySettings.activeType == .all ? .lavaOrange : .clear)
@@ -74,7 +78,9 @@ struct FeedPrivacyView: View {
                         }
                     }
                     .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
-
+                    .sheet(isPresented: self.$shouldShowEnableContactPermissionView) {
+                        PrivacyPermissionDeniedView(dismissAction: { self.shouldShowEnableContactPermissionView = false })
+                    }
                     Button(action: { self.isBlacklistScreenPresented = true }) {
                         HStack {
                             Image(systemName: "checkmark")

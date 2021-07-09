@@ -60,6 +60,7 @@
 		32C83FBF268FDC7D00BEB4F5 /* UpdateContactsPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FBE268FDC7D00BEB4F5 /* UpdateContactsPermissionView.swift */; };
 		32C83FC42690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FC32690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift */; };
 		32C83FCB2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FCA2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift */; };
+		32C83FDA2698171700BEB4F5 /* PrivacyPermissionDeniedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FD92698171700BEB4F5 /* PrivacyPermissionDeniedView.swift */; };
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
 		5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */; };
 		5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF5D12224F5295300F272D8 /* CameraViewController.swift */; };
@@ -493,6 +494,7 @@
 		32C83FBE268FDC7D00BEB4F5 /* UpdateContactsPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateContactsPermissionView.swift; sourceTree = "<group>"; };
 		32C83FC32690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPermissionDeniedController.swift; sourceTree = "<group>"; };
 		32C83FCA2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitePermissionDeniedViewController.swift; sourceTree = "<group>"; };
+		32C83FD92698171700BEB4F5 /* PrivacyPermissionDeniedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPermissionDeniedView.swift; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
 		3B784BE84F86CCDF62B0AAA2 /* Pods-Share Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.debug.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.debug.xcconfig"; sourceTree = "<group>"; };
 		477D47B0022D866E02A122DB /* Pods-Share Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
@@ -1158,6 +1160,7 @@
 				764AB42324A71D6900D4E354 /* PrivacyListView.swift */,
 				32C83FC32690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift */,
 				68130168268D369A001BBDC6 /* ContactSelectionViewController.swift */,
+				32C83FD92698171700BEB4F5 /* PrivacyPermissionDeniedView.swift */,
 			);
 			path = Privacy;
 			sourceTree = "<group>";
@@ -2401,6 +2404,7 @@
 				EAD476F62458F03700EF8591 /* ChatMessage+CoreDataClass.swift in Sources */,
 				761C6168242D89F90028AE19 /* TextLabel.swift in Sources */,
 				32C83FCB2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift in Sources */,
+				32C83FDA2698171700BEB4F5 /* PrivacyPermissionDeniedView.swift in Sources */,
 				686CDFBC2548A6C200DB7266 /* RegistrationDemo.swift in Sources */,
 				6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */,
 				EA3585712450BE2900E6E8AB /* Chat.xcdatamodeld in Sources */,

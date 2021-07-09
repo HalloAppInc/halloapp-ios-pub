@@ -147,6 +147,16 @@ class PrivacyViewController: UITableViewController {
     }
 
     private func openBlockedContacts() {
+        guard ContactStore.contactsAccessAuthorized else {
+            let vc = PrivacyPermissionDeniedController()
+            present(UINavigationController(rootViewController: vc), animated: true) {
+                if let indexPathForSelectedRow = self.tableView.indexPathForSelectedRow {
+                    self.tableView.deselectRow(at: indexPathForSelectedRow, animated: false)
+                }
+            }
+            return
+        }
+
         let privacySettings = MainAppContext.shared.privacySettings
         let vc = ContactSelectionViewController.forPrivacyList(privacySettings.blocked, in: privacySettings) { [weak self] in
             self?.reloadPrivacyValues()

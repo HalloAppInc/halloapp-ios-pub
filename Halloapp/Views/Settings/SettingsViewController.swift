@@ -234,13 +234,6 @@ class SettingsViewController: UITableViewController {
     }
     
     private func openPrivacy() {
-        
-        guard ContactStore.contactsAccessAuthorized else {
-            let viewController = PrivacyPermissionDeniedController()
-            viewController.hidesBottomBarWhenPushed = false
-            navigationController?.pushViewController(viewController, animated: true)
-            return
-        }
         let viewController = PrivacyViewController()
         viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
