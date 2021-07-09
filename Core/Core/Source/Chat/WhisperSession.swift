@@ -223,7 +223,7 @@ public final class WhisperSession {
         newKeyBundle.teardownKey = teardownKey
         state = .ready(newKeyBundle, [:])
 
-        DDLogError("WhisperSession/\(userID)/teardown/finished [\(teardownKey?.bytes ?? [])]")
+        DDLogError("WhisperSession/\(userID)/teardown/finished [\(teardownKey?.bytes.prefix(4) ?? [])...]")
     }
 
     private func executeTasks() {

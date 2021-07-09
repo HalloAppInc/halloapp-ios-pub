@@ -16,9 +16,9 @@ final class Whisper {
     static func encrypt(_ unencrypted: Data, keyBundle: KeyBundle) -> Result<(encryptedData: Data, chainKey: Data), EncryptionError> {
 
         DDLogInfo("Whisper/encrypt/outboundChainIndex [\(keyBundle.outboundChainIndex)]")
-        DDLogInfo("Whisper/encrypt/chain [\(keyBundle.outboundChainKey.bytes)]")
+        DDLogInfo("Whisper/encrypt/chain [\(keyBundle.outboundChainKey.bytes.prefix(4))...]")
         DDLogInfo("Whisper/encrypt/outboundEphemeralKeyId [\(keyBundle.outboundEphemeralKeyId)]")
-        DDLogInfo("Whisper/encrypt/outboundEphemeralPublicKeyBytes [\(keyBundle.outboundEphemeralPublicKey.bytes)]")
+        DDLogInfo("Whisper/encrypt/outboundEphemeralPublicKeyBytes [\(keyBundle.outboundEphemeralPublicKey.bytes.prefix(4))...]")
         DDLogInfo("Whisper/encrypt/outboundPreviousChainLength [\(keyBundle.outboundPreviousChainLength)]")
 
         guard let symmetricRatchet = symmetricRatchet(chainKey: keyBundle.outboundChainKey.bytes),
@@ -26,8 +26,8 @@ final class Whisper {
         {
             return .failure(.ratchetFailure)
         }
-        DDLogInfo("Whisper/encrypt/message [\(messageKey.data.bytes)]")
-        DDLogInfo("Whisper/encrypt/new-chain [\(symmetricRatchet.updatedChainKey)]")
+        DDLogInfo("Whisper/encrypt/message [\(messageKey.data.bytes.prefix(4))...]")
+        DDLogInfo("Whisper/encrypt/new-chain [\(symmetricRatchet.updatedChainKey.prefix(4))...]")
 
         guard let encrypted = try? AES(key: messageKey.aesKey, blockMode: CBC(iv: messageKey.iv), padding: .pkcs7).encrypt(Array(unencrypted)) else {
             return .failure(.aesError)
@@ -67,7 +67,7 @@ final class Whisper {
             return .failure(.init(.missingMessageKey, ephemeralKey: payload.ephemeralPublicKey))
         }
 
-        DDLogInfo("Whisper/decrypt/message-key [\(messageKey.data.bytes)]")
+        DDLogInfo("Whisper/decrypt/message-key [\(messageKey.data.bytes.prefix(4))...]")
         updatedMessageKeys[keyLocator] = nil
 
         do {
@@ -199,7 +199,7 @@ final class Whisper {
 
         guard let x25519Key = sodium.sign.convertToX25519PublicKey(publicKey: [UInt8](inboundIdentityPublicEdKey)) else {
             DDLogError("WhisperSession/receiveSessionSetup/error X25519 conversion error")
-            DDLogInfo("Inbound Key: \(inboundIdentityPublicEdKey)")
+            DDLogInfo("Inbound Key: \(inboundIdentityPublicEdKey.bytes.prefix(4))...")
             return .failure(.x25519Conversion)
         }
 
@@ -425,9 +425,9 @@ final class Whisper {
         masterKey += ecdhB
         masterKey += ecdhC
 
-        DDLogDebug("ecdhA:  \([UInt8](ecdhA))")
-        DDLogDebug("ecdhB:  \([UInt8](ecdhB))")
-        DDLogDebug("ecdhC:  \([UInt8](ecdhC))")
+        DDLogDebug("ecdhA:  \([UInt8](ecdhA).prefix(4))...")
+        DDLogDebug("ecdhB:  \([UInt8](ecdhB).prefix(4))...")
+        DDLogDebug("ecdhC:  \([UInt8](ecdhC).prefix(4))...")
 
         if let recipientOneTimePreKey = recipientOneTimePreKey {
 
@@ -435,10 +435,10 @@ final class Whisper {
             let ecdhDPublicKey  = isInitiator ? recipientOneTimePreKey  : initiatorEphemeralKey
 
             guard let ecdhD = sodium.keyAgreement.sharedSecret(secretKey: ecdhDPrivateKey, publicKey: ecdhDPublicKey) else {
-                DDLogInfo("ecdhD:  \([UInt8](ecdhA))")
+                DDLogInfo("ecdhD:  \([UInt8](ecdhA).prefix(4))...")
                 return nil
             }
-            DDLogDebug("ecdhD:  \([UInt8](ecdhD))")
+            DDLogDebug("ecdhD:  \([UInt8](ecdhD).prefix(4))...")
             masterKey += ecdhD
         }
 
