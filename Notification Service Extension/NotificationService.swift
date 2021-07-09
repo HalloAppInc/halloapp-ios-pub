@@ -219,6 +219,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                         switch result {
                         case .success(_):
                             DDLogInfo("sendRerequest/success sent rerequest, msgId: \(msgId)")
+                            dataStore.updateMessageStatus(for: msgId, status: .rerequesting)
                         case .failure(let error):
                             DDLogError("sendRerequest/failure sending rerequest, msgId: \(msgId), error: \(error)")
                         }
@@ -229,7 +230,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             }
         }
 
-        // We fetch messages with status = .received, .decryptionError
+        // We ack messages only that are successfully decrypted or successfully rerequested.
         let sharedChatMessagesToAck = dataStore.getChatMessagesToAck()
         sharedChatMessagesToAck.forEach{ sharedChatMessage in
             let msgId = sharedChatMessage.id
@@ -238,9 +239,9 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 switch sharedChatMessage.status {
                 case .received:
                     finalStatus = .acked
-                case .decryptionError:
+                case .rerequesting:
                     finalStatus = .rerequesting
-                case .acked, .sendError, .sent, .none, .rerequesting:
+                case .acked, .sendError, .sent, .none, .decryptionError:
                     return
                 }
                 switch result {

@@ -219,9 +219,9 @@ class DataStore: NotificationServiceExtensionDataStore {
             let chatMessages = try managedObjectContext.fetch(fetchRequest)
             for message in chatMessages {
                 switch message.status {
-                case .received, .decryptionError:
+                case .received, .rerequesting:
                     messagesToAck.append(message)
-                case .acked, .rerequesting:
+                case .acked, .decryptionError:
                     break
                 case .sent, .sendError, .none:
                     DDLogError("NotificationExtension/getChatMessagesToAck/unexpected-status [\(message.status)] [\(message.id)]")
