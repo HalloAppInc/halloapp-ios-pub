@@ -1001,8 +1001,24 @@ fileprivate class ImageCell: UICollectionViewCell {
         guard media.type == .image else { return }
         guard let url = media.fileURL else { return }
 
-        let maxSize = max(UIScreen.main.bounds.width, UIScreen.main.bounds.height) * UIScreen.main.scale
-        imageView.image = UIImage.thumbnail(contentsOf: url, maxPixelSize: maxSize)
+        guard let image = media.image else { return }
+        
+        // 0.25 = 1/4, below that threshold the image quality gets pretty bad on some images
+        let ratio = max(0.25, min(frame.size.width / image.size.width, frame.size.height / image.size.height))
+        
+        if ratio < 1 {
+            DDLogInfo("ShareComposerViewController/ImageCell/config resizing image")
+            
+            let size = CGSize(width: image.size.width * ratio, height: image.size.height * ratio)
+            if let resized = image.simpleResized(to: size) {
+                imageView.image = resized
+            }
+        } else {
+            DDLogInfo("ShareComposerViewController/ImageCell/config image from file")
+            
+            imageView.image = UIImage(contentsOfFile: url.path)
+        }
+        
         imageView.roundCorner(15)
     }
 }
