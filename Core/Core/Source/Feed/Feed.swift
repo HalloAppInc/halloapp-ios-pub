@@ -126,6 +126,7 @@ public enum PendingMediaError: Error {
 
 public struct PendingMediaEdit: Equatable {
     public var image: UIImage?
+    public var url: URL?
     public var cropRect: CGRect = CGRect.zero
     public var hFlipped: Bool = false
     public var vFlipped: Bool = false
@@ -133,8 +134,9 @@ public struct PendingMediaEdit: Equatable {
     public var scale: CGFloat = 1.0
     public var offset = CGPoint.zero
     
-    public init(image: UIImage?) {
+    public init(image: UIImage?, url: URL?) {
         self.image = image
+        self.url = url
     }
 }
 
@@ -155,8 +157,15 @@ public class PendingMedia {
     public var error = CurrentValueSubject<Error?, Never>(nil)
 
     public var image: UIImage? {
-        didSet {
-            guard let image = image else { return }
+        get {
+            guard let url = fileURL else { return nil }
+            return UIImage(contentsOfFile: url.path)
+        }
+        set {
+            guard let image = newValue else {
+                fileURL = nil
+                return
+            }
 
             PendingMedia.queue.async { [weak self] in
                 guard let self = self else { return }
@@ -166,14 +175,12 @@ public class PendingMedia {
                     .appendingPathComponent(UUID().uuidString, isDirectory: false)
                     .appendingPathExtension("jpg")
 
-                do {
-                    try image.jpegData(compressionQuality: 0.8)?.write(to: url)
-                } catch {
-                    DDLogError("PendingMedia: unable to save image \(error)")
-                    return self.error.send(error)
+                guard image.save(to: url) else {
+                    DDLogError("PendingMedia: unable to save image")
+                    return
                 }
 
-                self.size = self.image?.size
+                self.size = image.size
                 self.fileURL = url
 
                 DispatchQueue.main.async {
@@ -254,11 +261,11 @@ public class PendingMedia {
     }
 
     private func isInUseURL(_ previousURL: URL) -> Bool {
-        return [fileURL, originalVideoURL].contains(previousURL)
+        return [fileURL, originalVideoURL, edit?.url].contains(previousURL)
     }
     
     deinit {
-        [fileURL, originalVideoURL].forEach { tempURL in clearTemporaryMedia(tempURL: tempURL) }
+        [fileURL, originalVideoURL, edit?.url].forEach { tempURL in clearTemporaryMedia(tempURL: tempURL) }
     }
 }
 

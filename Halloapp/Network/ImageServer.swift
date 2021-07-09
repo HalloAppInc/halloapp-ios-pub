@@ -15,7 +15,6 @@ import SwiftUI
 enum ImageProcessingError: Error {
     case invalidImage
     case resizeFailure
-    case cropFailure
     case jpegConversionFailure
 }
 
@@ -41,11 +40,6 @@ class ImageServer {
 
     private let mediaProcessingQueue = DispatchQueue(label: "ImageServer.MediaProcessing")
     private var isCancelled = false
-    private var maxAllowedAspectRatio: CGFloat? = nil
-
-    init(maxAllowedAspectRatio: CGFloat? = nil) {
-        self.maxAllowedAspectRatio = maxAllowedAspectRatio
-    }
 
     func cancel() {
         isCancelled = true
@@ -122,82 +116,34 @@ class ImageServer {
     }
 
     private func process(image url: URL, completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-            guard let self = self, !self.isCancelled else { return }
-
-            guard let data = data, error == nil else {
-                DDLogError("ImageServer/image/prepare/error  Cannot get image url=[\(url.description)] [\(String(describing: error))]")
-                return completion(.failure(ImageProcessingError.invalidImage))
-            }
-
-            guard let image = UIImage(data: data) else {
-                DDLogError("ImageServer/image/prepare/error  Empty image url=[\(url.description)]")
-                return completion(.failure(ImageProcessingError.invalidImage))
-            }
-
-            completion(
-                self.resize(image: image)
-                .flatMap(self.crop(image:))
-                .flatMap(self.save(image:))
-            )
-        }.resume()
+        completion(self.resize(image: url).flatMap(self.save(image:)))
     }
 
     private func save(image: UIImage) -> Result<(URL, CGSize), Error> {
-        guard let data = image.jpegData(compressionQuality: 0.8) else {
-            DDLogError("ImageServer/image/prepare/error  JPEG conversation failure")
-            return .failure(ImageProcessingError.jpegConversionFailure)
-        }
-
         let output = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent(UUID().uuidString, isDirectory: false)
             .appendingPathExtension("jpg")
 
+        guard image.save(to: output) else {
+            DDLogError("ImageServer/image/prepare/error  JPEG conversation failure")
+            return .failure(ImageProcessingError.jpegConversionFailure)
+        }
+
         DDLogInfo("ImageServer/image/prepare  Saving temporarily to: [\(output.description)]")
 
-        return Result {
-            try data.write(to: output)
-        }.map {
-            (output, image.size)
-        }
+        return .success((output, image.size))
     }
 
-    private func crop(image: UIImage) -> Result<UIImage, Error> {
-        guard let maxAllowedAspectRatio = maxAllowedAspectRatio, image.size.height > maxAllowedAspectRatio * image.size.width else {
-            return .success(image)
-        }
-
-        DDLogInfo("ImageServer/image/crop  Cropping image to ratio: [\(maxAllowedAspectRatio)]")
+    private func resize(image url: URL) -> Result<UIImage, Error> {
         let ts = Date()
-        guard let cropped = image.aspectRatioCropped(heightToWidthRatio: maxAllowedAspectRatio) else {
-            DDLogError("ImageServer/image/crop/error  Cropping failed")
-            return .failure(ImageProcessingError.cropFailure)
-        }
-
-        DDLogDebug("ImageServer/image/crop  Cropped in \(-ts.timeIntervalSinceNow) s")
-        DDLogInfo("ImageServer/image/crop  Cropped image size: [\(cropped.size))]")
-
-        return .success(cropped)
-    }
-
-    private func resize(image: UIImage) -> Result<UIImage, Error> {
-        guard image.size.width > Constants.maxImageSize || image.size.height > Constants.maxImageSize else {
+        if let image = UIImage.thumbnail(contentsOf: url, maxPixelSize: Constants.maxImageSize) {
+            DDLogDebug("ImageServer/image/resize  Resized in \(-ts.timeIntervalSinceNow) s")
+            DDLogInfo("ImageServer/image/resize  Downscaled image size: [\(image.size)]")
             return .success(image)
-        }
-
-        let aspectRatio = min(Constants.maxImageSize / image.size.width, Constants.maxImageSize / image.size.height)
-        let targetSize = CGSize(width: (image.size.width * aspectRatio).rounded(), height: (image.size.height * aspectRatio).rounded())
-
-        let ts = Date()
-        guard let resized = image.simpleResized(to: targetSize) else {
+        } else {
             DDLogError("ImageServer/image/resize/error  Resizing failed")
             return .failure(ImageProcessingError.resizeFailure)
         }
-
-        DDLogDebug("ImageServer/image/resize  Resized in \(-ts.timeIntervalSinceNow) s")
-        DDLogInfo("ImageServer/image/resize  Downscaled image size: [\(resized.size)]")
-
-        return .success(resized)
     }
 
     private func resize(video url: URL, completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {

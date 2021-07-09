@@ -112,7 +112,7 @@ fileprivate class MediaEdit : ObservableObject {
 
     private var defaultEdit: PendingMediaEdit {
         get {
-            var edit = PendingMediaEdit(image: original)
+            var edit = PendingMediaEdit(image: original, url: fileURL)
             edit.cropRect = initialCrop()
             edit.hFlipped = false
             edit.vFlipped = false
@@ -126,7 +126,7 @@ fileprivate class MediaEdit : ObservableObject {
 
     private var edit: PendingMediaEdit {
         get {
-            var edit = PendingMediaEdit(image: original)
+            var edit = PendingMediaEdit(image: original, url: fileURL)
             edit.cropRect = cropRect
             edit.hFlipped = hFlipped
             edit.vFlipped = vFlipped
@@ -146,6 +146,7 @@ fileprivate class MediaEdit : ObservableObject {
         
         if let edit = media.edit {
             original = edit.image
+            fileURL = edit.url
             cropRect = edit.cropRect
             hFlipped = edit.hFlipped
             vFlipped = edit.vFlipped
