@@ -272,7 +272,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             msg.topAnchor.constraint(equalTo: close.bottomAnchor, constant: 4),
             msg.leftAnchor.constraint(equalTo: bubble.leftAnchor, constant: 20),
             msg.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -20),
-            button.topAnchor.constraint(equalTo: msg.bottomAnchor),
+            button.topAnchor.constraint(equalTo: msg.bottomAnchor, constant: -15),
             button.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -20),
         ])
 
