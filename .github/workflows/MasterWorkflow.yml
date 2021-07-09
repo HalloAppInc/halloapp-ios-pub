@@ -1,8 +1,12 @@
-name: Master Unit Tests
+name: Unit Tests
 
 on:
-  pull_request:
+  push:
     branches: [ master ]
+  pull_request:
+    types: [ opened ]
+    branches: [ master ]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -22,9 +26,29 @@ jobs:
         run: for ip in $(dig @8.8.8.8 github.com +short); do ssh-keyscan github.com,$ip; ssh-keyscan $ip; done 2>/dev/null >> ~/.ssh/known_hosts
       - name: Set git to use SSH
         run: git config --global url."git@github.com:".insteadOf "https://github.com/"
+      - name: Cache Pods
+        id: cache-pods
+        uses: actions/cache@v2
+        with:
+          path: Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+      - name: Cache Swift Packages
+        uses: actions/cache@v2
+        with:
+            path: .build
+            key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+            restore-keys: |
+              ${{ runner.os }}-spm-
       - name: Install CocoaPods
+        if: steps.cache-pods.outputs.cache-hit != 'true'
         run: pod install
       - name: Build Project
         run: xcodebuild clean build-for-testing -workspace "Halloapp.xcworkspace" -scheme "Halloapp" -destination "${{matrix.destination}}"
       - name: Run Unit Tests
         run: xcodebuild test-without-building -workspace "Halloapp.xcworkspace" -scheme "Halloapp" -destination "${{matrix.destination}}" -only-testing "HalloAppTests"
+      - name: Build Localizations
+        run: xcodebuild -exportLocalizations -localizationPath . -project HalloApp.xcodeproj
+      - name: Upload Localizations
+        run: curl -X POST https://api.poeditor.com/v2/projects/upload -F api_token=${{secrets.POEDITOR_API_KEY}} -F id="420915" -F updating="terms" -F file=@"en.xcloc/Localized Contents/en.xliff" -F tags="{\"obsolete\":\"removed-strings\"}"

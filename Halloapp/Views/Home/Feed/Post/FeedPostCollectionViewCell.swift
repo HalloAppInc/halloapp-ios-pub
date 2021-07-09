@@ -6,7 +6,7 @@
 //  Copyright © 2020 HalloApp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import UIKit
@@ -30,6 +30,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
     var showUserAction: ((UserID) -> ())?
     var showGroupFeedAction: ((GroupID) -> ())?
+    var showMoreAction: ((UserID) -> ())?
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
     var showSeenByAction: (() -> ())?
@@ -55,7 +56,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
     struct LayoutConstants {
         static let interCardSpacing: CGFloat = 50
-        static let backgroundCornerRadius: CGFloat = 15
+        static let backgroundCornerRadius: CGFloat = 20
         /**
          Content view (vertical stack takes standard table view content width: tableView.width - tableView.layoutMargins.left - tableView.layoutMargins.right
          Background "card" horizontal insets are 1/2 of the layout margin.
@@ -232,6 +233,10 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
             guard let groupID = post.groupId else { return }
             self?.showGroupFeedAction?(groupID)
         }
+        headerView.showMoreAction = { [weak self] in
+            guard let self = self, let showMoreAction = self.showMoreAction else { return }
+            showMoreAction(post.userId)
+        }
         itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, isTextExpanded: isTextExpanded)
         footerView.configure(with: post, contentWidth: contentWidth)
     }
@@ -304,6 +309,7 @@ extension FeedPostCollectionViewCell: TextLabelDelegate {
         switch link.linkType {
         case .link, .phoneNumber:
             if let url = link.result?.url, let delegate = delegate {
+                guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { break }
                 delegate.feedPostCollectionViewCell(self, didRequestOpen: url)
             }
 

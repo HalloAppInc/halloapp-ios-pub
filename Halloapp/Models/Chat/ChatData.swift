@@ -5,7 +5,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreData
@@ -86,8 +86,6 @@ class ChatData: ObservableObject {
     }
     
     private let uploadQueue = DispatchQueue(label: "com.halloapp.chat.upload")
-    private var currentlyUploadingDict: [String:String] = [:]
-    private let maxNumUploads: Int = 3
     
     private let downloadQueue = DispatchQueue(label: "com.halloapp.chat.download", qos: .userInitiated)
     private let maxNumDownloads: Int = 3
@@ -112,6 +110,15 @@ class ChatData: ObservableObject {
         })
         return container
     }()
+    
+    func deletePersistentContainer() {
+        do {
+            try FileManager.default.removeItem(at: MainAppContext.chatStoreURL)
+            DDLogInfo("ChatData/deletePersistentContainer: Deleted chat data")
+        } catch {
+            DDLogError("ChatData/deletePersistentContainer: Error deleting chat data: \(error)")
+        }
+    }
     
     var viewContext: NSManagedObjectContext
     private var bgContext: NSManagedObjectContext
@@ -263,8 +270,6 @@ class ChatData: ObservableObject {
                 } else {
                     DDLogDebug("ChatData/didConnect/app is in background \(UIApplication.shared.applicationState.rawValue)")
                 }
-
-                self.currentlyUploadingDict.removeAll()
 
                 self.processPendingChatMsgs()
                 self.processRetractingChatMsgs()
@@ -648,11 +653,8 @@ class ChatData: ObservableObject {
             // rerequests should not, with the assumption resendAttempts are only used for rerequests
             guard chatMessage.resendAttempts == 0 else { return }
             guard let serverTimestamp = chatAck.timestamp else { return }
-            chatMessage.timestamp = serverTimestamp
-            
-            if let chatMessageId = self.currentlyUploadingDict[chatMessage.toUserId], chatMessageId == chatMessage.id {
-                self.currentlyUploadingDict.removeValue(forKey: chatMessage.toUserId)
-            }
+            chatMessage.serverTimestamp = serverTimestamp
+
             self.processPendingChatMsgs()
         }
 
@@ -793,7 +795,7 @@ class ChatData: ObservableObject {
             }
             DDLogInfo("ChatData/mergeSharedData/merging message/\(messageId)")
 
-            var clientChatMsg: Clients_ChatMessage? = nil
+            var clientChatMsg: Clients_ChatMessage
             if let clientChatMsgPb = message.clientChatMsgPb {
                 do {
                     clientChatMsg = try Clients_ChatMessage(serializedData: clientChatMsgPb)
@@ -801,19 +803,24 @@ class ChatData: ObservableObject {
                     DDLogError("ChatData/mergeSharedData/failed to extract clientChatMsg: [\(clientChatMsgPb)]")
                     continue
                 }
+            } else {
+                continue
             }
 
             let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
             chatMessage.id = messageId
             chatMessage.toUserId = message.toUserId
             chatMessage.fromUserId = message.fromUserId
-            chatMessage.text = clientChatMsg?.text ?? message.text
-            chatMessage.feedPostId = clientChatMsg?.feedPostID
-            chatMessage.feedPostMediaIndex = clientChatMsg?.feedPostMediaIndex ?? 0
-            chatMessage.chatReplyMessageID = clientChatMsg?.chatReplyMessageID
-            chatMessage.chatReplyMessageSenderID = clientChatMsg?.chatReplyMessageSenderID
-            chatMessage.chatReplyMessageMediaIndex = clientChatMsg?.chatReplyMessageMediaIndex ?? 0
+            chatMessage.text = clientChatMsg.text
+            chatMessage.feedPostId = clientChatMsg.feedPostID.isEmpty ? nil : clientChatMsg.feedPostID
+            chatMessage.feedPostMediaIndex = clientChatMsg.feedPostMediaIndex
+            chatMessage.chatReplyMessageID = clientChatMsg.chatReplyMessageID.isEmpty ? nil : clientChatMsg.chatReplyMessageID
+            chatMessage.chatReplyMessageSenderID = clientChatMsg.chatReplyMessageSenderID
+            chatMessage.chatReplyMessageMediaIndex = clientChatMsg.chatReplyMessageMediaIndex
             chatMessage.timestamp = message.timestamp // is this okay for tombstones?
+            chatMessage.serverTimestamp = message.serverTimestamp
+            DDLogDebug("ChatData/mergeSharedData/ChatData/\(messageId)/serialId [\(message.serialID)]")
+            chatMessage.serialID = message.serialID
 
             // message could be incoming or outgoing.
             DDLogInfo("ChatData/mergeSharedData/message/\(messageId), status: \(message.status)")
@@ -939,18 +946,24 @@ class ChatData: ObservableObject {
         mergedMessages.forEach({ (sharedMsg, chatMsg) in
             unreadMessageCount += 1
             updateUnreadChatsThreadCount()
-            if let senderClientVersion = sharedMsg.senderClientVersion, let chatTimestamp = chatMsg.timestamp {
-                var error: DecryptionError? = nil
-                if let rawValue = sharedMsg.decryptionError {
-                    error = DecryptionError(rawValue: rawValue)
+            if let senderClientVersion = sharedMsg.senderClientVersion, let chatTimestamp = chatMsg.timestamp, let serverMsgPb = sharedMsg.serverMsgPb {
+                do {
+                    var error: DecryptionError? = nil
+                    if let rawValue = sharedMsg.decryptionError {
+                        error = DecryptionError(rawValue: rawValue)
+                    }
+                    let serverMsg = try Server_Msg(serializedData: serverMsgPb)
+                    reportDecryptionResult(
+                        error: error,
+                        messageID: chatMsg.id,
+                        timestamp: chatTimestamp,
+                        sender: UserAgent(string: senderClientVersion),
+                        rerequestCount: Int(serverMsg.rerequestCount),
+                        isSilent: false)
+                    DDLogInfo("ChatData/mergeSharedData/reported decryption result \(error) for msg: \(chatMsg.id)")
+                } catch {
+                    DDLogError("ChatData/mergeSharedData/Unable to initialize Server_Msg")
                 }
-                reportDecryptionResult(
-                    error: error,
-                    messageID: chatMsg.id,
-                    timestamp: chatTimestamp,
-                    sender: UserAgent(string: senderClientVersion),
-                    rerequestCount: 0,  // Hardcoding this for now - server always sends pushes only for rerequestCount = 0.
-                    isSilent: false)
             } else {
                 DDLogError("ChatData/mergeSharedData/could not report decryption result, messageId: \(chatMsg.id)")
             }
@@ -1008,10 +1021,11 @@ class ChatData: ObservableObject {
         // TODO: Why Int16? - other classes have Int32 for the order attribute.
         var mediaIndex: Int16 = 0
         var mediaFromDir: URL = MainAppContext.mediaDirectoryURL
-        if let _ = chatMessage.feedPostId {
+        // Ensure Id of the quoted object is not empty - postId/msgId.
+        if let feedPostId = chatMessage.feedPostId, !feedPostId.isEmpty {
             mediaIndex = Int16(chatMessage.feedPostMediaIndex)
             mediaFromDir = MainAppContext.mediaDirectoryURL
-        } else if let _ = chatMessage.chatReplyMessageID {
+        } else if let chatReplyMessageID = chatMessage.chatReplyMessageID, !chatReplyMessageID.isEmpty {
             mediaIndex = Int16(chatMessage.chatReplyMessageMediaIndex)
             mediaFromDir = MainAppContext.chatMediaDirectoryURL
         }
@@ -1373,6 +1387,9 @@ extension ChatData {
         chatMessage.incomingStatus = .none
         chatMessage.outgoingStatus = isMsgToYourself ? .seen : .pending
         chatMessage.timestamp = Date()
+        let serialID = MainAppContext.shared.getchatMsgSerialId()
+        DDLogDebug("ChatData/createChatMsg/\(messageId)/serialId [\(serialID)]")
+        chatMessage.serialID = serialID
 
         var lastMsgMediaType: ChatThread.LastMediaType = .none // going with the first media
         
@@ -1648,7 +1665,7 @@ extension ChatData {
             }
 
             self.mediaUploader.upload(media: media, groupId: msgID, didGetURLs: { (mediaURLs) in
-                DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(index)/acquired-urls [\(mediaURLs)]")
+                DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
                 // Save URLs acquired during upload to the database.
                 self.updateChatMessage(with: msgID) { msg in
@@ -1806,6 +1823,7 @@ extension ChatData {
     // includes seen but not sent messages
     func unseenChatMessages(with fromUserId: String, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
         let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatMessage.serialID, ascending: true),
             NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
         ]
         return self.chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && toUserId = %@ && (incomingStatusValue = %d OR incomingStatusValue = %d)", fromUserId, userData.userId, ChatMessage.IncomingStatus.none.rawValue, ChatMessage.IncomingStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
@@ -1839,6 +1857,11 @@ extension ChatData {
         return chatMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
+    func checkIfMessagedBefore(to userID: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> Bool {
+        guard chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && toUserId = %@", userData.userId, userID), in: managedObjectContext).first != nil else { return false }
+        return true
+    }
+
     // MARK: 1-1 Core Data Updating
     
     private func updateChatMessage(with chatMessageId: String, block: @escaping (ChatMessage) -> (), performAfterSave: (() -> ())? = nil) {
@@ -2037,6 +2060,9 @@ extension ChatData {
         chatMessage.toUserId = tombstone.to
         chatMessage.fromUserId = tombstone.from
         chatMessage.timestamp = tombstone.timestamp
+        let serialID = MainAppContext.shared.getchatMsgSerialId()
+        DDLogDebug("ChatData/processInboundTombstone/\(tombstone.id)/serialId [\(serialID)]")
+        chatMessage.serialID = serialID
         chatMessage.incomingStatus = .rerequesting
         chatMessage.outgoingStatus = .none
 
@@ -2090,6 +2116,9 @@ extension ChatData {
         } else {
             chatMessage.timestamp = Date()
         }
+        let serialID = MainAppContext.shared.getchatMsgSerialId()
+        DDLogDebug("ChatData/processInboundChatMessage/\(xmppChatMessage.id)/serialId [\(serialID)]")
+        chatMessage.serialID = serialID
         
         var lastMsgMediaType: ChatThread.LastMediaType = .none // going with the first media found
         
@@ -2290,22 +2319,12 @@ extension ChatData {
             let pendingOutgoingChatMessages = self.pendingOutgoingChatMessages(in: self.bgContext)
             DDLogInfo("ChatData/processPendingChatMsgs/num: \(pendingOutgoingChatMessages.count)")
 
-            guard let pendingMsg = pendingOutgoingChatMessages.first(where: {
-                guard self.currentlyUploadingDict.count < self.maxNumUploads else { return false }
-                guard self.currentlyUploadingDict[$0.toUserId] == nil else { return false }
-                return true
-            }) else { return }
-
-            self.currentlyUploadingDict[pendingMsg.toUserId] = pendingMsg.id
-
-            let xmppChatMsg = XMPPChatMessage(chatMessage: pendingMsg)
-
-            // inject delay between sends so that they won't be timestamped the same time,
-            // which causes display of messages to be in mixed order
-            // will refactor in the future to display messages based on db insertion instead of time
-            self.backgroundProcessingQueue.asyncAfter(deadline: .now() + 1) { [weak self] in
-                guard let self = self else { return }
-                self.uploadChatMsgMediaAndSend(xmppChatMsg)
+            pendingOutgoingChatMessages.forEach{ pendingMsg in
+                let xmppChatMsg = XMPPChatMessage(chatMessage: pendingMsg)
+                self.backgroundProcessingQueue.async { [weak self] in
+                    guard let self = self else { return }
+                    self.uploadChatMsgMediaAndSend(xmppChatMsg)
+                }
             }
         }
     }
@@ -2684,6 +2703,13 @@ extension ChatData {
 
         return inviteLink
     }
+    
+    func proceedIfNotGroupInviteLink(_ url: URL) -> Bool {
+        guard let inviteToken = ChatData.parseInviteURL(url: url) else { return true }
+        MainAppContext.shared.userData.groupInviteToken = inviteToken
+        MainAppContext.shared.didGetGroupInviteToken.send()
+        return false
+    }
 
     // MARK: Group Invite Link Actions
 
@@ -2894,7 +2920,6 @@ extension ChatData {
     }
 
     // MARK: Group Core Data Deleting
-
     func deleteChatGroup(groupId: GroupID) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
@@ -3542,13 +3567,13 @@ extension XMPPChatMessage {
         }
     }
 
-    init(_ protoChat: Clients_ChatMessage, timestamp: Int64, from fromUserID: UserID, to toUserID: UserID, id: String, retryCount: Int32) {
+    init(_ protoChat: Clients_ChatMessage, timestamp: Int64, from fromUserID: UserID, to toUserID: UserID, id: String, retryCount: Int32, rerequestCount: Int32) {
         self.id = id
         self.fromUserId = fromUserID
         self.toUserId = toUserID
         self.timestamp = TimeInterval(timestamp)
         self.retryCount = retryCount
-        self.rerequestCount = 0 // we don't care about rerequest count for incoming messages
+        self.rerequestCount = rerequestCount
         
         text = protoChat.text.isEmpty ? nil : protoChat.text
         media = protoChat.media.compactMap { XMPPChatMedia(protoMedia: $0) }

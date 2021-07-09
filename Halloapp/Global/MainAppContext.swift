@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Contacts
 import Core
@@ -33,11 +33,10 @@ class MainAppContext: AppContext {
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
     lazy var cryptoData: CryptoData = { CryptoData() }()
     private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()
-    
+
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
     let groupFeedFromGroupTabPresentRequest = CurrentValueSubject<GroupID?, Never>(nil)
-    let didGetGroupInviteToken = PassthroughSubject<Void, Never>()
 
     var service: HalloService {
         coreService as! HalloService
@@ -99,6 +98,24 @@ class MainAppContext: AppContext {
     static let uploadStoreURL = {
         documentsDirectoryURL.appendingPathComponent(uploadDatabaseFilename)
     }()
+    
+    func deleteDocumentsDirectory() {
+        do {
+            try FileManager.default.removeItem(at: Self.documentsDirectoryURL)
+            DDLogInfo("MainAppContext/deleteDocumentsDirectory: Deleted documents data")
+        } catch {
+            DDLogError("MainAppContext/deleteDocumentsDirectory: Error deleting documents data: \(error)")
+        }
+    }
+    
+    func deleteLibraryDirectory() {
+        do {
+            try FileManager.default.removeItem(at: Self.libraryDirectoryURL)
+            DDLogInfo("MainAppContext/deleteLibraryDirectory: Deleted library data")
+        } catch {
+            DDLogError("MainAppContext/deleteLibraryDirectory: Error deleting documents data: \(error)")
+        }
+    }
     
     // MARK: Initializer
 

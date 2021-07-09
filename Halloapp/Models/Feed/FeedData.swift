@@ -7,7 +7,7 @@
 //
 
 import AVKit
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreData
@@ -28,6 +28,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     let willDestroyStore = PassthroughSubject<Void, Never>()
     let didReloadStore = PassthroughSubject<Void, Never>()
+    
+    let didGetRemoveHomeTabIndicator = PassthroughSubject<Void, Never>()
 
     private struct UserDefaultsKey {
         static let persistentStoreUserID = "feed.store.userID"
@@ -129,11 +131,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if let error = error {
                 DDLogError("Failed to load persistent store: \(error)")
                 DDLogError("Deleting persistent store at [\(FeedData.persistentStoreURL.absoluteString)]")
-                try! FileManager.default.removeItem(at: FeedData.persistentStoreURL)
                 fatalError("Unable to load persistent store: \(error)")
             } else {
                 DDLogInfo("FeedData/load-store/completed [\(description)]")
             }
+        }
+    }
+    
+    func deletePersistentStores() {
+        do {
+            try FileManager.default.removeItem(at: FeedData.persistentStoreURL)
+            DDLogInfo("FeedData/deletePersistentStores: Deleted feed data")
+        } catch {
+            DDLogError("FeedData/deletePersistentStores: Error deleting feed data: \(error)")
         }
     }
 
@@ -789,6 +799,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 case .unsupported(let data):
                     comment.status = .unsupported
                     comment.rawData = data
+
+                    // populate text with empty string as text is required, could be removed if this changes
+                    if comment.text.isEmpty {
+                        comment.text = ""
+                    }
                 }
                 comment.timestamp = xmppComment.timestamp
 
@@ -1075,9 +1090,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func presentLocalNotifications(forComments comments: [FeedPostComment]) {
         // present local notifications when applicationState is either .background or .inactive
         guard UIApplication.shared.applicationState != .active else { return }
-
-        let userIds = Set(comments.map { $0.userId })
-        let contactNames = contactStore.fullNames(forUserIds: userIds)
 
         var commentIdsToFilterOut = [FeedPostCommentID]()
 
@@ -1500,7 +1512,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             // Step 1: Update FeedPostMedia
             guard let objectID = task.feedMediaObjectId, let feedPostMedia = try? managedObjectContext.existingObject(with: objectID) as? FeedPostMedia else {
-                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  taskId=[\(task.id)]  objectId=[\(task.feedMediaObjectId ?? nil)))]")
+                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  taskId=[\(task.id)]  objectId=[\(task.feedMediaObjectId?.uriRepresentation().absoluteString ?? "nil")))]")
                 return
             }
 

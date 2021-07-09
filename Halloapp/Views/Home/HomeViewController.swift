@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Contacts
 import ContactsUI
@@ -16,7 +16,7 @@ import UIKit
 class HomeViewController: UITabBarController {
 
     private var cancellableSet: Set<AnyCancellable> = []
-    
+    private var tabBarViewControllers: [UIViewController] = []
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
@@ -53,12 +53,13 @@ class HomeViewController: UITabBarController {
 
     private func commonSetup() {
         self.delegate = self
-        
-        // Set background color for navigation bar and search bar system-wide.
-        UINavigationBar.appearance().standardAppearance = .opaqueAppearance
+
         // Setting background color through appearance proxy seems to be the only way
         // to modify navigation bar in SwiftUI's NavigationView.
+        
+        UINavigationBar.appearance().standardAppearance = .translucentAppearance
         UINavigationBar.appearance().backgroundColor = .primaryBg
+        
         UISearchBar.appearance().backgroundColor = .primaryBg
         
         // need to set UITabBarItem in addition to appearance as the very first load does not respect appearance (for font)
@@ -68,29 +69,51 @@ class HomeViewController: UITabBarController {
         UITabBarItem.appearance().setTitleTextAttributes(fontAttributes, for: .normal)
         
         let appearance = UITabBarAppearance()
-        appearance.shadowColor = nil
+        //appearance.shadowColor = nil
         appearance.stackedLayoutAppearance.normal.badgeBackgroundColor = .lavaOrange
         appearance.stackedLayoutAppearance.normal.badgePositionAdjustment = UIOffset(horizontal: 2, vertical: 0 + Self.tabBarItemImageInsets.top)
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = fontAttributes
+        
+        
+        let img = UIImage.pixelImageWithColor(color: UIColor(red:0.8, green:0.8, blue:0.8, alpha: 1.0))
+        appearance.shadowImage = img
+        appearance.shadowColor = .gray
+        
         tabBar.standardAppearance = appearance
-
+        tabBar.backgroundColor = .primaryBg
         tabBar.tintColor = .primaryBlue
 
         updateTabBarBackgroundEffect()
 
-        viewControllers = [
+        
+        tabBarViewControllers = [
             feedNavigationController(),
             groupsNavigationController(),
             chatsNavigationController(),
             profileNavigationController()
         ]
+        
+        setViewControllers(tabBarViewControllers, animated: true)
 
-        cancellableSet.insert(
-            MainAppContext.shared.feedData.didGetUnreadFeedCount.sink { [weak self] (count) in
-                guard let self = self else { return }
-                self.updateFeedNavigationControllerBadge(count)
+        /*
+         The home tab indicator starts hidden on each new app open (does not count background/foreground)
+         It shows when a new post comes in if the user is not actively viewing the top of the main feed
+         It's removed when the user scrolls to the top of the main feed or when the total unseen posts is 0
+         (ie. user scrolls to middle of feed, goes to groups tab, views all unread, indicator should go away)
+         */
+        cancellableSet.insert(MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] _ in
+            self?.showHomeTabIndicatorIfNeeded()
         })
-        MainAppContext.shared.feedData.checkForUnreadFeed()
+        cancellableSet.insert(MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] _ in
+            self?.showHomeTabIndicatorIfNeeded()
+        })
+        cancellableSet.insert(MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.sink { [weak self] in
+            self?.removeHomeTabIndicator()
+        })
+        cancellableSet.insert(MainAppContext.shared.feedData.didGetUnreadFeedCount.sink { [weak self] (count) in
+            guard count == 0 else { return }
+            self?.removeHomeTabIndicator()
+        })
 
         cancellableSet.insert(
             MainAppContext.shared.chatData.didChangeUnreadThreadGroupsCount.sink { [weak self] (count) in
@@ -162,7 +185,9 @@ class HomeViewController: UITabBarController {
     private func updateTabBarBackgroundEffect() {
         let blurStyle: UIBlurEffect.Style = traitCollection.userInterfaceStyle == .light ? .systemMaterial : .systemChromeMaterial
         tabBar.standardAppearance.backgroundEffect = UIBlurEffect(style: blurStyle)
+        
     }
+    
 
     static let tabBarItemImageInsets: UIEdgeInsets = {
         let vInset: CGFloat = UIDevice.current.hasNotch ? 3 : 3 // currently same but can be used to adjust in the future
@@ -174,14 +199,24 @@ class HomeViewController: UITabBarController {
     }()
 
     private func feedNavigationController() -> UINavigationController {
-        let navigationController = UINavigationController(
-            rootViewController: FeedViewController(
-                title: Localizations.titleHome,
-                fetchRequest: FeedDataSource.homeFeedRequest(combinedFeed: ServerProperties.isCombineFeedEnabled)))
+        let feedViewController = getFeedViewController()
+        let navigationController = UINavigationController(rootViewController: feedViewController)
         navigationController.tabBarItem.image = UIImage(named: "TabBarHome")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
         navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarHomeActive")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
+    }
+    
+    private func getFeedViewController() -> UIViewController {
+        guard ContactStore.contactsAccessAuthorized else {
+            DDLogInfo("HomeViewController/getFeedViewController/loading FeedPermissionDeniedController")
+            let feedPermissionDeniedViewController = FeedPermissionDeniedController(title: Localizations.titleHome)
+            return feedPermissionDeniedViewController
+        }
+        DDLogInfo("HomeViewController/getFeedViewController/loading FeedViewController")
+        return FeedViewController(
+            title: Localizations.titleHome,
+            fetchRequest: FeedDataSource.homeFeedRequest(combinedFeed: ServerProperties.isCombineFeedEnabled))
     }
 
     private func groupsNavigationController() -> UINavigationController {
@@ -206,13 +241,6 @@ class HomeViewController: UITabBarController {
         navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarSettingsActive")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
-    }
-
-    private func updateFeedNavigationControllerBadge(_ count: Int) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.setTabBarDot(index: 0, count: count)
-        }
     }
 
     private func updateGroupsNavigationControllerBadge(_ count: Int) {
@@ -267,6 +295,16 @@ class HomeViewController: UITabBarController {
             case .success(let groupInviteLink):
                 let groupID = groupInviteLink.group.gid
 
+                let pushNames = groupInviteLink.group.members.reduce(into: [UserID: String]()) { (dict, member) in
+                    let userID = String(member.uid)
+                    let pushName = member.name
+                    guard !userID.isEmpty && !pushName.isEmpty else { return }
+                    dict[userID] = pushName
+                }
+                if !pushNames.isEmpty {
+                    MainAppContext.shared.contactStore.addPushNames(pushNames)
+                }
+
                 if MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId) != nil {
                     DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/inviteToken/\(inviteToken)/already member")
                     MainAppContext.shared.groupFeedFromGroupTabPresentRequest.send(groupID)
@@ -290,6 +328,24 @@ class HomeViewController: UITabBarController {
                 }))
                 self.present(alert, animated: true, completion: nil)
             }
+        }
+    }
+
+    private func showHomeTabIndicatorIfNeeded() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if self.selectedIndex == 0 { // user is on the main feed
+                guard let nc = self.viewControllers?[0] as? UINavigationController else { return }
+                guard let vc = nc.topViewController as? FeedViewController else { return }
+                guard !vc.isNearTop(100) else { return } // exit if user is at the top of the main feed
+            }
+            self.setTabBarDot(index: 0, count: 1)
+        }
+    }
+
+    private func removeHomeTabIndicator() {
+        DispatchQueue.main.async { [weak self] in
+            self?.setTabBarDot(index: 0, count: 0)
         }
     }
 

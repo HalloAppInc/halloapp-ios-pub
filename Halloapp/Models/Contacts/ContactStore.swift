@@ -10,7 +10,7 @@
  Responsible for synchronization between device's address book and app's contact cache.
  */
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Contacts
 import Core
@@ -161,8 +161,9 @@ class ContactStoreMain: ContactStore {
             self.reloadContactsIfNecessary()
         }
 
-        self.cancellableSet.insert(userData.didLogIn.sink { _ in
+        self.cancellableSet.insert(userData.didLogIn.sink {
             MainAppContext.shared.syncManager.disableSync() // resets next full sync date
+            
             self.enableContactSync()
         })
 
@@ -179,6 +180,15 @@ class ContactStoreMain: ContactStore {
                 metadata[ContactsStoreMetadataContactsSynced] = nil
             }
         })
+    }
+    
+    func deleteContactStoreData() {
+        do {
+            try FileManager.default.removeItem(at: ContactStore.persistentStoreURL)
+            DDLogInfo("ContactStore/deleteContactStoredata: Deleted contact store data")
+        } catch {
+            DDLogError("ContactStore/deleteContactStoredata: Error deleting contact store data: \(error)")
+        }
     }
 
     // MARK: Database Metadata
@@ -227,6 +237,20 @@ class ContactStoreMain: ContactStore {
         return result
     }()
 
+    var isInitialSyncCompleted: Bool {
+        get {
+            guard let result = databaseMetadata?[ContactsStoreMetadataContactsSynced] as? Bool else {
+                return false
+            }
+            return result
+        }
+        set {
+            mutateDatabaseMetadata { metadata in
+                metadata[ContactsStoreMetadataContactsSynced] = newValue
+            }
+        }
+    }
+
     /**
      Synchronize all device contacts with app's internal contacts store.
 
@@ -237,7 +261,7 @@ class ContactStoreMain: ContactStore {
             return
         }
 
-        guard let scene = UIApplication.shared.openSessions.first?.scene, scene.activationState == .foregroundActive else {
+        guard let scene = UIApplication.shared.openSessions.first?.scene, scene.activationState == .foregroundActive || scene.activationState == .foregroundInactive else {
             DDLogDebug("contacts/reload/app-backgrounded")
             return
         }
@@ -654,6 +678,27 @@ class ContactStoreMain: ContactStore {
         }
     }
 
+    func addUserToAddressBook(userID: UserID) -> Bool {
+        guard !isContactInAddressBook(userId: userID) else { return false }
+        guard let name = pushNames[userID] else { return false }
+        guard let phoneNumber = pushNumbers[userID] else { return false }
+
+        let newContact = CNMutableContact()
+        newContact.givenName = name
+        newContact.phoneNumbers.append(CNLabeledValue(label: "mobile", value: CNPhoneNumber(stringValue: phoneNumber)))
+
+        let store = CNContactStore()
+        let saveRequest = CNSaveRequest()
+        saveRequest.add(newContact, toContainerWithIdentifier: nil)
+
+        do {
+            try store.execute(saveRequest)
+            return true
+        } catch {
+            return false
+        }
+    }
+
     // MARK: Server Sync
 
     func contactsFor(fullSync: Bool, in managedObjectContext: NSManagedObjectContext) -> [ABContact] {
@@ -706,22 +751,12 @@ class ContactStoreMain: ContactStore {
      */
     private func update(contacts: [ABContact], with xmppContact: XMPPContact) -> [ABContact] {
         var newUsers: [ABContact] = []
-        let newStatus: ABContact.Status = xmppContact.registered ? .in : (xmppContact.normalized == nil ? .invalid : .out)
-        if newStatus == .invalid {
+        if xmppContact.normalized == nil {
             DDLogInfo("contacts/sync/process-results/invalid [\(xmppContact.raw!)]")
         }
         for abContact in contacts {
-            // Update status.
-            let previousStatus = abContact.status
-            if newStatus != previousStatus {
-                abContact.status = newStatus
-
-                if newStatus == .in {
-                    DDLogInfo("contacts/sync/process-results/new-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
-                } else if previousStatus == .in && newStatus == .out {
-                    DDLogInfo("contacts/sync/process-results/delete-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
-                }
-            }
+            // status field is not modified in the sync anymore.
+            abContact.status = .processed
 
             // Store normalized phone number.
             if xmppContact.normalized != abContact.normalizedPhoneNumber {
@@ -762,7 +797,7 @@ class ContactStoreMain: ContactStore {
         self.didDiscoverNewUsers.send(userIds)
     }
 
-    func processSync(results: [XMPPContact], isFullSync: Bool, using managedObjectContext: NSManagedObjectContext) {
+    func processSync(results: [XMPPContact], using managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("contacts/sync/process-results/start")
 
         let startTime = Date()
@@ -783,12 +818,7 @@ class ContactStoreMain: ContactStore {
             DDLogError("contacts/sync/process-results/save-error error=[\(error)]")
         }
 
-        let initialSyncCompleted = databaseMetadata?[ContactsStoreMetadataContactsSynced] as? Bool ?? false
-        if !initialSyncCompleted {
-            mutateDatabaseMetadata { (metadata) in
-                metadata[ContactsStoreMetadataContactsSynced] = true
-            }
-        } else {
+        if isInitialSyncCompleted {
             let userIdsToSharePostsWith = discoveredUsers.compactMap({ $0.userId })
             if !userIdsToSharePostsWith.isEmpty {
                 DispatchQueue.main.async {
@@ -942,6 +972,14 @@ class ContactStoreMain: ContactStore {
         guard !names.isEmpty else { return }
 
         super.addPushNames(names)
+    }
+    
+    // MARK: Push numbers
+
+    override func addPushNumbers(_ numbers: [UserID : String]) {
+        guard !numbers.isEmpty else { return }
+
+        super.addPushNumbers(numbers)
     }
 
     // MARK: Mentions

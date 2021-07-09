@@ -71,4 +71,10 @@ final class DemoRegistrationManager: RegistrationManager {
     func didCompleteRegistrationFlow() {
         completion()
     }
+    
+    public func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + TimeInterval(2)) {
+            completion(.success((nil)))
+        }
+    }
 }

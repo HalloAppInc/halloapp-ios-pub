@@ -7,7 +7,7 @@
 //
 
 import Accelerate
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import CoreGraphics
 import SwiftUI
 
@@ -254,6 +254,18 @@ extension UIImage {
         return newImage
     }
 
+    public func save(to url: URL) -> Bool {
+        guard let cgImage = cgImage else { return false }
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, "public.jpeg" as CFString, 1, nil) else { return false }
+        let orientation = CGImagePropertyOrientation(imageOrientation)
+        let options = [kCGImagePropertyOrientation: orientation.rawValue,
+                       kCGImageDestinationLossyCompressionQuality: 0.8] as CFDictionary
+
+        CGImageDestinationAddImage(destination, cgImage, options)
+
+        return CGImageDestinationFinalize(destination)
+    }
+
     public func normalized(removingAlpha: Bool = false) -> UIImage {
         guard !UIImage.isNormalized(self, removingAlpha) else { return self }
         let size = CGSize(width: self.size.width * self.scale, height: self.size.height * self.scale)
@@ -319,5 +331,50 @@ extension UIImage {
                 y: size.height / qrCodeImage.extent.height)
         }()
         return UIImage(ciImage: qrCodeImage.transformed(by: transform))
+    }
+
+    public static func thumbnail(contentsOf url: URL, maxPixelSize: CGFloat) -> UIImage? {
+        let sourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
+        let thumbnailOptions =  [kCGImageSourceCreateThumbnailFromImageAlways: true,
+                                  kCGImageSourceShouldCacheImmediately: true,
+                                  kCGImageSourceCreateThumbnailWithTransform: true,
+                                  kCGImageSourceThumbnailMaxPixelSize: maxPixelSize] as CFDictionary
+
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions) else { return nil }
+        guard let thumbnail = CGImageSourceCreateThumbnailAtIndex(source, 0, thumbnailOptions) else { return nil }
+
+        return UIImage(cgImage: thumbnail)
+    }
+}
+
+private extension CGImagePropertyOrientation {
+    init(_ uiOrientation: UIImage.Orientation) {
+        switch uiOrientation {
+            case .up: self = .up
+            case .upMirrored: self = .upMirrored
+            case .down: self = .down
+            case .downMirrored: self = .downMirrored
+            case .left: self = .left
+            case .leftMirrored: self = .leftMirrored
+            case .right: self = .right
+            case .rightMirrored: self = .rightMirrored
+            default: self = .up
+        }
+    }
+}
+
+extension UIImage.Orientation {
+    init(_ cgOrientation: CGImagePropertyOrientation) {
+        switch cgOrientation {
+            case .up: self = .up
+            case .upMirrored: self = .upMirrored
+            case .down: self = .down
+            case .downMirrored: self = .downMirrored
+            case .left: self = .left
+            case .leftMirrored: self = .leftMirrored
+            case .right: self = .right
+            case .rightMirrored: self = .rightMirrored
+            default: self = .up
+        }
     }
 }

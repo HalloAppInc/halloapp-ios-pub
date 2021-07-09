@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreData
@@ -30,7 +30,8 @@ class SyncManager {
     private var processedDeletes: Set<ABContact.NormalizedPhoneNumber> = []
 
     private(set) var isSyncEnabled = false
-    private var isSyncInProgress = false
+    @Published private(set) var isSyncInProgress = false
+    public let syncProgress = PassthroughSubject<Double, Never>()
 
     private var nextFullSyncDate: Date? {
         didSet {
@@ -231,9 +232,14 @@ class SyncManager {
         isSyncInProgress = true
 
         DDLogInfo("syncmanager/sync/start/\(syncMode) [\(xmppContacts.count)]")
-        let syncSession = SyncSession(mode: syncMode, contacts: xmppContacts) { results, error in
+        let syncSession = SyncSession(mode: syncMode, contacts: xmppContacts, processResultsAsyncBlock: { results, progress in
             self.queue.async {
-                self.processSyncResponse(mode: syncMode, contacts: results, error: error)
+                self.processSyncBatchResults(mode: syncMode, contacts: results)
+                self.syncProgress.send(Double(progress.processed)/Double(progress.total))
+            }
+        }){ error in
+            self.queue.async {
+                self.processSyncCompletion(mode: syncMode, error: error)
             }
         }
         syncSession.start()
@@ -241,14 +247,37 @@ class SyncManager {
         return .success(())
     }
 
-    private func processSyncResponse(mode: SyncMode, contacts: [XMPPContact]?, error: Error?) {
+    private func processSyncBatchResults(mode: SyncMode, contacts: [XMPPContact]?) {
+        if let contacts = contacts {
+            contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+                self.contactStore.processSync(results: contacts, using: managedObjectContext)
+            }
+
+            let pushNames = contacts.reduce(into: [UserID: String]()) { (dict, contact) in
+                if let userID = contact.userid, let pushName = contact.pushName {
+                    dict[userID] = pushName
+                }
+            }
+            contactStore.addPushNames(pushNames)
+
+            let contactsWithAvatars = contacts.filter { $0.avatarid != nil }
+            let avatarDict = contactsWithAvatars.reduce(into: [UserID: AvatarID]()) { (dict, contact) in
+                dict[contact.userid!] = contact.avatarid!
+            }
+            MainAppContext.shared.avatarStore.processContactSync(avatarDict)
+        }
+    }
+
+    private func processSyncCompletion(mode: SyncMode, error: Error?) {
         guard error == nil else {
             DDLogError("syncmanager/sync/\(mode)/response/error [\(error!)]")
             finishSync(withMode: mode, result: .failure(.serverError(error!)))
             return
         }
 
-        // Process results
+        contactStore.isInitialSyncCompleted = true
+
+        // Clear deletes only on successful sync completion.
         pendingDeletes.subtract(processedDeletes)
         processedDeletes.removeAll()
 
@@ -262,25 +291,6 @@ class SyncManager {
 
             // Set next full sync date: now + 1 day
             nextFullSyncDate = Date(timeIntervalSinceNow: 3600*24)
-        }
-
-        if let contacts = contacts {
-            contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-                self.contactStore.processSync(results: contacts, isFullSync: mode == .full, using: managedObjectContext)
-            }
-
-            let pushNames = contacts.reduce(into: [UserID: String]()) { (dict, contact) in
-                if let userID = contact.userid, let pushName = contact.pushName {
-                    dict[userID] = pushName
-                }
-            }
-            contactStore.addPushNames(pushNames)
-            
-            let contactsWithAvatars = contacts.filter { $0.avatarid != nil }
-            let avatarDict = contactsWithAvatars.reduce(into: [UserID: AvatarID]()) { (dict, contact) in
-                dict[contact.userid!] = contact.avatarid!
-            }
-            MainAppContext.shared.avatarStore.processContactSync(avatarDict)
         }
 
         finishSync(withMode: mode, result: .success(()))

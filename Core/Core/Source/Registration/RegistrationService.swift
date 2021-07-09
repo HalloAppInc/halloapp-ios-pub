@@ -6,16 +6,14 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import CryptoKit
 import Sodium
 
 public protocol RegistrationService {
     func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
-    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
-
-    // Temporary (used for Noise migration)
-    func updateNoiseKeys(_ noiseKeys: NoiseKeys, userID: UserID, password: String, completion: @escaping (Result<Credentials, Error>) -> Void)
+    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
+    func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void)
 }
 
 public struct RegistrationResponse {
@@ -43,8 +41,8 @@ public final class DefaultRegistrationService: RegistrationService {
         if let langID = locale.halloServiceLangID {
             json["lang_id"] = langID
         }
-        if groupInviteToken != nil {
-            json["group_invite_token"] = groupInviteToken
+        if let groupToken = groupInviteToken {
+            json["group_invite_token"] = groupToken
         }
 
         guard let url = URL(string: "https://\(hostName)/api/registration/request_otp"),
@@ -118,7 +116,7 @@ public final class DefaultRegistrationService: RegistrationService {
         task.resume()
     }
 
-    public func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void) {
+    public func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void) {
 
         guard let phraseData = "HALLO".data(using: .utf8),
               let signedPhrase = noiseKeys.sign(phraseData) else
@@ -134,7 +132,7 @@ public final class DefaultRegistrationService: RegistrationService {
         }
         let oneTimeKeyData = whisperKeys.oneTime.compactMap { try? $0.protoOneTimePreKey.serializedData() }
 
-        let json: [String : Any] = [
+        var json: [String : Any] = [
             "name": name,
             "phone": normalizedPhoneNumber,
             "code": verificationCode,
@@ -144,6 +142,11 @@ public final class DefaultRegistrationService: RegistrationService {
             "signed_key": signedKeyData.base64EncodedString(),
             "one_time_keys": oneTimeKeyData.map { $0.base64EncodedString() },
         ]
+        
+        if groupInviteToken != nil {
+            json["group_invite_token"] = groupInviteToken
+        }
+
         let url = URL(string: "https://\(hostName)/api/registration/register2")!
 
         var request = URLRequest(url: url)
@@ -200,6 +203,9 @@ public final class DefaultRegistrationService: RegistrationService {
                 return
             }
 
+            if let groupInviteResult = response["group_invite_result"] as? String {
+                DDLogInfo("reg/validate-code/groupInviteResult= \(groupInviteResult)")
+            }
             DDLogInfo("reg/validate-code/success [noise]")
 
             DispatchQueue.main.async {
@@ -210,98 +216,71 @@ public final class DefaultRegistrationService: RegistrationService {
         task.resume()
     }
 
-    // Support migration to Noise protocol
-
-    public func updateNoiseKeys(_ noiseKeys: NoiseKeys, userID: UserID, password: String, completion: @escaping (Result<Credentials, Error>) -> Void) {
-        guard let phraseData = "HALLO".data(using: .utf8), let signedPhrase = noiseKeys.sign(phraseData) else {
-            completion(.failure(NoiseKeyUpdateError.phraseSigningError))
-            return
-        }
-        let json: [String : String] = [
-            "uid": userID,
-            "password": password,
-            "s_ed_pub": noiseKeys.publicEdKey.base64EncodedString(),
-            "signed_phrase": signedPhrase.base64EncodedString(),
+    public func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void) {
+        let json: [String : Any] = [
+            "group_invite_token" : groupInviteToken
         ]
-        guard let url = URL(string: "https://\(hostName)/api/registration/update_key"),
-              let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else
-        {
-            completion(.failure(NoiseKeyUpdateError.requestCreationError))
-            return
-        }
+
+        let url = URL(string: "https://\(hostName)/api/registration/get_group_info")!
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.httpBody = jsonData
+        request.httpBody = try! JSONSerialization.data(withJSONObject: json, options: [])
         request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
-        DDLogInfo("reg/update-noise-keys/begin url=[\(url.absoluteString)] [\(userID)]")
+        DDLogInfo("reg/get-group-info/begin url=[\(request.url!)]  data=[\(json)]")
         let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
             if let error = error {
-                DDLogError("reg/update-noise-keys/error [\(error)]")
+                DDLogError("reg/get-group-info/error [\(error)]")
                 DispatchQueue.main.async {
                     completion(.failure(error))
                 }
                 return
             }
             guard let data = data else {
-                DDLogError("reg/update-noise-keys/error Data is empty.")
+                DDLogError("reg/get-group-info/error Data is empty.")
                 DispatchQueue.main.async {
-                    completion(.failure(NoiseKeyUpdateError.malformedResponse))
+                    completion(.failure(GetGroupNameError.malformedResponse))
                 }
                 return
             }
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                DDLogError("reg/update-noise-keys/error Invalid response. [\(String(describing: urlResponse))]")
+                DDLogError("reg/get-group-info/error Invalid response. [\(String(describing: urlResponse))]")
                 DispatchQueue.main.async {
-                    completion(.failure(NoiseKeyUpdateError.malformedResponse))
+                    completion(.failure(GetGroupNameError.malformedResponse))
                 }
                 return
             }
             guard let response = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-                DDLogError("reg/update-noise-keys/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
+                DDLogError("reg/get-group-info/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
                 DispatchQueue.main.async {
-                    completion(.failure(NoiseKeyUpdateError.malformedResponse))
+                    completion(.failure(GetGroupNameError.malformedResponse))
                 }
                 return
             }
 
-            DDLogInfo("reg/update-noise-keys/finished  status=[\(httpResponse.statusCode)]  response=[\(response)]")
+            DDLogInfo("reg/get-group-info/finished  status=[\(httpResponse.statusCode)]  response=[\(response)]")
 
             if let errorString = response["error"] as? String {
-                let error = NoiseKeyUpdateError(rawValue: errorString) ?? .malformedResponse
-                DDLogInfo("reg/update-noise-keys/invalid [\(error)]")
+                let error = GetGroupNameError(rawValue: errorString) ?? .malformedResponse
+                DDLogInfo("reg/get-group-info/error [\(error)]")
                 DispatchQueue.main.async {
                     completion(.failure(error))
                 }
                 return
             }
 
-            guard let result = response["result"] as? String else {
-                DDLogInfo("reg/update-noise-keys/invalid Missing result")
+            if let groupName = response["name"] as? String {
+                DDLogInfo("reg/get-group-info/Name= \(groupName)")
                 DispatchQueue.main.async {
-                    completion(.failure(NoiseKeyUpdateError.malformedResponse))
+                    completion(.success(groupName))
                 }
-                return
-            }
-
-            guard result == "ok" else {
-                DDLogInfo("reg/update-noise-keys/invalid result [\(result)]")
-                let error = NoiseKeyUpdateError(rawValue: result) ?? .malformedResponse
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
-                return
-            }
-
-            DDLogInfo("reg/update-noise-keys/success [noise]")
-
-            DispatchQueue.main.async {
-                completion(.success(.v2(userID: userID, noiseKeys: noiseKeys)))
+            } else {
+                //Group not found
+                completion(.success(nil))
             }
         }
         task.resume()
     }
-
 }
 
 public enum VerificationCodeRequestError: String, Error, RawRepresentable {
@@ -309,6 +288,11 @@ public enum VerificationCodeRequestError: String, Error, RawRepresentable {
     case smsFailure = "sms_fail"
     case invalidClientVersion = "invalid_client_version"    // client version has expired.
     case requestCreationError
+    case malformedResponse // everything else
+}
+
+public enum GetGroupNameError: String, Error, RawRepresentable {
+    case invalidClientVersion = "invalid_client_version"    // client version has expired.
     case malformedResponse // everything else
 }
 

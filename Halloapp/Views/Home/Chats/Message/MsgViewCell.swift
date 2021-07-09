@@ -6,7 +6,7 @@
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Core
 import UIKit
 
@@ -83,11 +83,7 @@ class MsgViewCell: UITableViewCell {
 
 extension MsgViewCell: UITextViewDelegate {
     func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
-        guard let inviteToken = ChatData.parseInviteURL(url: URL) else { return true }
-
-        MainAppContext.shared.userData.groupInviteToken = inviteToken
-        MainAppContext.shared.didGetGroupInviteToken.send()
-
-        return false
+        guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(URL) else { return false }
+        return true
     }
 }

@@ -6,7 +6,7 @@
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import UIKit
@@ -23,7 +23,9 @@ class ThreadListCell: UITableViewCell {
     public var isShowingTypingIndicator: Bool = false
     
     private var avatarSize: CGFloat = 56 // default
-    
+
+    private var cancellableSet: Set<AnyCancellable> = []
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
@@ -47,6 +49,9 @@ class ThreadListCell: UITableViewCell {
         unreadCountView.isHidden = true
 
         avatarView.avatarView.prepareForReuse()
+
+        cancellableSet.forEach { $0.cancel() }
+        cancellableSet.removeAll()
     }
 
     private func lastMessageText(for chatThread: ChatThread) -> NSMutableAttributedString {
@@ -193,14 +198,11 @@ class ThreadListCell: UITableViewCell {
     }
     
     func configure(with chatThread: ChatThread, squareSize: CGFloat = 0) {
-
         self.chatThread = chatThread
+        
+        guard let userID = chatThread.chatWithUserId else { return }
 
-        if chatThread.type == .oneToOne {
-            titleLabel.text = MainAppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId ?? "")
-        } else {
-            titleLabel.text = chatThread.title
-        }
+        titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
 
         lastMsgLabel.attributedText = lastMessageText(for: chatThread).firstLineWithEllipsisIfNecessary()
 
@@ -223,10 +225,19 @@ class ThreadListCell: UITableViewCell {
             timeLabel.text = timestamp.chatListTimestamp()
         }
 
-        if chatThread.type == .oneToOne {
-            avatarView.configure(userId: chatThread.chatWithUserId ?? "", using: MainAppContext.shared.avatarStore)
-        } else if chatThread.type == .group {
-            avatarView.configure(groupId: chatThread.groupId ?? "", squareSize: squareSize, using: MainAppContext.shared.avatarStore)
+        avatarView.configure(userId: chatThread.chatWithUserId ?? "", using: MainAppContext.shared.avatarStore)
+
+        if !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID) {
+            cancellableSet.forEach { $0.cancel() }
+            cancellableSet.removeAll()
+            cancellableSet.insert(
+                MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
+                    guard let self = self else { return }
+                    if newUserIDs.contains(userID) {
+                        self.titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
+                    }
+                }
+            )
         }
     }
     

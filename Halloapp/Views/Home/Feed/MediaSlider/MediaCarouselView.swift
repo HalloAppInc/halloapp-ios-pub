@@ -6,7 +6,7 @@
 //
 
 import AVKit
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import UIKit
@@ -682,8 +682,10 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     private var videoSize: CGSize?
 
     private var avPlayerViewController: AVPlayerViewController!
+  
+    private lazy var playButton = playButtonView
+  
     private var looper: AVPlayerLooper?
-    private var playButton: UIButton!
     private var initialPlaybackTime: CMTime = .zero
     private var isPlayerAtStart = true
 
@@ -692,7 +694,6 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
 
     private var avPlayerRateObservation: NSKeyValueObservation?
     private var avPlayerStatusObservation: NSKeyValueObservation?
-    private var avPlayerVCVideoBoundsObservation: NSKeyValueObservation?
 
     private var cornerRadius: CGFloat = 0 {
         didSet {
@@ -763,44 +764,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerViewController.view.backgroundColor = .clear
         avPlayerViewController.showsPlaybackControls = false
         contentView.addSubview(avPlayerViewController.view)
-
-        avPlayerVCVideoBoundsObservation = avPlayerViewController.observe(\.videoBounds, options: [ ], changeHandler: { [weak self] (_, _) in
-            guard let self = self else { return }
-            self.updatePlayerViewFrame()
-        })
-
-        initPlayButton()
-    }
-
-    private func initPlayButton() {
-        let size: CGFloat = 100
-        let config = UIImage.SymbolConfiguration(pointSize: 30)
-        let iconColor = UIColor.primaryWhiteBlack
-        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
-
-        let button = UIButton.systemButton(with: icon, target: self, action: #selector(startPlayback))
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.layer.cornerRadius = size / 2
-        button.clipsToBounds = true
-
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-        let blurredEffectView = BlurView(effect: blurEffect, intensity: 0.5)
-        blurredEffectView.isUserInteractionEnabled = false
-        blurredEffectView.translatesAutoresizingMaskIntoConstraints = false
-
-        button.insertSubview(blurredEffectView, at: 0)
-        blurredEffectView.constrain(to: button)
-
-        contentView.addSubview(button)
-
-        NSLayoutConstraint.activate([
-            button.widthAnchor.constraint(equalToConstant: size),
-            button.heightAnchor.constraint(equalToConstant: size),
-            button.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            button.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-        ])
-
-        playButton = button
+        
         playButton.isHidden = true
     }
 
@@ -828,6 +792,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
                 videoLoadingCancellable = media.videoDidBecomeAvailable.sink { [weak self] (videoURL) in
                     guard let self = self else { return }
                     DispatchQueue.main.async {
+                        self.videoSize = media.size
                         self.showPlayer(forVideoURL: videoURL)
                     }
                 }
@@ -957,7 +922,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func updatePlayerViewFrame() {
-        guard let videoSize = videoSize, videoSize.height > 0 && videoSize.width > 0 && avPlayerViewController.videoGravity != .resizeAspectFill else
+        guard let url = videoURL, let videoSize = VideoUtils.resolutionForLocalVideo(url: url), videoSize.height > 0 && videoSize.width > 0 && avPlayerViewController.videoGravity != .resizeAspectFill else
         {
             // Video takes entire cell content.
             setPlayerView(frame: contentView.bounds)
@@ -1013,4 +978,44 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         }
     }
 
+    // MARK: Custom Views
+    
+    /// View that gets overlayed on videos to indicate they can be played.
+    private var playButtonView: UIView {
+        let size: CGFloat = 100
+        let config = UIImage.SymbolConfiguration(pointSize: 30)
+        let iconColor = UIColor.primaryWhiteBlack
+        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
+        
+        let playButtonContainerView = UIView()
+        playButtonContainerView.translatesAutoresizingMaskIntoConstraints = false
+        playButtonContainerView.layer.cornerRadius = size / 2
+        playButtonContainerView.clipsToBounds = true
+
+        let playButtonImage = UIImageView(image: icon)
+        playButtonImage.translatesAutoresizingMaskIntoConstraints = false
+        playButtonContainerView.insertSubview(playButtonImage, at: 1)
+
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurredEffectBackgroundView = BlurView(effect: blurEffect, intensity: 0.5)
+        blurredEffectBackgroundView.isUserInteractionEnabled = false
+        blurredEffectBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+
+        playButtonContainerView.insertSubview(blurredEffectBackgroundView, at: 0)
+        blurredEffectBackgroundView.constrain(to: playButtonContainerView)
+
+        contentView.addSubview(playButtonContainerView)
+
+        NSLayoutConstraint.activate([
+            playButtonContainerView.widthAnchor.constraint(equalToConstant: size),
+            playButtonContainerView.heightAnchor.constraint(equalToConstant: size),
+            playButtonContainerView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            playButtonContainerView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+        ])
+        
+        playButtonImage.constrainMargins(to: playButtonContainerView)
+        playButtonContainerView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 25, leading: 30, bottom: 25, trailing: 30)
+        
+        return playButtonContainerView
+    }
 }

@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Foundation
 import SwiftProtobuf
 
@@ -267,7 +267,7 @@ public struct CommentData {
             switch comment.comment {
             case .text(let clientText):
                 self.content = .text(clientText.mentionText)
-            case .album, .none:
+            case .album, .voiceNote, .none:
                 self.content = .unsupported(serverComment.payload)
             }
 

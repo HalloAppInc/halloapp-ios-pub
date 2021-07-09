@@ -80,6 +80,10 @@ extension Localizations {
         NSLocalizedString("button.learn.more", value: "Learn More", comment: "Title for generic Learn More button. Used to provide user with additional context to actions requested.")
     }
     
+    static var buttonDelete: String {
+        NSLocalizedString("Delete", comment: "Title for generic delete button.")
+    }
+    
     // MARK: Links
 
     static var linkLearnMore: String {

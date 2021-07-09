@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Contacts
 import Foundation
 
@@ -17,6 +17,7 @@ public protocol RegistrationManager: AnyObject {
     func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void)
     func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void)
     func didCompleteRegistrationFlow()
+    func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void)
 }
 
 public final class DefaultRegistrationManager: RegistrationManager {
@@ -78,6 +79,7 @@ public final class DefaultRegistrationManager: RegistrationManager {
             name: userData.name,
             normalizedPhoneNumber: userData.normalizedPhoneNumber,
             noiseKeys: noiseKeys,
+            groupInviteToken: userData.groupInviteToken,
             whisperKeys: userKeys.whisperKeys) { result in
             switch result {
             case .success(let credentials):
@@ -92,5 +94,16 @@ public final class DefaultRegistrationManager: RegistrationManager {
 
     public func didCompleteRegistrationFlow() {
         AppContext.shared.userData.tryLogIn()
+    }
+    
+    public func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void) {
+        registrationService.getGroupName(groupInviteToken: groupInviteToken) { result in
+            switch result {
+            case .success(let groupName):
+                completion(.success((groupName)))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
     }
 }

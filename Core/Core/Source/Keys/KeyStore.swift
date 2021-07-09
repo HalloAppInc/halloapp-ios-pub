@@ -5,7 +5,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import CoreData
 import CryptoKit
@@ -80,7 +80,6 @@ open class KeyStore {
             if let error = error {
                 DDLogError("Failed to load persistent store: \(error)")
                 DDLogError("Deleting persistent store at [\(KeyStore.persistentStoreURL.absoluteString)]")
-                try! FileManager.default.removeItem(at: KeyStore.persistentStoreURL)
                 fatalError("Unable to load persistent store: \(error)")
             } else {
                 DDLogInfo("KeyStore/load-store/completed [\(description)]")

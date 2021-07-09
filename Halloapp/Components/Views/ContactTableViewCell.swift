@@ -8,6 +8,7 @@
 
 import Core
 import UIKit
+import CocoaLumberjackSwift
 
 class ContactTableViewCell: UITableViewCell {
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17511" systemVersion="19G73" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20D91" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="SharedChatMessage" representedClassName="SharedChatMessage" syncable="YES">
         <attribute name="clientChatMsgPb" optional="YES" attributeType="Binary"/>
         <attribute name="decryptionError" optional="YES" attributeType="String"/>
@@ -7,6 +7,9 @@
         <attribute name="fromUserId" attributeType="String"/>
         <attribute name="id" attributeType="String"/>
         <attribute name="senderClientVersion" optional="YES" attributeType="String"/>
+        <attribute name="serialID" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="serverMsgPb" optional="YES" attributeType="Binary"/>
+        <attribute name="serverTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
@@ -69,7 +72,7 @@
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <elements>
-        <element name="SharedChatMessage" positionX="-54" positionY="81" width="128" height="194"/>
+        <element name="SharedChatMessage" positionX="-54" positionY="81" width="128" height="239"/>
         <element name="SharedFeedComment" positionX="-45" positionY="99" width="128" height="163"/>
         <element name="SharedFeedMention" positionX="-54" positionY="81" width="128" height="88"/>
         <element name="SharedFeedPost" positionX="-63" positionY="-18" width="128" height="193"/>

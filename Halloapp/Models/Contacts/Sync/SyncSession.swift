@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Foundation
 
 /**
@@ -26,15 +26,17 @@ enum ContactSyncRequestType: String, RawRepresentable {
 }
 
 class SyncSession {
-    typealias Completion = ([XMPPContact]?, Error?) -> Void
+    typealias Completion = (Error?) -> Void
+    typealias SyncProgress = (processed: Int, total: Int)
 
     private let syncMode: SyncMode
     private let completion: Completion
+    private let processResultsAsyncBlock: ([XMPPContact], SyncProgress) -> Void
 
     /**
      Set to `0` to turn off chuncked sync.
      */
-    let batchSize: Int = 512
+    let batchSize: Int = 1024
     let syncID = UUID().uuidString
 
     private var batchIndex: Int = 0
@@ -43,9 +45,10 @@ class SyncSession {
     private var results: [XMPPContact] = []
     private var error: Error? = nil
 
-    init(mode: SyncMode, contacts: [XMPPContact], completion: @escaping Completion) {
+    init(mode: SyncMode, contacts: [XMPPContact], processResultsAsyncBlock: @escaping ([XMPPContact], SyncProgress) -> Void, completion: @escaping Completion) {
         self.syncMode = mode
         self.contacts = contacts
+        self.processResultsAsyncBlock = processResultsAsyncBlock
         self.completion = completion
     }
 
@@ -63,7 +66,7 @@ class SyncSession {
         guard self.error == nil else {
             DDLogError("sync-session/\(self.syncMode)/request/error/\(self.error!)")
             DispatchQueue.main.async {
-                self.completion(nil, self.error)
+                self.completion(self.error)
             }
             return
         }
@@ -80,14 +83,18 @@ class SyncSession {
             let contactsToSend = self.contacts[range]
             let requestType: ContactSyncRequestType = self.syncMode == .full ? .full : .delta
             let batchIndex = self.batchIndex
+            let previouslyProcessed = batchIndex * batchSize
+            let batchProgress: SyncProgress = (processed: previouslyProcessed + range.count, total: previouslyProcessed + contacts.count)
             MainAppContext.shared.service.syncContacts(with: contactsToSend, type: requestType, syncID: self.syncID,
                                                  batchIndex: batchIndex, isLastBatch: isLastBatch) { (result) in
                 DDLogInfo("sync-session/\(self.syncMode)/request/end/batch/\(batchIndex)")
                 switch result {
                 case .success(let batchResults):
-                    self.results.append(contentsOf: batchResults)
+                    DDLogInfo("sync-session/\(self.syncMode)/finished/\(batchIndex)/success, count:/\(batchResults.count)")
+                    self.processResultsAsyncBlock(batchResults, batchProgress)
                     
                 case .failure(let error):
+                    DDLogInfo("sync-session/\(self.syncMode)/finished/\(batchIndex)/failure, error:/\(error)")
                     self.error = error
                 }
                 self.sendNextBatchIfNecessary()
@@ -100,9 +107,9 @@ class SyncSession {
             return
         }
 
-        DDLogInfo("sync-session/\(self.syncMode)/finished results=[\(self.results.count)]")
+        DDLogInfo("sync-session/\(self.syncMode)/finished/all batches")
         DispatchQueue.main.async {
-            self.completion(self.results, nil)
+            self.completion(nil)
         }
     }
 }

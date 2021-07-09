@@ -44,6 +44,8 @@ fileprivate extension ContactTableViewCell {
 
         nameLabel.text = receipt.contactName
         subtitleLabel.text = receipt.phoneNumber
+
+        contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 62).isActive = true
     }
 }
 
@@ -94,7 +96,6 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
 
         navigationItem.title = NSLocalizedString("title.your.post", value: "Seen By", comment: "Title for the screen with information about who saw your post.")
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarTrashBinWithLid"), style: .plain, target: self, action: #selector(retractPostAction))
 
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.placeholderCellReuseIdentifier)
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
@@ -153,6 +154,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
                     return cell
                 case .invite:
                     if let image = UIImage(named: "settingsInvite")?.withRenderingMode(.alwaysTemplate) {
+                        cell.color = .secondaryLabel
                         cell.imageBgColor = .clear
                         cell.configure(icon: image, label: Localizations.myPostRowInvite)
                     }
@@ -179,30 +181,6 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
     }
 
     @objc private func closeAction() {
-        dismiss(animated: true)
-    }
-
-    // MARK: Deleting Post
-
-    @objc private func retractPostAction() {
-        let deletePostConfirmationPrompt = NSLocalizedString("your.post.deletepost.confirmation", value: "Delete this post? This action cannot be undone.", comment: "Post deletion confirmation. Displayed as action sheet title.")
-        let deletePostButtonTitle = NSLocalizedString("your.post.deletepost.button", value: "Delete Post", comment: "Title for the button that confirms intent to delete your own post.")
-        let actionSheet = UIAlertController(title: nil, message: deletePostConfirmationPrompt, preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: deletePostButtonTitle, style: .destructive) { _ in
-            self.reallyRetractPost()
-        })
-        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-        self.present(actionSheet, animated: true)
-    }
-
-    private func reallyRetractPost() {
-        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else {
-            dismiss(animated: true)
-            return
-        }
-        // Stop processing data changes because all post is about to be deleted.
-        fetchedResultsController.delegate = nil
-        MainAppContext.shared.feedData.retract(post: feedPost)
         dismiss(animated: true)
     }
 
@@ -328,6 +306,11 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
                 viewController.hidesBottomBarWhenPushed = false
                 navigationController?.pushViewController(viewController, animated: true)
             case .invite:
+                guard ContactStore.contactsAccessAuthorized else {
+                    let inviteVC = InvitePermissionDeniedViewController()
+                    present(UINavigationController(rootViewController: inviteVC), animated: true)
+                    return
+                }
                 InviteManager.shared.requestInvitesIfNecessary()
                 let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
                 present(UINavigationController(rootViewController: inviteVC), animated: true)

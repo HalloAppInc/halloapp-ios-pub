@@ -5,7 +5,7 @@
 //  Copyright © 2021 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import UIKit
@@ -17,8 +17,8 @@ private extension Localizations {
         NSLocalizedString("share.destination.title", value: "HalloApp", comment: "Destination screen title")
     }
 
-    static var feed: String {
-        NSLocalizedString("share.destination.feed", value: "Feed", comment: "Share on the feed label")
+    static var home: String {
+        NSLocalizedString("share.destination.home", value: "Home", comment: "Share on the home feed label")
     }
 
     static var contacts: String {
@@ -45,7 +45,7 @@ class ShareDestinationViewController: UITableViewController {
         contacts = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: true)
         groups = GroupListItem.load()
         
-        super.init(style: .grouped)
+        super.init(style: .insetGrouped)
 
         DDLogInfo("ShareDestinationViewController/init loaded \(groups.count) groups and \(contacts.count) contacts")
     }
@@ -60,11 +60,12 @@ class ShareDestinationViewController: UITableViewController {
         navigationItem.title = Localizations.title
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAciton))
 
+        tableView.allowsMultipleSelection = true
         tableView.register(DestinationCell.self, forCellReuseIdentifier: DestinationCell.reuseIdentifier)
 
         setupSearch()
         
-        if let intent = self.extensionContext?.intent as? INSendMessageIntent {
+        if let intent = extensionContext?.intent as? INSendMessageIntent {
             guard let rawConversationID = intent.conversationIdentifier else { return }
             guard let conversationID = ConversationID(rawConversationID) else { return }
             
@@ -76,7 +77,7 @@ class ShareDestinationViewController: UITableViewController {
                 }
 
                 let destination = ShareDestination.contact(contact)
-                navigationController?.pushViewController(ShareComposerViewController(destination: destination), animated: false)
+                navigationController?.pushViewController(ShareComposerViewController(destinations: [destination]), animated: false)
             } else if conversationID.conversationType == .group {
                 guard let group = groups.first(where: { group in
                     group.id == conversationID.id
@@ -85,8 +86,16 @@ class ShareDestinationViewController: UITableViewController {
                 }
 
                 let destination = ShareDestination.group(group)
-                navigationController?.pushViewController(ShareComposerViewController(destination: destination), animated: false)
+                navigationController?.pushViewController(ShareComposerViewController(destinations: [destination]), animated: false)
             }
+        }
+    }
+
+    private func updateNextBtn() {
+        if let count = tableView.indexPathsForSelectedRows?.count, count > 0 {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonNext, style: .done, target: self, action: #selector(nextAction))
+        } else {
+            navigationItem.rightBarButtonItem = nil
         }
     }
 
@@ -95,6 +104,28 @@ class ShareDestinationViewController: UITableViewController {
 
         ShareExtensionContext.shared.coreService.disconnect()
         extensionContext?.cancelRequest(withError: ShareError.cancel)
+    }
+
+    @objc private func nextAction() {
+        guard let indexPathsForSelectedRows = tableView.indexPathsForSelectedRows else { return }
+
+        let destinations = indexPathsForSelectedRows.compactMap { (indexPath) -> ShareDestination? in
+            switch indexPath.section {
+            case 0:
+                DDLogInfo("ShareDestinationViewController/destination feed")
+                return .feed
+            case 1:
+                DDLogInfo("ShareDestinationViewController/destination group")
+                return .group(isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row])
+            case 2:
+                DDLogInfo("ShareDestinationViewController/destination contact")
+                return .contact(isFiltering ? filteredContacts[indexPath.row] : contacts[indexPath.row])
+            default:
+                return nil
+            }
+        }
+
+        navigationController?.pushViewController(ShareComposerViewController(destinations: destinations), animated: true)
     }
 
     private func setupSearch() {
@@ -145,7 +176,7 @@ class ShareDestinationViewController: UITableViewController {
 
         switch indexPath.section {
         case 0:
-            cell.configure(Localizations.feed)
+            cell.configure(Localizations.home)
         case 1:
             let group = isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row]
             cell.configure(group)
@@ -160,23 +191,11 @@ class ShareDestinationViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let destination: ShareDestination
+        updateNextBtn()
+    }
 
-        switch indexPath.section {
-        case 0:
-            DDLogInfo("ShareDestinationViewController/destination feed")
-            destination = .feed
-        case 1:
-            DDLogInfo("ShareDestinationViewController/destination group")
-            destination = .group(isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row])
-        case 2:
-            DDLogInfo("ShareDestinationViewController/destination contact")
-            destination = .contact(isFiltering ? filteredContacts[indexPath.row] : contacts[indexPath.row])
-        default:
-            return
-        }
-
-        navigationController?.pushViewController(ShareComposerViewController(destination: destination), animated: true)
+    override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        updateNextBtn()
     }
 }
 
@@ -272,7 +291,14 @@ fileprivate class DestinationCell: UITableViewCell {
         setup()
     }
 
+    override func setSelected(_ selected: Bool, animated: Bool) {
+        super.setSelected(selected, animated: animated)
+        accessoryType = selected ? .checkmark : .none
+    }
+
     private func setup() {
+        selectionStyle = .none
+
         let labels = UIStackView(arrangedSubviews: [ title, subtitle ])
         labels.translatesAutoresizingMaskIntoConstraints = false
         labels.axis = .vertical

@@ -1,6 +1,6 @@
 import AVFoundation
 import Core
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import PhotosUI
 import SwiftUI
@@ -218,7 +218,7 @@ class PostComposerViewController: UIViewController {
         switch configuration.titleMode {
         case .userPost:
             titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
-            titleView.subtitleLabel.text = privacySettings.composerIndicator ?? ""
+            titleView.subtitleLabel.text = privacySettings.composerIndicator
             privacySubscription = privacySettings.$composerIndicator.assign(to: \.text!, on: titleView.subtitleLabel)
         case .groupPost:
             titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
@@ -585,9 +585,14 @@ fileprivate struct PostComposerView: View {
             presentPicker = false
             guard !cancel else { return }
 
+            let newItemIndex = newMediaItems.firstIndex { newItem in
+                !mediaItems.value.contains { oldItem in
+                    newItem.asset == oldItem.asset
+                }
+            }
             let lastAsset = mediaItems.value[currentPosition.value].asset
             mediaItems.value = newMediaItems
-            currentPosition.value = newMediaItems.firstIndex { $0.asset == lastAsset } ?? 0
+            currentPosition.value = newItemIndex ?? newMediaItems.firstIndex { $0.asset == lastAsset } ?? 0
             mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
         }
     }

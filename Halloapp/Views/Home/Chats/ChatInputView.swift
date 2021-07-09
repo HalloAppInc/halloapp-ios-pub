@@ -6,7 +6,7 @@
 //
 
 import AVKit
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Core
 import UIKit
 
@@ -922,6 +922,6 @@ extension ChatInputView: InputTextViewDelegate {
 
 extension Localizations {
     static var chatInputPlaceholder: String {
-        NSLocalizedString("chat.message.placeholder", value: "Type a message", comment: "Text shown when chat input box is empty")
+        NSLocalizedString("chat.message.placeholder", value: "Write a message", comment: "Text shown when chat input box is empty")
     }
 }

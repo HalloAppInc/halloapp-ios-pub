@@ -2,14 +2,14 @@
 "CFBundleName" = "HalloApp";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Damit kannst du direkt innerhalb von HalloApp Fotos und Videos aufnehmen.";
+"NSCameraUsageDescription" = "Du kannst damit Fotos und Videos direkt aus HalloApp heraus aufnehmen.";
 
 /* Privacy - Contacts Usage Description */
 "NSContactsUsageDescription" = "Um die Beiträge deiner Freunde zu sehen, und sie auch deine sehen zu lassen, lade deine Kontakte auf die HalloApp-Server hoch.";
 
 /* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Damit kannst du Videos mit Ton aufnehmen.";
+"NSMicrophoneUsageDescription" = "Du kannst damit Videos mit Ton aufnehmen.";
 
 /* Privacy - Photo Library Usage Description */
-"NSPhotoLibraryUsageDescription" = "Damit kannst du Fotos und Videos aus deiner Bibliothek teilen und die aufgenommenen speichern.";
+"NSPhotoLibraryUsageDescription" = "Du kannst damit Fotos und Videos aus deiner Bibliothek teilen und die aufgenommenen speichern.";
 

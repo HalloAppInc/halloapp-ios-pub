@@ -6,7 +6,7 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import UIKit
@@ -19,6 +19,7 @@ class SceneDelegate: UIResponder {
 
     enum UserInterfaceState {
         case expiredVersion
+        case initializing
         case registration
         case mainInterface
     }
@@ -27,6 +28,9 @@ class SceneDelegate: UIResponder {
 
     private func viewController(forUserInterfaceState state: UserInterfaceState) -> UIViewController? {
         switch state {
+        case .initializing:
+            return InitializingViewController()
+
         case .registration:
             return VerificationViewController()
 
@@ -38,13 +42,18 @@ class SceneDelegate: UIResponder {
         }
     }
 
-    private func state(isLoggedIn: Bool, isAppVersionKnownExpired: Bool) -> UserInterfaceState {
-        if isAppVersionKnownExpired {
+    private func state(isLoggedIn: Bool? = nil, isAppVersionKnownExpired: Bool? = nil) -> UserInterfaceState
+    {
+        if isAppVersionKnownExpired ?? MainAppContext.shared.coreService.isAppVersionKnownExpired.value {
             return .expiredVersion
         }
-        if isLoggedIn {
-            return .mainInterface
+
+        if isLoggedIn ?? MainAppContext.shared.userData.isLoggedIn {
+            let initializationComplete = ContactStore.contactsAccessDenied ||
+                (ContactStore.contactsAccessAuthorized && MainAppContext.shared.contactStore.isInitialSyncCompleted)
+            return initializationComplete ? .mainInterface : .initializing
         }
+
         return .registration
     }
 
@@ -75,13 +84,29 @@ extension SceneDelegate: UIWindowSceneDelegate {
         cancellables.insert(
             MainAppContext.shared.userData.$isLoggedIn.sink { [weak self] isLoggedIn in
                 guard let self = self else { return }
-                self.transition(to: self.state(isLoggedIn: isLoggedIn, isAppVersionKnownExpired: MainAppContext.shared.coreService.isAppVersionKnownExpired.value))
+                self.transition(to: self.state(isLoggedIn: isLoggedIn))
         })
 
         cancellables.insert(
             MainAppContext.shared.coreService.isAppVersionKnownExpired.sink { [weak self] isExpired in
                 guard let self = self else { return }
-                self.transition(to: self.state(isLoggedIn: MainAppContext.shared.userData.isLoggedIn, isAppVersionKnownExpired: isExpired))
+                self.transition(to: self.state(isAppVersionKnownExpired: isExpired))
+        })
+
+        cancellables.insert(
+            MainAppContext.shared.syncManager.$isSyncInProgress.sink { [weak self] _ in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    self.transition(to: self.state())
+                }
+        })
+
+        cancellables.insert(
+            MainAppContext.shared.contactStore.contactsAccessRequestCompleted.sink { [weak self] isContactAccessAuthorized in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    self.transition(to: self.state())
+                }
         })
 
         cancellables.insert(
@@ -121,11 +146,6 @@ extension SceneDelegate: UIWindowSceneDelegate {
         // Set to -1 instead of 0
         // If set to 0 from X, iOS will delete all local notifications including feed, comments, messages, etc.
         MainAppContext.shared.applicationIconBadgeNumber = -1
-
-        // Initial permissions request initiated by RegistrationManager. Request here only if we're already logged in when the app starts.
-        if let appDelegate = UIApplication.shared.delegate as? AppDelegate, MainAppContext.shared.userData.isLoggedIn && scene.activationState == .foregroundActive {
-            appDelegate.requestAccessToContactsAndNotifications()
-        }
 
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.

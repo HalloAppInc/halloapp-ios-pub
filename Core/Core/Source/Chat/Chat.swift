@@ -6,7 +6,7 @@
 //  Copyright © 2020 Hallo App, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import UIKit
 
 public typealias GroupID = String
@@ -21,7 +21,7 @@ public enum ChatState: String {
     case typing = "typing"
 }
 
-public enum ChatMessageMediaType: Int {
+public enum ChatMessageMediaType: Int, Codable {
     case image = 0
     case video = 1
 }

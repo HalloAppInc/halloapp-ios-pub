@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import UIKit
@@ -63,6 +63,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private let scaleThreshold: CGFloat = 1.3
     private var postId: FeedPostID? = nil
+    private var feedPost: FeedPost?
 
     private enum LayoutConstants {
         static let topMargin: CGFloat = 5
@@ -129,6 +130,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, isTextExpanded: Bool) {
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) else { return }
+        
+        feedPost = post
 
         if let mediaView = mediaView {
             let keepMediaView = postId == post.id && mediaView.configuration.gutterWidth == gutterWidth
@@ -262,7 +265,6 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
         guard let postId = postId else { return }
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else { return }
-        guard feedDataItem.media[index].type == .image else { return }
 
         presentExplorer(media: feedDataItem.media, index: index, delegate: view)
     }
@@ -285,7 +287,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     }
 
     private func presentExplorer(media: [FeedMedia], index: Int, delegate: MediaExplorerTransitionDelegate? = nil) {
-        let explorerController = MediaExplorerController(media: media, index: index)
+        guard let post = feedPost else { return }
+        let explorerController = MediaExplorerController(media: media, index: index, canSaveMedia: post.canSaveMedia)
         explorerController.delegate = delegate
 
         if let controller = findController() {
@@ -319,6 +322,7 @@ final class FeedItemHeaderView: UIView {
 
     var showUserAction: (() -> ())? = nil
     var showGroupFeedAction: (() -> ())? = nil
+    var showMoreAction: (() -> ())? = nil
 
     private var contentSizeCategoryDidChangeCancellable: AnyCancellable!
 
@@ -330,9 +334,9 @@ final class FeedItemHeaderView: UIView {
     }()
 
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ userAndGroupNameRow, secondLineGroupNameLabel ])
+        let view = UIStackView(arrangedSubviews: [ userAndGroupNameRow, secondLineGroupNameLabel, timestampLabel ])
         view.axis = .vertical
-        view.spacing = 0
+        view.spacing = 3
         
         view.translatesAutoresizingMaskIntoConstraints = false
 
@@ -396,41 +400,70 @@ final class FeedItemHeaderView: UIView {
         return label
     }()
 
-    // Gotham Medium, 14 pt (Footnote + 1)
+    // Gotham Medium, 13 pt
     private lazy var timestampLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.gothamFont(forTextStyle: .footnote, pointSizeChange: 1, weight: .medium)
+        label.font = UIFont.systemFont(forTextStyle: .footnote, weight: .medium)
         label.adjustsFontForContentSizeCategory = true
-        label.textColor = .tertiaryLabel
+        label.textColor = UIColor(named: "TimestampLabel")
         label.textAlignment = .natural
         label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .horizontal) // higher than contact name
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+    
+    private lazy var moreButton: UIView = {
+        let image = UIImage(systemName: "ellipsis")
+        let button = UIButton()
+        button.setImage(image, for: .normal)
+        button.tintColor = .label
+        button.addTarget(self, action: #selector(showMoreTapped), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        
+        if let image = image {
+            button.widthAnchor.constraint(equalToConstant: image.size.width).isActive = true
+        }
+        
+        let wrapperView = UIView()
+        wrapperView.addSubview(button)
+        wrapperView.translatesAutoresizingMaskIntoConstraints = false
+        
+        button.topAnchor.constraint(equalTo: wrapperView.topAnchor).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 18).isActive = true
+        
+        wrapperView.widthAnchor.constraint(equalToConstant: 18).isActive = true
+        
+        return wrapperView
+    }()
+    
+    @objc private func showMoreTapped() {
+        if let action = showMoreAction {
+            action()
+        }
+    }
 
     private func setupView() {
         isUserInteractionEnabled = true
 
         addSubview(avatarViewButton)
 
-        let hStack = UIStackView(arrangedSubviews: [ nameColumn, timestampLabel ])
+        let hStack = UIStackView(arrangedSubviews: [ nameColumn, moreButton ])
         hStack.axis = .horizontal
         hStack.spacing = 4
         hStack.translatesAutoresizingMaskIntoConstraints = false
  
-        configure(stackView: hStack, forVerticalLayout: UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory)
         addSubview(hStack)
 
-        avatarViewButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        avatarViewButton.heightAnchor.constraint(equalToConstant: 36).isActive = true
         avatarViewButton.heightAnchor.constraint(equalTo: avatarViewButton.widthAnchor).isActive = true
         avatarViewButton.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
-        avatarViewButton.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
-        avatarViewButton.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        avatarViewButton.topAnchor.constraint(equalTo: topAnchor).isActive = true
         hStack.leadingAnchor.constraint(equalToSystemSpacingAfter: avatarViewButton.trailingAnchor, multiplier: 1).isActive = true
         hStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
         hStack.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+        moreButton.topAnchor.constraint(equalTo: hStack.topAnchor).isActive = true
 
         contentSizeCategoryDidChangeCancellable = NotificationCenter.default
             .publisher(for: UIContentSizeCategory.didChangeNotification)
@@ -455,6 +488,8 @@ final class FeedItemHeaderView: UIView {
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
         timestampLabel.text = post.timestamp.feedTimestamp()
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
+        
+        moreButton.isHidden = !post.canSaveMedia && post.userId != MainAppContext.shared.userData.userId
     }
     
     func configureGroupLabel(with groupID: String?) {
@@ -462,14 +497,15 @@ final class FeedItemHeaderView: UIView {
             
             let attrText = NSMutableAttributedString(string: "")
             let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate)
-            let groupNameColor = traitCollection.userInterfaceStyle == .light ? UIColor.gray : UIColor.label
+            let groupIndicatorColor = UIColor(named: "GroupNameArrow")
+            let groupNameColor = UIColor.label
 
             if let groupIndicator = groupIndicatorImage, let font = groupNameLabel.font {
                 let iconAttachment = NSTextAttachment(image: groupIndicator)
                 attrText.append(NSAttributedString(attachment: iconAttachment))
-                
-                attrText.addAttributes([.font: font, .foregroundColor: groupNameColor], range: NSRange(location: 0, length: attrText.length))
-                
+
+                attrText.addAttributes([.font: font, .foregroundColor: groupIndicatorColor], range: NSRange(location: 0, length: attrText.length))
+
                 let groupNameAttributes = [NSAttributedString.Key.font: font, NSAttributedString.Key.foregroundColor: groupNameColor]
                 let groupNameAttributedStr = NSAttributedString(string: " \(groupChat.name)", attributes: groupNameAttributes)
                 attrText.append(groupNameAttributedStr)
@@ -483,8 +519,7 @@ final class FeedItemHeaderView: UIView {
                 shortAttrText.deleteCharacters(in: range)
                 groupNameLabel.attributedText = shortAttrText
 
-                let secondLineGroupNameAttributes = [NSAttributedString.Key.foregroundColor: groupNameColor]
-                let secondLineGroupNameAttributedStr = NSAttributedString(string: "\(groupChat.name)", attributes: secondLineGroupNameAttributes)
+                let secondLineGroupNameAttributedStr = NSAttributedString(string: "\(groupChat.name)")
                 secondLineGroupNameLabel.attributedText = secondLineGroupNameAttributedStr
                 secondLineGroupNameLabel.isHidden = false
             } else {
@@ -498,8 +533,9 @@ final class FeedItemHeaderView: UIView {
         avatarViewButton.avatarView.prepareForReuse()
         groupNameLabel.attributedText = nil
         groupNameLabel.textColor = .label
+        groupNameLabel.isHidden = true
         secondLineGroupNameLabel.attributedText = nil
-        secondLineGroupNameLabel.textColor = .label
+        secondLineGroupNameLabel.isHidden = true
     }
 
     @objc func showUser() {

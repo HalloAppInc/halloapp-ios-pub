@@ -6,7 +6,8 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
+import Combine
 import Contacts
 import CoreData
 import Foundation
@@ -54,6 +55,8 @@ open class AppContext {
 
     public static let userAgent: String = { UserAgent(platform: .ios, version: appVersionForService).description }()
 
+    public let didGetGroupInviteToken = PassthroughSubject<Void, Never>()
+
     open var applicationIconBadgeNumber: Int {
         get { userDefaults.integer(forKey: "ApplicationIconBadgeNumber") }
         set { userDefaults.set(newValue, forKey: "ApplicationIconBadgeNumber") }
@@ -61,6 +64,10 @@ open class AppContext {
 
     open var isAppExtension: Bool {
         get { true }
+    }
+    
+    open class var isAppClip: Bool {
+        get { false }
     }
 
     // MARK: Global objects
@@ -172,6 +179,15 @@ open class AppContext {
         sharedDirectoryURL.appendingPathComponent(AppContext.keysDatabaseFilename)
     }()
     
+    public func deleteSharedDirectory() {
+        do {
+            try FileManager.default.removeItem(at: Self.sharedDirectoryURL.absoluteURL)
+            DDLogInfo("AppContext/deleteSharedDirectory: Deleted shared data")
+        } catch {
+            DDLogError("AppContext/deleteSharedDirectory: Error deleting shared data: \(error)")
+        }
+    }
+    
     // MARK: Initializer
     open class var shared: AppContext {
         get {
@@ -213,7 +229,7 @@ open class AppContext {
             }
         }
 
-        userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL)
+        userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL, isAppClip: Self.isAppClip)
         coreService = serviceBuilder(userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
         privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)
@@ -241,5 +257,12 @@ open class AppContext {
         }
         let data = try Data(contentsOf: URL(fileURLWithPath: jsonPath))
         return data
+    }
+
+    public func getchatMsgSerialId() -> Int32 {
+        // TODO: make the key name a separate variable.
+        let serialID = userDefaults.integer(forKey: "chatMessageSerialId") + 1
+        userDefaults.set(serialID, forKey: "chatMessageSerialId")
+        return Int32(serialID)
     }
 }

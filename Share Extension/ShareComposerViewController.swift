@@ -6,7 +6,7 @@
 //
 
 import AVFoundation
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import UIKit
@@ -63,7 +63,7 @@ class ShareComposerViewController: UIViewController {
         case video = "public.movie"
     }
 
-    private var destination: ShareDestination
+    private var destinations: [ShareDestination]
     private var media: [PendingMedia] = []
     private var text: String = ""
     private var textView: UITextView!
@@ -84,8 +84,8 @@ class ShareComposerViewController: UIViewController {
         MentionInput(text: textView.text, mentions: mentions, selectedRange: textView.selectedRange)
     }
 
-    init(destination: ShareDestination) {
-        self.destination = destination
+    init(destinations: [ShareDestination]) {
+        self.destinations = destinations
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -118,20 +118,54 @@ class ShareComposerViewController: UIViewController {
         let shareButton = UIBarButtonItem(title: Localizations.buttonShare, style: .done, target: self, action: #selector(shareAction))
         shareButton.tintColor = .systemBlue
 
-        switch destination {
-        case .feed:
-            break
-        case .group(let group):
-            titleView.subtitle.text = Localizations.subtitle(group: group.name)
-        case .contact(let contact):
+        let contactsOnly = destinations.filter {
+            if case .contact(_) = $0 {
+                return false
+            } else {
+                return true
+            }
+        }.count == 0
+
+        let hasGroups = destinations.filter {
+            if case .group(_) = $0 {
+                return true
+            } else {
+                return false
+            }
+        }.count > 0
+
+        if contactsOnly {
             titleView.title.text = Localizations.titleDestinationContact
-            titleView.subtitle.text = Localizations.subtitle(contact: contact.fullName ?? Localizations.unknownContact)
+            titleView.subtitle.text = Localizations.subtitle(contact: prepareSubtitle())
             shareButton.title = Localizations.buttonSend
+        } else if hasGroups {
+            titleView.subtitle.text = Localizations.subtitle(group: prepareSubtitle())
         }
 
         navigationItem.titleView = titleView
         navigationItem.rightBarButtonItem = shareButton
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarBack"), style: .plain, target: self, action: #selector(backAction))
+    }
+
+    private func prepareSubtitle() -> String {
+        let names = destinations.compactMap { (destination) -> String? in
+            switch destination {
+            case .feed:
+                return nil
+            case .contact(let contact):
+                return contact.fullName ?? Localizations.unknownContact
+            case .group(let group):
+                return group.name
+            }
+        }
+
+        if names.count == 0 {
+            return ""
+        } else if names.count == 1 {
+            return names[0]
+        } else {
+            return names[0..<names.count-1].joined(separator: ", ") + " & " + names[names.count - 1]
+        }
     }
 
     private func setupUI() {
@@ -323,10 +357,15 @@ class ShareComposerViewController: UIViewController {
             textView.backgroundColor = .clear
         }
 
-        switch destination {
-        case .contact:
-            break
-        default:
+        let contacts = destinations.filter {
+            if case .contact(_) = $0 {
+                return true
+            } else {
+                return false
+            }
+        }
+
+        if contacts.count == 0 {
             mentionPicker = makeMentionPicker()
             textView.inputAccessoryView = mentionPicker
         }
@@ -384,6 +423,7 @@ class ShareComposerViewController: UIViewController {
         collectionView.isPagingEnabled = true
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
+        collectionView.isPrefetchingEnabled = false
         collectionView.dataSource = self
         collectionView.delegate = self
 
@@ -715,19 +755,62 @@ class ShareComposerViewController: UIViewController {
             expandedText: mentionInput.text,
             mentionRanges: mentionInput.mentions).trimmed()
 
-        switch destination {
-        case .feed:
-            DDLogInfo("ShareComposerViewController/upload feed")
-            ShareExtensionContext.shared.dataStore.post(text: mentionText, media: media, completion: onUploadFinish(_:))
-        case .group(let group):
-            DDLogInfo("ShareComposerViewController/upload group")
-            ShareExtensionContext.shared.dataStore.post(group: group, text: mentionText, media: media, completion: onUploadFinish(_:))
-            addIntent(chatGroup: group)
-        case .contact(let contact):
-            DDLogInfo("ShareComposerViewController/upload contact")
-            guard let userId = contact.userId else { return }
-            ShareExtensionContext.shared.dataStore.send(to: userId, text: text, media: media, completion: onUploadFinish(_:))
-            addIntent(toUserId: userId)
+        let uploadDispatchGroup = DispatchGroup()
+        var results = [Result<String, Error>]()
+
+        for destination in destinations {
+            uploadDispatchGroup.enter()
+
+            switch destination {
+            case .feed:
+                DDLogInfo("ShareComposerViewController/upload feed")
+                ShareExtensionContext.shared.dataStore.post(text: mentionText, media: media) {
+                    results.append($0)
+                    uploadDispatchGroup.leave()
+                }
+            case .group(let group):
+                DDLogInfo("ShareComposerViewController/upload group")
+                ShareExtensionContext.shared.dataStore.post(group: group, text: mentionText, media: media) {
+                    results.append($0)
+                    uploadDispatchGroup.leave()
+                }
+                addIntent(chatGroup: group)
+            case .contact(let contact):
+                DDLogInfo("ShareComposerViewController/upload contact")
+                guard let userId = contact.userId else { return }
+                ShareExtensionContext.shared.dataStore.send(to: userId, text: text, media: media) {
+                    results.append($0)
+                    uploadDispatchGroup.leave()
+                }
+                addIntent(toUserId: userId)
+            }
+        }
+
+        uploadDispatchGroup.notify(queue: DispatchQueue.main) {
+            for result in results {
+                switch result {
+                case .success(let id):
+                    DDLogInfo("ShareComposerViewController/upload/success id=[\(id)]")
+                case .failure(let error):
+                    DDLogError("ShareComposerViewController/upload/error [\(error)]")
+                }
+            }
+
+            let fail = results.filter {
+                switch $0 {
+                case .success(_):
+                    return false
+                case .failure(_):
+                    return true
+                }
+            }.count > 0
+
+            if fail {
+                self.dismiss(animated: false)
+                self.showUploadingFailedAlert()
+            } else {
+                self.extensionContext?.completeRequest(returningItems: nil)
+            }
         }
     }
     
@@ -796,19 +879,6 @@ class ShareComposerViewController: UIViewController {
                     DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
                 }
             })
-        }
-    }
-
-    private func onUploadFinish(_ result: Result<String, Error>) {
-        switch result {
-        case .success(let id):
-            DDLogInfo("ShareComposerViewController/upload/success id=[\(id)]")
-            self.extensionContext?.completeRequest(returningItems: nil)
-        case .failure(let error):
-            DDLogError("ShareComposerViewController/upload/error [\(error)]")
-
-            dismiss(animated: false)
-            showUploadingFailedAlert()
         }
     }
 }
@@ -919,30 +989,20 @@ fileprivate class ImageCell: UICollectionViewCell {
         contentView.addSubview(imageView)
     }
 
-    // Loading image on demand and resizing instead of using 'media.image'
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        imageView.image = nil
+    }
+
+    // Loading image on demand instead of using 'media.image'
     // makes it easier for the system to clear memory and avoid
-    // going over memory limit (120MB on iPhone 11)
+    // going over memory limit (120MB on iPhone 11 & iOS 14)
     func configure(_ media: PendingMedia) {
         guard media.type == .image else { return }
         guard let url = media.fileURL else { return }
-        guard let image = media.image else { return }
 
-        // 0.25 = 1/4, below that threshold the image quality gets pretty bad on some images
-        let ratio = max(0.25, min(frame.size.width / image.size.width, frame.size.height / image.size.height))
-
-        if ratio < 1 {
-            DDLogInfo("ShareComposerViewController/ImageCell/config resizing image")
-
-            let size = CGSize(width: image.size.width * ratio, height: image.size.height * ratio)
-            if let resized = image.simpleResized(to: size) {
-                imageView.image = resized
-            }
-        } else {
-            DDLogInfo("ShareComposerViewController/ImageCell/config image from file")
-            
-            imageView.image = UIImage(contentsOfFile: url.path)
-        }
-
+        let maxSize = max(UIScreen.main.bounds.width, UIScreen.main.bounds.height) * UIScreen.main.scale
+        imageView.image = UIImage.thumbnail(contentsOf: url, maxPixelSize: maxSize)
         imageView.roundCorner(15)
     }
 }

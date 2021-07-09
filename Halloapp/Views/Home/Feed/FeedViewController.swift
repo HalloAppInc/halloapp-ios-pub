@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreData
@@ -29,6 +29,7 @@ class FeedViewController: FeedCollectionViewController {
     // MARK: UIViewController
 
     override func viewDidLoad() {
+        DDLogDebug("FeedViewController/viewDidLoad/begin")
         super.viewDidLoad()
 
         installLargeTitleUsingGothamFont()
@@ -95,6 +96,14 @@ class FeedViewController: FeedCollectionViewController {
 
     deinit {
         self.cancellables.forEach { $0.cancel() }
+    }
+
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        super.scrollViewDidScroll(scrollView)
+        guard scrollView == collectionView else { return }
+        if isNearTop(100) {
+            MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.send()
+        }
     }
 
     // MARK: FeedCollectionViewController
@@ -250,6 +259,8 @@ class FeedViewController: FeedCollectionViewController {
         collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: floatingMenu.suggestedContentInsetHeight, right: 0)
     }
 
+    private let settingsURL = URL(string: UIApplication.openSettingsURLString)
+
     private func updateContactPermissionsAlert() {
         let overlayID = "feed.contact.permissions.alert"
 
@@ -257,11 +268,10 @@ class FeedViewController: FeedCollectionViewController {
             overlayContainer.dismissOverlay(with: overlayID)
             return
         }
-      
         guard overlay == nil else {
             return
         }
-        guard let url = URL(string: UIApplication.openSettingsURLString) else {
+        guard settingsURL != nil else {
             DDLogError("FeedViewController/showPermissionsDialog/error settings-url-unavailable")
             return
         }
@@ -299,13 +309,13 @@ class FeedViewController: FeedCollectionViewController {
     }
     
     private func updateContactPermissionsTutorialAlert() {
-        guard let url = URL(string: UIApplication.openSettingsURLString) else {
+        guard let settingsURL = settingsURL else {
             DDLogError("FeedViewController/showPermissionsDialog/error settings-url-unavailable")
             return
         }
         
         let contentView = FeedPermissionTutorialAlert(goToSettingsAction: FeedPermissionTutorialAlert.Action(title: Localizations.buttonGoToSettings, handler: { [weak self] _ in
-            UIApplication.shared.open(url)
+            UIApplication.shared.open(settingsURL)
             self?.dismissOverlay()
         }))
 

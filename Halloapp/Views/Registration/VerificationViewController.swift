@@ -6,7 +6,7 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Core
 import UIKit
 
@@ -17,17 +17,13 @@ struct VerificationVerifyCodeContext {
     let fromUserAction: Bool
 }
 
-struct VerificationContactsPermissionsContext {
-}
-
 struct VerificationCompleteContext {
 }
 
-class VerificationViewController: UINavigationController, PhoneInputViewControllerDelegate, VerificationCodeViewControllerDelegate, ContactsPermissionsViewControllerDelegate {
+class VerificationViewController: UINavigationController, PhoneInputViewControllerDelegate, VerificationCodeViewControllerDelegate {
     enum State {
         case phoneInput(VerificationPhoneInputContext)
         case verifyCode(VerificationVerifyCodeContext)
-        case contactsPermissions(VerificationContactsPermissionsContext)
         case complete(VerificationCompleteContext)
     }
     var state: State?
@@ -77,11 +73,6 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
                 verificationCodeVC.requestVerificationCode()
             }
 
-        case .contactsPermissions(_):
-            let contactsPermissionsVC = ContactsPermissionsViewController()
-            contactsPermissionsVC.delegate = self
-            pushViewController(contactsPermissionsVC, animated: true)
-
         default:
             break
         }
@@ -101,6 +92,10 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
         registrationManager?.set(countryCode: countryCode, nationalNumber: nationalNumber, userName: name)
         move(to: .verifyCode(VerificationVerifyCodeContext(fromUserAction: true)))
     }
+    
+    func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void) {
+        registrationManager?.getGroupName(groupInviteToken: groupInviteToken, completion: completion)
+    }
 
     // MARK: VerificationCodeViewControllerDelegate
 
@@ -117,27 +112,6 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
     }
 
     func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController) {
-        let contactsAccessStatus = registrationManager?.contactsAccessStatus ?? .notDetermined
-        switch contactsAccessStatus {
-        case .authorized:
-            move(to: .complete(.init()))
-        default:
-            move(to: .contactsPermissions(.init()))
-        }
-    }
-
-    // MARK: ContactsPermissionsViewControllerDelegate
-
-    func didAcknowledgeContactsPermissions() {
-        requestContactsPermissions()
-        move(to: .complete(VerificationCompleteContext()))
-    }
-    
-    func requestContactsPermissions() {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            DDLogError("VerificationViewController/requestContactsPermission/error app delegate unavailable")
-            return
-        }
-        appDelegate.requestAccessToContactsAndNotifications()
+        move(to: .complete(.init())) 
     }
 }

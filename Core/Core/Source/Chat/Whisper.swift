@@ -6,7 +6,7 @@
 //  Copyright © 2021 Hallo App, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import CryptoSwift
 import Foundation
 import Sodium

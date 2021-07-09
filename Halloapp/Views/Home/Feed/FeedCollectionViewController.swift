@@ -6,11 +6,12 @@
 //  Copyright © 2020 HalloApp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreData
 import UIKit
+import Photos
 
 protocol FeedCollectionViewControllerDelegate: AnyObject {
     func feedCollectionViewController(_ feedCollectionViewController: FeedCollectionViewController, userActioned: Bool)
@@ -165,6 +166,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
         isVisible = true
         checkForOnscreenCells()
+        removeNewPostsIndicatorAfterSeen()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -385,6 +387,15 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         UIView.animate(withDuration: 0.35) { () -> Void in
             self.newPostsIndicator.alpha = 1.0
         }
+        
+        removeNewPostsIndicatorAfterSeen()
+    }
+
+    private func removeNewPostsIndicatorAfterSeen() {
+        guard isVisible else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            self?.removeNewPostsIndicator()
+        }
     }
 
     private func removeNewPostsIndicator() {
@@ -558,6 +569,53 @@ extension FeedCollectionViewController {
             guard let self = self else { return }
             self.showGroupFeed(for: groupID)
         }
+        cell.showMoreAction = { [weak self] userID in
+            guard let self = self else { return }
+            
+            let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+            
+            if feedPost.canSaveMedia {
+                let saveMediaTitle = feedPost.media?.count ?? 0 > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
+                alert.addAction(UIAlertAction(title: saveMediaTitle, style: .default, handler:  { [weak self] _ in
+                    PHPhotoLibrary.requestAuthorization { status in
+                        // `.limited` was introduced in iOS 14, and only gives us partial access to the photo album. In this case we can still save to the camera roll
+                        if #available(iOS 14, *) {
+                            guard status == .authorized || status == .limited else {
+                                self?.handleMediaAuthorizationFailure()
+                                return
+                            }
+                        } else {
+                            guard status == .authorized else {
+                                self?.handleMediaAuthorizationFailure()
+                                return
+                            }
+                        }
+                        
+                        guard let expectedMedia = feedPost.media, let self = self else { return } // Get the media data to determine how many should be downloaded
+                        let media = self.getMedia(feedPost: feedPost) // Get the media from memory
+                        
+                        // Make sure the media in memory is the correct number or items
+                        guard expectedMedia.count == media.count else {
+                            DDLogError("FeedCollectionViewController/saveAllButton/error: Downloaded media not same size as expected")
+                            return
+                        }
+                        
+                        self.saveMedia(media: media)
+                    }
+                }))
+            }
+            
+            if feedPost.userId == MainAppContext.shared.userData.userId {
+                let action = UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { [weak self] _ in
+                    self?.handleDeletePostTapped(postId: postId)
+                }
+                alert.addAction(action)
+            }
+            
+            alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil))
+            alert.view.tintColor = .systemBlue
+            self.present(alert, animated: true, completion: nil)
+        }
         cell.cancelSendingAction = { [weak self] in
             guard let self = self else { return }
             self.cancelSending(postId: postId)
@@ -566,11 +624,76 @@ extension FeedCollectionViewController {
             guard let self = self else { return }
             self.retrySending(postId: postId)
         }
-        cell.deleteAction = { [weak self] in
-            guard let self = self else { return }
-            self.deleteUnsentPost(postID: postId)
-        }
         cell.delegate = self
+    }
+    
+    private func handleMediaAuthorizationFailure() {
+        let alert = UIAlertController(title: Localizations.mediaPermissionsError, message: Localizations.mediaPermissionsErrorDescription, preferredStyle: .alert)
+        
+        DDLogInfo("FeedCollectionViewController/shareAllButtonPressed: User denied photos permissions")
+        
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+        
+        present(alert, animated: true)
+    }
+    
+    private func getMedia(feedPost: FeedPost) -> [(type: FeedMediaType, url: URL)] {
+        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id) else { return [] }
+        let feedMedia = feedDataItem.media
+        
+        var mediaItems: [(type: FeedMediaType, url: URL)] = []
+        
+        for media in feedMedia {
+            if media.isMediaAvailable, let url = media.fileURL {
+                mediaItems.append((type: media.type, url: url))
+            }
+        }
+        
+        return mediaItems
+    }
+    
+    private func saveMedia(media: [(type: FeedMediaType, url: URL)]) {
+        PHPhotoLibrary.shared().performChanges({
+            for media in media {
+                if media.type == .image {
+                    PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: media.url)
+                } else if media.type == .video {
+                    PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: media.url)
+                }
+            }
+        }, completionHandler: { [weak self] success, error in
+            DispatchQueue.main.async {
+                if !success {
+                    self?.handleMediaSaveError(error: error)
+                }
+            }
+        })
+    }
+    
+    private func handleMediaSaveError(error: Error?) {
+        let alert = UIAlertController(title: Localizations.mediaSaveError, message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    private func handleDeletePostTapped(postId: FeedPostID) {
+        let actionSheet = UIAlertController(title: nil, message: Localizations.deletePostConfirmationPrompt, preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { _ in
+            self.reallyRetractPost(postId: postId)
+        })
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        actionSheet.view.tintColor = .systemBlue
+        self.present(actionSheet, animated: true)
+    }
+
+    private func reallyRetractPost(postId: FeedPostID) {
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postId) else {
+            dismiss(animated: true)
+            return
+        }
+        
+        MainAppContext.shared.feedData.retract(post: feedPost)
+        dismiss(animated: true)
     }
 }
 
@@ -717,4 +840,21 @@ private class FeedLayout: UICollectionViewFlowLayout {
         newItemsHeight = 0.0
         return offset
     }
+}
+
+extension Localizations {
+    static var saveAllButton: String = {
+        return NSLocalizedString("media.save.all", value: "Save All To Camera Roll", comment: "Button that, when pressed, saves all the post's media to the user's camera roll")
+    }()
+    
+    static var saveAllButtonSingular: String = {
+        return NSLocalizedString("media.save.all.singular", value: "Save Media To Camera Roll", comment: "Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all")
+    }()
+    
+    static var deletePostConfirmationPrompt: String = {
+        NSLocalizedString("your.post.deletepost.confirmation", value: "Delete this post? This action cannot be undone.", comment: "Post deletion confirmation. Displayed as action sheet title.")
+    }()
+    static var deletePostButtonTitle: String = {
+        NSLocalizedString("your.post.deletepost.button", value: "Delete Post", comment: "Title for the button that confirms intent to delete your own post.")
+    }()
 }

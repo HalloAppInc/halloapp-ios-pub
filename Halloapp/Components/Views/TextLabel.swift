@@ -650,6 +650,7 @@ extension TextLabel: UIContextMenuInteractionDelegate {
 
         // Open Link
         items.append(UIAction(title: Localizations.openLink, image: UIImage(systemName: "safari")) { (_) in
+            guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { return }
             UIApplication.shared.open(url)
         })
 

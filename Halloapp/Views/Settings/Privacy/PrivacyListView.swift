@@ -24,9 +24,12 @@ struct PrivacyListView: UIViewControllerRepresentable {
     }
 
     func makeUIViewController(context: Context) -> UIViewControllerType {
-        let viewController = PrivacyListViewController(privacyList: privacyList, settings: privacySettings)
-        viewController.dismissAction = dismissAction
-        return UINavigationController(rootViewController: viewController)
+        guard ContactStore.contactsAccessAuthorized  else {
+            let vc = PrivacyPermissionDeniedController()
+            return UINavigationController(rootViewController: vc)
+        }
+        let vc = ContactSelectionViewController.forPrivacyList(privacyList, in: privacySettings, dismissAction: dismissAction)
+        return UINavigationController(rootViewController: vc)
     }
 
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) { }

@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import CocoaLumberjack
+import CocoaLumberjackSwift
 
 // TODO: Add pushname and/or merge this with `MentionedUser`
 /// Struct representing user that can be mentioned in a post or comment

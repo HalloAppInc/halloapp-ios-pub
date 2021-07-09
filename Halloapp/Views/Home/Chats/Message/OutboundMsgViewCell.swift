@@ -9,7 +9,7 @@
 import Combine
 import Core
 import UIKit
-import CocoaLumberjack
+import CocoaLumberjackSwift
 
 fileprivate struct Constants {
     static let QuotedMediaSize: CGFloat = 50

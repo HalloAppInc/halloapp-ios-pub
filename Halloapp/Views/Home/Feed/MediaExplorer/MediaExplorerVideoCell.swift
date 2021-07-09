@@ -146,6 +146,10 @@ class MediaExplorerVideoCell: UICollectionViewCell {
         video.player?.pause()
     }
 
+    func togglePlay() {
+        video.togglePlay()
+    }
+
     func currentTime() -> CMTime {
         guard let player = video.player else { return .zero }
         return player.currentTime()

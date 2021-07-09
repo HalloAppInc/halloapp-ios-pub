@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Core
 import UserNotifications
 import SwiftNoise
@@ -33,6 +33,8 @@ enum NotificationContentType: String, RawRepresentable, Codable {
     case groupFeedCommentRetract = "group_comment_retract"
     case chatMessageRetract = "chat_retract"
     case groupChatMessageRetract = "group_chat_retract"
+
+    case chatRerequest = "chat_rerequest"
 }
 
 class NotificationMetadata: Codable {
@@ -325,6 +327,17 @@ class NotificationMetadata: Codable {
                 DDLogError("NotificationMetadata/init/groupStanza Invalid action, message: \(msg)")
                 return nil
             }
+        case .rerequest(let rerequestData):
+            // TODO(murali@): in order to be able to act on this rerequest
+            // we need access to the message store.
+            contentId = rerequestData.id
+            messageId = msg.id
+            contentType = .chatRerequest
+            fromId = UserID(msg.fromUid)
+            timestamp = nil
+            data = nil
+            pushName = nil
+            return
         default:
             return nil
         }
@@ -491,7 +504,7 @@ extension NotificationMetadata {
         switch contentType {
         case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract:
             return true
-        case .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd:
+        case .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest:
             return false
         }
     }
@@ -512,7 +525,7 @@ extension NotificationMetadata {
         switch contentType {
         case .newFriend, .newInvitee, .newContact:
             return true
-        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .groupAdd:
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .groupAdd, .chatRerequest:
             return false
         }
     }
@@ -521,7 +534,7 @@ extension NotificationMetadata {
         switch contentType {
         case .groupFeedPost, .groupFeedComment, .groupChatMessage, .groupFeedPostRetract, .groupFeedCommentRetract, .groupChatMessageRetract, .groupAdd:
             return true
-        case .feedPost, .feedComment, .feedPostRetract, .feedCommentRetract, .chatMessage, .chatMessageRetract, .newFriend, .newInvitee, .newContact:
+        case .feedPost, .feedComment, .feedPostRetract, .feedCommentRetract, .chatMessage, .chatMessageRetract, .newFriend, .newInvitee, .newContact, .chatRerequest:
             return false
         }
     }
@@ -544,9 +557,17 @@ extension NotificationMetadata {
         switch contentType {
         case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract:
             return true
-        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact:
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact, .chatRerequest:
             return false
         }
     }
 
+    var isVisibleNotification: Bool {
+        switch contentType {
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact:
+            return true
+        case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract, .chatRerequest:
+            return false
+        }
+    }
 }

@@ -20,16 +20,4 @@ public extension CountableEvent {
         let result = error?.rawValue ?? "success"
         return CountableEvent(namespace: "crypto", metric: "encryption", extraDimensions: ["result": result])
     }
-
-    static func passwordMigrationBegan() -> CountableEvent {
-        return CountableEvent(namespace: "keychain", metric: "migration", extraDimensions: ["status": "began"])
-    }
-
-    static func passwordMigrationSucceeded() -> CountableEvent {
-        return CountableEvent(namespace: "keychain", metric: "migration", extraDimensions: ["status": "succeeded"])
-    }
-
-    static func noiseMigration(success: Bool) -> CountableEvent {
-        return CountableEvent(namespace: "noise", metric: "migration", extraDimensions: ["status": success ? "succeeded" : "failed"])
-    }
 }

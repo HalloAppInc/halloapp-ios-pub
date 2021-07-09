@@ -5,7 +5,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Core
 import CoreData
 import UIKit
@@ -60,14 +60,14 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         DDLogInfo("NewGroupMembersViewController/viewDidLoad")
 
         if alreadyHaveMembers {
-            navigationItem.title = Localizations.selectGroupMembersTitle
+            navigationItem.title = Localizations.titleSelectGroupMembers
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add", style: .done, target: self, action: #selector(addAction))
         } else {
-            navigationItem.title = Localizations.selectGroupMembersCreateGroupTitle
+            navigationItem.title = Localizations.titleSelectGroupMembersCreateGroup
             navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonNext, style: .done, target: self, action: #selector(nextAction))
         }
-        
+
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
         navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
         
@@ -542,17 +542,5 @@ private extension ContactTableViewCell {
         }
 
     }
-}
-
-private extension Localizations {
-    
-    static var selectGroupMembersCreateGroupTitle: String {
-        NSLocalizedString("select.group.members.create.group.title", value: "Create New Group", comment: "Title of screen where user chooses members to add to either a new group or an existing one")
-    }
-    
-    static var selectGroupMembersTitle: String {
-        NSLocalizedString("select.group.members.title", value: "Add New Members", comment: "Title of screen where user chooses members to add to either a new group or an existing one")
-    }
-    
 }
 

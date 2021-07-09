@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Core
 import Foundation
 
@@ -361,6 +361,28 @@ final class ProtoUpdateNotificationSettingsRequest: ProtoRequest<Void> {
             return pref
         }
         super.init(iqPacket: .iqPacket(type: .set, payload: .notificationPrefs(prefs)), transform: { _ in .success(()) }, completion: completion)
+    }
+}
+
+final class ProtoGetDataExportStatusRequest: ProtoRequest<Server_ExportData> {
+    init(isSetRequest: Bool = false, completion: @escaping Completion) {
+        let iqPacket: Server_Packet = .iqPacket(type: isSetRequest ? .set : .get, payload: .exportData(Server_ExportData()))
+        
+        super.init(iqPacket: iqPacket, transform: { response in
+            return .success(response.exportData)
+        }, completion: completion)
+
+    }
+}
+
+final class ProtoDeleteAccountRequest: ProtoRequest<Void> {
+    init(phoneNumber: String, completion: @escaping Completion) {
+        var payload = Server_DeleteAccount()
+        payload.phone = phoneNumber
+        
+        let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .deleteAccount(payload))
+        
+        super.init(iqPacket: iqPacket, transform: { _ in .success(()) }, completion: completion)
     }
 }
 

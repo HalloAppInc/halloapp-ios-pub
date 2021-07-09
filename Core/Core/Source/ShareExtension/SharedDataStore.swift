@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import CoreData
 
 open class SharedDataStore {
@@ -67,6 +67,7 @@ open class SharedDataStore {
     public final func save(_ managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("SharedDataStore/will-save")
         do {
+            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             try managedObjectContext.save()
             DDLogInfo("SharedDataStore/did-save")
         } catch {

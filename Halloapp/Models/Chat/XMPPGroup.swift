@@ -107,6 +107,7 @@ struct XMPPGroup {
             case .join: return .join
             case .preview: return nil
             case .setBackground: return .setBackground
+            case .getMemberIdentityKeys: return nil // TODO: Does this need to be handled?
             case .UNRECOGNIZED(_): return nil
             }
         }()

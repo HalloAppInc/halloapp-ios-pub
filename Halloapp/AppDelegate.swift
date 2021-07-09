@@ -7,7 +7,8 @@
 //
 
 import BackgroundTasks
-import CocoaLumberjack
+import CocoaLumberjackSwift
+import Combine
 import Contacts
 import Core
 import CoreData
@@ -191,6 +192,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let contactStore = CNContactStore()
             contactStore.requestAccess(for: .contacts) { authorized, error in
                 DispatchQueue.main.async {
+                    AppContext.shared.contactStore.contactsAccessRequestCompleted.send(authorized)
                     completion(true, authorized)
                 }
             }
@@ -237,7 +239,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         do {
             try reachability?.startNotifier()
         } catch {
-            DDLogInfo("appdelegate/Reachability/Failed to start notifier/\(reachability?.connection ?? nil)")
+            DDLogInfo("appdelegate/Reachability/Failed to start notifier/\(reachability?.connection.description ?? "nil")")
         }
     }
 

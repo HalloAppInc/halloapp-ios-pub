@@ -9,7 +9,7 @@
 
 import Foundation
 import CoreData
-import CocoaLumberjack
+import CocoaLumberjackSwift
 
 public enum AppTarget: String, CaseIterable {
     case mainApp

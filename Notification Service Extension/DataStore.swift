@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Core
 import CoreData
 
@@ -147,7 +147,12 @@ class DataStore: NotificationServiceExtensionDataStore {
         chatMessage.decryptionError = failure?.error.rawValue
         chatMessage.ephemeralKey = failure?.ephemeralKey
         chatMessage.senderClientVersion = metadata.senderClientVersion
-        chatMessage.timestamp = metadata.timestamp ?? Date()
+        chatMessage.serverMsgPb = metadata.serverMsgPb
+        chatMessage.serverTimestamp = metadata.timestamp
+        chatMessage.timestamp = Date()
+        let serialID = AppContext.shared.getchatMsgSerialId()
+        DDLogInfo("SharedDataStore/message/\(messageId)/created/serialId \(serialID)")
+        chatMessage.serialID = serialID
 
         switch status {
         case .received:
@@ -214,9 +219,9 @@ class DataStore: NotificationServiceExtensionDataStore {
             let chatMessages = try managedObjectContext.fetch(fetchRequest)
             for message in chatMessages {
                 switch message.status {
-                case .received:
+                case .received, .decryptionError:
                     messagesToAck.append(message)
-                case .acked, .decryptionError, .rerequesting:
+                case .acked, .rerequesting:
                     break
                 case .sent, .sendError, .none:
                     DDLogError("NotificationExtension/getChatMessagesToAck/unexpected-status [\(message.status)] [\(message.id)]")
@@ -226,6 +231,33 @@ class DataStore: NotificationServiceExtensionDataStore {
             DDLogError("NotificationExtension/SharedDataStore/getChatMessagesToAck/error  [\(error)]")
         }
         return messagesToAck
+    }
+
+    func getChatMessagesToRerequest() -> [SharedChatMessage] {
+        let managedObjectContext = persistentContainer.viewContext
+
+        let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
+
+        // We fetch (and rerequest) these messages in ascending order.
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: true)]
+
+        var messagesToRerequest = [SharedChatMessage]()
+        do {
+            let chatMessages = try managedObjectContext.fetch(fetchRequest)
+            for message in chatMessages {
+                switch message.status {
+                case .decryptionError:
+                    messagesToRerequest.append(message)
+                case .acked, .received, .rerequesting:
+                    break
+                case .sent, .sendError, .none:
+                    DDLogError("NotificationExtension/getChatMessagesToRerequest/unexpected-status [\(message.status)] [\(message.id)]")
+                }
+            }
+        } catch {
+            DDLogError("NotificationExtension/SharedDataStore/getChatMessagesToRerequest/error  [\(error)]")
+        }
+        return messagesToRerequest
     }
 
     func sharedMediaObject(forObjectId objectId: NSManagedObjectID) throws -> SharedMedia? {

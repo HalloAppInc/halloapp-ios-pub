@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreData
@@ -199,6 +199,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             FeedData.deletePostCommentDrafts { existingDraft in
                 existingDraft.postID == feedPostId
             }
+          
             return
         }
         
@@ -216,9 +217,10 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         
         draftsArray.append(draft)
         
+
         try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: Self.postCommentDraftKey)
     }
-    
+  
     private func loadCommentsDraft() {
         guard let draftsArray: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: Self.postCommentDraftKey) else { return }
         
@@ -232,6 +234,20 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         
         commentsInputView.mentionText = draft.text
         commentsInputView.updateInputView()
+    }
+    
+    private func removeCommentDraft() {
+        var draftsArray: [CommentDraft] = []
+        
+        if let draftsDecoded: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: "posts.comments.drafts") {
+            draftsArray = draftsDecoded
+        }
+        
+        draftsArray.removeAll { existingDraft in
+            existingDraft.postID == feedPostId
+        }
+        
+        try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: "posts.comments.drafts")
     }
     
     override func viewDidLayoutSubviews() {
@@ -800,7 +816,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
         let parentCommentId = replyContext?.parentCommentId
         commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: parentCommentId)
-        
+      
         FeedData.deletePostCommentDrafts { existingDraft in
             existingDraft.postID == feedPostId
         }
@@ -840,6 +856,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         switch link.linkType {
         case .link, .phoneNumber:
             if let url = link.result?.url {
+                guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { break }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                     UIApplication.shared.open(url, options: [:])
                 }
@@ -864,8 +881,14 @@ extension CommentsViewController: MediaCarouselViewDelegate {
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
         guard let item = MainAppContext.shared.feedData.feedDataItem(with: feedPostId) else { return }
+        
+        var canSavePost = false
+        
+        if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            canSavePost = post.canSaveMedia
+        }
 
-        let controller = MediaExplorerController(media: item.media, index: index)
+        let controller = MediaExplorerController(media: item.media, index: index, canSaveMedia: canSavePost)
         controller.delegate = view
 
         present(controller.withNavigationController(), animated: true)

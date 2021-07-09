@@ -6,13 +6,11 @@
 //  Copyright © 2020 Hallo App, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Foundation
-import XMPPFramework
 
 enum Stream {
-    case proto(ProtoStream)
     case noise(NoiseStream)
 }
 
@@ -83,8 +81,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         switch stream {
         case .noise(let noise):
             noise.send(data)
-        case .proto(let proto):
-            proto.send(data)
         case .none:
             DDLogError("proto/send/error no stream configured!")
         }
@@ -93,18 +89,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     public func configureStream(with userData: UserData?) {
         DDLogInfo("proto/stream/configure [\(userData?.userId ?? "nil")]")
         switch userData?.credentials {
-        case .v1(let userID, _):
-            let proto = ProtoStream()
-            proto.startTLSPolicy = .required
-            proto.myJID = {
-                return XMPPJID(user: userID, domain: "s.halloapp.net", resource: "iphone")
-            }()
-            proto.protoService = self
-
-            let userAgent = NSString(string: AppContext.userAgent)
-            proto.clientVersion = userAgent
-            proto.addDelegate(self, delegateQueue: DispatchQueue.main)
-            stream = .proto(proto)
         case .v2(let userID, let noiseKeys):
             let noise = NoiseStream(
                             userAgent: AppContext.userAgent,
@@ -126,10 +110,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             if noise.isReadyToConnect {
                 connect()
             }
-        case .proto(let proto):
-            if proto.myJID != nil && proto.isDisconnected {
-                connect()
-            }
         }
     }
 
@@ -142,8 +122,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         switch stream {
         case .noise(let noise):
             noise.connect(host: userData.hostName, port: userData.hostPort)
-        case .proto(let proto):
-            connect(proto: proto)
         }
 
         // Retry if we're not connected in 10 seconds (cancel pending retry if it exists)
@@ -159,22 +137,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         retryConnectionTask = retryConnection
     }
 
-    public func connect(proto: ProtoStream) {
-        guard proto.myJID != nil else { return }
-
-        DDLogInfo("proto/connect [passiveMode: \(proto.passiveMode), \(proto.clientVersion), \(UIDevice.current.getModelName()) (iOS \(UIDevice.current.systemVersion))]")
-            
-        proto.hostName = userData.hostName
-        proto.hostPort = userData.hostPort
-
-        do {
-            try proto.connect(withTimeout: XMPPStreamTimeoutNone)
-        } catch {
-            DDLogError("proto/connect/error \(error)")
-            return
-        }
-    }
-
     public func disconnect() {
         DDLogInfo("proto/disconnect")
 
@@ -184,8 +146,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         switch stream {
         case .noise(let noise):
             noise.disconnect(afterSending: true)
-        case .proto(let proto):
-            proto.disconnectAfterSending()
         case .none:
             break
         }
@@ -200,8 +160,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         switch stream {
         case .noise(let noise):
             noise.disconnect()
-        case .proto(let proto):
-            proto.disconnect()
         case .none:
             break
         }
@@ -395,7 +353,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     open func authenticationFailed(with authResult: Server_AuthResult) {
         DDLogInfo("ProtoServiceCore/authenticationFailed [\(authResult)]")
-        switch authResult.reason {
+        switch authResult.reasonString {
         case "invalid client version":
             DispatchQueue.main.async {
                 self.isAppVersionKnownExpired.send(true)
@@ -454,7 +412,7 @@ extension ProtoServiceCore: NoiseDelegate {
     }
 
     public func receivedAuthResult(_ authResult: Server_AuthResult) {
-        if authResult.result == "success" {
+        if authResult.resultString == "success" {
             authenticationSucceeded(with: authResult)
         } else {
             authenticationFailed(with: authResult)
@@ -467,77 +425,6 @@ extension ProtoServiceCore: NoiseDelegate {
 
     public func receivedServerStaticKey(_ key: Data, for userID: UserID) {
         Keychain.saveServerStaticKey(key, for: userID)
-    }
-}
-
-extension ProtoServiceCore: XMPPStreamDelegate {
-
-    public func xmppStreamWillConnect(_ sender: XMPPStream) {
-        DDLogInfo("proto/stream/willConnect")
-
-        connectionState = .connecting
-    }
-
-    public func xmppStreamConnectDidTimeout(_ stream: XMPPStream) {
-        DDLogInfo("proto/stream/connectDidTimeout")
-    }
-
-    public func xmppStreamDidDisconnect(_ sender: XMPPStream, withError error: Error?) {
-        DDLogInfo("proto/stream/didDisconnect [\(String(describing: error))]")
-
-        connectionState = .notConnected
-    }
-
-    public func xmppStream(_ sender: XMPPStream, socketDidConnect socket: GCDAsyncSocket) {
-        DDLogInfo("proto/stream/socketDidConnect")
-    }
-
-    public func xmppStreamDidStartNegotiation(_ sender: XMPPStream) {
-        DDLogInfo("proto/stream/didStartNegotiation")
-    }
-
-    public func xmppStream(_ sender: XMPPStream, willSecureWithSettings settings: NSMutableDictionary) {
-        DDLogInfo("proto/stream/willSecureWithSettings [\(settings)]")
-
-        settings.setObject(true, forKey:GCDAsyncSocketManuallyEvaluateTrust as NSCopying)
-    }
-
-    public func xmppStream(_ sender: XMPPStream, didReceive trust: SecTrust, completionHandler: ((Bool) -> Void)) {
-        DDLogInfo("proto/stream/didReceiveTrust")
-
-        if SecTrustEvaluateWithError(trust, nil) {
-            completionHandler(true)
-        } else {
-            //todo: handle gracefully and reflect in global state
-            completionHandler(false)
-        }
-    }
-
-    public func xmppStreamDidSecure(_ sender: XMPPStream) {
-        guard let credentials = userData.credentials, case .v1(_, let password) = credentials else {
-            DDLogError("proto/stream/didSecure/error password missing")
-            return
-        }
-        DDLogInfo("proto/stream/didSecure/sending auth request")
-        if case .proto(let proto) = stream {
-            proto.sendAuthRequestWithPassword(password: password)
-        }
-    }
-
-    public func xmppStreamDidConnect(_ stream: XMPPStream) {
-        DDLogInfo("proto/stream/didConnect")
-    }
-
-    public func xmppStreamDidAuthenticate(_ sender: XMPPStream) {
-        DDLogError("proto/stream/didAuthenticate/error this delegate method should not be used")
-    }
-
-    public func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: DDXMLElement) {
-        DDLogError("proto/stream/didNotAuthenticate/error \(error)")
-    }
-
-    public func xmppStream(_ sender: XMPPStream, didReceiveError error: DDXMLElement) {
-        DDLogInfo("proto/stream/didReceiveError [\(error)]")
     }
 }
 
@@ -727,6 +614,27 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func rerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let identityKey = AppContext.shared.keyStore.keyBundle()?.identityPublicEdKey else {
+            DDLogError("ProtoService/rerequestMessage/\(message.id)/error could not retrieve identity key")
+            return
+        }
+
+        let fromUserID = UserID(message.fromUid)
+
+        AppContext.shared.messageCrypter.sessionSetupInfoForRerequest(from: fromUserID) { setupInfo in
+            let rerequestData = RerequestData(
+                identityKey: identityKey,
+                signedPreKeyID: 0,
+                oneTimePreKeyID: setupInfo?.1,
+                sessionSetupEphemeralKey: setupInfo?.0 ?? Data(),
+                messageEphemeralKey: failedEphemeralKey)
+
+            DDLogInfo("ProtoService/rerequestMessage/\(message.id) rerequesting")
+            self.rerequestMessage(message.id, senderID: fromUserID, rerequestData: rerequestData, completion: completion)
+        }
+    }
+
     public func rerequestMessage(_ messageID: String, senderID: UserID, rerequestData: RerequestData, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoMessageRerequest(messageID: messageID, fromUserID: userData.userId, toUserID: senderID, rerequestData: rerequestData, completion: completion))
     }
@@ -757,5 +665,73 @@ extension ProtoServiceCore: CoreService {
 
     public func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
         enqueue(request: ProtoJoinGroupWithLinkRequest(inviteLink: inviteLink, completion: completion))
+    }
+}
+
+public extension Server_Packet {
+    static func iqPacketWithID() -> Server_Packet {
+        var packet = Server_Packet()
+        packet.iq.id = PacketID.generate()
+        return packet
+    }
+
+    static func iqPacket(type: Server_Iq.TypeEnum, payload: Server_Iq.OneOf_Payload) -> Server_Packet {
+        var packet = Server_Packet.iqPacketWithID()
+        packet.iq.type = type
+        packet.iq.payload = payload
+        return packet
+    }
+
+    static func msgPacket(
+        from: UserID,
+        to: UserID,
+        id: String = PacketID.generate(),
+        type: Server_Msg.TypeEnum = .normal,
+        rerequestCount: Int32 = 0,
+        payload: Server_Msg.OneOf_Payload) -> Server_Packet
+    {
+        var msg = Server_Msg()
+
+        if let fromUID = Int64(from) {
+            msg.fromUid = fromUID
+        } else {
+            DDLogError("Server_Packet/\(id)/error invalid from user ID \(from)")
+        }
+
+        if let toUID = Int64(to) {
+            msg.toUid = toUID
+        } else {
+            DDLogError("Server_Packet/\(id)/error invalid to user ID \(to)")
+        }
+
+        msg.type = type
+        msg.id = id
+        msg.payload = payload
+        msg.rerequestCount = rerequestCount
+
+        var packet = Server_Packet()
+        packet.msg = msg
+
+        return packet
+    }
+
+    var requestID: String? {
+        guard let stanza = stanza else {
+            return nil
+        }
+        switch stanza {
+        case .msg(let msg):
+            return msg.id
+        case .iq(let iq):
+            return iq.id
+        case .ack(let ack):
+            return ack.id
+        case .presence(let presence):
+            return presence.id
+        case .chatState:
+            return PacketID.generate(short: true) // throwaway id, chat states don't use them
+        case .haError:
+            return nil
+        }
     }
 }

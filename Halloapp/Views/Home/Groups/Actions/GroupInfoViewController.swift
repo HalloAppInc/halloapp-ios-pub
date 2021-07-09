@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreData
@@ -90,6 +90,14 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
 
     deinit {
         DDLogDebug("GroupInfoViewController/deinit ")
+    }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        DDLogDebug("GroupInfoViewController/traitCollectionDidChange")
+
+        for cell in tableView.visibleCells {
+            cell.contentView.layer.backgroundColor = UIColor.secondarySystemGroupedBackground.cgColor
+        }
     }
 
     // MARK: Fetch Results Controller
@@ -512,7 +520,11 @@ extension GroupInfoViewController: GroupInfoHeaderViewDelegate {
                 currentMembers.append(groupMember.userId)
             }
         }
-
+        guard ContactStore.contactsAccessAuthorized else {
+            let vController = NewGroupMembersPermissionDeniedController(currentMembers: currentMembers)
+            navigationController?.pushViewController(vController, animated: true)
+            return
+        }
         let vController = NewGroupMembersViewController(currentMembers: currentMembers)
         vController.delegate = self
         self.navigationController?.pushViewController(vController, animated: true)
@@ -528,7 +540,11 @@ extension GroupInfoViewController: GroupInfoFooterViewDelegate {
                 currentMembers.append(groupMember.userId)
             }
         }
-
+        guard ContactStore.contactsAccessAuthorized else {
+            let vController = NewGroupMembersPermissionDeniedController(currentMembers: currentMembers)
+            navigationController?.pushViewController(vController, animated: true)
+            return
+        }
         let vController = NewGroupMembersViewController(currentMembers: currentMembers)
         vController.delegate = self
         self.navigationController?.pushViewController(vController, animated: true)

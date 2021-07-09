@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Core
 import CoreData
 
@@ -290,6 +290,9 @@ class DataStore: ShareExtensionDataStore {
         chatMessage.decryptionError = nil
         chatMessage.ephemeralKey = nil
         chatMessage.timestamp = Date()
+        let serialID = AppContext.shared.getchatMsgSerialId()
+        DDLogInfo("SharedDataStore/message/\(messageId)/created/serialId \(serialID)")
+        chatMessage.serialID = serialID
         
         media.forEach { (mediaItem) in
             attach(media: mediaItem, to: .message(chatMessage), using: managedObjectContext)

@@ -6,7 +6,7 @@
 //  Copyright © 2020 HalloApp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import SwiftUI
@@ -19,7 +19,7 @@ private extension Localizations {
     }
 
     static var inviteFriends: String {
-        NSLocalizedString("profile.row.invite", value: "Invite Friends", comment: "Row in Profile screen.")
+        NSLocalizedString("profile.row.invite", value: "Invite to HalloApp", comment: "Row in Profile screen.")
     }
 
     static var help: String {
@@ -27,7 +27,19 @@ private extension Localizations {
     }
 
     static var about: String {
-        NSLocalizedString("profile.row.about", value: "About HalloApp", comment: "Row in Profile screen.")
+        NSLocalizedString("profile.row.about", value: "About", comment: "Row in Profile screen.")
+    }
+    
+    static var accountRow: String {
+        NSLocalizedString("profile.row.account", value: "Account", comment: "Row in Profile Screen")
+    }
+    
+    static var shareRow: String {
+        NSLocalizedString("profile.row.share", value: "Share HalloApp", comment: "Row in Profile Screen.")
+    }
+    
+    static var shareHalloAppString: String {
+        NSLocalizedString("settings.share.text", value: "Join me on HalloApp, download for free at halloapp.com/dl", comment: "String to auto-fill if a user tried to share to a friend.")
     }
 }
 
@@ -54,6 +66,8 @@ class SettingsViewController: UITableViewController {
         case invite
         case help
         case about
+        case account
+        case share
     }
 
     private var dataSource: UITableViewDiffableDataSource<Section, Row>!
@@ -66,6 +80,8 @@ class SettingsViewController: UITableViewController {
     private let cellInviteFriends = SettingsTableViewCell(text: Localizations.inviteFriends, image: UIImage(named: "settingsInvite"))
     private let cellHelp = SettingsTableViewCell(text: Localizations.help, image: UIImage(named: "settingsHelp"))
     private let cellAbout = SettingsTableViewCell(text: Localizations.about, image: UIImage(named: "settingsAbout"))
+    private let cellAccount = SettingsTableViewCell(text: Localizations.accountRow, image: UIImage(named: "settingsAccount"))
+    private let cellShare = SettingsTableViewCell(text: Localizations.shareRow, image: UIImage(named: "settingsShare"))
 
     // MARK: View Controller
 
@@ -96,6 +112,7 @@ class SettingsViewController: UITableViewController {
         tableView.backgroundColor = .feedBackground
         tableView.separatorStyle = .none
         tableView.tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 10))
+        tableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
 
         dataSource = UITableViewDiffableDataSource<Section, Row>(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
             guard let self = self else { return nil }
@@ -109,13 +126,15 @@ class SettingsViewController: UITableViewController {
             case .invite: return self.cellInviteFriends
             case .help: return self.cellHelp
             case .about: return self.cellAbout
+            case .account: return self.cellAccount
+            case .share: return self.cellShare
             }
         })
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         snapshot.appendSections([ .one, .two, .three ])
         snapshot.appendItems([ .profile, .feed ], toSection: .one)
-        snapshot.appendItems([ .notifications, .privacy ], toSection: .two)
-        snapshot.appendItems([ .help, .about, .invite ], toSection: .three)
+        snapshot.appendItems([ .account, .notifications, .privacy ], toSection: .two)
+        snapshot.appendItems([ .help, .about, .invite, .share ], toSection: .three)
         dataSource.apply(snapshot, animatingDifferences: false)
 
         headerViewController = ProfileHeaderViewController()
@@ -187,6 +206,9 @@ class SettingsViewController: UITableViewController {
             openHelp()
         case .about:
             openAbout()
+        case .account:
+            openAccountSettings()
+        case .share: openShareMenu()
         }
     }
 
@@ -218,13 +240,18 @@ class SettingsViewController: UITableViewController {
     }
     
     private func openInviteFriends() {
+        if let indexPath = self.dataSource.indexPath(for: .invite) {
+            self.tableView.deselectRow(at: indexPath, animated: true)
+        }
+        
+        guard ContactStore.contactsAccessAuthorized else {
+            let inviteVC = InvitePermissionDeniedViewController()
+            present(UINavigationController(rootViewController: inviteVC), animated: true)
+            return
+        }
         InviteManager.shared.requestInvitesIfNecessary()
         let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
-        present(UINavigationController(rootViewController: inviteVC), animated: true) {
-            if let indexPath = self.dataSource.indexPath(for: .invite) {
-                self.tableView.deselectRow(at: indexPath, animated: true)
-            }
-        }
+        present(UINavigationController(rootViewController: inviteVC), animated: true)
     }
 
     private func openHelp() {
@@ -238,6 +265,21 @@ class SettingsViewController: UITableViewController {
             viewController.hidesBottomBarWhenPushed = false
             navigationController?.pushViewController(viewController, animated: true)
         }
+    }
+    
+    private func openAccountSettings() {
+        let viewController = UIHostingController(rootView: AccountSettingsList())
+        viewController.hidesBottomBarWhenPushed = false
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+    
+    private func openShareMenu() {
+        if let indexPath = self.dataSource.indexPath(for: .share) {
+            self.tableView.deselectRow(at: indexPath, animated: true)
+        }
+        
+        let ac = UIActivityViewController(activityItems: [Localizations.shareHalloAppString], applicationActivities: nil)
+        present(ac, animated: true)
     }
 
     @objc private func openDeveloperMenu() {

@@ -87,6 +87,8 @@
         <attribute name="outgoingStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="resendAttempts" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="retractID" optional="YES" attributeType="String"/>
+        <attribute name="serialID" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="serverTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="toUserId" attributeType="String"/>
@@ -143,7 +145,7 @@
         <element name="ChatGroupMessageInfo" positionX="-18" positionY="162" width="128" height="118"/>
         <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="253"/>
         <element name="ChatMention" positionX="-36" positionY="144" width="128" height="104"/>
-        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="284"/>
+        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="314"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="148"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="149"/>
         <element name="ChatThread" positionX="-36" positionY="108" width="128" height="344"/>

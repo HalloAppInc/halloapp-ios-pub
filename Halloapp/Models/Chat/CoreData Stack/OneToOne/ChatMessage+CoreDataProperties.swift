@@ -59,7 +59,10 @@ extension ChatMessage {
     
     @NSManaged var retractID: String?
 
+    @NSManaged var serialID: Int32
+    // TODO: we should switch this timestamp to be in milliseconds.
     @NSManaged var timestamp: Date?
+    @NSManaged var serverTimestamp: Date?
     
     @NSManaged var cellHeight: Int16
     

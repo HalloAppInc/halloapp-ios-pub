@@ -122,6 +122,14 @@ public struct Server_EventData {
     set {edata = .decryptionReport(newValue)}
   }
 
+  public var permissions: Server_Permissions {
+    get {
+      if case .permissions(let v)? = edata {return v}
+      return Server_Permissions()
+    }
+    set {edata = .permissions(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Edata: Equatable {
@@ -130,6 +138,7 @@ public struct Server_EventData {
     case mediaComposeLoad(Server_MediaComposeLoad)
     case pushReceived(Server_PushReceived)
     case decryptionReport(Server_DecryptionReport)
+    case permissions(Server_Permissions)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_EventData.OneOf_Edata, rhs: Server_EventData.OneOf_Edata) -> Bool {
@@ -155,6 +164,10 @@ public struct Server_EventData {
       }()
       case (.decryptionReport, .decryptionReport): return {
         guard case .decryptionReport(let l) = lhs, case .decryptionReport(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.permissions, .permissions): return {
+        guard case .permissions(let l) = lhs, case .permissions(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -505,6 +518,96 @@ extension Server_DecryptionReport.Status: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_Permissions {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var type: Server_Permissions.TypeEnum = .contacts
+
+  public var status: Server_Permissions.Status = .allowed
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum TypeEnum: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case contacts // = 0
+    case notifications // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .contacts
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .contacts
+      case 1: self = .notifications
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .contacts: return 0
+      case .notifications: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum Status: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case allowed // = 0
+    case denied // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .allowed
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .allowed
+      case 1: self = .denied
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .allowed: return 0
+      case .denied: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_Permissions.TypeEnum: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_Permissions.TypeEnum] = [
+    .contacts,
+    .notifications,
+  ]
+}
+
+extension Server_Permissions.Status: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_Permissions.Status] = [
+    .allowed,
+    .denied,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "server"
@@ -529,6 +632,7 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     12: .standard(proto: "media_compose_load"),
     13: .standard(proto: "push_received"),
     14: .standard(proto: "decryption_report"),
+    15: .same(proto: "permissions"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -543,48 +647,81 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       case 4: try { try decoder.decodeSingularUInt64Field(value: &self.timestampMs) }()
       case 10: try {
         var v: Server_MediaUpload?
+        var hadOneofValue = false
         if let current = self.edata {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .mediaUpload(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.edata = .mediaUpload(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.edata = .mediaUpload(v)
+        }
       }()
       case 11: try {
         var v: Server_MediaDownload?
+        var hadOneofValue = false
         if let current = self.edata {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .mediaDownload(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.edata = .mediaDownload(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.edata = .mediaDownload(v)
+        }
       }()
       case 12: try {
         var v: Server_MediaComposeLoad?
+        var hadOneofValue = false
         if let current = self.edata {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .mediaComposeLoad(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.edata = .mediaComposeLoad(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.edata = .mediaComposeLoad(v)
+        }
       }()
       case 13: try {
         var v: Server_PushReceived?
+        var hadOneofValue = false
         if let current = self.edata {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .pushReceived(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.edata = .pushReceived(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.edata = .pushReceived(v)
+        }
       }()
       case 14: try {
         var v: Server_DecryptionReport?
+        var hadOneofValue = false
         if let current = self.edata {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .decryptionReport(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.edata = .decryptionReport(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.edata = .decryptionReport(v)
+        }
+      }()
+      case 15: try {
+        var v: Server_Permissions?
+        var hadOneofValue = false
+        if let current = self.edata {
+          hadOneofValue = true
+          if case .permissions(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.edata = .permissions(v)
+        }
       }()
       default: break
       }
@@ -627,6 +764,10 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     case .decryptionReport?: try {
       guard case .decryptionReport(let v)? = self.edata else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
+    }()
+    case .permissions?: try {
+      guard case .permissions(let v)? = self.edata else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
     }()
     case nil: break
     }
@@ -994,5 +1135,57 @@ extension Server_DecryptionReport.Status: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "OK"),
     1: .same(proto: "FAIL"),
+  ]
+}
+
+extension Server_Permissions: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Permissions"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "type"),
+    2: .same(proto: "status"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.status) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.type != .contacts {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 1)
+    }
+    if self.status != .allowed {
+      try visitor.visitSingularEnumField(value: self.status, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_Permissions, rhs: Server_Permissions) -> Bool {
+    if lhs.type != rhs.type {return false}
+    if lhs.status != rhs.status {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_Permissions.TypeEnum: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "CONTACTS"),
+    1: .same(proto: "NOTIFICATIONS"),
+  ]
+}
+
+extension Server_Permissions.Status: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "ALLOWED"),
+    1: .same(proto: "DENIED"),
   ]
 }

@@ -6,11 +6,10 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import SwiftProtobuf
-import XMPPFramework
 
 fileprivate let userDefaultsKeyForAPNSToken = "apnsPushToken"
 fileprivate let userDefaultsKeyForLangID = "langId"
@@ -54,8 +53,6 @@ final class ProtoService: ProtoServiceCore {
         requestServerPropertiesIfNecessary()
         NotificationSettings.current.sendConfigIfNecessary(using: self)
         MainAppContext.shared.startReportingEvents()
-        userData.migratePasswordToKeychain()
-        establishNoiseKeysIfNecessary()
         pruneSilentChatRerequestRecords()
     }
 
@@ -419,7 +416,7 @@ final class ProtoService: ProtoServiceCore {
             switch item.item {
             case .post(let serverPost):
                 switch item.action {
-                case .publish:
+                case .publish, .share:
                     guard let post = PostData(serverPost) else {
                         DDLogError("proto/payloadContents/\(serverPost.id)/error could not make post object")
                         continue
@@ -432,7 +429,7 @@ final class ProtoService: ProtoServiceCore {
                 }
             case .comment(let serverComment):
                 switch item.action {
-                case .publish:
+                case .publish, .share:
                     guard let comment = CommentData(serverComment) else {
                         DDLogError("proto/payloadContents/\(serverComment.id)/error could not make comment object")
                         continue
@@ -477,13 +474,12 @@ final class ProtoService: ProtoServiceCore {
     private func rerequestMessageIfNecessary(_ message: Server_Msg, failedEphemeralKey: Data?) {
         // Dont rerequest messages that were already decrypted and saved.
         if !isMessageDecryptedAndSaved(msgId: message.id) {
-            rerequestMessage(message, failedEphemeralKey: failedEphemeralKey)
+            updateStatusAndRerequestMessage(message, failedEphemeralKey: failedEphemeralKey)
         }
     }
 
-    private func rerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?) {
+    private func updateStatusAndRerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?) {
         self.updateMessageStatus(id: message.id, status: .rerequested)
-
         guard let identityKey = AppContext.shared.keyStore.keyBundle()?.identityPublicEdKey else {
             DDLogError("ProtoService/rerequestMessage/\(message.id)/error could not retrieve identity key")
             return
@@ -640,6 +636,9 @@ final class ProtoService: ProtoServiceCore {
             if !serverChat.senderName.isEmpty {
                 MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverChat.senderName ])
             }
+            if !serverChat.senderPhone.isEmpty {
+                MainAppContext.shared.contactStore.addPushNumbers([ UserID(msg.fromUid) : serverChat.senderPhone ])
+            }
             // Dont process messages that were already decrypted and saved.
             if isMessageDecryptedAndSaved(msgId: msg.id) {
                 return
@@ -648,7 +647,7 @@ final class ProtoService: ProtoServiceCore {
             let receiptTimestamp = Date()
             decryptChat(serverChat, from: UserID(msg.fromUid)) { (clientChat, decryptionFailure) in
                 if let clientChat = clientChat {
-                    let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount)
+                    let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount, rerequestCount: msg.rerequestCount)
                     DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId) [length=\(chatMessage.text?.count ?? 0)] [media=\(chatMessage.media.count)]")
                     self.didGetNewChatMessage.send(.decrypted(chatMessage))
                 } else {
@@ -689,7 +688,7 @@ final class ProtoService: ProtoServiceCore {
                 if let failure = decryptionFailure {
                     DDLogError("proto/didReceive/\(msg.id)/silent-decrypt/error \(failure.error)")
                     AppContext.shared.errorLogger?.logError(failure.error)
-                    self.rerequestMessage(msg, failedEphemeralKey: failure.ephemeralKey)
+                    self.updateStatusAndRerequestMessage(msg, failedEphemeralKey: failure.ephemeralKey)
                 } else {
                     DDLogInfo("proto/didReceive/\(msg.id)/silent-decrypt/success")
                 }
@@ -814,6 +813,8 @@ final class ProtoService: ProtoServiceCore {
             DDLogInfo("proto/didReceive/\(msg.id)/endOfQueue")
         case .errorStanza(let error):
             DDLogError("proto/didReceive/\(msg.id) received message with error \(error)")
+        case .inviteeNotice, .groupFeedRerequest, .historyResend:
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
 
@@ -878,35 +879,6 @@ final class ProtoService: ProtoServiceCore {
                 isSilent: isSilent)
         } else {
             DDLogError("proto/didReceive/\(messageID)/decrypt/stats/error missing sender user agent")
-        }
-    }
-
-    // MARK: Noise
-
-    private func establishNoiseKeysIfNecessary() {
-        guard case .v1(let userID, let password) = userData.credentials,
-              userData.noiseKeys == nil else
-        {
-            DDLogInfo("ProtoService/establishNoiseKeys/skipping [already exist]")
-            return
-        }
-        guard let keys = NoiseKeys() else {
-            DDLogError("ProtoService/establishNoiseKeys/error unable to generate keys")
-            AppContext.shared.eventMonitor.count(.noiseMigration(success: false))
-            return
-        }
-
-        let registrationService = DefaultRegistrationService()
-        registrationService.updateNoiseKeys(keys, userID: userID, password: password) { result in
-            switch result {
-            case .success(let credentials):
-                DDLogInfo("ProtoService/establishNoiseKeys/success")
-                self.userData.update(credentials: credentials)
-                AppContext.shared.eventMonitor.count(.noiseMigration(success: true))
-            case .failure(let error):
-                DDLogError("ProtoService/establishNoiseKeys/error [\(error)]")
-                AppContext.shared.eventMonitor.count(.noiseMigration(success: false))
-            }
         }
     }
 
@@ -1171,6 +1143,14 @@ extension ProtoService: HalloService {
 
     func getServerProperties(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>) {
         enqueue(request: ProtoGetServerPropertiesRequest(completion: completion))
+    }
+    
+    func exportDataStatus(isSetRequest: Bool = false, completion: @escaping ServiceRequestCompletion<Server_ExportData>) {
+        enqueue(request: ProtoGetDataExportStatusRequest(isSetRequest: isSetRequest, completion: completion))
+    }
+    
+    func requestAccountDeletion(phoneNumber: String, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoDeleteAccountRequest(phoneNumber: phoneNumber, completion: completion))
     }
 
     func sendGroupChatMessage(_ message: HalloGroupChatMessage) {

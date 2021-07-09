@@ -6,7 +6,7 @@
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreData
@@ -63,8 +63,8 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     override func viewDidLoad() {
         DDLogInfo("GroupsListViewController/viewDidLoad")
 
-        navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
+        
         installLargeTitleUsingGothamFont()
 
         navigationItem.rightBarButtonItem = rightBarButtonItem
@@ -97,7 +97,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         tableView.backgroundView = UIView() // fixes issue where bg color was off when pulled down from top
         tableView.backgroundColor = .primaryBg
         tableView.separatorStyle = .none
-        tableView.contentInset = UIEdgeInsets(top: -10, left: 0, bottom: 0, right: 0) // -10 to hide top padding on searchBar
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0) // -10 to hide top padding on searchBar (Change: Since the adding of boarder, change it back to 0 so that there is some extra space above the search bar)
                 
         tableView.tableHeaderView = searchController.searchBar
         tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
@@ -210,6 +210,11 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 
     @objc
     private func startInviteFriendsFlow() {
+        guard ContactStore.contactsAccessAuthorized else {
+            let inviteVC = InvitePermissionDeniedViewController()
+            present(UINavigationController(rootViewController: inviteVC), animated: true)
+            return
+        }
         InviteManager.shared.requestInvitesIfNecessary()
         let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
         let navController = UINavigationController(rootViewController: inviteVC)
@@ -383,6 +388,10 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     }
 
     private func openNewGroup() {
+        guard ContactStore.contactsAccessAuthorized else {
+            present(UINavigationController(rootViewController: NewGroupMembersPermissionDeniedController()), animated: true)
+            return
+        }
         let viewController = NewGroupMembersViewController(currentMembers: [])
         viewController.delegate = self
         present(UINavigationController(rootViewController: viewController), animated: true)

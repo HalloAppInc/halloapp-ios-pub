@@ -11,7 +11,8 @@ import Core
 import CoreData
 import Foundation
 import UIKit
-import CocoaLumberjack
+import Photos
+import CocoaLumberjackSwift
 
 protocol MediaExplorerTransitionDelegate: AnyObject {
     func getTransitionView(atPostion index: Int) -> UIView?
@@ -30,6 +31,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var collectionView: UICollectionView!
     private var pageControl: UIPageControl?
     private var tapRecorgnizer: UITapGestureRecognizer!
+    private var doubleTapRecorgnizer: UITapGestureRecognizer!
     private var swipeExitRecognizer: UIPanGestureRecognizer!
     private var swipeExitInProgress = false
     private var isSystemUIHidden = false
@@ -37,6 +39,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var animator: MediaExplorerAnimator!
     private var fetchedResultsController: NSFetchedResultsController<ChatMedia>?
     private let chatMediaUpdated = PassthroughSubject<(ChatMedia, IndexPath), Never>()
+    private var canSaveMedia = false
 
     private var currentIndex: Int {
         didSet {
@@ -67,8 +70,36 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     override var prefersStatusBarHidden: Bool {
         isSystemUIHidden
     }
+    
+    init(avatarImage image: UIImage) {
+        let imageMedia = MediaExplorerMedia(url: nil, image: image, type: .image, size: image.size, update: nil, progress: nil)
+        self.media = [imageMedia]
+        self.currentIndex = 0
+        super.init(nibName: nil, bundle: nil)
+    }
 
-    init(media: [FeedMedia], index: Int) {
+    private class BackButton: UIButton {
+        override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+            return bounds.insetBy(dx: -16, dy: -16).contains(point)
+        }
+    }
+
+    private lazy var backBtn: UIButton = {
+        let backBtn = BackButton(type: .custom)
+        backBtn.contentEdgeInsets = UIEdgeInsets(top: 10, left: -8, bottom: 10, right: 10)
+        backBtn.addTarget(self, action: #selector(backAction), for: [.touchUpInside, .touchUpOutside])
+        backBtn.setImage(UIImage(named: "NavbarBack")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+        backBtn.layer.masksToBounds = false
+        backBtn.layer.shadowColor = UIColor.black.cgColor
+        backBtn.layer.shadowOpacity = 1
+        backBtn.layer.shadowOffset = .zero
+        backBtn.layer.shadowRadius = 0.3
+        backBtn.translatesAutoresizingMaskIntoConstraints = false
+
+        return backBtn
+    }()
+
+    init(media: [FeedMedia], index: Int, canSaveMedia: Bool) {
         self.media = media.map { item in
             let type: MediaExplorerMediaType = (item.type == .image ? .image : .video)
             let progress = MainAppContext.shared.feedData.downloadTask(for: item)?.downloadProgress.eraseToAnyPublisher()
@@ -84,6 +115,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             return MediaExplorerMedia(url: item.fileURL, image: item.image, type: type, size: item.size, update: update, progress: progress)
         }
         self.currentIndex = index
+        self.canSaveMedia = canSaveMedia
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -103,6 +135,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         fetchedResultsController = makeFetchedResultsController(media[index])
         fetchedResultsController?.delegate = self
         try? fetchedResultsController?.performFetch()
+        
+        canSaveMedia = true
     }
 
     init(media: [ChatQuotedMedia], index: Int) {
@@ -138,16 +172,13 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         navigationController?.navigationBar.shadowImage = UIImage()
         navigationController?.navigationBar.backgroundColor = .clear
 
-        let backBtn = UIButton(type: .custom)
-        backBtn.contentEdgeInsets = UIEdgeInsets(top: 10, left: -8, bottom: 10, right: 10)
-        backBtn.addTarget(self, action: #selector(backAction), for: [.touchUpInside, .touchUpOutside])
-        backBtn.setImage(UIImage(named: "NavbarBack")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        backBtn.layer.masksToBounds = false
-        backBtn.layer.shadowColor = UIColor.black.cgColor
-        backBtn.layer.shadowOpacity = 1
-        backBtn.layer.shadowOffset = .zero
-        backBtn.layer.shadowRadius = 0.3
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backBtn)
+        
+        if canSaveMedia {
+            let icon = UIImage(systemName: "square.and.arrow.down")
+            let shareSymbol = icon?.applyingSymbolConfiguration(UIImage.SymbolConfiguration(weight: .heavy))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: shareSymbol, style: .plain, target: self, action: #selector(shareButtonPressed))
+        }
 
         view.backgroundColor = .black
 
@@ -172,6 +203,113 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
             self.pageControl = pageControl
         }
+    }
+    
+    @objc func shareButtonPressed() {
+        let saveMediaConfirmationAlert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        
+        saveMediaConfirmationAlert.addAction(UIAlertAction(title: Localizations.alertSaveToCameraRollOption, style: .default, handler: { [weak self] _ in
+            PHPhotoLibrary.requestAuthorization { status in
+                // `.limited` was introduced in iOS 14, and only gives us partial access to the photo album. In this case we can still save to the camera roll
+                if #available(iOS 14, *) {
+                    guard status == .authorized || status == .limited else {
+                        self?.handleMediaAuthorizationFailure()
+                        return
+                    }
+                } else {
+                    guard status == .authorized else {
+                        self?.handleMediaAuthorizationFailure()
+                        return
+                    }
+                }
+                
+                self?.saveMedia()
+            }
+        }))
+        
+        saveMediaConfirmationAlert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil))
+        
+        saveMediaConfirmationAlert.view.tintColor = .systemBlue
+        
+        self.present(saveMediaConfirmationAlert, animated: true, completion: nil)
+    }
+    
+    private func handleMediaAuthorizationFailure() {
+        let alert = UIAlertController(title: Localizations.mediaPermissionsError, message: Localizations.mediaPermissionsErrorDescription, preferredStyle: .alert)
+        
+        DDLogInfo("MediaExplorerController/shareButtonPressed: User denied photos permissions")
+        
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+        
+        present(alert, animated: true)
+    }
+    
+    private func saveMedia() {
+        PHPhotoLibrary.shared().performChanges({ [weak self] in
+            guard let self = self else { return }
+            if self.media[self.currentIndex].type == .image {
+                if let url = self.media[self.currentIndex].url {
+                    PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
+                }
+            } else if self.media[self.currentIndex].type == .video {
+                if let url = self.media[self.currentIndex].url {
+                    PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+                }
+            }
+        }, completionHandler: { [weak self] success, error in
+            DispatchQueue.main.async {
+                if success {
+                    self?.mediaSaved()
+                } else {
+                    self?.handleSaveError(error: error)
+                }
+            }
+        })
+    }
+    
+    private func mediaSaved() {
+        let savedLabel = UILabel()
+        
+        let imageAttachment = NSTextAttachment()
+        imageAttachment.image = UIImage(named: "CheckmarkLong")?.withTintColor(.white)
+
+        let fullString = NSMutableAttributedString()
+        fullString.append(NSAttributedString(attachment: imageAttachment))
+        fullString.append(NSAttributedString(string: " ")) // Space between localized string for saved and checkmark
+        fullString.append(NSAttributedString(string: Localizations.saveSuccessfulLabel))
+        savedLabel.attributedText = fullString
+        
+        savedLabel.layer.cornerRadius = 13
+        savedLabel.clipsToBounds = true
+        savedLabel.textColor = .white
+        savedLabel.backgroundColor = .primaryBlue
+        savedLabel.textAlignment = .center
+        
+        self.view.addSubview(savedLabel)
+        
+        savedLabel.translatesAutoresizingMaskIntoConstraints = false
+        savedLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        savedLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 22.5).isActive = true
+        savedLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -22.5).isActive = true
+        savedLabel.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -75).isActive = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            savedLabel.removeFromSuperview()
+        }
+    }
+    
+    private func handleSaveError(error: Error?) {
+        let alert = UIAlertController(title: nil, message: Localizations.mediaSaveError, preferredStyle: .alert)
+        
+        if let error = error {
+            DDLogError("MediaExplorerController/shareButtonPressed/error: \(error)")
+        } else {
+            DDLogError("MediaExplorerController/shareButtonPressed/error: Unknown error")
+        }
+        
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
+        
+        present(alert, animated: true)
     }
 
     override func viewDidLayoutSubviews() {
@@ -245,6 +383,11 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         tapRecorgnizer = UITapGestureRecognizer(target: self, action: #selector(onTapAction(sender:)))
         tapRecorgnizer.delegate = self
         collectionView.addGestureRecognizer(tapRecorgnizer)
+
+        doubleTapRecorgnizer = UITapGestureRecognizer(target: self, action: #selector(onDoubleTapAction(sender:)))
+        doubleTapRecorgnizer.numberOfTapsRequired = 2
+        doubleTapRecorgnizer.delegate = self
+        collectionView.addGestureRecognizer(doubleTapRecorgnizer)
 
         swipeExitRecognizer = UIPanGestureRecognizer(target: self, action: #selector(onSwipeExitAction(sender:)))
         swipeExitRecognizer.maximumNumberOfTouches = 1
@@ -403,11 +546,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         return false
     }
 
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        if gestureRecognizer == tapRecorgnizer {
-            if let other = otherGestureRecognizer as? UITapGestureRecognizer {
-                return other.numberOfTapsRequired > 1
-            }
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer == doubleTapRecorgnizer, let other = otherGestureRecognizer as? UITapGestureRecognizer {
+            return other.numberOfTapsRequired == 1
         }
 
         return false
@@ -467,6 +608,14 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     @objc private func onTapAction(sender: UITapGestureRecognizer) {
         toggleSystemUI()
+    }
+
+    @objc private func onDoubleTapAction(sender: UITapGestureRecognizer) {
+        let indexPath = IndexPath(item: currentIndex, section: 0)
+
+        if let cell = collectionView.cellForItem(at: indexPath) as? MediaExplorerVideoCell {
+            cell.togglePlay()
+        }
     }
 
     @objc private func onSwipeExitAction(sender: UIPanGestureRecognizer) {
@@ -643,5 +792,27 @@ extension UIImageView: MediaExplorerTransitionDelegate {
 
     func currentTimeForVideo(atPostion index: Int) -> CMTime? {
         return nil
+    }
+}
+
+extension Localizations {
+    static var alertSaveToCameraRollOption: String {
+        return NSLocalizedString("media.save.camera.roll", value: "Save To Camera Roll", comment: "Button that lets the user save the current media displayed to their camera roll")
+    }
+    
+    static var saveSuccessfulLabel: String {
+        return NSLocalizedString("media.save.saved", value: "Saved", comment: "Label indicating that media was successfully saved to the camera roll")
+    }
+    
+    static var mediaSaveError: String {
+        return NSLocalizedString("media.save.not.saved", value: "Photo could not be saved", comment: "Alert displayed explaining to the user that the media save operation failed")
+    }
+    
+    static var mediaPermissionsError: String {
+        return NSLocalizedString("media.save.needs.permissions", value: "Needs photos permissions", comment: "Alert title telling the user that the photos couldn't be saved due to camera role privacy settings")
+    }
+    
+    static var mediaPermissionsErrorDescription: String {
+        return NSLocalizedString("media.save.no.access", value: "Photos cannot be saved without access to the camera roll.", comment: "Description telling the user why the photos couldn't be saved")
     }
 }

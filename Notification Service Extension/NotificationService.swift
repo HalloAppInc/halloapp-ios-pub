@@ -7,7 +7,7 @@
 //
 
 import Alamofire
-import CocoaLumberjack
+import CocoaLumberjackSwift
 import Core
 import UserNotifications
 
@@ -88,11 +88,20 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             }
             dataStore.save(protoComment: protoContainer.comment, notificationMetadata: metadata)
         case .chatMessage:
-            guard let messageId = metadata.messageId, !dataStore.messages().contains(where: { $0.id == metadata.messageId }) else {
-                DDLogError("didReceiveRequest/error duplicate message ID [\(String(describing: metadata.messageId))]")
-                contentHandler(bestAttemptContent)
+            // TODO: add id as the constraint to the db and then remove this check.
+            guard let messageId = metadata.messageId else {
+                DDLogError("didReceiveRequest/error missing messageId [\(String(describing: metadata))]")
+                dismissNotification()
                 return
             }
+            // Check if message has already been received and decrypted successfully.
+            // If yes - then dismiss notification, else continue processing.
+            if let sharedChatMessage = dataStore.sharedChatMessage(for: messageId), sharedChatMessage.status == .received {
+                DDLogError("didReceiveRequest/error duplicate message ID that was already decrypted[\(String(describing: metadata.messageId))]")
+                dismissNotification()
+                return
+            }
+
             // Update application badge number.
             let badgeNum = AppExtensionContext.shared.applicationIconBadgeNumber
             let applicationIconBadgeNumber = badgeNum == -1 ? 1 : badgeNum + 1
@@ -116,9 +125,10 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             // todo(murali@): extend this to other types as well.
             dataStore.saveServerMsg(notificationMetadata: metadata)
         case .groupChatMessage, .feedPostRetract, .groupFeedPostRetract,
-             .feedCommentRetract, .groupFeedCommentRetract, .chatMessageRetract, .groupChatMessageRetract:
-            // If notification is anything else just invoke completion handler.
-            break
+             .feedCommentRetract, .groupFeedCommentRetract, .chatMessageRetract, .groupChatMessageRetract, .chatRerequest:
+            // If notification is anything else just invoke completion handler and return
+            dismissNotification()
+            return
         }
 
         // Invoke completion handler now if there was nothing to download.
@@ -135,6 +145,17 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             service?.disconnect()
             DDLogInfo("Invoking completion handler now")
             contentHandler(bestAttemptContent)
+        }
+    }
+
+    private func dismissNotification() {
+        DDLogInfo("Going to try to disconnect and dismiss notification now")
+        // Try and disconnect after 1 second.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
+            DDLogInfo("disconnect now")
+            service?.disconnect()
+            DDLogInfo("Invoking completion handler now")
+            contentHandler(UNNotificationContent())
         }
     }
 
@@ -185,16 +206,47 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
 
     // Send acks and rerequests for all pending chat messages.
     private func sendPendingAcksAndRerequests(dataStore: DataStore) {
-        // TODO(murali@): extend this part to send rerequests as well.
-        // currently we only fetch messages with status = .received
-        let sharedChatMessages = dataStore.getChatMessagesToAck()
-        sharedChatMessages.forEach{ sharedChatMessage in
+        // We must first rerequest messages and then ack them.
+
+        // We rerequest messages with status = .decryptionError
+        let sharedChatMessagesToRerequest = dataStore.getChatMessagesToRerequest()
+        sharedChatMessagesToRerequest.forEach{ sharedChatMessage in
+            let msgId = sharedChatMessage.id
+            if let failedEphemeralKey = sharedChatMessage.ephemeralKey, let serverMsgPb = sharedChatMessage.serverMsgPb {
+                do {
+                    let serverMsg = try Server_Msg(serializedData: serverMsgPb)
+                    service?.rerequestMessage(serverMsg, failedEphemeralKey: failedEphemeralKey) { result in
+                        switch result {
+                        case .success(_):
+                            DDLogInfo("sendRerequest/success sent rerequest, msgId: \(msgId)")
+                        case .failure(let error):
+                            DDLogError("sendRerequest/failure sending rerequest, msgId: \(msgId), error: \(error)")
+                        }
+                    }
+                } catch {
+                    DDLogError("sendRerequest/Unable to initialize Server_Msg")
+                }
+            }
+        }
+
+        // We fetch messages with status = .received, .decryptionError
+        let sharedChatMessagesToAck = dataStore.getChatMessagesToAck()
+        sharedChatMessagesToAck.forEach{ sharedChatMessage in
             let msgId = sharedChatMessage.id
             service?.sendAck(messageId: msgId) { result in
+                let finalStatus: SharedChatMessage.Status
+                switch sharedChatMessage.status {
+                case .received:
+                    finalStatus = .acked
+                case .decryptionError:
+                    finalStatus = .rerequesting
+                case .acked, .sendError, .sent, .none, .rerequesting:
+                    return
+                }
                 switch result {
                 case .success(_):
                     DDLogInfo("sendAck/success sent ack, msgId: \(msgId)")
-                    dataStore.updateMessageStatus(for: msgId, status: .acked)
+                    dataStore.updateMessageStatus(for: msgId, status: finalStatus)
                 case .failure(let error):
                     DDLogError("sendAck/failure sending ack, msgId: \(msgId), error: \(error)")
                 }
