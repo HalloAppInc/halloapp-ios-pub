@@ -43,6 +43,8 @@ final class ContactSelectionViewController: UIViewController {
             // ... then work around the weird extra background layer Apple adds (see https://stackoverflow.com/questions/61364175/uisearchbar-with-a-white-background-is-impossible)
             searchController.searchBar.setSearchFieldBackgroundImage(UIImage(), for: .normal)
             searchController.searchBar.searchTextField.layer.cornerRadius = 10
+
+            searchResultsController.searchController = searchController
             return searchController
         }()
 
@@ -117,7 +119,7 @@ final class ContactSelectionViewController: UIViewController {
 
     private let manager: ContactSelectionManager
     private let collectionView: UICollectionView
-    private let searchController: UISearchController?
+    private var searchController: UISearchController?
 
     private let saveAction: ((Set<UserID>) -> Void)?
     private let dismissAction: (() -> Void)?
@@ -265,6 +267,7 @@ final class ContactSelectionViewController: UIViewController {
 extension ContactSelectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
+        searchController?.searchBar.text = ""
         manager.toggleSelection(for: contact.userID)
     }
 }
