@@ -32,7 +32,7 @@ class UpdateContactsPermissionView: UIView {
         settingsButton.layer.masksToBounds = true
         settingsButton.setTitle(Localizations.buttonGoToSettings, for: .normal)
         settingsButton.setBackgroundColor(.systemBlue, for: .normal)
-        settingsButton.setBackgroundColor(UIColor.lavaOrange.withAlphaComponent(0.5), for: .highlighted)
+        settingsButton.setBackgroundColor(UIColor.systemBlue.withAlphaComponent(0.5), for: .highlighted)
         settingsButton.setBackgroundColor(.systemGray4, for: .disabled)
         settingsButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 38).isActive = true
         settingsButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 18, bottom: 10, right: 18)
@@ -67,7 +67,7 @@ private extension Localizations {
     static var contactsAccessDenied: String {
         NSLocalizedString(
             "contacts.access.denied",
-            value: "Get updates from friends & family by turning on contact permissions",
+            value: "Allow HalloApp access to your contacts so you can send and receive updates",
             comment: "Shown when user denies contacts permission"
         )
     }

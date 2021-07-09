@@ -64,7 +64,7 @@ class AppClipHomeViewController: UIViewController {
         buttonInstall.layer.masksToBounds = true
         buttonInstall.setTitle(Localizations.buttonInstall, for: .normal)
         buttonInstall.setBackgroundColor(.systemBlue, for: .normal)
-        buttonInstall.setBackgroundColor(UIColor.lavaOrange.withAlphaComponent(0.5), for: .highlighted)
+        buttonInstall.setBackgroundColor(UIColor.systemBlue.withAlphaComponent(0.5), for: .highlighted)
         buttonInstall.setBackgroundColor(.systemGray4, for: .disabled)
         buttonInstall.heightAnchor.constraint(greaterThanOrEqualToConstant: 50).isActive = true
 

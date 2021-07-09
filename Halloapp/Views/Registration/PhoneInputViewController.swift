@@ -81,7 +81,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         buttonSignIn.layer.masksToBounds = true
         buttonSignIn.setTitle(Localizations.buttonNext, for: .normal)
         buttonSignIn.setBackgroundColor(.systemBlue, for: .normal)
-        buttonSignIn.setBackgroundColor(UIColor.lavaOrange.withAlphaComponent(0.5), for: .highlighted)
+        buttonSignIn.setBackgroundColor(UIColor.systemBlue.withAlphaComponent(0.5), for: .highlighted)
         buttonSignIn.setBackgroundColor(.systemGray4, for: .disabled)
         buttonSignIn.heightAnchor.constraint(greaterThanOrEqualToConstant: 50).isActive = true
         buttonSignIn.addTarget(self, action: #selector(didTapNext), for: .touchUpInside)
