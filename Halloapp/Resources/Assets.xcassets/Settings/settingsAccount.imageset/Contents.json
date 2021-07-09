@@ -1,15 +1,16 @@
 {
   "images" : [
     {
-      "filename" : "icon_settings_invite.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "profile.invite@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
+      "filename" : "profile.invite@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
