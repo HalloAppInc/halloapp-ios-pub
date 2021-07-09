@@ -190,6 +190,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     private func updateEmptyView() {
         let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
         emptyView.alpha = isEmpty ? 1 : 0
+        tableView.tableHeaderView = isEmpty ? nil : searchController.searchBar
     }
 
     // MARK: New Chat
@@ -609,7 +610,7 @@ class ChatListHeaderView: UITableViewHeaderFooterView {
         vStack.addArrangedSubview(inviteLabel)
         addSubview(vStack)
 
-        vStack.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 20)
+        vStack.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 20)
         vStack.isLayoutMarginsRelativeArrangement = true
         
         vStack.topAnchor.constraint(equalTo: topAnchor).isActive = true
