@@ -375,6 +375,17 @@ final class ProtoGetDataExportStatusRequest: ProtoRequest<Server_ExportData> {
     }
 }
 
+final class ProtoDeleteAccountRequest: ProtoRequest<Void> {
+    init(phoneNumber: String, completion: @escaping Completion) {
+        var payload = Server_DeleteAccount()
+        payload.phone = phoneNumber
+        
+        let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .deleteAccount(payload))
+        
+        super.init(iqPacket: iqPacket, transform: { _ in .success(()) }, completion: completion)
+    }
+}
+
 extension Server_PushPref.Name {
     init(_ configKey: NotificationSettings.ConfigKey) {
         switch configKey {

@@ -99,6 +99,24 @@ class MainAppContext: AppContext {
         documentsDirectoryURL.appendingPathComponent(uploadDatabaseFilename)
     }()
     
+    func deleteDocumentsDirectory() {
+        do {
+            try FileManager.default.removeItem(at: Self.documentsDirectoryURL)
+            DDLogInfo("MainAppContext/deleteDocumentsDirectory: Deleted documents data")
+        } catch {
+            DDLogError("MainAppContext/deleteDocumentsDirectory: Error deleting documents data: \(error)")
+        }
+    }
+    
+    func deleteLibraryDirectory() {
+        do {
+            try FileManager.default.removeItem(at: Self.libraryDirectoryURL)
+            DDLogInfo("MainAppContext/deleteLibraryDirectory: Deleted library data")
+        } catch {
+            DDLogError("MainAppContext/deleteLibraryDirectory: Error deleting documents data: \(error)")
+        }
+    }
+    
     // MARK: Initializer
 
     override class var shared: MainAppContext {

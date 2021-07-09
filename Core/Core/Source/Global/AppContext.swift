@@ -179,6 +179,15 @@ open class AppContext {
         sharedDirectoryURL.appendingPathComponent(AppContext.keysDatabaseFilename)
     }()
     
+    public func deleteSharedDirectory() {
+        do {
+            try FileManager.default.removeItem(at: Self.sharedDirectoryURL.absoluteURL)
+            DDLogInfo("AppContext/deleteSharedDirectory: Deleted shared data")
+        } catch {
+            DDLogError("AppContext/deleteSharedDirectory: Error deleting shared data: \(error)")
+        }
+    }
+    
     // MARK: Initializer
     open class var shared: AppContext {
         get {

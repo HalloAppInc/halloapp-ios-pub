@@ -226,6 +226,8 @@
 		E537A1B726792AEF0008B286 /* ChatDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E537A1B626792AEF0008B286 /* ChatDraft.swift */; };
 		E55B6099268B80C800A322DC /* ExportDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E55B6098268B80C800A322DC /* ExportDataModel.swift */; };
 		E59596F1268D24E700AA3BB9 /* AccountSettingsList.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59596F0268D24E700AA3BB9 /* AccountSettingsList.swift */; };
+		E5959700268E3F3800AA3BB9 /* DeleteAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59596FF268E3F3800AA3BB9 /* DeleteAccountView.swift */; };
+		E5959702268E3F6500AA3BB9 /* DeleteAccountModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5959701268E3F6500AA3BB9 /* DeleteAccountModel.swift */; };
 		E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */; };
 		E598D4C0265F0188001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
 		E598D4C2265F0558001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
@@ -690,6 +692,8 @@
 		E537A1B626792AEF0008B286 /* ChatDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatDraft.swift; sourceTree = "<group>"; };
 		E55B6098268B80C800A322DC /* ExportDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataModel.swift; sourceTree = "<group>"; };
 		E59596F0268D24E700AA3BB9 /* AccountSettingsList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSettingsList.swift; sourceTree = "<group>"; };
+		E59596FF268E3F3800AA3BB9 /* DeleteAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountView.swift; sourceTree = "<group>"; };
+		E5959701268E3F6500AA3BB9 /* DeleteAccountModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountModel.swift; sourceTree = "<group>"; };
 		E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPermissionExplanationAlert.swift; sourceTree = "<group>"; };
 		E598D4BF265F0188001A436A /* ConversationID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationID.swift; sourceTree = "<group>"; };
 		E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionTutorialAlert.swift; sourceTree = "<group>"; };
@@ -1277,8 +1281,18 @@
 			children = (
 				E59596F0268D24E700AA3BB9 /* AccountSettingsList.swift */,
 				E5FC71E4268A70F000B72B12 /* Export */,
+				E59596FD268E3F2400AA3BB9 /* Delete */,
 			);
 			path = Account;
+			sourceTree = "<group>";
+		};
+		E59596FD268E3F2400AA3BB9 /* Delete */ = {
+			isa = PBXGroup;
+			children = (
+				E59596FF268E3F3800AA3BB9 /* DeleteAccountView.swift */,
+				E5959701268E3F6500AA3BB9 /* DeleteAccountModel.swift */,
+			);
+			path = Delete;
 			sourceTree = "<group>";
 		};
 		E5FC71E4268A70F000B72B12 /* Export */ = {
@@ -2375,6 +2389,7 @@
 				EACC34CC24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataProperties.swift in Sources */,
 				E59596F1268D24E700AA3BB9 /* AccountSettingsList.swift in Sources */,
 				F881ED70261B0FDE0013599F /* Upload.xcdatamodeld in Sources */,
+				E5959700268E3F3800AA3BB9 /* DeleteAccountView.swift in Sources */,
 				76B5B52F2501EEBE0055E712 /* UNExtensions.swift in Sources */,
 				76538091243D4B33000AD9A1 /* FeedNotification+CoreDataClass.swift in Sources */,
 				761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */,
@@ -2417,7 +2432,6 @@
 				EA62C28C2563577D008EA9C9 /* MsgUIProtocol.swift in Sources */,
 				76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */,
 				E5FC71E9268A986000B72B12 /* ExportDataView.swift in Sources */,
-				68D45A0E25544813000BF04E /* ContactsPermissionsViewController.swift in Sources */,
 				EAD476D324588E0000EF8591 /* ChatMediaSlider.swift in Sources */,
 				761905A32459EB07008FC600 /* InputTextView.swift in Sources */,
 				F8606DD1257E7340006CD1A6 /* MediaExplorerVideoCell.swift in Sources */,
@@ -2443,6 +2457,7 @@
 				EAD944F724F73E4C004A27B1 /* GroupInfoViewController.swift in Sources */,
 				764F7751246226120063645A /* PostDashboardViewController.swift in Sources */,
 				764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */,
+				E5959702268E3F6500AA3BB9 /* DeleteAccountModel.swift in Sources */,
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
 				68E4619625C9C93B008B5698 /* ExpiredVersionViewController.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,

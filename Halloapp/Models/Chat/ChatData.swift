@@ -111,6 +111,15 @@ class ChatData: ObservableObject {
         return container
     }()
     
+    func deletePersistentContainer() {
+        do {
+            try FileManager.default.removeItem(at: MainAppContext.chatStoreURL)
+            DDLogInfo("ChatData/deletePersistentContainer: Deleted chat data")
+        } catch {
+            DDLogError("ChatData/deletePersistentContainer: Error deleting chat data: \(error)")
+        }
+    }
+    
     var viewContext: NSManagedObjectContext
     private var bgContext: NSManagedObjectContext
     

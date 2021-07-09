@@ -32,9 +32,8 @@ struct AccountSettingsList: View {
                 }
             )
             
-            /* TODO: Add account deletion flow
             NavigationLink(
-                destination: Text("Not Done Yet"),
+                destination: DeleteAccountView(),
                 label: {
                     HStack {
                         Image(systemName: "person.badge.minus")
@@ -42,7 +41,7 @@ struct AccountSettingsList: View {
                         Text(Localizations.deleteAccount)
                     }
                 }
-            ) */
+            )
         }
         .navigationBarTitle(Localizations.account)
     }

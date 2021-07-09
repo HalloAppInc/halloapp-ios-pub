@@ -137,6 +137,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
     }
+    
+    func deletePersistentStores() {
+        do {
+            try FileManager.default.removeItem(at: FeedData.persistentStoreURL)
+            DDLogInfo("FeedData/deletePersistentStores: Deleted feed data")
+        } catch {
+            DDLogError("FeedData/deletePersistentStores: Error deleting feed data: \(error)")
+        }
+    }
 
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         self.backgroundProcessingQueue.async {
