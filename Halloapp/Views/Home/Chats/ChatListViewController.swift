@@ -187,9 +187,15 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 
     private func updateEmptyView() {
-        let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
-        emptyView.alpha = isEmpty ? 1 : 0
-        tableView.tableHeaderView = isEmpty ? nil : searchController.searchBar
+        let numberOfChats = fetchedResultsController?.sections?.first?.numberOfObjects ?? 0
+        DDLogInfo("ChatListViewController/updateEmptyView/numberOfChats  \(numberOfChats)")
+        if numberOfChats == 0 {
+            emptyView.alpha = 1
+            tableView.tableHeaderView = nil
+        } else {
+            emptyView.alpha = 0
+            tableView.tableHeaderView = searchController.searchBar
+        }
     }
 
     // MARK: New Chat
