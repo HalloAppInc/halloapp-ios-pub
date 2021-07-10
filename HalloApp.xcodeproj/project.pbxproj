@@ -25,6 +25,7 @@
 		24AA69DC24DDC6DA00ED65CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
 		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		24D743E824B3D504001111BF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
+		33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */; };
 		2918BD1FA51BFAD142F377E5 /* Pods_HalloAppClip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */; };
 		329E03FB268247BD00C2D250 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E03FA268247BD00C2D250 /* AppDelegate.swift */; };
 		329E03FD268247BD00C2D250 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E03FC268247BD00C2D250 /* SceneDelegate.swift */; };
@@ -467,6 +468,7 @@
 		24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPChatMessage.swift; sourceTree = "<group>"; };
 		24D743D624B3D199001111BF /* Share Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Share Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24D743DD24B3D199001111BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsInCommonViewController.swift; sourceTree = "<group>"; };
 		2762FD6E15286945AA56FCC7 /* Pods-HalloAppClip.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppClip.debug.xcconfig"; path = "Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip.debug.xcconfig"; sourceTree = "<group>"; };
 		329E03F8268247BC00C2D250 /* HalloAppClip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloAppClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		329E03FA268247BD00C2D250 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -1332,6 +1334,7 @@
 				EAC465502514827800783821 /* Actions */,
 				EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */,
 				EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */,
+				33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */,
 				32C83FBC268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift */,
 			);
 			path = Groups;
@@ -2403,6 +2406,7 @@
 				6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */,
 				EA3585712450BE2900E6E8AB /* Chat.xcdatamodeld in Sources */,
 				EAA424FC24ECF1480025CBBE /* ChatGroupMessage+CoreDataClass.swift in Sources */,
+				33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */,
 				68F935C5252CD00800FA6E75 /* ChatMention+CoreDataClass.swift in Sources */,
 				EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */,
 				EAAF43992603F7720037F83D /* BlurView.swift in Sources */,
