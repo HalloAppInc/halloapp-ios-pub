@@ -118,7 +118,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             chatInputView.isHidden = true
         }
 
-        let headerHeight: CGFloat = isUserInAddressBook ? 250 : 300
+        let headerHeight: CGFloat = isUserInAddressBook ? 70 : 120
         let chatHeaderView = ChatHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: headerHeight))
         chatHeaderView.configure(with: fromUserId)
         chatHeaderView.delegate = self
@@ -215,7 +215,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         do {
             try fetchedResultsController!.performFetch()
             updateData(animatingDifferences: false)
-            
+
         } catch {
             return
         }
@@ -1471,7 +1471,7 @@ class ChatHeaderView: UIView {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        let view = UIStackView(arrangedSubviews: [ avatarRow, nameLabel, phoneLabel, encryptionBubble, addToContactsBubble, spacer] )
+        let view = UIStackView(arrangedSubviews: [ encryptionBubble, addToContactsBubble, spacer] )
 
         view.axis = .vertical
         view.alignment = .center
@@ -1479,7 +1479,7 @@ class ChatHeaderView: UIView {
         view.setCustomSpacing(15, after: phoneLabel)
         view.setCustomSpacing(20, after: encryptionBubble)
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 40, bottom: 0, right: 40)
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 40, bottom: 0, right: 40)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
