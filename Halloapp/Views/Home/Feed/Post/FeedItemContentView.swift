@@ -549,8 +549,12 @@ final class FeedItemHeaderView: UIView {
     private func isRowTruncated() -> Bool {
         var totalTextWidth = getLabelTextWidth(nameLabel)
         totalTextWidth += getLabelTextWidth(groupNameLabel)
-        totalTextWidth += getLabelTextWidth(timestampLabel)
-        totalTextWidth += 30 + 100 // rough estimate of avatar, margins, paddings, etc.
+        
+        if !moreButton.isHidden {
+            totalTextWidth += moreButton.frame.width
+        }
+        
+        totalTextWidth += avatarViewButton.frame.width + 65 // rough estimate of avatar, margins, paddings, etc.
         
         if totalTextWidth > UIScreen.main.bounds.size.width {
             return true

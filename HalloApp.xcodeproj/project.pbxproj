@@ -656,8 +656,6 @@
 		768123AA2485D764008C5216 /* XMPPFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = XMPPFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		768123D82485DFA1008C5216 /* Core.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Core.xcodeproj; path = Core/Core.xcodeproj; sourceTree = "<group>"; };
 		7681242C2486EAC2008C5216 /* AppExtensionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppExtensionContext.swift; sourceTree = "<group>"; };
-		7688FA3F25489E26006B86B3 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
-		7688FA4225489E26006B86B3 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		76955DE924746E4C0088BE8C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = "GoogleService-Info.plist"; path = "HalloApp/GoogleService-Info.plist"; sourceTree = SOURCE_ROOT; };
 		769CD3AB255CDB8D006F21BB /* NameEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NameEditViewController.swift; path = Halloapp/Views/Settings/Profile/NameEditViewController.swift; sourceTree = SOURCE_ROOT; };
 		76A92443244E659600794859 /* FeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedViewController.swift; path = HalloApp/Views/Home/Feed/FeedViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -671,8 +669,6 @@
 		76B95CE3242A7A3F007435AC /* CommentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentInputView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentInputView.swift; sourceTree = SOURCE_ROOT; };
 		76C1F50A2537D6FD0060FBF5 /* AvatarViewButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AvatarViewButton.swift; path = HalloApp/Components/Views/AvatarViewButton.swift; sourceTree = SOURCE_ROOT; };
 		76C64E0C24E5AD85007C0F6F /* MediaUploader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MediaUploader.swift; path = HalloApp/Network/MediaUploader.swift; sourceTree = SOURCE_ROOT; };
-		76D566E92550D14900E57185 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
-		76D566FD2550D6A500E57185 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = ru; path = ru.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
 		76DF9FF52412E6E700F49CA4 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
 		76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPContactSyncRequest.swift; sourceTree = "<group>"; };
@@ -1949,7 +1945,6 @@
 			knownRegions = (
 				en,
 				Base,
-				ru,
 				de,
 				es,
 				tr,
@@ -2712,7 +2707,6 @@
 		7688FA3E25489E26006B86B3 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
-				7688FA3F25489E26006B86B3 /* ru */,
 				76E81D27255E485F0068CD62 /* en */,
 				68A0A0F426436CA600E9431E /* de */,
 				687D5ECE265317F8008A3A65 /* es */,
@@ -2724,7 +2718,6 @@
 		7688FA4125489E26006B86B3 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
-				7688FA4225489E26006B86B3 /* ru */,
 				76E81D26255E48570068CD62 /* en */,
 				68A0A0F226436CA600E9431E /* de */,
 				687D5ECC265317F8008A3A65 /* es */,
@@ -2736,7 +2729,6 @@
 		7688FA5E2548F1E1006B86B3 /* Localizable.stringsdict */ = {
 			isa = PBXVariantGroup;
 			children = (
-				76D566FD2550D6A500E57185 /* ru */,
 				7661D94E255A5ECB0063404E /* Base */,
 				68A0A0F326436CA600E9431E /* de */,
 				687D5ECD265317F8008A3A65 /* es */,
@@ -2748,7 +2740,6 @@
 		76D566E82550D14900E57185 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
-				76D566E92550D14900E57185 /* ru */,
 				76E81D24255E482E0068CD62 /* en */,
 				68A0A0F626436CA600E9431E /* de */,
 				687D5ED0265317F8008A3A65 /* es */,

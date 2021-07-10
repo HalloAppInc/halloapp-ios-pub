@@ -73,6 +73,8 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     private let headerView = FeedItemHeaderView()
     private let itemContentView = FeedItemContentView()
     private let footerView = FeedItemFooterView()
+    
+    private var contentTopConstraint: NSLayoutConstraint? = nil
 
     private func commonInit() {
 
@@ -111,6 +113,8 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         // Lower constraint priority to avoid unsatisfiable constraints situation when UITableViewCell's height is 44 during early table view layout passes.
         let footerViewBottomConstraint = footerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -LayoutConstants.backgroundPanelViewOutsetV - LayoutConstants.interCardSpacing / 2)
         footerViewBottomConstraint.priority = .defaultHigh
+        
+        contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 5)
 
         contentView.addConstraints([
             // HEADER
@@ -120,7 +124,6 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
             // CONTENT
             itemContentView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             itemContentView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
 
             // FOOTER
@@ -238,6 +241,9 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
             showMoreAction(post.userId)
         }
         itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, isTextExpanded: isTextExpanded)
+        
+        contentTopConstraint?.isActive = post.media?.count ?? 0 > 0
+        
         footerView.configure(with: post, contentWidth: contentWidth)
     }
     
