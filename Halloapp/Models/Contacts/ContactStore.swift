@@ -261,11 +261,6 @@ class ContactStoreMain: ContactStore {
             return
         }
 
-        guard let scene = UIApplication.shared.openSessions.first?.scene, scene.activationState == .foregroundActive || scene.activationState == .foregroundInactive else {
-            DDLogDebug("contacts/reload/app-backgrounded")
-            return
-        }
-
         let syncManager = MainAppContext.shared.syncManager!
 
         if ContactStore.contactsAccessAuthorized {
