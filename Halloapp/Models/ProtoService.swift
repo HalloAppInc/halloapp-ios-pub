@@ -368,7 +368,7 @@ final class ProtoService: ProtoServiceCore {
             case .post(let serverPost):
                 switch pbFeedItem.action {
                 case .publish, .share:
-                    if let post = PostData(serverPost) {
+                    if let post = PostData(serverPost, isShared: pbFeedItem.action == .share) {
                         elements.append(.post(post))
                     }
                 case .retract:
@@ -417,7 +417,7 @@ final class ProtoService: ProtoServiceCore {
             case .post(let serverPost):
                 switch item.action {
                 case .publish, .share:
-                    guard let post = PostData(serverPost) else {
+                    guard let post = PostData(serverPost, isShared: item.action == .share) else {
                         DDLogError("proto/payloadContents/\(serverPost.id)/error could not make post object")
                         continue
                     }

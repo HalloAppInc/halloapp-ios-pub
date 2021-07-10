@@ -25,6 +25,8 @@ public struct PostData: FeedPostProtocol {
     public let id: FeedPostID
     public let userId: UserID
     public var timestamp: Date = Date()
+    
+    public let isShared: Bool
 
     // MARK: FeedPost
     public var content: PostContent
@@ -68,12 +70,14 @@ public struct PostData: FeedPostProtocol {
     }
 
 
-    public init?(_ serverPost: Server_Post) {
+    public init?(_ serverPost: Server_Post, isShared: Bool = false) {
 
         guard let protoContainer = try? Clients_Container(serializedData: serverPost.payload) else {
             DDLogError("Could not deserialize post")
             return nil
         }
+        
+        self.isShared = isShared
 
         if protoContainer.hasPostContainer {
             // Future-proof post

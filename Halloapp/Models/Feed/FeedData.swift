@@ -618,7 +618,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Process Incoming Feed Data
 
-    let didReceiveFeedPost = PassthroughSubject<FeedPost, Never>()
+    let didReceiveFeedPost = PassthroughSubject<FeedPost, Never>()  // feed post that is not a duplicate but can be shared (old)
+    let didGetNewFeedPost = PassthroughSubject<FeedPostID, Never>() // feed post that is not a duplicate or shared (old)
 
     let didReceiveFeedPostComment = PassthroughSubject<FeedPostComment, Never>()
 
@@ -631,7 +632,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let postIds = Set(xmppPosts.map{ $0.id })
         let existingPosts = feedPosts(with: postIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         var newPosts: [FeedPost] = []
+        var sharedPosts: [FeedPostID] = []
+
         for xmppPost in xmppPosts {
+            if xmppPost.isShared {
+                sharedPosts.append(xmppPost.id)
+            }
+
             guard existingPosts[xmppPost.id] == nil else {
                 DDLogError("FeedData/process-posts/duplicate [\(xmppPost.id)]")
                 continue
@@ -689,7 +696,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             newPosts.append(feedPost)
         }
-        DDLogInfo("FeedData/process-posts/finished  \(newPosts.count) new items.  \(xmppPosts.count - newPosts.count) duplicates.")
+        DDLogInfo("FeedData/process-posts/finished \(newPosts.count) new items, \(xmppPosts.count - newPosts.count) duplicates, \(sharedPosts.count) shared (old)")
         save(managedObjectContext)
 
         try? managedObjectContext.obtainPermanentIDs(for: newPosts)
@@ -711,7 +718,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             // Notify about new posts all interested parties.
-            feedPosts.forEach({ self.didReceiveFeedPost.send($0) })
+            feedPosts.forEach({
+                self.didReceiveFeedPost.send($0)
+                if !sharedPosts.contains($0.id) {
+                    self.didGetNewFeedPost.send($0.id)
+                }
+            })
         }
 
         checkForUnreadFeed()
@@ -2380,11 +2392,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
             
-            newMergedPosts.append(feedPost.id)
-            
+            newMergedPosts.append(feedPost.id)            
         }
 
-        
         // Merge comments after posts.
         let newMergedComments = comments.compactMap { merge(sharedComment: $0, into: managedObjectContext) }
 

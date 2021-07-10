@@ -90,13 +90,14 @@ class HomeViewController: UITabBarController {
 
         /*
          The home tab indicator starts hidden on each new app open (does not count background/foreground)
-         It shows when a new post comes in if the user is not actively viewing the top of the main feed
+         It shows when a new post (not shared) comes in if the user is not actively viewing the top of the main feed
          It's removed when the user scrolls to the top of the main feed or when the total unseen posts is 0
          (ie. user scrolls to middle of feed, goes to groups tab, views all unread, indicator should go away)
          */
-        cancellableSet.insert(MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] _ in
+        cancellableSet.insert(MainAppContext.shared.feedData.didGetNewFeedPost.sink { [weak self] _ in
             self?.showHomeTabIndicatorIfNeeded()
         })
+        // TODO: Do not count shared (old) merged feed posts
         cancellableSet.insert(MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] _ in
             self?.showHomeTabIndicatorIfNeeded()
         })
