@@ -227,7 +227,6 @@
 		94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */; };
 		E537A1B726792AEF0008B286 /* ChatDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E537A1B626792AEF0008B286 /* ChatDraft.swift */; };
 		E55B6099268B80C800A322DC /* ExportDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E55B6098268B80C800A322DC /* ExportDataModel.swift */; };
-		E59596F1268D24E700AA3BB9 /* AccountSettingsList.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59596F0268D24E700AA3BB9 /* AccountSettingsList.swift */; };
 		E5959700268E3F3800AA3BB9 /* DeleteAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59596FF268E3F3800AA3BB9 /* DeleteAccountView.swift */; };
 		E5959702268E3F6500AA3BB9 /* DeleteAccountModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5959701268E3F6500AA3BB9 /* DeleteAccountModel.swift */; };
 		E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */; };
@@ -235,6 +234,7 @@
 		E598D4C2265F0558001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
 		E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */; };
 		E5D66D1C266954A200B23887 /* CommentDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D66D1B266954A200B23887 /* CommentDraft.swift */; };
+		E5D951E826990D3600179289 /* AccountListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D951E726990D3600179289 /* AccountListViewController.swift */; };
 		E5FC71E9268A986000B72B12 /* ExportDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5FC71E8268A986000B72B12 /* ExportDataView.swift */; };
 		EA0B9917249C1FFB00B05094 /* Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B9916249C1FFB00B05094 /* Character.swift */; };
 		EA0B9919249C205E00B05094 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B9918249C205E00B05094 /* String.swift */; };
@@ -695,13 +695,13 @@
 		DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		E537A1B626792AEF0008B286 /* ChatDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatDraft.swift; sourceTree = "<group>"; };
 		E55B6098268B80C800A322DC /* ExportDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataModel.swift; sourceTree = "<group>"; };
-		E59596F0268D24E700AA3BB9 /* AccountSettingsList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSettingsList.swift; sourceTree = "<group>"; };
 		E59596FF268E3F3800AA3BB9 /* DeleteAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountView.swift; sourceTree = "<group>"; };
 		E5959701268E3F6500AA3BB9 /* DeleteAccountModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountModel.swift; sourceTree = "<group>"; };
 		E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPermissionExplanationAlert.swift; sourceTree = "<group>"; };
 		E598D4BF265F0188001A436A /* ConversationID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationID.swift; sourceTree = "<group>"; };
 		E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionTutorialAlert.swift; sourceTree = "<group>"; };
 		E5D66D1B266954A200B23887 /* CommentDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentDraft.swift; sourceTree = "<group>"; };
+		E5D951E726990D3600179289 /* AccountListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountListViewController.swift; sourceTree = "<group>"; };
 		E5FC71E8268A986000B72B12 /* ExportDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataView.swift; sourceTree = "<group>"; };
 		EA0B9916249C1FFB00B05094 /* Character.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Character.swift; sourceTree = "<group>"; };
 		EA0B9918249C205E00B05094 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
@@ -1284,7 +1284,7 @@
 		E59596EE268D24D500AA3BB9 /* Account */ = {
 			isa = PBXGroup;
 			children = (
-				E59596F0268D24E700AA3BB9 /* AccountSettingsList.swift */,
+				E5D951E726990D3600179289 /* AccountListViewController.swift */,
 				E5FC71E4268A70F000B72B12 /* Export */,
 				E59596FD268E3F2400AA3BB9 /* Delete */,
 			);
@@ -2393,7 +2393,6 @@
 				76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */,
 				68B5C22D264C6F3F004C7939 /* SafetyNumberViewController.swift in Sources */,
 				EACC34CC24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataProperties.swift in Sources */,
-				E59596F1268D24E700AA3BB9 /* AccountSettingsList.swift in Sources */,
 				F881ED70261B0FDE0013599F /* Upload.xcdatamodeld in Sources */,
 				E5959700268E3F3800AA3BB9 /* DeleteAccountView.swift in Sources */,
 				76B5B52F2501EEBE0055E712 /* UNExtensions.swift in Sources */,
@@ -2451,6 +2450,7 @@
 				6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */,
 				68CFF38F2551FF6F009B0D81 /* Localizations+Registration.swift in Sources */,
 				E55B6099268B80C800A322DC /* ExportDataModel.swift in Sources */,
+				E5D951E826990D3600179289 /* AccountListViewController.swift in Sources */,
 				32C83FB9268FC8FE00BEB4F5 /* NewChatPermissionDeniedController.swift in Sources */,
 				EAB1FFEE2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift in Sources */,
 				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,

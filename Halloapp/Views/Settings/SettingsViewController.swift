@@ -267,7 +267,7 @@ class SettingsViewController: UITableViewController {
     }
     
     private func openAccountSettings() {
-        let viewController = UIHostingController(rootView: AccountSettingsList())
+        let viewController = SettingsAccountViewController() // UIHostingController(rootView: AccountSettingsList())
         viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }
