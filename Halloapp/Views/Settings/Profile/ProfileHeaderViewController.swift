@@ -62,14 +62,11 @@ final class ProfileHeaderViewController: UIViewController {
             headerView.secondaryLabel.text = phoneNumber.formattedPhoneNumber
         } else {
             headerView.messageButton.isHidden = true
-            headerView.groupCommonButton.isHidden = true
             headerView.secondaryLabel.isHidden = true
         }
         if MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId) {
             headerView.canMessage = true
-            headerView.groupCommonButton.isHidden = false
             headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
-            headerView.groupCommonButton.addTarget(self, action: #selector(openGroupCommonview), for: .touchUpInside)
         }
         
         headerView.avatarViewButton.addTarget(self, action: #selector(avatarViewTapped), for: .touchUpInside)
@@ -149,12 +146,6 @@ final class ProfileHeaderViewController: UIViewController {
         guard let userID = headerView.userID else { return }
 
         navigationController?.pushViewController(ChatViewController(for: userID), animated: true)
-    }
-    
-    @objc private func openGroupCommonview() {
-        guard let userID = headerView.userID else { return }
-
-        navigationController?.pushViewController(GroupsInCommonViewController(userID: userID), animated: true)
     }
     
     private func presentPhotoPicker() {
@@ -371,7 +362,7 @@ private final class ProfileHeaderView: UIView {
     }()
     
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, secondaryLabel, messageButton, groupCommonButton])
+        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, secondaryLabel, messageButton ])
         view.axis = .vertical
         view.alignment = .center
         view.spacing = 5
@@ -388,19 +379,6 @@ private final class ProfileHeaderView: UIView {
         
         button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
         button.setTitle(Localizations.profileHeaderMessageUser, for: .normal)
-        
-        button.isHidden = true
-        return button
-        
-    }()
-    
-    private(set) lazy var groupCommonButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 10)
-        button.tintColor = .primaryBlue
-        
-        button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
-        button.setTitle(Localizations.groupsInCommonButtonLabel, for: .normal)
         
         button.isHidden = true
         return button
@@ -433,9 +411,5 @@ extension Localizations {
     
     static var profileHeaderMessageUser: String {
         NSLocalizedString("profile.header.message.user", value: "Message", comment: "Text for messaging user under profile header")
-    }
-    
-    static var groupsInCommonButtonLabel: String {
-        NSLocalizedString("profile.groups.in.common", value: "Groups In Common", comment: "A label for the button which leads to the page showing groups in common")
     }
 }
