@@ -20,7 +20,6 @@ fileprivate struct Constants {
 class GroupsInCommonViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private static let cellReuseIdentifier = "ThreadListCell"
-    private static let inviteFriendsReuseIdentifier = "GroupsListInviteFriendsCell"
     private let tableView = UITableView(frame: CGRect.zero, style: .grouped)
     
     private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
@@ -277,10 +276,6 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
     }
 
     // MARK: Helpers
-    
-    func isScrolledFromTop(by fromTop: CGFloat) -> Bool {
-        return tableView.contentOffset.y < fromTop
-    }
 
     private func openFeed(forGroupId groupId: GroupID) {
         let vc = GroupFeedViewController(groupId: groupId)
