@@ -23,9 +23,12 @@ final class InitializingViewController: UIViewController {
         progressBackground.translatesAutoresizingMaskIntoConstraints = false
         progressBackground.heightAnchor.constraint(equalToConstant: 5).isActive = true
         progressBackground.backgroundColor = .primaryWhiteBlack
+        progressBackground.alpha = 0
 
         progressBar.translatesAutoresizingMaskIntoConstraints = false
         progressBar.backgroundColor = .systemBlue
+
+        titleLabel.alpha = 0
 
         let stackView = UIStackView(arrangedSubviews: [titleLabel, progressBackground])
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -62,6 +65,8 @@ final class InitializingViewController: UIViewController {
     private let progressBar = UIView()
     private var progressWidthConstraint: NSLayoutConstraint?
 
+    private var syncStart: Date?
+
     static func makeLabel(text: String, textColor: UIColor) -> UILabel {
         let label = UILabel()
         label.text = text
@@ -73,6 +78,22 @@ final class InitializingViewController: UIViewController {
         return label
     }
 
+    private func updateProgressVisibility() {
+        guard let syncStart = syncStart else {
+            DDLogInfo("InitializingViewController/updateProgressVisibility/startTimer")
+            self.syncStart = Date()
+            return
+        }
+
+        if progressBackground.alpha == 0 && Date() > syncStart.addingTimeInterval(3) {
+            DDLogInfo("InitializingViewController/updateProgressVisibility/revealing")
+            UIView.animate(withDuration: 0.5) {
+                self.progressBackground.alpha = 1
+                self.titleLabel.alpha = 1
+            }
+        }
+    }
+
     private func updateSyncProgress(_ syncProgress: Double) {
         // Allocate 25% of the bar for loading contacts
         let displayRatio = CGFloat(syncProgress == 0 ? 0 : 0.25 + 0.75 * syncProgress)
@@ -80,9 +101,17 @@ final class InitializingViewController: UIViewController {
         progressWidthConstraint?.isActive = false
         progressWidthConstraint = progressBar.widthAnchor.constraint(equalTo: progressBackground.widthAnchor, multiplier: displayRatio)
         progressWidthConstraint?.isActive = true
+
+        updateProgressVisibility()
     }
 
     private func requestPermissions() {
+        guard ContactStore.contactsAccessRequestNecessary else {
+            DDLogInfo("InitializingViewController/requestPermissions/skipping [reloading contacts to trigger sync]")
+            // TODO: Automatically trigger contact sync if needed instead of waiting for UI to reload contacts
+            MainAppContext.shared.contactStore.reloadContactsIfNecessary()
+            return
+        }
         DDLogInfo("InitializingViewController/requestPermissions/begin")
 
         let alert = UIAlertController(title: Localizations.registrationContactPermissionsTitle, message: Localizations.registrationContactPermissionsContent, preferredStyle: .alert)

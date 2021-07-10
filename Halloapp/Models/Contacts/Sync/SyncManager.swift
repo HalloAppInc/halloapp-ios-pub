@@ -230,6 +230,7 @@ class SyncManager {
         }
 
         isSyncInProgress = true
+        syncProgress.send(0)
 
         DDLogInfo("syncmanager/sync/start/\(syncMode) [\(xmppContacts.count)]")
         let syncSession = SyncSession(mode: syncMode, contacts: xmppContacts, processResultsAsyncBlock: { results, progress in
