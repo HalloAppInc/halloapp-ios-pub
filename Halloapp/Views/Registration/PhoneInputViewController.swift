@@ -90,17 +90,18 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         let nameField = textFieldUserName.withTextFieldBackground()
         let phoneField = textFieldPhoneNumber.withTextFieldBackground()
 
-        let stackView = UIStackView(arrangedSubviews: [groupInviteLabel, nameField, phoneField, buttonSignIn])
+        let stackView = UIStackView(arrangedSubviews: [groupInviteLabel, nameField, phoneField, buttonSignIn, disclaimer])
         stackView.alignment = .fill
         stackView.axis = .vertical
-        stackView.spacing = 16
-        stackView.setCustomSpacing(28, after: phoneField)
+        stackView.spacing = 17
+        stackView.setCustomSpacing(14, after: buttonSignIn)
         stackView.translatesAutoresizingMaskIntoConstraints = false
 
         disclaimer.text = Localizations.registrationCodeDisclaimer
         disclaimer.font = .systemFont(forTextStyle: .footnote, maximumPointSize: Constants.MaxFontPointSize - 14)
         disclaimer.textColor = .secondaryLabel
         disclaimer.numberOfLines = 0
+        disclaimer.textAlignment = .center
         disclaimer.translatesAutoresizingMaskIntoConstraints = false
 
         view.backgroundColor = .feedBackground
@@ -119,7 +120,6 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
 
         scrollView.addSubview(logo)
         scrollView.addSubview(stackView)
-        scrollView.addSubview(disclaimer)
 
         view.addSubview(scrollView)
 
@@ -132,12 +132,8 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         logo.constrainMargin(anchor: .leading, to: scrollView)
 
         stackView.constrainMargins([.leading, .trailing], to: view)
-        stackView.topAnchor.constraint(greaterThanOrEqualTo: logo.bottomAnchor, constant: 32).isActive = true
-        stackView.bottomAnchor.constraint(lessThanOrEqualTo: disclaimer.topAnchor, constant: -32).isActive = true
+        stackView.topAnchor.constraint(greaterThanOrEqualTo: logo.bottomAnchor, constant: 30).isActive = true
         inputVerticalCenterConstraint = stackView.constrain(anchor: .centerY, to: scrollView, priority: .defaultHigh)
-
-        disclaimer.constrainMargin(anchor: .leading, to: scrollView)
-        disclaimer.constrain(anchor: .bottom, to: scrollView.contentLayoutGuide)
 
         // Notifications
         
