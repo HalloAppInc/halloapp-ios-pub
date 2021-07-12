@@ -44,6 +44,8 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
     let scrollView = UIScrollView()
     var scrollViewBottomMargin: NSLayoutConstraint?
     var groupName: String?
+    
+    static let deletedAccountKey = "didDeleteAccount" // Also in `DeletedAccountModel.swift` due to being inaccessible
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -145,6 +147,17 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         }
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillChangeFrameNotification, object: nil, queue: nil) { [weak self] notification in
             self?.updateBottomMargin(with: notification)
+        }
+        
+        if UserDefaults.standard.bool(forKey: Self.deletedAccountKey) == true {
+            UserDefaults.standard.set(false, forKey: Self.deletedAccountKey)
+            
+            let alert = UIAlertController(title: Localizations.accountDeletedTitle, message: Localizations.accountDeletedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { _ in
+                exit(0)
+            }))
+            
+            present(alert, animated: true, completion: nil)
         }
     }
 
@@ -288,4 +301,14 @@ extension UIView {
         constrainMargins(to: background)
         return background
     }
+}
+
+extension Localizations {
+    static var accountDeletedTitle = {
+        NSLocalizedString("settings.account.deleted.title", value: "Account successfully deleted", comment: "Alert title telling the user that their account was successfully deleted")
+    }()
+    
+    static var accountDeletedDescription = {
+        NSLocalizedString("settings.account.deleted.message", value: "You will not be able to log in until you restart the application", comment: "Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account")
+    }()
 }

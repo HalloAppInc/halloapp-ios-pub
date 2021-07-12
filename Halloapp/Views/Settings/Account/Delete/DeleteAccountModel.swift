@@ -45,14 +45,12 @@ class DeleteAccountModel: ObservableObject {
                 MainAppContext.shared.deleteLibraryDirectory()
                 MainAppContext.shared.deleteDocumentsDirectory()
                 try? FileManager().removeItem(atPath: NSTemporaryDirectory())
-                
-                // FIXME: Instead of fatalErroring, store a UserDefault which gets read in SceneDelegate and display a
-                // custom view telling the user their data was deleted, but they need to restart the app to create a new account.
-                DDLogInfo("DeleteAccountModel/handleSuccess: User data deleted. fatalErroring out so the default directories are re-instantiated.")
-                fatalError("Finished deleting user data. App needs relaunch to restore default iOS directories.")
+                UserDefaults.standard.set(true, forKey: Self.deletedAccountKey)
             }
         }
     }
+    
+    static let deletedAccountKey = "didDeleteAccount" // Also in `PhoneInputViewController` due to being inaccessible
 }
 
 enum DeleteAccountStatus {
