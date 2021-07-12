@@ -100,6 +100,15 @@ extension Localizations {
             comment: "Shown on groups list when there are no groups to display"
         )
     }
+    
+    static var nuxGroupsInCommonListEmpty: String {
+        NSLocalizedString(
+            "nux.groups.common.list.empty",
+            value: "You have no group in common",
+            comment: "Shown on groups in common when there are no groups to display"
+        )
+    }
+    
     static var nuxChatIntroContent: String {
         NSLocalizedString(
             "nux.chat.list",

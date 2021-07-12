@@ -350,7 +350,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             let userViewController = UserFeedViewController(userId: chatGroupMember.userId)
             self.navigationController?.pushViewController(userViewController, animated: true)
         })
-
+        
         if isUserAContact {
             actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMessageUser, style: .default) { [weak self] _ in
                 guard let self = self else { return }
