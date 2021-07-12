@@ -27,7 +27,7 @@ struct MediaCarouselViewConfiguration {
     var isPagingEnabled = true
     var isZoomEnabled = true
     var showVideoPlaybackControls = true
-    var disablePlayback = false
+    var disablePlayback = true
     var alwaysScaleToFitContent = false
     var cellSpacing: CGFloat = 20
     var cornerRadius: CGFloat = 15
@@ -43,7 +43,7 @@ struct MediaCarouselViewConfiguration {
     }
 
     static var `composer`: MediaCarouselViewConfiguration {
-        get { MediaCarouselViewConfiguration(pageIndicatorTintAlpha: 0.3, currentPageIndicatorTintAlpha: 1.0) }
+        get { MediaCarouselViewConfiguration(disablePlayback: false, pageIndicatorTintAlpha: 0.3, currentPageIndicatorTintAlpha: 1.0) }
     }
 
     static var minimal: MediaCarouselViewConfiguration {
@@ -986,36 +986,31 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         let config = UIImage.SymbolConfiguration(pointSize: 30)
         let iconColor = UIColor.primaryWhiteBlack
         let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
-        
-        let playButtonContainerView = UIView()
-        playButtonContainerView.translatesAutoresizingMaskIntoConstraints = false
-        playButtonContainerView.layer.cornerRadius = size / 2
-        playButtonContainerView.clipsToBounds = true
 
-        let playButtonImage = UIImageView(image: icon)
-        playButtonImage.translatesAutoresizingMaskIntoConstraints = false
-        playButtonContainerView.insertSubview(playButtonImage, at: 1)
+        let playButton = UIButton.systemButton(with: icon, target: self, action: #selector(startPlayback))
+        playButton.translatesAutoresizingMaskIntoConstraints = false
+        playButton.layer.cornerRadius = size / 2
+        playButton.clipsToBounds = true
 
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let blurredEffectBackgroundView = BlurView(effect: blurEffect, intensity: 0.5)
         blurredEffectBackgroundView.isUserInteractionEnabled = false
         blurredEffectBackgroundView.translatesAutoresizingMaskIntoConstraints = false
 
-        playButtonContainerView.insertSubview(blurredEffectBackgroundView, at: 0)
-        blurredEffectBackgroundView.constrain(to: playButtonContainerView)
+        playButton.insertSubview(blurredEffectBackgroundView, at: 0)
+        blurredEffectBackgroundView.constrain(to: playButton)
 
-        contentView.addSubview(playButtonContainerView)
+        contentView.addSubview(playButton)
 
         NSLayoutConstraint.activate([
-            playButtonContainerView.widthAnchor.constraint(equalToConstant: size),
-            playButtonContainerView.heightAnchor.constraint(equalToConstant: size),
-            playButtonContainerView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            playButtonContainerView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            playButton.widthAnchor.constraint(equalToConstant: size),
+            playButton.heightAnchor.constraint(equalToConstant: size),
+            playButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            playButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
         ])
+
+        playButton.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 25, leading: 30, bottom: 25, trailing: 30)
         
-        playButtonImage.constrainMargins(to: playButtonContainerView)
-        playButtonContainerView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 25, leading: 30, bottom: 25, trailing: 30)
-        
-        return playButtonContainerView
+        return playButton
     }
 }
