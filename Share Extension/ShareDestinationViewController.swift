@@ -36,6 +36,7 @@ class ShareDestinationViewController: UITableViewController {
     private var filteredContacts: [ABContact] = []
     private var filteredGroups: [GroupListItem] = []
     private var searchController: UISearchController!
+    private var selected: [ShareDestination] = []
 
     private var isFiltering: Bool {
         return searchController.isActive && !(searchController.searchBar.text?.isEmpty ?? true)
@@ -92,7 +93,7 @@ class ShareDestinationViewController: UITableViewController {
     }
 
     private func updateNextBtn() {
-        if let count = tableView.indexPathsForSelectedRows?.count, count > 0 {
+        if selected.count > 0 {
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonNext, style: .done, target: self, action: #selector(nextAction))
         } else {
             navigationItem.rightBarButtonItem = nil
@@ -107,25 +108,50 @@ class ShareDestinationViewController: UITableViewController {
     }
 
     @objc private func nextAction() {
-        guard let indexPathsForSelectedRows = tableView.indexPathsForSelectedRows else { return }
+        guard selected.count > 0 else { return }
+        navigationController?.pushViewController(ShareComposerViewController(destinations: selected), animated: true)
+    }
 
-        let destinations = indexPathsForSelectedRows.compactMap { (indexPath) -> ShareDestination? in
-            switch indexPath.section {
-            case 0:
-                DDLogInfo("ShareDestinationViewController/destination feed")
-                return .feed
-            case 1:
-                DDLogInfo("ShareDestinationViewController/destination group")
-                return .group(isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row])
-            case 2:
-                DDLogInfo("ShareDestinationViewController/destination contact")
-                return .contact(isFiltering ? filteredContacts[indexPath.row] : contacts[indexPath.row])
-            default:
-                return nil
+    private func destinationForRow(at indexPath: IndexPath) -> ShareDestination? {
+        switch indexPath.section {
+        case 0:
+            return .feed
+        case 1:
+            return .group(isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row])
+        case 2:
+            return .contact(isFiltering ? filteredContacts[indexPath.row] : contacts[indexPath.row])
+        default:
+            return nil
+        }
+    }
+
+    private func indexPath(for destination: ShareDestination) -> IndexPath? {
+        switch destination {
+        case .feed:
+            return IndexPath(row: 0, section: 0)
+        case .group(let item):
+            if isFiltering {
+                guard let idx = filteredGroups.firstIndex(where: { $0.id == item.id }) else { return nil }
+                return IndexPath(row: idx, section: 1)
+            } else {
+                guard let idx = groups.firstIndex(where: { $0.id == item.id }) else { return nil }
+                return IndexPath(row: idx, section: 1)
+            }
+        case .contact(let contact):
+            if isFiltering {
+                guard let idx = filteredContacts.firstIndex(where: { $0 == contact}) else { return nil }
+                return IndexPath(row: idx, section: 2)
+            } else {
+                guard let idx = contacts.firstIndex(where: { $0 == contact}) else { return nil }
+                return IndexPath(row: idx, section: 2)
             }
         }
+    }
 
-        navigationController?.pushViewController(ShareComposerViewController(destinations: destinations), animated: true)
+    private func reloadSelection() {
+        for destination in selected {
+            tableView.selectRow(at: indexPath(for: destination), animated: false, scrollPosition: .none)
+        }
     }
 
     private func setupSearch() {
@@ -191,10 +217,17 @@ class ShareDestinationViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let destination = destinationForRow(at: indexPath) else { return }
+
+        selected.append(destination)
         updateNextBtn()
     }
 
     override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        guard let destination = destinationForRow(at: indexPath) else { return }
+        guard let idx = selected.firstIndex(where: { $0 == destination }) else { return }
+
+        selected.remove(at: idx)
         updateNextBtn()
     }
 }
@@ -204,6 +237,7 @@ extension ShareDestinationViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         DispatchQueue.main.async { [weak self] in
             self?.tableView.reloadData()
+            self?.reloadSelection()
             self?.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .middle, animated: true)
         }
     }
@@ -242,6 +276,7 @@ extension ShareDestinationViewController: UISearchResultsUpdating {
         }
 
         tableView.reloadData()
+        reloadSelection()
     }
 }
 

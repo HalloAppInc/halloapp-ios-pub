@@ -17,10 +17,23 @@ enum ShareError: Error {
     case mediaUploadFailed
 }
 
-enum ShareDestination {
+enum ShareDestination: Equatable {
     case feed
     case group(GroupListItem)
     case contact(ABContact)
+
+    static func == (lhs: ShareDestination, rhs: ShareDestination) -> Bool {
+        switch (lhs, rhs) {
+        case (.feed, .feed):
+            return true
+        case (.group(let lg), .group(let rg)):
+            return lg.id == rg.id
+        case (.contact(let lc), .contact(let rc)):
+            return lc == rc
+        default:
+            return false
+        }
+    }
 }
 
 extension Localizations {
