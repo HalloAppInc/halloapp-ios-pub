@@ -258,7 +258,12 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
     // MARK: MediaExplorerTransitionDelegate
 
     func getTransitionView(atPostion index: Int) -> UIView? {
-        return imageViewDict[index]
+        // Handles the case when the index is -1
+        if index == 0 && imageViewDict.count == 1 && imageViewDict.keys.first == -1 {
+            return imageViewDict[-1]
+        } else {
+            return imageViewDict[index]
+        }
     }
 
     func scrollMediaToVisible(atPostion index: Int) {

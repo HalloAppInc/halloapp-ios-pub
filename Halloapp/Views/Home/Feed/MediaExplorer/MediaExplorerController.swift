@@ -452,7 +452,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
         let preceding = try? MainAppContext.shared.chatData.viewContext.count(for: request)
 
-        return (preceding ?? 0) + media.index
+        return (preceding ?? 0) + max(0, media.index)
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
