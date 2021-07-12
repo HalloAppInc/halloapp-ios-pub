@@ -247,12 +247,14 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private func saveMedia() {
         PHPhotoLibrary.shared().performChanges({ [weak self] in
             guard let self = self else { return }
-            if self.media[self.currentIndex].type == .image {
-                if let url = self.media[self.currentIndex].url {
+            let currentMedia = self.explorerMedia(at: self.currentIndex)
+
+            if currentMedia.type == .image {
+                if let url = currentMedia.url {
                     PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
                 }
-            } else if self.media[self.currentIndex].type == .video {
-                if let url = self.media[self.currentIndex].url {
+            } else if currentMedia.type == .video {
+                if let url = currentMedia.url {
                     PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
                 }
             }
