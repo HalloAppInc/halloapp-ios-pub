@@ -653,13 +653,17 @@ extension FeedCollectionViewController {
     }
     
     private func saveMedia(media: [(type: FeedMediaType, url: URL)]) {
-        PHPhotoLibrary.shared().performChanges({
+        PHPhotoLibrary.shared().performChanges({ [weak self] in
             for media in media {
                 if media.type == .image {
                     PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: media.url)
                 } else if media.type == .video {
                     PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: media.url)
                 }
+            }
+            
+            DispatchQueue.main.async {
+                self?.mediaSaved()
             }
         }, completionHandler: { [weak self] success, error in
             DispatchQueue.main.async {
@@ -668,6 +672,37 @@ extension FeedCollectionViewController {
                 }
             }
         })
+    }
+    
+    private func mediaSaved() {
+        let savedLabel = UILabel()
+        
+        let imageAttachment = NSTextAttachment()
+        imageAttachment.image = UIImage(named: "CheckmarkLong")?.withTintColor(.white)
+
+        let fullString = NSMutableAttributedString()
+        fullString.append(NSAttributedString(attachment: imageAttachment))
+        fullString.append(NSAttributedString(string: " ")) // Space between localized string for saved and checkmark
+        fullString.append(NSAttributedString(string: Localizations.saveSuccessfulLabel))
+        savedLabel.attributedText = fullString
+        
+        savedLabel.layer.cornerRadius = 13
+        savedLabel.clipsToBounds = true
+        savedLabel.textColor = .white
+        savedLabel.backgroundColor = .primaryBlue
+        savedLabel.textAlignment = .center
+        
+        self.view.addSubview(savedLabel)
+        
+        savedLabel.translatesAutoresizingMaskIntoConstraints = false
+        savedLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        savedLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 22.5).isActive = true
+        savedLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -22.5).isActive = true
+        savedLabel.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -100).isActive = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            savedLabel.removeFromSuperview()
+        }
     }
     
     private func handleMediaSaveError(error: Error?) {
