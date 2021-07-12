@@ -115,6 +115,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         footerViewBottomConstraint.priority = .defaultHigh
         
         contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 5)
+        contentTopConstraint?.isActive = true
 
         contentView.addConstraints([
             // HEADER
@@ -242,7 +243,11 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         }
         itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, isTextExpanded: isTextExpanded)
         
-        contentTopConstraint?.isActive = post.media?.count ?? 0 > 0
+        if post.media?.count ?? 0 > 0 {
+            contentTopConstraint?.constant = 5
+        } else {
+            contentTopConstraint?.constant = 0
+        }
         
         footerView.configure(with: post, contentWidth: contentWidth)
     }
