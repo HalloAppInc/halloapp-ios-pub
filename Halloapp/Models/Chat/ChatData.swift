@@ -2928,6 +2928,7 @@ extension ChatData {
                         managedObjectContext.delete($0)
                     }
                 }
+                
                 managedObjectContext.delete(chatGroup)
             }
 
@@ -2935,7 +2936,7 @@ extension ChatData {
             if let chatThread = self.chatThread(type: .group, id: groupId, in: managedObjectContext) {
                 managedObjectContext.delete(chatThread)
             }
-
+            
             let fetchRequest = NSFetchRequest<ChatGroupMessage>(entityName: ChatGroupMessage.entity().name!)
 
             fetchRequest.predicate = NSPredicate(format: "groupId = %@", groupId)
@@ -2944,6 +2945,7 @@ extension ChatData {
                 let chatGroupMessages = try managedObjectContext.fetch(fetchRequest)
                 DDLogInfo("ChatData/group/delete-messages/begin count=[\(chatGroupMessages.count)]")
                 chatGroupMessages.forEach {
+                    
                     self.deleteGroupMedia(in: $0)
 
                     // delete message receipts
@@ -2958,6 +2960,10 @@ extension ChatData {
                 DDLogError("ChatData/group/delete-messages/error  [\(error)]")
                 return
             }
+            
+            // delete feeds
+            MainAppContext.shared.feedData.deletePosts(groupId: groupId)
+            
             self.save(managedObjectContext)
         }
     }

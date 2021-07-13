@@ -2138,6 +2138,35 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
     }
+    
+    func deletePosts(groupId: String) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let feedFetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+            feedFetchRequest.predicate = NSPredicate(format: "groupId == %@", groupId)
+            do {
+                let groupFeeds = try self.viewContext.fetch(feedFetchRequest)
+                
+                groupFeeds.forEach {feed in
+                    let postID = feed.id
+                    guard let feedPost = self.feedPost(with: postID, in: managedObjectContext) else {
+                        DDLogError("FeedData/delete-unsent-post/missing-post [\(postID)]")
+                        return
+                    }
+                    self.deleteMedia(in: feedPost)
+                    managedObjectContext.delete(feedPost)
+                }
+                if managedObjectContext.hasChanges {
+                    self.save(managedObjectContext)
+                }
+            }
+            catch {
+                DDLogError("ChatData/group/delete-feeds/error  [\(error)]")
+                return
+            }
+        }
+        
+    }
+    
 
     private func deleteMedia(in feedPost: FeedPost) {
         feedPost.media?.forEach { (media) in
