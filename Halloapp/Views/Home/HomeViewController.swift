@@ -86,7 +86,7 @@ class HomeViewController: UITabBarController {
             profileNavigationController()
         ]
         
-        setViewControllers(tabBarViewControllers, animated: true)
+        setViewControllers(tabBarViewControllers, animated: false)
 
         /*
          The home tab indicator starts hidden on each new app open (does not count background/foreground)
