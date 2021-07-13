@@ -62,16 +62,15 @@ final class ProfileHeaderViewController: UIViewController {
             headerView.secondaryLabel.text = phoneNumber.formattedPhoneNumber
         } else {
             headerView.messageButton.isHidden = true
-            headerView.groupCommonButton.isHidden = true
             headerView.secondaryLabel.isHidden = true
         }
         if MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId) {
             headerView.canMessage = true
-            headerView.groupCommonButton.isHidden = false
             headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
             headerView.groupCommonButton.addTarget(self, action: #selector(openGroupCommonview), for: .touchUpInside)
         }
-        
+
+        headerView.groupCommonButton.isHidden = true // Hiding this feature for launch
         headerView.avatarViewButton.addTarget(self, action: #selector(avatarViewTapped), for: .touchUpInside)
     }
 
