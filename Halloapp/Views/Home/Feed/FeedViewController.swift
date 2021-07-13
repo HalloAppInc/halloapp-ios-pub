@@ -177,17 +177,21 @@ class FeedViewController: FeedCollectionViewController {
     private weak var overlay: Overlay?
 
     private func showNUXIfNecessary() {
-        guard view.window != nil else {
-            return
-        }
-        if overlay != nil {
-            // only show one NUX item at a time
-            return
-        } else if MainAppContext.shared.nux.isIncomplete(.activityCenterIcon) && notificationCount > 0 {
-            showActivityCenterNUX()
-        } else if MainAppContext.shared.nux.isIncomplete(.newPostButton) {
-            showFloatingMenuNUX()
-        }
+        //
+        // Disabling NUX for launch
+        //
+
+        // guard view.window != nil else {
+        //     return
+        // }
+        // if overlay != nil {
+        //     // only show one NUX item at a time
+        //     return
+        // } else if MainAppContext.shared.nux.isIncomplete(.activityCenterIcon) && notificationCount > 0 {
+        //     showActivityCenterNUX()
+        // } else if MainAppContext.shared.nux.isIncomplete(.newPostButton) {
+        //     showFloatingMenuNUX()
+        // }
     }
 
     private func installEmptyView() {
