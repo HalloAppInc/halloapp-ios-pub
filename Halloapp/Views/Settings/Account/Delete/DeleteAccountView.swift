@@ -49,7 +49,6 @@ private struct RequestDeletionView: View {
     @ObservedObject var model: DeleteAccountModel
     
     @State var isShowingConfirmationAlert = false
-    @State var isShowingErrorAlert = false
     
     @State var phoneNumber = ""
     
@@ -67,7 +66,7 @@ private struct RequestDeletionView: View {
                 .textContentType(.telephoneNumber)
                 .keyboardType(.phonePad)
                 .padding()
-                .alert(isPresented: $isShowingErrorAlert, content: {
+                .alert(isPresented: $model.isShowingErrorMessage, content: {
                     Alert(title: Text(Localizations.deletionError))
                 })
             
@@ -86,7 +85,7 @@ private struct RequestDeletionView: View {
                 .padding()
                 .alert(isPresented: $isShowingConfirmationAlert, content: {
                     Alert(title: Text(Localizations.deleteAccountAction), message: Text(Localizations.irreversibleLabel), primaryButton: .destructive(Text(Localizations.buttonDelete), action: {
-                        model.requestAccountDeletion(phoneNumber: phoneNumber, displayErrorFunc: displayErrorAlert)
+                        model.requestAccountDeletion(phoneNumber: phoneNumber)
                     }), secondaryButton: .cancel({
                         phoneNumber = ""
                     }))
@@ -94,10 +93,6 @@ private struct RequestDeletionView: View {
             
             Spacer()
         }
-    }
-    
-    private func displayErrorAlert() {
-        isShowingErrorAlert = true
     }
     
     private struct ExplanationView: View {

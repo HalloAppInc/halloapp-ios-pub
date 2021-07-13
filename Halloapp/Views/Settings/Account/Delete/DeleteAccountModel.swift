@@ -11,25 +11,26 @@ import CocoaLumberjackSwift
 
 class DeleteAccountModel: ObservableObject {
     @Published var status: DeleteAccountStatus = .notDeleted
+    @Published var isShowingErrorMessage: Bool = false
     
-    func requestAccountDeletion(phoneNumber: String, displayErrorFunc: @escaping () -> ()) {
+    func requestAccountDeletion(phoneNumber: String) {
         withAnimation {
             self.status = .waitingForResponse
         }
         
         MainAppContext.shared.service.requestAccountDeletion(phoneNumber: phoneNumber) { [weak self] result in
             switch result {
-                case .failure(_): self?.handleError(displayErrorFunc: displayErrorFunc)
+                case .failure(_): self?.handleError()
                 case .success(): self?.handleSuccess()
             }
         }
     }
     
-    private func handleError(displayErrorFunc: @escaping () -> ()) {
+    private func handleError() {
         DispatchQueue.main.async {
-            displayErrorFunc()
             withAnimation {
                 self.status = .notDeleted
+                self.isShowingErrorMessage = true
             }
         }
     }
