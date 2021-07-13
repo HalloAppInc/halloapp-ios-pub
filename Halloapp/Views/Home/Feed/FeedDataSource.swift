@@ -107,18 +107,16 @@ extension FeedDataSource {
         return fetchRequest
     }
 
-    static func homeFeedRequest(combinedFeed: Bool) -> NSFetchRequest<FeedPost> {
+    static func homeFeedRequest() -> NSFetchRequest<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        if !combinedFeed {
-            fetchRequest.predicate = NSPredicate(format: "groupId == nil")
-        }
+        fetchRequest.predicate = NSPredicate(format: "groupId == nil || statusValue != %d", FeedPost.Status.retracted.rawValue)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         return fetchRequest
     }
 
     static func userFeedRequest(userID: UserID) -> NSFetchRequest<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
+        fetchRequest.predicate = NSPredicate(format: "userId == %@ && (groupId == nil || statusValue != %d)", userID, FeedPost.Status.retracted.rawValue)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         return fetchRequest
     }

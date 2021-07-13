@@ -22,7 +22,6 @@ public struct ServerProperties {
         case groupChat = "group_chat"
         case groupInviteLinks = "group_invite_links"
         case groupBackground = "group_background"
-        case combineFeed = "combine_feed"
         case silentChatMessages = "silent_chat_messages"
         case maxFeedVideoDuration = "max_feed_video_duration"
         case maxChatVideoDuration = "max_chat_video_duration"
@@ -47,7 +46,6 @@ public struct ServerProperties {
         static let groupChat = true
         static let groupInviteLinks = false
         static let groupBackground = true
-        static let combineFeed = true
         static let maxGroupSize = 50
         static let groupSyncTime = 604800
         static let silentChatMessages = 0
@@ -212,10 +210,6 @@ public struct ServerProperties {
 
     public static var isGroupBackgroundEnabled: Bool {
         ServerProperties.bool(forKey: .groupBackground) ?? Defaults.groupBackground
-    }
-
-    public static var isCombineFeedEnabled: Bool {
-        ServerProperties.bool(forKey: .combineFeed) ?? Defaults.combineFeed
     }
 
     /// Number of silent chat messages to send alongside each user-initiated message

@@ -208,7 +208,7 @@ class HomeViewController: UITabBarController {
         DDLogInfo("HomeViewController/getFeedViewController/loading FeedViewController")
         return FeedViewController(
             title: Localizations.titleHome,
-            fetchRequest: FeedDataSource.homeFeedRequest(combinedFeed: ServerProperties.isCombineFeedEnabled))
+            fetchRequest: FeedDataSource.homeFeedRequest())
     }
 
     private func groupsNavigationController() -> UINavigationController {
