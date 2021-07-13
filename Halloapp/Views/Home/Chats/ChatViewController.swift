@@ -118,7 +118,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             chatInputView.isHidden = true
         }
 
-        let headerHeight: CGFloat = isUserInAddressBook ? 70 : 120
+        let headerHeight: CGFloat = isUserInAddressBook ? 100 : 150
         let chatHeaderView = ChatHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: headerHeight))
         chatHeaderView.configure(with: fromUserId)
         chatHeaderView.delegate = self
@@ -1474,7 +1474,7 @@ class ChatHeaderView: UIView {
         let view = UIStackView(arrangedSubviews: [ encryptionBubble, addToContactsBubble, spacer] )
 
         view.axis = .vertical
-        view.alignment = .center
+        view.alignment = .fill
         view.spacing = 5
         view.setCustomSpacing(15, after: phoneLabel)
         view.setCustomSpacing(20, after: encryptionBubble)
@@ -1538,11 +1538,12 @@ class ChatHeaderView: UIView {
     }()
 
     lazy var encryptionBubble: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ encryptionLabel ])
+        let view = UIStackView(arrangedSubviews: [ lockImageView, encryptionLabel ])
         view.axis = .horizontal
         view.alignment = .center
+        view.spacing = 5
 
-        view.layoutMargins = UIEdgeInsets(top: 5, left: 15, bottom: 5, right: 15)
+        view.layoutMargins = UIEdgeInsets(top: 8, left: 15, bottom: 8, right: 15)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -1558,6 +1559,16 @@ class ChatHeaderView: UIView {
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(openEncryptionBlog)))
 
         return view
+    }()
+
+    private lazy var lockImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage(named: "settingsPrivacy")?.withRenderingMode(.alwaysTemplate))
+        imageView.tintColor = UIColor.chatInfoBubble
+
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.widthAnchor.constraint(equalToConstant: 18).isActive = true
+        imageView.widthAnchor.constraint(equalTo: imageView.heightAnchor).isActive = true
+        return imageView
     }()
 
     private lazy var encryptionLabel: UILabel = {
@@ -1579,7 +1590,7 @@ class ChatHeaderView: UIView {
         view.axis = .horizontal
         view.alignment = .center
 
-        view.layoutMargins = UIEdgeInsets(top: 5, left: 15, bottom: 5, right: 15)
+        view.layoutMargins = UIEdgeInsets(top: 8, left: 15, bottom: 8, right: 15)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -1625,7 +1636,7 @@ class ChatHeaderView: UIView {
 private extension Localizations {
 
     static var encryptionLabel: String {
-        NSLocalizedString("chat.encryption.label", value: "All messages on HalloApp are end-to-end encrypted.  Tap to learn more", comment: "Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted")
+        NSLocalizedString("chat.encryption.label", value: "Chats are end-to-end encrypted and HalloApp does not have access to them. Tap to learn more.", comment: "Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted")
     }
 
     static func addToAddressBookLabel(_ name: String) -> String {
