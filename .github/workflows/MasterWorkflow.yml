@@ -51,4 +51,4 @@ jobs:
       - name: Build Localizations
         run: xcodebuild -exportLocalizations -localizationPath . -project HalloApp.xcodeproj
       - name: Upload Localizations
-        run: curl -X POST https://api.poeditor.com/v2/projects/upload -F api_token=${{secrets.POEDITOR_API_KEY}} -F id="420915" -F updating="terms" -F file=@"en.xcloc/Localized Contents/en.xliff" -F tags="{\"obsolete\":\"removed-strings\"}"
+        run: curl -X POST https://api.poeditor.com/v2/projects/upload -F api_token=${{secrets.POEDITOR_API_KEY}} -F id="420915" -F updating="terms_translations" -F language="en" -F overwrite="1" -F fuzzy_trigger="1" -F file=@"en.xcloc/Localized Contents/en.xliff" -F tags="{\"obsolete\":\"removed-strings\"}"
