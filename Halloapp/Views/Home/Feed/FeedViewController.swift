@@ -41,8 +41,15 @@ class FeedViewController: FeedCollectionViewController {
         notificationButton.setImage(UIImage(named: "FeedNavbarNotifications")?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal), for: .normal)
         notificationButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
         notificationButton.addTarget(self, action: #selector(didTapNotificationButton), for: .touchUpInside)
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: notificationButton)
         self.notificationButton = notificationButton
+        
+        let inviteButton = BadgedButton(type: .system)
+        inviteButton.centerYConstant = 5
+        inviteButton.setImage(UIImage(named: "FeedInviteButton")?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal), for: .normal)
+        inviteButton.isBadgeHidden = true
+        inviteButton.addTarget(self, action: #selector(didTapInviteButtion), for: .touchUpInside)
+        
+        self.navigationItem.rightBarButtonItems = [UIBarButtonItem(customView: notificationButton), UIBarButtonItem(customView: inviteButton)]
 
         if let feedNotifications = MainAppContext.shared.feedData.feedNotifications {
             notificationCount = feedNotifications.unreadCount
@@ -119,6 +126,18 @@ class FeedViewController: FeedCollectionViewController {
     @objc private func didTapNotificationButton() {
         overlayContainer.dismissOverlay(with: activityCenterOverlayID)
         self.present(UINavigationController(rootViewController: NotificationsViewController(style: .plain)), animated: true)
+    }
+    
+    @objc private func didTapInviteButtion() {
+        guard ContactStore.contactsAccessAuthorized else {
+            let inviteVC = InvitePermissionDeniedViewController()
+            present(UINavigationController(rootViewController: inviteVC), animated: true)
+            return
+        }
+        InviteManager.shared.requestInvitesIfNecessary()
+        let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+        let navController = UINavigationController(rootViewController: inviteVC)
+        present(navController, animated: true)
     }
 
     // MARK: NUX
