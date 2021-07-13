@@ -25,7 +25,6 @@
 		24AA69DC24DDC6DA00ED65CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
 		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		24D743E824B3D504001111BF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
-		33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */; };
 		2918BD1FA51BFAD142F377E5 /* Pods_HalloAppClip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */; };
 		329E03FB268247BD00C2D250 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E03FA268247BD00C2D250 /* AppDelegate.swift */; };
 		329E03FD268247BD00C2D250 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E03FC268247BD00C2D250 /* SceneDelegate.swift */; };
@@ -62,6 +61,7 @@
 		32C83FC42690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FC32690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift */; };
 		32C83FCB2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FCA2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift */; };
 		32C83FDA2698171700BEB4F5 /* PrivacyPermissionDeniedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FD92698171700BEB4F5 /* PrivacyPermissionDeniedView.swift */; };
+		33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */; };
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
 		5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */; };
 		5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF5D12224F5295300F272D8 /* CameraViewController.swift */; };
@@ -468,7 +468,6 @@
 		24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPChatMessage.swift; sourceTree = "<group>"; };
 		24D743D624B3D199001111BF /* Share Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Share Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24D743DD24B3D199001111BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsInCommonViewController.swift; sourceTree = "<group>"; };
 		2762FD6E15286945AA56FCC7 /* Pods-HalloAppClip.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppClip.debug.xcconfig"; path = "Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip.debug.xcconfig"; sourceTree = "<group>"; };
 		329E03F8268247BC00C2D250 /* HalloAppClip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloAppClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		329E03FA268247BD00C2D250 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -497,6 +496,7 @@
 		32C83FC32690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPermissionDeniedController.swift; sourceTree = "<group>"; };
 		32C83FCA2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitePermissionDeniedViewController.swift; sourceTree = "<group>"; };
 		32C83FD92698171700BEB4F5 /* PrivacyPermissionDeniedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPermissionDeniedView.swift; sourceTree = "<group>"; };
+		33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsInCommonViewController.swift; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
 		3B784BE84F86CCDF62B0AAA2 /* Pods-Share Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.debug.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.debug.xcconfig"; sourceTree = "<group>"; };
 		477D47B0022D866E02A122DB /* Pods-Share Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
@@ -521,6 +521,8 @@
 		6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequests.swift; sourceTree = "<group>"; };
 		68419A8426029C2000C30B6A /* CryptoStats.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = CryptoStats.xcdatamodel; sourceTree = "<group>"; };
 		68419A922602AAB700C30B6A /* CryptoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoData.swift; sourceTree = "<group>"; };
+		685479E5269E5B6800815BE0 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		685479E6269E5B6800815BE0 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		685B76BF24E262AF00BF666A /* MentionInputTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MentionInputTests.swift; sourceTree = "<group>"; };
 		685B76CB24E4A37600BF666A /* FloatingMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingMenu.swift; sourceTree = "<group>"; };
 		68629293265C660D00C54367 /* FeedPermissionAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionAlert.swift; sourceTree = "<group>"; };
@@ -2655,6 +2657,7 @@
 			children = (
 				680AFE0D269031C500D80D7F /* es */,
 				680AFE18269031E400D80D7F /* de */,
+				685479E5269E5B6800815BE0 /* tr */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
@@ -2664,6 +2667,7 @@
 			children = (
 				680AFE10269031C500D80D7F /* es */,
 				680AFE19269031E400D80D7F /* de */,
+				685479E6269E5B6800815BE0 /* tr */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";

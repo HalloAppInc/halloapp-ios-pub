@@ -29,7 +29,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Compartir con uno de mis contactos</string>
+			<string>Compartiendo con %d de mis contactos</string>
 			<key>other</key>
 			<string>Compartir con %d de mis contactos</string>
 		</dict>
@@ -127,7 +127,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>No se pudo preparar el archivo multimedia. Intenta de nuevo o trata de seleccionar una foto o video diferente. </string>
+			<string>No se pudo preparar el archivo. Intente de nuevo o seleccione una foto o video diferente. </string>
 			<key>other</key>
 			<string>No se pudieron preparar %d archivos multimedia. Intenta de nuevo o trata de seleccionar una foto o video diferente.</string>
 		</dict>
@@ -143,9 +143,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Tienes %d invitaciones.</string>
-			<key>other</key>
 			<string>Tienes %d invitación.</string>
+			<key>other</key>
+			<string>Tienes %d invitaciones.</string>
 		</dict>
 	</dict>
 	<key>n.invites.remaining</key>
@@ -207,7 +207,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Puedes seleccionar hasta un artículo</string>
+			<string>Puede seleccionar hasta un artículo</string>
 			<key>other</key>
 			<string>Puedes seleccionar hasta %d artículos</string>
 		</dict>

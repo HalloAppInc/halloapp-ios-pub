@@ -39,7 +39,7 @@
 "button.ok" = "OK";
 
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
-"button.remove" = "Retirar";
+"button.remove" = "Eliminar";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
 "button.save" = "Guardar";
@@ -52,6 +52,9 @@
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Actualizar";
+
+/* Title for generic delete button. */
+"Delete" = "Eliminar";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Fuiste agregado a un grupo nuevo";

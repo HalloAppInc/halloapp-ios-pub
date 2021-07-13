@@ -56,6 +56,9 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Actualizar";
 
+/* Title for generic delete button. */
+"Delete" = "Eliminar";
+
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Salir";
 
@@ -100,6 +103,9 @@
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
 "registration.free.app.notice" = "Gratis en el App Store de iPhone";
+
+/* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
+"registration.group.name" = "Estás invitado a unirte al grupo %@";
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Instala HalloApp para continuar";

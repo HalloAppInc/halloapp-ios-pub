@@ -4,6 +4,9 @@
 /* No comment provided by engineer. */
 "%@" = "%@";
 
+/* No comment provided by engineer. */
+"• %@" = "• %@";
+
 /* About screen: body text. */
 "about.body.1" = "HalloApp ist da! Wir entwickeln diese App für dich und deine Liebsten. HalloApp ist eine Social-App, die sich wieder auf das Wesentliche besinnt und dabei gleichzeitig ein hohes Sicherheits- und Datenschutzniveau bietet, zu dem, wie wir meinen, jeder weltweit Zugriff haben sollte.\nHalloApp wird niemals deine persönlichen Daten verwenden oder dir Werbung anzeigen. Wir planen vielmehr, unseren Nutzern in Zukunft zusätzliche Funktionen zu einem günstigen Preis anzubieten.";
 
@@ -227,9 +230,6 @@
 /* Text shown in place of a received message we are not able to decrypt yet. */
 "chat.message.waiting" = "Auf Nachrichteneingang wird gewartet. Dies kann eine Weile dauern.";
 
-/* Title for new message screen where user chooses who to message */
-"chat.new.message.title" = "Neue Nachricht";
-
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "schreibt...";
 
@@ -330,8 +330,11 @@
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Bei der Erstellung der Gruppe ist ein Fehler aufgetreten. Bitte versuche es noch einmal";
 
+/* Title for generic delete button. */
+"Delete" = "Löschen";
+
 /* Text to show on profile for users you are not connected with */
-"exchange.phone.numbers.to.connect" = "Um den Kontakt herzustellen, müsst ihr eure Handynummern austauschen";
+"exchange.phone.numbers.to.connect" = "Einfach Handynummern austauschen, um den Kontakt herzustellen";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Kamera";
@@ -618,6 +621,24 @@
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
+/* Button that, when pressed, saves all the post's media to the user's camera roll */
+"media.save.all" = "Alle auf Kamerarolle speichern";
+
+/* Button that lets the user save the current media displayed to their camera roll */
+"media.save.camera.roll" = "In Kamerarolle speichern";
+
+/* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
+"media.save.needs.permissions" = "Erlaubnis zum Zugriff auf Fotos wird benötigt";
+
+/* Description telling the user why the photos couldn't be saved */
+"media.save.no.access" = "Fotos können nur mit Zugriffsberechtigung auf die Kamerarolle gespeichert werden.";
+
+/* Alert displayed explaining to the user that the media save operation failed */
+"media.save.not.saved" = "Das Foto kann nicht gespeichert werden";
+
+/* Label indicating that media was successfully saved to the camera roll */
+"media.save.saved" = "Gespeichert";
+
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Schließen";
 
@@ -713,7 +734,7 @@
 "nux.new.post.button" = "Tippe hier, um ein Update mit deinen Freunden und deiner Familie auf HalloApp zu teilen";
 
 /* Message in media picker when access is denied. */
-"picker.access.denied.message" = "Bitte lasse den Zugriff über die Einstellungen zu";
+"picker.access.denied.message" = "Bitte über die Einstellungen den Zugriff zulassen";
 
 /* An option to give access from settings */
 "picker.access.denied.settings" = "Einstellungen";
@@ -830,6 +851,9 @@
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
 "registration.free.app.notice" = "Kostenlos im iPhone App Store";
 
+/* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
+"registration.group.name" = "Du bist eingeladen, der Gruppe %@ beizutreten";
+
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Installiere HalloApp, um fortzufahren";
 
@@ -868,12 +892,6 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "Die Sicherheitsnummer für %@ wurde erfolgreich verifiziert!";
-
-/* Title of screen where user chooses members to add to either a new group or an existing one */
-"select.group.members.create.group.title" = "Neue Gruppe erstellen";
-
-/* Title of screen where user chooses members to add to either a new group or an existing one */
-"select.group.members.title" = "Neue Mitglieder hinzufügen";
 
 /* fallback text in notification for a new comment */
 "server.new.comment" = "Neuer Kommentar";
@@ -996,7 +1014,7 @@
 "title.settings" = "Einstellungen";
 
 /* Title for the screen with information about who saw your post. */
-"title.your.post" = "Dein Beitrag";
+"title.your.post" = "Gesehen von";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "Aktiviere Zugriff auf Kontakte";
@@ -1015,6 +1033,15 @@
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Auf HalloApp blocken";
+
+/* Option when user taps more on profile page */
+"user.option.unblock" = "Auf HalloApp freigeben";
+
+/* Button to confirm unblocking user via profile page */
+"user.unblock" = "Freigeben";
+
+/* Message asking if the user is sure they want to unblock this user */
+"user.unblock.message" = "Bist du dir sicher, dass du %@ auf HalloApp freigeben möchtest? Du kannst dies später jederzeit ändern.";
 
 /* Reference to the user, second person pronoun */
 "user.you" = "dich";

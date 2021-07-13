@@ -2,7 +2,7 @@
 "%" = "%";
 
 /* No comment provided by engineer. */
-"%@" = "\n %@";
+"%@" = "%@";
 
 /* About screen: body text. */
 "about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \n\nHemos hecho que las aplicaciones sociales vuelvan a lo esencial, y agregamos un nivel de seguridad y privacidad al que creemos que todo el mundo debe tener acceso.\n\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nAl contrario, con el tiempo esperamos poder añadir nuevas funciones a un pequeño costo.";
@@ -63,7 +63,7 @@
 "button.done" = "Hecho";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ir a la configuración";
+"button.go.to.settings" = "Ir a configuración";
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "Instalar";
@@ -84,7 +84,7 @@
 "button.ok" = "OK";
 
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
-"button.remove" = "Retirar";
+"button.remove" = "Eliminar";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
 "button.save" = "Guardar";
@@ -111,7 +111,7 @@
 "camera.init.error.3" = "No se puede iniciar el micrófono";
 
 /* No comment provided by engineer. */
-"camera.init.error.4" = "No hay acceso a la cámara trasera";
+"camera.init.error.4" = "No hay acceso a la cámara posterior";
 
 /* No comment provided by engineer. */
 "camera.init.error.5" = "No hay acceso a la cámara frontal";
@@ -123,7 +123,7 @@
 "camera.init.error.7" = "No se puede tomar fotos";
 
 /* No comment provided by engineer. */
-"camera.init.error.8" = "No puede grabar películas";
+"camera.init.error.8" = "No puede grabar videos";
 
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Error al inicializar";
@@ -132,7 +132,7 @@
 "chat.create.group.name.placeholder" = "Dale un nombre a tu grupo";
 
 /* Title of group creation screen */
-"chat.create.group.title" = "Info. del grupo";
+"chat.create.group.title" = "Información del grupo";
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Crear un grupo nuevo";
@@ -174,7 +174,7 @@
 "chat.group.info.leave.group" = "Salir del grupo";
 
 /* Text for menu option of making a group member admin */
-"chat.group.info.make.group.admin" = "Hacer admin. del grupo";
+"chat.group.info.make.group.admin" = "Hacer administrador del grupo";
 
 /* Text for menu option of messaging user */
 "chat.group.info.message.user" = "Enviar mensaje";
@@ -226,9 +226,6 @@
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
 "chat.message.waiting" = "Esperando este mensaje. Esto puede tomar un tiempo.";
-
-/* Title for new message screen where user chooses who to message */
-"chat.new.message.title" = "Nuevo mensaje";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "escribiendo...";
@@ -332,6 +329,9 @@
 
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Se ha producido un error al crear el grupo, inténtalo de nuevo";
+
+/* Title for generic delete button. */
+"Delete" = "Eliminar";
 
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Para conectarse deben intercambiar números de teléfono";
@@ -633,6 +633,24 @@
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
+/* Button that, when pressed, saves all the post's media to the user's camera roll */
+"media.save.all" = "Guardar todo en mi rollo de cámara";
+
+/* Button that lets the user save the current media displayed to their camera roll */
+"media.save.camera.roll" = "Guardar en mi rollo de cámara";
+
+/* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
+"media.save.needs.permissions" = "Necesita permisos de fotos";
+
+/* Description telling the user why the photos couldn't be saved */
+"media.save.no.access" = "Fotos no se pueden guardar sin acceso al rollo de cámara.";
+
+/* Alert displayed explaining to the user that the media save operation failed */
+"media.save.not.saved" = "La foto no se pudo guardar.";
+
+/* Label indicating that media was successfully saved to the camera roll */
+"media.save.saved" = "Guardado";
+
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Cerrar";
 
@@ -664,10 +682,10 @@
 "mypost.action.view.profile" = "Ver perfil";
 
 /* Message displayed to say when posts will disappear */
-"mypost.disappear.time.label" = "Tus mensajes desaparecerán después de 30 días.";
+"mypost.disappear.time.label" = "Tus publicaciones desaparecerán después de 30 días.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
-"mypost.hide.posts.confirmation" = "¿Estás seguro que quieres ocultar todas las publicaciones futuras de %@? Este cambio lo puedes hacer más adelante.";
+"mypost.hide.posts.confirmation" = "¿Estás seguro que quieres ocultar todas las publicaciones futuras de %@? Siempre puedes hacer este cambio más adelante.";
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
 "mypost.not.viewed.yet" = "Nadie ha visto tu publicación aún";
@@ -755,7 +773,7 @@
 "picker.media.fail.message" = "Intenta de nuevo o selecciona un video o una foto diferente.";
 
 /* Alert title in media picker when unable to load media file. */
-"picker.media.fail.title" = "No se pudo lan";
+"picker.media.fail.title" = "No se pudo cargar la foto o el video";
 
 /* Button shown to update limited access to media. */
 "picker.media.limit.button" = "Actualizar";
@@ -789,7 +807,7 @@
 "privacy.n.contacts" = "privacidad.n.contactos";
 
 /* Title for the button allowing to delete current profile photo. */
-"profile.delete.photo" = "Eliminar fotos";
+"profile.delete.photo" = "Eliminar foto";
 
 /* Text for messaging user under profile header */
 "profile.header.message.user" = "Enviar un mensaje";
@@ -860,6 +878,9 @@
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
 "registration.free.app.notice" = "Gratis en el App Store de iPhone";
 
+/* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
+"registration.group.name" = "Estás invitado a unirte al grupo %@";
+
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Instala HalloApp para continuar";
 
@@ -898,12 +919,6 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "¡Se ha verificado con éxito el número de seguridad de %@!";
-
-/* Title of screen where user chooses members to add to either a new group or an existing one */
-"select.group.members.create.group.title" = "Crear un grupo nuevo";
-
-/* Title of screen where user chooses members to add to either a new group or an existing one */
-"select.group.members.title" = "Añadir participantes nuevos";
 
 /* fallback text in notification for a new comment */
 "server.new.comment" = "Comentario nuevo";
@@ -978,16 +993,16 @@
 "thread.list.preview.new.user.default" = "%@ está en HalloApp! 🎉";
 
 /* Last seen timestamp: full date in short format and time */
-"timestamp.last.seen.date.at.time" = "Última vez el %1$@ a la(s) %2$@";
+"timestamp.last.seen.date.at.time" = "Visto por última vez el %1$@ a la(s) %2$@";
 
 /* Last seen timestamp: day of week and time */
-"timestamp.last.seen.dayofweek.at.time" = "Última vez el %1$@ a la(s) %2$@";
+"timestamp.last.seen.dayofweek.at.time" = "Visto por última vez el %1$@ a la(s) %2$@";
 
 /* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "Última vez hoy a las %@";
+"timestamp.last.seen.today.at" = "Visto por última vez hoy a las %@";
 
 /* Last seen timestamp: yesterday at specific time. */
-"timestamp.last.seen.yesterday.at" = "Última vez ayer a las %@ ";
+"timestamp.last.seen.yesterday.at" = "Visto por última vez ayer a las %@ ";
 
 /* Capitalized translation of `Now` to be used as timestamp. */
 "timestamp.now.capitalized" = "Ahora";
@@ -1005,7 +1020,7 @@
 "title.camera" = "Cámara";
 
 /* Third tab in the main app interface. */
-"title.chats" = "Chats";
+"title.chats" = "Conversaciones";
 
 /* Title for the Comments screen. */
 "title.comments" = "Comentarios";
@@ -1026,7 +1041,7 @@
 "title.settings" = "Configuración";
 
 /* Title for the screen with information about who saw your post. */
-"title.your.post" = "Tu publicación";
+"title.your.post" = "Visto por";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "Activar \"Contactos\"";
@@ -1045,6 +1060,15 @@
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Bloquear en HalloApp";
+
+/* Option when user taps more on profile page */
+"user.option.unblock" = "Desbloquear en HalloApp";
+
+/* Button to confirm unblocking user via profile page */
+"user.unblock" = "Desbloquear";
+
+/* Message asking if the user is sure they want to unblock this user */
+"user.unblock.message" = "¿Seguro que quieres desbloquear a %@ en HalloApp? Siempre puedes cambiar esto más tarde.";
 
 /* Reference to the user, second person pronoun */
 "user.you" = "tú";

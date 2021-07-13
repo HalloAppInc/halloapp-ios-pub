@@ -1,136 +1,133 @@
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "Keine Internetverbindung";
+"alert.no.internet.title" = "İnternet bağlantısı yok";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Bitte überprüfe, ob du über eine Internetverbindung verfügst, und versuche es dann noch einmal.";
+"alert.no.internet.try.again" = "Lütfen internet bağlantını kontrol et ve yeniden dene.";
 
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
-"button.cancel" = "Abbrechen";
+"button.cancel" = "İptal et";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
-"button.continue" = "Fortsetzen";
+"button.continue" = "Devam et";
 
 /* Title for generic Create button */
-"button.create" = "Erstellen";
+"button.create" = "Oluştur";
 
 /* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Verwerfen";
+"button.dismiss" = "Reddet";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Fertig";
+"button.done" = "Bitti";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Meine Einstellungen";
+"button.go.to.settings" = "Ayarlara git";
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
-"button.install" = "Installieren";
+"button.install" = "Yükle";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Mehr erfahren";
+"button.learn.more" = "Daha fazlasını öğren";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
-"button.more" = "Mehr";
+"button.more" = "Daha fazla";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
-"button.next" = "Weiter";
+"button.next" = "Sonraki";
 
 /* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "Jetzt nicht";
+"button.not.now" = "Şimdi değil";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
-"button.ok" = "OK";
+"button.ok" = "Tamam";
 
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
-"button.remove" = "Entfernen";
+"button.remove" = "Sil";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "Speichern";
+"button.save" = "Kaydet";
 
 /* Title for generic Send button. Mostly used to complete some modal flow. */
-"button.send" = "Senden";
+"button.send" = "Gönder";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Teilen";
+"button.share" = "Paylaş";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
-"button.update" = "Update";
-
-/* Title for generic delete button. */
-"Delete" = "Löschen";
+"button.update" = "Güncelle";
 
 /* Title for exit button that closes the app */
-"home.update.notice.button.exit" = "Beenden";
+"home.update.notice.button.exit" = "Çık";
 
 /* Text shown to users who have old versions of the app */
-"home.update.notice.text" = "Bitte installiere die neueste HalloApp-Version";
+"home.update.notice.text" = "Lütfen HalloApp'in en son sürümünü yükle";
 
 /* Title of update notice shown to users who have old versions of the app */
-"home.update.notice.title" = "Diese Version ist veraltet";
+"home.update.notice.title" = "Bu sürüm güncel değil";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "Mehr erfahren";
+"link.learnMore" = "Daha fazlasını öğren";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Meine App aktualisieren.";
+"link.update.your.app" = "Uygulamanı güncelle";
 
 /* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Ich";
+"meCapitalized" = "Ben";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Verifizierungscode wird zugeschickt. \nKosten deines Service-Providers könnten anfallen.";
+"registration.code.disclaimer" = "Bir onay kodu alacaksın. Bu mesaj ücretli olabilir.";
 
 /* Error message to display when user enters incorrect verification code */
-"registration.code.incorrect" = "Der eingegebene Code ist nicht korrekt.";
+"registration.code.incorrect" = "Girdiğin kod hatalı";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
-"registration.code.instructions" = "Bitte den Code eingeben, den wir an %@ gesendet haben";
+"registration.code.instructions" = "%@ numarasına gönderdiğimiz kodu gir";
 
 /* Error message to display when we cannot send a verification code */
-"registration.code.request.error" = "Der Code konnte nicht gesendet werden. Bitte versuche es später noch einmal.";
+"registration.code.request.error" = "Kod gönderilemiyor. Lütfen daha sonra tekrar dene.";
 
 /* Button label to resend verification code */
-"registration.code.resend" = "SMS erneut senden";
+"registration.code.resend" = "Tekrar SMS gönder";
 
 /* Button label to resend verification code by voice call */
-"registration.code.resend.by.voice" = "Ruf mich an";
+"registration.code.resend.by.voice" = "Beni ara";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Um den Kontakt zu deinen Freunden und deiner Familie herzustellen, benötigen wir deine Erlaubnis, um auf deine Kontakte zugreifen zu können.";
+"registration.contacts.content" = "Ailen ve arkadaşlarınla bağlantı kurabilmen için kişilerine erişim iznine ihtiyacımız olacak.";
 
 /* Title for text explaining why we need contact permissions */
-"registration.contacts.title" = "Noch ein Hinweis";
+"registration.contacts.title" = "Son bir şey";
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
-"registration.free.app.notice" = "Kostenlos im iPhone App Store";
+"registration.free.app.notice" = "iPhone App Store'da ücretsiz";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
-"registration.group.name" = "Du bist eingeladen, der Gruppe %@ beizutreten ";
+"registration.group.name" = "%@ grubuna katılmaya davetlisin";
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
-"registration.install.app.to.continue" = "Installiere HalloApp, um fortzufahren";
+"registration.install.app.to.continue" = "Devam etmek için HalloApp'i yükle";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Wenn du einem Gruppeneinladungslink gefolgt bist, um dich zu registrieren, klicke bitte erneut auf den Link, um die Registrierung abzuschließen und der Gruppe beizutreten.";
+"registration.invite.only" = "Kaydolmak için bir Grup Davet İlişimini kullandıysanız, kaydı tamamlamak ve gruba katılmak için lütfen ilişime tekrar tıklayın.";
 
 /* Placeholder text for name entry */
-"registration.nameEntry.placeholder" = "Dein Name";
+"registration.nameEntry.placeholder" = "Adın";
 
 /* Placeholder text for phone entry */
-"registration.phoneEntry.placeholder" = "Handynummer";
+"registration.phoneEntry.placeholder" = "Telefon numarası";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "HalloApp verwendet nur das Feld für die Handynummer, um den Kontakt mit deinen Freunden auf HalloApp herzustellen. Darüber hinaus werden keine weiteren Daten aus deinen Kontakten übermittelt.";
+"registration.privacy.content" = "HalloApp, seni HalloApp kullanan arkadaşlarınla eşleştirmek için yalnızca telefon numaranı kullanır; rehberindeki başka herhangi bir veriyi almaz.";
 
 /* Title for modal describing how we use contacts data */
-"registration.privacy.title" = "Deine Privatsphäre ist unsere Priorität";
+"registration.privacy.title" = "Gizliliğin önceliğimizdir";
 
 /* Title for popup that appears when user tries to register uninvited number */
-"registration.shucks" = "Ups!";
+"registration.shucks" = "Tüh!";
 
 /* Shown above name and phone inputs */
-"registration.welcome" = "Herzlich willkommen!";
+"registration.welcome" = "Hoş geldin!";
 
 /* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Kontakt unbekannt";
+"unknown.contact" = "Bilinmeyen kişi";
 

@@ -1,6 +1,15 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "İnternet bağlantısı yok";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Lütfen internet bağlantını kontrol et ve tekrar dene";
+
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
 "button.cancel" = "İptal et";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Devam et";
 
 /* Title for generic Create button */
 "button.create" = "Oluştur";
@@ -11,8 +20,20 @@
 /* Title for generic Done button. Mostly used to complete some modal flow. */
 "button.done" = "Bitti";
 
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Ayarlara git";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Daha fazlasını öğren";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Daha fazla";
+
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
 "button.next" = "İleri";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Şimdi değil";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
 "button.ok" = "Tamam";
@@ -36,7 +57,13 @@
 "groups.add.notification" = "Yeni bir gruba eklendin";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "Daha fazla öğren";
+"link.learnMore" = "Daha fazlasını öğren";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Uygulamanı güncelle";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Ben";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Yorum yapıldı: %@";

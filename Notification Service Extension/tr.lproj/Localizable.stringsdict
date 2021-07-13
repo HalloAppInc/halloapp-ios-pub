@@ -13,9 +13,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d fotoğraf</string>
+			<string>📷 %d fotoğraf</string>
 			<key>other</key>
-			<string>%d fotoğraf</string>
+			<string>📷 %d fotoğraf</string>
 		</dict>
 	</dict>
 	<key>notification.n.videos</key>
