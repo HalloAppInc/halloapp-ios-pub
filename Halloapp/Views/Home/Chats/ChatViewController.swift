@@ -299,6 +299,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         chatInputView.willAppear(in: self)
+        tabBarController?.hideTabBar(vc: self)
     }
 
     override func viewDidLayoutSubviews() {
