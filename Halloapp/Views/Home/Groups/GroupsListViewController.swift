@@ -102,6 +102,9 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         tableView.tableHeaderView = searchController.searchBar
         tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
         
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 60 // set a number close to default to prevent cells overlapping issue, can't be auto
+        
         setupFetchedResultsController()
                 
         // When the user was on this view
@@ -296,16 +299,18 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
             DDLogDebug("GroupsListView/frc/move [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges && !isFiltering {
                 tableView.moveRow(at: fromIndexPath, to: toIndexPath)
-                reloadTableViewInDidChangeContent = true
             } else {
                 reloadTableViewInDidChangeContent = true
             }
-
         case .update:
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { return }
             DDLogDebug("GroupsListView/frc/update [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
 
-            reloadTableViewInDidChangeContent = true
+            if trackPerRowFRCChanges && !isFiltering {
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
         default:
             break
         }

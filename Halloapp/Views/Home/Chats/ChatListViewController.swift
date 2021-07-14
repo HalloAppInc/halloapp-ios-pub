@@ -98,6 +98,9 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         tableView.tableHeaderView = searchController.searchBar
         tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
+        
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 60 // set a number close to default to prevent cells overlapping issue, can't be auto
 
         setupFetchedResultsController()
 
@@ -293,18 +296,18 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             DDLogDebug("ChatListView/frc/move [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges && !isFiltering {
                 tableView.moveRow(at: fromIndexPath, to: toIndexPath)
-                reloadTableViewInDidChangeContent = true
             } else {
                 reloadTableViewInDidChangeContent = true
             }
-
         case .update:
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { return }
             DDLogDebug("ChatListView/frc/update [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
             
-            // reload table instead of reloadRows due to overlapping issue when table exceeds 100+ rows
-            // ex: overlap can occur when user scrolls down, select a chat, send a msg, and then go back
-            reloadTableViewInDidChangeContent = true
+            if trackPerRowFRCChanges && !isFiltering {
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
         default:
             break
         }
