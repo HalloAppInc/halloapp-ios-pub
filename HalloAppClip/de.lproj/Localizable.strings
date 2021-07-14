@@ -131,6 +131,12 @@
 /* Shown above name and phone inputs */
 "registration.welcome" = "Herzlich willkommen!";
 
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "Du kannst dich erst anmelden, wenn du die Anwendung neu startest";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "Der Account wurde erfolgreich gelöscht";
+
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Kontakt unbekannt";
 
