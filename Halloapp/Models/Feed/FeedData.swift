@@ -1487,7 +1487,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     return
                 }
                 let duration = Date().timeIntervalSince(startTime)
-                DDLogInfo("FeedData/downloadMedia/post/\(feedPost.id)/finished [photos: \(photosDownloaded)] [videos: \(videosDownloaded)] [t: \(duration)]")
+                DDLogInfo("FeedData/downloadMedia/post/\(feedPost.id)/finished [photos: \(photosDownloaded)] [videos: \(videosDownloaded)] [t: \(duration)] [bytes: \(totalDownloadSize)]")
                 AppContext.shared.eventMonitor.observe(
                     .mediaDownload(
                         postID: feedPost.id,
