@@ -65,7 +65,7 @@ public struct MentionInput {
 
     public mutating func addMention(name: String, userID: UserID, in range: NSRange) {
         let mentionString = "@\(name)"
-        let mentionRange = NSRange(location: range.location, length: mentionString.count)
+        let mentionRange = NSRange(location: range.location, length: mentionString.utf16Extent.length)
 
         let replacementString = mentionString + " "
 
@@ -82,13 +82,13 @@ public struct MentionInput {
         // Update mentions
         let impactedMentions = impactedMentionRanges(in: range)
         mentions = mentions.filter { !impactedMentions.contains($0.key) }
-        applyOffsetToMentions(replacementText.count - range.length, from: range.location)
+        applyOffsetToMentions(replacementText.utf16Extent.length - range.length, from: range.location)
 
         // Update text
         text = text.replacingCharacters(in: stringRange, with: replacementText)
 
         // Update selection (move cursor to end of range)
-        let newCursorPosition = range.location + replacementText.count
+        let newCursorPosition = range.location + replacementText.utf16Extent.length
         selectedRange = NSRange(location: newCursorPosition, length: 0)
     }
 
