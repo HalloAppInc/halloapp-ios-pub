@@ -99,6 +99,10 @@ class FeedViewController: FeedCollectionViewController {
         super.viewDidAppear(animated)
         updateContactPermissionsAlert()
         showNUXIfNecessary()
+
+        if isNearTop(100) {
+            MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.send()
+        }
     }
 
     deinit {
