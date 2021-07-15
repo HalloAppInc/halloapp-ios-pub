@@ -67,7 +67,8 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
 
     let feedPostId: FeedPostID
     private let isGroupPost: Bool
-    private var numContactsToShow: Int = 12
+    private var showAllContacts: Bool = false
+    private var initialNumContactsToShow: Int = 12
 
     private struct Constants {
         static let cellReuseIdentifier = "contactCell"
@@ -192,8 +193,8 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         }
     }
 
-    private func showAllContacts() {
-        numContactsToShow = ServerProperties.maxGroupSize
+    private func showAllContactsTapped() {
+        showAllContacts = true
         if let feedPost = fetchedResultsController.fetchedObjects?.first {
             reloadData(from: feedPost)
         }
@@ -212,8 +213,9 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         allContactRows.append(contentsOf: allContactRowContacts.map { Row.contactRow($0) })
 
         var contactRows = [Row]()
-        if allContactRows.count > numContactsToShow {
-            contactRows = Array(allContactRows.prefix(numContactsToShow - 2)) // show 10
+
+        if !showAllContacts && (allContactRows.count > initialNumContactsToShow) {
+            contactRows = Array(allContactRows.prefix(initialNumContactsToShow - 2)) // show 10
             contactRows.append(Row.contactRow(ContactRow.more))
         } else {
             contactRows = Array(allContactRows)
@@ -294,7 +296,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
                     }
                 case .more:
                     tableView.deselectRow(at: indexPath, animated: false)
-                    showAllContacts()
+                    showAllContactsTapped()
                 }
             default:
                 break
