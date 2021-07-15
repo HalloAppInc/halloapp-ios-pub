@@ -1,14 +1,16 @@
-HalloApp is a simple social app for sharing your everyday moments. HalloApp helps you create intimate, authentic, and private spaces with your friends and family.
+HalloApp is here! The first app for *real* relationships. And we’re building it for you and your loved ones, friends and colleagues.
 
-HalloApp brings social networks back to basics and adds a layer of security and privacy that we think everyone in the world deserves. We use your phone number to connect you with friends and family. Beyond that, we never collect, store or use any personal information and never show you ads. 
+A completely new category. A simple, safe, and private place to connect and share what matters in your life, with the people who matter to you. In complete privacy. 
 
-With HalloApp, you have:
-· No pressure of sending and accepting friend requests
-· No ads, brands and celebrities (if you are one yourself, you’re welcomed to use HalloApp with your friends)
-· A simple way to share candid moments in a relaxed environment
-· An ability to create intimate, private spaces with HalloApp groups
+Unlike legacy social networks, HalloApp believes privacy is a fundamental human right. We use your phone number to connect you with friends and family. Beyond that, we *never* collect, store or use any personal information. 
 
-HalloApp’s features are built around privacy, because we believe privacy is a fundamental human right.
+Which means we *never* sell your personal information. Because we *never* have it.
+
+There are no brands, ads or influencers clogging your feed. Just real people you really care about.
+
+Your chats are end-to-end encrypted. No one outside of your chats can read them, not even HalloApp.
+
+HalloApp was founded by two ex-WhatsApp folks, who helped build WhatsApp and turn it into one of the most beloved apps in the world.
 
 We're excited to hear from you! If you have feedback or questions, please email us at:
 iphone-support@halloapp.com
