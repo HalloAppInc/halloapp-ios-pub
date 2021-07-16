@@ -51,7 +51,11 @@ class AppClipHomeViewController: UIViewController {
         installAppTitle.numberOfLines = 0
         installAppTitle.setContentCompressionResistancePriority(.required, for: .vertical)
         installAppTitle.textAlignment = .center
-        installAppTitle.text = Localizations.installAppToContinue
+        if let groupName = AppClipContext.shared.userData.groupName {
+            installAppTitle.text = Localizations.installAppToJoinGroup(formattedGroupName: groupName)
+        } else {
+            installAppTitle.text = Localizations.installAppToContinue
+        }
 
         let freeDownloadLabel = UILabel()
         freeDownloadLabel.text = Localizations.freeAppDownloadText

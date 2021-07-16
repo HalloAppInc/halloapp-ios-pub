@@ -103,6 +103,15 @@ extension Localizations {
         NSLocalizedString("registration.install.app.to.continue", value: "Install HalloApp to continue", comment: "Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp")
     }
     
+    static func installAppToJoinGroup(formattedGroupName: String) -> String {
+        String(
+            format: NSLocalizedString(
+                "registration.install.app.to.join.group",
+                value: "Install HalloApp to open %@",
+                comment: "When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group."),
+            formattedGroupName)
+    }
+
     static var buttonInstall: String {
         NSLocalizedString("button.install", value: "Install", comment: "Title for Install button, takes the user to the HalloApp app store view where they can download the app.")
     }

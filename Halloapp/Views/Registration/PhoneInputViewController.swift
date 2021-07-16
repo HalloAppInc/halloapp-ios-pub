@@ -43,7 +43,6 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
 
     let scrollView = UIScrollView()
     var scrollViewBottomMargin: NSLayoutConstraint?
-    var groupName: String?
     
     static let deletedAccountKey = "didDeleteAccount" // Also in `DeletedAccountModel.swift` due to being inaccessible
 
@@ -214,6 +213,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
             case .success(let groupName):
                 if let groupName = groupName {
                     DDLogInfo("PhoneInputViewController/getGroupNameIfNeeded/fetched group name \(groupName)")
+                    AppContext.shared.userData.groupName = groupName
                     let font = UIFont.systemFont(forTextStyle: .headline, weight: .regular, maximumPointSize: Constants.MaxFontPointSize - 12)
                     let inviteString = Localizations.registrationGroupName(formattedGroupName: groupName)
                     self.groupInviteLabel.attributedText = self.getAttributedText(withString: inviteString, boldString: groupName, font: font)
