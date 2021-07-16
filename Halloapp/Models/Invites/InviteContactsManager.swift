@@ -75,6 +75,7 @@ struct InviteContact: Hashable, Equatable {
     var normalizedPhoneNumber: String
     var friendCount: Int?
     var userID: UserID?
+    var formattedPhoneNumber: String
 }
 
 extension InviteContact {
@@ -85,6 +86,7 @@ extension InviteContact {
         self.fullName = fullName
         self.givenName = abContact.givenName
         self.normalizedPhoneNumber = number
+        self.formattedPhoneNumber = abContact.phoneNumber ?? "+\(number)".formattedPhoneNumber
         self.userID = abContact.userId
         self.friendCount = Int(abContact.numPotentialContacts)
     }

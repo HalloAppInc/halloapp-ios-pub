@@ -277,8 +277,8 @@ final class InviteViewController: UIViewController {
                 self.present(vc, animated: true, completion: nil)
                 #else
                 let vc = MFMessageComposeViewController()
-                vc.body = Localizations.inviteText(name: contact.givenName ?? contact.fullName, number: contact.normalizedPhoneNumber.formattedPhoneNumber)
-                vc.recipients = [contact.normalizedPhoneNumber.formattedPhoneNumber]
+                vc.body = Localizations.inviteText(name: contact.givenName ?? contact.fullName, number: contact.formattedPhoneNumber)
+                vc.recipients = [contact.formattedPhoneNumber]
                 vc.messageComposeDelegate = self
                 self.present(vc, animated: true, completion: nil)
                 #endif
@@ -297,7 +297,7 @@ final class InviteViewController: UIViewController {
                 var allowedCharacters = CharacterSet.urlHostAllowed
                 allowedCharacters.remove("+")
                 guard let urlEncodedInviteText = Localizations
-                        .inviteText(name: contact.givenName ?? contact.fullName, number: contact.normalizedPhoneNumber.formattedPhoneNumber)
+                        .inviteText(name: contact.givenName ?? contact.fullName, number: contact.formattedPhoneNumber)
                         .addingPercentEncoding(withAllowedCharacters: allowedCharacters),
                       let whatsAppURL = URL(string: "https://wa.me/\(contact.normalizedPhoneNumber)/?text=\(urlEncodedInviteText)") else
                 {
@@ -467,7 +467,7 @@ final class InviteCellView: UIView {
 
         let isUserAlready = contact.userID != nil
 
-        let secondLine = contact.normalizedPhoneNumber.formattedPhoneNumber
+        let secondLine = contact.formattedPhoneNumber
         let thirdLine: String? = {
             guard !isUserAlready else {
                 return Localizations.alreadyHalloAppUser
