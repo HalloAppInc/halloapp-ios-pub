@@ -12,7 +12,7 @@ import Sodium
 
 public protocol RegistrationService {
     func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
-    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
+    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, pushOS: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
     func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void)
 }
 
@@ -116,7 +116,7 @@ public final class DefaultRegistrationService: RegistrationService {
         task.resume()
     }
 
-    public func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void) {
+    public func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, pushOS: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void) {
 
         guard let phraseData = "HALLO".data(using: .utf8),
               let signedPhrase = noiseKeys.sign(phraseData) else
@@ -143,8 +143,15 @@ public final class DefaultRegistrationService: RegistrationService {
             "one_time_keys": oneTimeKeyData.map { $0.base64EncodedString() },
         ]
         
+        // Populate optional values
         if groupInviteToken != nil {
             json["group_invite_token"] = groupInviteToken
+        }
+        if let pushToken = UserDefaults.standard.string(forKey: "apnsPushToken") {
+            json["push_token"] = pushToken
+        }
+        if pushOS != nil {
+            json["push_os"] = groupInviteToken
         }
 
         let url = URL(string: "https://\(hostName)/api/registration/register2")!

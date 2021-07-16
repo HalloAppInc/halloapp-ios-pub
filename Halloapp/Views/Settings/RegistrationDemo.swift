@@ -53,7 +53,7 @@ final class DemoRegistrationManager: RegistrationManager {
         }
     }
 
-    func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func confirmVerificationCode(_ verificationCode: String, pushOS: String?, completion: @escaping (Result<Void, Error>) -> Void) {
         DispatchQueue.main.asyncAfter(deadline: .now() + TimeInterval(2)) {
             if verificationCode == self.correctCode {
                 completion(.success(()))

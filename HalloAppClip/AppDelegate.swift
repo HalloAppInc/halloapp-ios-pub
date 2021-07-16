@@ -6,6 +6,7 @@
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
+import CocoaLumberjackSwift
 import Core
 import UIKit
 import CoreData
@@ -18,6 +19,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Register for remote notifications
+        UIApplication.shared.registerForRemoteNotifications()
         // Override point for customization after application launch.
         // TODO(@dini) : Investigate ContactStore.self vs ContactStoreMain.self in below call
         initAppContext(AppClipContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self, appTarget: AppTarget.mainApp)
@@ -36,6 +39,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the user discards a scene session.
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
+    }
+
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let tokenString = deviceToken.toHexString()
+        DDLogInfo("appdelegate/notifications/push-token/success [\(tokenString)]")
+        UserDefaults.standard.set(tokenString, forKey: "apnsPushToken")
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        DDLogInfo("appdelegate/notifications/push-token/error [\(error)]")
     }
 
     // MARK: - Core Data stack

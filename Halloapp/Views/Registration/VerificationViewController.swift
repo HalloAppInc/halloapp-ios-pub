@@ -108,7 +108,7 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
     }
 
     func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        registrationManager?.confirmVerificationCode(verificationCode, completion: completion)
+        registrationManager?.confirmVerificationCode(verificationCode, pushOS: nil, completion: completion)
     }
 
     func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController) {

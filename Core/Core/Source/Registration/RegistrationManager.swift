@@ -15,7 +15,7 @@ public protocol RegistrationManager: AnyObject {
     var formattedPhoneNumber: String? { get }
     func set(countryCode: String, nationalNumber: String, userName: String)
     func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void)
-    func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void)
+    func confirmVerificationCode(_ verificationCode: String, pushOS: String?, completion: @escaping (Result<Void, Error>) -> Void)
     func didCompleteRegistrationFlow()
     func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void)
 }
@@ -63,7 +63,7 @@ public final class DefaultRegistrationManager: RegistrationManager {
         }
     }
 
-    public func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    public func confirmVerificationCode(_ verificationCode: String, pushOS: String?, completion: @escaping (Result<Void, Error>) -> Void) {
         let userData = AppContext.shared.userData
         let keyData = AppContext.shared.keyData
 
@@ -80,6 +80,7 @@ public final class DefaultRegistrationManager: RegistrationManager {
             normalizedPhoneNumber: userData.normalizedPhoneNumber,
             noiseKeys: noiseKeys,
             groupInviteToken: userData.groupInviteToken,
+            pushOS: pushOS,
             whisperKeys: userKeys.whisperKeys) { result in
             switch result {
             case .success(let credentials):
