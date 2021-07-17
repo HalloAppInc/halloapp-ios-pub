@@ -6,7 +6,7 @@
 	<string>development</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>appclips:halloapp.com</string>
+		<string>appclips:halloapp.com/invite</string>
 	</array>
 	<key>com.apple.developer.parent-application-identifiers</key>
 	<array>

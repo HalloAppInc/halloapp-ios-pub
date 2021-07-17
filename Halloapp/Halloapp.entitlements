@@ -10,6 +10,7 @@
 		<string>applinks:*.halloapp.com</string>
 		<string>applinks:www.halloapp.com</string>
 		<string>applinks:invite.halloapp.com</string>
+		<string>appclips:halloapp.com/invite</string>
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
