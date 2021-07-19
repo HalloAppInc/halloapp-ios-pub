@@ -6,6 +6,7 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjackSwift
 import Core
 import CoreData
 import UIKit
@@ -53,6 +54,18 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
         }
 
         let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
+        if !ContactStore.contactsAccessAuthorized {
+            let eligiblePostIdsFetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+            eligiblePostIdsFetchRequest.predicate = NSPredicate(format: "userId = %@ || groupId != nil", MainAppContext.shared.userData.userId)
+            do {
+                let eligiblePosts = try MainAppContext.shared.feedData.viewContext.fetch(eligiblePostIdsFetchRequest)
+                let eligiblePostIds = eligiblePosts.compactMap {$0.id}
+                fetchRequest.predicate = NSPredicate(format: "postId IN %@", eligiblePostIds)
+            }
+            catch {
+                DDLogError("NotificationsViewController/viewDidLoad/failed to fetch eligible posts")
+            }
+        }
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedNotification.timestamp, ascending: false) ]
         fetchedResultsController =
             NSFetchedResultsController<FeedNotification>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.feedData.viewContext,

@@ -1193,14 +1193,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // 2. Delete comments.
             feedPost.comments?.forEach { managedObjectContext.delete($0) }
 
-            // 3. Reset all notifications for this post.
+            // 3. Delete all notifications for this post.
             let notifications = self.notifications(for: postId, in: managedObjectContext)
-            notifications.forEach { (notification) in
-                notification.event = .retractedPost
-                notification.text = nil
-                notification.mediaType = .none
-                notification.mediaPreview = nil
-            }
+            notifications.forEach { managedObjectContext.delete($0)}
 
             // 4. Reset post data and mark post as deleted.
             feedPost.text = nil
