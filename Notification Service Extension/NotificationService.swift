@@ -178,6 +178,14 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 invokeCompletionHandler()
                 return
             }
+
+            if !serverChatStanza.senderName.isEmpty {
+                AppExtensionContext.shared.contactStore.addPushNames([ fromUserID : serverChatStanza.senderName ])
+            }
+            if !serverChatStanza.senderPhone.isEmpty {
+                AppExtensionContext.shared.contactStore.addPushNumbers([ fromUserID : serverChatStanza.senderPhone ])
+            }
+
             processChatAndInvokeHandler(chatMessage: chatMessage, clientChatMessage: clientChatMessage, metadata: metadata)
         }
     }
