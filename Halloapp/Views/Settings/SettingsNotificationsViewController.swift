@@ -44,7 +44,7 @@ class SettingsNotificationsViewController: UITableViewController {
             let section = snapshot().sectionIdentifiers[section]
             switch section {
             case .notifications:
-                return Localizations.notifications
+                return nil
             }
         }
     }

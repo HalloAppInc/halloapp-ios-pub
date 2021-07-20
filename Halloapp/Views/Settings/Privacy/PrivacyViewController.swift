@@ -40,7 +40,7 @@ class PrivacyViewController: UITableViewController {
             let section = snapshot().sectionIdentifiers[section]
             switch section {
             case .privacy:
-                return Localizations.privacy
+                return nil
             }
         }
     }

@@ -29,7 +29,7 @@ class SettingsAccountViewController: UITableViewController {
             let section = snapshot().sectionIdentifiers[section]
             switch section {
             case .account:
-                return Localizations.account
+                return nil
             }
         }
     }
