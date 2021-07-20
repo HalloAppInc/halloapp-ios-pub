@@ -60,6 +60,7 @@ class NotificationMetadata: Codable {
     var serverMsgPb: Data?
 
     // Chat specific fields
+    var pushNumber: String?
     var serverChatStanzaPb: Data? = nil
     var senderClientVersion: String? = nil
 
@@ -299,6 +300,15 @@ class NotificationMetadata: Codable {
             timestamp = Date(timeIntervalSince1970: TimeInterval(chatMsg.timestamp))
             data = chatMsg.payload
             pushName = chatMsg.senderName
+            pushNumber = chatMsg.senderPhone
+
+            if let name = pushName, !name.isEmpty {
+                AppContext.shared.contactStore.addPushNames([ fromId : name ])
+            }
+            if let phone = pushNumber, !phone.isEmpty {
+                AppContext.shared.contactStore.addPushNumbers([ fromId : phone ])
+            }
+
             do {
                 serverChatStanzaPb = try chatMsg.serializedData()
             } catch {
