@@ -405,9 +405,10 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 
 extension GroupsListViewController: UIViewControllerScrollsToTop {
     func scrollToTop(animated: Bool) {
-        guard let firstSection = fetchedResultsController?.sections?.first else { return }
-        guard firstSection.numberOfObjects > 0 else { return }
-        tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .middle, animated: animated)
+        let indexPath = IndexPath(row: 0, section: 0)
+        guard indexPath.section < tableView.numberOfSections else { return }
+        guard indexPath.row < tableView.numberOfRows(inSection: indexPath.section) else { return }
+        tableView.scrollToRow(at: indexPath, at: .middle, animated: animated)
     }
 }
 
