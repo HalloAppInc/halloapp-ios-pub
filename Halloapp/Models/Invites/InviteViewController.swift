@@ -589,7 +589,7 @@ private extension Localizations {
                               comment: "Text of invitation to join HalloApp.")
         }
         let format = NSLocalizedString("invite.text.specific",
-                                       value: "Hey %1$@, I have an invite for you to join me on HalloApp (a simple social app for sharing everyday moments). Use %2$@ to register. Get it at https://halloapp.com/dl",
+                                       value: "Hey %1$@, I have an invite for you to join me on HalloApp - a real-relationship network for those closest to me. Use %2$@ to register. Get it at https://halloapp.com/dl",
                                        comment: "Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number.")
         return String(format: format, name, number)
     }
