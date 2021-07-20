@@ -237,6 +237,7 @@
 		E598D4C0265F0188001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
 		E598D4C2265F0558001A436A /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598D4BF265F0188001A436A /* ConversationID.swift */; };
 		E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */; };
+		E5CB831B26A0F17100C18ACA /* ActivityCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CB831A26A0F17100C18ACA /* ActivityCenter.swift */; };
 		E5D66D1C266954A200B23887 /* CommentDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D66D1B266954A200B23887 /* CommentDraft.swift */; };
 		E5D951E826990D3600179289 /* AccountListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D951E726990D3600179289 /* AccountListViewController.swift */; };
 		E5FC71E9268A986000B72B12 /* ExportDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5FC71E8268A986000B72B12 /* ExportDataView.swift */; };
@@ -704,6 +705,7 @@
 		E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPermissionExplanationAlert.swift; sourceTree = "<group>"; };
 		E598D4BF265F0188001A436A /* ConversationID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationID.swift; sourceTree = "<group>"; };
 		E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionTutorialAlert.swift; sourceTree = "<group>"; };
+		E5CB831A26A0F17100C18ACA /* ActivityCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityCenter.swift; sourceTree = "<group>"; };
 		E5D66D1B266954A200B23887 /* CommentDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentDraft.swift; sourceTree = "<group>"; };
 		E5D951E726990D3600179289 /* AccountListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountListViewController.swift; sourceTree = "<group>"; };
 		E5FC71E8268A986000B72B12 /* ExportDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataView.swift; sourceTree = "<group>"; };
@@ -1483,6 +1485,7 @@
 				76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */,
 				76649226245119F2009BC368 /* FeedNotifications.swift */,
 				E5D66D1B266954A200B23887 /* CommentDraft.swift */,
+				E5CB831A26A0F17100C18ACA /* ActivityCenter.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -2456,6 +2459,7 @@
 				6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */,
 				68CFF38F2551FF6F009B0D81 /* Localizations+Registration.swift in Sources */,
 				E55B6099268B80C800A322DC /* ExportDataModel.swift in Sources */,
+				E5CB831B26A0F17100C18ACA /* ActivityCenter.swift in Sources */,
 				E5D951E826990D3600179289 /* AccountListViewController.swift in Sources */,
 				32C83FB9268FC8FE00BEB4F5 /* NewChatPermissionDeniedController.swift in Sources */,
 				EAB1FFEE2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift in Sources */,

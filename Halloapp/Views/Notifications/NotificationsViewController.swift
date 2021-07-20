@@ -30,7 +30,7 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
 
     private static let cellReuseIdentifier = "NotificationsTableViewCell"
 
-    private var dataSource: UITableViewDiffableDataSourceReference!
+    private var dataSource: UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterNotification>!
     private var fetchedResultsController: NSFetchedResultsController<FeedNotification>!
 
     // MARK: UIViewController
@@ -45,11 +45,9 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
         tableView.register(NotificationTableViewCell.self, forCellReuseIdentifier: NotificationsViewController.cellReuseIdentifier)
         tableView.separatorStyle = .none
 
-        dataSource = UITableViewDiffableDataSourceReference(tableView: tableView) { tableView, indexPath, objectID in
+        dataSource = UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterNotification>(tableView: tableView) { tableView, indexPath, notification in
             let cell = tableView.dequeueReusableCell(withIdentifier: NotificationsViewController.cellReuseIdentifier, for: indexPath) as! NotificationTableViewCell
-            if let notification = try? MainAppContext.shared.feedData.viewContext.existingObject(with: objectID as! NSManagedObjectID) as? FeedNotification {
-                cell.configure(with: notification)
-            }
+            cell.configure(with: notification)
             return cell
         }
 
@@ -73,25 +71,121 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
         fetchedResultsController.delegate = self
         do {
             try fetchedResultsController!.performFetch()
+            dataSource.apply(makeDataSnapshot())
         } catch { }
     }
 
     // MARK: Fetched Results Controller
-
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChangeContentWith snapshot: NSDiffableDataSourceSnapshotReference) {
-        var reloadData = false
-        if let currentObjectIDs = dataSource.snapshot().itemIdentifiers as? [NSManagedObjectID],
-            let updatedObjectIDs = snapshot.itemIdentifiers as? [NSManagedObjectID] {
-            // If this method is called, but list of object IDs is the same it means
-            // that one or more FeedNotification objects have been changed.
-            // To reflect changes we call UITableView.reloadData.
-            reloadData = currentObjectIDs == updatedObjectIDs
+    
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        dataSource.apply(makeDataSnapshot())
+    }
+    
+    private func makeDataSnapshot() -> NSDiffableDataSourceSnapshot<ActivityCenterSection, ActivityCenterNotification> {
+        var snapshot = NSDiffableDataSourceSnapshot<ActivityCenterSection, ActivityCenterNotification>()
+        snapshot.appendSections([.main])
+        
+        if let items = fetchedResultsController.fetchedObjects {
+            snapshot.appendItems(activityCenterNotifications(for: items))
         }
-        dataSource.applySnapshot(snapshot, animatingDifferences: view.window != nil) {
-            if reloadData {
-                self.tableView.reloadData()
+        
+        return snapshot
+    }
+    
+    private func activityCenterNotifications(for rawNotifications: [FeedNotification]) -> [ActivityCenterNotification] {
+        var notifications: [ActivityCenterNotification] = []
+        
+        var postNotifications: [FeedPostID: [FeedNotification]] = [:]
+        
+        // Build dictionary of feed posts and the notifications associated with them
+        rawNotifications.forEach { rawNotification in
+            var dictionaryEntry = postNotifications[rawNotification.postId] ?? []
+
+            if !dictionaryEntry.contains(where: { notification in
+                rawNotification.userId == notification.userId
+            }) {
+                dictionaryEntry.append(rawNotification) // Storing entire feedNotification in case there's only one (in which case we add in non-grouped manner)
+            }
+
+            postNotifications[rawNotification.postId] = dictionaryEntry
+        }
+        
+        for post in postNotifications {
+            var postNotificationDictionary: [FeedNotification.Event : [FeedNotification]] = [:]
+            
+            // Build a dictionary of all the different types of notifications for a post
+            post.value.forEach { notification in
+                var existingNotifications = postNotificationDictionary[notification.event] ?? []
+                existingNotifications.append(notification)
+                postNotificationDictionary[notification.event] = existingNotifications
+            }
+            
+            // For each type of notification, handle
+            postNotificationDictionary.forEach { notificationType in
+                switch notificationType.key {
+                    case .otherComment: notifications.append(contentsOf: otherCommentNotifications(for: notificationType.value))
+                    default: notifications.append(contentsOf: defaultNotifications(for: notificationType.value))
+                }
             }
         }
+        
+        // Sort the notifications from newest to oldest before returning them
+        return notifications.sorted { lhs, rhs in
+            lhs.timestamp > rhs.timestamp
+        }
+    }
+    
+    /// Generates notifications for events where another user commented on a post you did. Groups together notifications for non-contacts.
+    /// - Parameter postNotifications: Notifications to process
+    /// - Returns: Array of activity center notifications for display
+    private func otherCommentNotifications(for postNotifications: [FeedNotification]) -> [ActivityCenterNotification] {
+        var notifications: [ActivityCenterNotification] = []
+        
+        // Get the notifications that came from contacts and add them as normal notifications
+        let contactNotifications = postNotifications.filter { notification in
+            MainAppContext.shared.contactStore.isContactInAddressBook(userId: notification.userId)
+        }
+        contactNotifications.forEach { notification in
+            if let activityCenterNotification = ActivityCenterNotification(notificationType: .singleNotification(notification)) {
+                notifications.append(activityCenterNotification)
+            }
+        }
+        
+        // Get the list of notifications that aren't from known contacts
+        let nonContactNotifications = postNotifications.filter { notification in
+            !MainAppContext.shared.contactStore.isContactInAddressBook(userId: notification.userId)
+        }
+        
+        // Make sure multiple unknown contacts have commented on this post. If not, then simply add the latest non-contact notification
+        guard Set<UserID>(nonContactNotifications.map({
+            return $0.userId
+        })).count > 1 else {
+            if let notification = nonContactNotifications.first, let activityNotification = ActivityCenterNotification(notificationType: .singleNotification(notification)) {
+                notifications.append(activityNotification)
+            }
+            
+            return notifications
+        }
+        
+        // Otherwise build a notification grouping non-contacts together
+        if let activityNotification = ActivityCenterNotification(notificationType: .unknownCommenters(nonContactNotifications)) {
+            notifications.append(activityNotification)
+        }
+        
+        return notifications
+    }
+    
+    /// Default handler for notifications. Simply passes them on as `ActivityCenterNotifications` without any modification
+    private func defaultNotifications(for postNotifications: [FeedNotification]) -> [ActivityCenterNotification] {
+        var notifications: [ActivityCenterNotification] = []
+        
+        postNotifications.forEach { notification in
+            if let activityCenterNotification = ActivityCenterNotification(notificationType: .singleNotification(notification)) {
+                notifications.append(activityCenterNotification)
+            }
+        }
+        
+        return notifications
     }
 
     // MARK: Table View
@@ -195,13 +289,16 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         ])
     }
 
-    func configure(with notification: FeedNotification) {
+    func configure(with notification: ActivityCenterNotification) {
         backgroundColor = notification.read ? .systemBackground : .systemGray5
 
         unreadBadge.isHidden = notification.read
-        notificationTextLabel.attributedText = notification.formattedText
+        notificationTextLabel.attributedText = notification.text
         mediaPreview.image = notification.image
-        contactImage.configure(with: notification.userId, using: MainAppContext.shared.avatarStore)
+        
+        if let userId = notification.userID {
+            contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
+        }
     }
     
     override func prepareForReuse() {
