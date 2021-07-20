@@ -98,6 +98,11 @@ final class InitializingViewController: UIViewController {
         // Allocate 25% of the bar for loading contacts
         let displayRatio = CGFloat(syncProgress == 0 ? 0 : 0.25 + 0.75 * syncProgress)
 
+        guard displayRatio >= 0 && displayRatio <= 1 else {
+            // Don't clamp, just bail out of update if the progress value doesn't make sense.
+            return
+        }
+
         progressWidthConstraint?.isActive = false
         progressWidthConstraint = progressBar.widthAnchor.constraint(equalTo: progressBackground.widthAnchor, multiplier: displayRatio)
         progressWidthConstraint?.isActive = true
