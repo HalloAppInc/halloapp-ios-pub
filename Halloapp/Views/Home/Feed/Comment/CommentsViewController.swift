@@ -229,7 +229,8 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         }) else { return }
         
         if let parentComment = draft.parentComment {
-            replyContext = (parentComment, MainAppContext.shared.userData.userId)
+            let parentCommentUserID = MainAppContext.shared.feedData.feedComment(with: parentComment)?.userId ?? ""
+            replyContext = (parentComment, parentCommentUserID)
         }
         
         commentsInputView.mentionText = draft.text
