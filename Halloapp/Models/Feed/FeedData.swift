@@ -1355,7 +1355,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         let contacts = contactStore.contacts(withUserIds: Array(seenReceipts.keys))
         let contactsMap = contacts.reduce(into: [UserID: ABContact]()) { (map, contact) in
-            map[contact.userId!] = contact
+            if let userID = contact.userId {
+                map[userID] = contact
+            }
         }
 
         var receipts = [FeedPostReceipt]()
