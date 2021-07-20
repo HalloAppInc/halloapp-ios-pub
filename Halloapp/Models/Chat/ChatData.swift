@@ -1854,11 +1854,6 @@ extension ChatData {
         ]
         return chatMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
-    
-    func checkIfMessagedBefore(to userID: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> Bool {
-        guard chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && toUserId = %@", userData.userId, userID), in: managedObjectContext).first != nil else { return false }
-        return true
-    }
 
     // MARK: 1-1 Core Data Updating
     

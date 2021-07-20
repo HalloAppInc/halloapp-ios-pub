@@ -676,11 +676,12 @@ class ContactStoreMain: ContactStore {
     func addUserToAddressBook(userID: UserID) -> Bool {
         guard !isContactInAddressBook(userId: userID) else { return false }
         guard let name = pushNames[userID] else { return false }
-        guard let phoneNumber = pushNumbers[userID] else { return false }
+        guard let pushNumber = pushNumber(userID) else { return false }
 
         let newContact = CNMutableContact()
         newContact.givenName = name
-        newContact.phoneNumbers.append(CNLabeledValue(label: "mobile", value: CNPhoneNumber(stringValue: phoneNumber)))
+
+        newContact.phoneNumbers.append(CNLabeledValue(label: "mobile", value: CNPhoneNumber(stringValue: pushNumber.formattedPhoneNumber)))
 
         let store = CNContactStore()
         let saveRequest = CNSaveRequest()
@@ -924,9 +925,9 @@ class ContactStoreMain: ContactStore {
 
     // MARK: Contact Names
 
-    func fullName(for userID: UserID) -> String {
+    func fullName(for userID: UserID, showPushNumber: Bool = false) -> String {
         // Fallback to a static string.
-        return fullNameIfAvailable(for: userID, ownName: Localizations.meCapitalized) ?? Localizations.unknownContact
+        return fullNameIfAvailable(for: userID, ownName: Localizations.meCapitalized, showPushNumber: showPushNumber) ?? Localizations.unknownContact
     }
 
     func firstName(for userID: UserID) -> String {

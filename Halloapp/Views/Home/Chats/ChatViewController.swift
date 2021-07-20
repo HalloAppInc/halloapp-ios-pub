@@ -79,7 +79,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         preventNavLoop()
 
         let navAppearance = UINavigationBarAppearance()
-        navAppearance.backgroundColor = UIColor.feedBackground
+        navAppearance.backgroundColor = UIColor.primaryBg
         navAppearance.shadowColor = nil
         navAppearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
         navigationItem.standardAppearance = navAppearance
@@ -101,13 +101,13 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
-        tableView.backgroundColor = UIColor.feedBackground
+        tableView.backgroundColor = UIColor.primaryBg
 
         let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(fromUserId)
         let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: fromUserId)
-        let haveMessagedBefore = MainAppContext.shared.chatData.checkIfMessagedBefore(to: fromUserId)
+        let isPushNumberMessagingAccepted = MainAppContext.shared.contactStore.isPushNumberMessagingAccepted(userID: fromUserId)
 
-        if !isUserInAddressBook && !haveMessagedBefore {
+        if !isUserInAddressBook && !isPushNumberMessagingAccepted {
             chatInputView.isHidden = true
             view.addSubview(unknownContactActionBanner)
             unknownContactActionBanner.constrain([.leading, .trailing, .bottom], to: view.safeAreaLayoutGuide)
@@ -118,7 +118,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             chatInputView.isHidden = true
         }
 
-        let headerHeight: CGFloat = isUserInAddressBook ? 100 : 150
+        let headerHeight: CGFloat = isUserInAddressBook ? 90 : 150
         let chatHeaderView = ChatHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: headerHeight))
         chatHeaderView.configure(with: fromUserId)
         chatHeaderView.delegate = self
@@ -284,9 +284,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 guard let userID = self.fromUserId else { return }
                 if newUserIDs.contains(userID) {
                     self.titleView.refreshName(for: userID)
-                    if let headerView = self.tableView.tableHeaderView as? ChatHeaderView {
-                        headerView.refreshName(for: userID)
-                    }
                 }
             }
         )
@@ -549,6 +546,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         view.translatesAutoresizingMaskIntoConstraints = false
 
         view.acceptAction = { [weak self] in
+            guard let userID = self?.fromUserId else { return }
+            MainAppContext.shared.contactStore.setIsMessagingAccepted(userID: userID, isMessagingAccepted: true)
             self?.unknownContactActionBanner.isHidden = true
             self?.chatInputView.isHidden = false
         }
@@ -1305,7 +1304,7 @@ fileprivate class TitleView: UIView {
     }()
 
     func update(with fromUserId: String, status: UserPresenceType, lastSeen: Date?) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: fromUserId)
+        setNameLabel(for: fromUserId)
         
         switch status {
         case .away:
@@ -1327,10 +1326,10 @@ fileprivate class TitleView: UIView {
         contactImageView.configure(with: fromUserId, using: MainAppContext.shared.avatarStore)
     }
 
-    func refreshName(for userId: String) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
+    func refreshName(for userID: String) {
+        setNameLabel(for: userID)
     }
-    
+
     func showChatState(with typingIndicatorStr: String?) {
         let showTyping: Bool = typingIndicatorStr != nil
         
@@ -1340,7 +1339,10 @@ fileprivate class TitleView: UIView {
         
         guard let typingStr = typingIndicatorStr else { return }
         typingLabel.text = typingStr
-        
+    }
+    
+    private func setNameLabel(for userID: UserID) {
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true)
     }
     
     private func setup() {
@@ -1440,16 +1442,9 @@ class ChatHeaderView: UIView {
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     public func configure(with userID: UserID) {
-        avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
-
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
-
-        if let contact = MainAppContext.shared.contactStore.contact(withUserId: userID) {
-            phoneLabel.text = contact.phoneNumber?.formattedPhoneNumber
-        } else {
-            if let pushNumber = MainAppContext.shared.contactStore.pushNumbers[userID] {
-                phoneLabel.text = pushNumber.formattedPhoneNumber
-                addToContactsLabel.text = Localizations.addToAddressBookLabel(nameLabel.text ?? "")
+        if !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID) {
+            if let pushNumber = MainAppContext.shared.contactStore.pushNumber(userID) {
+                addToContactsLabel.text = Localizations.addToAddressBookLabel(pushNumber.formattedPhoneNumber)
                 addToContactsBubble.isHidden = false
             }
         }
@@ -1457,10 +1452,6 @@ class ChatHeaderView: UIView {
 
     public func hideAddToContactsLabel() {
         addToContactsBubble.isHidden = true
-    }
-
-    public func refreshName(for userID: UserID) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
     }
 
     private func setup() {
@@ -1477,7 +1468,6 @@ class ChatHeaderView: UIView {
         view.axis = .vertical
         view.alignment = .fill
         view.spacing = 5
-        view.setCustomSpacing(15, after: phoneLabel)
         view.setCustomSpacing(20, after: encryptionBubble)
 
         view.layoutMargins = UIEdgeInsets(top: 10, left: 40, bottom: 0, right: 40)
@@ -1485,57 +1475,6 @@ class ChatHeaderView: UIView {
 
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
-    }()
-
-    private lazy var avatarRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ avatarView ])
-
-        view.axis = .horizontal
-        view.distribution = .equalCentering
-
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        return view
-    }()
-
-    private lazy var avatarView: AvatarView = {
-        let view = AvatarView()
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.widthAnchor.constraint(equalToConstant: 100).isActive = true
-        view.heightAnchor.constraint(equalToConstant: 100).isActive = true
-        return view
-    }()
-
-    private lazy var nameLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-
-        let nameFont = UIFont.gothamFont(ofFixedSize: 20)
-
-        label.textColor = UIColor.label.withAlphaComponent(0.8)
-
-        label.textAlignment = .center
-        label.font = nameFont
-        label.adjustsFontForContentSizeCategory = true
-        label.translatesAutoresizingMaskIntoConstraints = false
-
-        return label
-    }()
-
-    private lazy var phoneLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.textColor = .secondaryLabel
-        label.font = .systemFont(ofSize: 17)
-        label.adjustsFontForContentSizeCategory = true
-
-        label.translatesAutoresizingMaskIntoConstraints = false
-
-        return label
     }()
 
     lazy var encryptionBubble: UIStackView = {

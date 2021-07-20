@@ -17,6 +17,7 @@ private enum MenuTitles {
     static var videoBitRate: String { "BitRate" }
     static var reSyncContacts: String { "Re-Sync Contacts" }
     static var resetNUXDemo: String { "Reset NUX Demo" }
+    static var clearPushNamesAndNumbers: String { "Clear Pushnames/numbers" }
     static var logOut: String { "Log Out" }
 }
 
@@ -134,6 +135,13 @@ struct DeveloperMenuView: View {
                     MainAppContext.shared.nux.startDemo()
                 }) {
                     Text(MenuTitles.resetNUXDemo)
+                }
+                
+                // NUX Demo
+                Button(action: {
+                    MainAppContext.shared.contactStore.deleteAllPushNamesAndNumbers()
+                }) {
+                    Text(MenuTitles.clearPushNamesAndNumbers)
                 }
 
                 // Log Out

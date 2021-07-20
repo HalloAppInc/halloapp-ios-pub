@@ -49,7 +49,7 @@ class UnknownContactActionBanner: UIView {
         let view = UIStackView(arrangedSubviews: [ acceptToMessageLabel ])
         view.axis = .vertical
         view.alignment = .center
-        view.backgroundColor = UIColor.primaryBlue.withAlphaComponent(0.15)
+        view.backgroundColor = UIColor.chatOwnBubbleBg
         view.layer.cornerRadius = 30
 
         view.layoutMargins = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 15)

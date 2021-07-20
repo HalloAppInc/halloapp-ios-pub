@@ -19,12 +19,13 @@
         <attribute name="userId" attributeType="String"/>
     </entity>
     <entity name="PushNumber" representedClassName="PushNumber" syncable="YES" codeGenerationType="class">
-        <attribute name="normalizedPhoneNumber" optional="YES" attributeType="String"/>
+        <attribute name="isMessagingAccepted" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="normalizedPhoneNumber" attributeType="String"/>
         <attribute name="userID" attributeType="String"/>
     </entity>
     <elements>
         <element name="ABContact" positionX="-54" positionY="-9" width="128" height="209"/>
-        <element name="PushName" positionX="-54" positionY="63" width="128" height="73"/>
-        <element name="PushNumber" positionX="-54" positionY="81" width="128" height="59"/>
+        <element name="PushName" positionX="-54" positionY="63" width="128" height="59"/>
+        <element name="PushNumber" positionX="-45" positionY="90" width="128" height="74"/>
     </elements>
 </model>

@@ -470,7 +470,7 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
 
         cell.configureAvatarSize(Constants.AvatarSize)
-        cell.configure(with: chatThread, squareSize: Constants.AvatarSize)
+        cell.configureForChatsList(with: chatThread, squareSize: Constants.AvatarSize)
         updateCellWithChatState(cell: cell, chatThread: chatThread)
   
         if isFiltering {

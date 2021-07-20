@@ -19,6 +19,16 @@ import CoreData
 
 public typealias UserID = String
 
+private struct PushNumberData {
+    public var normalizedPhoneNumber: String
+    public var isMessagingAccepted: Bool
+
+    public init(normalizedPhoneNumber: String, isMessagingAccepted: Bool = false) {
+        self.normalizedPhoneNumber = normalizedPhoneNumber
+        self.isMessagingAccepted = isMessagingAccepted
+    }
+}
+
 open class ContactStore {
 
     public let userData: UserData
@@ -233,27 +243,33 @@ open class ContactStore {
 
     // MARK: Push numbers
 
-    public private(set) lazy var pushNumbers: [UserID: String] = {
-        var pushNumbers: [UserID: String] = [:]
+    open func pushNumber(_ userID: UserID) -> String? {
+        guard let pushNumberData = pushNumbersData[userID] else { return nil }
+        return pushNumberData.normalizedPhoneNumber
+    }
+    
+    private lazy var pushNumbersData: [UserID: PushNumberData] = {
+        var pushNumbersData: [UserID: PushNumberData] = [:]
         performOnBackgroundContextAndWait { (managedObjectContext) in
-            pushNumbers = self.fetchAllPushNumbers(using: managedObjectContext)
+            pushNumbersData = self.fetchAllPushNumbersData(using: managedObjectContext)
         }
-        return pushNumbers
+        return pushNumbersData
     }()
 
-    private func fetchAllPushNumbers(using managedObjectContext: NSManagedObjectContext) -> [UserID: String] {
+    private func fetchAllPushNumbersData(using managedObjectContext: NSManagedObjectContext) -> [UserID: PushNumberData] {
         let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
         do {
             let results = try managedObjectContext.fetch(fetchRequest)
-            let numbers: [UserID: String] = results.reduce(into: [:]) {
-                guard let userID = $1.userID else {
-                    DDLogError("contactStore/fetchAllPushNumbers/fetch/error push number missing userID [\($1.normalizedPhoneNumber ?? "")]")
+            let pushNumbersData: [UserID: PushNumberData] = results.reduce(into: [:]) {
+                // auto generated managedobjects string attributes from coredata are optional even if marked as not
+                guard let userID = $1.userID, let normalizedPhoneNumber = $1.normalizedPhoneNumber else {
+                    DDLogError("contactStore/fetchAllPushNumbers/fetch/error push number missing userID [\($1.userID ?? "")]")
                     return
                 }
-                $0[userID] = $1.normalizedPhoneNumber
+                $0[userID] = PushNumberData(normalizedPhoneNumber: normalizedPhoneNumber, isMessagingAccepted: $1.isMessagingAccepted)
             }
-            DDLogVerbose("contactStore/fetchAllPushNumbers/fetched count=[\(numbers.count)]")
-            return numbers
+            DDLogVerbose("contactStore/fetchAllPushNumbers/fetched count=[\(pushNumbersData.count)]")
+            return pushNumbersData
         }
         catch {
             fatalError("contactStore/fetchAllPushNumbers/error [\(error)]")
@@ -262,33 +278,37 @@ open class ContactStore {
 
     private var pushNumberUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.pushNumber")
 
-    private func savePushNumbers(_ numbers: [UserID: String]) {
+    private func savePushNumbersData(_ pushNumbersData: [UserID: PushNumberData]) {
         performOnBackgroundContextAndWait { (managedObjectContext) in
-            var existingNumbers: [UserID : PushNumber] = [:]
+
+            var existingPushNumbers: [UserID : PushNumber] = [:]
 
             // Fetch existing numbers
             let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "userID in %@", Set(numbers.keys))
+            fetchRequest.predicate = NSPredicate(format: "userID in %@", Set(pushNumbersData.keys))
             do {
                 let results = try managedObjectContext.fetch(fetchRequest)
-                existingNumbers = results.reduce(into: [:]) { $0[$1.userID!] = $1 }
+                existingPushNumbers = results.reduce(into: [:]) {
+                    guard let userID = $1.userID else { return }
+                    $0[userID] = $1
+                }
             }
             catch {
-                fatalError("contactStore/savePushNumbers/error  [\(error)]")
+                fatalError("contactStore/savePushNumbersData/error  [\(error)]")
             }
 
             // Insert new numbers / update existing
-            numbers.forEach { (userID, number) in
-                if let existingNumber = existingNumbers[userID] {
-                    if existingNumber.normalizedPhoneNumber != number {
-                        DDLogDebug("contactStore/savePushNumbers/update  userId=[\(userID)] from=[\(existingNumber.normalizedPhoneNumber ?? "")] to=[\(number)]")
-                        existingNumber.normalizedPhoneNumber = number
+            pushNumbersData.forEach { (userID, pushNumberData) in
+                if let existingPushNumber = existingPushNumbers[userID] {
+                    if existingPushNumber.normalizedPhoneNumber != pushNumberData.normalizedPhoneNumber {
+                        DDLogDebug("contactStore/savePushNumbers/update  userId=[\(userID)] from=[\(existingPushNumber.normalizedPhoneNumber ?? "")] to=[\(pushNumberData.normalizedPhoneNumber)]")
+                        existingPushNumber.normalizedPhoneNumber = pushNumberData.normalizedPhoneNumber
                     }
                 } else {
-                    DDLogDebug("contactStore/savePushNumbers/new  userId=[\(userID)] name=[\(number)]")
-                    let newPushNumber = NSEntityDescription.insertNewObject(forEntityName: "PushNumber", into: managedObjectContext) as! PushNumber
+                    DDLogDebug("contactStore/savePushNumbers/new  userId=[\(userID)] number=[\(pushNumberData.normalizedPhoneNumber)]")
+                    let newPushNumber = PushNumber(context: managedObjectContext)
                     newPushNumber.userID = userID
-                    newPushNumber.normalizedPhoneNumber = number
+                    newPushNumber.normalizedPhoneNumber = pushNumberData.normalizedPhoneNumber
                 }
             }
 
@@ -304,12 +324,82 @@ open class ContactStore {
     }
 
     open func addPushNumbers(_ numbers: [UserID: String]) {
+        var numbersData: [UserID: PushNumberData] = [:]
+        numbers.forEach { (userID, number) in
+            numbersData[userID] = PushNumberData(normalizedPhoneNumber: number)
+        }
+        addPushNumbersData(numbersData)
+    }
+
+    private func addPushNumbersData(_ newPushNumbersData: [UserID: PushNumberData]) {
         pushNumberUpdateQueue.async { [self] in
-            savePushNumbers(numbers)
+            savePushNumbersData(newPushNumbersData)
         }
 
-        pushNumbers.merge(numbers) { (existingNumber, newNumber) -> String in
-            return newNumber
+        newPushNumbersData.forEach { (userID, newPushNumberData) in
+            if let existingPushNumberData = pushNumbersData[userID] {
+                if existingPushNumberData.normalizedPhoneNumber != newPushNumberData.normalizedPhoneNumber {
+                    pushNumbersData[userID]?.normalizedPhoneNumber = newPushNumberData.normalizedPhoneNumber
+                }
+            } else {
+                pushNumbersData[userID] = PushNumberData(normalizedPhoneNumber: newPushNumberData.normalizedPhoneNumber)
+            }
+        }
+    }
+
+    open func isPushNumberMessagingAccepted(userID: UserID) -> Bool {
+        if let existingPushNumberData = pushNumbersData[userID] {
+            return existingPushNumberData.isMessagingAccepted
+        }
+        return false
+    }
+
+    open func setIsMessagingAccepted(userID: UserID, isMessagingAccepted: Bool) {
+        performOnBackgroundContextAndWait { (managedObjectContext) in
+            let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "userID = %@", userID)
+            do {
+                let results = try managedObjectContext.fetch(fetchRequest)
+                results.first?.isMessagingAccepted = isMessagingAccepted
+            }
+            catch {
+                fatalError("contactStore/setIsMessagingAccepted/error  [\(error)]")
+            }
+
+            if managedObjectContext.hasChanges {
+                do {
+                    try managedObjectContext.save()
+                }
+                catch {
+                    fatalError("Failed to save managed object context [\(error)]")
+                }
+            }
+        }
+
+        pushNumbersData[userID]?.isMessagingAccepted = isMessagingAccepted
+    }
+
+    open func deleteAllPushNamesAndNumbers() {
+        performOnBackgroundContextAndWait { (managedObjectContext) in
+
+            let pushNameFetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
+            do {
+                let results = try managedObjectContext.fetch(pushNameFetchRequest)
+                results.forEach { managedObjectContext.delete($0) }
+            }
+            catch { fatalError("contactStore/deletePushNames/error  [\(error)]") }
+                
+            let pushNumberFetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
+            do {
+                let results = try managedObjectContext.fetch(pushNumberFetchRequest)
+                results.forEach { managedObjectContext.delete($0) }
+            }
+            catch { fatalError("contactStore/deletePushNumbers/error  [\(error)]") }
+
+            do {
+                try managedObjectContext.save()
+            }
+            catch { fatalError("Failed to delete managed object context [\(error)]") }
         }
     }
 
@@ -343,7 +433,8 @@ open class ContactStore {
     /// - Parameters:
     ///   - userId: `UserID` to look up
     ///   - ownName: `String?` to return if `userID` matches the active user ID (e.g., "Me" or the user's chosen name)
-    public func fullNameIfAvailable(for userId: UserID, ownName: String?) -> String? {
+    ///   - showPushNumber: `Bool` returns user's push number  if user is not in contact book, mainly used in Chats
+    public func fullNameIfAvailable(for userId: UserID, ownName: String?, showPushNumber: Bool = false) -> String? {
         if userId == self.userData.userId {
             return ownName
         }
@@ -353,6 +444,13 @@ open class ContactStore {
             if let contact = contact(withUserId: userId),
                let fullName = contact.fullName {
                 return fullName
+            }
+        }
+
+        // show push number if one exists
+        if showPushNumber {
+            if let pushNumber = pushNumber(userId) {
+                return pushNumber.formattedPhoneNumber
             }
         }
 

@@ -196,13 +196,13 @@ class ThreadListCell: UITableViewCell {
             avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor),
         ])
     }
-    
-    func configure(with chatThread: ChatThread, squareSize: CGFloat = 0) {
+
+    func configureForChatsList(with chatThread: ChatThread, squareSize: CGFloat = 0) {
         self.chatThread = chatThread
         
         guard let userID = chatThread.chatWithUserId else { return }
 
-        titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
+        titleLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true)
 
         lastMsgLabel.attributedText = lastMessageText(for: chatThread).firstLineWithEllipsisIfNecessary()
 
@@ -266,7 +266,6 @@ class ThreadListCell: UITableViewCell {
         }
 
         avatarView.configure(groupId: chatThread.groupId ?? "", squareSize: squareSize, using: MainAppContext.shared.avatarStore)
-        
     }
 
     func highlightTitle(_ searchItems: [String]) {
@@ -285,7 +284,7 @@ class ThreadListCell: UITableViewCell {
 
         guard let typingIndicatorStr = typingIndicatorStr else {
             isShowingTypingIndicator = false
-            configure(with: chatThread)
+            configureForChatsList(with: chatThread)
             return
         }
 
