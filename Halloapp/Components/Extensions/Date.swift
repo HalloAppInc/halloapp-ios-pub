@@ -9,7 +9,7 @@
 import Core
 import Foundation
 
-private extension Localizations {
+fileprivate extension Localizations {
 
     static var nowCapitalized: String {
         NSLocalizedString("timestamp.now.capitalized", value: "Now", comment: "Capitalized translation of `Now` to be used as timestamp.")
@@ -39,26 +39,30 @@ extension Date {
     static func toMinutes(_ seconds: TimeInterval, rounded: Bool = false) -> Int {
         if rounded {
             return Int((seconds / Date.minutes(1)).rounded())
+        } else {
+            return Int(seconds / Date.minutes(1))
         }
-        return Int(seconds / Date.minutes(1))
     }
     static func toHours(_ seconds: TimeInterval, rounded: Bool = false) -> Int {
         if rounded {
             return Int((seconds / Date.hours(1)).rounded())
+        } else {
+            return Int(seconds / Date.hours(1))
         }
-        return Int(seconds / Date.hours(1))
     }
     static func toDays(_ seconds: TimeInterval, rounded: Bool = false) -> Int {
         if rounded {
             return Int((seconds / Date.days(1)).rounded())
+        } else {
+            return Int(seconds / Date.days(1))
         }
-        return Int(seconds / Date.days(1))
     }
     static func toWeeks(_ seconds: TimeInterval, rounded: Bool = false) -> Int {
         if rounded {
             return Int((seconds / Date.weeks(1)).rounded())
+        } else {
+            return Int(seconds / Date.weeks(1))
         }
-        return Int(seconds / Date.weeks(1))
     }
 
     /**
@@ -68,10 +72,11 @@ extension Date {
      - under 1 minute: "Now"
      - same day or under 6 hours: 12:05 pm
      - under 1 week: Tue 12:05 pm
-     - otherwise: 5d
+     - under 1 year: Jun 20 8:48 PM
+     - otherwise 07/22/21
      */
-    func feedTimestamp() -> String {
-        let seconds = -timeIntervalSinceNow
+    func feedTimestamp(_ currentTime: Date? = nil) -> String {
+        let seconds = -timeIntervalSince(currentTime ?? Date())
 
         if seconds < Date.minutes(1) {
             return Localizations.nowCapitalized
@@ -79,15 +84,15 @@ extension Date {
             return DateFormatter.dateTimeFormatterTime.string(from: self)
         } else if seconds < Date.days(5) {
             return DateFormatter.dateTimeFormatterDayOfWeekTime.string(from: self)
-        } else if Calendar.current.isDate(self, equalTo: Date(), toGranularity: .year) {
+        } else if seconds < Date.weeks(26) {
             return DateFormatter.dateTimeFormatterMonthDay.string(from: self)
         } else {
             return DateFormatter.dateTimeFormatterShortDate.string(from: self)
         }
     }
 
-    func deletedPostTimestamp() -> String {
-        let seconds = -timeIntervalSinceNow
+    func deletedPostTimestamp(_ currentTime: Date? = nil) -> String {
+        let seconds = -timeIntervalSince(currentTime ?? Date())
 
         if seconds < Date.minutes(1) {
             return Localizations.nowCapitalized
@@ -98,8 +103,8 @@ extension Date {
         }
     }
 
-    func chatListTimestamp() -> String {
-        let seconds = -timeIntervalSinceNow
+    func chatListTimestamp(_ currentTime: Date? = nil) -> String {
+        let seconds = -timeIntervalSince(currentTime ?? Date())
         
         if seconds < Date.minutes(1) {
             return Localizations.nowCapitalized
@@ -109,15 +114,15 @@ extension Date {
             return Localizations.yesterday
         } else if seconds < Date.days(5) {
             return DateFormatter.dateTimeFormatterDayOfWeek.string(from: self)
-        } else if Calendar.current.isDate(self, equalTo: Date(), toGranularity: .year) {
+        } else if seconds < Date.weeks(26) {
             return DateFormatter.dateTimeFormatterMonthDay.string(from: self)
         } else {
             return DateFormatter.dateTimeFormatterShortDate.string(from: self)
         }
     }
     
-    func chatMsgGroupingTimestamp() -> String {
-        let seconds = -timeIntervalSinceNow
+    func chatMsgGroupingTimestamp(_ currentTime: Date? = nil) -> String {
+        let seconds = -timeIntervalSince(currentTime ?? Date())
         
         if Calendar.current.isDateInToday(self) {
             return Localizations.today
@@ -125,15 +130,15 @@ extension Date {
             return Localizations.yesterday
         } else if seconds < Date.days(5) {
             return DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: self)
-        } else if Calendar.current.isDate(self, equalTo: Date(), toGranularity: .year) {
+        } else if seconds < Date.weeks(26) {
             return DateFormatter.dateTimeFormatterMonthDayLong.string(from: self)
         } else {
             return DateFormatter.dateTimeFormatterMonthDayYearLong.string(from: self)
         }
     }
     
-    func chatTimestamp() -> String {
-        let seconds = -timeIntervalSinceNow
+    func chatTimestamp(_ currentTime: Date? = nil) -> String {
+        let seconds = -timeIntervalSince(currentTime ?? Date())
         
         if seconds < Date.minutes(1) {
             return Localizations.nowLowercase
@@ -143,7 +148,7 @@ extension Date {
         } else if seconds < Date.weeks(1) {
             let dateFormatter = DateFormatter.dateTimeFormatterDayOfWeekTime
             return dateFormatter.string(from: self)
-        } else if seconds < Date.weeks(52) {
+        } else if seconds < Date.weeks(26) {
             let dateFormatter = DateFormatter.dateTimeFormatterMonthDayTime
             return dateFormatter.string(from: self)
         } else {
@@ -152,10 +157,10 @@ extension Date {
         }
     }
     
-    func lastSeenTimestamp() -> String {
-        let seconds = -self.timeIntervalSinceNow
+    func lastSeenTimestamp(_ currentTime: Date? = nil) -> String {
+        let seconds = -timeIntervalSince(currentTime ?? Date())
 
-        let time = DateFormatter.dateTimeFormatterTime.string(from: self)
+        let time = DateFormatter.dateTimeFormatterTime.string(from: currentTime ?? self)
         if Calendar.current.isDateInToday(self) {
             let formatString = NSLocalizedString("timestamp.last.seen.today.at", value: "Last seen today at %@", comment: "Last seen timestamp: today at specific time.")
             return String(format: formatString, time)
@@ -163,11 +168,11 @@ extension Date {
             let formatString = NSLocalizedString("timestamp.last.seen.yesterday.at", value: "Last seen yesterday at %@", comment: "Last seen timestamp: yesterday at specific time.")
             return String(format: formatString, time)
         } else if seconds < Date.weeks(1) {
-            let dayOfWeek = DateFormatter.dateTimeFormatterDayOfWeek.string(from: self)
+            let dayOfWeek = DateFormatter.dateTimeFormatterDayOfWeek.string(from: currentTime ?? self)
             let formatString = NSLocalizedString("timestamp.last.seen.dayofweek.at.time", value: "Last seen %1$@ at %2$@", comment: "Last seen timestamp: day of week and time")
             return String(format: formatString, dayOfWeek, time)
         } else {
-            let date = DateFormatter.dateTimeFormatterShortDate.string(from: self)
+            let date = DateFormatter.dateTimeFormatterShortDate.string(from: currentTime ?? self)
             let formatString = NSLocalizedString("timestamp.last.seen.date.at.time", value: "Last seen %1$@ at %2$@", comment: "Last seen timestamp: full date in short format and time")
             return String(format: formatString, date, time)
         }

@@ -226,6 +226,9 @@
 		76F43F2B2489BC4700D47920 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
 		94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */; };
+		E552E8E1268249EB00C7774D /* DateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E552E8E0268249EB00C7774D /* DateTests.swift */; };
+		E552E8E3268249F600C7774D /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AD2435A74E00FF0E82 /* Date.swift */; };
+		E552E8E426824C0E00C7774D /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B991A249C228700B05094 /* DateFormatter.swift */; };
 		E537A1B726792AEF0008B286 /* ChatDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E537A1B626792AEF0008B286 /* ChatDraft.swift */; };
 		E55B6099268B80C800A322DC /* ExportDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E55B6098268B80C800A322DC /* ExportDataModel.swift */; };
 		E5959700268E3F3800AA3BB9 /* DeleteAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59596FF268E3F3800AA3BB9 /* DeleteAccountView.swift */; };
@@ -693,6 +696,7 @@
 		CD26B1DB0D71EF2BBE67ADE9 /* Pods-HalloApp.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.internal beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.internal beta.xcconfig"; sourceTree = "<group>"; };
 		D0A0ED7F66A2EB2A804CC6EC /* Pods-Shared Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.external beta.xcconfig"; sourceTree = "<group>"; };
+		E552E8E0268249EB00C7774D /* DateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTests.swift; sourceTree = "<group>"; };
 		E537A1B626792AEF0008B286 /* ChatDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatDraft.swift; sourceTree = "<group>"; };
 		E55B6098268B80C800A322DC /* ExportDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataModel.swift; sourceTree = "<group>"; };
 		E59596FF268E3F3800AA3BB9 /* DeleteAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountView.swift; sourceTree = "<group>"; };
@@ -1692,6 +1696,7 @@
 			isa = PBXGroup;
 			children = (
 				685B76BF24E262AF00BF666A /* MentionInputTests.swift */,
+				E552E8E0268249EB00C7774D /* DateTests.swift */,
 				EAF3A1D92334192000805FF9 /* HalloappTests.swift */,
 				EAF3A1DB2334192000805FF9 /* Info.plist */,
 			);
@@ -2583,7 +2588,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */,
+				E552E8E1268249EB00C7774D /* DateTests.swift in Sources */,
 				685B76C124E262AF00BF666A /* MentionInputTests.swift in Sources */,
+				E552E8E3268249F600C7774D /* Date.swift in Sources */,
+				E552E8E426824C0E00C7774D /* DateFormatter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
