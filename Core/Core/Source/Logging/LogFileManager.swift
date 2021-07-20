@@ -24,7 +24,10 @@ class LogFileManager: DDLogFileManagerDefault {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
             dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-            dateFormatter.timeZone = .init(secondsFromGMT: 0)
+            
+            if let gmtTimeZone = TimeZone(secondsFromGMT: 0) {
+                dateFormatter.timeZone = gmtTimeZone
+            }
             
             let toReturn = "\(appName)-\(dateFormatter.string(from: Date())).log"
             return toReturn
