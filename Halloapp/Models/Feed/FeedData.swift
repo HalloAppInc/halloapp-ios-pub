@@ -130,7 +130,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         persistentContainer.loadPersistentStores { (description, error) in
             if let error = error {
                 DDLogError("Failed to load persistent store: \(error)")
-                DDLogError("Deleting persistent store at [\(FeedData.persistentStoreURL.absoluteString)]")
                 fatalError("Unable to load persistent store: \(error)")
             } else {
                 DDLogInfo("FeedData/load-store/completed [\(description)]")
