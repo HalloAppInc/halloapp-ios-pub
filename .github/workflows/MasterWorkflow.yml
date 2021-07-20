@@ -1,16 +1,15 @@
-name: Unit Tests
+name: CI Workflow
 
 on:
   push:
     branches: [ master ]
   pull_request:
-    types: [ opened ]
     branches: [ master ]
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Unit Tests
+  compile:
+    name: Compile Project
     runs-on: macOS-latest
     strategy:
         matrix:
@@ -46,8 +45,50 @@ jobs:
         run: pod install
       - name: Build Project
         run: xcodebuild clean build-for-testing -workspace "Halloapp.xcworkspace" -scheme "Halloapp" -destination "${{matrix.destination}}"
+      - name: Cache build
+        uses: actions/cache@v2
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: "$GITHUB_SHA"
+  test:
+    name: Test Project
+    runs-on: macOS-latest
+    strategy:
+        matrix:
+            destination: ['platform=iOS Simulator,name=iPhone 12 Pro']
+    needs: compile
+        
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: Get build cache
+        uses: actions/cache@v2
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: "$GITHUB_SHA"
       - name: Run Unit Tests
         run: xcodebuild test-without-building -workspace "Halloapp.xcworkspace" -scheme "Halloapp" -destination "${{matrix.destination}}" -only-testing "HalloAppTests"
+  localize:
+    name: Export New Localizations
+    runs-on: macOS-latest
+    needs: compile
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: Set up ssh-agent
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.CI_PRIVATE_KEY }}
+      - name: Add known SSH hosts
+        run: for ip in $(dig @8.8.8.8 github.com +short); do ssh-keyscan github.com,$ip; ssh-keyscan $ip; done 2>/dev/null >> ~/.ssh/known_hosts
+      - name: Set git to use SSH
+        run: git config --global url."git@github.com:".insteadOf "https://github.com/"
+      - name: Get build cache
+        uses: actions/cache@v2
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: "$GITHUB_SHA"
       - name: Build Localizations
         run: xcodebuild -exportLocalizations -localizationPath . -project HalloApp.xcodeproj
       - name: Upload Localizations
