@@ -23,19 +23,7 @@ class SettingsAccountViewController: UITableViewController {
         case delete
     }
 
-    private class SettingsAccountTableViewDataSource: UITableViewDiffableDataSource<Section, Row> {
-
-        override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-            let section = snapshot().sectionIdentifiers[section]
-            switch section {
-            case .account:
-                return nil
-            }
-        }
-    }
-
-
-    private var dataSource: SettingsAccountTableViewDataSource!
+    private var dataSource: UITableViewDiffableDataSource<Section, Row>!
     private let cellExport: UITableViewCell = {
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
         cell.textLabel?.text = Localizations.exportData
@@ -65,7 +53,7 @@ class SettingsAccountViewController: UITableViewController {
 
         tableView.backgroundColor = .feedBackground
 
-        dataSource = SettingsAccountTableViewDataSource(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
+        dataSource = UITableViewDiffableDataSource<Section, Row>(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
             guard let self = self else { return nil }
             switch row {
             case .export: return self.cellExport

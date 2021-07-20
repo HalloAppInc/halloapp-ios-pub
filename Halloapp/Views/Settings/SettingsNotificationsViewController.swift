@@ -38,19 +38,8 @@ class SettingsNotificationsViewController: UITableViewController {
         case notificationComments
     }
 
-    private class SettingsNotificationsTableViewDataSource: UITableViewDiffableDataSource<Section, Row> {
 
-        override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-            let section = snapshot().sectionIdentifiers[section]
-            switch section {
-            case .notifications:
-                return nil
-            }
-        }
-    }
-
-
-    private var dataSource: SettingsNotificationsTableViewDataSource!
+    private var dataSource: UITableViewDiffableDataSource<Section, Row>!
     private var switchPostNotifications: UISwitch!
     private var switchCommentNotifications: UISwitch!
     private let cellPostNotifications: UITableViewCell = {
@@ -90,7 +79,7 @@ class SettingsNotificationsViewController: UITableViewController {
         switchCommentNotifications.addTarget(self, action: #selector(commentNotificationsValueChanged), for: .valueChanged)
         cellCommentNotifications.accessoryView = switchCommentNotifications
 
-        dataSource = SettingsNotificationsTableViewDataSource(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
+        dataSource = UITableViewDiffableDataSource<Section, Row>(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
             guard let self = self else { return nil }
             switch row {
             case .notificationPosts: return self.cellPostNotifications

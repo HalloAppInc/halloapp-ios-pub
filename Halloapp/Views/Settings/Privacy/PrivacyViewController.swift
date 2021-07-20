@@ -34,19 +34,7 @@ class PrivacyViewController: UITableViewController {
         case privacyBlocked
     }
 
-    private class PrivacyTableViewDataSource: UITableViewDiffableDataSource<Section, Row> {
-
-        override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-            let section = snapshot().sectionIdentifiers[section]
-            switch section {
-            case .privacy:
-                return nil
-            }
-        }
-    }
-
-
-    private var dataSource: PrivacyTableViewDataSource!
+    private var dataSource: UITableViewDiffableDataSource<Section, Row>!
     private var switchPostNotifications: UISwitch!
     private var switchCommentNotifications: UISwitch!
     private let cellPostsPrivacy: UITableViewCell = {
@@ -78,7 +66,7 @@ class PrivacyViewController: UITableViewController {
 
         tableView.backgroundColor = .feedBackground
 
-        dataSource = PrivacyTableViewDataSource(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
+        dataSource = UITableViewDiffableDataSource<Section, Row>(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
             guard let self = self else { return nil }
             switch row {
             case .privacyPosts: return self.cellPostsPrivacy
