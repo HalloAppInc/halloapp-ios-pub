@@ -12,14 +12,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>печатают...</string>
-			<key>many</key>
-			<string>печатают...</string>
 			<key>one</key>
-			<string>печатает...</string>
+			<string>γράφει...</string>
 			<key>other</key>
-			<string>печатают...</string>
+			<string>γράφουν...</string>
 		</dict>
 	</dict>
 	<key>composer.privacy.value.n.selected</key>
@@ -32,14 +28,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>Поделиться с %d моими контактами</string>
-			<key>many</key>
-			<string>Поделиться с %d моими контактами</string>
 			<key>one</key>
-			<string>Поделиться с %d моим контактом</string>
+			<string>Κοινή χρήση με %d των επαφών μου</string>
 			<key>other</key>
-			<string>Поделиться с %d моими контактами</string>
+			<string>Κοινή χρήση με %d των επαφών μου</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>
@@ -52,14 +44,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>%d контакта исключены</string>
-			<key>many</key>
-			<string>%d контактов исключены</string>
 			<key>one</key>
-			<string>%d контакт исключен</string>
+			<string>Εξαίρεση Επαφής </string>
 			<key>other</key>
-			<string>%d контактов исключены</string>
+			<string>Εξαίρεση Επαφών</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.selected</key>
@@ -72,14 +60,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>%d контакта выбрано</string>
-			<key>many</key>
-			<string>%d контактов выбрано</string>
 			<key>one</key>
-			<string>%d контакт выбран</string>
+			<string>Επιλεγμένη Επαφή</string>
 			<key>other</key>
-			<string>%d контактов выбрано</string>
+			<string>Επιλεγμένες Επαφές</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.excluded</key>
@@ -92,14 +76,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>%d исключено</string>
-			<key>many</key>
-			<string>%d исключено</string>
 			<key>one</key>
-			<string>%d исключен</string>
+			<string>%d Εξαιρέθηκε</string>
 			<key>other</key>
-			<string>%d исключено</string>
+			<string>%d Εξαιρέθηκαν</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.selected</key>
@@ -112,14 +92,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>%d выбрано</string>
-			<key>many</key>
-			<string>%d выбрано</string>
 			<key>one</key>
-			<string>%d выбран</string>
+			<string>%d Επιλέχθηκε</string>
 			<key>other</key>
-			<string>%d выбрано</string>
+			<string>%d Επιλέχθηκαν</string>
 		</dict>
 	</dict>
 	<key>group.feed.n.members</key>
@@ -132,16 +108,12 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>%d участников</string>
-			<key>many</key>
-			<string>%d участников</string>
 			<key>one</key>
-			<string>%d участник</string>
+			<string>Μέλος</string>
 			<key>other</key>
-			<string>%d участников</string>
+			<string>Μέλη</string>
 			<key>zero</key>
-			<string>Нет участников</string>
+			<string>Χωρίς μέλη</string>
 		</dict>
 	</dict>
 	<key>media.prepare.failed.n.count</key>
@@ -154,14 +126,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>Не удалось подготовить %d медиафайла. Повторите попытку или выберите другие фото / видео.</string>
-			<key>many</key>
-			<string>Не удалось подготовить %d медиафайлов. Повторите попытку или выберите другие фото / видео.</string>
 			<key>one</key>
-			<string>Не удалось подготовить %d медиафайл. Повторите попытку или выберите другое фото / видео.</string>
+			<string>Αποτυχία προετοιμασίας πολυμέσων. Δοκιμάστε ξανά ή επιλέξτε μια διαφορετική φωτογραφία / βίντεο.</string>
 			<key>other</key>
-			<string>Не удалось подготовить %d медиафайлов. Повторите попытку или выберите другие фото / видео.</string>
+			<string>Αποτυχία προετοιμασίας %d στοιχείων πολυμέσων. Δοκιμάστε ξανά ή επιλέξτε μια διαφορετική φωτογραφία / βίντεο.</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>
@@ -174,14 +142,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>У тебя %d приглашения.</string>
-			<key>many</key>
-			<string>У тебя %d приглашений.</string>
 			<key>one</key>
-			<string>У тебя %d приглашение.</string>
+			<string>Έχετε %d πρόσκληση.</string>
 			<key>other</key>
-			<string>У тебя %d приглашения.</string>
+			<string>Έχετε %d προσκλήσεις.</string>
 		</dict>
 	</dict>
 	<key>n.invites.remaining</key>
@@ -194,14 +158,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>У тебя осталось %d приглашения</string>
-			<key>many</key>
-			<string>У тебя осталось %d приглашений</string>
 			<key>one</key>
-			<string>У тебя осталось %d приглашение</string>
+			<string>Απομένει %d πρόσκληση</string>
 			<key>other</key>
-			<string>У тебя осталось %d приглашения</string>
+			<string>Απομένουν %d προσκλήσεις</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>
@@ -214,14 +174,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>📷 %d фото</string>
-			<key>many</key>
-			<string>📷 %d фото</string>
 			<key>one</key>
-			<string>📷 %d фото</string>
+			<string>Φωτογραφία</string>
 			<key>other</key>
-			<string>📷 %d фото</string>
+			<string>Φωτογραφίες</string>
 		</dict>
 	</dict>
 	<key>notification.n.videos</key>
@@ -234,14 +190,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>📹 %d видео</string>
-			<key>many</key>
-			<string>📹 %d видео</string>
 			<key>one</key>
-			<string>📹 %d видео</string>
+			<string>%d βίντεο</string>
 			<key>other</key>
-			<string>📹 %d видео</string>
+			<string>%d βίντεo</string>
 		</dict>
 	</dict>
 	<key>picker.media.n.limit</key>
@@ -254,14 +206,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>Вы можете выбрать до %d элементов</string>
-			<key>many</key>
-			<string>Вы можете выбрать до %d элементов</string>
 			<key>one</key>
-			<string>Вы можете выбрать до одного элемента</string>
+			<string>Μπορείς να επιλέξεις εώς ένα είδος</string>
 			<key>other</key>
-			<string>Вы можете выбрать до %d элементов</string>
+			<string>Μπορείς να επιλέξεις εώς %d είδη</string>
 		</dict>
 	</dict>
 	<key>privacy.n.contacts</key>
@@ -274,16 +222,12 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>few</key>
-			<string>%d контакта</string>
-			<key>many</key>
-			<string>%d контактов</string>
 			<key>one</key>
-			<string>%d контакт</string>
+			<string>%d Επαφή</string>
 			<key>other</key>
-			<string>%d контактов</string>
+			<string>%d Επαφές</string>
 			<key>zero</key>
-			<string>Нет</string>
+			<string>Κανένα</string>
 		</dict>
 	</dict>
 </dict>

@@ -1,98 +1,104 @@
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "İnternet bağlantısı yok";
+"alert.no.internet.title" = "Δεν υπάρχει σύνδεση διαδικτύου";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Lütfen internet bağlantını kontrol et ve tekrar dene";
+"alert.no.internet.try.again" = "Παρακαλούμε ελέγξτε αν έχετε σύνδεση στο διαδίκτυο και δοκιμάστε ξανά.";
 
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
-"button.cancel" = "İptal et";
+"button.cancel" = "Ακύρωση";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
-"button.continue" = "Devam et";
+"button.continue" = "Συνέχεια";
 
 /* Title for generic Create button */
-"button.create" = "Oluştur";
+"button.create" = "Δημιουργία";
 
 /* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Reddet";
+"button.dismiss" = "Παράβλεψη";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Bitti";
+"button.done" = "Τέλος";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ayarlara git";
+"button.go.to.settings" = "Μετάβαση σε Ρυθμίσεις";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Daha fazlasını öğren";
+"button.learn.more" = "Μάθετε Περισσότερα";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
-"button.more" = "Daha fazla";
+"button.more" = "Περισσότερα";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
-"button.next" = "İleri";
+"button.next" = "Επόμενο";
 
 /* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "Şimdi değil";
+"button.not.now" = "Όχι Τώρα";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
-"button.ok" = "Tamam";
+"button.ok" = "ΟΚ";
 
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
-"button.remove" = "Kaldır";
+"button.remove" = "Αφαίρεση";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "Kaydet";
+"button.save" = "Αποθήκευση";
 
 /* Title for generic Send button. Mostly used to complete some modal flow. */
-"button.send" = "Gönder";
+"button.send" = "Αποστολή";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Paylaş";
+"button.share" = "Κοινοποίηση";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
-"button.update" = "Güncelle";
+"button.update" = "Ενημέρωση";
 
 /* Title for generic delete button. */
-"Delete" = "Sil";
+"Delete" = "Διαγραφή";
 
 /* Text shown in notification when the user is added to a new group */
-"groups.add.notification" = "Yeni bir gruba eklendin";
+"groups.add.notification" = "Προστεθήκατε σε μια νέα ομάδα";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "Daha fazlasını öğren";
+"link.learnMore" = "Περισσότερα";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Uygulamanı güncelle";
+"link.update.your.app" = "Ενημερώστε την εφαρμογή σας.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Ben";
+"meCapitalized" = "Εγώ";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
-"notification.commented.with.text" = "Yorum yapıldı: %@";
+"notification.commented.with.text" = "Νέο σχόλιο: %@";
 
 /* Content for unknown contact notification. */
-"notification.contact.unknown.content" = "Kişilerinden biri şimdi HalloApp'te";
+"notification.contact.unknown.content" = "Μία από τις επαφές σου είναι τώρα στο HalloApp";
 
 /* Content for inviter notification. */
-"notification.invite.accepted.content" = "%@, HalloApp davetini kabul etti 🎉";
+"notification.invite.accepted.content" = "%@ μόλις αποδέχτηκε την πρόσκλησή σου να μπει στο HalloApp 🎉";
+
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "ειδοποίηση φωτογραφιών";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "ειδοποίηση βίντεο";
 
 /* Content for contact notification.
    Content for friend notification. */
-"notification.new.friend.content" = "%@, şimdi HalloApp'te";
+"notification.new.friend.content" = "%@ είναι τώρα στο HalloApp";
 
 /* Fallback text for new message notification. */
-"notification.new.message" = "Yeni mesaj";
+"notification.new.message" = "Νέο Μήνυμα";
 
 /* Title for the new feed post notification. */
-"notification.new.post" = "Yeni gönderi";
+"notification.new.post" = "Νέα δημοσίευση";
 
 /* New post notification text when post is one photo without caption. */
-"notification.one.photo" = "📷 fotoğraf";
+"notification.one.photo" = "📷 φωτογραφία";
 
 /* New post notification text when post is one video without caption. */
-"notification.one.video" = "📹 video";
+"notification.one.video" = "📹 βίντεο";
 
 /* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Bilinmeyen kişi";
+"unknown.contact" = "Άγνωστη επαφή";
 

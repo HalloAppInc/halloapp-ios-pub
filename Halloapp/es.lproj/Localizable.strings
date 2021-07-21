@@ -4,6 +4,9 @@
 /* No comment provided by engineer. */
 "%@" = "%@";
 
+/* No comment provided by engineer. */
+"• %@" = "• %@";
+
 /* About screen: body text. */
 "about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \n\nHemos hecho que las aplicaciones sociales vuelvan a lo esencial, y agregamos un nivel de seguridad y privacidad al que creemos que todo el mundo debe tener acceso.\n\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nAl contrario, con el tiempo esperamos poder añadir nuevas funciones a un pequeño costo.";
 
@@ -39,6 +42,9 @@
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Comprueba si tienes conexión a Internet y vuelve a intentarlo.";
+
+/* Title of view where users can invite friends and family. */
+"app.ios.invite.friends" = "Invitar a amigos y familia";
 
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Configuración";
@@ -128,6 +134,12 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Error al inicializar";
 
+/* Alert text shown when the contact has been added to the address book successfully */
+"chat.add.to.address.book.success" = "Contacto añadido con éxito";
+
+/* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
+"chat.add.to.contacts.book.label" = "Para ver publicaiones de %@, añade su número de teléfono a tu agenda. Toca para agregar";
+
 /* Placeholder text shown inside the group name input box when it's empty */
 "chat.create.group.name.placeholder" = "Dale un nombre a tu grupo";
 
@@ -140,8 +152,11 @@
 /* Title of group name edit screen */
 "chat.edit.group.title" = "Editar";
 
+/* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
+"chat.encryption.label" = "Las conversaciones están encriptadas de extremo a extremo y HalloApp no tiene acceso a ellas. Toca para saber más.";
+
 /* Label shown above background selection row */
-"chat.group.background.label" = "FONDO";
+"chat.group.background.label" = "FONDO DE PANTALLA";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ se unió al grupo con el enlace de invitación";
@@ -159,7 +174,7 @@
 "chat.group.info.add.members" = "Añadir participantes";
 
 /* Label shown in the members list when member is an admin */
-"chat.group.info.admin.label" = "Admin.";
+"chat.group.info.admin.label" = "Administrador";
 
 /* Text label for a color selection of group feed background color */
 "chat.group.info.bg.color.label" = "Color";
@@ -168,7 +183,7 @@
 "chat.group.info.bg.default.label" = "Por defecto";
 
 /* Text for menu option of demoting a group member */
-"chat.group.info.demote" = "Descartar como admin.";
+"chat.group.info.demote" = "Descartar como administrador";
 
 /* Action label for leaving group */
 "chat.group.info.leave.group" = "Salir del grupo";
@@ -186,7 +201,7 @@
 "chat.group.info.remove.from.group" = "Eliminar del grupo";
 
 /* Title of screen that shows group information */
-"chat.group.info.title" = "Info. del grupo";
+"chat.group.info.title" = "Información del grupo";
 
 /* Text for menu option of viewing profile */
 "chat.group.info.view.profile" = "Ver perfil";
@@ -257,9 +272,6 @@
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Responder";
 
-/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "Responder a %@";
-
 /* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
 "comment.replying.someone" = "Respondiendo a %@";
 
@@ -320,6 +332,9 @@
 /* No comment provided by engineer. */
 "CONNECTION" = "CONEXIÓN";
 
+/* Shown when user denies contacts permission */
+"contacts.access.denied" = "Permitir a HalloApp tener acceso a tus contactos para poder enviar y recibir actualizaciones";
+
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Para ayudarte a conectar con tus amigos y familiares, permite a HalloApp acceder a tus contactos.";
 
@@ -353,6 +368,9 @@
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification..other.comment.no.text" = "<$author$> también comentó";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.comment.grouped" = "Otros <$numberOthers$> respondieron a la publicación de <$author$>";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$> comentó en tu publicación";
@@ -439,13 +457,13 @@
 "group.bg.pick.a.color.label" = "Escoge un color";
 
 /* Title of group background screen */
-"group.bg.title" = "Fondo";
+"group.bg.title" = "Fondo de pantalla";
 
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ agregó a %2$@";
 
 /* Message text shown when you add a group member */
-"group.event.added.member.you" = "Has añadido %1@";
+"group.event.added.member.you" = "Has añadido a %1@";
 
 /* Message text shown with the user who changed the group avatar */
 "group.event.changed.avatar" = "%@ cambió el ícono del grupo";
@@ -454,10 +472,10 @@
 "group.event.changed.avatar.you" = "Has cambiado el icono del grupo";
 
 /* Message text shown with the user who changed the background */
-"group.event.changed.background" = "%@ cambió el color del fondo";
+"group.event.changed.background" = "%@ cambió el color del fondo de pantalla";
 
 /* Message text shown when you change the background */
-"group.event.changed.background.you" = "Has cambiado el color de fondo";
+"group.event.changed.background.you" = "Has cambiado el color de fondo del pantalla";
 
 /* Message text shown with the user who changed the group name */
 "group.event.changed.name" = "%1$@ cambió el nombre del grupo a \"%2$@\"";
@@ -472,7 +490,7 @@
 "group.event.created.group.you" = "Has creado el grupo \"%1@\"";
 
 /* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "%1$@ descartó a %2$@ como admin";
+"group.event.demoted.member" = "%1$@ descartó a %2$@ como administrador";
 
 /* Message text shown when you demote a group admin */
 "group.event.demoted.member.you" = "Has eliminado a %1@ como administrador";
@@ -481,7 +499,7 @@
 "group.event.promoted.member" = "%1$@ designó a %2$@ como admin.";
 
 /* Message text shown when you promote a group member */
-"group.event.promoted.member.you" = "Tú asignaste a %1@ como admin";
+"group.event.promoted.member.you" = "Tú asignaste a %1@ como administrador";
 
 /* Message text shown with the user who removed a group member */
 "group.event.removed.member" = "%1$@ eliminó a %2$@";
@@ -544,13 +562,19 @@
 "group.preview.members" = "Miembros";
 
 /* Text shown to tell user the group title is tappable */
-"group.title.tap.for.info" = "Toca aquí para ver la info. del grupo";
+"group.title.tap.for.info" = "Toca aquí para ver la información del grupo";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Fuiste agregado a un grupo nuevo";
 
+/* A label to show that the groups below are groups in common */
+"groups.common" = "Grupos en común";
+
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "¿Estás seguro que quieres eliminar este grupo y su contenido de este dispositivo?";
+
+/* A label on the header to indicate which person I have groups in common with */
+"groups.title" = "Con %@";
 
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "Por favor deja un comentario o una descripción del problema en el espacio de arriba. \n\nVersión %1$@ - %2$@\n%3$@";
@@ -559,7 +583,7 @@
 "home.update.notice.button.exit" = "Salir";
 
 /* Text shown to users who have old versions of the app */
-"home.update.notice.text" = "Actualiza HalloApp a su última versión.";
+"home.update.notice.text" = "Por favor, actualiza HalloApp a su última versión";
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Esta versión está desactualizada";
@@ -577,7 +601,7 @@
 "invite.contact.count" = "%d contactos en HalloApp";
 
 /* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
-"invite.error.alert.message" = "Algo salió mal. Inténtalo de nuevo más tarde.";
+"invite.error.alert.message" = "Algo salió mal. Por favor, inténtalo de nuevo más tarde.";
 
 /* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
 "invite.error.alert.title" = "No se pudo invitar";
@@ -595,7 +619,7 @@
 "invite.text.specific" = "Hola %1$@, tengo una invitación para que te unas a mí en HalloApp (una aplicación social simple para compartir los momentos cotidianos). Usa %2$@ para registrarte. Obténla en https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
-"invite.title" = "Invitación";
+"invite.title" = "Invitar";
 
 /* Link text to open invite flow */
 "link.invite.friend" = "Invita a un amigo";
@@ -636,6 +660,9 @@
 /* Button that, when pressed, saves all the post's media to the user's camera roll */
 "media.save.all" = "Guardar todo en mi rollo de cámara";
 
+/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
+"media.save.all.singular" = "Guardar foto o video en mi rollo de cámara";
+
 /* Button that lets the user save the current media displayed to their camera roll */
 "media.save.camera.roll" = "Guardar en mi rollo de cámara";
 
@@ -667,7 +694,7 @@
 "message.delete" = "Eliminar";
 
 /* Message action. Verb. */
-"message.info" = "Info.";
+"message.info" = "Información";
 
 /* Message action. Verb. */
 "message.reply" = "Responder";
@@ -682,7 +709,7 @@
 "mypost.action.view.profile" = "Ver perfil";
 
 /* Message displayed to say when posts will disappear */
-"mypost.disappear.time.label" = "Tus publicaciones desaparecerán después de 30 días.";
+"mypost.disappear.time.label" = "Tus publicaciones se borrarán después de 30 días.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
 "mypost.hide.posts.confirmation" = "¿Estás seguro que quieres ocultar todas las publicaciones futuras de %@? Siempre puedes hacer este cambio más adelante.";
@@ -745,6 +772,9 @@
 /* Text for new user popup pointing at chat list */
 "nux.chat.list" = "Aquí es donde encontrarás mensajes de tus amigos y de tu familia. Cuando alguien nuevo se une a HalloApp los puedes ver aquí.";
 
+/* Shown on groups in common when there are no groups to display */
+"nux.groups.common.list.empty" = "No tenéis grupos en común";
+
 /* Shown on groups list when there are no groups to display */
 "nux.groups.list.empty" = "Tus grupos aparecerán aquí";
 
@@ -755,7 +785,7 @@
 "nux.new.post.button" = "Toca para compartir una novedad con tus amigos y familia en HalloApp";
 
 /* Message in media picker when access is denied. */
-"picker.access.denied.message" = "Otorgar acceso en configuración";
+"picker.access.denied.message" = "Por favor, otorga acceso en configuración";
 
 /* An option to give access from settings */
 "picker.access.denied.settings" = "Configuración";
@@ -764,7 +794,7 @@
 "picker.access.denied.title" = "Acceso denegado a fotos";
 
 /* Message shown only limited access to media. */
-"picker.access.limited.message" = "A ti te dan a ";
+"picker.access.limited.message" = "Has dado a HalloApp acceso a un seleccionado número de fotos y videos";
 
 /* Initial picker screen title. The default source of picker photos */
 "picker.default.title" = "Rollo de la cámara";
@@ -809,6 +839,9 @@
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Eliminar foto";
 
+/* A label for the button which leads to the page showing groups in common */
+"profile.groups.in.common" = "Grupos en común";
+
 /* Text for messaging user under profile header */
 "profile.header.message.user" = "Enviar un mensaje";
 
@@ -833,6 +866,9 @@
 /* Row in Profile screen. */
 "profile.row.about" = "Acerca de HalloApp";
 
+/* Row in Profile Screen */
+"profile.row.account" = "Cuenta";
+
 /* Row in Profile screen. */
 "profile.row.archive" = "Archivo";
 
@@ -844,6 +880,9 @@
 
 /* Row in Settings screen */
 "profile.row.my.posts" = "Mis publicaciones";
+
+/* Row in Profile Screen. */
+"profile.row.share" = "Compartir HalloApp";
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Tomar o seleccionar una foto";
@@ -864,7 +903,7 @@
 "registration.code.request.error" = "No se pudo enviar el código. Por favor inténtelo de nuevo más tarde.";
 
 /* Button label to resend verification code */
-"registration.code.resend" = "Reenviar el código. ";
+"registration.code.resend" = "Reenviar el código por mensaje de texto";
 
 /* Button label to resend verification code by voice call */
 "registration.code.resend.by.voice" = "Llámame";
@@ -883,6 +922,9 @@
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Instala HalloApp para continuar";
+
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "Instala HalloApp para abrir %@";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Por el momento Hallo App solo se puede usar con invitación. Si tienes un amigo o un familiar que use HalloApp, diles que te inviten usando tu número de teléfono.";
@@ -947,6 +989,81 @@
 /* text in the voice call sent with verification code */
 "server.voicecall.verification" = "Tu código de verificación de HalloApp es";
 
+/* Displayed while syncing account immediately after registration */
+"setting.up.halloapp" = "Configurando HalloApp";
+
+/* Title of alert telling the user they're about to delete their account */
+"settings.account.delete.action.title" = "Borrar cuenta";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet1" = "Eliminar tu información de cuenta y foto de perfil";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet2" = "Eliminarte de todos los grupos de HalloApp";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet3" = "Eliminar tu historial de mensajería en este teléfono";
+
+/* Label telling the user that their account has been deleted */
+"settings.account.delete.deleted" = "Cuenta eliminada";
+
+/* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
+"settings.account.delete.error" = "Hubo un error eliminando tu cuenta. Por favor, revisa que tu número de teléfono esté escrito correctamente.";
+
+/* Label above list of things that will happen if they delete their account */
+"settings.account.delete.header" = "Eliminar tu cuenta hará:";
+
+/* Alert message telling the user that account deletion is irreversible */
+"settings.account.delete.irreversible.label" = "Esta acción es irreversible";
+
+/* Text field placeholder telling the user that their phone number should go into the field */
+"settings.account.delete.phone.number" = "Tu número de teléfono";
+
+/* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
+"settings.account.delete.spinner.replacement" = "Esperando respuesta del servidor";
+
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "No serás capaz de iniciar sesión hasta que no reinicies la aplicación";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "Cuenta eliminada con éxito";
+
+/* Label telling the user when their data export will be made available. %1$@ is a date. */
+"settings.account.export.date.available" = "Por cuestiones de seguridad, tus datos estarán disponibles el %1$@";
+
+/* Label alerting the user that we were unable to retrieve the data. */
+"settings.account.export.error" = "Hubo un error al intentar conseguir tus datos.";
+
+/* Explanation about what the data export function is. English language version taken from WhatsApp. */
+"settings.account.export.explanation" = "Crea una memoria sobre tu información y configuración en tu cuenta de HalloApp, que puedes acceder o transferir a otra aplicación. Esta memoria no incluye tus mensajes.";
+
+/* String indicating device is awaiting a server response. Only visible in iOS 13. */
+"settings.account.export.loading" = "Cargando datos...";
+
+/* Navigation bar title informing the user that this page lets them export their user data. */
+"settings.account.export.navbar" = "Exportar datos";
+
+/* Label for when the date at which the user data is not determined. */
+"settings.account.export.not.found" = "No pudo ser establecida la fecha para que esté listo.";
+
+/* Button to open the user data exported from HalloApp. */
+"settings.account.export.open.data" = "Abrir datos exportados";
+
+/* Navigation bar title informing the user that this page lets them export their user data. */
+"settings.account.export.request.button" = "Requerir exportación de datos";
+
+/* Label informing the user that they have requested their data. */
+"settings.account.export.requested" = "Datos solicitados";
+
+/* Button to delete a user's account. */
+"settings.account.list.delete.account" = "Eliminar";
+
+/* Row to export user data for GDPR compliance. */
+"settings.account.list.export.data" = "Exportar";
+
+/* Title for settings page containing account options. */
+"settings.account.list.title" = "Cuenta";
+
 /* App version text in Profile > Help. */
 "settings.app.version" = "Versión %@ de HalloApp";
 
@@ -964,6 +1081,9 @@
 
 /* Settings > Privacy: name of a setting that defines who can see your posts. */
 "settings.privacy.posts" = "Publicaciones";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "Únete a mí en HalloApp, baja la la aplicación gratis en halloapp.com/dl";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Añadir a la lista de lectura";
@@ -1019,6 +1139,9 @@
 /* Screen title */
 "title.camera" = "Cámara";
 
+/* Title for new message screen where user chooses who to message */
+"title.chat.new.message" = "Nuevo mensaje";
+
 /* Third tab in the main app interface. */
 "title.chats" = "Conversaciones";
 
@@ -1037,6 +1160,12 @@
 /* Row in Settings screen */
 "title.privacy" = "Privacidad";
 
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"title.select.group.members.create.group" = "Crear grupo nuevo";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"title.select.group.members.title" = "Añadir miembros nuevos";
+
 /* Fourth tab in the main app interface */
 "title.settings" = "Configuración";
 
@@ -1051,6 +1180,9 @@
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Contacto desconocido";
+
+/* Text for action label that lets the user accept messages from unknown contacts */
+"unknown.contact.accept.to.message" = "Acepta el mensaje para responder";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Bloquear";

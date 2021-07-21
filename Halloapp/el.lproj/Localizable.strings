@@ -1,0 +1,1231 @@
+/* No comment provided by engineer. */
+"%" = "%";
+
+/* No comment provided by engineer. */
+"%@" = "%@";
+
+/* No comment provided by engineer. */
+"• %@" = "• %@";
+
+/* About screen: body text. */
+"about.body.1" = "\nΗ HalloApp είναι εδώ! Την δημιουργούμε για εσάς και τους αγαπημένους σας.\nΈχουμε επαναφέρει τις κοινωνικές εφαρμογές πίσω στα βασικά, προσθέτοντας ταυτόχρονα ένα επίπεδο προστασίας και απορρήτου στο οποίο πιστεύουμε πως όλοι πρέπει να έχουν πρόσβαση στον κόσμο. \nΗ HalloApp δεν θα χρησιμοποιήσει ποτέ τις προσωπικές σας πληροφορίες και δεν θα σας δείξει διαφημίσεις. \nΑντί αυτού, σχεδιάζουμε τελικά να σας προσφέρουμε επιπρόσθετα χαρακτηριστικά σε μικρό κόστος. \n\n";
+
+/* About screen: body text. */
+"about.body.2" = "Ευχαριστούμε που χρησιμοποιείτε και κοινωνικοποιείται την εφαρμογή HalloApp με τους φίλους και την οικογένια σας. Βελτιωνόμαστε κάθε βδομάδα.";
+
+/* About screen: footer text. Parameter is support email address. */
+"about.footer" = "Για οποιαδήποτε ερώτηση ή σχόλιο στείλτε μας email στην ταχυδρομική διεύθυνση %@";
+
+/* About screen: greeting. */
+"about.hallo" = "Hallo";
+
+/* About screen: navigation bar title. */
+"about.title" = "Σχετικά";
+
+/* Longer title for the button that confirms marking all items in the activity center as read. */
+"activity.center.button.mark.all.read" = "Επισήμανση Όλων ως Αναγνωσμένα";
+
+/* Short title for the button in activity center. */
+"activity.center.button.read.all" = "Ανάγνωση Όλων";
+
+/* Message shown when a user first joins from a friend's invitation (e.g., 'You accepted David's invite 🎉' */
+"activity.center.invite.accepted.item" = "Αποδεχτήκατε την πρόσκληση από %@'s 🎉";
+
+/* Title for the activity center screen. */
+"activity.center.title" = "Δραστηριότητα";
+
+/* Message shown when a user first joins */
+"activity.center.welcome.item" = "Καλώς ήρθατε στο HalloApp!";
+
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "Δεν υπάρχει σύνδεση διαδικτύου";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Ελέγξτε αν έχετε σύνδεση στο διαδίκτυο και δοκιμάστε ξανά";
+
+/* Title of view where users can invite friends and family. */
+"app.ios.invite.friends" = "Πρόσκληση φίλων και οικογένειας";
+
+/* Translation of iPhone settings app. */
+"app.ios.settings" = "Ρυθμίσεις";
+
+/* Text to show on banner when no connection is available */
+"banner.no.connection" = "Μη διαθέσιμη σύνδεση";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Άκυρο";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Συνέχεια";
+
+/* Title for generic Create button */
+"button.create" = "Δημιουργία";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Απόρριψη";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Ολοκληρώθηκε";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Μετάβαση σε Ρυθμίσεις";
+
+/* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
+"button.install" = "Εγκατάσταση";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Μάθετε Περισσότερα";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Περισσότερα";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Επόμενο";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Όχι Τώρα";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "Εντάξει";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Κατάργηση";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Αποθήκευση";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Αποστολή";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Κοινοποίηση";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Ενημέρωση";
+
+/* Generic error when trying to use camera */
+"camera.error" = "Σφάλμα Κάμερας";
+
+/* No comment provided by engineer. */
+"camera.init.error.1" = "Δεν είναι δυνατή η αρχικοποίηση της πίσω κάμερας";
+
+/* No comment provided by engineer. */
+"camera.init.error.2" = "Δεν είναι δυνατή η αρχικοποίηση της μπροστά κάμερας";
+
+/* No comment provided by engineer. */
+"camera.init.error.3" = "Δεν είναι δυνατή η προετοιμασία του μικροφώνου";
+
+/* No comment provided by engineer. */
+"camera.init.error.4" = "Δεν είναι δυνατή η πρόσβαση στην πίσω κάμερα";
+
+/* No comment provided by engineer. */
+"camera.init.error.5" = "Δεν είναι δυνατή η πρόσβαση στην μπροστινή κάμερα";
+
+/* No comment provided by engineer. */
+"camera.init.error.6" = "Δεν είναι δυνατή η πρόσβαση στον ήχο";
+
+/* No comment provided by engineer. */
+"camera.init.error.7" = "Δεν είναι δυνατή η λήψη φωτογραφιών";
+
+/* No comment provided by engineer. */
+"camera.init.error.8" = "Δεν είναι δυνατή η εγγραφή βίντεο";
+
+/* Title for a popup alerting about camera initialization error. */
+"camera.init.error.title" = "Σφάλμα Αρχικοποίησης";
+
+/* Alert text shown when the contact has been added to the address book successfully */
+"chat.add.to.address.book.success" = "Η επαφή προστέθηκε με επιτυχία";
+
+/* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
+"chat.add.to.contacts.book.label" = "Για να δείτε δημοσιεύσεις από %@ προσθέστε τον αριθμό τους στο βιβλίο επαφών σας. Πατήστε για προσθήκη";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"chat.create.group.name.placeholder" = "Oνομάστε την ομάδα";
+
+/* Title of group creation screen */
+"chat.create.group.title" = "Πληροφορίες Ομάδας";
+
+/* Label for creating a new group */
+"chat.create.new.group" = "Δημιουργία Νέας Ομάδας";
+
+/* Title of group name edit screen */
+"chat.edit.group.title" = "Επεξεργασία";
+
+/* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
+"chat.encryption.label" = "Οι συνομιλίες είναι κρυπτογραφημένες και το HalloApp δεν έχει πρόσβαση σε αυτές. Πατήστε για να μάθετε περισσότερα.";
+
+/* Label shown above background selection row */
+"chat.group.background.label" = "ΦΟΝΤΟ";
+
+/* Message text shown with the user who joined the group via invite link */
+"chat.group.event.join" = "Ο χρήστης %@ μπήκε στην ομάδα μέσω συνδέσμου πρόσκλησης σε ομάδα";
+
+/* Message text shown when you join a group via invite link */
+"chat.group.event.join.you" = "Συμμετέχετε στην ομάδα μέσω Συνδέσμου Πρόσκλησης Ομάδας";
+
+/* Message text shown with the user who left the group */
+"chat.group.event.member.left" = "%@ αποχώρησε";
+
+/* Message text shown when you leave a group */
+"chat.group.event.member.left.you" = "Αποχωρήσατε";
+
+/* Action label for adding members to a group */
+"chat.group.info.add.members" = "Προσθήκη μελών";
+
+/* Label shown in the members list when member is an admin */
+"chat.group.info.admin.label" = "Διαχειριστής";
+
+/* Text label for a color selection of group feed background color */
+"chat.group.info.bg.color.label" = "Χρώμα";
+
+/* Text label for default selection of group feed background color */
+"chat.group.info.bg.default.label" = "Προεπιλογή";
+
+/* Text for menu option of demoting a group member */
+"chat.group.info.demote" = "Απόρριψη Από Διαχειριστής";
+
+/* Action label for leaving group */
+"chat.group.info.leave.group" = "Αποχώρηση από Ομάδα";
+
+/* Text for menu option of making a group member admin */
+"chat.group.info.make.group.admin" = "Δημιουργία Διαχειριστή Ομάδας";
+
+/* Text for menu option of messaging user */
+"chat.group.info.message.user" = "Μύνημα";
+
+/* Text label shown when the user is not a member of the group */
+"chat.group.info.not.a.member.label" = "Δεν είστε μέλος αυτής της ομάδας";
+
+/* Text for menu option of removing a group member */
+"chat.group.info.remove.from.group" = "Αφαίρεση από Ομάδα";
+
+/* Title of screen that shows group information */
+"chat.group.info.title" = "Πληροφωρίες Ομάδας";
+
+/* Text for menu option of viewing profile */
+"chat.group.info.view.profile" = "Εμφάνιση Προφίλ";
+
+/* Confirmation message presented when leaving a group */
+"chat.group.leave.group.confirmation" = "Αποχώρηση από “%@”;";
+
+/* Label shown above group members list */
+"chat.group.members.label" = "ΜΕΛΗ";
+
+/* Label shown above group name input box */
+"chat.group.name.label" = "ΟΝΟΜΑ ΟΜΑΔΑΣ";
+
+/* Title for group photo actions */
+"chat.group.photo.label" = "Φωτογραφία Ομάδας";
+
+/* Action to take a picture or choose a photo from the library to use for the group photo */
+"chat.group.take.or.choose.photo" = "Λήψη ή Επιλογή Φωτογραφίας";
+
+/* Label for inviting friends */
+"chat.invite.friends" = "Πρόσκληση Φίλων";
+
+/* Message text shown for the message that was deleted */
+"chat.message.deleted" = "Αυτό το μήνυμα διαγράφηκε";
+
+/* Message text shown in a message that have photo media but no text */
+"chat.message.photo" = "Φωτογραφία";
+
+/* Text shown when chat input box is empty */
+"chat.message.placeholder" = "Σύνταξη μηνύματος";
+
+/* Text shown in place of a received message we are not able to process yet. */
+"chat.message.unsupported" = "Η έκδοση του HalloApp δεν υποστηρίζει αυτόν τον τύπο μηνύματος.";
+
+/* Message text shown in a message that have video media but no text */
+"chat.message.video" = "Βίντεο";
+
+/* Text shown in place of a received message we are not able to decrypt yet. */
+"chat.message.waiting" = "Σε αναμονή του μηνύματος. Αυτό μπορεί να διαρκέσει μερικά λεπτά.";
+
+/* Label shown when user is typing */
+"chat.typing.capitalized" = "γράφει...";
+
+/* Text shown when user is about to remove the chat */
+"chats.list.remove.message" = "Καταργώντας αυτήν τη συνομιλία, θα διαγράψετε το ιστορικό και το περιεχόμενο της από τη συσκευή σας.";
+
+/* Button revealed when user swipes on their comment. */
+"comment.delete" = "Διαγραφή";
+
+/* Title for the button in comment deletion confirmation prompt. */
+"comment.delete.action" = "Διαγραφή Σχολίου";
+
+/* Confirmation text displayed at comment deletion prompt */
+"comment.delete.confirmation" = "Διαγραφή σχολίου; Αυτή η πράξει είναι μη αναστρέψιμη.";
+
+/* Text displayed in place of deleted comment. */
+"comment.deleted" = "Αυτό το σχόλιο έχει διαγραφεί";
+
+/* Text displayed in place of a comment that is currently being deleted. */
+"comment.deleting" = "Διαγραφή σχολίου";
+
+/* Button in comment input field. Verb. */
+"comment.post" = "Δημοσίευμα";
+
+/* Text displayed in place of comment timestamp while comment is being posted. */
+"comment.posting" = "Δημοσίευση...";
+
+/* Title for the button displayed under feed post comment. Verb. */
+"comment.reply" = "Απάντηση";
+
+/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
+"comment.replying.myself" = "Απάντηση στον εαυτό μου";
+
+/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
+"comment.replying.someone" = "Απάντηση σε %@";
+
+/* Title for the button in comment resend confirmation prompt. */
+"comment.resend.action" = "Επαναποστολή";
+
+/* Confirmation prompt for when resending comment that previously failed to send. */
+"comment.resend.confirmation" = "Επαναποστολή Σχολίου;";
+
+/* Text displayed in gray inside of the comment input field when there is no user input. */
+"comment.textfield.placeholder" = "Προσθήκη σχολίου";
+
+/* Text displayed in place of a comment that is not supported in the current app version. */
+"comment.unsupported" = "Η έκδοση του HalloApp δεν υποστηρίζει αυτό το είδος σχολίου.";
+
+/* Warning text displayed in Comments when post wasn't available. */
+"comments.post.loading.failed" = "Παρουσιάστηκε σφάλμα κατά την προσπάθεια φόρτωσης αυτής της δημοσίευσης. Προσπαθήστε ξανά αργότερα.";
+
+/* Alert message in composer when a video is too long */
+"composer.max.video.length.message" = "Παρακαλούμε επιλέξτε ένα άλλο βίντεο ή πατήστε το κουμπί επεξεργασίας.";
+
+/* Alert title in composer when a video is too long */
+"composer.max.video.length.title" = "Αυτό το βίντεο έχει διάρκεια πάνω από %.0f δευτερόλεπτα";
+
+/* Composer subtitle for messages. */
+"composer.message.subtitle" = "Αποστολή στον %@";
+
+/* Composer New Message title. */
+"composer.message.title" = "Νέο Μήνυμα";
+
+/* Placeholder text for media caption field in post composer. */
+"composer.placeholder.media.description" = "Σύνταξη περιγραφής";
+
+/* Placeholder text in text post composer screen. */
+"composer.placeholder.text.post" = "Σύνταξη δημοσίευσης";
+
+/* Send button title. */
+"composer.post.button.send" = "Αποστολή";
+
+/* Share button title. */
+"composer.post.button.share" = "Κοινοποίηση";
+
+/* Composer subtitle for group posts. */
+"composer.post.subtitle" = "Κοινοποίηση σε %@";
+
+/* Composer New Post title. */
+"composer.post.title" = "Νέα Δημοσίευση";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.excluded" = "Κοινοποίηση σε μερικές από τις επαφές μου";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.my.contacts" = "Κοινοποίηση στις επαφές μου";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
+
+/* No comment provided by engineer. */
+"CONNECTION" = "ΣΥΝΔΕΣΗ";
+
+/* Shown when user denies contacts permission */
+"contacts.access.denied" = "Επιτρέψτε στο HalloApp να έχει πρόσβαση στις επαφές σας, ώστε να μπορείτε να στέλνετε και να λαμβάνετε ενημερώσεις";
+
+/* Message requesting the user enable contacts permission */
+"contacts.permission.explanation" = "Για να σας βοηθήσουμε να συνδεθείτε με φίλους και συγγενείς, επιτρέψτε στο HalloApp την πρόσβαση στις επαφές σας.";
+
+/* Title for modal view when showing how to change contact permissions.
+   Title for tutorial explaining how user can enable contacts permission */
+"contacts.permission.tutorial.title" = "Επαφές";
+
+/* Alert message telling the user to try creating the group again after an error */
+"create.group.error" = "Παρουσιάστηκε σφάλμα κατά τη δημιουργία της ομάδας. Δοκιμάστε ξανά";
+
+/* Title for generic delete button. */
+"Delete" = "Διαγραφή";
+
+/* Text to show on profile for users you are not connected with */
+"exchange.phone.numbers.to.connect" = "Για να συνδεθείτε πρέπει να ανταλλάξετε αριθμούς τηλεφώνου";
+
+/* VoiceOver label for camera button in floating compose post menu in Home view. */
+"fab.accessibility.camera" = "Κάμερα";
+
+/* VoiceOver label for photo button in floating compose post menu in Home view. */
+"fab.accessibility.photo.library" = "Βιβλιοθήκη Φωτογραφιών";
+
+/* VoiceOver label for text post button in floating compose post menu in Home view. */
+"fab.accessibility.text" = "Κείμενο";
+
+/* Shown while content is being retracted from feed */
+"feed.deleting" = "Διαγραφή...";
+
+/* Text shown in indicator when new posts come in while user is scrolled down */
+"feed.new.posts.indicator" = "Νέες Δημοσιεύσεις";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification..other.comment.no.text" = "<$author$> σχολίασε επίσης";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.comment.grouped" = "<$numberOthers$> άλλοι χρήστες απάντησαν στην δημοσίευση του <$author$>'s";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.commented.no.text" = "<$author$> σχολίασε στη δημοσίευσή σας";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.commented.w.text" = "<$author$> σχολίασε: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.deleted.comment" = "<$author$> διέγραψε ατομικό σχόλιο";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.deleted.post" = "<$author$> σχολίασε. Αυτή η δημοσίευση διαγράφηκε.";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.comment.no.text" = "<$author$> σας ανέφερε σε ένα σχόλιο";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.comment.w.text" = "<$author$> σας ανέφερε σε ένα σχόλιο: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.post.no.text" = "<$author$> σας ανέφερε σε μια δημοσίευση";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.post.w.text" = "<$author$> σας ανέφερε σε μια δημοσίευση: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.other.comment.w.text" = "<$author$> σχολίασε επίσης: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.replied.no.text" = "<$author$> απάντησε στο σχόλιό σας";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.replied.w.text" = "<$author$> απάντησε: <$text$>";
+
+/* Shown when post fails or is canceled. */
+"feed.post.failed" = "Αποτυχία δημοσίευσης";
+
+/* Shown when receiving a new (unsupported) type of post. */
+"feed.post.unsupported" = "Η έκδοση του HalloApp δεν υποστηρίζει αυτόν τον τύπο δημοσίευσης.";
+
+/* Shown while content is being posted to feed */
+"feed.posting" = "Δημοσίευση...";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Κοινοποίηση με όλες τις επαφές σας";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Κοινοποίηση στις επαφές σας εκτός από τα άτομα που επιλέγετε";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Κοινοποίηση μόνο στις επιλεγμένες επαφές";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.all" = "Επαφές Τηλεφώνου";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.except" = "Επαφές μου Εκτός...";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.only" = "Μόνο Κοινοποίηση Σε...";
+
+/* Possible Feed Privacy setting value. */
+"feed.privacy.value.my.contacts" = "Επαφές Τηλεφώνου";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.excluded" = "feed.privacy.value.n.contacts.excluded";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.selected" = "feed.privacy.value.n.contacts.selected";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.excluded" = "feed.privacy.value.n.excluded";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
+
+/* Button under someone's post. Verb. */
+"feedpost.button.comment" = "Σχόλιο";
+
+/* Button under someoneelse's post. Verb. */
+"feedpost.button.reply" = "Απάντησε";
+
+/* Label for choosing a color at the group background preview screen */
+"group.bg.pick.a.color.label" = "ΕΠΙΛΟΓΗ ΧΡΩΜΑΤΟΣ";
+
+/* Title of group background screen */
+"group.bg.title" = "Φόντο";
+
+/* Message text shown with the user who added a group member */
+"group.event.added.member" = "%1$@ πρόσθεσε %2$@";
+
+/* Message text shown when you add a group member */
+"group.event.added.member.you" = "Προσθέσατε %1@";
+
+/* Message text shown with the user who changed the group avatar */
+"group.event.changed.avatar" = "%@ άλλαξε το εικονίδιο ομάδας";
+
+/* Message text shown with the user who changed the group avatar */
+"group.event.changed.avatar.you" = "Αλλάξατε το εικονίδιο της ομάδας";
+
+/* Message text shown with the user who changed the background */
+"group.event.changed.background" = "Ο χρήστης %@ άλλαξε το χρώμα φόντου";
+
+/* Message text shown when you change the background */
+"group.event.changed.background.you" = "Αλλάξατε το χρώμα φόντου";
+
+/* Message text shown with the user who changed the group name */
+"group.event.changed.name" = "%1$@ άλλαξε το όνομα της ομάδας σε \"%2$@\"";
+
+/* Message text shown when you change the group name */
+"group.event.changed.name.you" = "Αλλάξατε το όνομα της ομάδας σε \"%1@\"";
+
+/* Message text shown with the user who created the group */
+"group.event.created.group" = "%1$@ δημιούργησε την ομάδα \"%2$@\"";
+
+/* Message text shown when you create a group */
+"group.event.created.group.you" = "Δημιουργήσατε την ομάδα \"%1@\"";
+
+/* Message text shown with the user who demoted a group admin */
+"group.event.demoted.member" = "%1$@ κατάργησε %2$@ από διαχειριστή";
+
+/* Message text shown when you demote a group admin */
+"group.event.demoted.member.you" = "Καταργήσατε %1@ από διαχειριστή";
+
+/* Message text shown with the user who promoted a group member */
+"group.event.promoted.member" = "%1$@ έκανε %2$@ διαχειριστή";
+
+/* Message text shown when you promote a group member */
+"group.event.promoted.member.you" = "Κάνατε %1@ διαχειριστή";
+
+/* Message text shown with the user who removed a group member */
+"group.event.removed.member" = "%1$@ αφαίρεσε %2$@";
+
+/* Message text shown when you remove a group member */
+"group.event.removed.member.you" = "Καταργήσατε %1@";
+
+/* Action label for inviting others to join the group via link */
+"group.info.invite.to.group.via.link" = "Πρόσκληση σε Ομάδα μέσω Συνδέσμου";
+
+/* Label for copying link */
+"group.invite.copy.link" = "Αντιγραφή συνδέσμου";
+
+/* Text shown when link is copied */
+"group.invite.link.copied" = "Αντιγράφηκε στο πρόχειρο";
+
+/* Text to describe what the group invite link is */
+"group.invite.link.description" = "Οποιοσδήποτε στο HalloApp μπορεί να ακολουθήσει αυτόν τον σύνδεσμο για να μπει στην ομάδα.";
+
+/* Text label above the group link section in group invite screen */
+"group.invite.link.label" = "ΣΥΝΔΕΣΜΟΣ ΟΜΑΔΑΣ";
+
+/* Text shown when link is reset */
+"group.invite.link.reset" = "Έγινε επαναφορά του συνδέσμου";
+
+/* Label for opening QR screen */
+"group.invite.qr.code" = "Κωδικός QR";
+
+/* Label for resetting link */
+"group.invite.reset.link" = "Επαναφορά συνδέσμου";
+
+/* Warning shown when user clicks on reset link action */
+"group.invite.reset.link.warning" = "Αν γίνει επαναφορά αυτού του συνδέσμου πρόσκλησης, κανείς δεν θα μπορεί να τον χρησιμοποιήσει για να μπει στην ομάδα.";
+
+/* Label for sharing link */
+"group.invite.share.link" = "Κοινοποίηση συνδέσμου";
+
+/* Text shown before the sharing link */
+"group.invite.share.link.message" = "Κάντε κλικ σε αυτόν τον σύνδεσμο για να συμμετέχετε στην ομάδα μου στο HalloApp:";
+
+/* Title of group invite screen */
+"group.invite.title" = "Πρόσκληση σε ομάδα";
+
+/* Text for alert box when the user clicks on an invalid group invite link */
+"group.preview.get.info.error.invalid.link" = "Ο σύνδεσμος πρόσκλησης ομάδας δεν είναι έγκυρος";
+
+/* Text for alert box when the user can't join the group via group link when the group is full */
+"group.preview.join.error.group.full" = "Η ομάδα είναι πλήρης";
+
+/* Text for alert box when the user can't join the group via group link when link is invalid */
+"group.preview.join.error.invalid.link" = "Ο σύνδεσμος δεν είναι έγκυρος";
+
+/* Title for alert box when the user can't join the group via group link */
+"group.preview.join.error.title" = "Δεν είναι δυνατή η συμμετοχή στην ομάδα";
+
+/* Label for joining group action */
+"group.preview.join.group" = "ΣΥΜΜΕΤΟΧΗ ΣΤΗΝ ΟΜΑΔΑ";
+
+/* Label for the number of members in the group */
+"group.preview.members" = "Μέλη";
+
+/* Text shown to tell user the group title is tappable */
+"group.title.tap.for.info" = "Πατήστε εδώ για πληροφορίες ομάδας";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "Προστεθήκατε σε νέα ομάδα";
+
+/* A label to show that the groups below are groups in common */
+"groups.common" = "Κοινές Ομάδες";
+
+/* Text shown when user is about to remove the group */
+"groups.list.remove.message" = "Σίγουρα θέλετε να καταργήσετε αυτήν την ομάδα και το περιεχόμενό της από τη συσκευή σας;";
+
+/* A label on the header to indicate which person I have groups in common with */
+"groups.title" = "Με %@";
+
+/* Text shown in the email body when sending logs from the help screen */
+"help.send.logs.email.body" = "\n\n\nΑφήστε σχόλια ή περιγραφή του προβλήματος στον παραπάνω χώρο.\n\nΈκδοση %1$@ - %2$@\n%3$@";
+
+/* Title for exit button that closes the app */
+"home.update.notice.button.exit" = "Έξοδος";
+
+/* Text shown to users who have old versions of the app */
+"home.update.notice.text" = "Ενημερώστε στην τελευταία έκδοση του HalloApp";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.notice.title" = "Αυτή η έκδοση είναι ξεπερασμένη";
+
+/* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
+"invite.already.halloapp.user" = "Ήδη χρήστης του HalloApp";
+
+/* Title for button that launches system SMS app to send invite. As short as possible! */
+"invite.app.sms" = "Μηνύματα";
+
+/* Title for button that launches WhatsApp to send invite. Should match WhatsApp localization. */
+"invite.app.whatsapp" = "WhatsApp";
+
+/* Shows number of current HalloApp users who have this contact in their list */
+"invite.contact.count" = "%d επαφές στο HalloApp";
+
+/* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
+"invite.error.alert.message" = "Κάτι πήγε στραβά. Παρακαλούμε προσπαθήστε ξανά αργότερα.";
+
+/* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
+"invite.error.alert.title" = "Δεν ήταν δυνατή η πρόσκληση";
+
+/* Displayed when user does not have any invites left. Parameter is date. */
+"invite.out.of.invites.w.date" = "Δεν έχετε προσκλήσεις. Προσπαθήστε πάλι μετά από %@";
+
+/* Displayed white user is inviting someone. */
+"invite.please.wait" = "Περιμένετε...";
+
+/* Text of invitation to join HalloApp. */
+"invite.text" = "Ελάτε μαζί μου στο HalloApp - ένας απλός, ιδιωτικός και ασφαλής τρόπος για να επικοινωνείτε με τους φίλους και την οικογένειά σας. Αποκτήστε το στη διεύθυνση https://halloapp.com/dl";
+
+/* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
+"invite.text.specific" = "Γεια σου %1$@, έχω μια πρόσκληση για σένα να με βρεις στο HalloApp (μια απλή κοινωνική εφαρμογή για κοινοποίηση καθημερινών στιγμών). Χρησιμοποίησε το %2$@ για να εγγραφείς. Κατέβασέ το στο https://halloapp.com/dl";
+
+/* Title for the screen that allows to select contact to invite. */
+"invite.title" = "Πρόσκληση";
+
+/* Link text to open invite flow */
+"link.invite.friend" = "Προσκαλέστε έναν φίλο";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Μάθετε περισσότερα";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Ενημερώστε την εφαρμογή σας.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Εγώ";
+
+/* Refers to albums in Photo Library. */
+"media.albums" = "Άλμπουμ";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Απόρριψη";
+
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "Επαναφορά";
+
+/* Alert asking to enable Camera permission after attempting to use in-app camera. */
+"media.camera.access.request" = "Το HalloApp δεν έχει πρόσβαση στην κάμερά σας. Για να ενεργοποιήσετε την πρόσβαση, πατήστε Ρυθμίσεις και ενεργοποιήστε την Κάμερα";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "Θέλετε να απορρίψετε τις τροποποιήσεις σας;";
+
+/* Alert asking to enable Camera permission after attempting to use in-app camera. */
+"media.mic.access.request.body" = "Για την εγγραφή βίντεο με ήχο, το HalloApp χρειάζεται πρόσβαση στο μικρόφωνο. Για να ενεργοποιήσετε την πρόσβαση, πατήστε Ρυθμίσεις και ενεργοποιήστε το Μικρόφωνο.";
+
+/* Alert asking to enable Microphone permission after attempting to use in-app camera. */
+"media.mic.access.request.title" = "Θέλετε βίντεο με Ήχο;";
+
+/* Error text displayed in post composer when some of the media selected couldn't be sent. */
+"media.prepare.failed.n.count" = "media.prepare.failed.n.count";
+
+/* Button that, when pressed, saves all the post's media to the user's camera roll */
+"media.save.all" = "Αποθήκευση Όλων Σε Συλλογή Φωτογραφιών";
+
+/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
+"media.save.all.singular" = "Αποθήκευση Πολυμέσων Σε Συλλογή Φωτογραφιών";
+
+/* Button that lets the user save the current media displayed to their camera roll */
+"media.save.camera.roll" = "Αποθήκευση Σε Συλλογή Φωτογραφιών";
+
+/* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
+"media.save.needs.permissions" = "Χρειάζεται άδειες για φωτογραφίες";
+
+/* Description telling the user why the photos couldn't be saved */
+"media.save.no.access" = "Δεν είναι δυνατή η αποθήκευση φωτογραφιών χωρίς την πρόσβαση στη συλλογή φωτογραφιών.";
+
+/* Alert displayed explaining to the user that the media save operation failed */
+"media.save.not.saved" = "Δεν ήταν δυνατή η αποθήκευση της φωτογραφίας";
+
+/* Label indicating that media was successfully saved to the camera roll */
+"media.save.saved" = "Αποθηκεύτηκε";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "Κλείσιμο";
+
+/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+"media.voiceover.button.flip" = "Γύρισμα";
+
+/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+"media.voiceover.button.rotate" = "Περιστροφή";
+
+/* Message action. Verb. */
+"message.copy" = "Αντιγραφή";
+
+/* Message action. Verb. */
+"message.delete" = "Διαγραφή";
+
+/* Message action. Verb. */
+"message.info" = "Πληροφορίες";
+
+/* Message action. Verb. */
+"message.reply" = "Απάντηση";
+
+/* One of the contact actions in My Post screen. */
+"mypost.action.hide.my.posts" = "Απόκρυψη Δημοσιεύσεών Μου";
+
+/* One of the contact actions in My Post screen. Verb. */
+"mypost.action.message" = "Μήνυμα";
+
+/* One of the contact actions in My Post screen. */
+"mypost.action.view.profile" = "Εμφάνιση Προφίλ";
+
+/* Message displayed to say when posts will disappear */
+"mypost.disappear.time.label" = "Οι δημοσιεύσεις σας θα εξαφανιστούν μετά από 30 ημέρες.";
+
+/* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
+"mypost.hide.posts.confirmation" = "Σίγουρα θέλετε να αποκρύψετε όλες τις μελλοντικές δημοσιεύσεις σας από %@; Μπορείτε πάντα να το αλλάξετε αυτό αργότερα.";
+
+/* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
+"mypost.not.viewed.yet" = "Κανείς δεν έχει δει τη δημοσίευσή σας ακόμα";
+
+/* Your Post screen: label for the row that opens the invite screen */
+"mypost.row.invite.to.halloapp" = "Προσκαλέστε στο Halloapp";
+
+/* Your Post screen: label for the row that opens the privacy screen */
+"mypost.row.manage.privacy" = "Διαχείριση Απορρήτου";
+
+/* Indicates how many invites are remaining */
+"n.invites.count" = "n.invites.count";
+
+/* Indicates how many invites are remaining */
+"n.invites.remaining" = "n.invites.remaining";
+
+/* Text shown to indicate user is not in the group anymore */
+"not.in.group.banner.text" = "Δεν είστε πλέον σε αυτήν την ομάδα";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "Σχολίασε: %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "Μία από τις επαφές σας είναι τώρα στο HalloApp";
+
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@ μόλις αποδέχτηκε την πρόσκλησή σας να συμμετέχει στο HalloApp 🎉";
+
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "notification.n.photos";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "notification.n.videos";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@ είναι τώρα στο HalloApp";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "Νέο μήνυμα";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "Νέα Δημοσίευση";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "📷 φωτογραφία";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "📹 βίντεο";
+
+/* Text for new user popup pointing at activity center icon */
+"nux.activity.center.icon" = "Hallo!";
+
+/* Shown on chats list when there are no contacts or messages to display */
+"nux.chat.empty" = "Οι επαφές και τα μηνύματά σας θα εμφανίζονται εδώ";
+
+/* Text for new user popup pointing at chat list */
+"nux.chat.list" = "Εδώ θα βρείτε μηνύματα από τους φίλους και την οικογένειά σας. Όταν κάποιος νέος συμμετέχει στο HalloApp, μπορείτε να τον δείτε εδώ.";
+
+/* Shown on groups in common when there are no groups to display */
+"nux.groups.common.list.empty" = "Δεν έχετε κοινές ομάδες";
+
+/* Shown on groups list when there are no groups to display */
+"nux.groups.list.empty" = "Οι ομάδες σας θα εμφανίζονται εδώ";
+
+/* Shown on home feed when no posts are available */
+"nux.home.feed.empty" = "Οι δημοσιεύσεις από τις τηλεφωνικές σας επαφές θα εμφανίζονται εδώ";
+
+/* Text for new user popup pointing at new post button */
+"nux.new.post.button" = "Πατήστε για κοινοποίηση μιας ενημέρωσης στους φίλους και την οικογένειά σας στο HalloApp";
+
+/* Message in media picker when access is denied. */
+"picker.access.denied.message" = "Παραχωρήστε πρόσβαση από τις Ρυθμίσεις";
+
+/* An option to give access from settings */
+"picker.access.denied.settings" = "Ρυθμίσεις";
+
+/* Alert title in media picker when access is denied. */
+"picker.access.denied.title" = "Απαγορευμένη Πρόσβαση Σε Φωτογραφίες";
+
+/* Message shown only limited access to media. */
+"picker.access.limited.message" = "Έχετε δώσει στο HalloApp πρόσβαση σε έναν επιλεγμένο αριθμό φωτογραφιών και βίντεο.";
+
+/* Initial picker screen title. The default source of picker photos */
+"picker.default.title" = "Συλλογή Φωτογραφιών";
+
+/* Alert message in media picker when unable to load media file. */
+"picker.media.fail.message" = "Δοκιμάστε ξανά ή επιλέξτε μια διαφορετική φωτογραφία ή βίντεο.";
+
+/* Alert title in media picker when unable to load media file. */
+"picker.media.fail.title" = "Αποτυχία φόρτωσης πολυμέσων";
+
+/* Button shown to update limited access to media. */
+"picker.media.limit.button" = "Ενημέρωση";
+
+/* An option to update limited access. */
+"picker.media.limit.settings" = "Αλλαγή ρυθμίσεων";
+
+/* Alert title in media picker when selecting over limit. */
+"picker.media.limit.title" = "Μέγιστος αριθμός επιλεγμένων";
+
+/* An option to update limited access. */
+"picker.media.limit.updateSelection" = "Ενημέρωση επιλογής εικόνας και βίντεο";
+
+/* Message in media picker when selecting over limit. */
+"picker.media.n.limit" = "picker.media.n.limit";
+
+/* Displayed in place of a deleted feed post.
+   Displayed in place of a deleted group feed post at group list screen */
+"post.has.been.deleted" = "Αυτή η δημοσίευση διαγράφηκε";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted.by.author" = "%@ διέγραψε ατομική δημοσίευση";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted.by.you" = "Διαγράψατε τη δημοσίευσή σας";
+
+/* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
+"privacy.list.blocked" = "Αποκλείστηκε";
+
+/* Generic setting value telling how many contacts are blocked or muted. */
+"privacy.n.contacts" = "privacy.n.contacts";
+
+/* Title for the button allowing to delete current profile photo. */
+"profile.delete.photo" = "Διαγραφή Φωτογραφίας";
+
+/* A label for the button which leads to the page showing groups in common */
+"profile.groups.in.common" = "Κοινές Ομάδες";
+
+/* Text for messaging user under profile header */
+"profile.header.message.user" = "Μήνυμα";
+
+/* Item in Profile > Help screen. */
+"profile.help.faq" = "Συχνές Ερωτήσεις";
+
+/* Item in Profile > Help screen. */
+"profile.help.feedback" = "Κοινοποίηση Σχολίων και Αρχείων Καταγραφής";
+
+/* Item in Profile > Help screen. */
+"profile.help.pp" = "Πολιτική Απορρήτου";
+
+/* Item in Profile > Help screen. */
+"profile.help.share.logs" = "Κοινοποίηση Αρχείων Καταγραφής";
+
+/* Item in Profile > Help screen. */
+"profile.help.tos" = "Όροι Υπηρεσίας";
+
+/* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
+"profile.name.length" = "%1$d/%2$d";
+
+/* Row in Profile screen. */
+"profile.row.about" = "Σχετικά";
+
+/* Row in Profile Screen */
+"profile.row.account" = "Λογαριασμός";
+
+/* Row in Profile screen. */
+"profile.row.archive" = "Αρχειοθέτηση";
+
+/* Row in Profile screen. */
+"profile.row.help" = "Βοήθεια";
+
+/* Row in Profile screen. */
+"profile.row.invite" = "Πρόσκληση στο HalloApp";
+
+/* Row in Settings screen */
+"profile.row.my.posts" = "Οι Δημοσιεύσεις Μου";
+
+/* Row in Profile Screen. */
+"profile.row.share" = "Κοινοποίησε το HalloApp";
+
+/* Title for the button allowing to select a new profile photo. */
+"profile.take.choose.photo" = "Λήψη ή Επιλογή Φωτογραφίας";
+
+/* Title for the screen allowing to edit profile name */
+"profile.title.your.name" = "Το Όνομά Σας";
+
+/* Disclaimer text about receiving SMS verification code */
+"registration.code.disclaimer" = "Θα λάβετε έναν κωδικό επαλήθευσης.\nΕνδέχεται να ισχύουν χρεώσεις εταιρείας κινητής τηλεφωνίας.";
+
+/* Error message to display when user enters incorrect verification code */
+"registration.code.incorrect" = "Ο κωδικός που πληκτρολογήσατε είναι λανθασμένος";
+
+/* Instructions for filling in SMS verification code. Parameter is formatted phone number */
+"registration.code.instructions" = "Πληκτρολογήστε τον κωδικό που στείλαμε στο %@";
+
+/* Error message to display when we cannot send a verification code */
+"registration.code.request.error" = "Δεν ήταν δυνατή η αποστολή κωδικού. Παρακαλούμε προσπαθήστε ξανά αργότερα.";
+
+/* Button label to resend verification code */
+"registration.code.resend" = "Αποστολή SMS ξανά";
+
+/* Button label to resend verification code by voice call */
+"registration.code.resend.by.voice" = "Καλέστε με";
+
+/* Text explaining why we need contact permissions */
+"registration.contacts.content" = "Για να σε συνδέσουμε με τους φίλους και την οικογένειά σου, θα πρέπει να μας επιτρέψεις την πρόσβαση στις επαφές σου.";
+
+/* Title for text explaining why we need contact permissions */
+"registration.contacts.title" = "Κάτι τελευταίο";
+
+/* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
+"registration.free.app.notice" = "Δωρεάν στο iPhone App Store";
+
+/* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
+"registration.group.name" = "Προσκληθήκατε να συμμετέχετε στην ομάδα %@";
+
+/* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
+"registration.install.app.to.continue" = "Κάντε εγκατάσταση του HalloApp για συνέχεια";
+
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "Κατεβάστε το HalloApp για έχετε πρόσβαση στην ομάδα %@";
+
+/* Popup that appears when user tries to register uninvited number */
+"registration.invite.only" = "Αν ακολούθησες κάποιον λίνκ πρόσκλησης σε ομάδα για να εγγραφείς, παρακαλούμε κάνε κλικ ξανά στον λίνκ για να ολοκληρώσεις την εγγραφή και να μπεις στην ομάδα.";
+
+/* Placeholder text for name entry */
+"registration.nameEntry.placeholder" = "Το όνομά σου";
+
+/* Placeholder text for phone entry */
+"registration.phoneEntry.placeholder" = "Αριθμός τηλεφώνου";
+
+/* Text for modal describing how we use contacts data */
+"registration.privacy.content" = "Το HalloApp χρησιμοποιεί το πεδίο αριθμού τηλεφώνου μόνο για να σε συνδέσει με τους φίλους σου στην εφαρμογή και δεν μεταδίδει κανένα άλλο δεδομένο από τις επαφές σου.";
+
+/* Title for modal describing how we use contacts data */
+"registration.privacy.title" = "Το απόρρητό σου είναι η προτεραιότητά μας";
+
+/* Title for popup that appears when user tries to register uninvited number */
+"registration.shucks" = "Κρίμα!";
+
+/* Shown above name and phone inputs */
+"registration.welcome" = "Καλωσήλθες!";
+
+/* Instructions for how to use the safety number verification UI */
+"safety.number.instructions" = "Για να επαληθεύσετε την ασφάλεια της σύνδεσής σας με %@, βεβαιωθείτε ότι οι παραπάνω αριθμοί ταιριάζουν με αυτούς που εμφανίζονται στη συσκευή τους ή σαρώστε τον κωδικό QR στο τηλέφωνό τους.";
+
+/* Message to show when safety number cannot be succesfully verified */
+"safety.number.not.verified" = "Δεν είναι δυνατή η επαλήθευση του αριθμού ασφαλείας για %@";
+
+/* Title for button that will open QR code scanner used to verify a contact's safety number */
+"safety.number.scan" = "Πατήστε για Σάρωση";
+
+/* Title for screen that allows users to verify a contact's safety number */
+"safety.number.title" = "Επαλήθευση Αριθμού Ασφαλείας";
+
+/* Message to show when safety number is succesfully verified */
+"safety.number.verified" = "Επιβεβαιώθηκε επιτυχώς ο αριθμός ασφαλείας για %@!";
+
+/* fallback text in notification for a new comment */
+"server.new.comment" = "Νέο σχόλιο";
+
+/* fallback text in notification when a new contact joins */
+"server.new.contact" = "%@ είναι τώρα στο HalloApp";
+
+/* fallback text in notification when user is added to a new group */
+"server.new.group" = "Προστέθηκες σε μια νέα ομάδα";
+
+/* fallback text in notification for a new group chat message */
+"server.new.group.message" = "Νέο ομαδικό μήνυμα";
+
+/* fallback text in notification when an invitee joins */
+"server.new.inviter" = "%@ μόλις αποδέχτηκε την πρόσκλησή σου να μπει στο HalloApp 🎉";
+
+/* fallback text in notification for a new chat message */
+"server.new.message" = "Νέο μήνυμα";
+
+/* fallback text in notification for a new feed post */
+"server.new.post" = "Νέα δημοσίευση";
+
+/* text in the sms sent with verification code */
+"server.sms.verification" = "Ο κωδικός σας επαλήθευσης HalloApp";
+
+/* text in the voice call sent with verification code */
+"server.voicecall.verification" = "Ο κωδικός σας επαλήθευσης HalloApp είναι";
+
+/* Displayed while syncing account immediately after registration */
+"setting.up.halloapp" = "Ρύθμιση HalloApp";
+
+/* Title of alert telling the user they're about to delete their account */
+"settings.account.delete.action.title" = "Διαγραφή Λογαριασμού";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet1" = "Διαγράψτε τις πληροφορίες του λογαριασμού σας και τη φωτογραφία προφίλ";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet2" = "Αφαίρεση από όλες τις ομάδες HalloApp";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet3" = "Διαγράψτε το ιστορικό των μηνυμάτων σας σε αυτό το τηλέφωνο";
+
+/* Label telling the user that their account has been deleted */
+"settings.account.delete.deleted" = "Λογαριασμός Διαγράφηκε";
+
+/* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
+"settings.account.delete.error" = "Παρουσιάστηκε σφάλμα κατά τη διαγραφή του λογαριασμού σας. Βεβαιωθείτε ότι ο αριθμός τηλεφώνου σας είναι σωστός.";
+
+/* Label above list of things that will happen if they delete their account */
+"settings.account.delete.header" = "Η διαγραφή του λογαριασμού σας θα:";
+
+/* Alert message telling the user that account deletion is irreversible */
+"settings.account.delete.irreversible.label" = "Αυτή η ενέργεια είναι μη αναστρέψιμη";
+
+/* Text field placeholder telling the user that their phone number should go into the field */
+"settings.account.delete.phone.number" = "Ο Αριθμός Τηλεφώνου Σας";
+
+/* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
+"settings.account.delete.spinner.replacement" = "Αναμονή απόκρισης διακομιστή";
+
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "Δεν θα μπορείτε να συνδεθείτε έως ότου κάνετε επανεκκίνηση της εφαρμογής";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "Ο λογαριασμός διαγράφηκε με επιτυχία";
+
+/* Label telling the user when their data export will be made available. %1$@ is a date. */
+"settings.account.export.date.available" = "Για λόγους ασφαλείας, τα δεδομένα σας θα είναι διαθέσιμα στις %1$@";
+
+/* Label alerting the user that we were unable to retrieve the data. */
+"settings.account.export.error" = "Παρουσιάστηκε σφάλμα κατά την ανάκτηση των δεδομένων σας.";
+
+/* Explanation about what the data export function is. English language version taken from WhatsApp. */
+"settings.account.export.explanation" = "Δημιουργήστε μια αναφορά με τις πληροφορίες και τις ρυθμίσεις του λογαριασμού σας στο HalloApp, στην οποία μπορείτε να έχετε πρόσβαση ή μπορείτε να μεταφέρετε σε άλλη εφαρμογή. Αυτή η αναφορά δεν περιλαμβάνει τα μηνύματά σας.";
+
+/* String indicating device is awaiting a server response. Only visible in iOS 13. */
+"settings.account.export.loading" = "Φόρτωση Δεδομένων...";
+
+/* Navigation bar title informing the user that this page lets them export their user data. */
+"settings.account.export.navbar" = "Εξαγωγή Δεδομένων";
+
+/* Label for when the date at which the user data is not determined. */
+"settings.account.export.not.found" = "Δεν ήταν δυνατός ο προσδιορισμός της ημερομηνίας που θα είναι έτοιμο.";
+
+/* Button to open the user data exported from HalloApp. */
+"settings.account.export.open.data" = "Άνοιγμα εξαγόμενων δεδομένων";
+
+/* Navigation bar title informing the user that this page lets them export their user data. */
+"settings.account.export.request.button" = "Αίτημα εξαγωγής δεδομένων";
+
+/* Label informing the user that they have requested their data. */
+"settings.account.export.requested" = "Ζητήθηκαν δεδομένα";
+
+/* Button to delete a user's account. */
+"settings.account.list.delete.account" = "Διαγραφή";
+
+/* Row to export user data for GDPR compliance. */
+"settings.account.list.export.data" = "Εξαγωγή";
+
+/* Title for settings page containing account options. */
+"settings.account.list.title" = "Λογαριασμός";
+
+/* App version text in Profile > Help. */
+"settings.app.version" = "HalloApp έκδοση %@";
+
+/* Settings menu section. */
+"settings.notifications" = "Ειδοποιήσεις";
+
+/* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
+"settings.notifications.comments" = "Σχόλια";
+
+/* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
+"settings.notifications.posts" = "Δημοσιεύσεις";
+
+/* Settings menu section */
+"settings.privacy" = "Απόρρητο";
+
+/* Settings > Privacy: name of a setting that defines who can see your posts. */
+"settings.privacy.posts" = "Δημοσιεύσεις";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "Βρείτε με στο HalloApp, κατεβάστε το δωρεάν στο halloapp.com/dl";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.add.reading.list" = "Προσθήκη στη λίστα ανάγνωσης";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
+"textlabel.context.menu.call.number" = "Κλήση %@";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.copy.link" = "Αντιγραφή συνδέσμου";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. */
+"textlabel.context.menu.copy.phone.number" = "Αντιγραφή αριθμού τηλεφώνου";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.open.link" = "Άνοιγμα συνδέσμου";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.share" = "Κοινοποίηση...";
+
+/* Link to expand truncated text. */
+"textlabel.more" = "...περισσότερα";
+
+/* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
+"thread.list.preview.already.user.default" = "Η επαφή %@ είναι στο HalloApp";
+
+/* Default preview text shown for a symmetric contact who just joined Halloapp */
+"thread.list.preview.new.user.default" = "%@ είναι στο HalloApp! 🎉";
+
+/* Last seen timestamp: full date in short format and time */
+"timestamp.last.seen.date.at.time" = "Τελευταία προβολή %1$@ στις %2$@";
+
+/* Last seen timestamp: day of week and time */
+"timestamp.last.seen.dayofweek.at.time" = "Τελευταία προβολή %1$@ στις %2$@";
+
+/* Last seen timestamp: today at specific time. */
+"timestamp.last.seen.today.at" = "Τελευταία προβολή σήμερα στις %@";
+
+/* Last seen timestamp: yesterday at specific time. */
+"timestamp.last.seen.yesterday.at" = "Τελευταία προβολή χθες στις %@";
+
+/* Capitalized translation of `Now` to be used as timestamp. */
+"timestamp.now.capitalized" = "Τώρα";
+
+/* Lowercase translation of `Now` to be used as timestamp. */
+"timestamp.now.lowercase" = "τώρα";
+
+/* Timestamp: `Today` */
+"timestamp.today" = "Σήμερα";
+
+/* Timestamp: `Yesterday` */
+"timestamp.yesterday" = "Χθες";
+
+/* Screen title */
+"title.camera" = "Κάμερα";
+
+/* Title for new message screen where user chooses who to message */
+"title.chat.new.message" = "Νέο Μήνυμα";
+
+/* Third tab in the main app interface. */
+"title.chats" = "Συνομιλίες";
+
+/* Title for the Comments screen. */
+"title.comments" = "Σχόλια";
+
+/* Second tab in the main app interface. */
+"title.groups" = "Ομάδες";
+
+/* First tab in the main app interface. */
+"title.home" = "Αρχική";
+
+/* Row in Settings screen */
+"title.notifications" = "Ειδοποιήσεις";
+
+/* Row in Settings screen */
+"title.privacy" = "Απόρρητο";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"title.select.group.members.create.group" = "Δημιουργία Νέας Ομάδας";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"title.select.group.members.title" = "Προσθήκη Νέων Μελών";
+
+/* Fourth tab in the main app interface */
+"title.settings" = "Ρυθμίσεις";
+
+/* Title for the screen with information about who saw your post. */
+"title.your.post" = "Το είδαν";
+
+/* Indicates which switch a user needs to turn on to enable contacts permissions. */
+"turn.on.contacts" = "Ενεργοποίηση “Επαφών\"";
+
+/* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
+"tutorial.tap.below" = "Πατήστε “%@” παρακάτω.";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Άγνωστη επαφή";
+
+/* Text for action label that lets the user accept messages from unknown contacts */
+"unknown.contact.accept.to.message" = "Αποδοχή Μηνύματος Για Απάντηση";
+
+/* Button to confirm blocking user via profile page */
+"user.block" = "Αποκλεισμός";
+
+/* Message asking if the user is sure they want to block this user */
+"user.block.message" = "Σίγουρα θέλετε να γίνει αποκλεισμός του χρήστη %@ στο HalloApp; Μπορείτε πάντα να το αλλάξετε αυτό αργότερα.";
+
+/* Option when user taps more on profile page */
+"user.option.block" = "Αποκλεισμός στο HalloApp";
+
+/* Option when user taps more on profile page */
+"user.option.unblock" = "Κατάργηση αποκλεισμού στο HalloApp";
+
+/* Button to confirm unblocking user via profile page */
+"user.unblock" = "Κατάργηση αποκλεισμού";
+
+/* Message asking if the user is sure they want to unblock this user */
+"user.unblock.message" = "Σίγουρα θέλετε να καταργήσετε τον αποκλεισμό του χρήση %@ στο HalloApp; Μπορείτε πάντα να το αλλάξετε αυτό αργότερα.";
+
+/* Reference to the user, second person pronoun */
+"user.you" = "εσύ";
+
+/* Capitalized reference to the user, second person pronoun */
+"user.you.capitalized" = "Εσύ";
+
+/* No comment provided by engineer. */
+"VIDEO" = "ΒΙΝΤΕΟ";
+
+/* Button title. Refers to resetting video to original version. */
+"video.edit.button.reset" = "Επαναφορά";
+
+/* Message in video edit when the processing fails. */
+"video.processing.failed.message" = "Παρακαλούμε προσπάθησε ξανά ή επίλεξε ένα άλλο βίντεο";
+
+/* Alert title in video edit when the processing fails. */
+"video.processing.failed.title" = "Δεν ήταν δυνατή η επεξεργασία του βίντεο";
+
+/* Title for the button that confirms intent to delete your own post. */
+"your.post.deletepost.button" = "Διαγραφή δημοσίευσης";
+
+/* Post deletion confirmation. Displayed as action sheet title. */
+"your.post.deletepost.confirmation" = "Διαγραφή αυτής της δημοσίευσης; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.";
+

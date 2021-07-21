@@ -4,6 +4,9 @@
 /* No comment provided by engineer. */
 "%@" = "%@";
 
+/* No comment provided by engineer. */
+"• %@" = "• %@";
+
 /* About screen: body text. */
 "about.body.1" = "HalloApp burada! Bunu, sen ve sevdiklerin için kuruyoruz. Sosyal medya uygulamalarını aslına geri döndürürken dünyadaki herkesin erişmesi gerektiğini düşündüğümüz bir güvenlik ve gizlilik katmanı ekledik. HalloApp kişisel bilgilerini asla kullanmayacak ve sana asla reklam göstermeyecek. Bunun yerine, küçük bir maliyetle ek özellikler sunmayı planlıyoruz.";
 
@@ -39,6 +42,9 @@
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Lütfen internet bağlantını kontrol et ve yeniden dene.";
+
+/* Title of view where users can invite friends and family. */
+"app.ios.invite.friends" = "Aile ve arkadaşlarını davet et";
 
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Ayarlar";
@@ -128,6 +134,12 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Başlatma hatası";
 
+/* Alert text shown when the contact has been added to the address book successfully */
+"chat.add.to.address.book.success" = "Kişi, başarıyla eklendi";
+
+/* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
+"chat.add.to.contacts.book.label" = "%@ kişisinin gönderilerini görmek için, numarasını kişi defterine ekle. Eklemek için dokun.";
+
 /* Placeholder text shown inside the group name input box when it's empty */
 "chat.create.group.name.placeholder" = "Grubuna bir ad ver";
 
@@ -139,6 +151,9 @@
 
 /* Title of group name edit screen */
 "chat.edit.group.title" = "Düzenle";
+
+/* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
+"chat.encryption.label" = "Sohbetler uçtan uca şifrelenir ve HalloApp'in bunlara erişimi yoktur. Daha fazlasını öğrenmek için dokun.";
 
 /* Label shown above background selection row */
 "chat.group.background.label" = "ARKA PLAN";
@@ -317,6 +332,9 @@
 /* No comment provided by engineer. */
 "CONNECTION" = "BAĞLANTI";
 
+/* Shown when user denies contacts permission */
+"contacts.access.denied" = "Güncelleme almak ve göndermek için HalloApp'in kişilerine erişmesine izin ver ";
+
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Ailen ve arkadaşlarınla bağlantı kurmana yardımcı olmak için HalloApp'in kişilerine erişmesine izin ver.";
 
@@ -326,6 +344,9 @@
 
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Grup oluşturulurken bir hata oluştu, lütfen daha sonra tekrar dene.";
+
+/* Title for generic delete button. */
+"Delete" = "Sil";
 
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "İletişim kurmak için birbirinize telefon numaralarınızı vermelisiniz";
@@ -347,6 +368,9 @@
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification..other.comment.no.text" = "<$author$> kişisi de yorum yaptı";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.comment.grouped" = "<$numberOthers$> diğerleri <$author$> kişisinin gönderisine yanıt verdi";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$>, gönderine yorum yaptı";
@@ -531,8 +555,14 @@
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Yeni bir gruba eklendin";
 
+/* A label to show that the groups below are groups in common */
+"groups.common" = "Ortak Gruplar";
+
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "Bu grubu ve içeriğini telefonundan silmek istediğine emin misin?";
+
+/* A label on the header to indicate which person I have groups in common with */
+"groups.title" = "%@ ile";
 
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "\n\n\nLütfen yukarıya, yaşadığın sorunla ilgili bir açıklama veya geri bildirim yaz.\nSürüm %1$@ - %2$@\n%3$@";
@@ -614,6 +644,9 @@
 
 /* Button that, when pressed, saves all the post's media to the user's camera roll */
 "media.save.all" = "Hepsini galeriye kaydet";
+
+/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
+"media.save.all.singular" = "Görseli film rulosuna kaydet";
 
 /* Button that lets the user save the current media displayed to their camera roll */
 "media.save.camera.roll" = "Galeriye kaydet";
@@ -718,6 +751,9 @@
 /* Text for new user popup pointing at chat list */
 "nux.chat.list" = "Ailen ve arkadaşlarından gelen mesajları burada bulacaksın. HalloApp'e yeni biri katıldığında, onu burada görebilirsin.";
 
+/* Shown on groups in common when there are no groups to display */
+"nux.groups.common.list.empty" = "Ortak grubunuz yok";
+
 /* Shown on groups list when there are no groups to display */
 "nux.groups.list.empty" = "Grupların burada görünecek";
 
@@ -776,6 +812,9 @@
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Fotoğrafı sil";
 
+/* A label for the button which leads to the page showing groups in common */
+"profile.groups.in.common" = "Ortak Gruplar";
+
 /* Text for messaging user under profile header */
 "profile.header.message.user" = "Mesaj";
 
@@ -797,6 +836,9 @@
 /* Row in Profile screen. */
 "profile.row.about" = "HalloApp hakkında";
 
+/* Row in Profile Screen */
+"profile.row.account" = "Hesap";
+
 /* Row in Profile screen. */
 "profile.row.archive" = "Arşiv";
 
@@ -808,6 +850,9 @@
 
 /* Row in Settings screen */
 "profile.row.my.posts" = "Gönderilerim";
+
+/* Row in Profile Screen. */
+"profile.row.share" = "HalloApp'i paylaş";
 
 /* Title for the button allowing to select a new profile photo. */
 "profile.take.choose.photo" = "Fotoğraf çek ya da seç";
@@ -847,6 +892,9 @@
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Devam etmek için HalloApp'i yükle";
+
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "%@'e katılmak için HalloApp'i yükle";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Şu anda yalnızca davet sistemiyle çalışıyoruz. HalloApp kullanan bir aile üyen veya arkadaşın varsa, telefon numaranı kullanarak sana davet göndermelerini isteyebilirsin.";
@@ -911,6 +959,81 @@
 /* text in the voice call sent with verification code */
 "server.voicecall.verification" = "HalloApp doğrulama kodun";
 
+/* Displayed while syncing account immediately after registration */
+"setting.up.halloapp" = "HalloApp kuruluyor";
+
+/* Title of alert telling the user they're about to delete their account */
+"settings.account.delete.action.title" = "Hesabı sil";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet1" = "Hesap bilgilerini ve profil fotoğrafını sil";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet2" = "Bütün HalloApp gruplarından ayrıl";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet3" = "Mesaj geçmişini bu telefondan sil";
+
+/* Label telling the user that their account has been deleted */
+"settings.account.delete.deleted" = "Hesap silindi";
+
+/* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
+"settings.account.delete.error" = "Hesabın silinirken bir hata oluştu. Lütfen telefon numaranın doğru olduğundan emin ol.";
+
+/* Label above list of things that will happen if they delete their account */
+"settings.account.delete.header" = "Hesabın silinirse: ";
+
+/* Alert message telling the user that account deletion is irreversible */
+"settings.account.delete.irreversible.label" = "Bu eylem geri alınamaz";
+
+/* Text field placeholder telling the user that their phone number should go into the field */
+"settings.account.delete.phone.number" = "Telefon Numaran";
+
+/* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
+"settings.account.delete.spinner.replacement" = "Sunucudan yanıt bekleniyor";
+
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "Uygulamayı yeniden başlatana kadar giriş yapamayacaksın.";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "Hesap başarıyla silindi";
+
+/* Label telling the user when their data export will be made available. %1$@ is a date. */
+"settings.account.export.date.available" = "Güvenlik gerekçesiyle verilerin %1$@ tarihinde geçerli olacak";
+
+/* Label alerting the user that we were unable to retrieve the data. */
+"settings.account.export.error" = "Verilerin alınırken bir hata oluştu.";
+
+/* Explanation about what the data export function is. English language version taken from WhatsApp. */
+"settings.account.export.explanation" = "HalloApp hesap bilgileriniz ve ayarlarınızla ilgili, erişebileceğiniz veya başka bir uygulamaya taşıyabileceğiniz bir rapor oluşturun. Bu rapor, mesajlarınızı içermez.";
+
+/* String indicating device is awaiting a server response. Only visible in iOS 13. */
+"settings.account.export.loading" = "Veriler yükleniyor...";
+
+/* Navigation bar title informing the user that this page lets them export their user data. */
+"settings.account.export.navbar" = "Verileri dışa aktar";
+
+/* Label for when the date at which the user data is not determined. */
+"settings.account.export.not.found" = "Hazırlanma tarihi belirlenemedi";
+
+/* Button to open the user data exported from HalloApp. */
+"settings.account.export.open.data" = "Dışa aktarılan verileri aç";
+
+/* Navigation bar title informing the user that this page lets them export their user data. */
+"settings.account.export.request.button" = "Veri Dışa Aktarma Talebi";
+
+/* Label informing the user that they have requested their data. */
+"settings.account.export.requested" = "Veri talebi";
+
+/* Button to delete a user's account. */
+"settings.account.list.delete.account" = "Sil";
+
+/* Row to export user data for GDPR compliance. */
+"settings.account.list.export.data" = "Dışa aktar";
+
+/* Title for settings page containing account options. */
+"settings.account.list.title" = "Hesap";
+
 /* App version text in Profile > Help. */
 "settings.app.version" = "HalloApp %@ sürümü";
 
@@ -928,6 +1051,9 @@
 
 /* Settings > Privacy: name of a setting that defines who can see your posts. */
 "settings.privacy.posts" = "Gönderiler";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "HalloApp'te bana katıl; halloapp.com/dl adresinden ücretsiz indir";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Okuma listesine ekle";
@@ -983,6 +1109,9 @@
 /* Screen title */
 "title.camera" = "Kamera";
 
+/* Title for new message screen where user chooses who to message */
+"title.chat.new.message" = "Yeni mesaj";
+
 /* Third tab in the main app interface. */
 "title.chats" = "Sohbetler";
 
@@ -1001,6 +1130,12 @@
 /* Row in Settings screen */
 "title.privacy" = "Gizlilik";
 
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"title.select.group.members.create.group" = "Yeni Grup Oluştur";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"title.select.group.members.title" = "Yeni Üyeler Ekle";
+
 /* Fourth tab in the main app interface */
 "title.settings" = "Ayarlar";
 
@@ -1015,6 +1150,9 @@
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Bilinmeyen kişi";
+
+/* Text for action label that lets the user accept messages from unknown contacts */
+"unknown.contact.accept.to.message" = "Cevaplamak için mesajı kabul et";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Engelle";

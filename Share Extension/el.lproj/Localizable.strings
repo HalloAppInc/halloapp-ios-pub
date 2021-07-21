@@ -1,113 +1,113 @@
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "İnternet bağlantısı yok";
+"alert.no.internet.title" = "Δεν υπάρχει σύνδεση διαδικτύου";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Lütfen internet bağlantını kontrol et ve tekrar dene";
+"alert.no.internet.try.again" = "Παρακαλούμε ελέγξτε αν έχετε σύνδεση στο διαδίκτυο και δοκιμάστε ξανά.";
 
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
-"button.cancel" = "İptal et";
+"button.cancel" = "Ακύρωση";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
-"button.continue" = "Devam et";
+"button.continue" = "Συνέχεια";
 
 /* Title for generic Create button */
-"button.create" = "Oluştur";
+"button.create" = "Δημιουργία";
 
 /* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Reddet";
+"button.dismiss" = "Παράβλεψη";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Bitti";
+"button.done" = "Τέλος";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ayarlara git";
+"button.go.to.settings" = "Μετάβαση σε Ρυθμίσεις";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Daha fazlasını öğren";
+"button.learn.more" = "Μάθετε Περισσότερα";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
-"button.more" = "Daha fazla";
+"button.more" = "Περισσότερα";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
-"button.next" = "İleri";
+"button.next" = "Επόμενο";
 
 /* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "Şimdi değil";
+"button.not.now" = "Όχι Τώρα";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
-"button.ok" = "Tamam";
+"button.ok" = "ΟΚ";
 
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
-"button.remove" = "Kaldır";
+"button.remove" = "Αφαίρεση";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "Kaydet";
+"button.save" = "Αποθήκευση";
 
 /* Title for generic Send button. Mostly used to complete some modal flow. */
-"button.send" = "Gönder";
+"button.send" = "Αποστολή";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Paylaş";
+"button.share" = "Κοινοποίηση";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
-"button.update" = "Güncelle";
+"button.update" = "Ενημέρωση";
 
 /* Title for generic delete button. */
-"Delete" = "Sil";
+"Delete" = "Διαγραφή";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "Daha fazlasını öğren";
+"link.learnMore" = "Περισσότερα";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Uygulamanı güncelle";
+"link.update.your.app" = "Ενημερώστε την εφαρμογή σας.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Ben";
+"meCapitalized" = "Εγώ";
 
 /* Placeholder for media caption. */
-"share.composer.placeholder" = "Bir açıklama yaz";
+"share.composer.placeholder" = "Σύνταξη περιγραφής";
 
 /* Placeholder when sharing text only. */
-"share.composer.placeholder.text" = "Bir gönderi yaz";
+"share.composer.placeholder.text" = "Σύνταξη δημοσίευσης";
 
 /* Composer subtitle when sharing with a contact */
-"share.composer.subtitle.contact" = "%@ kişisine gönderiliyor";
+"share.composer.subtitle.contact" = "Αποστολή σε %@";
 
 /* Composer subtitle for group posts */
-"share.composer.subtitle.group" = "%@ ile paylaşılıyor";
+"share.composer.subtitle.group" = "Κοινοποίηση σε %@";
 
 /* Composer title when sharing with a contact */
-"share.composer.title.contact" = "Yeni mesaj";
+"share.composer.title.contact" = "Νέο Μήνυμα";
 
 /* Composer title when sharing to feed */
-"share.composer.title.feed" = "Yeni gönderi";
+"share.composer.title.feed" = "Νέα Δημοσίευση";
 
 /* Alert dialog message shown when uploading fails.
    Alert dialog title shown when uploading fails. */
-"share.composer.uploading.fail.title" = "Yükleme başarısız";
+"share.composer.uploading.fail.title" = "Το Ανέβασμα απέτυχε";
 
 /* Alert dialog title shown when uploading begins. */
-"share.composer.uploading.title" = "Yükleniyor...";
+"share.composer.uploading.title" = "Ανεβαίνει...";
 
 /* Contacts category label */
-"share.destination.contacts" = "Kişiler";
+"share.destination.contacts" = "Επαφές";
 
 /* Groups category label */
-"share.destination.groups" = "Gruplar";
+"share.destination.groups" = "Ομάδες";
 
 /* Share on the home feed label */
-"share.destination.home" = "Ana sayfa";
+"share.destination.home" = "Αρχική";
 
 /* Destination screen title */
 "share.destination.title" = "HalloApp";
 
 /* Message of alert when user is not logged in */
-"share.notlogged.message" = "Lütfen HalloApp'i aç ve giriş yap.";
+"share.notlogged.message" = "Ανοίξτε το HalloApp και συνδεθείτε.";
 
 /* Title of alert when user is not logged in */
-"share.notlogged.title" = "Oturum açmadın.";
+"share.notlogged.title" = "Δεν έχετε συνδεθεί";
 
 /* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Bilinmeyen kişi";
+"unknown.contact" = "Άγνωστη επαφή";
 

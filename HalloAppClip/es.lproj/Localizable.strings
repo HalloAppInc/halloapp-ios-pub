@@ -110,6 +110,9 @@
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Instala HalloApp para continuar";
 
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "Instala HalloApp para abrir %@";
+
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Si has seguido un enlace de invitación a un grupo para registrarte, vuelve a pulsar el enlace para finalizar el registro y unirte al grupo.";
 
@@ -130,6 +133,12 @@
 
 /* Shown above name and phone inputs */
 "registration.welcome" = "¡Bienvenido!";
+
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "No serás capaz de iniciar sesión hasta que no reinicies la aplicación";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "Cuenta eliminada con éxito";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Contacto desconocido";

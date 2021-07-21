@@ -1,0 +1,145 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "Δεν υπάρχει σύνδεση διαδικτύου";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Ελέγξτε αν έχετε σύνδεση στο διαδίκτυο και δοκιμάστε ξανά";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Ακύρωση";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Συνέχεια";
+
+/* Title for generic Create button */
+"button.create" = "Δημιουργία";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Απόρριψη";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Ολοκληρώθηκε";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Μετάβαση σε Ρυθμίσεις";
+
+/* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
+"button.install" = "Εγκατάσταση";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Μάθετε Περισσότερα";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Περισσότερα";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Επόμενο";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Όχι Τώρα";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "Εντάξει";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Κατάργηση";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Αποθήκευση";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Αποστολή";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Κοινοποίηση";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Ενημέρωση";
+
+/* Title for generic delete button. */
+"Delete" = "Διαγραφή";
+
+/* Title for exit button that closes the app */
+"home.update.notice.button.exit" = "Έξοδος";
+
+/* Text shown to users who have old versions of the app */
+"home.update.notice.text" = "Ενημερώστε στην τελευταία έκδοση του HalloApp";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.notice.title" = "Αυτή η έκδοση δεν είναι πλήρως αναβαθμισμένη ";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Μάθετε Περισσότερα";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Ενημερώστε την εφαρμογή σας.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Εγώ";
+
+/* Disclaimer text about receiving SMS verification code */
+"registration.code.disclaimer" = "Θα λάβετε έναν κωδικό επαλήθευσης.\nΕνδέχεται να ισχύουν χρεώσεις εταιρείας κινητής τηλεφωνίας.";
+
+/* Error message to display when user enters incorrect verification code */
+"registration.code.incorrect" = "Ο κωδικός που εισαγάγατε είναι λανθασμένος";
+
+/* Instructions for filling in SMS verification code. Parameter is formatted phone number */
+"registration.code.instructions" = "Πληκτρολογήστε τον κωδικό που στείλαμε στο %@";
+
+/* Error message to display when we cannot send a verification code */
+"registration.code.request.error" = "Δεν ήταν δυνατή η αποστολή κωδικού. Προσπαθήστε ξανά αργότερα.";
+
+/* Button label to resend verification code */
+"registration.code.resend" = "Νεα αποστολή μηνύματος";
+
+/* Button label to resend verification code by voice call */
+"registration.code.resend.by.voice" = "Καλέστε με";
+
+/* Text explaining why we need contact permissions */
+"registration.contacts.content" = "Για να σας συνδέσουμε με τους φίλους και την οικογένειά σας, χρειαζόμαστε την άδειά σας για πρόσβαση στις επαφές σας.";
+
+/* Title for text explaining why we need contact permissions */
+"registration.contacts.title" = "Κάτι τελευταίο";
+
+/* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
+"registration.free.app.notice" = "Δωρεάν στο iPhone App Store";
+
+/* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
+"registration.group.name" = "Προσκληθήκατε να συμμετέχετε στην ομάδα %@";
+
+/* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
+"registration.install.app.to.continue" = "Εγκαταστήστε το HalloApp για να συνεχίσετε";
+
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "Κατεβάστε το HalloApp για έχετε πρόσβαση στην ομάδα %@";
+
+/* Popup that appears when user tries to register uninvited number */
+"registration.invite.only" = "Εάν ακολουθήσατε έναν Σύνδεσμο Πρόσκλησης Ομάδας για εγγραφή, κάντε ξανά κλικ στον σύνδεσμο για να ολοκληρώσετε την εγγραφή και να μπείτε στην ομάδα.";
+
+/* Placeholder text for name entry */
+"registration.nameEntry.placeholder" = "Το Όνομά Σας";
+
+/* Placeholder text for phone entry */
+"registration.phoneEntry.placeholder" = "Αριθμός τηλεφώνου";
+
+/* Text for modal describing how we use contacts data */
+"registration.privacy.content" = "Το HalloApp χρησιμοποιεί μόνο τον αριθμού τηλεφώνου για να σας ταιριάξει με τους φίλους σας στο HalloApp και δεν μεταδίδει πρόσθετα δεδομένα από τη λίστα επαφών σας.";
+
+/* Title for modal describing how we use contacts data */
+"registration.privacy.title" = "Το απόρρητό σας είναι η προτεραιότητά μας";
+
+/* Title for popup that appears when user tries to register uninvited number */
+"registration.shucks" = "Κρίμα!";
+
+/* Shown above name and phone inputs */
+"registration.welcome" = "Καλώς ήρθατε!";
+
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "Δεν θα μπορείτε να συνδεθείτε έως ότου κάνετε επανεκκίνηση της εφαρμογής";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "Ο λογαριασμός διαγράφηκε με επιτυχία";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Άγνωστη Επαφή";
+

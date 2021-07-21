@@ -15,7 +15,7 @@
 "button.create" = "Oluştur";
 
 /* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Reddet";
+"button.dismiss" = "Çık";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
 "button.done" = "Bitti";
@@ -55,6 +55,9 @@
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Güncelle";
+
+/* Title for generic delete button. */
+"Delete" = "Sil";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Çık";
@@ -107,6 +110,9 @@
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Devam etmek için HalloApp'i yükle";
 
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "%@'e katılmak için HalloApp'i yükle";
+
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Kaydolmak için bir Grup Davet İlişimini kullandıysanız, kaydı tamamlamak ve gruba katılmak için lütfen ilişime tekrar tıklayın.";
 
@@ -127,6 +133,12 @@
 
 /* Shown above name and phone inputs */
 "registration.welcome" = "Hoş geldin!";
+
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "Uygulamayı yeniden başlatana kadar giriş yapamayacaksın.";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "Hesap başarıyla silindi";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Bilinmeyen kişi";

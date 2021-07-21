@@ -1,11 +1,94 @@
-/* Title for generic Cancel button. Mostly used in popups and as such. */
-"button.cancel" = "Отмена";
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "Нет интернет-подключения";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Проверьте, есть ли у вас интернет-подключение, и повторите попытку.";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Отменить";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Продолжить";
+
+/* Title for generic Create button */
+"button.create" = "Создать";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Закрыть";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Готово";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Перейти в Настройки";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Подробнее";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Еще";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Далее";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Не сейчас";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
-"button.ok" = "ОК";
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Удалить";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Сохранить";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Отправить";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Поделиться";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Обновить";
+
+/* Title for generic delete button. */
+"Delete" = "Удалить";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "Тебя добавили в новую группу";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Подробнее";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Обнови свое приложение.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Я";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
-"notification.commented.with.text" = "Комментарий: %@";
+"notification.commented.with.text" = "Прокомментировал(-а): %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "Один из ваших контактов сейчас в HalloApp";
+
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@ только что принял(-а) ваше приглашение присоединиться к HalloApp 🎉";
+
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "notification.n.photos";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "notification.n.videos";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@ сейчас в HalloApp";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "Новое сообщение";
 
 /* Title for the new feed post notification. */
 "notification.new.post" = "Новый пост";
@@ -15,4 +98,7 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 видео";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Неизвестный контакт";
 

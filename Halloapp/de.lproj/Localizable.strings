@@ -340,7 +340,7 @@
 
 /* Title for modal view when showing how to change contact permissions.
    Title for tutorial explaining how user can enable contacts permission */
-"contacts.permission.tutorial.title" = "Wie man den Zugriff auf \"Kontakte\" erlaubt";
+"contacts.permission.tutorial.title" = "Kontakte";
 
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Bei der Erstellung der Gruppe ist ein Fehler aufgetreten. Bitte versuche es noch einmal";
@@ -634,7 +634,7 @@
 "media.discard.confirmation" = "Möchtest du deine Änderungen verwerfen?";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
-"media.mic.access.request.body" = "Um Videos mit Ton aufzunehmen, benoetigt HalloApp den Zugriff auf das Mikrofon. Um den Zugriff zu erlauben, gehe zu deinen Einstellungen und aktiviere das Mikrofon";
+"media.mic.access.request.body" = "Um Videos mit Ton aufzunehmen, benötigt HalloApp den Zugriff auf das Mikrofon. Um den Zugriff zu erlauben, gehe zu deinen Einstellungen und aktiviere das Mikrofon.";
 
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
 "media.mic.access.request.title" = "Möchtest du Videos mit Ton aufnehmen?";
@@ -652,10 +652,10 @@
 "media.save.camera.roll" = "In Kamerarolle speichern";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
-"media.save.needs.permissions" = "Erlaubnis zum Zugriff auf Fotos wird benötigt";
+"media.save.needs.permissions" = "Fotoberechtigungen werden benötigt";
 
 /* Description telling the user why the photos couldn't be saved */
-"media.save.no.access" = "Fotos können nur mit Zugriffsberechtigung auf die Kamerarolle gespeichert werden.";
+"media.save.no.access" = "Fotos können nicht ohne Zugriffsberechtigung auf die Kamerarolle gespeichert werden.";
 
 /* Alert displayed explaining to the user that the media save operation failed */
 "media.save.not.saved" = "Das Foto kann nicht gespeichert werden";
@@ -892,6 +892,9 @@
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Installiere HalloApp, um fortzufahren";
+
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "Bitte HalloApp installieren, um %@ beizutreten";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Wenn du einem Gruppeneinladungslink gefolgt bist, um dich zu registrieren, klicke bitte erneut auf den Link, um die Registrierung abzuschließen und der Gruppe beizutreten.";
