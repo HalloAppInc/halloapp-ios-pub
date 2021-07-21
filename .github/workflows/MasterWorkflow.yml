@@ -84,6 +84,28 @@ jobs:
         run: for ip in $(dig @8.8.8.8 github.com +short); do ssh-keyscan github.com,$ip; ssh-keyscan $ip; done 2>/dev/null >> ~/.ssh/known_hosts
       - name: Set git to use SSH
         run: git config --global url."git@github.com:".insteadOf "https://github.com/"
+        # Cache CocoaPods
+      - name: Cache Pods
+        id: cache-pods
+        uses: actions/cache@v2
+        with:
+          path: Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+        # Load cached Swift Packages (NOTE: IDK if this is actually doing anything, since in the output logs it appears we're still fetching the packages)
+        # Also creates end-of-script step to save the Packages
+      - name: Cache Swift Packages
+        uses: actions/cache@v2
+        with:
+            path: .build
+            key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+            restore-keys: |
+              ${{ runner.os }}-spm-
+        # If the pods couldn't be loaded, then run `pod install` to fetch and build the `CocoaPods`
+      - name: Install CocoaPods
+        if: steps.cache-pods.outputs.cache-hit != 'true'
+        run: pod install
       - name: Get build cache
         uses: actions/cache@v2
         with:
