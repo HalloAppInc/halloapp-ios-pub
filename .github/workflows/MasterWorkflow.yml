@@ -74,6 +74,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
+        # Set up SSH to fetch private HalloApp repositories
+        # TODO: Refactor this into a composite action: https://stackoverflow.com/a/63606663
+      - name: Set up ssh-agent
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.CI_PRIVATE_KEY }} # TODO: set up HalloApp bot account and issue new `CI_PRIVATE_KEY` (currently just using Matt's account)
+      - name: Add known SSH hosts
+        run: for ip in $(dig @8.8.8.8 github.com +short); do ssh-keyscan github.com,$ip; ssh-keyscan $ip; done 2>/dev/null >> ~/.ssh/known_hosts
+      - name: Set git to use SSH
+        run: git config --global url."git@github.com:".insteadOf "https://github.com/"
       - name: Get build cache
         uses: actions/cache@v2
         with:
