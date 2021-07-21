@@ -1802,8 +1802,6 @@
 			dependencies = (
 			);
 			name = HalloAppClip;
-			packageProductDependencies = (
-			);
 			productName = HalloAppClip;
 			productReference = 329E03F8268247BC00C2D250 /* HalloAppClip.app */;
 			productType = "com.apple.product-type.application.on-demand-install-capable";
@@ -1872,7 +1870,6 @@
 				EAF3A1BC2334191E00805FF9 /* Frameworks */,
 				EAF3A1BD2334191E00805FF9 /* Resources */,
 				D51A16EB7C89AD8DAF43C14C /* [CP] Embed Pods Frameworks */,
-				76955DEB2474762D0088BE8C /* ShellScript */,
 				768123A02485A240008C5216 /* Embed App Extensions */,
 				768123CB2485D9F5008C5216 /* Embed Frameworks */,
 				329E0426268247BE00C2D250 /* Embed App Clips */,
@@ -1901,7 +1898,6 @@
 				EAF3A1D12334192000805FF9 /* Sources */,
 				EAF3A1D22334192000805FF9 /* Frameworks */,
 				EAF3A1D32334192000805FF9 /* Resources */,
-				2D81367BA0312CF371725286 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -2123,23 +2119,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		2D81367BA0312CF371725286 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-HalloAppTests/Pods-HalloAppTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-HalloAppTests/Pods-HalloAppTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-HalloAppTests/Pods-HalloAppTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		3018469CFFB529F7A0EA2706 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -2183,23 +2162,6 @@
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
-		};
-		76955DEB2474762D0088BE8C /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/FirebaseCrashlytics/run\"\n";
 		};
 		8E72513E8AFF95BAA45372B7 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;

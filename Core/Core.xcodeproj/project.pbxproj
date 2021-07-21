@@ -31,6 +31,7 @@
 		6832F50A24FEE9DF00A9C202 /* ProtoWhisperRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50524FEE9DF00A9C202 /* ProtoWhisperRequests.swift */; };
 		6832F50C24FEE9DF00A9C202 /* ProtoServiceCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */; };
 		6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */; };
+		6841289826A80CB20000DCE4 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 6841289726A80CB20000DCE4 /* FirebaseCrashlytics */; };
 		685B509725E065AD00F782F9 /* UserAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B509625E065AD00F782F9 /* UserAgent.swift */; };
 		686814AE252BA91E003C8784 /* clients.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AC252BA91E003C8784 /* clients.pb.swift */; };
 		686A1034259152F100F7B53F /* SwiftNoise in Frameworks */ = {isa = PBXBuildFile; productRef = 686A1033259152F100F7B53F /* SwiftNoise */; };
@@ -232,6 +233,7 @@
 				ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */,
 				7681240D24861634008C5216 /* SwiftProtobuf in Frameworks */,
 				68BB004E268A7A1800425EEB /* CocoaLumberjack in Frameworks */,
+				6841289826A80CB20000DCE4 /* FirebaseCrashlytics in Frameworks */,
 				68BB004C268A7A1800425EEB /* CocoaLumberjackSwift in Frameworks */,
 				686A1034259152F100F7B53F /* SwiftNoise in Frameworks */,
 			);
@@ -581,6 +583,7 @@
 				68BB0046268A776600425EEB /* CocoaAsyncSocket */,
 				68BB004B268A7A1800425EEB /* CocoaLumberjackSwift */,
 				68BB004D268A7A1800425EEB /* CocoaLumberjack */,
+				6841289726A80CB20000DCE4 /* FirebaseCrashlytics */,
 			);
 			productName = Core;
 			productReference = 768123B82485D9C7008C5216 /* Core.framework */;
@@ -618,6 +621,7 @@
 				686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */,
 				68BB0045268A776600425EEB /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */,
 				68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */,
+				6841289626A80CB20000DCE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 768123B92485D9C7008C5216 /* Products */;
 			projectDirPath = "";
@@ -1070,6 +1074,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		6841289626A80CB20000DCE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.4.0;
+			};
+		};
 		686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/samueltangz/swift-noise-protocol.git";
@@ -1129,6 +1141,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		6841289726A80CB20000DCE4 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6841289626A80CB20000DCE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
 		686A1033259152F100F7B53F /* SwiftNoise */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */;

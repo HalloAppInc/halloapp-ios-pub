@@ -5,29 +5,23 @@ workspace 'Halloapp.xcworkspace'
 target 'Core' do
   project './Core/Core.xcodeproj'
   pod 'Sodium', :git => 'git@github.com:HalloAppInc/swift-sodium.git'
-  pod 'Firebase/Crashlytics'
 end
 
 target 'HalloApp' do
-  pod 'Firebase/Crashlytics'
   pod 'Sodium', :git => 'git@github.com:HalloAppInc/swift-sodium.git'
 end
 
 target 'HalloAppClip' do
-  pod 'Firebase/Crashlytics'
   pod 'Sodium', :git => 'git@github.com:HalloAppInc/swift-sodium.git'
 end
 
 target 'HalloAppTests' do
-  pod 'Firebase/Crashlytics'
 end
 
 target 'Notification Service Extension' do
-  pod 'Firebase/Crashlytics'
 end
 
 target 'Share Extension' do
-  pod 'Firebase/Crashlytics'
 end
 
 post_install do |pi|
