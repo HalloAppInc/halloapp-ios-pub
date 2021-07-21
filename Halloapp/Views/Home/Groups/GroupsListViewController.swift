@@ -161,6 +161,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 
     private lazy var rightBarButtonItem: UIBarButtonItem = {
         let image = UIImage(named: "NavCreateGroup", in: nil, with: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal)
+        image?.accessibilityLabel = Localizations.chatCreateNewGroup
         let button = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openNewGroupAction))
         return button
     }()

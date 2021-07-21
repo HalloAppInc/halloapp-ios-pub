@@ -39,6 +39,7 @@ class FeedViewController: FeedCollectionViewController {
         let notificationButton = BadgedButton(type: .system)
         notificationButton.centerYConstant = 5
         notificationButton.setImage(UIImage(named: "FeedNavbarNotifications")?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal), for: .normal)
+        notificationButton.accessibilityLabel = Localizations.titleNotifications
         notificationButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
         notificationButton.addTarget(self, action: #selector(didTapNotificationButton), for: .touchUpInside)
         self.notificationButton = notificationButton
@@ -46,6 +47,7 @@ class FeedViewController: FeedCollectionViewController {
         let inviteButton = BadgedButton(type: .system)
         inviteButton.centerYConstant = 5
         inviteButton.setImage(UIImage(named: "FeedInviteButton")?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal), for: .normal)
+        inviteButton.accessibilityLabel = Localizations.inviteFriendsAndFamily
         inviteButton.isBadgeHidden = true
         inviteButton.addTarget(self, action: #selector(didTapInviteButtion), for: .touchUpInside)
         

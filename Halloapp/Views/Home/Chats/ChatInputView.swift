@@ -409,6 +409,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.tintColor = UIColor.primaryBlue
+        button.accessibilityLabel = Localizations.fabAccessibilityPhotoLibrary
         
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -419,6 +420,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     private lazy var postButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(named: "Send"), for: .normal)
+        button.accessibilityLabel = Localizations.buttonSend
         button.addTarget(self, action: #selector(postButtonClicked), for: .touchUpInside)
         button.isEnabled = false
         
