@@ -353,8 +353,8 @@ class NotificationMetadata: Codable {
         }
     }
 
-    private static func mediaIcon(_ protoMedia: Clients_Media) -> String {
-        switch protoMedia.type {
+    private static func mediaIcon(_ mediaType: ChatMessageMediaType) -> String {
+        switch mediaType {
             case .image:
                 return "📷"
             case .video:
@@ -364,9 +364,9 @@ class NotificationMetadata: Codable {
         }
     }
 
-    private static func notificationBody(forMedia media: [Clients_Media]) -> String {
-        let numPhotos = media.filter { $0.type == .image }.count
-        let numVideos = media.filter { $0.type == .video }.count
+    private static func notificationBody(forMedia mediaTypes: [ChatMessageMediaType]) -> String {
+        let numPhotos = mediaTypes.filter { $0 == .image }.count
+        let numVideos = mediaTypes.filter { $0 == .video }.count
         if numPhotos == 1 && numVideos == 0 {
             return NSLocalizedString("notification.one.photo", value: "📷 photo", comment: "New post notification text when post is one photo without caption.")
         }
@@ -421,12 +421,13 @@ class NotificationMetadata: Codable {
             let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: protoContainer.post.mentions)
             subtitle = NSLocalizedString("notification.new.post", value: "New Post", comment: "Title for the new feed post notification.")
             body = protoContainer.post.mentionText.expandedText(nameProvider: mentionNameProvider).string
-            if !protoContainer.post.media.isEmpty {
+            let knownMediaTypes = protoContainer.post.media.compactMap { ChatMessageMediaType(clientsMediaType: $0.type) }
+            if !knownMediaTypes.isEmpty {
                 // Display how many photos and videos post contains if there's no caption.
                 if body.isEmpty {
-                    body = Self.notificationBody(forMedia: protoContainer.post.media)
-                } else {
-                    let mediaIcon = Self.mediaIcon(protoContainer.post.media.first!)
+                    body = Self.notificationBody(forMedia: knownMediaTypes)
+                } else if let firstMediaType = knownMediaTypes.first {
+                    let mediaIcon = Self.mediaIcon(firstMediaType)
                     body = "\(mediaIcon) \(body)"
                 }
             }
@@ -476,17 +477,30 @@ class NotificationMetadata: Codable {
         return true
     }
 
-    func populateChatBody(from chatMessage: Clients_ChatMessage, contactStore: ContactStore) {
-        let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: chatMessage.mentions)
-        body = chatMessage.mentionText.expandedText(nameProvider: mentionNameProvider).string
-        if !chatMessage.media.isEmpty {
-            // Display how many photos and videos message contains if there's no caption.
-            if body.isEmpty {
-                body = Self.notificationBody(forMedia: chatMessage.media)
-            } else {
-                let mediaIcon = Self.mediaIcon(chatMessage.media.first!)
-                body = "\(mediaIcon) \(body)"
+    func populateChatBody(from chatContent: ChatContent, contactStore: ContactStore) {
+        guard let text = Self.bodyText(from: chatContent, contactStore: contactStore) else {
+            return
+        }
+        body = text
+    }
+
+    static func bodyText(from chatContent: ChatContent, contactStore: ContactStore) -> String? {
+        // NB: contactStore will be needed once we support mentions
+        switch chatContent {
+        case .text(let text):
+            return text
+        case .album(let text, let media):
+            guard let text = text, !text.isEmpty else {
+                return Self.notificationBody(forMedia: media.map { $0.mediaType} )
             }
+            let mediaIcon: String? = {
+                guard let firstMedia = media.first else { return nil }
+                return Self.mediaIcon(firstMedia.mediaType)
+            }()
+            return [mediaIcon, text].compactMap { $0 }.joined(separator: " ")
+        case .unsupported:
+            DDLogInfo("NotificationMetadata/bodyText/unsupported")
+            return nil
         }
     }
 

@@ -65,6 +65,8 @@ extension ChatMessage {
     @NSManaged var serverTimestamp: Date?
     
     @NSManaged var cellHeight: Int16
+
+    @NSManaged var rawData: Data?
     
     var incomingStatus: IncomingStatus {
         get {

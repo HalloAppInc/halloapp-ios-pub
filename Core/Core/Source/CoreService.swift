@@ -66,7 +66,7 @@ public protocol CoreService {
     // MARK: Chat
     func sendChatMessage(_ message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>)
     func sendAck(messageId: String, completion: @escaping ServiceRequestCompletion<Void>)
-    func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (Clients_ChatMessage?, DecryptionFailure?) -> Void)
+    func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (ChatContent?, ChatContext?, DecryptionFailure?) -> Void)
     func rerequestMessage(_ messageID: String, senderID: UserID, rerequestData: RerequestData, completion: @escaping ServiceRequestCompletion<Void>)
     func rerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?, completion: @escaping ServiceRequestCompletion<Void>)
 

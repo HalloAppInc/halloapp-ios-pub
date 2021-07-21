@@ -85,27 +85,19 @@ extension SharedChatMessage: ChatMessageProtocol {
         return media.sorted { $0.order < $1.order }
     }
 
-    public var feedPostId: FeedPostID? {
-        nil
-    }
-    
-    public var feedPostMediaIndex: Int32 {
-        0
-    }
-
-    public var chatReplyMessageID: String? {
-        nil
-    }
-    
-    public var chatReplyMessageSenderID: UserID? {
-        nil
-    }
-    
-    public var chatReplyMessageMediaIndex: Int32 {
-        0
+    public var context: ChatContext {
+        return ChatContext()
     }
     
     public var timeIntervalSince1970: TimeInterval? {
         timestamp.timeIntervalSince1970
+    }
+
+    public var content: ChatContent {
+        if orderedMedia.isEmpty {
+            return .text(text ?? "")
+        } else {
+            return .album(text, orderedMedia)
+        }
     }
 }

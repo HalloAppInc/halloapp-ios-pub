@@ -162,40 +162,61 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
     // Decrypt, save and process chats!
     private func decryptAndProcessChat(messageId: String, serverChatStanza: Server_ChatStanza, metadata: NotificationMetadata) {
         let fromUserID = metadata.fromId
-        service?.decryptChat(serverChatStanza, from: fromUserID) { [self] (clientChatMessage, decryptionError) in
-            // Save this message to our sharedDataStore
+        AppExtensionContext.shared.messageCrypter.decrypt(
+            EncryptedData(
+                data: serverChatStanza.encPayload,
+                identityKey: serverChatStanza.publicKey.isEmpty ? nil : serverChatStanza.publicKey,
+                oneTimeKeyId: Int(serverChatStanza.oneTimePreKeyID)),
+            from: fromUserID) { result in
+
+            // TODO: Refactor this now that we don't send plaintext (success/failure values mutually exclusive)
+            let protobufToSave: MessageProtobuf?
             let messageStatus: SharedChatMessage.Status
-            if let decryptionError = decryptionError {
-                logChatPushDecryptionError(with: metadata, error: decryptionError.error)
-                DDLogError("NotificationExtension/decryptChat/failed decryption, error: \(decryptionError)")
-                messageStatus = .decryptionError
-            } else {
+            let decryptionFailure: DecryptionFailure?
+
+            switch result {
+            case .success(let decryptedData):
                 DDLogInfo("NotificationExtension/decryptChat/successful/messageId \(messageId)")
                 messageStatus = .received
-            }
-            guard let chatMessage = dataStore.save(clientChatMsg: clientChatMessage, metadata: metadata, status: messageStatus, failure: decryptionError) else {
-                DDLogError("DecryptionError/decryptChat/failed to save message, contentId: \(metadata.contentId)")
-                invokeCompletionHandler()
-                return
+                decryptionFailure = nil
+
+                if let container = Clients_ChatContainer(containerData: decryptedData) {
+                    protobufToSave = .container(container)
+                } else if let legacyMessage = Clients_ChatMessage(containerData: decryptedData) {
+                    protobufToSave = .legacy(legacyMessage)
+                } else {
+                    protobufToSave = nil
+                }
+            case .failure(let decryptionError):
+                self.logChatPushDecryptionError(with: metadata, error: decryptionError.error)
+                DDLogError("NotificationExtension/decryptChat/failed decryption, error: \(decryptionError)")
+                messageStatus = .decryptionError
+                decryptionFailure = decryptionError
+                protobufToSave = nil
             }
 
-            processChatAndInvokeHandler(chatMessage: chatMessage, clientChatMessage: clientChatMessage, metadata: metadata)
+            guard let chatMessage = self.dataStore.save(protobuf: protobufToSave, metadata: metadata, status: messageStatus, failure: decryptionFailure) else {
+                DDLogError("DecryptionError/decryptChat/failed to save message, contentId: \(metadata.contentId)")
+                self.invokeCompletionHandler()
+                return
+            }
+            self.processChatAndInvokeHandler(chatMessage: chatMessage, protobuf: protobufToSave, metadata: metadata)
         }
     }
 
     // Process Chats - ack/rerequest/download media if necessary.
-    private func processChatAndInvokeHandler(chatMessage: SharedChatMessage, clientChatMessage: Clients_ChatMessage?, metadata: NotificationMetadata) {
+    private func processChatAndInvokeHandler(chatMessage: SharedChatMessage, protobuf: MessageProtobuf?, metadata: NotificationMetadata) {
         let messageId = metadata.messageId ?? "" // messageId is never expected to be nil here.
         // send pending acks for any pending chat messages
         sendPendingAcksAndRerequests(dataStore: dataStore)
-        // If we failed to get decrypted chat message successfully - then just return!
-        guard let clientChatMessage = clientChatMessage else {
-            DDLogError("DecryptionError/decryptChat/failed to get chat message, messageId: \(messageId)")
+        // If we failed to get decrypted chat content successfully - then just return!
+        guard let chatContent = protobuf?.chatContent else {
+            DDLogError("DecryptionError/decryptChat/failed to get chat content, messageId: \(messageId)")
             invokeCompletionHandler()
             return
         }
         // Populate chat content from the payload
-        bestAttemptContent.populateChatBody(from: clientChatMessage, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
+        bestAttemptContent.populateChatBody(from: chatContent, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
         if let firstMediaItem = chatMessage.orderedMedia.first as? SharedMedia {
             let downloadTask = startDownloading(media: firstMediaItem)
             downloadTask?.feedMediaObjectId = firstMediaItem.objectID

@@ -795,26 +795,33 @@ class ChatData: ObservableObject {
             }
             DDLogInfo("ChatData/mergeSharedData/merging message/\(messageId)")
 
-            var clientChatMsg: Clients_ChatMessage? = nil
+            let chatContent: ChatContent?
+            let chatContext: ChatContext?
             if let clientChatMsgPb = message.clientChatMsgPb {
-                do {
-                    clientChatMsg = try Clients_ChatMessage(serializedData: clientChatMsgPb)
-                } catch {
-                    DDLogError("ChatData/mergeSharedData/failed to extract clientChatMsg: [\(clientChatMsgPb)]")
+                if let chatContainer = try? Clients_ChatContainer(serializedData: clientChatMsgPb) {
+                    chatContent = chatContainer.chatContent
+                    chatContext = chatContainer.chatContext
+                } else if let clientChat = try? Clients_ChatMessage(serializedData: clientChatMsgPb) {
+                    chatContent = clientChat.chatContent
+                    chatContext = clientChat.chatContext
+                } else {
+                    DDLogError("ChatData/mergeSharedData/failed to extract clientChatMsg: [\(clientChatMsgPb.bytes)]")
                     continue
                 }
+            } else {
+                chatContent = nil
+                chatContext = nil
             }
 
             let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
             chatMessage.id = messageId
             chatMessage.toUserId = message.toUserId
             chatMessage.fromUserId = message.fromUserId
-            chatMessage.text = clientChatMsg?.text ?? message.text
-            chatMessage.feedPostId = (clientChatMsg?.feedPostID.isEmpty ?? true) ? nil : clientChatMsg?.feedPostID
-            chatMessage.feedPostMediaIndex = clientChatMsg?.feedPostMediaIndex ?? 0
-            chatMessage.chatReplyMessageID = (clientChatMsg?.chatReplyMessageID.isEmpty ?? true) ? nil : clientChatMsg?.chatReplyMessageID
-            chatMessage.chatReplyMessageSenderID = clientChatMsg?.chatReplyMessageSenderID
-            chatMessage.chatReplyMessageMediaIndex = clientChatMsg?.chatReplyMessageMediaIndex ?? 0
+            chatMessage.feedPostId = chatContext?.feedPostID
+            chatMessage.feedPostMediaIndex = chatContext?.feedPostMediaIndex ?? 0
+            chatMessage.chatReplyMessageID = chatContext?.chatReplyMessageID
+            chatMessage.chatReplyMessageSenderID = chatContext?.chatReplyMessageSenderID
+            chatMessage.chatReplyMessageMediaIndex = chatContext?.chatReplyMessageMediaIndex ?? 0
             chatMessage.timestamp = message.timestamp // is this okay for tombstones?
             chatMessage.serverTimestamp = message.serverTimestamp
             DDLogDebug("ChatData/mergeSharedData/ChatData/\(messageId)/serialId [\(message.serialID)]")
@@ -844,6 +851,19 @@ class ChatData: ObservableObject {
             }
             // Check if the message is an incoming message.
             let isIncomingMsg = message.status == .received || message.status == .acked
+
+            switch chatContent {
+            case .album(let text, _):
+                chatMessage.text = text
+            case .text(let text):
+                chatMessage.text = text
+            case .unsupported(let data):
+                chatMessage.rawData = data
+                // Overwrite incoming status for unsupported messages
+                chatMessage.incomingStatus = .unsupported
+            case .none:
+                chatMessage.text = message.text
+            }
 
             var lastMsgMediaType: ChatThread.LastMediaType = .none
             message.media?.forEach { media in
@@ -2093,13 +2113,12 @@ extension ChatData {
         chatMessage.id = xmppChatMessage.id
         chatMessage.toUserId = xmppChatMessage.toUserId
         chatMessage.fromUserId = xmppChatMessage.fromUserId
-        chatMessage.text = xmppChatMessage.text
-        chatMessage.feedPostId = xmppChatMessage.feedPostId
-        chatMessage.feedPostMediaIndex = xmppChatMessage.feedPostMediaIndex
+        chatMessage.feedPostId = xmppChatMessage.context.feedPostID
+        chatMessage.feedPostMediaIndex = xmppChatMessage.context.feedPostMediaIndex
         
-        chatMessage.chatReplyMessageID = xmppChatMessage.chatReplyMessageID
-        chatMessage.chatReplyMessageSenderID = xmppChatMessage.chatReplyMessageSenderID
-        chatMessage.chatReplyMessageMediaIndex = xmppChatMessage.chatReplyMessageMediaIndex
+        chatMessage.chatReplyMessageID = xmppChatMessage.context.chatReplyMessageID
+        chatMessage.chatReplyMessageSenderID = xmppChatMessage.context.chatReplyMessageSenderID
+        chatMessage.chatReplyMessageMediaIndex = xmppChatMessage.context.chatReplyMessageMediaIndex
         
         chatMessage.incomingStatus = .none
         chatMessage.outgoingStatus = .none
@@ -2115,42 +2134,51 @@ extension ChatData {
         
         var lastMsgMediaType: ChatThread.LastMediaType = .none // going with the first media found
         
-        // Process chat media
-        for (index, xmppMedia) in xmppChatMessage.orderedMedia.enumerated() {
-            guard let downloadUrl = xmppMedia.url else { continue }
-            
-            DDLogDebug("ChatData/process/new/add-media [\(downloadUrl)]")
-            let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
+        // Process chat content
+        switch xmppChatMessage.content {
+        case .album(let text, let media):
+            chatMessage.text = text
+            for (index, xmppMedia) in media.enumerated() {
+                guard let downloadUrl = xmppMedia.url else { continue }
 
-            switch xmppMedia.mediaType {
-            case .image:
-                chatMedia.type = .image
-                if lastMsgMediaType == .none {
-                    lastMsgMediaType = .image
+                DDLogDebug("ChatData/process/new/add-media [\(downloadUrl)]")
+                let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
+
+                switch xmppMedia.mediaType {
+                case .image:
+                    chatMedia.type = .image
+                    if lastMsgMediaType == .none {
+                        lastMsgMediaType = .image
+                    }
+                case .video:
+                    chatMedia.type = .video
+                    if lastMsgMediaType == .none {
+                        lastMsgMediaType = .video
+                    }
                 }
-            case .video:
-                chatMedia.type = .video
-                if lastMsgMediaType == .none {
-                    lastMsgMediaType = .video
-                }
+                chatMedia.incomingStatus = .pending
+                chatMedia.outgoingStatus = .none
+                chatMedia.url = xmppMedia.url
+                chatMedia.size = xmppMedia.size
+                chatMedia.key = xmppMedia.key
+                chatMedia.order = Int16(index)
+                chatMedia.sha256 = xmppMedia.sha256
+                chatMedia.message = chatMessage
             }
-            chatMedia.incomingStatus = .pending
-            chatMedia.outgoingStatus = .none
-            chatMedia.url = xmppMedia.url
-            chatMedia.size = xmppMedia.size
-            chatMedia.key = xmppMedia.key
-            chatMedia.order = Int16(index)
-            chatMedia.sha256 = xmppMedia.sha256
-            chatMedia.message = chatMessage
+        case .text(let text):
+            chatMessage.text = text
+        case .unsupported(let data):
+            chatMessage.rawData = data
+            chatMessage.incomingStatus = .unsupported
         }
 
         // Process quoted content.
-        if let feedPostId = xmppChatMessage.feedPostId {
+        if let feedPostId = xmppChatMessage.context.feedPostID {
             // Process Quoted Feedpost
             if let quotedFeedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
                 copyQuoted(to: chatMessage, from: quotedFeedPost, using: managedObjectContext)
             }
-        } else if let chatReplyMsgId = xmppChatMessage.chatReplyMessageID {
+        } else if let chatReplyMsgId = xmppChatMessage.context.chatReplyMessageID {
             // Process Quoted Message
             if let quotedChatMessage = MainAppContext.shared.chatData.chatMessage(with: chatReplyMsgId) {
                 copyQuoted(to: chatMessage, from: quotedChatMessage, using: managedObjectContext)
@@ -2187,7 +2215,7 @@ extension ChatData {
 
         save(managedObjectContext)
 
-        if isCurrentlyChattingWithUser && isAppActive {
+        if isCurrentlyChattingWithUser && isAppActive && (chatMessage.incomingStatus != .unsupported) {
             self.sendSeenReceipt(for: chatMessage)
             self.updateChatMessage(with: chatMessage.id) { (chatMessage) in
                 chatMessage.incomingStatus = .haveSeen
@@ -2390,23 +2418,22 @@ extension ChatData {
         
         let title = "\(name)"
         
-        var body = ""
-        
-        body += xmppChatMessage.text ?? ""
-        
-        if !xmppChatMessage.orderedMedia.isEmpty {
-            var mediaStr = "📷"
-            if let firstMedia = xmppChatMessage.orderedMedia.first {
-                if firstMedia.mediaType == .video {
-                    mediaStr = "📹"
+        let body: String
+
+        switch xmppChatMessage.content {
+        case .text(let text):
+            body = text
+        case .album(let text, let media):
+            let mediaStr: String? = {
+                guard let firstMedia = media.first else { return nil }
+                switch firstMedia.mediaType {
+                case .image: return "📷"
+                case .video: return "📹"
                 }
-            }
-            
-            if body.isEmpty {
-                body = mediaStr
-            } else {
-                body = "\(mediaStr) \(body)"
-            }
+            }()
+            body = [mediaStr, text].compactMap { $0 }.joined(separator: " ")
+        case .unsupported(_):
+            body = ""
         }
         
         Banner.show(title: title, body: body, userID: userID, using: MainAppContext.shared.avatarStore)
@@ -2419,7 +2446,7 @@ extension ChatData {
         guard let ts = xmppChatMessage.timeIntervalSince1970 else { return }
         let timestamp = Date(timeIntervalSinceReferenceDate: ts)
         let protoContainer = xmppChatMessage.protoContainer
-        let protobufData = try? protoContainer.serializedData()
+        let protobufData = try? protoContainer?.serializedData()
         let metadata = NotificationMetadata(contentId: xmppChatMessage.id,
                                             contentType: .chatMessage,
                                             fromId: userID,
@@ -3550,37 +3577,31 @@ extension XMPPChatMessage {
         self.id = chatMessage.id
         self.fromUserId = chatMessage.fromUserId
         self.toUserId = chatMessage.toUserId
-        self.text = chatMessage.text
-        self.feedPostId = chatMessage.feedPostId
-        self.feedPostMediaIndex = chatMessage.feedPostMediaIndex
-        
-        self.chatReplyMessageID = chatMessage.chatReplyMessageID
-        self.chatReplyMessageSenderID = chatMessage.chatReplyMessageSenderID
-        self.chatReplyMessageMediaIndex = chatMessage.chatReplyMessageMediaIndex
+        self.context = ChatContext(
+            feedPostID: chatMessage.feedPostId,
+            feedPostMediaIndex: chatMessage.feedPostMediaIndex,
+            chatReplyMessageID: chatMessage.chatReplyMessageID,
+            chatReplyMessageMediaIndex: chatMessage.chatReplyMessageMediaIndex,
+            chatReplyMessageSenderID: chatMessage.chatReplyMessageSenderID)
         self.rerequestCount = Int32(chatMessage.resendAttempts)
         
-        if let media = chatMessage.media {
-            self.media = media.sorted(by: { $0.order < $1.order }).map{ XMPPChatMedia(chatMedia: $0) }
+        if let media = chatMessage.media, !media.isEmpty {
+            self.content = .album(
+                chatMessage.text,
+                media.sorted(by: { $0.order < $1.order }).map{ XMPPChatMedia(chatMedia: $0) })
         } else {
-            self.media = []
+            self.content = .text(chatMessage.text ?? "")
         }
     }
 
-    init(_ protoChat: Clients_ChatMessage, timestamp: Int64, from fromUserID: UserID, to toUserID: UserID, id: String, retryCount: Int32, rerequestCount: Int32) {
+    init(content: ChatContent, context: ChatContext, timestamp: Int64, from fromUserID: UserID, to toUserID: UserID, id: String, retryCount: Int32, rerequestCount: Int32) {
         self.id = id
         self.fromUserId = fromUserID
         self.toUserId = toUserID
         self.timestamp = TimeInterval(timestamp)
         self.retryCount = retryCount
         self.rerequestCount = rerequestCount
-        
-        text = protoChat.text.isEmpty ? nil : protoChat.text
-        media = protoChat.media.compactMap { XMPPChatMedia(protoMedia: $0) }
-        feedPostId = protoChat.feedPostID.isEmpty ? nil : protoChat.feedPostID
-        feedPostMediaIndex = protoChat.feedPostMediaIndex
-        
-        chatReplyMessageID = protoChat.chatReplyMessageID.isEmpty ? nil : protoChat.chatReplyMessageID
-        chatReplyMessageSenderID = protoChat.chatReplyMessageSenderID.isEmpty ? nil : protoChat.chatReplyMessageSenderID
-        chatReplyMessageMediaIndex = protoChat.chatReplyMessageMediaIndex
+        self.content = content
+        self.context = context
     }
 }

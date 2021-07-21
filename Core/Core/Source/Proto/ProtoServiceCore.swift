@@ -463,7 +463,7 @@ extension ProtoServiceCore: CoreService {
     }
 
     private func makeChatStanza(_ message: ChatMessageProtocol, completion: @escaping (Server_ChatStanza?, EncryptionError?) -> Void) {
-        guard let messageData = try? message.protoContainer.serializedData() else {
+        guard let messageData = try? message.protoContainer?.serializedData() else {
             DDLogError("ProtoServiceCore/makeChatStanza/\(message.id)/error could not serialize chat message!")
             completion(nil, nil)
             return
@@ -490,8 +490,8 @@ extension ProtoServiceCore: CoreService {
 
     // MARK: Decryption
 
-    /// TODO: Convert to Result<Clients_ChatMessage,DecryptionFailure> now that they're mutually exclusive (no more plaintext)
-    public func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (Clients_ChatMessage?, DecryptionFailure?) -> Void) {
+    /// TODO: Convert to Result now that success and failure are mutually exclusive (no more plaintext)
+    public func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (ChatContent?, ChatContext?, DecryptionFailure?) -> Void) {
         AppContext.shared.messageCrypter.decrypt(
             EncryptedData(
                 data: serverChat.encPayload,
@@ -500,13 +500,15 @@ extension ProtoServiceCore: CoreService {
             from: fromUserID) { result in
             switch result {
             case .success(let decryptedData):
-                guard let decryptedMessage = Clients_ChatMessage(containerData: decryptedData) else {
-                    completion(nil, DecryptionFailure(.deserialization))
-                    return
+                if let legacyMessage = Clients_ChatMessage(containerData: decryptedData) {
+                    completion(legacyMessage.chatContent, legacyMessage.chatContext, nil)
+                } else if let container = try? Clients_Container(serializedData: decryptedData) {
+                    completion(container.chatContainer.chatContent, container.chatContainer.chatContext, nil)
+                } else {
+                    completion(nil, nil, DecryptionFailure(.deserialization))
                 }
-                completion(decryptedMessage, nil)
             case .failure(let failure):
-                completion(nil, failure)
+                completion(nil, nil, failure)
             }
         }
     }

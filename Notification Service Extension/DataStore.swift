@@ -131,7 +131,26 @@ class DataStore: NotificationServiceExtensionDataStore {
         save(managedObjectContext)
     }
 
-    func save(clientChatMsg: Clients_ChatMessage?, metadata: NotificationMetadata, status: SharedChatMessage.Status, failure: DecryptionFailure?) -> SharedChatMessage? {
+    func insertSharedMedia(for mediaData: XMPPChatMedia, index: Int, into managedObjectContext: NSManagedObjectContext) -> SharedMedia {
+        let chatMedia = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
+        chatMedia.type = {
+            switch mediaData.mediaType {
+            case .image: return .image
+            case .video: return .video
+            }
+        }()
+        chatMedia.status = .none
+        chatMedia.url = mediaData.url
+        chatMedia.uploadUrl = nil
+        chatMedia.size = mediaData.size
+        chatMedia.key = mediaData.key
+        chatMedia.sha256 = mediaData.sha256
+        chatMedia.order = Int16(index)
+
+        return chatMedia
+    }
+
+    func save(protobuf: MessageProtobuf?, metadata: NotificationMetadata, status: SharedChatMessage.Status, failure: DecryptionFailure?) -> SharedChatMessage? {
         let managedObjectContext = persistentContainer.viewContext
 
         let messageId = metadata.contentId
@@ -142,7 +161,6 @@ class DataStore: NotificationServiceExtensionDataStore {
         chatMessage.id = messageId
         chatMessage.toUserId = AppContext.shared.userData.userId
         chatMessage.fromUserId = metadata.fromId
-        chatMessage.text = clientChatMsg?.text
         chatMessage.status = status
         chatMessage.decryptionError = failure?.error.rawValue
         chatMessage.ephemeralKey = failure?.ephemeralKey
@@ -156,43 +174,39 @@ class DataStore: NotificationServiceExtensionDataStore {
 
         switch status {
         case .received:
-            guard let clientChatMsg = clientChatMsg else {
-                DDLogError("NotificationExtension/SharedDataStore/message/\(messageId)/ clientChatMsg is nil")
-                return nil
+            switch protobuf {
+            case .container(let container):
+                switch container.message {
+                case .album(let album):
+                    chatMessage.text = album.text.text
+                    for (index, mediaItem) in album.media.enumerated() {
+                        guard let mediaData = XMPPChatMedia(albumMedia: mediaItem) else { continue }
+                        let sharedMedia = insertSharedMedia(for: mediaData, index: index, into: managedObjectContext)
+                        sharedMedia.message = chatMessage
+                    }
+                case .text(let text):
+                    chatMessage.text = text.text
+                case .contactCard:
+                    DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [contact]")
+                case .voiceNote:
+                    DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [voice]")
+                case .none:
+                    DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [unknown]")
+                }
+                chatMessage.clientChatMsgPb = try? container.serializedData()
+            case .legacy(let clientChatMsg):
+                chatMessage.text = clientChatMsg.text
+                for (index, mediaItem) in clientChatMsg.media.enumerated() {
+                    guard let mediaData = XMPPChatMedia(protoMedia: mediaItem) else { continue }
+                    let sharedMedia = insertSharedMedia(for: mediaData, index: index, into: managedObjectContext)
+                    sharedMedia.message = chatMessage
+                }
+                chatMessage.clientChatMsgPb = try? clientChatMsg.serializedData()
+            case .none:
+                DDLogError("SharedDataStore/message/\(messageId)/missing-protobuf")
+                break
             }
-            let clientChatMsgPb: Data
-            do {
-                clientChatMsgPb = try clientChatMsg.serializedData()
-            } catch {
-                DDLogError("NotificationExtension/SharedDataStore/message/\(messageId)/ could not serialize data")
-                return nil
-            }
-            chatMessage.clientChatMsgPb = clientChatMsgPb
-            for (index, mediaItem) in clientChatMsg.media.enumerated() {
-                guard let mediaType: FeedMediaType = {
-                    switch mediaItem.type {
-                    case .image: return .image
-                    case .video: return .video
-                    default: return nil
-                    }}() else { continue }
 
-                guard let url = URL(string: mediaItem.downloadURL) else { continue }
-
-                let width = CGFloat(mediaItem.width), height = CGFloat(mediaItem.height)
-                guard width > 0 && height > 0 else { continue }
-
-                let chatMedia = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
-                chatMedia.type = mediaType
-                chatMedia.status = .none
-                chatMedia.url = url
-                chatMedia.uploadUrl = nil
-                chatMedia.size = CGSize(width: width, height: height)
-                chatMedia.key = mediaItem.encryptionKey.base64EncodedString()
-                chatMedia.sha256 = mediaItem.ciphertextHash.base64EncodedString()
-                chatMedia.order = Int16(index)
-
-                chatMedia.message = chatMessage
-            }
         case .decryptionError:
             break
         case .acked, .rerequesting:
@@ -282,5 +296,19 @@ class DataStore: NotificationServiceExtensionDataStore {
             DDLogError("NotificationExtension/SharedDataStore/sharedChatMessage/error  [\(error)], msgId: \(msgId)")
         }
         return
+    }
+}
+
+enum MessageProtobuf {
+    case legacy(Clients_ChatMessage)
+    case container(Clients_ChatContainer)
+
+    var chatContent: ChatContent {
+        switch self {
+        case .legacy(let legacyChat):
+            return legacyChat.chatContent
+        case .container(let chatContainer):
+            return chatContainer.chatContent
+        }
     }
 }

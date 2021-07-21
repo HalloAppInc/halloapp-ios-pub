@@ -47,8 +47,8 @@ extension UNMutableNotificationContent {
         }
     }
 
-    func populateChatBody(from clientChatMessage: Clients_ChatMessage, using metadata: NotificationMetadata, contactStore: ContactStore) {
-        metadata.populateChatBody(from: clientChatMessage, contactStore: contactStore)
+    func populateChatBody(from chatContent: ChatContent, using metadata: NotificationMetadata, contactStore: ContactStore) {
+        metadata.populateChatBody(from: chatContent, contactStore: contactStore)
         body = metadata.body
         // encode and store metadata - this will be used to handle user response on the notification.
         userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData

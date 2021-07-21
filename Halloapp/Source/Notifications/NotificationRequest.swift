@@ -24,7 +24,7 @@ final class NotificationRequest {
             guard let clientChatMessage = metadata.protoContainer?.chatMessage else {
                 return
             }
-            notificationContent.populateChatBody(from: clientChatMessage, using: metadata, contactStore: MainAppContext.shared.contactStore)
+            notificationContent.populateChatBody(from: clientChatMessage.chatContent, using: metadata, contactStore: MainAppContext.shared.contactStore)
         default:
             break
         }

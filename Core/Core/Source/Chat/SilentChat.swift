@@ -16,13 +16,8 @@ public struct SilentChatMessage: ChatMessageProtocol {
     public var fromUserId: UserID
     public var toUserId: UserID
     public var retryCount: Int32? = nil
-    public var text: String?
-    public var orderedMedia: [ChatMediaProtocol] = []
-    public var feedPostId: FeedPostID? = nil
-    public var feedPostMediaIndex: Int32 = 0
-    public var chatReplyMessageID: String? = nil
-    public var chatReplyMessageSenderID: UserID? = nil
-    public var chatReplyMessageMediaIndex: Int32 = 0
+    public var content = ChatContent.text(Self.text)
+    public var context = ChatContext()
     public var timeIntervalSince1970: TimeInterval?
 
     public var rerequestCount: Int32
@@ -30,7 +25,6 @@ public struct SilentChatMessage: ChatMessageProtocol {
     init(from fromUserID: UserID, to toUserID: UserID, ts: TimeInterval = Date().timeIntervalSince1970, resendAttempts: Int32 = 0) {
         self.fromUserId = fromUserID
         self.toUserId = toUserID
-        self.text = Self.text
         self.timeIntervalSince1970 = ts
         self.rerequestCount = resendAttempts
 

@@ -645,10 +645,17 @@ final class ProtoService: ProtoServiceCore {
             }
 
             let receiptTimestamp = Date()
-            decryptChat(serverChat, from: UserID(msg.fromUid)) { (clientChat, decryptionFailure) in
-                if let clientChat = clientChat {
-                    let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount, rerequestCount: msg.rerequestCount)
-                    DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId) [length=\(chatMessage.text?.count ?? 0)] [media=\(chatMessage.media.count)]")
+            decryptChat(serverChat, from: UserID(msg.fromUid)) { (content, context, decryptionFailure) in
+                if let content = content, let context = context {
+                    let chatMessage = XMPPChatMessage(content: content, context: context, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount, rerequestCount: msg.rerequestCount)
+                    switch chatMessage.content {
+                    case .album(let text, let media):
+                        DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/album [length=\(text?.count ?? 0)] [media=\(media.count)]")
+                    case .text(let text):
+                        DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/text [length=\(text.count)]")
+                    case .unsupported(let data):
+                        DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/unsupported [length=\(data.count)] [data=\(data.bytes.prefix(4))...]")
+                    }
                     self.didGetNewChatMessage.send(.decrypted(chatMessage))
                 } else {
                     self.didGetNewChatMessage.send(
@@ -684,7 +691,7 @@ final class ProtoService: ProtoServiceCore {
         case .silentChatStanza(let silent):
             let receiptTimestamp = Date()
             // We ignore message content from silent messages (only interested in decryption success)
-            decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, decryptionFailure) in
+            decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, _, decryptionFailure) in
                 if let failure = decryptionFailure {
                     DDLogError("proto/didReceive/\(msg.id)/silent-decrypt/error \(failure.error)")
                     AppContext.shared.errorLogger?.logError(failure.error)
