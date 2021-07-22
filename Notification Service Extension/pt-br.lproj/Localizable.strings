@@ -1,0 +1,104 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "Sem conexão com a internet";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Verifique se você tem conexão com a internet, em seguida, tente novamente";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Cancelar";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Continuar";
+
+/* Title for generic Create button */
+"button.create" = "Criar";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Dispensar";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Pronto";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Ir para Configurações";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Saiba mais";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Mais";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Próximo";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Agora não";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Remover";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Salvar";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Enviar";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Compartilhar";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Atualizar";
+
+/* Title for generic delete button. */
+"Delete" = "Excluir";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "Você foi adicionado a um novo grupo";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Saiba mais";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Atualize seu aplicativo.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Eu";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "Comentado: %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "Um de seus contatos está agora no HalloApp";
+
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@ acabou de aceitar seu convite para se juntar ao HalloApp 🎉";
+
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "notificação.n.fotos";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "notification.n.videos";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@ está agora no HalloApp";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "Nova mensagem";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "Nova postagem";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "📷 foto";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "📹 vídeo";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Contato desconhecido";
+

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>notification.n.photos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_photos@</string>
+		<key>num_photos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>📷 %d photos</string>
+			<key>many</key>
+			<string>📷 %d photos</string>
+			<key>one</key>
+			<string>📷 %d foto</string>
+			<key>other</key>
+			<string>📷 %d fotos</string>
+			<key>two</key>
+			<string>📷 %d photos</string>
+			<key>zero</key>
+			<string>📷 %d photos</string>
+		</dict>
+	</dict>
+	<key>notification.n.videos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_videos@</string>
+		<key>num_videos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>📹 %d videos</string>
+			<key>many</key>
+			<string>📹 %d videos</string>
+			<key>one</key>
+			<string>📹 %d vídeo</string>
+			<key>other</key>
+			<string>📹 %d vídeos</string>
+			<key>two</key>
+			<string>📹 %d videos</string>
+			<key>zero</key>
+			<string>📹 %d videos</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

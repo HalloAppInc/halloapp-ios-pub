@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>chat.n.users.typing</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%@ %#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>are typing...</string>
+			<key>many</key>
+			<string>are typing...</string>
+			<key>one</key>
+			<string>está digitando...</string>
+			<key>other</key>
+			<string>estão digitando...</string>
+			<key>two</key>
+			<string>are typing...</string>
+			<key>zero</key>
+			<string>are typing...</string>
+		</dict>
+	</dict>
+	<key>composer.privacy.value.n.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>Sharing with %d of my contacts</string>
+			<key>many</key>
+			<string>Sharing with %d of my contacts</string>
+			<key>one</key>
+			<string>Compartilhando com %d dos meus contatos</string>
+			<key>other</key>
+			<string>Compartilhando com %d dos meus contatos</string>
+			<key>two</key>
+			<string>Sharing with %d of my contacts</string>
+			<key>zero</key>
+			<string>Sharing with %d of my contacts</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.contacts.excluded</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_excluded@</string>
+		<key>n_excluded</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d Contacts Excluded</string>
+			<key>many</key>
+			<string>%d Contacts Excluded</string>
+			<key>one</key>
+			<string>%d contato excluído</string>
+			<key>other</key>
+			<string>%d contatos excluídos</string>
+			<key>two</key>
+			<string>%d Contacts Excluded</string>
+			<key>zero</key>
+			<string>%d Contacts Excluded</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.contacts.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d Contacts Selected</string>
+			<key>many</key>
+			<string>%d Contacts Selected</string>
+			<key>one</key>
+			<string>%d contato selecionado</string>
+			<key>other</key>
+			<string>%d contatos selecionados</string>
+			<key>two</key>
+			<string>%d Contacts Selected</string>
+			<key>zero</key>
+			<string>%d Contacts Selected</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.excluded</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_excluded@</string>
+		<key>n_excluded</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d Excluded</string>
+			<key>many</key>
+			<string>%d Excluded</string>
+			<key>one</key>
+			<string>%d excluído</string>
+			<key>other</key>
+			<string>%d excluídos</string>
+			<key>two</key>
+			<string>%d Excluded</string>
+			<key>zero</key>
+			<string>%d Excluded</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d Selected</string>
+			<key>many</key>
+			<string>%d Selected</string>
+			<key>one</key>
+			<string>%d selecionado</string>
+			<key>other</key>
+			<string>%d selecionados</string>
+			<key>two</key>
+			<string>%d Selected</string>
+			<key>zero</key>
+			<string>%d Selected</string>
+		</dict>
+	</dict>
+	<key>group.feed.n.members</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_members@</string>
+		<key>n_members</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d members</string>
+			<key>many</key>
+			<string>%d members</string>
+			<key>one</key>
+			<string>%d membro</string>
+			<key>other</key>
+			<string>%d membros</string>
+			<key>two</key>
+			<string>%d members</string>
+			<key>zero</key>
+			<string>Nenhum membro</string>
+		</dict>
+	</dict>
+	<key>media.prepare.failed.n.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@mediaCount@</string>
+		<key>mediaCount</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>Failed to prepare %d media items. Please try again or select a different photo / video.</string>
+			<key>many</key>
+			<string>Failed to prepare %d media items. Please try again or select a different photo / video.</string>
+			<key>one</key>
+			<string>Falha ao preparar mídia. Por favor, tente novamente ou selecione uma foto/vídeo diferente.</string>
+			<key>other</key>
+			<string>Falha ao preparar %d itens de mídia. Por favor, tente novamente ou selecione uma foto/vídeo diferente.</string>
+			<key>two</key>
+			<string>Failed to prepare %d media items. Please try again or select a different photo / video.</string>
+			<key>zero</key>
+			<string>Failed to prepare %d media items. Please try again or select a different photo / video.</string>
+		</dict>
+	</dict>
+	<key>n.invites.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_invites_count@</string>
+		<key>n_invites_count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>You have %d invites.</string>
+			<key>many</key>
+			<string>You have %d invites.</string>
+			<key>one</key>
+			<string>Você tem %d convite.</string>
+			<key>other</key>
+			<string>Você tem %d convites.</string>
+			<key>two</key>
+			<string>You have %d invites.</string>
+			<key>zero</key>
+			<string>You have %d invites.</string>
+		</dict>
+	</dict>
+	<key>n.invites.remaining</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_invites_remaining@</string>
+		<key>n_invites_remaining</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>You have %d invites remaining</string>
+			<key>many</key>
+			<string>You have %d invites remaining</string>
+			<key>one</key>
+			<string>Você tem %d convite restante</string>
+			<key>other</key>
+			<string>Você tem %d convites restantes</string>
+			<key>two</key>
+			<string>You have %d invites remaining</string>
+			<key>zero</key>
+			<string>You have %d invites remaining</string>
+		</dict>
+	</dict>
+	<key>notification.n.photos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_photos@</string>
+		<key>num_photos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>📷 %d photos</string>
+			<key>many</key>
+			<string>📷 %d photos</string>
+			<key>one</key>
+			<string>📷 %d foto</string>
+			<key>other</key>
+			<string>📷 %d fotos</string>
+			<key>two</key>
+			<string>📷 %d photos</string>
+			<key>zero</key>
+			<string>📷 %d photos</string>
+		</dict>
+	</dict>
+	<key>notification.n.videos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_videos@</string>
+		<key>num_videos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>📹 %d videos</string>
+			<key>many</key>
+			<string>📹 %d videos</string>
+			<key>one</key>
+			<string>📹 %d vídeo</string>
+			<key>other</key>
+			<string>📹 %d vídeos</string>
+			<key>two</key>
+			<string>📹 %d videos</string>
+			<key>zero</key>
+			<string>📹 %d videos</string>
+		</dict>
+	</dict>
+	<key>picker.media.n.limit</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@max_photos@</string>
+		<key>max_photos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>You can select up to %d items</string>
+			<key>many</key>
+			<string>You can select up to %d items</string>
+			<key>one</key>
+			<string>Você pode selecionar até um item</string>
+			<key>other</key>
+			<string>Você pode selecionar até %d itens</string>
+			<key>two</key>
+			<string>You can select up to %d items</string>
+			<key>zero</key>
+			<string>You can select up to %d items</string>
+		</dict>
+	</dict>
+	<key>privacy.n.contacts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d Contacts</string>
+			<key>many</key>
+			<string>%d Contacts</string>
+			<key>one</key>
+			<string>%d contato</string>
+			<key>other</key>
+			<string>%d contatos</string>
+			<key>two</key>
+			<string>%d Contacts</string>
+			<key>zero</key>
+			<string>Nenhum</string>
+		</dict>
+	</dict>
+</dict>
+</plist>
