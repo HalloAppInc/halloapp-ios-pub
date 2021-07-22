@@ -131,6 +131,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         DDLogInfo("ChatListViewController/viewWillAppear")
         super.viewWillAppear(animated)
         populateWithAllContacts()
+        self.tableView.reloadData()
     }
     
     override func viewDidAppear(_ animated: Bool) {
