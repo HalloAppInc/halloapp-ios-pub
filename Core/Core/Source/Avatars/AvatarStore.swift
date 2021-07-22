@@ -59,14 +59,20 @@ public class AvatarStore: ServiceAvatarDelegate {
         })
         return container
     }()
-    
-    public init() {}
-    
+
+    private var viewContext: NSManagedObjectContext
+    private var bgContext: NSManagedObjectContext
+
+    public init() {
+        self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+        self.viewContext = persistentContainer.viewContext
+        self.bgContext = persistentContainer.newBackgroundContext()
+    }
+
     private func performOnBackgroundContextAndWait(_ block: @escaping (NSManagedObjectContext) -> Void) {
         backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
-            let managedObjectContext = self.persistentContainer.newBackgroundContext()
-            managedObjectContext.performAndWait { block(managedObjectContext) }
+            self.bgContext.performAndWait { block(self.bgContext) }
         }
     }
     
@@ -75,9 +81,7 @@ public class AvatarStore: ServiceAvatarDelegate {
     }
     
     private func avatar(forUserId userId: UserID) -> Avatar? {
-        let managedObjectContext = self.persistentContainer.viewContext
-        
-        return avatar(forUserId: userId, using: managedObjectContext)
+        return avatar(forUserId: userId, using: viewContext)
     }
     
     private func avatar(forUserId userId: UserID, using managedObjectContext: NSManagedObjectContext) -> Avatar? {
@@ -113,9 +117,7 @@ public class AvatarStore: ServiceAvatarDelegate {
     }
     
     public func save(avatarId: AvatarID, forUserId userId: UserID) {
-        let managedObjectContext = self.persistentContainer.viewContext
-        
-        self.save(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
+        save(avatarId: avatarId, forUserId: userId, using: bgContext)
     }
     
     @discardableResult private func save(avatarId: AvatarID, forUserId userId: UserID, using managedObjectContext: NSManagedObjectContext, isContactSync: Bool = false) -> Avatar {
@@ -174,8 +176,8 @@ public class AvatarStore: ServiceAvatarDelegate {
     }
     
     public func save(image: UIImage, forUserId userId: UserID, avatarId: AvatarID) {
-        let managedObjectContext = self.persistentContainer.viewContext
-        
+        let managedObjectContext = bgContext
+    
         let currentAvatar = save(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
         
         let data = image.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
@@ -214,7 +216,7 @@ public class AvatarStore: ServiceAvatarDelegate {
      */
     
     public func update(avatarId: AvatarID, forUserId userId: UserID) {
-        let managedObjectContext = self.persistentContainer.viewContext
+        let managedObjectContext = bgContext
         
         guard let currentAvatar = avatar(forUserId: userId, using: managedObjectContext) else {
             DDLogError("AvatarStore/updateAvatarId/error avatar does not exist!")
@@ -233,7 +235,7 @@ public class AvatarStore: ServiceAvatarDelegate {
     }
     
     fileprivate func update(relativeFilePath: String, forUserId userId: UserID) {
-        let managedObjectContext = self.persistentContainer.viewContext
+        let managedObjectContext = bgContext
         
         guard let currentAvatar = avatar(forUserId: userId, using: managedObjectContext) else {
             DDLogError("AvatarStore/updateAvatarId/error avatar does not exist!")
@@ -254,15 +256,15 @@ public class AvatarStore: ServiceAvatarDelegate {
     public func service(_ service: CoreService, didReceiveAvatarInfo avatarInfo: AvatarInfo) {
         DDLogInfo("AvatarStore/didReceiveAvatar \(avatarInfo)")
 
-        let managedObjectContext = persistentContainer.viewContext
+        let managedObjectContext = bgContext
         
         save(avatarId: avatarInfo.avatarID, forUserId: avatarInfo.userID, using: managedObjectContext)
     }
     
     public func processContactSync(_ avatarDict: [UserID: AvatarID]) {
-        performOnBackgroundContextAndWait { (managedObjectContext) in
+        performOnBackgroundContextAndWait { [weak self] (managedObjectContext) in
             for (userId, avatarId) in avatarDict {
-                self.save(avatarId: avatarId, forUserId: userId, using: managedObjectContext, isContactSync: true)
+                self?.save(avatarId: avatarId, forUserId: userId, using: managedObjectContext, isContactSync: true)
             }
         }
     }
@@ -291,8 +293,8 @@ extension AvatarStore {
     // MARK: GroupAvatar Core Data Inserting
   
     public func updateOrInsertGroupAvatar(for groupID: GroupID, with avatarID: AvatarID) {
-        performOnBackgroundContextAndWait { (managedObjectContext) in
-            self.updateOrInsertGroupAvatar(for: groupID, with: avatarID, using: managedObjectContext)
+        performOnBackgroundContextAndWait { [weak self] (managedObjectContext) in
+            self?.updateOrInsertGroupAvatar(for: groupID, with: avatarID, using: managedObjectContext)
         }
     }
     
@@ -374,8 +376,7 @@ extension AvatarStore {
     // MARK: GroupAvatar Core Data Fetching
     
     private func groupAvatar(for groupID: GroupID) -> GroupAvatar? {
-        let managedObjectContext = self.persistentContainer.viewContext
-        return groupAvatar(for: groupID, using: managedObjectContext)
+        return groupAvatar(for: groupID, using: viewContext)
     }
     
     private func groupAvatar(for groupID: GroupID, using managedObjectContext: NSManagedObjectContext) -> GroupAvatar? {
