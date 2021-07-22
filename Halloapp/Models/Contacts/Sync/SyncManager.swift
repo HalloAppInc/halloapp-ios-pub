@@ -54,7 +54,7 @@ class SyncManager {
     private let contactStore: ContactStoreMain
     private let service: HalloService
 
-    private static let UDDisabledAddressBookSynced = "isabledAddressBookSynced"
+    private static let UDDisabledAddressBookSynced = "isabledAddressBookSynced" // TODO: Change this to be the correct spelling ("disabledAddressBookSynced")
 
     init(contactStore: ContactStoreMain, service: HalloService, userData: UserData) {
         self.contactStore = contactStore
