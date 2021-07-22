@@ -5,6 +5,7 @@ on:
   push:
     branches: [ master ] # On push/commit to master (whenever `origin/master` receives a new commit)
   pull_request:
+    types: [ opened ]
     branches: [ master ] # On commits to a PR into master
   workflow_dispatch: # Manual trigger (run via Actions -> CI Workflow (lefthand side) -> Run workflow)
 
