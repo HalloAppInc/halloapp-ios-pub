@@ -565,9 +565,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                                                                      .paragraphStyle: paragraph]))
 
         }
-        
+
         textView.attributedText = attrText
-    
+        textView.makeTextWritingDirectionLeftToRight(nil) // force ltr until we support rtl
     }
     
     func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {

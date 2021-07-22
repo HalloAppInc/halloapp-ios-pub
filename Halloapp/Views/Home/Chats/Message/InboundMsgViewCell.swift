@@ -489,7 +489,9 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 font: UIFont.preferredFont(forTextStyle: TextFontStyle).withItalicsIfAvailable,
                 color: .chatTime)
         }
-            
+
+        textView.makeTextWritingDirectionLeftToRight(nil)
+
         // media
         if let media = media {
             
