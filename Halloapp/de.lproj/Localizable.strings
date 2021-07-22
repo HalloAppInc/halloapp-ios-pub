@@ -117,13 +117,13 @@
 "camera.init.error.3" = "Das Mikrofon kann nicht initialisiert werden";
 
 /* No comment provided by engineer. */
-"camera.init.error.4" = "Zugriff auf die Rückkamera nicht möglich";
+"camera.init.error.4" = "Auf die Rückkamera kann nicht zugegriffen werden";
 
 /* No comment provided by engineer. */
-"camera.init.error.5" = "Zugriff auf die Frontkamera nicht möglich";
+"camera.init.error.5" = "Auf die Frontkamera kann nicht zugegriffen werden";
 
 /* No comment provided by engineer. */
-"camera.init.error.6" = "Kein Zugriff auf den Audio-Eingang";
+"camera.init.error.6" = "Auf Audio kann nicht zugegriffen werden";
 
 /* No comment provided by engineer. */
 "camera.init.error.7" = "Fotos können nicht aufgenommen werden";
@@ -499,7 +499,7 @@
 "group.invite.copy.link" = "Link kopieren";
 
 /* Text shown when link is copied */
-"group.invite.link.copied" = "Link kopiert";
+"group.invite.link.copied" = "In die Zwischenablage kopiert";
 
 /* Text to describe what the group invite link is */
 "group.invite.link.description" = "Jeder auf HalloApp kann der Gruppe über diesen Link beitreten.";
@@ -526,7 +526,7 @@
 "group.invite.share.link.message" = "Über diesen Link kannst du meiner HalloApp-Gruppe beitreten: ";
 
 /* Title of group invite screen */
-"group.invite.title" = "Gruppeneinladungslink";
+"group.invite.title" = "Gruppeneinladung";
 
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "Der Einladungslink zur Gruppe ist ungültig";
@@ -601,7 +601,7 @@
 "invite.text" = "Mach mit bei HalloApp — eine Möglichkeit ganz einfach, privat und sicher den Kontakt zu Freunden und zur Familie zu halten. Hol sie dir auf: https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Hallo %1$@, ich lade dich ein, dich auch bei HalloApp anzumelden. Eine einfache Social-App, um alltägliche Momente zu teilen. Nutze %2$@ zur Registrierung und hol sie dir auf https://halloapp.com/dl";
+"invite.text.specific" = "Hallo %1$@, ich lade dich ein, dich auch bei HalloApp anzumelden. Ein Netzwerk für echte Beziehungen und diejenigen, die mir am nächsten stehen. Nutze %2$@ zur Registrierung und hol sie dir auf https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Einladen";
@@ -846,7 +846,7 @@
 "profile.row.help" = "Hilfe";
 
 /* Row in Profile screen. */
-"profile.row.invite" = "Freunde einladen";
+"profile.row.invite" = "Zu HalloApp einladen";
 
 /* Row in Settings screen */
 "profile.row.my.posts" = "Meine Beiträge";
@@ -1143,7 +1143,7 @@
 "title.your.post" = "Gesehen von";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
-"turn.on.contacts" = "Aktiviere Zugriff auf Kontakte";
+"turn.on.contacts" = "Aktiviere Zugriff auf \"Kontakte\"";
 
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Tippe unten auf \"%@\"";
