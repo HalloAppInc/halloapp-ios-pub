@@ -32,6 +32,7 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
 
     private var dataSource: UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterNotification>!
     private var fetchedResultsController: NSFetchedResultsController<FeedNotification>!
+    private var displayedNotifications: [ActivityCenterNotification] = []
 
     // MARK: UIViewController
 
@@ -85,9 +86,10 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
         var snapshot = NSDiffableDataSourceSnapshot<ActivityCenterSection, ActivityCenterNotification>()
         snapshot.appendSections([.main])
         
-        if let items = fetchedResultsController.fetchedObjects {
-            snapshot.appendItems(activityCenterNotifications(for: items))
-        }
+        let activityCenterItems = activityCenterNotifications(for: fetchedResultsController.fetchedObjects ?? [])
+        
+        snapshot.appendItems(activityCenterItems)
+        displayedNotifications = activityCenterItems
         
         return snapshot
     }
@@ -191,8 +193,8 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
     // MARK: Table View
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let notification = fetchedResultsController.object(at: indexPath)
-        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: notification.postId) else {
+        let notification = displayedNotifications[indexPath.row]
+        guard let postId = notification.postId, let feedPost = MainAppContext.shared.feedData.feedPost(with: postId) else {
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }

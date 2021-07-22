@@ -81,6 +81,26 @@ struct ActivityCenterNotification: Hashable {
         }
     }
     
+    /// Feed post to navigate to when the notification is tapped
+    var postId: FeedPostID? {
+        get {
+            switch notificationType {
+                case .singleNotification(let notification): return notification.postId
+                case .unknownCommenters(let notifications): return Self.latestUnseen(for: notifications)?.postId ?? nil
+            }
+        }
+    }
+    
+    /// Comment to highlight when the post related to the notification tapped is displayed. Should be a comment on post related to `postId` property.
+    var commentId: FeedPostCommentID? {
+        get {
+            switch notificationType {
+                case .singleNotification(let notification): return notification.commentId
+                case .unknownCommenters(let notifications): return Self.latestUnseen(for: notifications)?.commentId ?? nil
+            }
+        }
+    }
+    
     private func textForUnknownCommenters(with notifications: [FeedNotification]) -> NSAttributedString {
         let localizedString = NSLocalizedString("feed.notification.comment.grouped", value: "<$numberOthers$> others replied to <$author$>'s post", comment: "Text for feed notification displayed in Activity Center.")
         
@@ -117,6 +137,17 @@ struct ActivityCenterNotification: Hashable {
         }
         
         return latestTimestamp
+    }
+    
+    /// Gets the latest unseen notification in an array of notifications. If all notifications have been read, then return the latest notification.
+    private static func latestUnseen(for notifications: [FeedNotification]) -> FeedNotification? {
+        for notification in notifications.sorted(by: { $0.timestamp > $1.timestamp }) {
+            if !notification.read {
+                return notification
+            }
+        }
+        
+        return notifications.first
     }
     
     enum ActivityCenterNotificationType: Equatable, Hashable {
