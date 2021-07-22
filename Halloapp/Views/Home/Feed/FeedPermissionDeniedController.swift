@@ -69,6 +69,6 @@ class FeedPermissionDeniedController: UIViewController {
     // MARK: UI Actions
 
     @objc private func didTapNotificationButton() {
-        self.present(UINavigationController(rootViewController: NotificationsViewController(style: .plain)), animated: true)
+        self.present(UINavigationController(rootViewController: NotificationsViewController()), animated: true)
     }
 }

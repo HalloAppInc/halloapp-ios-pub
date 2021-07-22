@@ -165,10 +165,13 @@ extension FeedNotification {
 
             let textRange = (result.string as NSString).range(of: "<$text$>")
             if textRange.location != NSNotFound {
-                let fullText = textWithMentions?.string ?? ""
-                let ellipsis = "..."
-                let replacementString = fullText.count > 80 ? fullText.prefix(80) + ellipsis : fullText
-                result.replaceCharacters(in: textRange, with: replacementString)
+                result.replaceCharacters(in: textRange, with: textWithMentions?.string ?? "")
+            }
+            
+            let strLen = 50
+            if result.length > strLen + 3 {
+                result.deleteCharacters(in: NSRange(location: strLen, length: result.length - strLen))
+                result.append(NSAttributedString(string: "..."))
             }
 
             result.addAttribute(.foregroundColor, value: UIColor.label, range: NSRange(location: 0, length: result.length))

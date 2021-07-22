@@ -131,7 +131,7 @@ class FeedViewController: FeedCollectionViewController {
 
     @objc private func didTapNotificationButton() {
         overlayContainer.dismissOverlay(with: activityCenterOverlayID)
-        self.present(UINavigationController(rootViewController: NotificationsViewController(style: .plain)), animated: true)
+        self.present(UINavigationController(rootViewController: NotificationsViewController()), animated: true)
     }
     
     @objc private func didTapInviteButtion() {

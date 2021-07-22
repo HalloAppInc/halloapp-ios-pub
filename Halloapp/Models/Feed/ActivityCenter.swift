@@ -41,6 +41,13 @@ struct ActivityCenterNotification: Hashable {
             
             return true
         }
+        
+        set {
+            switch notificationType {
+                case .singleNotification(let notification): notification.read = newValue
+                case .unknownCommenters(let notifications): notifications.forEach { $0.read = newValue }
+            }
+        }
     }
     
     /// The text that will be displayed in the notification tableview cell.

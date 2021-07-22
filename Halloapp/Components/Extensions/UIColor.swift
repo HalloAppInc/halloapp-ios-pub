@@ -121,6 +121,20 @@ extension UIColor {
     class var commentIndicatorUnread: UIColor {
         UIColor(named: "CommentIndicatorUnread")!
     }
+    
+    // MARK: Notifications
+    
+    class var notificationBottomBarBackground: UIColor {
+        UIColor(named: "NotificationBottomBarBackground")!
+    }
+    
+    class var notificationUnreadHighlight: UIColor {
+        UIColor(named: "NotificationUnreadHighlight")!
+    }
+    
+    class var notificationBottomBarShadow: UIColor {
+        UIColor(named: "NotificationBottomBarShadow")!
+    }
 
     // MARK: Group Feed
 

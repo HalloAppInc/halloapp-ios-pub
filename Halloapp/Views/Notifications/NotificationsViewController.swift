@@ -26,12 +26,16 @@ private extension Localizations {
     }
 }
 
-class NotificationsViewController: UITableViewController, NSFetchedResultsControllerDelegate {
-
+class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetchedResultsControllerDelegate {
     private static let cellReuseIdentifier = "NotificationsTableViewCell"
+    
+    private let bottomSafeAreaHeight = UIApplication.shared.windows[0].safeAreaInsets.bottom
 
     private var dataSource: UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterNotification>!
     private var fetchedResultsController: NSFetchedResultsController<FeedNotification>!
+    private lazy var tableView: UITableView = { UITableView() }()
+    private var bottomBar: UIView!
+  
     private var displayedNotifications: [ActivityCenterNotification] = []
 
     // MARK: UIViewController
@@ -41,10 +45,17 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
 
         navigationItem.title = Localizations.titleActivity
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.readAll, style: .plain, target: self, action: #selector(markAllNotificationsRead))
 
+        tableView.delegate = self
         tableView.register(NotificationTableViewCell.self, forCellReuseIdentifier: NotificationsViewController.cellReuseIdentifier)
         tableView.separatorStyle = .none
+        
+        view.addSubview(tableView)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.constrain(to: view)
+        
+        tableView.backgroundColor = .primaryBg
+        view.backgroundColor = .primaryBg
 
         dataSource = UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterNotification>(tableView: tableView) { tableView, indexPath, notification in
             let cell = tableView.dequeueReusableCell(withIdentifier: NotificationsViewController.cellReuseIdentifier, for: indexPath) as! NotificationTableViewCell
@@ -74,6 +85,43 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
             try fetchedResultsController!.performFetch()
             dataSource.apply(makeDataSnapshot())
         } catch { }
+        
+        setupBottomBar()
+    }
+    
+    private func setupBottomBar() {
+        bottomBar = UIView()
+        bottomBar.translatesAutoresizingMaskIntoConstraints = false
+        
+        bottomBar.backgroundColor = .notificationBottomBarBackground
+        bottomBar.layer.shadowColor = UIColor.notificationBottomBarShadow.cgColor
+        bottomBar.layer.shadowOpacity = 1
+        bottomBar.layer.shadowOffset = .zero
+        bottomBar.layer.shadowRadius = 4
+        
+        view.addSubview(bottomBar)
+        bottomBar.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        bottomBar.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        bottomBar.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        
+        let readAllButton = UIButton()
+        readAllButton.addTarget(self, action: #selector(markAllNotificationsRead), for: .touchUpInside)
+        readAllButton.setTitleColor(.systemBlue, for: .normal)
+        
+        let title = NSAttributedString(string: Localizations.readAll, attributes: [.font : UIFont.gothamFont(forTextStyle: .callout, weight: .medium)])
+        
+        readAllButton.setAttributedTitle(title, for: .normal)
+        
+        bottomBar.addSubview(readAllButton)
+        readAllButton.translatesAutoresizingMaskIntoConstraints = false
+        readAllButton.leadingAnchor.constraint(equalTo: bottomBar.leadingAnchor).isActive = true
+        readAllButton.trailingAnchor.constraint(equalTo: bottomBar.trailingAnchor).isActive = true
+        readAllButton.topAnchor.constraint(equalTo: bottomBar.topAnchor, constant: 8).isActive = true
+        readAllButton.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor, constant: -(bottomSafeAreaHeight + 3)).isActive = true
+    }
+    
+    override func viewDidLayoutSubviews() {
+        tableView.contentInset.bottom = bottomBar.frame.height - bottomSafeAreaHeight
     }
 
     // MARK: Fetched Results Controller
@@ -191,13 +239,14 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
     }
 
     // MARK: Table View
-
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let notification = displayedNotifications[indexPath.row]
+        tableView.deselectRow(at: indexPath, animated: true)
+        
         guard let postId = notification.postId, let feedPost = MainAppContext.shared.feedData.feedPost(with: postId) else {
-            tableView.deselectRow(at: indexPath, animated: true)
             return
         }
+        
         let commentsViewController = CommentsViewController(feedPostId: feedPost.id)
         commentsViewController.highlightedCommentId = notification.commentId
         navigationController?.pushViewController(commentsViewController, animated: true)
@@ -213,6 +262,7 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         actionSheet.addAction(UIAlertAction(title: Localizations.markAllRead, style:.destructive) { _ in
             MainAppContext.shared.feedData.markNotificationsAsRead()
+            
         })
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true)
@@ -247,7 +297,7 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
 
     private lazy var unreadBadge: CircleView = {
         let badge = CircleView()
-        badge.fillColor = .systemGreen
+        badge.fillColor = .commentIndicatorUnread
         badge.translatesAutoresizingMaskIntoConstraints = false
         return badge
     }()
@@ -257,8 +307,11 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.layer.cornerRadius = 8
+        imageView.layer.masksToBounds = true
         return imageView
     }()
+    
+    private var mediaPreviewWidthAnchor: NSLayoutConstraint?
 
     private func setupView() {
         contentView.addSubview(unreadBadge)
@@ -266,8 +319,11 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         contentView.addSubview(notificationTextLabel)
         contentView.addSubview(mediaPreview)
 
+        mediaPreviewWidthAnchor = mediaPreview.widthAnchor.constraint(equalToConstant: 22)
+        mediaPreviewWidthAnchor?.isActive = true
+        
         contentView.addConstraints([
-            unreadBadge.heightAnchor.constraint(equalToConstant: 6),
+            unreadBadge.heightAnchor.constraint(equalToConstant: 7),
             unreadBadge.widthAnchor.constraint(equalTo: unreadBadge.heightAnchor),
             unreadBadge.centerYAnchor.constraint(equalTo: contactImage.centerYAnchor),
             unreadBadge.trailingAnchor.constraint(equalTo: contactImage.leadingAnchor, constant: -4),
@@ -282,21 +338,24 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
             notificationTextLabel.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
             notificationTextLabel.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor),
 
-            mediaPreview.heightAnchor.constraint(equalToConstant: 44),
             mediaPreview.heightAnchor.constraint(equalTo: mediaPreview.widthAnchor),
             mediaPreview.leadingAnchor.constraint(equalToSystemSpacingAfter: notificationTextLabel.trailingAnchor, multiplier: 1),
             mediaPreview.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
             mediaPreview.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
-            mediaPreview.bottomAnchor.constraint(lessThanOrEqualTo: contentView.layoutMarginsGuide.bottomAnchor),
+            mediaPreview.bottomAnchor.constraint(lessThanOrEqualTo: contentView.layoutMarginsGuide.bottomAnchor)
         ])
     }
 
     func configure(with notification: ActivityCenterNotification) {
-        backgroundColor = notification.read ? .systemBackground : .systemGray5
+        backgroundColor = notification.read ? .primaryBg : .notificationUnreadHighlight
 
         unreadBadge.isHidden = notification.read
         notificationTextLabel.attributedText = notification.text
-        mediaPreview.image = notification.image
+        
+        if let previewImage = notification.image {
+            mediaPreview.image = previewImage
+            mediaPreviewWidthAnchor?.constant = 44
+        }
         
         if let userId = notification.userID {
             contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
@@ -307,5 +366,6 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         super.prepareForReuse()
         
         contactImage.prepareForReuse()
+        notificationTextLabel.attributedText = nil
     }
 }
