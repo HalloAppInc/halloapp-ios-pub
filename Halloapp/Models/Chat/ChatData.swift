@@ -561,7 +561,16 @@ class ChatData: ObservableObject {
                 let order = med.order
                 let key = med.key
                 let sha = med.sha256
-                let type: FeedMediaType = med.type == ChatMessageMediaType.image ? FeedMediaType.image : FeedMediaType.video
+                let type: FeedMediaType = {
+                    switch med.type {
+                    case .image:
+                        return .image
+                    case .video:
+                        return .video
+                    case .audio:
+                        return .audio
+                    }
+                } ()
             
                 // save attempts
                 self.updateChatMessage(with: messageId) { (chatMessage) in
@@ -599,7 +608,16 @@ class ChatData: ObservableObject {
 
                     MainAppContext.shared.uploadData.update(upload: decryptedData, key: key, sha256: sha, downloadURL: url)
 
-                    let fileExtension = type == .image ? "jpg" : "mp4"
+                    let fileExtension: String = {
+                        switch type {
+                        case .image:
+                            return "jpg"
+                        case .video:
+                            return "mp4"
+                        case .audio:
+                            return "aac"
+                        }
+                    } ()
                     let filename = "\(messageId)-\(order).\(fileExtension)"
                     
                     let fileURL = MainAppContext.chatMediaDirectoryURL
@@ -721,8 +739,17 @@ class ChatData: ObservableObject {
         }
         
         let order = chatMedia.order
-        
-        let fileExtension = chatMedia.type == .image ? "jpg" : "mp4"
+
+        let fileExtension: String = {
+            switch chatMedia.type {
+            case .image:
+                return "jpg"
+            case .video:
+                return "mp4"
+            case .audio:
+                return "aac"
+            }
+        } ()
         let filename = "\(messageId)-\(order).\(fileExtension)"
         
         let toUrl = MainAppContext.chatMediaDirectoryURL
@@ -781,6 +808,8 @@ class ChatData: ObservableObject {
             previewImage = UIImage(contentsOfFile: fromURL.path)
         case .video:
             previewImage = VideoUtils.videoPreviewImage(url: fromURL)
+        case .audio:
+            previewImage = nil // no image to preview
         }
         guard let img = previewImage else {
             DDLogError("ChatData/copyMediaToQuotedMedia/unable to generate thumbnail image for media url: \(fromURL)")
@@ -894,6 +923,8 @@ class ChatData: ObservableObject {
                 chatMessage.text = text
             case .text(let text):
                 chatMessage.text = text
+            case .voiceNote(_):
+                chatMessage.text = ""
             case .unsupported(let data):
                 chatMessage.rawData = data
                 // Overwrite incoming status for unsupported messages
@@ -916,6 +947,11 @@ class ChatData: ObservableObject {
                     chatMedia.type = .video
                     if lastMsgMediaType == .none {
                         lastMsgMediaType = .video
+                    }
+                case .audio:
+                    chatMedia.type = .audio
+                    if lastMsgMediaType == .none {
+                        lastMsgMediaType = .audio
                     }
                 }
                 // set incoming and outgoing status.
@@ -1407,13 +1443,13 @@ extension ChatData {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             self.createChatMsg(toUserId: toUserId,
-                                                       text: text,
-                                                       media: media,
-                                                       feedPostId: feedPostId,
-                                                       feedPostMediaIndex: feedPostMediaIndex,
-                                                       chatReplyMessageID: chatReplyMessageID,
-                                                       chatReplyMessageSenderID: chatReplyMessageSenderID,
-                                                       chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
+                               text: text,
+                               media: media,
+                               feedPostId: feedPostId,
+                               feedPostMediaIndex: feedPostMediaIndex,
+                               chatReplyMessageID: chatReplyMessageID,
+                               chatReplyMessageSenderID: chatReplyMessageSenderID,
+                               chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
         }
         
         addIntent(toUserId: toUserId)
@@ -1471,6 +1507,11 @@ extension ChatData {
                 chatMedia.type = .video
                 if lastMsgMediaType == .none {
                     lastMsgMediaType = .video
+                }
+            case .audio:
+                chatMedia.type = .audio
+                if lastMsgMediaType == .none {
+                    lastMsgMediaType = .audio
                 }
             }
             chatMedia.outgoingStatus = isMsgToYourself ? .uploaded : .pending
@@ -1544,11 +1585,17 @@ extension ChatData {
 
             if let quotedChatMessageMedia = quotedChatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
                 let quotedMedia = ChatQuotedMedia(context: bgContext)
-                if quotedChatMessageMedia.type == .image {
-                    quotedMedia.type = .image
-                } else {
-                    quotedMedia.type = .video
-                }
+                quotedMedia.type = {
+                    switch quotedChatMessageMedia.type {
+                    case .image:
+                        return .image
+                    case .video:
+                        return .video
+                    case .audio:
+                        return .audio
+                    }
+                } ()
+
                 quotedMedia.order = quotedChatMessageMedia.order
                 quotedMedia.width = Float(quotedChatMessageMedia.size.width)
                 quotedMedia.height = Float(quotedChatMessageMedia.size.height)
@@ -1632,7 +1679,16 @@ extension ChatData {
             if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
                 let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
-                let type: FeedMediaType = mediaItem.type == .image ? .image : .video
+                let type: FeedMediaType = {
+                    switch mediaItem.type {
+                    case .image:
+                        return .image
+                    case .video:
+                        return .video
+                    case .audio:
+                        return .audio
+                    }
+                } ()
 
                 imageServer.prepare(type, url: url, output: output) { [weak self] in
                     guard let self = self else { return }
@@ -2197,7 +2253,7 @@ extension ChatData {
                 guard let downloadUrl = xmppMedia.url else { continue }
 
                 DDLogDebug("ChatData/process/new/add-media [\(downloadUrl)]")
-                let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
+                let chatMedia = ChatMedia(context: managedObjectContext)
 
                 switch xmppMedia.mediaType {
                 case .image:
@@ -2210,6 +2266,11 @@ extension ChatData {
                     if lastMsgMediaType == .none {
                         lastMsgMediaType = .video
                     }
+                case .audio:
+                    chatMedia.type = .audio
+                    if lastMsgMediaType == .none {
+                        lastMsgMediaType = .audio
+                    }
                 }
                 chatMedia.incomingStatus = .pending
                 chatMedia.outgoingStatus = .none
@@ -2220,6 +2281,24 @@ extension ChatData {
                 chatMedia.sha256 = xmppMedia.sha256
                 chatMedia.message = chatMessage
             }
+        case .voiceNote(let xmppMedia):
+            guard let downloadUrl = xmppMedia.url else { break }
+
+            DDLogDebug("ChatData/process/new/add-media [\(downloadUrl)]")
+
+            chatMessage.text = ""
+            lastMsgMediaType = .audio
+
+            let chatMedia = ChatMedia(context: managedObjectContext)
+            chatMedia.type = .audio
+            chatMedia.incomingStatus = .pending
+            chatMedia.outgoingStatus = .none
+            chatMedia.url = xmppMedia.url
+            chatMedia.size = xmppMedia.size
+            chatMedia.key = xmppMedia.key
+            chatMedia.order = 0
+            chatMedia.sha256 = xmppMedia.sha256
+            chatMedia.message = chatMessage
         case .text(let text):
             chatMessage.text = text
         case .unsupported(let data):
@@ -2484,9 +2563,12 @@ extension ChatData {
                 switch firstMedia.mediaType {
                 case .image: return "📷"
                 case .video: return "📹"
+                case .audio: return "🎤"
                 }
             }()
             body = [mediaStr, text].compactMap { $0 }.joined(separator: " ")
+        case .voiceNote(_):
+            body =  "🎤"
         case .unsupported(_):
             body = ""
         }
@@ -3128,6 +3210,8 @@ extension ChatData {
                     lastFeedMediaType = .image
                 case .video:
                     lastFeedMediaType = .video
+                case .audio:
+                    lastFeedMediaType = .audio
                 }
             }
         }
@@ -3641,9 +3725,13 @@ extension XMPPChatMessage {
         self.rerequestCount = Int32(chatMessage.resendAttempts)
         
         if let media = chatMessage.media, !media.isEmpty {
-            self.content = .album(
-                chatMessage.text,
-                media.sorted(by: { $0.order < $1.order }).map{ XMPPChatMedia(chatMedia: $0) })
+            if media.count == 1, let item = media.first, item.type == .audio {
+                self.content = .voiceNote(XMPPChatMedia(chatMedia: item))
+            } else {
+                self.content = .album(
+                    chatMessage.text,
+                    media.sorted(by: { $0.order < $1.order }).map{ XMPPChatMedia(chatMedia: $0) })
+            }
         } else {
             self.content = .text(chatMessage.text ?? "")
         }

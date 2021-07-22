@@ -655,6 +655,8 @@ final class ProtoService: ProtoServiceCore {
                         DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/album [length=\(text?.count ?? 0)] [media=\(media.count)]")
                     case .text(let text):
                         DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/text [length=\(text.count)]")
+                    case .voiceNote(_):
+                        DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/voiceNote")
                     case .unsupported(let data):
                         DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/unsupported [length=\(data.count)] [data=\(data.bytes.prefix(4))...]")
                     }

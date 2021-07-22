@@ -13,6 +13,7 @@ import CoreData
 public enum ChatQuoteMediaType: Int16 {
     case image = 0
     case video = 1
+    case audio = 2
 }
 
 public enum MediaDirectory: String {

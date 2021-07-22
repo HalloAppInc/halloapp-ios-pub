@@ -24,6 +24,7 @@ public enum ChatState: String {
 public enum ChatMessageMediaType: Int, Codable {
     case image = 0
     case video = 1
+    case audio = 2
 }
 
 public enum IncomingChatMessage {
@@ -51,6 +52,7 @@ public protocol ChatMessageProtocol {
 public enum ChatContent {
     case text(String)
     case album(String?, [ChatMediaProtocol])
+    case voiceNote(ChatMediaProtocol)
     case unsupported(Data)
 }
 
@@ -89,13 +91,20 @@ public extension ChatContext {
 public extension ChatMessageProtocol {
     var protoContainer: Clients_Container? {
         get {
-            guard let clientChatLegacy = clientChatLegacy else { return nil }
+            var ready = false
             var protoContainer = Clients_Container()
-            protoContainer.chatMessage = clientChatLegacy
+
+            if let clientChatLegacy = clientChatLegacy {
+                protoContainer.chatMessage = clientChatLegacy
+                ready = true
+            }
+
             if let clientChatContainer = clientChatContainer {
                 protoContainer.chatContainer = clientChatContainer
+                ready = true
             }
-            return protoContainer
+
+            return ready ? protoContainer : nil
         }
     }
 
@@ -111,6 +120,11 @@ public extension ChatMessageProtocol {
         case .text(let text):
             let clientsText = Clients_Text(text: text)
             container.message = .text(clientsText)
+        case .voiceNote(let media):
+            guard let protoResource = media.protoResource else { return nil }
+            var vn = Clients_VoiceNote()
+            vn.audio = protoResource
+            container.message = .voiceNote(vn)
         case .unsupported(_):
             return nil
         }
@@ -126,7 +140,7 @@ public extension ChatMessageProtocol {
             protoChatMessage.media = media.compactMap { $0.protoMessage }
         case .text(let text):
             protoChatMessage.text = text
-        case .unsupported(_):
+        case .voiceNote(_), .unsupported(_):
             return nil
         }
 
@@ -160,19 +174,53 @@ public extension ChatMediaProtocol {
                 DDLogError("ChatMediaProtocol/protoMessage/error missing url!")
                 return nil
             }
+            guard let encryptionKey = Data(base64Encoded: key) else {
+                DDLogError("ChatMediaProtocol/protoMessage/error encryption key")
+                return nil
+            }
+            guard let ciphertextHash = Data(base64Encoded: sha256) else {
+                DDLogError("ChatMediaProtocol/protoMessage/error ciphertext hash")
+                return nil
+            }
+
             var media = Clients_Media()
             media.type = {
                 switch mediaType {
                 case .image: return .image
                 case .video: return .video
+                case .audio: return .audio
                 }
             }()
             media.width = Int32(size.width)
             media.height = Int32(size.height)
-            media.encryptionKey = Data(base64Encoded: key)!
-            media.ciphertextHash = Data(base64Encoded: sha256)!
+            media.encryptionKey = encryptionKey
+            media.ciphertextHash = ciphertextHash
             media.downloadURL = url.absoluteString
             return media
+        }
+    }
+
+    var protoResource: Clients_EncryptedResource? {
+        get {
+            guard let url = url else {
+                DDLogError("ChatMediaProtocol/protoResource/error missing url")
+                return nil
+            }
+            guard let encryptionKey = Data(base64Encoded: key) else {
+                DDLogError("ChatMediaProtocol/protoResource/error encryption key")
+                return nil
+            }
+            guard let ciphertextHash = Data(base64Encoded: sha256) else {
+                DDLogError("ChatMediaProtocol/protoResource/error ciphertext hash")
+                return nil
+            }
+
+            var resource = Clients_EncryptedResource()
+            resource.encryptionKey = encryptionKey
+            resource.ciphertextHash = ciphertextHash
+            resource.downloadURL = url.absoluteString
+
+            return resource
         }
     }
 
@@ -201,6 +249,8 @@ public extension ChatMediaProtocol {
             vid.width = Int32(size.width)
             vid.height = Int32(size.height)
             albumMedia.media = .video(vid)
+        case .audio:
+            return nil
         }
         return albumMedia
     }
@@ -250,6 +300,9 @@ extension Clients_ChatMessage {
     public var chatContent: ChatContent {
         if media.isEmpty {
             return .text(text)
+        } else if media.count == 1 && media[0].type == .audio {
+            guard let xmppmedia = XMPPChatMedia(protoMedia: media[0]) else { return .text(text) }
+            return .voiceNote(xmppmedia)
         } else {
             return .album(
                 text.isEmpty ? nil : text,
@@ -292,7 +345,10 @@ extension Clients_ChatContainer {
             return .album(
                 album.text.text.isEmpty ? nil : album.text.text,
                 album.media.compactMap {  XMPPChatMedia(albumMedia: $0) })
-        case .contactCard, .voiceNote, .none:
+        case .voiceNote(let voiceNote):
+            guard let media = XMPPChatMedia(audio: voiceNote.audio) else { fallthrough }
+            return .voiceNote(media)
+        case .contactCard, .none:
             let data = try? serializedData()
             return .unsupported(data ?? Data())
         }
@@ -318,7 +374,7 @@ public struct XMPPChatMedia {
         guard let type = ChatMessageMediaType(clientsMediaType: protoMedia.type) else { return nil }
         guard let url = URL(string: protoMedia.downloadURL) else { return nil }
         let width = CGFloat(protoMedia.width), height = CGFloat(protoMedia.height)
-        guard width > 0 && height > 0 else { return nil }
+        guard (width > 0 && height > 0) || type == .audio  else { return nil }
 
         self.url = url
         self.type = type
@@ -353,6 +409,16 @@ public struct XMPPChatMedia {
             sha256 = video.video.ciphertextHash.base64EncodedString()
         }
     }
+
+    public init?(audio: Clients_EncryptedResource) {
+        guard let downloadURL = URL(string: audio.downloadURL) else { return nil }
+
+        type = .audio
+        url = downloadURL
+        size = .zero
+        key = audio.encryptionKey.base64EncodedString()
+        sha256 = audio.ciphertextHash.base64EncodedString()
+    }
 }
 
 extension XMPPChatMedia: ChatMediaProtocol {
@@ -368,7 +434,9 @@ public extension ChatMessageMediaType {
             self = .image
         case .video:
             self = .video
-        case .audio, .unspecified, .UNRECOGNIZED:
+        case .audio:
+            self = .audio
+        case .unspecified, .UNRECOGNIZED:
             return nil
         }
     }

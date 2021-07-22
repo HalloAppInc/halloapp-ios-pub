@@ -28,6 +28,7 @@ extension ChatThread {
         case none = 0
         case image = 1
         case video = 2
+        case audio = 3
     }
     
     enum LastFeedStatus: Int16 {

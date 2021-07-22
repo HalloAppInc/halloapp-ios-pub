@@ -603,6 +603,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedMedia.type = .image
                 case .video:
                     feedMedia.type = .video
+                case .audio:
+                    feedMedia.type = .audio
                 }
                 feedMedia.status = .none
                 feedMedia.url = xmppMedia.url
@@ -890,6 +892,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     notification.mediaType = .image
                 case .video:
                     notification.mediaType = .video
+                case .audio:
+                    notification.mediaType = .none
                 }
             } else {
                 notification.mediaType = .none
@@ -936,6 +940,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     notification.mediaType = .image
                 case .video:
                     notification.mediaType = .video
+                case .audio:
+                    notification.mediaType = .none
                 }
             } else {
                 notification.mediaType = .none
@@ -1411,6 +1417,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             var startTime: Date?
             var photosDownloaded = 0
             var videosDownloaded = 0
+            var audiosDownloaded = 0
             var totalDownloadSize = 0
 
             feedPost.media?.forEach { feedPostMedia in
@@ -1422,6 +1429,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         switch feedPostMedia.type {
                         case .image: photosDownloaded += 1
                         case .video: videosDownloaded += 1
+                        case .audio: audiosDownloaded += 1
                         }
                         if startTime == nil {
                             startTime = Date()
@@ -1569,6 +1577,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/generateMediaPreview/error")
                 return
             }
+        case .audio:
+            break
         }
     }
 

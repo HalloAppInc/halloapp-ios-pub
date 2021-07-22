@@ -27,6 +27,7 @@ public struct ServerProperties {
         case maxVideoBitRate = "max_video_bit_rate"
         case useClientContainer = "new_client_container"
         case contactSyncFrequency = "contact_sync_frequency"
+        case isVoiceNotesEnabled = "voice_notes"
     }
 
     private struct UserDefaultsKey {
@@ -53,6 +54,7 @@ public struct ServerProperties {
         static let maxVideoBitRate = 8000000.0
         static let useClientContainer = false
         static let contactSyncFrequency: TimeInterval = 24 * 3600
+        static let isVoiceNotesEnabled = false
     }
 
     // MARK: Storage
@@ -231,5 +233,9 @@ public struct ServerProperties {
 
     public static var contactSyncFrequency: TimeInterval {
         ServerProperties.double(forKey: .contactSyncFrequency) ?? Defaults.contactSyncFrequency
+    }
+
+    public static var isVoiceNotesEnabled: Bool {
+        ServerProperties.bool(forKey: .isVoiceNotesEnabled) ?? Defaults.isVoiceNotesEnabled
     }
 }

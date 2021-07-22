@@ -173,7 +173,14 @@ public class MediaCrypter {
     }
 
     private class func HKDFInfo(for mediaType: FeedMediaType) -> [UInt8] {
-        return (mediaType == .image ? "HalloApp image" : "HalloApp video").bytes
+        switch mediaType {
+        case .image:
+            return "HalloApp image".bytes
+        case .video:
+            return "HalloApp video".bytes
+        case .audio:
+            return "HalloApp audio".bytes
+        }
     }
 
     fileprivate class func expandedKey(from key: Data, mediaType: FeedMediaType) throws -> Data {

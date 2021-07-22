@@ -429,6 +429,7 @@ class ShareComposerViewController: UIViewController {
 
         collectionView.register(ImageCell.self, forCellWithReuseIdentifier: ImageCell.reuseIdentifier)
         collectionView.register(VideoCell.self, forCellWithReuseIdentifier: VideoCell.reuseIdentifier)
+        collectionView.register(EmptyCell.self, forCellWithReuseIdentifier: EmptyCell.reuseIdentifier)
 
         return collectionView
     }
@@ -955,11 +956,19 @@ extension ShareComposerViewController: UICollectionViewDataSource, UICollectionV
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoCell.reuseIdentifier, for: indexPath) as! VideoCell
             cell.configure(media[indexPath.row])
             return cell
+        case .audio:
+            return collectionView.dequeueReusableCell(withReuseIdentifier: EmptyCell.reuseIdentifier, for: indexPath)
         }
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return collectionView.bounds.size
+    }
+}
+
+fileprivate class EmptyCell: UICollectionViewCell {
+    static var reuseIdentifier: String {
+        return String(describing: EmptyCell.self)
     }
 }
 

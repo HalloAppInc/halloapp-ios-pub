@@ -359,6 +359,8 @@ class NotificationMetadata: Codable {
                 return "📷"
             case .video:
                 return "📹"
+            case .audio:
+                return "🎤"
         }
     }
 
@@ -496,6 +498,8 @@ class NotificationMetadata: Codable {
                 return Self.mediaIcon(firstMedia.mediaType)
             }()
             return [mediaIcon, text].compactMap { $0 }.joined(separator: " ")
+        case .voiceNote(_):
+            return NSLocalizedString("notification.voicenote", value: "🎤 Voice note", comment: "New post notification text when post is a voice note.")
         case .unsupported:
             DDLogInfo("NotificationMetadata/bodyText/unsupported")
             return nil

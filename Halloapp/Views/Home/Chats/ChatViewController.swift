@@ -293,6 +293,12 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             }
         )
 
+        cancellableSet.insert(
+            NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { [weak self] (_) in
+                guard let self = self else { return }
+                self.stopPlayback()
+        })
+
         configureTitleViewWithTypingIndicator()
         
         loadChatDraft(id: fromUserId)
@@ -337,6 +343,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         if let id = fromUserId {
             saveChatDraft(id: id)
         }
+        stopPlayback()
         MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
         chatInputView.willDisappear(in: self)
         
@@ -347,6 +354,16 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
     deinit {
         DDLogDebug("ChatViewController/deinit/\(fromUserId ?? "")")
+    }
+
+    private func stopPlayback() {
+        for cell in tableView.visibleCells {
+            if let cell = cell as? OutboundMsgViewCell {
+                cell.stopPlayback()
+            } else if let cell = cell as? InboundMsgViewCell {
+                cell.stopPlayback()
+            }
+        }
     }
     
     private func updateBackButtonUnreadCount(num: Int) {
@@ -648,23 +665,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         return nil
     }
     
-    private func updateCellMedia(for cell: InboundMsgViewCell, with med: ChatMedia) {
-        guard let relativeFilePath = med.relativeFilePath else { return }
-        var img: UIImage?
-        let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
-        
-        if med.type == .image {
-            if let image = UIImage(contentsOfFile: fileURL.path) {
-                img = image
-            }
-        } else if med.type == .video {
-            if let image = VideoUtils.videoPreviewImage(url: fileURL) {
-                img = image
-            }
-        }
-        cell.updateMedia(SliderMedia(image: img, type: med.type, order: Int(med.order)))
-    }
-    
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any,
                     at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         
@@ -693,7 +693,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             if let updatedChatMedia = findUpdatedMedia(for: chatMessage) {
                 guard let cell = self.tableView.cellForRow(at: indexPath!) as? InboundMsgViewCell else { break }
                 DDLogDebug("ChatViewController/frc/update-cell-directly/updatedMedia")
-                self.updateCellMedia(for: cell, with: updatedChatMedia)
+                cell.updateMedia(updatedChatMedia)
             }
         case .insert:
             DDLogDebug("ChatViewController/frc/insert")
@@ -1021,6 +1021,14 @@ extension ChatViewController: UITableViewDelegate {
 //        DDLogDebug("ChatViewController/estimateCellHeight/\(chatMessage.id)")
         return result
     }
+
+    func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if let cell = cell as? OutboundMsgViewCell {
+            cell.stopPlayback()
+        } else if let cell = cell as? InboundMsgViewCell {
+            cell.stopPlayback()
+        }
+    }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateJumpButtonVisibility()
@@ -1070,10 +1078,9 @@ extension ChatViewController {
         guard let userID = chatReplyMessageSenderID else { return }
         
         if let mediaItem = chatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
-            let mediaType: ChatMessageMediaType = mediaItem.type == .video ? .video : .image
             let mediaUrl = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
             
-            chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.text ?? "", mediaType: mediaType, mediaUrl: mediaUrl, from: self)
+            chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.text ?? "", mediaType: mediaItem.type, mediaUrl: mediaUrl, from: self)
         } else {
             chatInputView.showQuoteFeedPanel(with: userID, text: chatMessage.text ?? "", mediaType: nil, mediaUrl: nil, from: self)
         }
@@ -1258,13 +1265,24 @@ extension ChatViewController: ChatInputViewDelegate {
         chatReplyMessageMediaIndex = 0
     }
     
-    func chatInputView(_ inputView: ChatInputView) {
+    func chatInputViewDidSelectMediaPicker(_ inputView: ChatInputView) {
         presentMediaPicker()
     }
+
+    func chatInputViewMicrophoneAccessDenied(_ inputView: ChatInputView) {
+        let alert = UIAlertController(title: Localizations.micAccessDeniedTitle, message: Localizations.micAccessDeniedMessage, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default, handler: { _ in
+            guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
+            UIApplication.shared.open(settingsUrl)
+        }))
+
+        present(alert, animated: true)
+    }
     
-    func chatInputView(_ inputView: ChatInputView, mentionText: MentionText) {
+    func chatInputView(_ inputView: ChatInputView, mentionText: MentionText, media: [PendingMedia]) {
         let text = mentionText.trimmed().collapsedText
-        sendMessage(text: text, media: [])
+        sendMessage(text: text, media: media)
     }
 }
 
@@ -1609,4 +1627,11 @@ private extension Localizations {
         NSLocalizedString("chat.add.to.address.book.success", value: "Contact Added Successfully", comment: "Alert text shown when the contact has been added to the address book successfully")
     }
 
+    static var micAccessDeniedTitle: String {
+        NSLocalizedString("chat.mic.access.denied.title", value: "Unable to access microphone", comment: "Alert title when missing microphone access")
+    }
+
+    static var micAccessDeniedMessage: String {
+        NSLocalizedString("chat.mic.access.denied.message", value: "To enable audio recording, please tap on Settings and then turn on Microphone", comment: "Alert message when missing microphone access")
+    }
 }

@@ -315,6 +315,8 @@
 		F5E5842640950E619AA50E59 /* Pods_HalloAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6B5578700125D5FF5728637 /* Pods_HalloAppTests.framework */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
 		F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */; };
+		F850677826A55DAC00A120EC /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F850677726A55DAC00A120EC /* AudioRecorder.swift */; };
+		F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F850677926A7FDDF00A120EC /* AudioView.swift */; };
 		F851E9512500E47300BC0FAA /* MediaPickerSnapshotManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */; };
 		F8606DD1257E7340006CD1A6 /* MediaExplorerVideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DD0257E7340006CD1A6 /* MediaExplorerVideoCell.swift */; };
 		F8606DD6257E7402006CD1A6 /* MediaExplorerImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DD5257E7402006CD1A6 /* MediaExplorerImageCell.swift */; };
@@ -860,6 +862,8 @@
 		EAF3A1E62334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
 		F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoEditViewController.swift; sourceTree = "<group>"; };
+		F850677726A55DAC00A120EC /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
+		F850677926A7FDDF00A120EC /* AudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioView.swift; sourceTree = "<group>"; };
 		F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerSnapshotManager.swift; sourceTree = "<group>"; };
 		F8606DD0257E7340006CD1A6 /* MediaExplorerVideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerVideoCell.swift; sourceTree = "<group>"; };
 		F8606DD5257E7402006CD1A6 /* MediaExplorerImageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerImageCell.swift; sourceTree = "<group>"; };
@@ -1461,6 +1465,7 @@
 				766103A22461E63200728870 /* Receipts */,
 				76DFA0012419560300F49CA4 /* XMPP */,
 				EAAA5C0C25644A9600B81630 /* Utils.swift */,
+				F850677726A55DAC00A120EC /* AudioRecorder.swift */,
 				2446D67B24CB54F8005BAD3C /* VideoUtils.swift */,
 				68C8264A251A77A000BB8F3A /* NUX.swift */,
 			);
@@ -1524,6 +1529,7 @@
 				5BF5D12224F5295300F272D8 /* CameraViewController.swift */,
 				F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */,
 				F893C86E25E5213000068F00 /* VideoView.swift */,
+				F850677926A7FDDF00A120EC /* AudioView.swift */,
 			);
 			path = Media;
 			sourceTree = "<group>";
@@ -2418,6 +2424,7 @@
 				2446D67C24CB54F8005BAD3C /* VideoUtils.swift in Sources */,
 				761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */,
 				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
+				F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */,
 				EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */,
 				76271384252D24AD00389FBC /* FeedItemContentView.swift in Sources */,
 				EA796B9D2469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift in Sources */,
@@ -2511,6 +2518,7 @@
 				F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */,
 				EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */,
 				E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */,
+				F850677826A55DAC00A120EC /* AudioRecorder.swift in Sources */,
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
 				76451C3A254795F500B9E268 /* MainAppStrings.swift in Sources */,
 				EA5975DE252D3CF600810F48 /* GroupMemberAvatars.swift in Sources */,

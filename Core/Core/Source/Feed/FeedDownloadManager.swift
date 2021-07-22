@@ -429,6 +429,8 @@ public class FeedDownloadManager {
             return "jpg"
         case .video:
             return "mp4"
+        case .audio:
+            return "aac"
         }
     }
 

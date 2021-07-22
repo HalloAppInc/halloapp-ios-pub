@@ -21,9 +21,10 @@ fileprivate protocol ContainerViewDelegate: AnyObject {
 
 protocol ChatInputViewDelegate: AnyObject {
     func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve)
-    func chatInputView(_ inputView: ChatInputView, mentionText: MentionText)
+    func chatInputView(_ inputView: ChatInputView, mentionText: MentionText, media: [PendingMedia])
     func chatInputView(_ inputView: ChatInputView, isTyping: Bool)
-    func chatInputView(_ inputView: ChatInputView)
+    func chatInputViewDidSelectMediaPicker(_ inputView: ChatInputView)
+    func chatInputViewMicrophoneAccessDenied(_ inputView: ChatInputView)
     func chatInputViewCloseQuotePanel(_ inputView: ChatInputView)
 }
 
@@ -48,6 +49,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     // only send an available indicator after 3 seconds of no typing
     private let typingDebounceInterval: TimeInterval = 3
     private var typingDebounceTimer: Timer? = nil
+
+    private var voiceNoteRecorder = AudioRecorder()
     
     // MARK: ChatInput Lifecycle
 
@@ -175,6 +178,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         mentionPickerTopConstraint = mentionPicker.topAnchor.constraint(equalTo: contentView.topAnchor)
         
         setPlaceholderText()
+
+        voiceNoteRecorder.delegate = self
     }
     
     class ContainerView: UIView {
@@ -400,6 +405,21 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return view
     }()
+
+    private lazy var recordVoiceNoteButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "mic.fill"), for: .normal)
+        button.addTarget(self, action: #selector(recordVoiceNoteClicked), for: .touchUpInside)
+        button.isEnabled = true
+        button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
+        button.tintColor = UIColor.primaryBlue
+
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        return button
+    }()
     
     private lazy var postMediaButton: UIButton = {
         let button = UIButton(type: .system)
@@ -441,6 +461,11 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     
     private lazy var postButtonsContainer: UIStackView = {
         let view = UIStackView(arrangedSubviews: [postMediaButton, postButton])
+
+        if ServerProperties.isVoiceNotesEnabled {
+            view.insertArrangedSubview(recordVoiceNoteButton, at: 1)
+        }
+
         view.axis = .horizontal
         view.spacing = 10
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -571,20 +596,29 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         }
         
         quoteFeedPanel.subviews[0].backgroundColor = quoteFeedPanelNameLabel.textColor.withAlphaComponent(0.1)
-        
-        if mediaType != nil && mediaUrl != nil {
-            guard let fileUrl = mediaUrl else { return }
-            
-            if mediaType == .image {
-                if let image = UIImage(contentsOfFile: fileUrl.path) {
+
+
+        if let type = mediaType, let url = mediaUrl {
+            switch type {
+            case .image:
+                if let image = UIImage(contentsOfFile: url.path) {
+                    quoteFeedPanelImage.contentMode = .scaleAspectFill
                     quoteFeedPanelImage.image = image
                 }
-            } else if mediaType == .video {
-                if let image = VideoUtils.videoPreviewImage(url: fileUrl) {
+            case .video:
+                if let image = VideoUtils.videoPreviewImage(url: url) {
+                    quoteFeedPanelImage.contentMode = .scaleAspectFill
                     quoteFeedPanelImage.image = image
+                }
+            case .audio:
+                quoteFeedPanelImage.contentMode = .scaleAspectFit
+                quoteFeedPanelImage.image = UIImage(systemName: "mic.fill")
+
+                if quoteFeedPanelTextLabel.text?.isEmpty != false {
+                    quoteFeedPanelTextLabel.text = Localizations.chatMessageAudio
                 }
             }
-            
+
             quoteFeedPanelImage.isHidden = false
         } else {
             quoteFeedPanelImage.isHidden = true
@@ -627,6 +661,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         textView.tag = 1
         textView.textColor = UIColor.label
         postMediaButton.isHidden = true // hide media button when there's text
+        recordVoiceNoteButton.isHidden = true
         postButton.isEnabled = true
     }
     
@@ -655,23 +690,54 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
             textIsUneditedReplyMention = true
         }
     }
+
+    @objc func recordVoiceNoteClicked() {
+        textView.resignFirstResponder()
+        
+        if voiceNoteRecorder.isRecording {
+            voiceNoteRecorder.stop(cancel: true)
+
+            AudioServicesPlaySystemSound(1111)
+        } else {
+            AudioServicesPlaySystemSound(1110)
+
+            // 300ms to avoid recording the start sound
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300)) { [weak self] in
+                guard let self = self else { return }
+                self.voiceNoteRecorder.start()
+            }
+        }
+    }
     
     @objc func postButtonClicked() {
         resetTypingTimers()
         acceptAutoCorrection()
-        
-        let mentionText = MentionText(expandedText: textView.text, mentionRanges: textView.mentions)
-        
-        delegate?.chatInputView(self, mentionText: mentionText)
+
+        if voiceNoteRecorder.isRecording {
+            voiceNoteRecorder.stop(cancel: false)
+
+            let media = PendingMedia(type: .audio)
+            media.size = .zero
+            media.order = 1
+            media.fileURL = voiceNoteRecorder.url
+
+            let mentionText = MentionText(expandedText: "", mentionRanges: [:])
+            delegate?.chatInputView(self, mentionText: mentionText, media: [media])
+        } else {
+            let mentionText = MentionText(expandedText: textView.text, mentionRanges: textView.mentions)
+            delegate?.chatInputView(self, mentionText: mentionText, media: [])
+        }
+
         closeQuoteFeedPanel()
         textView.resetMentions()
     }
 
     @objc func postMediaButtonClicked() {
+        guard voiceNoteRecorder.isRecording != true else { return }
         
         resetTypingTimers()
         
-        delegate?.chatInputView(self)
+        delegate?.chatInputViewDidSelectMediaPicker(self)
     }
     
     private func setPlaceholderText() {
@@ -854,6 +920,8 @@ extension ChatInputView: InputTextViewDelegate {
     }
     
     func inputTextViewShouldBeginEditing(_ inputTextView: InputTextView) -> Bool {
+        guard !voiceNoteRecorder.isRecording else { return false }
+
         if (textView.tag == 0){
             textView.text = ""
             textView.textColor = UIColor.label
@@ -880,6 +948,7 @@ extension ChatInputView: InputTextViewDelegate {
         
         postButton.isEnabled = !text.isEmpty
         postMediaButton.isHidden = !text.isEmpty // hide media button when there's text
+        recordVoiceNoteButton.isHidden = !text.isEmpty
         
         if textView.contentSize.height >= 115 {
             textViewContainerHeightConstraint?.constant = 115
@@ -920,6 +989,47 @@ extension ChatInputView: InputTextViewDelegate {
         return true
     }
     
+}
+
+// MARK: AudioRecorderDelegate
+extension ChatInputView: AudioRecorderDelegate {
+    func audioRecorderMicrphoneAccessDenied(_ recorder: AudioRecorder) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.delegate?.chatInputViewMicrophoneAccessDenied(self)
+        }
+    }
+
+    func audioRecorderStarted(_ recorder: AudioRecorder) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.recordVoiceNoteButton.setImage(UIImage(systemName: "mic.slash.fill"), for: .normal)
+            self.recordVoiceNoteButton.tintColor = .systemRed
+            self.postMediaButton.isHidden = true
+            self.postButton.isEnabled = true
+            self.textView.text = "0:00"
+            self.textView.textColor = .red
+        }
+    }
+
+    func audioRecorderStopped(_ recorder: AudioRecorder) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.recordVoiceNoteButton.setImage(UIImage(systemName: "mic.fill"), for: .normal)
+            self.recordVoiceNoteButton.tintColor = .primaryBlue
+            self.postMediaButton.isHidden = false
+            self.postButton.isEnabled = false
+            self.textView.text = ""
+            self.setPlaceholderText()
+        }
+    }
+
+    func audioRecorder(_ recorder: AudioRecorder, at time: String) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.textView.text = time
+        }
+    }
 }
 
 extension Localizations {

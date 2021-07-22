@@ -80,6 +80,8 @@ class ImageServer {
                 self.process(image: url, completion: processingCompletion)
             case .video:
                 self.resize(video: url, completion: processingCompletion)
+            case .audio:
+                processingCompletion(.success((url, .zero)))
             }
         }
     }

@@ -87,6 +87,7 @@ extension SharedMedia: ChatMediaProtocol {
         switch type {
         case .image: return .image
         case .video: return .video
+        case .audio: return .audio
         }
     }
 }

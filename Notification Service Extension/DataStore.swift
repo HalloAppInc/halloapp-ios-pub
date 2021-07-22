@@ -137,6 +137,7 @@ class DataStore: NotificationServiceExtensionDataStore {
             switch mediaData.mediaType {
             case .image: return .image
             case .video: return .video
+            case .audio: return .audio
             }
         }()
         chatMedia.status = .none

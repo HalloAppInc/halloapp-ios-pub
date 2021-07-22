@@ -142,6 +142,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     static private let cellReuseIdentifierImage = "MediaCarouselCellImage"
     static private let cellReuseIdentifierVideo = "MediaCarouselCellVideo"
+    static private let cellReuseIdentifierEmpty = "MediaCarouselCellEmpty"
 
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -159,6 +160,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(MediaCarouselImageCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierImage)
         collectionView.register(MediaCarouselVideoCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierVideo)
+        collectionView.register(MediaCarouselEmptyCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierEmpty)
         collectionView.isPagingEnabled = configuration.isPagingEnabled
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
@@ -227,6 +229,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                 switch feedMedia.type {
                 case .image: return Self.cellReuseIdentifierImage
                 case .video: return Self.cellReuseIdentifierVideo
+                case .audio: return Self.cellReuseIdentifierEmpty
                 }
             }()
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as?
@@ -562,6 +565,9 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
     private func hideProgressView() {
         progressViewIfExists()?.isHidden = true
     }
+}
+
+fileprivate class MediaCarouselEmptyCollectionViewCell: MediaCarouselCollectionViewCell {
 }
 
 fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionViewCell {

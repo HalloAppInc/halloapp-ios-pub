@@ -191,6 +191,8 @@ class MediaEditViewController: UIViewController {
             let muteBtn = UIBarButtonItem(image: muteIcon(media[selected].muted), style: .plain, target: self, action: #selector(toggleMuteAction))
             muteBtn.accessibilityLabel = Localizations.voiceOverButtonMute
             navigationItem.rightBarButtonItems = [muteBtn]
+        case .audio:
+            break // audio edit is not currently suported
         }
 
         cancellable?.cancel()
@@ -218,6 +220,8 @@ class MediaEditViewController: UIViewController {
             controller = ImageEditViewController(media[selected], cropRegion: cropRegion, maxAspectRatio: maxAspectRatio)
         case .video:
             controller = VideoEditViewController(media[selected])
+        case .audio:
+            return // audio edit is not currently suported
         }
 
         controller.view.translatesAutoresizingMaskIntoConstraints = false

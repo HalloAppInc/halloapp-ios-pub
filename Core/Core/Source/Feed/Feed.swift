@@ -27,6 +27,7 @@ public typealias FeedPostCommentID = String
 public enum FeedMediaType: Int {
     case image = 0
     case video = 1
+    case audio = 2
 }
 
 
@@ -95,6 +96,7 @@ extension FeedMediaProtocol {
                 switch type {
                 case .image: return .image
                 case .video: return .video
+                case .audio: return .audio
                 }
             }()
             media.width = Int32(size.width)

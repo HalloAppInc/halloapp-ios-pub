@@ -121,6 +121,8 @@ extension ChatMedia: QuotedMedia {
             return .image
         case .video:
             return .video
+        case .audio:
+            return .audio
         }
     }
 }

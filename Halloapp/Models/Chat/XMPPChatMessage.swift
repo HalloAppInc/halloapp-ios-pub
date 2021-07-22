@@ -25,6 +25,8 @@ extension XMPPChatMessage: ChatMessageProtocol {
         switch content {
         case .album(_, let media):
             return media
+        case .voiceNote(let media):
+            return [media]
         case .text, .unsupported:
             return []
         }
@@ -39,7 +41,7 @@ extension XMPPChatMedia {
     init(chatMedia: ChatMedia) {
         self.init(
             url: chatMedia.url,
-            type: chatMedia.type == .image ? .image : .video,
+            type: chatMedia.type,
             size: chatMedia.size,
             key: chatMedia.key,
             sha256: chatMedia.sha256)

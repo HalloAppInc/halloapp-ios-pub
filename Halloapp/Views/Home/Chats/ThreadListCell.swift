@@ -105,6 +105,12 @@ class ThreadListCell: UITableViewCell {
                 messageText = Localizations.chatMessageVideo
             }
 
+        case .audio:
+            mediaIcon = UIImage(systemName: "mic.fill")
+            if messageText.isEmpty {
+                messageText = Localizations.chatMessageAudio
+            }
+
         default:
             break
         }

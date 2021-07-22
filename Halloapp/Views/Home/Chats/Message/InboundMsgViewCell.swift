@@ -325,6 +325,25 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         return textView
     }()
 
+    // MARK: Voice Note Row
+    private lazy var voiceNoteRow: AudioView = {
+        let view = AudioView()
+        view.textColor = .systemGray
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layoutMargins = UIEdgeInsets(top: 8, left: 4, bottom: 0, right: 4)
+
+        NSLayoutConstraint.activate([
+            view.heightAnchor.constraint(equalToConstant: 32),
+            view.widthAnchor.constraint(equalToConstant: MaxWidthOfMsgBubble - 96),
+        ])
+
+        return view
+    } ()
+
+    func stopPlayback() {
+        voiceNoteRow.pause()
+    }
+
     func highlight() {
         UIView.animate(withDuration: 1.0, animations: {
             self.contentView.backgroundColor = .systemYellow
@@ -415,32 +434,39 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 quotedTextView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
 
-            // TODO: need to optimize
-            if let media = quoted.media {
+            if let media = quoted.media, let item = media.first(where: { $0.order == mediaIndex }) {
+                let fileURL = item.mediaUrl
 
-                if let med = media.first(where: { $0.order == mediaIndex }) {
-                    let fileURL = med.mediaUrl
-                    if let thumbnailData = med.previewData {
-                        quotedImageView.image = UIImage(data: thumbnailData)
-                    } else {
-                        if med.type == .image {
-                            if let image = UIImage(contentsOfFile: fileURL.path) {
-                                quotedImageView.image = image
-                            } else {
-                                DDLogError("IncomingMsgView/quoted/no-image/fileURL \(fileURL)")
-                            }
-                        } else if med.type == .video {
-                            if let image = VideoUtils.videoPreviewImage(url: fileURL, size: nil) {
-                                quotedImageView.image = image
-                            } else {
-                                DDLogError("IncomingMsgView/quoted/no-video-preview/fileURL \(fileURL)")
-                            }
+                if let thumbnailData = item.previewData, item.type != .audio {
+                    quotedImageView.image = UIImage(data: thumbnailData)
+                } else {
+                    switch item.type {
+                    case .image:
+                        if let image = UIImage(contentsOfFile: fileURL.path) {
+                            quotedImageView.contentMode = .scaleAspectFill
+                            quotedImageView.image = image
+                        } else {
+                            DDLogError("IncomingMsgView/quoted/no-image/fileURL \(fileURL)")
+                        }
+                    case .video:
+                        if let image = VideoUtils.videoPreviewImage(url: fileURL) {
+                            quotedImageView.contentMode = .scaleAspectFill
+                            quotedImageView.image = image
+                        } else {
+                            DDLogError("IncomingMsgView/quoted/no-video-preview/fileURL \(fileURL)")
+                        }
+                    case .audio:
+                        quotedImageView.contentMode = .scaleAspectFit
+                        quotedImageView.image = UIImage(systemName: "mic.fill")
+
+                        if quotedTextView.text.isEmpty {
+                            quotedTextView.text = Localizations.chatMessageAudio
                         }
                     }
-                    quotedImageView.isUserInteractionEnabled = FileManager.default.fileExists(atPath: fileURL.path)
-                    quotedImageView.isHidden = false
                 }
 
+                quotedImageView.isUserInteractionEnabled = FileManager.default.fileExists(atPath: fileURL.path)
+                quotedImageView.isHidden = false
             }
             
             quotedRow.isHidden = false
@@ -460,6 +486,15 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
         var showRightToLeft: Bool = false
 
+        let isVoiceNote = media?.count == 1 && media?.first?.type == .audio
+
+        if isVoiceNote, let item = media?.first {
+            let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(item.relativeFilePath ?? "", isDirectory: false)
+
+            voiceNoteRow.url = url
+            bubbleWrapper.insertArrangedSubview(voiceNoteRow, at: bubbleWrapper.arrangedSubviews.count - 1)
+        }
+                
         // text
         switch displayText {
         case .normal(let text, let orderedMentions):
@@ -500,11 +535,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         }
 
         // media
-        if let media = media {
-            
-            if textView.text == "" {
-                textView.isHidden = true
-            }
+        if let media = media, !isVoiceNote {
             
             var sliderMediaArr: [SliderMedia] = []
             
@@ -558,10 +589,25 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         if let timestamp = timestamp {
             timeLabel.text = timestamp.chatTimestamp()
         }
+
+        textView.isHidden = textView.text.isEmpty
     }
-    
-    func updateMedia(_ sliderMedia: SliderMedia) {
-        mediaImageView.updateMedia(sliderMedia)
+
+    func updateMedia(_ media: ChatMedia) {
+        guard let relativeFilePath = media.relativeFilePath else { return }
+        let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+
+        switch media.type {
+        case .video:
+            guard let image = VideoUtils.videoPreviewImage(url: url) else { return }
+            mediaImageView.updateMedia(SliderMedia(image: image, type: .image, order: Int(media.order)))
+            break
+        case .image:
+            guard let image = UIImage(contentsOfFile: url.path) else { return }
+            mediaImageView.updateMedia(SliderMedia(image: image, type: .image, order: Int(media.order)))
+        case .audio:
+            voiceNoteRow.url = url
+        }
     }
     
     // MARK: reuse
@@ -596,6 +642,8 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         textView.text = ""
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
         textView.textColor = traitCollection.userInterfaceStyle == .light ? .darkText : .lightText
+
+        voiceNoteRow.removeFromSuperview()
         
         timeLabel.isHidden = false
         timeLabel.text = nil
