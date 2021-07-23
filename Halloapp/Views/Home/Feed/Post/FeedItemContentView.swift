@@ -213,9 +213,13 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     }
 
     class func preferredHeight(forPost post: FeedPost, contentWidth: CGFloat, isTextExpanded: Bool) -> CGFloat {
-        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) else {
-            return 0
-        }
+        let feedDataItem: FeedDataItem = {
+            if let cachedItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) {
+                return cachedItem
+            }
+            DDLogError("FeedItemContentView/preferredHeight/error missing-feed-data-item [\(post.id)]")
+            return FeedDataItem(post)
+        }()
 
         var contentHeight = LayoutConstants.topMargin
 
