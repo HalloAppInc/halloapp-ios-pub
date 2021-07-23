@@ -425,6 +425,7 @@ public final class NoiseStream: NSObject {
             let packetStart = offset + 4
             let packetEnd = packetStart + length
             if packetEnd > buffer.count {
+                DDLogInfo("noise/receive/buffering [\(packetEnd - buffer.count) of \(length) bytes remaining...]")
                 break
             }
             let packetData = buffer.subdata(in: packetStart..<packetEnd)
