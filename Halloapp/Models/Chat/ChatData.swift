@@ -461,13 +461,13 @@ class ChatData: ObservableObject {
                 if let chatThread = self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) {
                     guard chatThread.lastMsgId == nil else { continue }
                     if chatThread.title != fullName {
-                        DDLogDebug("ChatData/populateThreads/contact/rename \(userId)")
+                        DDLogDebug("ChatData/updateThreads/contact/rename \(userId)")
                         self.updateChatThread(type: .oneToOne, for: userId) { (chatThread) in
                             chatThread.title = fullName
                         }
                     }
                 } else {
-                    DDLogInfo("ChatData/populateThreads/contact/new \(userId)")
+                    DDLogInfo("ChatData/updateThreads/contact/new \(userId)")
                     let chatThread = ChatThread(context: managedObjectContext)
                     chatThread.title = fullName
                     chatThread.chatWithUserId = userId
@@ -480,8 +480,22 @@ class ChatData: ObservableObject {
                     chatThread.isNew = areNewUsers
                 }
             }
-            // TODO: take care of deletes, ie. user removes contact from address book
 
+            // save updates
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+
+            /* remove empty threads of users not in the address book */
+            let emptyOneToOneChatThreads = self.emptyOneToOneChatThreads(in: managedObjectContext)
+            emptyOneToOneChatThreads.forEach({
+                guard let chatWithUserID = $0.chatWithUserId else { return }
+                guard userIDs[chatWithUserID] == nil else { return }
+                DDLogInfo("ChatData/updateThreads/emptyOneToOneChatThreads/remove \(chatWithUserID)")
+                self.deleteChat(chatThreadId: chatWithUserID)
+            })
+
+            // save deletes
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
@@ -1190,6 +1204,10 @@ extension ChatData {
             DDLogError("ChatThread/fetch/error  [\(error)]")
             fatalError("Failed to fetch chat threads")
         }
+    }
+    
+    func emptyOneToOneChatThreads(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
+        return chatThreads(predicate: NSPredicate(format: "groupId == nil AND lastMsgId == nil"), in: managedObjectContext)
     }
     
     func chatThread(type: ChatType, id: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatThread? {
