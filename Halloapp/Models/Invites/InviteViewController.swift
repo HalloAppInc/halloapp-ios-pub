@@ -123,11 +123,11 @@ final class InviteViewController: UIViewController {
         UICollectionViewDiffableDataSource<InviteSection, InviteContact>(collectionView: collectionView) { [weak self] collectionView, indexPath, contact in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: InviteCellReuse, for: indexPath)
             if let self = self, let itemCell = cell as? InviteCollectionViewCell {
-                let actions: [InviteActionType] = {
-                    guard contact.userID == nil else { return [] }
-                    guard self.isWhatsAppInstalled else { return [.sms] }
-                    return [.sms, .whatsApp]
-                }()
+                var actions = [InviteActionType]()
+                if contact.userID == nil {
+                    if self.isIMessageAvailable { actions.append(.sms) }
+                    if self.isWhatsAppAvailable { actions.append(.whatsApp) }
+                }
                 itemCell.configure(
                     with: contact,
                     actions: InviteActions(
@@ -142,9 +142,13 @@ final class InviteViewController: UIViewController {
 
     // MARK: Private
 
-    private let isWhatsAppInstalled: Bool = {
+    private let isWhatsAppAvailable: Bool = {
         guard let url = URL(string: "whatsapp://app") else { return false }
         return UIApplication.shared.canOpenURL(url)
+    }()
+
+    private let isIMessageAvailable: Bool = {
+        MFMessageComposeViewController.canSendText()
     }()
 
     private let dismissAction: (() -> Void)?
@@ -358,7 +362,7 @@ extension InviteViewController: UICollectionViewDelegate, UICollectionViewDelega
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard !isWhatsAppInstalled else {
+        guard isIMessageAvailable && !isWhatsAppAvailable else {
             // Trigger SMS action on cell tap only if WhatsApp is not installed
             return
         }
