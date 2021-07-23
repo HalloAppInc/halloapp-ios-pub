@@ -68,6 +68,46 @@ extension Clients_MediaType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public enum Clients_BlobVersion: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+  case `default` // = 0
+  case chunked // = 1
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .default
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .default
+    case 1: self = .chunked
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .default: return 0
+    case .chunked: return 1
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Clients_BlobVersion: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Clients_BlobVersion] = [
+    .default,
+    .chunked,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 public enum Clients_PhoneType: SwiftProtobuf.Enum {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -132,6 +172,12 @@ public struct Clients_Media {
   public var ciphertextHash: Data = Data()
 
   public var downloadURL: String = String()
+
+  public var blobVersion: Clients_BlobVersion = .default
+
+  public var chunkSize: Int32 = 0
+
+  public var blobSize: Int64 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -927,6 +973,13 @@ extension Clients_MediaType: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
+extension Clients_BlobVersion: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "BLOB_VERSION_DEFAULT"),
+    1: .same(proto: "BLOB_VERSION_CHUNKED"),
+  ]
+}
+
 extension Clients_PhoneType: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "PHONE_TYPE_UNSPECIFIED"),
@@ -945,6 +998,9 @@ extension Clients_Media: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     4: .standard(proto: "encryption_key"),
     5: .standard(proto: "ciphertext_hash"),
     6: .standard(proto: "download_url"),
+    7: .standard(proto: "blob_version"),
+    8: .standard(proto: "chunk_size"),
+    9: .standard(proto: "blob_size"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -959,6 +1015,9 @@ extension Clients_Media: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
       case 4: try { try decoder.decodeSingularBytesField(value: &self.encryptionKey) }()
       case 5: try { try decoder.decodeSingularBytesField(value: &self.ciphertextHash) }()
       case 6: try { try decoder.decodeSingularStringField(value: &self.downloadURL) }()
+      case 7: try { try decoder.decodeSingularEnumField(value: &self.blobVersion) }()
+      case 8: try { try decoder.decodeSingularInt32Field(value: &self.chunkSize) }()
+      case 9: try { try decoder.decodeSingularInt64Field(value: &self.blobSize) }()
       default: break
       }
     }
@@ -983,6 +1042,15 @@ extension Clients_Media: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     if !self.downloadURL.isEmpty {
       try visitor.visitSingularStringField(value: self.downloadURL, fieldNumber: 6)
     }
+    if self.blobVersion != .default {
+      try visitor.visitSingularEnumField(value: self.blobVersion, fieldNumber: 7)
+    }
+    if self.chunkSize != 0 {
+      try visitor.visitSingularInt32Field(value: self.chunkSize, fieldNumber: 8)
+    }
+    if self.blobSize != 0 {
+      try visitor.visitSingularInt64Field(value: self.blobSize, fieldNumber: 9)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -993,6 +1061,9 @@ extension Clients_Media: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     if lhs.encryptionKey != rhs.encryptionKey {return false}
     if lhs.ciphertextHash != rhs.ciphertextHash {return false}
     if lhs.downloadURL != rhs.downloadURL {return false}
+    if lhs.blobVersion != rhs.blobVersion {return false}
+    if lhs.chunkSize != rhs.chunkSize {return false}
+    if lhs.blobSize != rhs.blobSize {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -19,7 +19,6 @@ public struct ServerProperties {
         case maxGroupSize = "max_group_size"
         case groupSyncTime = "group_sync_time"
         case groupFeed = "group_feed"
-        case groupChat = "group_chat"
         case groupInviteLinks = "group_invite_links"
         case groupBackground = "group_background"
         case silentChatMessages = "silent_chat_messages"
@@ -27,6 +26,7 @@ public struct ServerProperties {
         case maxChatVideoDuration = "max_chat_video_duration"
         case maxVideoBitRate = "max_video_bit_rate"
         case useClientContainer = "new_client_container"
+        case contactSyncFrequency = "contact_sync_frequency"
     }
 
     private struct UserDefaultsKey {
@@ -43,7 +43,6 @@ public struct ServerProperties {
         static let internalUser = false
         static let groups = true
         static let groupFeed = true
-        static let groupChat = true
         static let groupInviteLinks = false
         static let groupBackground = true
         static let maxGroupSize = 50
@@ -53,6 +52,7 @@ public struct ServerProperties {
         static let maxChatVideoDuration = 120.0
         static let maxVideoBitRate = 8000000.0
         static let useClientContainer = false
+        static let contactSyncFrequency: TimeInterval = 24 * 3600
     }
 
     // MARK: Storage
@@ -200,10 +200,6 @@ public struct ServerProperties {
         ServerProperties.integer(forKey: .groupSyncTime) ?? Defaults.groupSyncTime
     }
 
-    public static var isGroupChatEnabled: Bool {
-        ServerProperties.bool(forKey: .groupChat) ?? Defaults.groupChat
-    }
-
     public static var isGroupInviteLinksEnabled: Bool {
         ServerProperties.bool(forKey: .groupInviteLinks) ?? Defaults.groupInviteLinks
     }
@@ -233,4 +229,7 @@ public struct ServerProperties {
         ServerProperties.bool(forKey: .useClientContainer) ?? Defaults.useClientContainer
     }
 
+    public static var contactSyncFrequency: TimeInterval {
+        ServerProperties.double(forKey: .contactSyncFrequency) ?? Defaults.contactSyncFrequency
+    }
 }

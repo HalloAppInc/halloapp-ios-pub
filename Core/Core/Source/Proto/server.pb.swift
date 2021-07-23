@@ -394,6 +394,18 @@ public struct Server_ContactHash {
   public init() {}
 }
 
+public struct Server_ContactSyncError {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var retryAfterSecs: Int32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Server_Audience {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1852,6 +1864,14 @@ public struct Server_Iq {
     set {_uniqueStorage()._payload = .exportData(newValue)}
   }
 
+  public var contactSyncError: Server_ContactSyncError {
+    get {
+      if case .contactSyncError(let v)? = _storage._payload {return v}
+      return Server_ContactSyncError()
+    }
+    set {_uniqueStorage()._payload = .contactSyncError(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -1883,6 +1903,7 @@ public struct Server_Iq {
     case groupInviteLink(Server_GroupInviteLink)
     case historyResend(Server_HistoryResend)
     case exportData(Server_ExportData)
+    case contactSyncError(Server_ContactSyncError)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Iq.OneOf_Payload, rhs: Server_Iq.OneOf_Payload) -> Bool {
@@ -2000,6 +2021,10 @@ public struct Server_Iq {
       }()
       case (.exportData, .exportData): return {
         guard case .exportData(let l) = lhs, case .exportData(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.contactSyncError, .contactSyncError): return {
+        guard case .contactSyncError(let l) = lhs, case .contactSyncError(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -4145,6 +4170,38 @@ extension Server_ContactHash: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
   }
 }
 
+extension Server_ContactSyncError: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ContactSyncError"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "retry_after_secs"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt32Field(value: &self.retryAfterSecs) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.retryAfterSecs != 0 {
+      try visitor.visitSingularInt32Field(value: self.retryAfterSecs, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_ContactSyncError, rhs: Server_ContactSyncError) -> Bool {
+    if lhs.retryAfterSecs != rhs.retryAfterSecs {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Server_Audience: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Audience"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -5786,6 +5843,7 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     31: .standard(proto: "group_invite_link"),
     32: .standard(proto: "history_resend"),
     33: .standard(proto: "export_data"),
+    34: .standard(proto: "contact_sync_error"),
   ]
 
   fileprivate class _StorageClass {
@@ -6185,6 +6243,19 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
             _storage._payload = .exportData(v)
           }
         }()
+        case 34: try {
+          var v: Server_ContactSyncError?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .contactSyncError(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .contactSyncError(v)
+          }
+        }()
         default: break
         }
       }
@@ -6314,6 +6385,10 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
       case .exportData?: try {
         guard case .exportData(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 33)
+      }()
+      case .contactSyncError?: try {
+        guard case .contactSyncError(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 34)
       }()
       case nil: break
       }

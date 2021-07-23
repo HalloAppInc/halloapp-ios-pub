@@ -112,7 +112,13 @@ open class ProtoRequest<T>: ProtoRequestBase {
             return
         }
         if case .error = serverIQ.type {
-            fail(withError: RequestError.serverError(serverIQ.errorStanza.reason))
+            if case .contactSyncError(let syncError) = serverIQ.payload {
+                fail(withError: RequestError.retryDelay(TimeInterval(syncError.retryAfterSecs)))
+            } else {
+                // if it's a error stanza
+                fail(withError: RequestError.serverError(serverIQ.errorStanza.reason))
+            }
+            
             return
         }
 

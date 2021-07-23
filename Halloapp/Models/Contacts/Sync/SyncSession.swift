@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjackSwift
+import Core
 import Foundation
 
 /**
@@ -26,7 +27,7 @@ enum ContactSyncRequestType: String, RawRepresentable {
 }
 
 class SyncSession {
-    typealias Completion = (Error?) -> Void
+    typealias Completion = (RequestError?) -> Void
     typealias SyncProgress = (processed: Int, total: Int)
 
     private let syncMode: SyncMode
@@ -43,7 +44,7 @@ class SyncSession {
 
     private var contacts: [XMPPContact]
     private var results: [XMPPContact] = []
-    private var error: Error? = nil
+    private var error: RequestError? = nil
 
     init(mode: SyncMode, contacts: [XMPPContact], processResultsAsyncBlock: @escaping ([XMPPContact], SyncProgress) -> Void, completion: @escaping Completion) {
         self.syncMode = mode
@@ -93,9 +94,10 @@ class SyncSession {
                     DDLogInfo("sync-session/\(self.syncMode)/finished/\(batchIndex)/success, count:/\(batchResults.count)")
                     self.processResultsAsyncBlock(batchResults, batchProgress)
                     
-                case .failure(let error):
-                    DDLogInfo("sync-session/\(self.syncMode)/finished/\(batchIndex)/failure, error:/\(error)")
-                    self.error = error
+                case .failure(let requestError):
+
+                    DDLogInfo("sync-session/\(self.syncMode)/finished/\(batchIndex)/failure, error:/\(requestError)")
+                    self.error = requestError
                 }
                 self.sendNextBatchIfNecessary()
             }

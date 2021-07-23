@@ -16,6 +16,7 @@ public enum RequestError: Error {
     case malformedRequest
     case malformedResponse
     case serverError(String)
+    case retryDelay(TimeInterval)
 }
 
 extension RequestError {
@@ -24,7 +25,7 @@ extension RequestError {
         switch self {
         case .timeout, .canceled, .aborted, .malformedResponse:
             return false
-        case .notConnected, .malformedRequest, .serverError:
+        case .notConnected, .malformedRequest, .serverError, .retryDelay:
             return true
         }
     }

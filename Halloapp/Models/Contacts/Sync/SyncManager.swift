@@ -19,6 +19,7 @@ class SyncManager {
         case notAllowed
         case notEnabled
         case serverError(Error)
+        case retryDelay(TimeInterval)
         case alreadyRunning
         case awaitingAuthorization
     }
@@ -44,6 +45,16 @@ class SyncManager {
             }
         }
     }
+    
+    private var serverBusySyncDate: Date? {
+        set {
+            UserDefaults.standard.setValue(newValue, forKey: Self.UDNextSyncRetryDate)
+        }
+        
+        get {
+            UserDefaults.standard.value(forKey: Self.UDNextSyncRetryDate) as? Date
+        }
+    }
 
     let queue = DispatchQueue(label: "com.halloapp.syncmanager")
     private var fullSyncTimer: DispatchSourceTimer
@@ -55,6 +66,7 @@ class SyncManager {
     private let service: HalloService
 
     private static let UDDisabledAddressBookSynced = "isabledAddressBookSynced" // TODO: Change this to be the correct spelling ("disabledAddressBookSynced")
+    private static let UDNextSyncRetryDate = "nextSyncRetryDate"
 
     init(contactStore: ContactStoreMain, service: HalloService, userData: UserData) {
         self.contactStore = contactStore
@@ -194,6 +206,10 @@ class SyncManager {
             return .failure(.notAllowed)
         }
 
+        if let retryDate = serverBusySyncDate, retryDate > Date() {
+            return .failure(.retryDelay(retryDate.timeIntervalSince(Date())))
+        }
+
         return reallyPerformSync(using: managedObjectContext)
     }
 
@@ -269,10 +285,15 @@ class SyncManager {
         }
     }
 
-    private func processSyncCompletion(mode: SyncMode, error: Error?) {
-        guard error == nil else {
-            DDLogError("syncmanager/sync/\(mode)/response/error [\(error!)]")
-            finishSync(withMode: mode, result: .failure(.serverError(error!)))
+    private func processSyncCompletion(mode: SyncMode, error: RequestError?) {
+        if let error = error {
+            DDLogError("syncmanager/sync/\(mode)/response/error [\(error)]")
+            switch error {
+            case .retryDelay(let timeInterval):
+                finishSync(withMode: mode, result: .failure(.retryDelay(timeInterval)))
+            default:
+                finishSync(withMode: mode, result: .failure(.serverError(error)))
+            }
             return
         }
 
@@ -290,8 +311,8 @@ class SyncManager {
                 UserDefaults.standard.set(true, forKey: SyncManager.UDDisabledAddressBookSynced)
             }
 
-            // Set next full sync date: now + 1 day
-            nextFullSyncDate = Date(timeIntervalSinceNow: 3600*24)
+            // Set next full sync date to value in server properties (default value is 24 hrs from now)
+            nextFullSyncDate = Date(timeIntervalSinceNow: ServerProperties.contactSyncFrequency)
         }
 
         finishSync(withMode: mode, result: .success(()))
@@ -339,11 +360,27 @@ class SyncManager {
         case .success:
             DDLogInfo("syncmanager/sync/\(mode)/finished")
 
-        case .failure:
-            let retryDelay: TimeInterval = 20
-            DDLogInfo("syncmanager/sync/\(mode)/retrying in \(retryDelay)s")
+        case .failure(let failureReason):
+            let retryDelay: TimeInterval? = {
+                switch failureReason {
+                case .retryDelay(let timeInterval):
+                    return timeInterval
+                default:
+                    return nil
+                }
+            }()
 
-            queue.asyncAfter(deadline: .now() + retryDelay) {
+            if let retryDelay = retryDelay {
+                // Server is busy. Retry after time specified by the server
+                serverBusySyncDate = Date() + retryDelay
+                DDLogInfo("syncmanager/sync/\(mode)/server_busy/disabling contact sync until \(String(describing: serverBusySyncDate))")
+            }
+            
+            let retryDelaySeconds: TimeInterval = retryDelay ?? 20
+            // Error not related to server being too busy, retrying in 20 seconds
+            DDLogInfo("syncmanager/sync/\(mode)/retrying in \(retryDelaySeconds)s")
+
+            queue.asyncAfter(deadline: .now() + retryDelaySeconds) {
                 self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
                     self.runSyncIfNecessary(using: managedObjectContext)
                 }
