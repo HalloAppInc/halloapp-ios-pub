@@ -213,12 +213,16 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 // `.limited` was introduced in iOS 14, and only gives us partial access to the photo album. In this case we can still save to the camera roll
                 if #available(iOS 14, *) {
                     guard status == .authorized || status == .limited else {
-                        self?.handleMediaAuthorizationFailure()
+                        DispatchQueue.main.async {
+                            self?.handleMediaAuthorizationFailure()
+                        }
                         return
                     }
                 } else {
                     guard status == .authorized else {
-                        self?.handleMediaAuthorizationFailure()
+                        DispatchQueue.main.async {
+                            self?.handleMediaAuthorizationFailure()
+                        }
                         return
                     }
                 }
