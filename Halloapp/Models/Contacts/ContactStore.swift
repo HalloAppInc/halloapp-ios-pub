@@ -13,6 +13,7 @@
 import CocoaLumberjackSwift
 import Combine
 import Contacts
+import ContactsUI
 import Core
 import CoreData
 
@@ -673,26 +674,30 @@ class ContactStoreMain: ContactStore {
         }
     }
 
-    func addUserToAddressBook(userID: UserID) -> Bool {
-        guard !isContactInAddressBook(userId: userID) else { return false }
-        guard let name = pushNames[userID] else { return false }
-        guard let pushNumber = pushNumber(userID) else { return false }
-
-        let newContact = CNMutableContact()
-        newContact.givenName = name
-
-        newContact.phoneNumbers.append(CNLabeledValue(label: "mobile", value: CNPhoneNumber(stringValue: pushNumber.formattedPhoneNumber)))
+    func addUserToAddressBook(userID: UserID, presentingVC: UIViewController) {
+        guard !isContactInAddressBook(userId: userID) else { return }
+        guard let name = pushNames[userID] else { return }
+        guard let pushNumber = pushNumber(userID) else { return }
 
         let store = CNContactStore()
-        let saveRequest = CNSaveRequest()
-        saveRequest.add(newContact, toContainerWithIdentifier: nil)
 
-        do {
-            try store.execute(saveRequest)
-            return true
-        } catch {
-            return false
+        let newContact = CNMutableContact()
+        let phone = CNLabeledValue(label: CNLabelPhoneNumberMobile, value: CNPhoneNumber(stringValue: pushNumber.formattedPhoneNumber))
+
+        let nameComponents = name.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
+        if nameComponents.count > 1 {
+            newContact.givenName = String(nameComponents[0])
+            newContact.familyName = String(nameComponents[1])
+        } else {
+            newContact.givenName = name
         }
+        newContact.phoneNumbers = [phone]
+
+        let vc = CNContactViewController(forNewContact : newContact)
+        vc.contactStore = store
+        vc.delegate = presentingVC as? CNContactViewControllerDelegate
+
+        presentingVC.navigationController?.pushViewController(vc, animated: true)
     }
 
     // MARK: Server Sync

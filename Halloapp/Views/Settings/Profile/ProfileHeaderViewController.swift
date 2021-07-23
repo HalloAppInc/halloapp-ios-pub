@@ -9,8 +9,8 @@
 import CocoaLumberjackSwift
 import Combine
 import Core
-import UIKit
 import CoreMedia
+import UIKit
 
 fileprivate struct Constants {
     static let MaxFontPointSize: CGFloat = 34
@@ -45,29 +45,36 @@ final class ProfileHeaderViewController: UIViewController {
     func configureForCurrentUser(withName name: String) {
         headerView.avatarViewButton.avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
         headerView.name = name
-        headerView.secondaryLabel.text = MainAppContext.shared.userData.formattedPhoneNumber
+        headerView.phoneLabel.text = MainAppContext.shared.userData.formattedPhoneNumber
 
         headerView.avatarViewButton.addTarget(self, action: #selector(editProfilePhoto), for: .touchUpInside)
         headerView.nameButton.addTarget(self, action: #selector(editName), for: .touchUpInside)
         
-        headerView.secondaryLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(editName)))
+        headerView.phoneLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(editName)))
     }
 
-    func configureWith(userId: UserID) {
+    func configureOrRefresh(userId: UserID) {
         headerView.userID = userId
         headerView.avatarViewButton.avatarView.configure(with: userId, using: MainAppContext.shared.avatarStore)
         headerView.name = MainAppContext.shared.contactStore.fullName(for: userId)
-        if let contact = MainAppContext.shared.contactStore.contact(withUserId: userId),
-           let phoneNumber = contact.phoneNumber {
-            headerView.secondaryLabel.text = phoneNumber.formattedPhoneNumber
-        } else {
-            headerView.messageButton.isHidden = true
-            headerView.secondaryLabel.isHidden = true
-        }
-        if MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId) {
+
+        let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId)
+
+        if isContactInAddressBook {
+            if let contact = MainAppContext.shared.contactStore.contact(withUserId: userId), let phoneNumber = contact.phoneNumber {
+                headerView.phoneLabel.text = phoneNumber.formattedPhoneNumber
+                headerView.phoneLabel.isHidden = false
+            } else {
+                headerView.messageButton.isHidden = true
+                headerView.phoneLabel.isHidden = true
+            }
+
             headerView.canMessage = true
             headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
             headerView.groupCommonButton.addTarget(self, action: #selector(openGroupCommonview), for: .touchUpInside)
+        } else {
+            headerView.messageButton.isHidden = true
+            headerView.phoneLabel.isHidden = true
         }
 
         headerView.groupCommonButton.isHidden = true // Hiding this feature for launch
@@ -242,7 +249,7 @@ private final class ProfileHeaderView: UIView {
     private(set) var avatarViewButton: AvatarViewButton!
     private(set) var nameButton: UIButton!
     private var nameLabel: UILabel!
-    private(set) var secondaryLabel: UILabel!
+    private(set) var phoneLabel: UILabel!
 
     var isEditingAllowed: Bool = false {
         didSet {
@@ -344,12 +351,12 @@ private final class ProfileHeaderView: UIView {
         nameButton.titleEdgeInsets = UIEdgeInsets(top: .leastNormalMagnitude, left: .leastNormalMagnitude, bottom: .leastNormalMagnitude, right: .leastNormalMagnitude)
         nameButton.contentEdgeInsets = UIEdgeInsets(top: .leastNormalMagnitude, left: .leastNormalMagnitude, bottom: .leastNormalMagnitude, right: .leastNormalMagnitude)
 
-        secondaryLabel = UILabel()
-        secondaryLabel.numberOfLines = 1
-        secondaryLabel.textColor = .secondaryLabel
-        secondaryLabel.textAlignment = .left
-        secondaryLabel.font = .systemFont(forTextStyle: .callout, maximumPointSize: Constants.MaxFontPointSize - 2)
-        secondaryLabel.adjustsFontForContentSizeCategory = true
+        phoneLabel = UILabel()
+        phoneLabel.numberOfLines = 1
+        phoneLabel.textColor = .secondaryLabel
+        phoneLabel.textAlignment = .left
+        phoneLabel.font = .systemFont(forTextStyle: .callout, maximumPointSize: Constants.MaxFontPointSize - 2)
+        phoneLabel.adjustsFontForContentSizeCategory = true
 
         addSubview(vStack)
         vStackTopAnchorConstraint = vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 32)
@@ -370,7 +377,7 @@ private final class ProfileHeaderView: UIView {
     }()
     
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, secondaryLabel, messageButton, groupCommonButton])
+        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, phoneLabel, messageButton, groupCommonButton])
         view.axis = .vertical
         view.alignment = .center
         view.spacing = 5

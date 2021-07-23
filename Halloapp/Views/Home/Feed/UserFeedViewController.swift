@@ -7,6 +7,7 @@
 //
 
 import Combine
+import ContactsUI
 import Core
 import CoreData
 import SwiftUI
@@ -81,7 +82,7 @@ class UserFeedViewController: FeedCollectionViewController {
                 self.viewIfLoaded?.setNeedsLayout()
             }))
         } else {
-            headerViewController.configureWith(userId: userId)
+            headerViewController.configureOrRefresh(userId: userId)
             navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .plain, target: self, action: #selector(moreButtonTapped))
         }
 
@@ -98,7 +99,20 @@ class UserFeedViewController: FeedCollectionViewController {
         guard !isOwnFeed else { return }
         
         let alert = UIAlertController(title: MainAppContext.shared.contactStore.fullName(for: userId), message: nil, preferredStyle: .actionSheet)
-        
+
+        /* Add to Contact Book */
+        let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId)
+        let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userId) != nil
+
+        if !isContactInAddressBook, pushNumberExist {
+            let addToContactBookAction = UIAlertAction(title: "Add To Contact Book", style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                MainAppContext.shared.contactStore.addUserToAddressBook(userID: self.userId, presentingVC: self)
+            }
+            alert.addAction(addToContactBookAction)
+        }
+
+        /* Verify Safety Number */
         if let userKeys = MainAppContext.shared.keyStore.keyBundle(),
               let contactKeyBundle = MainAppContext.shared.keyStore.messageKeyBundle(for: userId)?.keyBundle,
               let contactData = SafetyNumberData(keyBundle: contactKeyBundle)
@@ -108,8 +122,8 @@ class UserFeedViewController: FeedCollectionViewController {
             }
             alert.addAction(verifySafetyNumberAction)
         }
-        
-        
+
+        /* Block on HalloApp */
         if !blockflag {
             let blockUserAction = UIAlertAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self] _ in
                 self?.blockUserTapped()
@@ -121,15 +135,14 @@ class UserFeedViewController: FeedCollectionViewController {
             }
             alert.addAction(blockUserAction)
         }
-        
+
         let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
         alert.view.tintColor = .systemBlue
         alert.addAction(cancel)
-        
-        
+
         present(alert, animated: true)
     }
-    
+
     private func viewSafetyNumber(contactData: SafetyNumberData, userKeyBundle: UserKeyBundle) {
         let vc = SafetyNumberViewController(
             currentUser: SafetyNumberData(
@@ -282,6 +295,20 @@ class UserFeedViewController: FeedCollectionViewController {
         if title != titleText {
             title = titleText
         }
+    }
+}
+
+extension UserFeedViewController: CNContactViewControllerDelegate {
+    func contactViewController(_ viewController: CNContactViewController, didCompleteWith contact: CNContact?) {
+        if contact != nil { // contact was added successfully
+            // basic refresh
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+                guard let self = self else { return }
+                self.headerViewController.configureOrRefresh(userId: self.userId)
+                self.collectionView.reloadData()
+            }
+        }
+        navigationController?.popViewController(animated: true)
     }
 }
 

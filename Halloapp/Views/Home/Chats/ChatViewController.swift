@@ -7,6 +7,7 @@
 
 import CocoaLumberjackSwift
 import Combine
+import ContactsUI
 import Core
 import CoreData
 import Photos
@@ -120,7 +121,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         let headerHeight: CGFloat = isUserInAddressBook ? 90 : 150
         let chatHeaderView = ChatHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: headerHeight))
-        chatHeaderView.configure(with: fromUserId)
         chatHeaderView.delegate = self
         tableView.tableHeaderView = chatHeaderView
 
@@ -295,6 +295,10 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        guard let userID = fromUserId else { return }
+        if let headerView = tableView.tableHeaderView as? ChatHeaderView {
+            headerView.configureOrRefresh(with: userID)
+        }
         chatInputView.willAppear(in: self)
         tabBarController?.hideTabBar(vc: self)
     }
@@ -935,17 +939,20 @@ extension ChatViewController: ChatHeaderViewDelegate {
 
     func chatHeaderViewAddToContactsBook(_ chatHeaderView: ChatHeaderView) {
         guard let userID = fromUserId else { return }
-        if MainAppContext.shared.contactStore.addUserToAddressBook(userID: userID) {
-            let alert = UIAlertController(title: nil, message: Localizations.addToAddressBookSuccess, preferredStyle: .alert)
-            alert.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
-            present(alert, animated: true, completion: nil)
+        MainAppContext.shared.contactStore.addUserToAddressBook(userID: userID, presentingVC: self)
+    }
+}
 
+extension ChatViewController: CNContactViewControllerDelegate {
+    func contactViewController(_ viewController: CNContactViewController, didCompleteWith contact: CNContact?) {
+        if contact != nil { // contact was added successfully
             if let headerView = tableView.tableHeaderView as? ChatHeaderView {
                 headerView.hideAddToContactsLabel()
                 chatInputView.isHidden = false
                 unknownContactActionBanner.isHidden = true
             }
         }
+        navigationController?.popViewController(animated: true)
     }
 }
 
@@ -1441,12 +1448,15 @@ class ChatHeaderView: UIView {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
-    public func configure(with userID: UserID) {
-        if !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID) {
+    public func configureOrRefresh(with userID: UserID) {
+        let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
+        if !isContactInAddressBook {
             if let pushNumber = MainAppContext.shared.contactStore.pushNumber(userID) {
                 addToContactsLabel.text = Localizations.addToAddressBookLabel(pushNumber.formattedPhoneNumber)
                 addToContactsBubble.isHidden = false
             }
+        } else {
+            addToContactsBubble.isHidden = true
         }
     }
 
