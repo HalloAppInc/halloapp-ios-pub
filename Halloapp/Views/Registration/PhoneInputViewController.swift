@@ -27,13 +27,19 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
 
     weak var delegate: PhoneInputViewControllerDelegate?
 
+    struct CustomPhoneNumber {
+        var countryCode: String
+        var nationalNumber: String
+    }
+
     enum UserInputStatus {
-        case valid(PhoneNumber, String) // phone number, name
+        case valid(CustomPhoneNumber, String) // phone number, name
         case invalid(UITextField)  // text field to activate
     }
 
     let logo = UIImageView()
     let groupInviteLabel = UILabel()
+    let phoneNumberKit: PhoneNumberKit = AppContext.shared.phoneNumberFormatter
     let textFieldPhoneNumber = PhoneNumberTextField(withPhoneNumberKit: AppContext.shared.phoneNumberFormatter)
     let textFieldUserName = UITextField()
     let buttonSignIn = UIButton()
@@ -194,13 +200,23 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
     }
     
     private func validateUserInput() -> UserInputStatus {
-        guard textFieldPhoneNumber.isValidNumber else {
+        let regionID = textFieldPhoneNumber.currentRegion
+        guard let countryCode = phoneNumberKit.countryCode(for: regionID) else {
+            // We dont expect this to happen.
+            DDLogError("PhoneInputViewController/validateUserInput - missing countryCode for regionID \(regionID)")
+            return .invalid(textFieldPhoneNumber)
+        }
+        let nationalNumber = textFieldPhoneNumber.nationalNumber
+        // Check only possible lengths for the national phone number
+        let possibleLengths = phoneNumberKit.possiblePhoneNumberLengths(forCountry: regionID, phoneNumberType: .mobile, lengthType: .national)
+        guard possibleLengths.contains(nationalNumber.count) else {
+            DDLogError("PhoneInputViewController/validateUserInput - invalid phone number \(nationalNumber), possibleLengths: \(possibleLengths)")
             return .invalid(textFieldPhoneNumber)
         }
         guard !userName.isEmpty else {
             return .invalid(textFieldUserName)
         }
-        return .valid(textFieldPhoneNumber.phoneNumber!, userName)
+        return .valid(CustomPhoneNumber(countryCode: String(countryCode), nationalNumber: nationalNumber), userName)
     }
     
     private func getGroupNameIfNeeded() {
