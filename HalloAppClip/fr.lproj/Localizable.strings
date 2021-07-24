@@ -1,0 +1,145 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "Pas de connexion Internet";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Merci de vérifier si tu disposes d'une connexion Internet, puis réessaye.";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Annuler";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Continuer";
+
+/* Title for generic Create button */
+"button.create" = "Créer";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Rejeter";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Terminer";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Aller dans les paramètres";
+
+/* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
+"button.install" = "Installer";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "En savoir plus";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Plus";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Suivant";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Pas maintenant";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Supprimer";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Enregistrer";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Envoyer";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Partager";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Mettre à jour";
+
+/* Title for generic delete button. */
+"Delete" = "Supprimer";
+
+/* Title for exit button that closes the app */
+"home.update.notice.button.exit" = "Quitter";
+
+/* Text shown to users who have old versions of the app */
+"home.update.notice.text" = "Merci de mettre à jour la dernière version de HalloApp";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.notice.title" = "Cette version est obsolète";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "En savoir plus";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Mettre à jour ton application.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Moi";
+
+/* Disclaimer text about receiving SMS verification code */
+"registration.code.disclaimer" = "Tu recevras un code de vérification.\nLes tarifs des opérateurs peuvent s'appliquer.";
+
+/* Error message to display when user enters incorrect verification code */
+"registration.code.incorrect" = "Le code que tu as saisi est incorrect";
+
+/* Instructions for filling in SMS verification code. Parameter is formatted phone number */
+"registration.code.instructions" = "Saisis le code que nous avons envoyé au %@";
+
+/* Error message to display when we cannot send a verification code */
+"registration.code.request.error" = "Envoi du code impossible. Réessaye plus tard.";
+
+/* Button label to resend verification code */
+"registration.code.resend" = "Renvoyer le SMS";
+
+/* Button label to resend verification code by voice call */
+"registration.code.resend.by.voice" = "M'appeler";
+
+/* Text explaining why we need contact permissions */
+"registration.contacts.content" = "Afin de pouvoir te connecter avec tes amis et ta famille, nous avons besoin de l'autorisation d'accéder à tes contacts.";
+
+/* Title for text explaining why we need contact permissions */
+"registration.contacts.title" = "Une dernière chose";
+
+/* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
+"registration.free.app.notice" = "Gratuit sur l'App Store iPhone";
+
+/* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
+"registration.group.name" = "Tu es invité à rejoindre le groupe %@";
+
+/* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
+"registration.install.app.to.continue" = "Installe HalloApp pour continuer";
+
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "Installe HalloApp pour ouvrir %@";
+
+/* Popup that appears when user tries to register uninvited number */
+"registration.invite.only" = "Si tu as suivi un lien d'invitation de groupe pour t'inscrire, clique à nouveau sur ce lien pour terminer l'inscription et rejoindre le groupe.";
+
+/* Placeholder text for name entry */
+"registration.nameEntry.placeholder" = "Ton nom";
+
+/* Placeholder text for phone entry */
+"registration.phoneEntry.placeholder" = "Numéro de téléphone";
+
+/* Text for modal describing how we use contacts data */
+"registration.privacy.content" = "HalloApp ne se sert du champ du numéro de téléphone que pour établir une correspondance entre toi et tes amis sur HalloApp, et ne transmet aucune donnée supplémentaire de ton carnet d'adresses.";
+
+/* Title for modal describing how we use contacts data */
+"registration.privacy.title" = "Le respect de ta vie privée est notre priorité";
+
+/* Title for popup that appears when user tries to register uninvited number */
+"registration.shucks" = "Mince alors !";
+
+/* Shown above name and phone inputs */
+"registration.welcome" = "Bienvenue !";
+
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "Tu ne pourras pas te connecter tant que tu n'auras pas redémarré l'application";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "Compte supprimé avec succès";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Contact inconnu";
+
