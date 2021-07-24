@@ -159,7 +159,7 @@
 "chat.group.background.label" = "HINTERGRUND";
 
 /* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "%@ ist der Gruppe über einen Gruppeneinladungslink beigetreten";
+"chat.group.event.join" = "%@ ist der Gruppe über einen Einladungslink beigetreten";
 
 /* Message text shown when you join a group via invite link */
 "chat.group.event.join.you" = "Du bist der Gruppe über einen Gruppeneinladungslink beigetreten";
@@ -694,7 +694,7 @@
 "mypost.action.view.profile" = "Profil ansehen";
 
 /* Message displayed to say when posts will disappear */
-"mypost.disappear.time.label" = "Deine Beiträge werden nach 30 Tagen gelöscht.";
+"mypost.disappear.time.label" = "Deine Beiträge sind 30 Tage sichtbar.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
 "mypost.hide.posts.confirmation" = "Bist du dir sicher, dass du alle deine zukünftigen Beiträge vor %@ verbergen möchtest? Du kannst dies später jederzeit ändern.";
