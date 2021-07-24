@@ -121,6 +121,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         let headerHeight: CGFloat = isUserInAddressBook ? 90 : 150
         let chatHeaderView = ChatHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: headerHeight))
+        chatHeaderView.configureOrRefresh(with: fromUserId)
         chatHeaderView.delegate = self
         tableView.tableHeaderView = chatHeaderView
 
@@ -219,7 +220,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         } catch {
             return
         }
-        
+
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
         view.addGestureRecognizer(tapGesture)
         
@@ -285,6 +286,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 if newUserIDs.contains(userID) {
                     self.titleView.refreshName(for: userID)
                 }
+                if let headerView = self.tableView.tableHeaderView as? ChatHeaderView {
+                    headerView.configureOrRefresh(with: userID)
+                }
+                self.chatInputView.isHidden = false
+                self.unknownContactActionBanner.isHidden = true
             }
         )
 
@@ -295,10 +301,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        guard let userID = fromUserId else { return }
-        if let headerView = tableView.tableHeaderView as? ChatHeaderView {
-            headerView.configureOrRefresh(with: userID)
-        }
         chatInputView.willAppear(in: self)
         tabBarController?.hideTabBar(vc: self)
     }
@@ -312,6 +314,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+
         if let chatWithUserId = self.fromUserId {
             MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
             MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
@@ -945,13 +948,6 @@ extension ChatViewController: ChatHeaderViewDelegate {
 
 extension ChatViewController: CNContactViewControllerDelegate {
     func contactViewController(_ viewController: CNContactViewController, didCompleteWith contact: CNContact?) {
-        if contact != nil { // contact was added successfully
-            if let headerView = tableView.tableHeaderView as? ChatHeaderView {
-                headerView.hideAddToContactsLabel()
-                chatInputView.isHidden = false
-                unknownContactActionBanner.isHidden = true
-            }
-        }
         navigationController?.popViewController(animated: true)
     }
 }
@@ -1458,10 +1454,6 @@ class ChatHeaderView: UIView {
         } else {
             addToContactsBubble.isHidden = true
         }
-    }
-
-    public func hideAddToContactsLabel() {
-        addToContactsBubble.isHidden = true
     }
 
     private func setup() {
