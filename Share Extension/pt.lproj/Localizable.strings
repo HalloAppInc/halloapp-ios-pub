@@ -1,0 +1,113 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "Sem conexão com a internet";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Verifique se você tem conexão com a internet, em seguida, tente novamente";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Cancelar";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Continuar";
+
+/* Title for generic Create button */
+"button.create" = "Criar";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Dispensar";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Pronto";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Ir para Configurações";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Saiba mais";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Mais";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Próximo";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Agora não";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Remover";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Salvar";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Enviar";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Compartilhar";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Atualizar";
+
+/* Title for generic delete button. */
+"Delete" = "Excluir";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Saiba mais";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Atualize seu aplicativo.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Eu";
+
+/* Placeholder for media caption. */
+"share.composer.placeholder" = "Escreva uma descrição";
+
+/* Placeholder when sharing text only. */
+"share.composer.placeholder.text" = "Escreva uma postagem";
+
+/* Composer subtitle when sharing with a contact */
+"share.composer.subtitle.contact" = "Enviando para %@";
+
+/* Composer subtitle for group posts */
+"share.composer.subtitle.group" = "Compartilhando com %@";
+
+/* Composer title when sharing with a contact */
+"share.composer.title.contact" = "Nova mensagem";
+
+/* Composer title when sharing to feed */
+"share.composer.title.feed" = "Nova postagem";
+
+/* Alert dialog message shown when uploading fails.
+   Alert dialog title shown when uploading fails. */
+"share.composer.uploading.fail.title" = "Falha no upload";
+
+/* Alert dialog title shown when uploading begins. */
+"share.composer.uploading.title" = "Fazendo upload...";
+
+/* Contacts category label */
+"share.destination.contacts" = "Contatos";
+
+/* Groups category label */
+"share.destination.groups" = "Grupos";
+
+/* Share on the home feed label */
+"share.destination.home" = "Início";
+
+/* Destination screen title */
+"share.destination.title" = "HalloApp";
+
+/* Message of alert when user is not logged in */
+"share.notlogged.message" = "Por favor, abra o HalloApp e faça o login.";
+
+/* Title of alert when user is not logged in */
+"share.notlogged.title" = "Você não está logado";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Contato desconhecido";
+
