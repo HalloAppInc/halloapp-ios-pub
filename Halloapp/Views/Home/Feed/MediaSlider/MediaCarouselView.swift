@@ -853,11 +853,14 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func showInitialFrame() {
-        guard let player = avPlayerViewController.player else { return }
-        guard let item = player.currentItem else { return }
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            guard let player = self.avPlayerViewController.player else { return }
+            guard let item = player.currentItem else { return }
 
-        let seekTime = VideoUtils.getThumbnailTime(duration: item.duration)
-        player.seek(to: seekTime)
+            let seekTime = VideoUtils.getThumbnailTime(duration: item.duration)
+            player.seek(to: seekTime)
+        }
     }
 
     private func showPlaceholderImage() {
