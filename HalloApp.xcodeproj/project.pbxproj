@@ -333,6 +333,8 @@
 		F8DA6F38252370BE007833A7 /* MediaExplorerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */; };
 		F8DFCD88262EF4C0003F850F /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCD87262EF4C0003F850F /* ShareViewController.swift */; };
 		F8DFCDAD26304B4F003F850F /* GroupList.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCDA826304B3A003F850F /* GroupList.swift */; };
+		F8E60547266F931E00DDEB2A /* ImageEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */; };
+		F8E6054A2671F6A700DDEB2A /* MediaEdit.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E605492671F6A700DDEB2A /* MediaEdit.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -854,6 +856,8 @@
 		F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerController.swift; sourceTree = "<group>"; };
 		F8DFCD87262EF4C0003F850F /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		F8DFCDA826304B3A003F850F /* GroupList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupList.swift; sourceTree = "<group>"; };
+		F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageEditViewController.swift; sourceTree = "<group>"; };
+		F8E605492671F6A700DDEB2A /* MediaEdit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaEdit.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1490,8 +1494,10 @@
 			isa = PBXGroup;
 			children = (
 				EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */,
+				F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */,
 				F878427B24F6C0FB0040B723 /* MediaAlbumsViewController.swift */,
 				F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */,
+				F8E605492671F6A700DDEB2A /* MediaEdit.swift */,
 				F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */,
 				F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */,
 				EA0C315623EB97C800016EDB /* PostComposerView.swift */,
@@ -2410,6 +2416,7 @@
 				EA79C6FD2554E89400E0525F /* Localizations+Chat.swift in Sources */,
 				EAD476CD245513EF00EF8591 /* ChatListViewController.swift in Sources */,
 				76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */,
+				F8E6054A2671F6A700DDEB2A /* MediaEdit.swift in Sources */,
 				76333085254A352100A1ED68 /* SettingsTableViewCell.swift in Sources */,
 				76C1F50B2537D6FD0060FBF5 /* AvatarViewButton.swift in Sources */,
 				766103AA2461F08A00728870 /* FeedPostInfo+CoreDataClass.swift in Sources */,
@@ -2599,6 +2606,7 @@
 				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,
 				EA3585792450BE3300E6E8AB /* ChatViewController.swift in Sources */,
 				EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */,
+				F8E60547266F931E00DDEB2A /* ImageEditViewController.swift in Sources */,
 				764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */,
 				EAD476F72458F03700EF8591 /* ChatMessage+CoreDataProperties.swift in Sources */,
 			);

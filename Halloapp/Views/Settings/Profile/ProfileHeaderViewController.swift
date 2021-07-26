@@ -196,9 +196,8 @@ final class ProfileHeaderViewController: UIViewController {
                 }
 
                 self.dismiss(animated: true)
-            }
+            }.withNavigationController()
 
-            photoCropperViewController.modalPresentationStyle = .fullScreen // required for pinch dragging
             controller.present(photoCropperViewController, animated: true)
         }
         present(UINavigationController(rootViewController: photoPickerViewController), animated: true)

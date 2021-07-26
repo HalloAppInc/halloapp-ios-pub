@@ -360,9 +360,8 @@ class CreateGroupViewController: UIViewController {
                         
                         self.dismiss(animated: true)
                     }
-                }
+                }.withNavigationController()
                 
-                edit.modalPresentationStyle = .fullScreen
                 controller.present(edit, animated: true)
             }
         }

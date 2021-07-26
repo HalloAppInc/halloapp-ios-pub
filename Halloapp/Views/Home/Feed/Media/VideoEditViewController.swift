@@ -9,42 +9,31 @@ import AVFoundation
 import AVKit
 import CocoaLumberjackSwift
 import Core
+import Combine
 import Dispatch
 import Foundation
 import PhotosUI
 import UIKit
 
-private extension Localizations {
-
-    static var processingFailedTitle: String {
-        NSLocalizedString("video.processing.failed.title", value: "Processing video failed", comment: "Alert title in video edit when the processing fails.")
-    }
-
-    static var processingFailedMessage: String {
-        NSLocalizedString("video.processing.failed.message", value: "Please try again or select another video", comment: "Message in video edit when the processing fails.")
-    }
-
-    static var buttonReset: String {
-        NSLocalizedString("video.edit.button.reset", value: "Reset", comment: "Button title. Refers to resetting video to original version.")
-    }
-}
-
-typealias VideoEditViewControllerCallback = (VideoEditViewController, PendingMedia, Bool) -> Void
-
 class VideoEditViewController : UIViewController {
     private let thumbnailsCount = 6
 
-    private let media: PendingMedia
-    private let didFinish: VideoEditViewControllerCallback
-    private var range: VideoRangeView!
-    private let stack: UIStackView = {
+    private let media: MediaEdit
+    private var rangeView: VideoRangeView!
+    private let thumbnailsView: UIStackView = {
         let stack = UIStackView()
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .horizontal
         stack.distribution = .fillEqually
         stack.alignment = .fill
+        stack.clipsToBounds = true
 
         return stack
+    }()
+    private let videoView: VideoView = {
+        let view = VideoView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
     private let duration: UILabel = {
         let label = UILabel()
@@ -62,49 +51,22 @@ class VideoEditViewController : UIViewController {
 
         return formatter
     }()
-    private let video: VideoView = {
-        let view = VideoView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
 
     private var observerToken: Any?
-    private var start = CGFloat(0)
-    private var end = CGFloat(1)
-    private var isProcessing = false
     private var startTime: CMTime {
-        guard let interval = video.player?.currentItem?.duration else { return CMTime() }
+        guard let interval = videoView.player?.currentItem?.duration else { return CMTime() }
         guard interval.isNumeric else { return CMTime() }
-        return CMTimeMultiplyByFloat64(interval, multiplier: Float64(start))
+        return CMTimeMultiplyByFloat64(interval, multiplier: Float64(media.start))
     }
     private var endTime: CMTime {
-        guard let interval = video.player?.currentItem?.duration else { return CMTime() }
+        guard let interval = videoView.player?.currentItem?.duration else { return CMTime() }
         guard interval.isNumeric else { return CMTime() }
-        return CMTimeMultiplyByFloat64(interval, multiplier: Float64(end))
+        return CMTimeMultiplyByFloat64(interval, multiplier: Float64(media.end))
     }
-    private var isMuted = false {
-        didSet {
-            video.player?.isMuted = isMuted
-            navigationItem.rightBarButtonItem?.image = muteButtonImage
-        }
-    }
-    private var muteButtonImage: UIImage {
-        if isMuted {
-            return UIImage(systemName: "speaker.slash.fill", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))!
-        } else {
-            return UIImage(systemName: "speaker.wave.2.fill", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))!
-        }
-    }
+    private var cancellableSet: Set<AnyCancellable> = []
 
-    init(media: PendingMedia, didFinish: @escaping VideoEditViewControllerCallback) {
+    init(_ media: MediaEdit) {
         self.media = media
-        self.didFinish = didFinish
-
-        if let edit = self.media.videoEdit {
-            start = edit.start
-            end = edit.end
-            isMuted = edit.muted
-        }
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -113,104 +75,83 @@ class VideoEditViewController : UIViewController {
         fatalError("Use init(media:)")
     }
 
-    func withNavigationController() -> UIViewController {
-        let controller = UINavigationController(rootViewController: self)
-        controller.modalPresentationStyle = .fullScreen
-
-        return controller
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
         DDLogInfo("VideoEditViewController/viewDidLoad")
 
-        view.backgroundColor = .black
-
-        setupNavigation()
-
-        range = VideoRangeView(start: start, end: end) { [weak self] start, end in
+        rangeView = VideoRangeView(start: media.start, end: media.end) { [weak self] start, end in
             guard let self = self else { return }
+            guard self.media.start != start || self.media.end != end else { return }
 
-            self.start = start
-            self.end = end
-
-            self.updateDuration()
-            self.reset()
+            self.media.start = start
+            self.media.end = end
         }
-        range.translatesAutoresizingMaskIntoConstraints = false
+        rangeView.translatesAutoresizingMaskIntoConstraints = false
 
-        let footer = makeFooter()
-
-        view.addSubview(stack)
-        view.addSubview(range)
+        view.backgroundColor = .black
+        view.addSubview(thumbnailsView)
+        view.addSubview(rangeView)
         view.addSubview(duration)
-        view.addSubview(video)
-        view.addSubview(footer)
+        view.addSubview(videoView)
 
         NSLayoutConstraint.activate([
-            stack.heightAnchor.constraint(equalToConstant: 44),
-            stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
-            range.heightAnchor.constraint(equalToConstant: 44),
-            range.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            range.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            range.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
-            duration.topAnchor.constraint(equalTo: stack.bottomAnchor, constant: 8),
+            thumbnailsView.heightAnchor.constraint(equalToConstant: 44),
+            thumbnailsView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            thumbnailsView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            thumbnailsView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
+            rangeView.heightAnchor.constraint(equalToConstant: 44),
+            rangeView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            rangeView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            rangeView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
+            duration.topAnchor.constraint(equalTo: thumbnailsView.bottomAnchor, constant: 8),
             duration.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            footer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            footer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
-            footer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
-            video.topAnchor.constraint(equalTo: duration.bottomAnchor, constant: 16),
-            video.bottomAnchor.constraint(equalTo: footer.topAnchor, constant: -16),
-            video.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            video.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            videoView.topAnchor.constraint(equalTo: duration.bottomAnchor, constant: 16),
+            videoView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            videoView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            videoView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
 
-        if let url = media.originalVideoURL {
-            let asset = AVURLAsset(url: url)
-            generateThumbnails(asset: asset)
-
-            video.player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
-            video.player?.isMuted = isMuted
-
-            updateDuration()
-            reset()
-        } else {
-            DDLogError("VideoEditViewController/viewDidLoad Missing PendingMedia.videoURL")
+        guard let url = media.media.originalVideoURL else {
+            DDLogError("VideoEditViewController/viewDidLoad Missing PendingMedia.originalVideoURL")
+            return
         }
+
+        let asset = AVURLAsset(url: url)
+        generateThumbnails(asset: asset)
+
+        videoView.player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
+        videoView.player?.isMuted = media.muted
+
+        updateDuration()
+        reset()
+
+        cancellableSet.insert(media.$muted.sink { [weak self] in
+            guard let self = self else { return }
+            self.videoView.player?.isMuted = $0
+        })
+
+        cancellableSet.insert(media.$start.sink { [weak self] start in
+            guard let self = self else { return }
+
+            self.rangeView.updateRange(start: start, end: self.media.end)
+            self.updateDuration()
+            self.reset()
+        })
+
+        cancellableSet.insert(media.$end.sink { [weak self] end in
+            guard let self = self else { return }
+
+            self.rangeView.updateRange(start: self.media.start, end: end)
+            self.updateDuration()
+            self.reset()
+        })
     }
 
-    private func setupNavigation() {
-        navigationController?.navigationBar.overrideUserInterfaceStyle = .dark
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
 
-        let backImage = UIImage(systemName: "xmark", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(backAction))
-
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: muteButtonImage, style: .plain, target: self, action: #selector(muteToggleAction))
-    }
-
-    private func makeFooter() -> UIView {
-        let footer = UIStackView()
-        footer.translatesAutoresizingMaskIntoConstraints = false
-        footer.axis = .horizontal
-        footer.distribution = .equalSpacing
-
-        let resetBtn = UIButton()
-        resetBtn.titleLabel?.font = .gothamFont(ofFixedSize: 15, weight: .medium)
-        resetBtn.setTitle(Localizations.buttonReset, for: .normal)
-        resetBtn.setTitleColor(.white, for: .normal)
-        resetBtn.addTarget(self, action: #selector(resetAction), for: .touchUpInside)
-        footer.addArrangedSubview(resetBtn)
-
-        let doneBtn = UIButton()
-        doneBtn.titleLabel?.font = .gothamFont(ofFixedSize: 15, weight: .medium)
-        doneBtn.setTitle(Localizations.buttonDone, for: .normal)
-        doneBtn.setTitleColor(.blue, for: .normal)
-        doneBtn.addTarget(self, action: #selector(doneAction), for: .touchUpInside)
-        footer.addArrangedSubview(doneBtn)
-
-        return footer
+        videoView.player?.pause()
+        videoView.player = nil
     }
 
     private func generateThumbnails(asset: AVAsset) {
@@ -226,7 +167,7 @@ class VideoEditViewController : UIViewController {
 
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
-        generator.maximumSize = CGSize(width: 128, height: 128)
+        generator.maximumSize = CGSize(width: 256, height: 256)
         generator.generateCGImagesAsynchronously(forTimes: times) { [weak self] _, image, _, result, _ in
             guard let self = self else { return }
             guard result == .succeeded else {
@@ -242,7 +183,9 @@ class VideoEditViewController : UIViewController {
                     guard let self = self else { return }
 
                     for image in thumbnails {
-                        self.stack.addArrangedSubview(UIImageView(image: image))
+                        let imageView = UIImageView(image: image)
+                        imageView.contentMode = .scaleAspectFill
+                        self.thumbnailsView.addArrangedSubview(imageView)
                     }
                 }
             }
@@ -250,13 +193,13 @@ class VideoEditViewController : UIViewController {
     }
 
     private func updateDuration() {
-        guard let interval = video.player?.currentItem?.duration else { return }
+        guard let interval = videoView.player?.currentItem?.duration else { return }
         guard interval.isNumeric else { return }
-        duration.text = durationFormatter.string(from: interval.seconds * TimeInterval(end - start))
+        duration.text = durationFormatter.string(from: interval.seconds * TimeInterval(media.end - media.start))
     }
 
     private func reset() {
-        guard let player = video.player else { return }
+        guard let player = videoView.player else { return }
         guard player.currentItem != nil else { return }
 
         player.pause()
@@ -272,52 +215,6 @@ class VideoEditViewController : UIViewController {
             guard let self = self else { return }
             player.pause()
             player.seek(to: self.startTime)
-        }
-    }
-
-    @objc private func backAction() {
-        video.player?.pause()
-        didFinish(self, media, true)
-    }
-
-    @objc private func muteToggleAction() {
-        isMuted = !isMuted
-    }
-
-    @objc private func resetAction() {
-        start = 0
-        end = 1
-        isMuted = false
-        range.updateRange(start: start, end: end)
-        updateDuration()
-        reset()
-    }
-
-    @objc private func doneAction() {
-        guard !isProcessing else { return }
-        guard let original = media.originalVideoURL else { return }
-        isProcessing = true
-
-        media.resetProgress()
-
-        VideoUtils.trim(start: startTime, end: endTime, url: original, mute: isMuted) {[weak self] result in
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.isProcessing = false
-
-                switch(result) {
-                case .success(let url):
-                    self.media.videoEdit = PendingVideoEdit(start: self.start, end: self.end, muted: self.isMuted)
-                    self.media.fileURL = url
-                    self.didFinish(self, self.media, false)
-                case .failure(let error):
-                    DDLogWarn("VideoEditViewController/trimming Unable to trim the video url=[\(original.description)] error=[\(error.localizedDescription)]")
-
-                    let alert = UIAlertController(title: Localizations.processingFailedTitle, message: Localizations.processingFailedMessage, preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
-                    self.present(alert, animated: true)
-                }
-            }
         }
     }
 }

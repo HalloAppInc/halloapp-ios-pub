@@ -164,33 +164,20 @@ class PostComposerViewController: UIViewController {
             crop: { [weak self] index, completion in
                 guard let self = self else { return }
 
-                let editController: UIViewController
-                let media = self.mediaItems.value[index]
+                MediaCarouselView.stopAllPlayback()
 
-                if media.type == .image {
-                    editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index, maxAspectRatio: self.configuration.mediaEditMaxAspectRatio) { controller, media, selected, cancel in
-                        controller.dismiss(animated: true)
+                let editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index, maxAspectRatio: self.configuration.mediaEditMaxAspectRatio) { controller, media, selected, cancel in
+                    controller.dismiss(animated: true)
 
-                        completion(media, selected, cancel)
+                    completion(media, selected, cancel)
 
-                        guard !cancel else { return }
+                    guard !cancel else { return }
 
-                        if media.count == 0 {
-                            self.backAction()
-                        }
+                    if media.count == 0 {
+                        self.backAction()
                     }
-                } else {
-                    MediaCarouselView.stopAllPlayback()
-                    editController = VideoEditViewController(media: media) { controller, media, cancel in
-                        controller.dismiss(animated: true)
-
-                        self.mediaItems.value[index] = media
-
-                        completion(self.mediaItems.value, index, cancel)
-                    }.withNavigationController()
-                }
+                }.withNavigationController()
                 
-                editController.modalPresentationStyle = .fullScreen
                 self.present(editController, animated: true)
             },
             goBack: { [weak self] in self?.backAction() },

@@ -13,947 +13,6 @@ import Foundation
 import SwiftUI
 import UIKit
 
-typealias MediaEditViewControllerCallback = (MediaEditViewController, [PendingMedia], Int, Bool) -> Void
-
-enum MediaEditCropRegion {
-    case circle, square, any
-}
-
-class MediaEditViewController: UIViewController {
-    private let media: [PendingMedia]
-    private let initialSelect: Int?
-    private let didFinish: MediaEditViewControllerCallback
-    private let cropRegion: MediaEditCropRegion
-    private let maxAspectRatio: CGFloat?
-
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return .portrait
-    }
-    
-    init(cropRegion: MediaEditCropRegion = .any, mediaToEdit media: [PendingMedia], selected: Int?, maxAspectRatio: CGFloat? = nil, didFinish: @escaping MediaEditViewControllerCallback) {
-        self.cropRegion = cropRegion
-        self.media = media
-        self.initialSelect = selected
-        self.maxAspectRatio = maxAspectRatio
-        self.didFinish = didFinish
-        
-        super.init(nibName: nil, bundle: nil)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("Use init(mediaEdit:)")
-    }
-    
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        .lightContent
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        overrideUserInterfaceStyle = .dark
-        
-        let items = media.map { MediaEdit(cropRegion: cropRegion, maxAspectRatio: maxAspectRatio, media: $0) }
-        
-        guard let selected = MediaEditViewController.firstImage(items: items, position: initialSelect) else {
-            didFinish(self, [], -1, true)
-            return
-        }
-
-        let mediaEditView = MediaEditView(cropRegion: cropRegion, maxAspectRatio: maxAspectRatio, media: MediaItems(items), selected: selected) { [weak self] media, selected, cancel in
-            guard let self = self else { return }
-            self.didFinish(self, media.map { $0.process() }, selected, cancel)
-        }
-        let hostingController = UIHostingController(rootView: mediaEditView)
-        
-        self.addChild(hostingController)
-        self.view.addSubview(hostingController.view)
-        
-        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
-        hostingController.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-        hostingController.view.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-        hostingController.view.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-        hostingController.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
-    }
-    
-    fileprivate static func firstImage(items: [MediaEdit], position: Int? = nil) -> MediaEdit? {
-        if let position = position {
-            if 0 <= position && position < items.count && items[position].type == .image {
-                return items[position]
-            }
-        }
-        
-        for item in items {
-            if item.type == .image {
-                return item
-            }
-        }
-        
-        return nil
-    }
-}
-
-fileprivate class MediaEdit : ObservableObject {
-    @Published var image: UIImage?
-    @Published var cropRect = CGRect.zero
-    @Published var scale: CGFloat = 1.0
-    @Published var offset = CGPoint.zero
-    
-    let type: FeedMediaType
-    let media: PendingMedia
-    
-    private var original: UIImage?
-    private var numberOfRotations = 0
-    private var hFlipped = false
-    private var vFlipped = false
-    private var fileURL : URL?
-    private var cancellable: AnyCancellable?
-    private let cropRegion: MediaEditCropRegion
-    private let maxAspectRatio: CGFloat?
-
-    private var defaultEdit: PendingMediaEdit {
-        get {
-            var edit = PendingMediaEdit(image: original, url: fileURL)
-            edit.cropRect = initialCrop()
-            edit.hFlipped = false
-            edit.vFlipped = false
-            edit.numberOfRotations = 0
-            edit.scale = 1.0
-            edit.offset = .zero
-
-            return edit
-        }
-    }
-
-    private var edit: PendingMediaEdit {
-        get {
-            var edit = PendingMediaEdit(image: original, url: fileURL)
-            edit.cropRect = cropRect
-            edit.hFlipped = hFlipped
-            edit.vFlipped = vFlipped
-            edit.numberOfRotations = numberOfRotations
-            edit.scale = scale
-            edit.offset = offset
-
-            return edit
-        }
-    }
-    
-    init(cropRegion: MediaEditCropRegion, maxAspectRatio: CGFloat?, media: PendingMedia) {
-        self.cropRegion = cropRegion
-        self.maxAspectRatio = maxAspectRatio
-        self.media = media
-        self.type = media.type
-        
-        if let edit = media.edit {
-            original = edit.image
-            fileURL = edit.url
-            cropRect = edit.cropRect
-            hFlipped = edit.hFlipped
-            vFlipped = edit.vFlipped
-            numberOfRotations = edit.numberOfRotations
-            scale = edit.scale
-            offset = edit.offset
-        } else {
-            original = media.image
-            fileURL = media.fileURL
-        }
-        
-        load()
-    }
-    
-    private func load() {
-        switch media.type {
-        case .image:
-            if media.ready.value {
-                updateImage()
-
-                if media.edit == nil {
-                    cropRect = initialCrop()
-                }
-            } else {
-                cancellable = media.ready.sink { [weak self] ready in
-                    guard let self = self else { return }
-                    guard ready else { return }
-
-                    self.original = self.media.image
-                    self.updateImage()
-
-                    if self.media.edit == nil {
-                        self.cropRect = self.initialCrop()
-                    }
-                }
-            }
-        case .video:
-            if let url = media.fileURL {
-                let asset = AVURLAsset(url: url, options: nil)
-                let gen = AVAssetImageGenerator(asset: asset)
-                gen.appliesPreferredTrackTransform = true
-                
-                let time = CMTimeMakeWithSeconds(0.0, preferredTimescale: 600)
-                var actualTime = CMTimeMake(value: 0, timescale: 0)
-                let cgImage: CGImage
-                do {
-                    cgImage = try gen.copyCGImage(at: time, actualTime: &actualTime)
-                } catch {
-                    return
-                }
-                
-                image = UIImage(cgImage: cgImage)
-            }
-        }
-    }
-    
-    deinit {
-        cancellable?.cancel()
-    }
-
-    func isEdited() -> Bool {
-        return (media.edit ?? defaultEdit) != edit
-    }
-    
-    func process() -> PendingMedia {
-        guard media.type == .image else { return media }
-
-        media.edit = edit
-        media.resetProgress()
-
-        // The clousure keeps reference to self, otherwise cropping might not happen
-        PendingMedia.queue.async {
-            guard let image = self.crop() else {
-                return self.media.error.send(PendingMediaError.processingError)
-            }
-            self.media.image = image
-        }
-
-        return media
-    }
-    
-    func updateImage() {
-        guard let image = original?.cgImage else { return }
-
-        var rotations = numberOfRotations
-
-        switch original?.imageOrientation {
-        case .right:
-            rotations += 3
-        case .left:
-            rotations += 1
-        case .down:
-            rotations += 2
-        default:
-            break
-        }
-
-        let size = (rotations % 2) == 0 ? CGSize(width: image.width, height: image.height) : CGSize(width: image.height, height: image.width)
-
-        let transform = CGAffineTransform(translationX: size.width / 2, y: size.height / 2)
-            .scaledBy(x: vFlipped ? -1 : 1, y: hFlipped ? -1 : 1)
-            .rotated(by: CGFloat(rotations) * .pi / 2)
-            .translatedBy(x: -CGFloat(image.width) / 2, y: -CGFloat(image.height) / 2)
-
-        let ciimage = CIImage(cgImage: image).transformed(by: transform)
-        guard let transformed = CIContext().createCGImage(ciimage, from: CGRect(x: 0, y: 0, width: size.width, height: size.height), format: .RGBA8, colorSpace: image.colorSpace) else {
-            self.image = nil
-            return
-        }
-
-        self.image = UIImage(cgImage: transformed)
-    }
-    
-    private func initialCrop() -> CGRect {
-        guard let image = original else { return .zero }
-
-        switch cropRegion {
-        case .circle, .square:
-            let size = min(image.size.width, image.size.height)
-            return CGRect(x: image.size.width / 2 - size / 2, y: image.size.height / 2  - size / 2, width: size, height: size)
-        case .any:
-            var crop = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
-
-            if let maxAspectRatio = maxAspectRatio, crop.size.height / crop.size.width > maxAspectRatio {
-                crop.size.height = (crop.size.width * maxAspectRatio).rounded()
-                crop.origin.y = image.size.height / 2 - crop.size.height / 2
-            }
-
-            return crop
-        }
-    }
-    
-    func reset() {
-        numberOfRotations = 0
-        vFlipped = false
-        hFlipped = false
-        scale = 1.0
-        offset = CGPoint.zero
-        
-        updateImage()
-        cropRect = initialCrop()
-    }
-    
-    func rotate() {
-        guard let image = image else { return }
-        
-        numberOfRotations = (numberOfRotations + 1) % 4
-        
-        swap(&vFlipped,  &hFlipped)
-        
-        let w = cropRect.size.width
-        let h = cropRect.size.height
-        let x = cropRect.origin.x
-        let y = cropRect.origin.y
-        let ox = offset.x
-        let oy = offset.y
-        
-        cropRect.size.width = h
-        cropRect.size.height = w
-        cropRect.origin.x = y
-        cropRect.origin.y = image.size.width - w - x
-        offset.x = oy
-        offset.y = -ox
-
-        if let maxAspectRatio = maxAspectRatio {
-            let ratio = cropRect.size.height / cropRect.size.width
-            cropRect.size.height = cropRect.size.width * min(maxAspectRatio, ratio)
-        }
-        
-        updateImage()
-    }
-    
-    func flip() {
-        guard let image = image else { return }
-        
-        vFlipped.toggle()
-        cropRect.origin.x = image.size.width - cropRect.size.width - cropRect.origin.x
-        offset.x = -offset.x
-        
-        updateImage()
-    }
-    
-    func zoom(_ scale: CGFloat) {
-        guard let image = image else { return }
-        guard 1.0 <= scale && scale <= 10.0 else { return }
-        self.scale = scale
-        
-        let w = image.size.width
-        let h = image.size.height
-        
-        let minX = (1 - scale) * (w / 2) + offset.x
-        let minY = (1 - scale) * (h / 2) + offset.y
-        let maxX = minX + scale * w
-        let maxY = minY + scale * h
-        
-        if minX > 0 {
-            offset.x = (scale - 1) * (w / 2)
-        } else if maxX < w {
-            offset.x = (1 - scale) * (w / 2)
-        }
-        
-        if minY > 0 {
-            offset.y = (scale - 1) * (h / 2)
-        } else if maxY < h {
-            offset.y = (1 - scale) * (h / 2)
-        }
-    }
-    
-    func move(_ offset: CGPoint) {
-        guard let image = image else { return }
-        let w = image.size.width
-        let h = image.size.height
-        
-        let minX = (1 - scale) * (w / 2) + offset.x
-        let minY = (1 - scale) * (h / 2) + offset.y
-        let maxX = minX + scale * w
-        let maxY = minY + scale * h
-
-        guard minX <= 0 else { return }
-        guard minY <= 0 else { return }
-        guard maxX >= w else { return }
-        guard maxY >= h else { return }
-        
-        self.offset = offset
-    }
-    
-    func crop() -> UIImage? {
-        guard let image = image?.cgImage else { return nil }
-
-        let contextCenterX = cropRect.size.width / 2
-        let contextCenterY = cropRect.size.height / 2
-        let imgCenterX = CGFloat(image.width) / 2
-        let imgCenterY = CGFloat(image.height) / 2
-        let cropOffsetX = cropRect.midX - imgCenterX
-        let cropOffsetY = (CGFloat(image.height) - cropRect.midY) - imgCenterY
-
-        let transform = CGAffineTransform(translationX: contextCenterX, y: contextCenterY)
-            .translatedBy(x: -cropOffsetX, y: -cropOffsetY)
-            .translatedBy(x: offset.x, y: -offset.y)
-            .scaledBy(x: scale, y: scale)
-            .translatedBy(x: -imgCenterX, y: -imgCenterY)
-
-        let ciimage = CIImage(cgImage: image).transformed(by: transform)
-        guard let transformed = CIContext().createCGImage(ciimage, from: CGRect(x: 0, y: 0, width: cropRect.size.width, height: cropRect.size.height), format: .RGBA8, colorSpace: image.colorSpace) else {
-            return nil
-        }
-
-        return UIImage(cgImage: transformed)
-    }
-}
-
-fileprivate struct CropRegion: View {
-
-    let cropRegion: MediaEditCropRegion
-    let region: CGRect
-    
-    private let borderThickness: CGFloat = 4
-    private let cornerSize = CGSize(width: 15, height: 15)
-    private let shadowColor = Color(red: 0, green: 0, blue: 0, opacity: 0.7)
-    
-    var body: some View {
-        GeometryReader { geometry in
-            // Shadow
-            Path { path in
-                path.addRect(CGRect(x: -1, y: -1, width: geometry.size.width + 2, height: geometry.size.height + 2))
-
-                switch cropRegion {
-                case .circle:
-                    path.addEllipse(in: region)
-                case .square, .any:
-                    path.addRoundedRect(in: region, cornerSize: self.cornerSize)
-                }
-            }
-            .fill(self.shadowColor, style: FillStyle(eoFill: true))
-            
-            // Border
-            Path { path in
-                let offset = borderThickness / 2
-                let region = self.region.insetBy(dx: -offset + 1, dy: -offset + 1)
-
-                switch cropRegion {
-                case .circle:
-                    path.addEllipse(in: region)
-                case .square, .any:
-                    path.addRoundedRect(in: region, cornerSize: self.cornerSize)
-                }
-            }
-            .stroke(Color.white, lineWidth: borderThickness)
-        }
-    }
-}
-
-fileprivate struct Preview: View {
-    @ObservedObject var media: MediaEdit
-    @Binding var selected: MediaEdit
-    
-    var body: some View {
-        ZStack {
-            if media.image != nil {
-                Image(uiImage: media.image!)
-                    .resizable()
-                    .cornerRadius(3)
-                    .aspectRatio(contentMode: .fill)
-                    .overlay(selected === media ? nil : Rectangle().fill(Color.init(white: 0, opacity: 0.4)))
-            }
-            
-            if media.type == .video {
-                Image(systemName: "play.fill")
-                    .foregroundColor(Color(UIColor.primaryWhiteBlack))
-                    .imageScale(.large)
-                    .opacity(0.6)
-            }
-        }
-        .frame(width: 50, height: 50)
-        .cornerRadius(3)
-        .overlay(RoundedRectangle(cornerRadius: 3).stroke(Color.blue, lineWidth: selected === media ? 3 : 0))
-        .onTapGesture {
-            if selected !== media && media.type == .image {
-                selected = media
-            }
-        }
-    }
-}
-
-fileprivate class MediaItems : ObservableObject {
-    @Published var items: [MediaEdit]
-
-    init(_ items: [MediaEdit]) {
-        self.items = items
-    }
-}
-
-fileprivate struct PreviewCollection: UIViewControllerRepresentable {
-    typealias UIViewControllerType = UICollectionViewController
-
-    @ObservedObject var media: MediaItems
-    @Binding var selected: MediaEdit
-
-    func makeUIViewController(context: Context) -> UICollectionViewController {
-        let layout = UICollectionViewFlowLayout()
-        layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 6
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
-        layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 56, height: 56)
-
-        let controller = UICollectionViewController(collectionViewLayout: layout)
-        controller.collectionView.showsHorizontalScrollIndicator = false
-        controller.collectionView.register(PreviewCell.self, forCellWithReuseIdentifier: PreviewCell.reuseIdentifier)
-
-        controller.collectionView.dataSource = context.coordinator
-
-        controller.installsStandardGestureForInteractiveMovement = false
-        let recognizer = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleLongGesture(gesture:)))
-        controller.collectionView.addGestureRecognizer(recognizer)
-
-        return controller
-    }
-
-    func updateUIViewController(_ controller: UICollectionViewController, context: Context) {
-        controller.collectionView.reloadData()
-    }
-
-    func makeCoordinator() -> Coordinator {
-        return Coordinator(self)
-    }
-
-    class Coordinator: NSObject, UICollectionViewDataSource {
-        private var parent: PreviewCollection
-
-        init(_ collection: PreviewCollection) {
-            parent = collection
-
-        }
-
-        func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-            return parent.media.items.count
-        }
-
-        func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PreviewCell.reuseIdentifier, for: indexPath) as! PreviewCell
-            cell.preview = Preview(media: parent.media.items[indexPath.row], selected: parent.$selected)
-            return cell
-        }
-
-        func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-            parent.media.items.swapAt(sourceIndexPath.row, destinationIndexPath.row)
-        }
-
-        @objc func handleLongGesture(gesture: UILongPressGestureRecognizer) {
-            guard let collectionView = gesture.view as? UICollectionView else { return }
-
-            switch(gesture.state) {
-            case .began:
-                guard let indexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) else { return }
-                collectionView.beginInteractiveMovementForItem(at: indexPath)
-            case .changed:
-                let location = gesture.location(in: collectionView)
-                collectionView.updateInteractiveMovementTargetPosition(CGPoint(x: location.x, y: collectionView.bounds.midY))
-            case .ended:
-                collectionView.endInteractiveMovement()
-            default:
-                collectionView.cancelInteractiveMovement()
-            }
-        }
-    }
-
-    class PreviewCell: UICollectionViewCell {
-        static var reuseIdentifier: String {
-            return String(describing: PreviewCell.self)
-        }
-
-        private var controller: UIHostingController<Preview>?
-        var preview: Preview? {
-            didSet {
-                if let preview = preview {
-                    if let controller = controller {
-                        controller.rootView = preview
-                    } else {
-                        controller = UIHostingController(rootView: preview)
-                        controller!.view.frame = contentView.bounds
-                        controller!.view.backgroundColor = .clear
-                        contentView.addSubview(controller!.view)
-                    }
-                }
-            }
-        }
-
-        override init(frame: CGRect) {
-            super.init(frame: frame)
-            contentView.layer.cornerRadius = 3
-            contentView.layer.masksToBounds = true
-        }
-
-        required init?(coder: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
-        }
-    }
-}
-
-fileprivate struct CropGestureView: UIViewRepresentable {
-    typealias UIViewType = UIView
-
-    var outThreshold: CGFloat
-
-    init(outThreshold: CGFloat) {
-        self.outThreshold = outThreshold
-    }
-
-    private var actions = Actions()
-    
-    func onZoomChanged(_ action: @escaping (CGFloat, CGPoint) -> Void) -> CropGestureView {
-        actions.zoomChangedAction = action
-        return self
-    }
-    
-    func onZoomEnded(_ action: @escaping () -> Void) -> CropGestureView {
-        actions.zoomEndedAction = action
-        return self
-    }
-    
-    func onPinchDragChanged(_ action: @escaping (CGPoint) -> Void) -> CropGestureView {
-        actions.pinchDragChangedAction = action
-        return self
-    }
-    
-    func onPinchDragEnded(_ action: @escaping (CGPoint) -> Void) -> CropGestureView {
-        actions.pinchDragEndedAction = action
-        return self
-    }
-    
-    func onDragChanged(_ action: @escaping (CGPoint) -> Void) -> CropGestureView {
-        actions.dragChangedAction = action
-        return self
-    }
-    
-    func onDragEnded(_ action: @escaping (CGPoint) -> Void) -> CropGestureView {
-        actions.dragEndedAction = action
-        return self
-    }
-    
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
-
-        let dragRecognizer = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.onDrag))
-        dragRecognizer.delegate = context.coordinator
-        dragRecognizer.maximumNumberOfTouches = 1
-        view.addGestureRecognizer(dragRecognizer)
-        
-        let pinchDragRecognizer = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.onPinchDrag))
-        pinchDragRecognizer.delegate = context.coordinator
-        pinchDragRecognizer.minimumNumberOfTouches = 2
-        view.addGestureRecognizer(pinchDragRecognizer)
-        
-        let zoomRecognizer = UIPinchGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.onZoom(sender:)))
-        zoomRecognizer.delegate = context.coordinator
-        view.addGestureRecognizer(zoomRecognizer)
-        
-        return view
-    }
-    
-    func updateUIView(_ uiView: UIView, context: Context) {
-        context.coordinator.actions = actions
-    }
-    
-    func makeCoordinator() -> Coordinator {
-        return Coordinator(self)
-    }
-
-    class Actions: NSObject {
-        var dragChangedAction: ((CGPoint) -> Void)?
-        var dragEndedAction: ((CGPoint) -> Void)?
-        var pinchDragChangedAction: ((CGPoint) -> Void)?
-        var pinchDragEndedAction: ((CGPoint) -> Void)?
-        var zoomChangedAction: ((CGFloat, CGPoint) -> Void)?
-        var zoomEndedAction: (() -> Void)?
-    }
-    
-    class Coordinator: NSObject, UIGestureRecognizerDelegate {
-        private let parent: CropGestureView
-
-        var actions: Actions?
-        
-        init(_ view: CropGestureView) {
-            parent = view
-        }
-        
-        @objc func onDrag(sender: UIPanGestureRecognizer) {
-            let location = convert(sender.location(in: sender.view))
-
-            if sender.state == .began || sender.state == .changed {
-                actions?.dragChangedAction?(location)
-            } else if sender.state == .ended {
-                actions?.dragEndedAction?(location)
-            }
-        }
-        
-        @objc func onPinchDrag(sender: UIPanGestureRecognizer) {
-            let translation = sender.translation(in: sender.view)
-            if sender.state == .began || sender.state == .changed {
-                actions?.pinchDragChangedAction?(translation)
-            } else if sender.state == .ended {
-                actions?.pinchDragEndedAction?(translation)
-            }
-            sender.setTranslation(.zero, in: sender.view)
-        }
-        
-        @objc func onZoom(sender: UIPinchGestureRecognizer) {
-            if sender.state == .began || sender.state == .changed {
-                guard sender.numberOfTouches > 1 else { return }
-
-                let locations = [
-                    convert(sender.location(ofTouch: 0, in: sender.view)),
-                    convert(sender.location(ofTouch: 1, in: sender.view)),
-                ]
-
-                let zoomLocation = CGPoint(x: (locations[0].x + locations[1].x) / 2, y: (locations[0].y + locations[1].y) / 2)
-
-                actions?.zoomChangedAction?(sender.scale, zoomLocation)
-                sender.scale = 1
-            } else if sender.state == .ended {
-                actions?.zoomEndedAction?()
-            }
-        }
-        
-        private func isDragRecognizer(_ recognizer: UIGestureRecognizer) -> Bool {
-            if let recognizer = recognizer as? UIPanGestureRecognizer {
-                if recognizer.maximumNumberOfTouches == 1 {
-                    return true
-                }
-            }
-            
-            return false
-        }
-
-        private func convert(_ location: CGPoint) -> CGPoint {
-            return CGPoint(x: location.x - parent.outThreshold, y: location.y - parent.outThreshold)
-        }
-        
-        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-            return !(isDragRecognizer(gestureRecognizer) || isDragRecognizer(otherGestureRecognizer))
-        }
-    }
-}
-
-fileprivate struct CropImage: View {
-    private enum CropRegionSection {
-        case topLeft, top, topRight, right, bottomRight, bottom, bottomLeft, left, inside, none
-    }
-
-    private let threshold = CGFloat(44)
-    private let outThreshold = CGFloat(22)
-    private let epsilon = CGFloat(1e-6)
-
-    let cropRegion: MediaEditCropRegion
-    let maxAspectRatio: CGFloat?
-    @ObservedObject var media: MediaEdit
-    
-    @State private var isDragging = false
-    @State private var startingOffset = CGPoint.zero
-    @State private var lastLocation = CGPoint.zero
-    @State private var lastCropSection: CropRegionSection = .none
-    
-    private func findCropSection(_ crop: CGRect, location: CGPoint) -> CropRegionSection {
-        let vThreshold = min(threshold, crop.width / 3)
-        let hThreshold = min(threshold, crop.height / 3)
-        let isTop = (crop.minY - outThreshold < location.y) && (location.y < (crop.minY + vThreshold))
-        let isBottom = ((crop.maxY - vThreshold) < location.y) && (location.y < crop.maxY + outThreshold)
-        let isLeft = (crop.minX - outThreshold < location.x) && (location.x < (crop.minX + hThreshold))
-        let isRight = ((crop.maxX - hThreshold) < location.x) && (location.x < crop.maxX + outThreshold)
-        
-        switch (isLeft, isTop, isRight, isBottom) {
-        case (true, true, _, _):
-            return .topLeft
-        case (_, true, true, _):
-            return .topRight
-        case (_, _, true, true):
-            return .bottomRight
-        case (true, _, _, true):
-            return .bottomLeft
-        case (_, true, _, _):
-            return .top
-        case (_, _, _, true):
-            return .bottom
-        case (true, _, _, _):
-            return .left
-        case (_, _, true, _):
-            return .right
-        default:
-            break
-        }
-        
-        let isInsideVertical = crop.minY <= location.y && location.y <= crop.maxY
-        let isInsideHorizontal = crop.minX <= location.x && location.x <= crop.maxX
-        if isInsideVertical && isInsideHorizontal {
-            return .inside
-        }
-        
-        return .none
-    }
-    
-    private func newCropRegion(_ crop: CGRect, deltaX: CGFloat = 0, deltaY: CGFloat = 0) -> CGRect {
-        var crop = crop
-        
-        switch lastCropSection {
-        case .top, .topLeft, .topRight:
-            crop.origin.y += deltaY
-            crop.size.height -= deltaY
-        case .bottom, .bottomLeft, .bottomRight:
-            crop.size.height += deltaY
-        default:
-            break
-        }
-        
-        switch lastCropSection {
-        case .left, .bottomLeft, .topLeft:
-            crop.origin.x += deltaX
-            crop.size.width -= deltaX
-        case .right, .bottomRight, .topRight:
-            crop.size.width += deltaX
-        default:
-            break
-        }
-
-        if lastCropSection == .inside {
-            crop.origin.x += deltaX
-            crop.origin.y += deltaY
-        }
-        
-        if let maxAspectRatio = maxAspectRatio, (crop.size.height / crop.size.width) - maxAspectRatio > epsilon {
-            switch lastCropSection {
-            case .none, .inside:
-                break
-            case .left, .right:
-                let height = maxAspectRatio * crop.size.width
-                crop.origin.y -= (height - crop.size.height) / 2
-                crop.size.height = height
-            default:
-                let width = crop.size.height / maxAspectRatio
-                crop.origin.x -= (width - crop.size.width) / 2
-                crop.size.width = width
-            }
-        }
-        
-        return crop
-    }
-    
-    private func isCropRegionWithinLimit(_ crop: CGRect, limit: CGSize) -> Bool {
-        return crop.minX >= -epsilon && crop.minY >= -epsilon && crop.maxX <= limit.width + epsilon && crop.maxY <= limit.height + epsilon
-    }
-    
-    private func isCropRegionMinSize(_ crop: CGRect) -> Bool {
-        return crop.size.height > threshold && crop.size.width > threshold
-    }
-    
-    private func isCropRegionValid(_ crop: CGRect, limit: CGSize) -> Bool {
-        return isCropRegionWithinLimit(crop, limit: limit) && isCropRegionMinSize(crop)
-    }
-    
-    private func scaleCropRegion(_ crop: CGRect, from: CGSize, to: CGSize) -> CGRect {
-        let scale = to.height / from.height
-        var scaledCrop = crop.applying(CGAffineTransform(scaleX: scale, y: scale))
-
-        scaledCrop.origin.x = max(0, scaledCrop.origin.x)
-        scaledCrop.origin.y = max(0, scaledCrop.origin.y)
-        scaledCrop.size.width -= max(0, scaledCrop.maxX - to.width)
-        scaledCrop.size.height -= max(0, scaledCrop.maxY - to.height)
-
-        return scaledCrop
-    }
-    
-    private func scaleOffset(_ offset: CGPoint, containerSize: CGSize, imageSize: CGSize) -> CGSize {
-        var scale: CGFloat = 1.0
-        if imageSize.width > containerSize.width || imageSize.height > containerSize.height {
-            scale = min(containerSize.width / imageSize.width, containerSize.height / imageSize.height)
-        }
-        
-        return CGSize(width: offset.x * scale, height: offset.y * scale)
-    }
-    
-    var body: some View {
-        if media.image != nil {
-            GeometryReader { outer in
-                VStack {
-                    Spacer()
-                    Image(uiImage: self.media.image!)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .allowsHitTesting(false)
-                        .scaleEffect(self.media.scale)
-                        .offset(self.scaleOffset(self.media.offset, containerSize: outer.size, imageSize: self.media.image!.size))
-                        .clipped()
-                        .overlay(GeometryReader { inner in
-                            CropRegion(cropRegion: self.cropRegion, region: self.scaleCropRegion(self.media.cropRect, from: self.media.image!.size, to: inner.size))
-                        })
-                        .overlay(GeometryReader { inner in
-                            CropGestureView(outThreshold: outThreshold)
-                                .onZoomChanged { scale, location in
-                                    let baseScale = self.media.image!.size.width / inner.size.width
-                                    let zoomCenter = location.applying(CGAffineTransform(scaleX: baseScale, y: baseScale))
-                                    let translationX = (zoomCenter.x - self.media.image!.size.width / 2 - self.media.offset.x) * (1 - scale)
-                                    let translationY = (zoomCenter.y - self.media.image!.size.height / 2 - self.media.offset.y) * (1 - scale)
-
-                                    self.media.zoom(self.media.scale * scale)
-                                    self.media.move(CGPoint(x: self.media.offset.x + translationX, y: self.media.offset.y + translationY))
-                                }
-                                .onPinchDragChanged { translation in
-                                    let baseScale = self.media.image!.size.width / inner.size.width
-                                    let scaled = translation.applying(CGAffineTransform(scaleX: baseScale, y: baseScale))
-
-                                    self.media.move(CGPoint(x: self.media.offset.x + scaled.x, y: self.media.offset.y + scaled.y))
-                                }
-                                .onDragChanged { location in
-                                    var crop = self.scaleCropRegion(self.media.cropRect, from: self.media.image!.size, to: inner.size)
-
-                                    if !self.isDragging {
-                                        self.lastLocation = location
-                                        self.lastCropSection = self.findCropSection(crop, location: location)
-
-                                        if self.lastCropSection != .none {
-                                            self.isDragging = true
-                                        } else {
-                                            return
-                                        }
-
-                                        switch self.cropRegion {
-                                        case .circle, .square:
-                                            self.lastCropSection = .inside
-                                        case .any:
-                                            break
-                                        }
-                                    } else {
-                                        let valid = crop.insetBy(dx: -2 * outThreshold, dy: -2 * outThreshold)
-                                        if !valid.contains(location) {
-                                            return
-                                        }
-                                    }
-
-                                    let deltaX = location.x - self.lastLocation.x
-                                    let deltaY = location.y - self.lastLocation.y
-                                    self.lastLocation = location
-
-                                    var result = self.newCropRegion(crop, deltaX: deltaX)
-                                    if self.isCropRegionValid(result, limit: inner.size) {
-                                        crop = result
-                                    }
-
-                                    result = self.newCropRegion(crop, deltaY: deltaY)
-                                    if self.isCropRegionValid(result, limit: inner.size) {
-                                        crop = result
-                                    }
-
-                                    self.media.cropRect = self.scaleCropRegion(crop, from: inner.size, to: self.media.image!.size)
-                                }
-                                .onDragEnded { v in
-                                    self.isDragging = false
-                                }
-                                .offset(x: -outThreshold, y: -outThreshold)
-                                .frame(width: inner.size.width + outThreshold * 2, height: inner.size.height + outThreshold * 2)
-                        })
-                    Spacer()
-                }.frame(maxWidth: .infinity)
-            }
-        }
-    }
-}
-
 private extension Localizations {
 
     static var voiceOverButtonClose: String {
@@ -961,11 +20,15 @@ private extension Localizations {
     }
 
     static var voiceOverButtonRotate: String {
-        NSLocalizedString("media.voiceover.button.rotate", value: "Rotate", comment: "Accessibility label for a button in media composer. Refers to photo / video editing action.")
+        NSLocalizedString("media.voiceover.button.rotate", value: "Rotate", comment: "Accessibility label for a button in media editor. Refers to media editing action.")
     }
 
     static var voiceOverButtonFlip: String {
-        NSLocalizedString("media.voiceover.button.flip", value: "Flip", comment: "Accessibility label for a button in media composer. Refers to photo / video editing action.")
+        NSLocalizedString("media.voiceover.button.flip", value: "Flip", comment: "Accessibility label for a button in media editor. Refers to media editing action.")
+    }
+
+    static var voiceOverButtonMute: String {
+        NSLocalizedString("media.voiceover.button.mute", value: "Mute", comment: "Accessibility label for a button in media editor. Refers to media editing action.")
     }
 
     static var discardConfirmationPrompt: String {
@@ -981,123 +44,382 @@ private extension Localizations {
     }
 }
 
-fileprivate struct MediaEditView : View {
-    let cropRegion: MediaEditCropRegion
-    let maxAspectRatio: CGFloat?
-    @State var media: MediaItems
-    @State var selected: MediaEdit
-    var complete: (([MediaEdit], Int, Bool) -> Void)?
+typealias MediaEditViewControllerCallback = (MediaEditViewController, [PendingMedia], Int, Bool) -> Void
 
-    @State private var showDiscardSheet = false
+enum MediaEditCropRegion {
+    case circle, square, any
+}
 
-    func cancel() {
-        complete?([], -1, true)
+class MediaEditViewController: UIViewController {
+    private var media: [MediaEdit]
+    private var selected: Int
+    private var editViewController: UIViewController?
+    private let cropRegion: MediaEditCropRegion
+    private let maxAspectRatio: CGFloat?
+    private var processing = false
+    private let didFinish: MediaEditViewControllerCallback
+    private var cancellable: AnyCancellable?
+
+    private lazy var buttonsView: UIView = {
+        let buttonsView = UIStackView()
+        buttonsView.translatesAutoresizingMaskIntoConstraints = false
+        buttonsView.axis = .horizontal
+        buttonsView.distribution = .equalSpacing
+
+        let resetBtn = UIButton()
+        resetBtn.titleLabel?.font = .gothamFont(ofFixedSize: 15, weight: .medium)
+        resetBtn.setTitle(Localizations.buttonReset, for: .normal)
+        resetBtn.setTitleColor(.white, for: .normal)
+        resetBtn.addTarget(self, action: #selector(resetAction), for: .touchUpInside)
+        buttonsView.addArrangedSubview(resetBtn)
+
+        let doneBtn = UIButton()
+        doneBtn.titleLabel?.font = .gothamFont(ofFixedSize: 15, weight: .medium)
+        doneBtn.setTitle(Localizations.buttonDone, for: .normal)
+        doneBtn.setTitleColor(.blue, for: .normal)
+        doneBtn.addTarget(self, action: #selector(doneAction), for: .touchUpInside)
+        buttonsView.addArrangedSubview(doneBtn)
+
+        return buttonsView
+    }()
+
+    private lazy var previewCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 6
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
+        layout.scrollDirection = .horizontal
+        layout.itemSize = CGSize(width: 56, height: 56)
+
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.register(PreviewCell.self, forCellWithReuseIdentifier: PreviewCell.reuseIdentifier)
+        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.delegate = self
+        collectionView.dataSource = self
+
+        let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPressPreviewCollection(gesture:)))
+        collectionView.addGestureRecognizer(recognizer)
+
+        return collectionView
+    }()
+
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .portrait
+    }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
     }
     
-    var topBar: some View {
-        HStack {
-            Button(action: {
-                for item in media.items {
-                    if item.type == .image && item.isEdited() {
-                        self.showDiscardSheet = true
-                        return
-                    }
-                }
+    init(cropRegion: MediaEditCropRegion = .any, mediaToEdit media: [PendingMedia], selected position: Int?, maxAspectRatio: CGFloat? = nil, didFinish: @escaping MediaEditViewControllerCallback) {
+        self.cropRegion = cropRegion
+        self.media = media.map { MediaEdit(cropRegion: cropRegion, maxAspectRatio: maxAspectRatio, media: $0) }
+        self.maxAspectRatio = maxAspectRatio
+        self.didFinish = didFinish
 
-                cancel()
-            }) {
-                Image(systemName: "xmark")
-                    .foregroundColor(.white)
-                    .font(.system(size: 22, weight: .medium))
-                    .accessibility(label: Text(Localizations.voiceOverButtonClose))
-                    .padding()
-            }
-            .actionSheet(isPresented: $showDiscardSheet) {
-                ActionSheet(
-                    title: Text(Localizations.discardConfirmationPrompt),
-                    message: nil,
-                    buttons: [.destructive(Text(Localizations.buttonDiscard)) { cancel() }, .cancel()]
-                )
-            }
-            
-            Spacer()
-            
-            Button(action: { self.selected.rotate() }) {
-                Image("Rotate")
-                    .resizable()
-                    .renderingMode(.template)
-                    .foregroundColor(.white)
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: 22)
-                    .accessibility(label: Text(Localizations.voiceOverButtonRotate))
-                    .padding()
-            }
-            
-            Button(action: { self.selected.flip() }) {
-                Image("Flip")
-                    .resizable()
-                    .renderingMode(.template)
-                    .foregroundColor(.white)
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: 22)
-                    .accessibility(label: Text(Localizations.voiceOverButtonFlip))
-                    .padding()
-            }
+        if let position = position, 0 <= position && position < media.count {
+            self.selected = position
+        } else {
+            self.selected = 0
         }
+        
+        super.init(nibName: nil, bundle: nil)
     }
     
-    var bottomBar: some View {
-        HStack {
-            Spacer()
-                .frame(width: 40)
+    required init?(coder: NSCoder) {
+        fatalError("Use init(mediaEdit:)")
+    }
 
-            Button(action: {
-                self.selected.reset()
-                self.media.items.sort { $0.media.order < $1.media.order }
-            }) {
-                Text(Localizations.buttonReset)
-                    .font(.gotham(fixedSize: 15, weight: .medium))
-                    .foregroundColor(.white)
-                    .padding()
-            }
-            
-            Spacer()
-            
-            Button(action: {
-                guard let index = self.media.items.firstIndex(where: { $0 === self.selected }) else { return }
-                self.complete?(self.media.items, index, false)
-            }) {
-                Text(Localizations.buttonDone)
-                    .font(.gotham(fixedSize: 15, weight: .medium))
-                    .foregroundColor(.blue)
-                    .padding()
-            }
+    func withNavigationController() -> UIViewController {
+        let controller = UINavigationController(rootViewController: self)
+        controller.modalPresentationStyle = .fullScreen
 
-            Spacer()
-                .frame(width: 40)
+        return controller
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        overrideUserInterfaceStyle = .dark
+
+        setupNavigation()
+
+        view.backgroundColor = .black
+        view.addSubview(buttonsView)
+        view.addSubview(previewCollectionView)
+
+        NSLayoutConstraint.activate([
+            buttonsView.heightAnchor.constraint(equalToConstant: 56),
+            buttonsView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            buttonsView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 48),
+            buttonsView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -48),
+            previewCollectionView.heightAnchor.constraint(equalToConstant: 80),
+            previewCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            previewCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            previewCollectionView.bottomAnchor.constraint(equalTo: buttonsView.topAnchor),
+
+        ])
+
+        updateEditViewController()
+
+        previewCollectionView.isHidden = media.count < 2
+    }
+
+    private func setupNavigation() {
+        navigationController?.navigationBar.overrideUserInterfaceStyle = .dark
+
+        let backImage = UIImage(systemName: "xmark", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(backAction))
+
+        updateNavigation()
+    }
+
+    private func updateNavigation() {
+        switch media[selected].type {
+        case .image:
+            let rotateIcon = UIImage(named: "Rotate")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+            let rotateBtn = UIBarButtonItem(image: rotateIcon, style: .plain, target: self, action: #selector(rotateAction))
+            rotateBtn.accessibilityLabel = Localizations.voiceOverButtonFlip
+
+            let flipIcon = UIImage(named: "Flip")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+            let flipBtn = UIBarButtonItem(image: flipIcon, style: .plain, target: self, action: #selector(flipAction))
+            flipBtn.accessibilityLabel = Localizations.voiceOverButtonRotate
+
+            navigationItem.rightBarButtonItems = [rotateBtn, flipBtn]
+        case .video:
+            let muteBtn = UIBarButtonItem(image: muteIcon(media[selected].muted), style: .plain, target: self, action: #selector(toggleMuteAction))
+            muteBtn.accessibilityLabel = Localizations.voiceOverButtonMute
+            navigationItem.rightBarButtonItems = [muteBtn]
+        }
+
+        cancellable?.cancel()
+        if media[selected].type == .video {
+            cancellable = media[selected].$muted.sink { [weak self] in
+                guard let self = self else { return }
+                self.navigationItem.rightBarButtonItem?.image = self.muteIcon($0)
+            }
         }
     }
 
-    var body: some View {
-        ZStack {
-            Rectangle()
-                .foregroundColor(.black)
-                .edgesIgnoringSafeArea(.all)
+    private func muteIcon(_ muted: Bool) -> UIImage {
+        return UIImage(systemName: muted ? "speaker.slash.fill" : "speaker.wave.2.fill", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))!
+    }
 
-            VStack {
-                topBar
-                CropImage(cropRegion: cropRegion, maxAspectRatio: maxAspectRatio, media: selected)
-                    .padding(8)
-
-                if media.items.count > 1 {
-                    PreviewCollection(media: media, selected: $selected)
-                        .frame(height: 80)
-                }
-
-                Spacer()
-                    .frame(height: 30)
-                bottomBar
-            }
+    private func updateEditViewController() {
+        if let controller = editViewController {
+            controller.view.removeFromSuperview()
+            controller.removeFromParent()
         }
+
+        let controller: UIViewController
+        switch media[selected].type {
+        case .image:
+            controller = ImageEditViewController(media[selected], cropRegion: cropRegion, maxAspectRatio: maxAspectRatio)
+        case .video:
+            controller = VideoEditViewController(media[selected])
+        }
+
+        controller.view.translatesAutoresizingMaskIntoConstraints = false
+
+        addChild(controller)
+        view.addSubview(controller.view)
+
+        NSLayoutConstraint.activate([
+            controller.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            controller.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            controller.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            controller.view.bottomAnchor.constraint(equalTo: previewCollectionView.topAnchor),
+        ])
+
+        controller.didMove(toParent: self)
+        editViewController = controller
+    }
+
+    @objc private func longPressPreviewCollection(gesture: UILongPressGestureRecognizer) {
+        guard !processing else { return }
+        guard let collectionView = gesture.view as? UICollectionView else { return }
+
+        switch(gesture.state) {
+        case .began:
+            guard let indexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) else { return }
+            collectionView.beginInteractiveMovementForItem(at: indexPath)
+        case .changed:
+            let location = gesture.location(in: collectionView)
+            collectionView.updateInteractiveMovementTargetPosition(CGPoint(x: location.x, y: collectionView.bounds.midY))
+        case .ended:
+            collectionView.endInteractiveMovement()
+        default:
+            collectionView.cancelInteractiveMovement()
+        }
+    }
+
+    @objc private func toggleMuteAction() {
+        guard !processing else { return }
+        guard media[selected].type == .video else { return }
+        media[selected].muted = !media[selected].muted
+    }
+
+    @objc private func rotateAction() {
+        guard !processing else { return }
+        guard media[selected].type == .image else { return }
+        media[selected].rotate()
+    }
+
+    @objc private func flipAction() {
+        guard !processing else { return }
+        guard media[selected].type == .image else { return }
+        media[selected].flip()
+    }
+
+    @objc private func backAction() {
+        guard !processing else { return }
+
+        if media.filter({ $0.hasChanges() }).count > 0 {
+            let alert = UIAlertController(title: Localizations.discardConfirmationPrompt, message: nil, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: Localizations.buttonDiscard, style: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                self.didFinish(self, self.media.map { $0.media }, self.selected, true)
+            })
+            alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+            present(alert, animated: true)
+        } else {
+            didFinish(self, media.map { $0.media }, selected, true)
+        }
+    }
+
+    @objc private func resetAction() {
+        guard !processing else { return }
+
+        for item in media {
+            item.reset()
+        }
+    }
+
+    @objc private func doneAction() {
+        guard !processing else { return }
+        processing = true
+
+        didFinish(self, media.map { $0.process() }, selected, false)
+    }
+}
+
+// MARK: UICollectionViewDelegate
+extension MediaEditViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard !processing else { return }
+        let previous = selected
+        selected = indexPath.row
+
+        collectionView.reloadItems(at: [indexPath, IndexPath(row: previous, section: 0)])
+
+        updateNavigation()
+        updateEditViewController()
+    }
+}
+
+// MARK: UICollectionViewDataSource
+extension MediaEditViewController : UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return media.count
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PreviewCell.reuseIdentifier, for: indexPath) as! PreviewCell
+        cell.configure(media: media[indexPath.row], selected: indexPath.row == selected)
+
+        return cell
+    }
+
+    func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        if sourceIndexPath.row == selected {
+            selected = destinationIndexPath.row
+        } else if destinationIndexPath.row == selected {
+            selected = sourceIndexPath.row
+        }
+
+        media.insert(media.remove(at: sourceIndexPath.row), at: destinationIndexPath.row)
+    }
+}
+
+fileprivate class PreviewCell: UICollectionViewCell {
+    static var reuseIdentifier: String {
+        return String(describing: PreviewCell.self)
+    }
+
+    private var cancellable: AnyCancellable?
+
+    private lazy var imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFill
+        imageView.layer.borderColor = UIColor.blue.cgColor
+        imageView.layer.cornerRadius = 3
+        imageView.layer.masksToBounds = true
+
+        return imageView
+    }()
+    private lazy var overlayView: UIView = {
+        let overlayView = UIView()
+        overlayView.translatesAutoresizingMaskIntoConstraints = false
+        overlayView.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+
+        return overlayView
+    }()
+    private lazy var videoIconView: UIImageView = {
+        let videoIcon = UIImage(systemName: "play.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+        let videoIconView = UIImageView(image: videoIcon)
+        videoIconView.translatesAutoresizingMaskIntoConstraints = false
+        videoIconView.contentMode = .scaleAspectFit
+        videoIconView.alpha = 0.6
+
+        return videoIconView
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        contentView.layer.cornerRadius = 3
+        contentView.layer.masksToBounds = true
+
+        contentView.addSubview(imageView)
+        contentView.addSubview(overlayView)
+        contentView.addSubview(videoIconView)
+
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            overlayView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            overlayView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            overlayView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            overlayView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            videoIconView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            videoIconView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            videoIconView.widthAnchor.constraint(equalToConstant: 24),
+            videoIconView.heightAnchor.constraint(equalToConstant: 24),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    deinit {
+        cancellable?.cancel()
+    }
+
+    override func prepareForReuse() {
+        cancellable?.cancel()
+    }
+
+    func configure(media: MediaEdit, selected: Bool) {
+        cancellable = media.$image.sink { [weak self] in
+            self?.imageView.image = $0
+        }
+
+        imageView.layer.borderWidth = selected ? 3 : 0
+        overlayView.isHidden = selected
+        videoIconView.isHidden = media.type != .video
     }
 }

@@ -449,9 +449,8 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                         controller.dismiss(animated: true)
                         self.dismiss(animated: true)
                     }
-                }
+                }.withNavigationController()
 
-                edit.modalPresentationStyle = .fullScreen
                 controller.present(edit, animated: true)
             }
         }
