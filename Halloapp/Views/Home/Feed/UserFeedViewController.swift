@@ -138,6 +138,12 @@ class UserFeedViewController: FeedCollectionViewController {
 
         let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
         alert.view.tintColor = .systemBlue
+        
+        let groupCommonAction = UIAlertAction(title: Localizations.groupsInCommonButtonLabel, style: .default) { [weak self] _ in
+            self?.headerViewController.openGroupsCommonPage()
+        }
+        alert.addAction(groupCommonAction)
+        
         alert.addAction(cancel)
 
         present(alert, animated: true)

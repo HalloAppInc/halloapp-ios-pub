@@ -72,13 +72,10 @@ final class ProfileHeaderViewController: UIViewController {
             }
             headerView.canMessage = true
             headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
-            headerView.groupCommonButton.addTarget(self, action: #selector(openGroupCommonview), for: .touchUpInside)
         } else {
             headerView.messageButton.isHidden = true
             headerView.phoneLabel.isHidden = true
         }
-
-        headerView.groupCommonButton.isHidden = true // Hiding this feature for launch
         headerView.avatarViewButton.addTarget(self, action: #selector(avatarViewTapped), for: .touchUpInside)
         
     }
@@ -182,7 +179,7 @@ final class ProfileHeaderViewController: UIViewController {
         navigationController?.pushViewController(ChatViewController(for: userID), animated: true)
     }
     
-    @objc private func openGroupCommonview() {
+    func openGroupsCommonPage() {
         guard let userID = headerView.userID else { return }
 
         navigationController?.pushViewController(GroupsInCommonViewController(userID: userID), animated: true)
@@ -401,7 +398,7 @@ private final class ProfileHeaderView: UIView {
     }()
     
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, phoneLabel, messageButton, groupCommonButton])
+        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, phoneLabel, messageButton])
         view.axis = .vertical
         view.alignment = .center
         view.spacing = 5
@@ -418,19 +415,6 @@ private final class ProfileHeaderView: UIView {
         
         button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
         button.setTitle(Localizations.profileHeaderMessageUser, for: .normal)
-        
-        button.isHidden = true
-        return button
-        
-    }()
-    
-    private(set) lazy var groupCommonButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 10)
-        button.tintColor = .primaryBlue
-        
-        button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
-        button.setTitle(Localizations.groupsInCommonButtonLabel, for: .normal)
         
         button.isHidden = true
         return button
