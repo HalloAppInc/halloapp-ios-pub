@@ -134,6 +134,7 @@ class MediaEditViewController: UIViewController {
     func withNavigationController() -> UIViewController {
         let controller = UINavigationController(rootViewController: self)
         controller.modalPresentationStyle = .fullScreen
+        controller.delegate = self
 
         return controller
     }
@@ -340,6 +341,14 @@ extension MediaEditViewController : UICollectionViewDataSource {
         media.insert(media.remove(at: sourceIndexPath.row), at: destinationIndexPath.row)
     }
 }
+
+// MARK: UINavigationControllerDelegate
+extension MediaEditViewController: UINavigationControllerDelegate {
+    func navigationControllerSupportedInterfaceOrientations(_ navigationController: UINavigationController) -> UIInterfaceOrientationMask {
+        return .portrait
+    }
+}
+
 
 fileprivate class PreviewCell: UICollectionViewCell {
     static var reuseIdentifier: String {

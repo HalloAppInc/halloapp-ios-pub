@@ -40,6 +40,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var fetchedResultsController: NSFetchedResultsController<ChatMedia>?
     private let chatMediaUpdated = PassthroughSubject<(ChatMedia, IndexPath), Never>()
     private var canSaveMedia = false
+    private var transitionHasFinished = false
 
     private var currentIndex: Int {
         didSet {
@@ -158,6 +159,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         let controller = UINavigationController(rootViewController: self)
         controller.modalPresentationStyle = .fullScreen
         controller.transitioningDelegate = self
+        controller.delegate = self
 
         return controller
     }
@@ -330,6 +332,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+
+        transitionHasFinished = true
 
         if let cell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0)) as? MediaExplorerVideoCell {
             cell.play(time: delegate?.currentTimeForVideo(atPostion: currentIndex) ?? .zero)
@@ -701,6 +705,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 }
 
+// MARK: MediaExplorerTransitionDelegate
 extension MediaExplorerController: MediaExplorerTransitionDelegate {
     func currentTimeForVideo(atPostion index: Int) -> CMTime? {
         return nil
@@ -722,12 +727,20 @@ extension MediaExplorerController: MediaExplorerTransitionDelegate {
     }
 }
 
+// MARK: NSFetchedResultsControllerDelegate
 extension MediaExplorerController: NSFetchedResultsControllerDelegate {
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         guard let indexPath = indexPath else { return }
         guard let chatMedia = anObject as? ChatMedia else { return }
 
         chatMediaUpdated.send((chatMedia, indexPath))
+    }
+}
+
+// MARK: UINavigationControllerDelegate
+extension MediaExplorerController: UINavigationControllerDelegate {
+    func navigationControllerSupportedInterfaceOrientations(_ navigationController: UINavigationController) -> UIInterfaceOrientationMask {
+        return transitionHasFinished ? .all : .portrait
     }
 }
 
