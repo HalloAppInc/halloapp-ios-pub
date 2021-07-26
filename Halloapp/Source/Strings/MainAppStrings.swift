@@ -137,6 +137,10 @@ extension Localizations {
         NSLocalizedString("user.option.unblock", value: "Unblock on HalloApp", comment: "Option when user taps more on profile page")
     }
     
+    static var userOptionCopyPhoneNumber: String {
+        NSLocalizedString("user.option.copy.phone.number", value: "Copy Phone Number", comment: "Option when User clicks on the phone number on profile page and this can let the user copy the phone number")
+    }
+    
     static func blockMessage(username: String) -> String {
         return NSLocalizedString("user.block.message", value: "Are you sure you want to block %@ on HalloApp? You can always change this later.", comment: "Message asking if the user is sure they want to block this user").replacingOccurrences(of: "%@", with: username)
     }

@@ -64,11 +64,12 @@ final class ProfileHeaderViewController: UIViewController {
             if let contact = MainAppContext.shared.contactStore.contact(withUserId: userId), let phoneNumber = contact.phoneNumber {
                 headerView.phoneLabel.text = phoneNumber.formattedPhoneNumber
                 headerView.phoneLabel.isHidden = false
+                headerView.phoneLabel.isUserInteractionEnabled = true
+                headerView.phoneLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(copyPhoneNumber)))
             } else {
                 headerView.messageButton.isHidden = true
                 headerView.phoneLabel.isHidden = true
             }
-
             headerView.canMessage = true
             headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
             headerView.groupCommonButton.addTarget(self, action: #selector(openGroupCommonview), for: .touchUpInside)
@@ -79,6 +80,7 @@ final class ProfileHeaderViewController: UIViewController {
 
         headerView.groupCommonButton.isHidden = true // Hiding this feature for launch
         headerView.avatarViewButton.addTarget(self, action: #selector(avatarViewTapped), for: .touchUpInside)
+        
     }
 
     func configureAsHorizontal() {
@@ -101,6 +103,29 @@ final class ProfileHeaderViewController: UIViewController {
         }
         present(UINavigationController(rootViewController: viewController), animated: true)
     }
+    
+    private func copyNumber() {
+        UIPasteboard.general.string = headerView.secondaryLabel.text
+    }
+    
+    @objc private func copyPhoneNumber() {
+        
+        let alert = UIAlertController(title: MainAppContext.shared.contactStore.fullName(for: headerView.userID ?? ""), message: nil, preferredStyle: .actionSheet)
+        
+        
+        let copyNumberAction = UIAlertAction(title: Localizations.userOptionCopyPhoneNumber, style: .default) { [weak self] _ in
+                self?.copyNumber()
+        }
+        alert.addAction(copyNumberAction)
+        
+        
+        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
+        alert.view.tintColor = .systemBlue
+        alert.addAction(cancel)
+        
+        present(alert, animated: true)
+    }
+    
 
     // MARK: Profile Photo Editing
 
