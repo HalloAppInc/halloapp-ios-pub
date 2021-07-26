@@ -102,7 +102,7 @@ final class ProfileHeaderViewController: UIViewController {
     }
     
     private func copyNumber() {
-        UIPasteboard.general.string = headerView.secondaryLabel.text
+        UIPasteboard.general.string = headerView.phoneLabel.text
     }
     
     @objc private func copyPhoneNumber() {
