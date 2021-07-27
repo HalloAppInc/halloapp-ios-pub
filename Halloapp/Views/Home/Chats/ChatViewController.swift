@@ -411,6 +411,28 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                   media: nil)
             
             return reply
+        } else if let feedPostId = self.feedPostId {
+            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.text, mentions: feedPost.orderedMentions)
+                if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
+                    let mediaType: ChatMessageMediaType = mediaItem.type == .video ? .video : .image
+                    let mediaUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
+                    
+                    let reply = ReplyContext(replyMessageID: feedPostId,
+                                             replySenderID: feedPost.userId,
+                                             replyMediaIndex: nil,
+                                             text: mentionText?.string ?? "",
+                                             media: ChatReplyMedia(type: mediaType, mediaURL: mediaUrl.absoluteString))
+                    return reply
+                } else {
+                    let reply = ReplyContext(replyMessageID: feedPostId,
+                                             replySenderID: feedPost.userId,
+                                             replyMediaIndex: nil,
+                                             text: mentionText?.string ?? "",
+                                             media: nil)
+                    return reply
+                }
+            }
         }
         
         return nil
