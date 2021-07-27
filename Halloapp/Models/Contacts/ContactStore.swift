@@ -787,7 +787,7 @@ class ContactStoreMain: ContactStore {
 
             // Update friend count
             if xmppContact.numPotentialContacts != abContact.numPotentialContacts {
-                DDLogInfo("contacts/sync/process-results/friend-count-update [\(xmppContact.normalized)]:[\(xmppContact.numPotentialContacts)]")
+                DDLogInfo("contacts/sync/process-results/friend-count-update [\(xmppContact.normalized ?? "normalized-number-missing")]:[\(xmppContact.numPotentialContacts)]")
                 abContact.numPotentialContacts = Int64(xmppContact.numPotentialContacts)
             }
         }

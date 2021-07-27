@@ -993,7 +993,7 @@ class ChatData: ObservableObject {
                         sender: UserAgent(string: senderClientVersion),
                         rerequestCount: Int(serverMsg.rerequestCount),
                         isSilent: false)
-                    DDLogInfo("ChatData/mergeSharedData/reported decryption result \(error) for msg: \(chatMsg.id)")
+                    DDLogInfo("ChatData/mergeSharedData/reported decryption result \(sharedMsg.decryptionError ?? "no-error") for msg: \(chatMsg.id)")
                 } catch {
                     DDLogError("ChatData/mergeSharedData/Unable to initialize Server_Msg")
                 }

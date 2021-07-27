@@ -359,8 +359,6 @@ class NotificationMetadata: Codable {
                 return "📷"
             case .video:
                 return "📹"
-            default:
-                return ""
         }
     }
 

@@ -145,7 +145,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             }
         }
 
-        let media = MainAppContext.shared.feedData.media(for: post) ?? []
+        let media = MainAppContext.shared.feedData.media(for: post)
         if !media.isEmpty {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: media, width: contentWidth)
             DDLogInfo("FeedItemContentView/media-view-height post=[\(post.id)] height=[\(mediaViewHeight)]")
@@ -525,9 +525,9 @@ final class FeedItemHeaderView: UIView {
         if let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) {
             
             let attrText = NSMutableAttributedString(string: "")
-            let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate)
-            let groupIndicatorColor = UIColor(named: "GroupNameArrow")
             let groupNameColor = UIColor.label
+            let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate)
+            let groupIndicatorColor = UIColor(named: "GroupNameArrow") ?? groupNameColor
 
             if let groupIndicator = groupIndicatorImage, let font = groupNameLabel.font {
                 let iconAttachment = NSTextAttachment(image: groupIndicator)

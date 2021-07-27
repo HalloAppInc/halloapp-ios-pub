@@ -1304,7 +1304,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     func checkForUnreadFeed() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            var predicate = NSPredicate(format: "statusValue = %d", FeedPost.Status.incoming.rawValue)
+            let predicate = NSPredicate(format: "statusValue = %d", FeedPost.Status.incoming.rawValue)
             let unreadFeedPosts = self.feedPosts(predicate: predicate, in: managedObjectContext)
             self.didGetUnreadFeedCount.send(unreadFeedPosts.count)
         }
