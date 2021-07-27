@@ -467,6 +467,7 @@ class ChatData: ObservableObject {
                         }
                     }
                 } else {
+                    
                     DDLogInfo("ChatData/updateThreads/contact/new \(userId)")
                     let chatThread = ChatThread(context: managedObjectContext)
                     chatThread.title = fullName
@@ -1835,11 +1836,15 @@ extension ChatData {
     
     // MARK: 1-1 Core Data Fetching
     
-    private func chatMessages(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
+    private func chatMessages(  predicate: NSPredicate? = nil,
+                                sortDescriptors: [NSSortDescriptor]? = nil,
+                                limit: Int? = nil,
+                                in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
         let managedObjectContext = managedObjectContext ?? self.viewContext
         let fetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
+        if let fetchLimit = limit { fetchRequest.fetchLimit = fetchLimit }
         fetchRequest.returnsObjectsAsFaults = false
         
         do {
@@ -1891,6 +1896,12 @@ extension ChatData {
             NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
         ]
         return chatMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
+
+    func haveMessagedBefore(userID: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> Bool {
+        let predicate = NSPredicate(format: "fromUserId = %@ AND toUserId = %@", userData.userId, userID)
+        let fetchLimit = 1
+        return (chatMessages(predicate: predicate, limit: fetchLimit, in: managedObjectContext).count > 0) ? true : false
     }
 
     // MARK: 1-1 Core Data Updating

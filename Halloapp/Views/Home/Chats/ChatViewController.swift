@@ -107,8 +107,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(fromUserId)
         let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: fromUserId)
         let isPushNumberMessagingAccepted = MainAppContext.shared.contactStore.isPushNumberMessagingAccepted(userID: fromUserId)
+        let haveMessagedBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: fromUserId)
 
-        if !isUserInAddressBook && !isPushNumberMessagingAccepted {
+        if !isUserInAddressBook, !isPushNumberMessagingAccepted, !haveMessagedBefore {
             chatInputView.isHidden = true
             view.addSubview(unknownContactActionBanner)
             unknownContactActionBanner.constrain([.leading, .trailing, .bottom], to: view.safeAreaLayoutGuide)
