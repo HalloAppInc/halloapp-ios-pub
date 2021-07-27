@@ -93,6 +93,19 @@ class UserFeedViewController: FeedCollectionViewController {
             return self.collectionView(collectionView, viewForSupplementaryElementOfKind: kind, at: path)
         }
         collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
+
+        if !isOwnFeed {
+            // need to refresh when user is not in address book but gets added via the More menu
+            cancellables.insert(
+                MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
+                    guard let self = self else { return }
+                    if newUserIDs.contains(self.userId) {
+                        self.headerViewController.configureOrRefresh(userId: self.userId)
+                        self.collectionView.reloadData()
+                    }
+                }
+            )
+        }
     }
     
     @objc func moreButtonTapped() {
@@ -105,7 +118,7 @@ class UserFeedViewController: FeedCollectionViewController {
         let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userId) != nil
 
         if !isContactInAddressBook, pushNumberExist {
-            let addToContactBookAction = UIAlertAction(title: "Add To Contact Book", style: .default) { [weak self] _ in
+            let addToContactBookAction = UIAlertAction(title: Localizations.addToContactBook, style: .default) { [weak self] _ in
                 guard let self = self else { return }
                 MainAppContext.shared.contactStore.addUserToAddressBook(userID: self.userId, presentingVC: self)
             }
@@ -306,14 +319,6 @@ class UserFeedViewController: FeedCollectionViewController {
 
 extension UserFeedViewController: CNContactViewControllerDelegate {
     func contactViewController(_ viewController: CNContactViewController, didCompleteWith contact: CNContact?) {
-        if contact != nil { // contact was added successfully
-            // basic refresh
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-                guard let self = self else { return }
-                self.headerViewController.configureOrRefresh(userId: self.userId)
-                self.collectionView.reloadData()
-            }
-        }
         navigationController?.popViewController(animated: true)
     }
 }
@@ -325,4 +330,12 @@ extension Localizations {
             value: "To connect you must exchange phone numbers",
             comment: "Text to show on profile for users you are not connected with")
     }
+    
+    static var addToContactBook: String {
+        NSLocalizedString(
+            "add.to.contact.book",
+            value: "Add to Contact Book",
+            comment: "Text label for action button to add the contact to the address book")
+    }
+    
 }
