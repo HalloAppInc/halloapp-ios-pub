@@ -114,6 +114,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     private var mediaView: MediaCarouselView?
     private var mediaViewHeightConstraint: NSLayoutConstraint?
 
+    var didChangeMediaIndex: ((Int) -> Void)?
+
     private func setupView() {
         isUserInteractionEnabled = true
         layoutMargins = UIEdgeInsets(top: LayoutConstants.topMargin, left: 0, bottom: LayoutConstants.bottomMarginWithSeparator, right: 0)
@@ -128,9 +130,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         vStack.constrainMargins(to: self)
     }
 
-    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, isTextExpanded: Bool) {
-        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) else { return }
-        
+    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) {
         feedPost = post
 
         if let mediaView = mediaView {
@@ -144,15 +144,15 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             }
         }
 
-        let postContainsMedia = !feedDataItem.media.isEmpty
-        if postContainsMedia {
-            let mediaViewHeight = MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
+        let media = MainAppContext.shared.feedData.media(for: post.id) ?? []
+        if !media.isEmpty {
+            let mediaViewHeight = MediaCarouselView.preferredHeight(for: media, width: contentWidth)
             DDLogInfo("FeedItemContentView/media-view-height post=[\(post.id)] height=[\(mediaViewHeight)]")
             if mediaView == nil {
                 // Create new media view
                 var mediaViewConfiguration = MediaCarouselViewConfiguration.default
                 mediaViewConfiguration.gutterWidth = gutterWidth
-                let mediaView = MediaCarouselView(feedDataItem: feedDataItem, configuration: mediaViewConfiguration)
+                let mediaView = MediaCarouselView(media: media, initialIndex: displayData?.currentMediaIndex, configuration: mediaViewConfiguration)
                 mediaView.delegate = self
                 mediaViewHeightConstraint = {
                     let constraint = mediaView.heightAnchor.constraint(equalToConstant: mediaViewHeight)
@@ -186,6 +186,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             textLabel.numberOfLines = 0
         } else if postContainsText {
             textContentView.isHidden = false
+            let isTextExpanded = displayData?.isTextExpanded ?? false
 
             let postText = MainAppContext.shared.contactStore.textWithMentions(
                 post.text,
@@ -194,14 +195,14 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             // Text-only under 180 chars long: System 20 pt (Body + 3)
             let postFont: UIFont = {
                 let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
-                let fontSizeDiff: CGFloat = postContainsMedia || (postText?.string ?? "").count > 180 ? -1 : 3
+                let fontSizeDiff: CGFloat = media.isEmpty && (postText?.string ?? "").count <= 180 ? 3 : -1
                 return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
             }()
             let mentionNameFont = UIFont(descriptor: postFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
             textLabel.attributedText = postText?.with(font: postFont, color: .label).applyingFontForMentions(mentionNameFont)
-            textLabel.numberOfLines = isTextExpanded ? 0 : postContainsMedia ? 3 : 10
+            textLabel.numberOfLines = isTextExpanded ? 0 : media.isEmpty ? 10 : 3
             // Adjust vertical margins around text.
-            textContentView.layoutMargins.top = postContainsMedia ? 11 : 9
+            textContentView.layoutMargins.top = media.isEmpty ? 9 : 11
         } else {
             textContentView.isHidden = true
         }
@@ -212,47 +213,12 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         postId = post.id
     }
 
-    class func preferredHeight(forPost post: FeedPost, contentWidth: CGFloat, isTextExpanded: Bool) -> CGFloat {
-        let feedDataItem: FeedDataItem = {
-            if let cachedItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) {
-                return cachedItem
-            }
-            DDLogError("FeedItemContentView/preferredHeight/error missing-feed-data-item [\(post.id)]")
-            return FeedDataItem(post)
-        }()
+    static var forSizing: FeedItemContentView { FeedItemContentView() }
 
-        var contentHeight = LayoutConstants.topMargin
-
-        let postContainsMedia = !feedDataItem.media.isEmpty
-        if postContainsMedia {
-            contentHeight += MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
-        }
-
-        let postContainsText = !(post.text ?? "").isEmpty
-        if postContainsText {
-            let postText = MainAppContext.shared.contactStore.textWithMentions(
-                post.text,
-                mentions: post.orderedMentions)
-            let postFont: UIFont = {
-                let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
-                let fontSizeDiff: CGFloat = postContainsMedia || (postText?.string ?? "").count > 180 ? -1 : 3
-                return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
-            }()
-            let textContentView = TextContentView()
-            textContentView.textLabel.attributedText = postText?.with(font: postFont, color: .label)
-            textContentView.textLabel.numberOfLines = isTextExpanded ? 0 : postContainsMedia ? 3 : 10
-            // Adjust vertical margins around text.
-            textContentView.layoutMargins.top = postContainsMedia ? 11 : 9
-
-            let targetSize = CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
-            let textContentViewSize = textContentView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
-
-            contentHeight += textContentViewSize.height
-        }
-
-        contentHeight += post.hideFooterSeparator ? LayoutConstants.bottomMarginNoSeparator : LayoutConstants.bottomMarginWithSeparator
-
-        return contentHeight
+    static func preferredHeight(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) -> CGFloat {
+        let sizingView = Self.forSizing
+        sizingView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
+        return sizingView.systemLayoutSizeFitting(CGSize(width: contentWidth, height: 0)).height
     }
 
     func prepareForReuse() { }
@@ -264,30 +230,31 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
+        didChangeMediaIndex?(newIndex)
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
         guard let postId = postId else { return }
-        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else { return }
+        guard let media = MainAppContext.shared.feedData.media(for: postId) else { return }
 
-        presentExplorer(media: feedDataItem.media, index: index, delegate: view)
+        presentExplorer(media: media, index: index, delegate: view)
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
         guard let postId = postId else { return }
-        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else { return }
-        guard feedDataItem.media[index].type == .video else { return }
+        guard let media = MainAppContext.shared.feedData.media(for: postId) else { return }
+        guard media[index].type == .video else { return }
 
-        presentExplorer(media: feedDataItem.media, index: index, delegate: view)
+        presentExplorer(media: media, index: index, delegate: view)
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
         guard let postId = postId else { return }
-        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else { return }
-        guard feedDataItem.media[index].type == .video else { return }
+        guard let media = MainAppContext.shared.feedData.media(for: postId) else { return }
+        guard media[index].type == .video else { return }
         guard scale > scaleThreshold else { return }
 
-        presentExplorer(media: feedDataItem.media, index: index, delegate: view)
+        presentExplorer(media: media, index: index, delegate: view)
     }
 
     private func presentExplorer(media: [FeedMedia], index: Int, delegate: MediaExplorerTransitionDelegate? = nil) {

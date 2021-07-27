@@ -254,7 +254,6 @@
 		EA35857A2450BE3300E6E8AB /* ChatInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3585752450BE3300E6E8AB /* ChatInputView.swift */; };
 		EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA388C5B2520EB9500DEAB53 /* Banner.swift */; };
 		EA454B64234E769F002B960D /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* SettingsViewController.swift */; };
-		EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */; };
 		EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713223EB7DB3008C2E44 /* FeedMedia.swift */; };
 		EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */; };
 		EA52EB18245A012700FB03F6 /* NewChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA52EB17245A012700FB03F6 /* NewChatViewController.swift */; };
@@ -774,7 +773,6 @@
 		EA3585752450BE3300E6E8AB /* ChatInputView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatInputView.swift; sourceTree = "<group>"; };
 		EA388C5B2520EB9500DEAB53 /* Banner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Banner.swift; sourceTree = "<group>"; };
 		EA454B63234E769F002B960D /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
-		EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataItem.swift; sourceTree = "<group>"; };
 		EA45713223EB7DB3008C2E44 /* FeedMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMedia.swift; sourceTree = "<group>"; };
 		EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCarouselView.swift; sourceTree = "<group>"; };
 		EA52EB17245A012700FB03F6 /* NewChatViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatViewController.swift; sourceTree = "<group>"; };
@@ -1536,7 +1534,6 @@
 			children = (
 				76DF9FEA24122E9400F49CA4 /* CoreData Stack */,
 				EA0D20142368B04B008B8289 /* FeedData.swift */,
-				EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */,
 				EA45713223EB7DB3008C2E44 /* FeedMedia.swift */,
 				76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */,
 				76649226245119F2009BC368 /* FeedNotifications.swift */,
@@ -2531,7 +2528,6 @@
 				766103A42461E65300728870 /* Receipt.swift in Sources */,
 				76271389252D250E00389FBC /* FacePileView.swift in Sources */,
 				EAA85A0B25E5D510006D0BC9 /* NotInGroupBannerView.swift in Sources */,
-				EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */,
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
 				E598D4C0265F0188001A436A /* ConversationID.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,

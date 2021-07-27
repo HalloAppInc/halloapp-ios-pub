@@ -18,9 +18,8 @@ fileprivate extension FeedPost {
 }
 
 protocol FeedPostCollectionViewCellDelegate: AnyObject {
-
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didRequestOpen url: URL)
-
+    func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didChangeMediaIndex index: Int)
     func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell, animations animationBlock: @escaping () -> Void)
 }
 
@@ -221,7 +220,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         "active-post"
     }
 
-    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool, isTextExpanded: Bool) {
+    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool, displayData: FeedPostDisplayData?) {
         DDLogVerbose("FeedPostCollectionViewCell/configure [\(post.id)]")
 
         postId = post.id
@@ -241,7 +240,11 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
             guard let self = self, let showMoreAction = self.showMoreAction else { return }
             showMoreAction(post.userId)
         }
-        itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, isTextExpanded: isTextExpanded)
+        itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
+        itemContentView.didChangeMediaIndex = { [weak self] index in
+            guard let self = self else { return }
+            self.delegate?.feedPostCollectionViewCell(self, didChangeMediaIndex: index)
+        }
         
         if post.media?.count ?? 0 > 0 {
             contentTopConstraint?.constant = 5
@@ -258,9 +261,9 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
     // MARK: Height computation
 
-    class func height(forPost post: FeedPost, contentWidth: CGFloat, isTextExpanded: Bool) -> CGFloat {
+    class func height(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) -> CGFloat {
         let headerHeight = Self.headerHeight(forPost: post, contentWidth: contentWidth)
-        let contentHeight = Self.contentHeight(forPost: post, contentWidth: contentWidth, isTextExpanded: isTextExpanded)
+        let contentHeight = Self.contentHeight(forPost: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
         let footerHeight = Self.footerHeight(forPost: post, contentWidth: contentWidth)
         return headerHeight + contentHeight + footerHeight + 2 * LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing
     }
@@ -291,8 +294,8 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         return footerSize.height
     }
 
-    private class func contentHeight(forPost post: FeedPost, contentWidth: CGFloat, isTextExpanded: Bool) -> CGFloat {
-        let contentHeight = FeedItemContentView.preferredHeight(forPost: post, contentWidth: contentWidth, isTextExpanded: isTextExpanded)
+    private class func contentHeight(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) -> CGFloat {
+        let contentHeight = FeedItemContentView.preferredHeight(forPost: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
         return contentHeight
     }
 

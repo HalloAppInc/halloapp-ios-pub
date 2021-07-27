@@ -117,7 +117,7 @@ struct ActivityCenterNotification: Hashable {
         
         let authorRange = (result.string as NSString).range(of: "<$author$>")
         if authorRange.location != NSNotFound {
-            let authorUserID = MainAppContext.shared.feedData.feedDataItem(with: notifications[0].postId)?.userId
+            let authorUserID = MainAppContext.shared.feedData.feedPost(with: notifications[0].postId)?.userId
             let authorName = MainAppContext.shared.contactStore.fullName(for: authorUserID ?? "")
             let author = NSAttributedString(string: authorName, attributes: [ .font: boldFont ])
             result.replaceCharacters(in: authorRange, with: author)

@@ -29,7 +29,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     private var cancellableSet: Set<AnyCancellable> = []
 
     private var cachedCellHeights = [FeedDisplayItem: CGFloat]()
-    private var expandedPostIDs = Set<FeedPostID>()
+    private var postDisplayData = [FeedPostID: FeedPostDisplayData]()
 
     private var isVisible: Bool = true
     private var isCheckForOnscreenCellsScheduled: Bool = false
@@ -280,10 +280,8 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         }
     }
 
-    private func showMessageView(for postId: FeedPostID) {
-        if let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) {
-            navigationController?.pushViewController(ChatViewController(for: feedDataItem.userId, with: postId, at: Int32(feedDataItem.currentMediaIndex ?? 0)), animated: true)
-        }
+    private func showMessageView(for userID: UserID, with postID: FeedPostID) {
+        navigationController?.pushViewController(ChatViewController(for: userID, with: postID, at: Int32(postDisplayData[postID]?.currentMediaIndex ?? 0)), animated: true)
 
         if !firstActionHappened {
             delegate?.feedCollectionViewController(self, userActioned: true)
@@ -435,7 +433,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     private func willShowCell(atIndexPath indexPath: IndexPath) {
         guard let feedPost = feedDataSource.item(at: indexPath.item)?.post else { return }
         // Load downloaded images into memory.
-        MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)?.loadImages()
+        MainAppContext.shared.feedData.loadImages(for: feedPost.id)
 
         // Initiate download for images that were not yet downloaded.
         MainAppContext.shared.feedData.downloadMedia(in: [feedPost])
@@ -547,7 +545,7 @@ extension FeedCollectionViewController {
             contentWidth: cellContentWidth,
             gutterWidth: gutterWidth,
             showGroupName: showGroupName(),
-            isTextExpanded: expandedPostIDs.contains(postId))
+            displayData: postDisplayData[postId])
 
         cell.commentAction = { [weak self] in
             guard let self = self else { return }
@@ -555,7 +553,7 @@ extension FeedCollectionViewController {
         }
         cell.messageAction = { [weak self] in
             guard let self = self else { return }
-            self.showMessageView(for: postId)
+            self.showMessageView(for: feedPost.userId, with: postId)
         }
         cell.showSeenByAction = { [weak self] in
             guard let self = self else { return }
@@ -642,9 +640,8 @@ extension FeedCollectionViewController {
     }
     
     private func getMedia(feedPost: FeedPost) -> [(type: FeedMediaType, url: URL)] {
-        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id) else { return [] }
-        let feedMedia = feedDataItem.media
-        
+        guard let feedMedia = MainAppContext.shared.feedData.media(for: feedPost.id) else { return [] }
+
         var mediaItems: [(type: FeedMediaType, url: URL)] = []
         
         for media in feedMedia {
@@ -779,7 +776,7 @@ extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
                     return FeedEventCollectionViewCell.height(for: text, width: cellWidth)
                 } else {
                     let contentWidth = cellWidth - collectionView.layoutMargins.left - collectionView.layoutMargins.right
-                    return FeedPostCollectionViewCell.height(forPost: feedPost, contentWidth: contentWidth, isTextExpanded: expandedPostIDs.contains(feedPost.id))
+                    return FeedPostCollectionViewCell.height(forPost: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: postDisplayData[feedPost.id])
                 }
             }()
             DDLogDebug("FeedCollectionView Calculated cell height [\(cellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
@@ -797,13 +794,22 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
         }
     }
 
+    func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didChangeMediaIndex index: Int) {
+        guard let postID = cell.postId else { return }
+        var displayData = postDisplayData[postID] ?? FeedPostDisplayData()
+        displayData.currentMediaIndex = index
+        postDisplayData[postID] = displayData
+    }
+
     func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell, animations animationBlock: @escaping () -> Void) {
         guard let indexPath = collectionView.indexPath(for: cell),
               let postID = cell.postId else
         {
             return
         }
-        expandedPostIDs.insert(postID)
+        var displayData = postDisplayData[postID] ?? FeedPostDisplayData()
+        displayData.isTextExpanded = true
+        postDisplayData[postID] = displayData
         UIView.animate(withDuration: 0.35) {
             animationBlock()
 

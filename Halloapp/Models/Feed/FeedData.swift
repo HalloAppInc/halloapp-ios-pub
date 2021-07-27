@@ -86,7 +86,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 {
                     DDLogInfo("FeedData/didLogIn Persistent store matches user ID. Not unloading.")
                 } else {
-                    DDLogInfo("FeedData/didLogin Persistent store / user ID mismatch. Unloading feed data. \(self.feedDataItems.count) posts")
+                    DDLogInfo("FeedData/didLogin Persistent store / user ID mismatch. Unloading feed data. \(self.fetchedResultsController.fetchedObjects?.count ?? 0) posts")
                     self.destroyStore()
                     AppContext.shared.userDefaults?.setValue(self.userData.userId, forKey: UserDefaultsKey.persistentStoreUserID)
                 }
@@ -177,7 +177,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.willDestroyStore.send()
 
         self.fetchedResultsController.delegate = nil
-        self.feedDataItems = []
         self.feedNotifications = nil
 
         // TODO: wait for all background tasks to finish.
@@ -229,25 +228,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Fetched Results Controller
 
-    var feedDataItems : [FeedDataItem] = []
-
-    private func reloadFeedDataItems(using feedPosts: [FeedPost], fullReload: Bool = true) {
-        if fullReload {
-            self.feedDataItems = feedPosts.map { FeedDataItem($0) }
-            return
-        }
-
-        // Reload re-using existing FeedDataItem.
-        // Preserving existing objects is a requirement for proper functioning of SwiftUI interfaces.
-        let feedDataItemMap = self.feedDataItems.reduce(into: [:]) { $0[$1.id] = $1 }
-        self.feedDataItems = feedPosts.map{ (feedPost) -> FeedDataItem in
-            if let feedDataItem = feedDataItemMap[feedPost.id] {
-                return feedDataItem
-            }
-            return FeedDataItem(feedPost)
-        }
-    }
-
     private func resendStuckItems() {
         let commentsFetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         commentsFetchRequest.predicate = NSPredicate(format: "statusValue = %d", FeedPostComment.Status.sending.rawValue)
@@ -292,8 +272,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         do {
             try fetchedResultsController.performFetch()
             if let feedPosts = fetchedResultsController.fetchedObjects {
-                reloadFeedDataItems(using: feedPosts)
-                DDLogInfo("FeedData/fetch/completed \(feedDataItems.count) posts")
+                DDLogInfo("FeedData/fetch/completed \(feedPosts.count) posts")
 
                 // 1. Mitigate server bug when timestamps were sent in milliseconds.
                 // 1.1 Posts
@@ -378,73 +357,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("FeedData/frc/will-change")
-        self.trackPerRowChanges = !self.feedDataItems.isEmpty
-    }
-
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any,
-                    at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        guard trackPerRowChanges else { return }
-        switch type {
-        case .insert:
-            guard let index = newIndexPath?.row, let feedPost = anObject as? FeedPost else {
-                return
-            }
-            DDLogDebug("FeedData/frc/insert [\(feedPost)] at [\(index)]")
-            // For some reason FRC can report invalid indexes when downloading initial batch of posts.
-            // When that happens, ignore further per-row updates and reload everything altogether in `didChange`.
-            if index < self.feedDataItems.count {
-                self.feedDataItems.insert(FeedDataItem(feedPost), at: index)
-            } else {
-                self.trackPerRowChanges = false
-            }
-
-        case .delete:
-            guard let index = indexPath?.row, let feedPost = anObject as? FeedPost else {
-                return
-            }
-            DDLogDebug("FeedData/frc/delete [\(feedPost)] at [\(index)]")
-            if index < self.feedDataItems.count {
-                self.feedDataItems.remove(at: index)
-            } else {
-                self.trackPerRowChanges = false
-            }
-
-        case .update:
-            guard let index = indexPath?.row, let feedPost = anObject as? FeedPost else {
-                return
-            }
-            DDLogDebug("FeedData/frc/update [\(feedPost)] at [\(index)]")
-            self.feedDataItems[index].reload(from: feedPost)
-
-        case .move:
-            guard let fromIndex = indexPath?.row, let toIndex = newIndexPath?.row, let feedPost = anObject as? FeedPost else {
-                return
-            }
-            DDLogDebug("FeedData/frc/move [\(feedPost)] from [\(fromIndex)] to [\(toIndex)]")
-            // TODO: move
-
-        default:
-            break
-        }
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("FeedData/frc/did-change")
-        if !trackPerRowChanges {
-            if let feedPosts = self.fetchedResultsController.fetchedObjects {
-                self.reloadFeedDataItems(using: feedPosts, fullReload: false)
-                DDLogInfo("FeedData/frc/reload \(self.feedDataItems.count) posts")
-            }
-        }
-
         setNeedsReloadGroupFeedUnreadCounts()
     }
 
     // MARK: Fetching Feed Data
-
-    func feedDataItem(with id: FeedPostID) -> FeedDataItem? {
-        return self.feedDataItems.first(where: { $0.id == id })
-    }
 
     private func feedPosts(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPost] {
         let managedObjectContext = managedObjectContext ?? self.viewContext
@@ -1392,6 +1312,28 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     // MARK: Feed Media
 
+    func media(for postID: FeedPostID) -> [FeedMedia]? {
+        if let cachedMedia = cachedMedia[postID] {
+            return cachedMedia
+        } else if let post = MainAppContext.shared.feedData.feedPost(with: postID) {
+            let media = (post.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
+            cachedMedia[postID] = media
+            return media
+        } else {
+            return nil
+        }
+    }
+
+    func loadImages(for postID: FeedPostID) {
+        guard let media = media(for: postID) else {
+            return
+        }
+        media.forEach { $0.loadImage() }
+    }
+
+    // TODO: Refactor FeedMedia to allow unloading images from memory (for now we can't clear cache)
+    private var cachedMedia = [FeedPostID: [FeedMedia]]()
+
     func downloadTask(for mediaItem: FeedMedia) -> FeedDownloadManager.Task? {
         guard let feedPost = feedPost(with: mediaItem.feedPostId) else { return nil }
         guard let feedPostMedia = feedPost.media?.first(where: { $0.order == mediaItem.order }) else { return nil }
@@ -1508,9 +1450,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     func reloadMedia(feedPostId: FeedPostID, order: Int) {
         DDLogInfo("FeedData/reloadMedia/postId:\(feedPostId), order/\(order)")
-        guard let feedDataItem = self.feedDataItem(with: feedPostId) else { return }
-        guard let feedPost = self.feedPost(with: feedPostId) else { return }
-        feedDataItem.reloadMedia(from: feedPost, order: order)
+        guard let coreDataPost = feedPost(with: feedPostId),
+              let coreDataMedia = coreDataPost.media?.first(where: { $0.order == order }),
+              let cachedMedia = media(for: feedPostId)?.first(where: { $0.order == order }) else
+        {
+            return
+        }
+        cachedMedia.reload(from: coreDataMedia)
     }
 
     func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
@@ -1718,13 +1664,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     @discardableResult
-    func post(comment: MentionText, to feedItem: FeedDataItem, replyingTo parentCommentId: FeedPostCommentID? = nil) -> FeedPostCommentID {
+    func post(comment: MentionText, to feedPostID: FeedPostID, replyingTo parentCommentId: FeedPostCommentID? = nil) -> FeedPostCommentID {
         let commentId: FeedPostCommentID = PacketID.generate()
 
         // Create and save FeedPostComment
         let managedObjectContext = self.persistentContainer.viewContext
-        guard let feedPost = self.feedPost(with: feedItem.id, in: managedObjectContext) else {
-            DDLogError("FeedData/new-comment/error  Missing FeedPost with id [\(feedItem.id)]")
+        guard let feedPost = self.feedPost(with: feedPostID, in: managedObjectContext) else {
+            DDLogError("FeedData/new-comment/error  Missing FeedPost with id [\(feedPostID)]")
             fatalError("Unable to find FeedPost")
         }
         var parentComment: FeedPostComment?

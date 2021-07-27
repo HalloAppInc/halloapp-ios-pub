@@ -145,6 +145,11 @@ enum FeedDisplayItem: Hashable, Equatable {
     }
 }
 
+struct FeedPostDisplayData: Equatable {
+    var currentMediaIndex: Int? = nil
+    var isTextExpanded = false
+}
+
 struct FeedEvent: Hashable, Equatable {
     var description: String
     var timestamp: Date

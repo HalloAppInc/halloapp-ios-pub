@@ -64,8 +64,6 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         case main = 0
     }
 
-    private let feedDataItem: FeedDataItem?
-
     private var media: [FeedMedia]
     private var playbackInfo: VideoPlaybackInfo? = nil
     public var shouldAutoPlay = false
@@ -75,7 +73,6 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     private var currentIndex = 0 {
         didSet {
-            feedDataItem?.currentMediaIndex = currentIndex
             pageControl?.currentPage = currentIndex
 
             if oldValue != currentIndex {
@@ -181,24 +178,16 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     private var dataSource: UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>?
 
-    convenience init(feedDataItem: FeedDataItem, configuration: MediaCarouselViewConfiguration = MediaCarouselViewConfiguration.default) {
-        self.init(media: feedDataItem.media, feedDataItem: feedDataItem, configuration: configuration)
-    }
-
-    convenience init(media: [FeedMedia], configuration: MediaCarouselViewConfiguration = MediaCarouselViewConfiguration.default) {
-        self.init(media: media, feedDataItem: nil, configuration: configuration)
-    }
-
-    required init(media: [FeedMedia], feedDataItem: FeedDataItem?, configuration: MediaCarouselViewConfiguration) {
+    init(media: [FeedMedia], initialIndex: Int? = nil, configuration: MediaCarouselViewConfiguration = MediaCarouselViewConfiguration.default) {
         self.media = media
-        self.feedDataItem = feedDataItem
         self.configuration = configuration
+        self.mediaIndexToScrollToInLayoutSubviews = initialIndex
         super.init(frame: .zero)
         commonInit()
     }
 
     required init?(coder: NSCoder) {
-        fatalError("Use init(feedDataItem)")
+        fatalError("Use init(media)")
     }
 
     private func commonInit() {
@@ -363,14 +352,6 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     @objc private func zoomAction(sender: UIPinchGestureRecognizer) {
         guard let indexPath = collectionView.indexPathForItem(at: sender.location(in: collectionView)) else { return }
         delegate?.mediaCarouselView(self, didZoomMediaAtIndex: indexPath.row, withScale: sender.scale)
-    }
-
-    override func willMove(toWindow newWindow: UIWindow?) {
-        super.willMove(toWindow: newWindow)
-        if newWindow != nil, configuration.isPagingEnabled, let mediaIndex = feedDataItem?.currentMediaIndex {
-            // Delay scrolling until view has a non-zero size.
-            mediaIndexToScrollToInLayoutSubviews = mediaIndex
-        }
     }
 
     override func layoutSubviews() {

@@ -813,10 +813,8 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText) {
-        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: feedPostId) else { return }
-
         let parentCommentId = replyContext?.parentCommentId
-        commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: parentCommentId)
+        commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, to: feedPostId, replyingTo: parentCommentId)
       
         FeedData.deletePostCommentDrafts { existingDraft in
             existingDraft.postID == feedPostId
@@ -881,7 +879,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 extension CommentsViewController: MediaCarouselViewDelegate {
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
-        guard let item = MainAppContext.shared.feedData.feedDataItem(with: feedPostId) else { return }
+        guard let media = MainAppContext.shared.feedData.media(for: feedPostId) else { return }
         
         var canSavePost = false
         
@@ -889,7 +887,7 @@ extension CommentsViewController: MediaCarouselViewDelegate {
             canSavePost = post.canSaveMedia
         }
 
-        let controller = MediaExplorerController(media: item.media, index: index, canSaveMedia: canSavePost)
+        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
         controller.delegate = view
 
         present(controller.withNavigationController(), animated: true)
