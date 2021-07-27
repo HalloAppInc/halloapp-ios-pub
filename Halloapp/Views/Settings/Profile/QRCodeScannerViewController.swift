@@ -174,32 +174,28 @@ extension QRCodeScannerViewController: AVCaptureMetadataOutputObjectsDelegate {
 }
 
 extension CIQRCodeDescriptor {
-    // https://stackoverflow.com/questions/44683242/vision-framework-barcode-detection-for-ios-11
+    // adapted from: https://stackoverflow.com/questions/44683242/vision-framework-barcode-detection-for-ios-11
     var finalData: Data? {
-        return errorCorrectedPayload.withUnsafeBytes { (pointer: UnsafePointer<UInt8>) in
-            var cursor = pointer
+        let bytes = errorCorrectedPayload.bytes
+        guard bytes.count > 2 else { return nil }
 
-            let representation = (cursor.pointee >> 4) & 0x0f
-            guard representation == 4 /* byte encoding */ else { return nil }
+        let representation = (bytes[0] >> 4) & 0x0f
+        guard representation == 4 /* byte encoding */ else { return nil }
 
-            var count = (cursor.pointee << 4) & 0xf0
-            cursor = cursor.successor()
-            count |= (cursor.pointee >> 4) & 0x0f
+        var count = (bytes[0] << 4) & 0xf0
+        count |= (bytes[1] >> 4) & 0x0f
 
-            var out = Data(count: Int(count))
-            guard count > 0 else { return out }
+        var out = Data(count: Int(count))
+        guard count > 0 else { return out }
 
-            var prev = (cursor.pointee << 4) & 0xf0
-            for i in 2...errorCorrectedPayload.count {
-                if (i - 2) == count { break }
+        var prev = (bytes[1] << 4) & 0xf0
+        for i in 2..<bytes.count {
+            if (i - 2) == count { break }
 
-                let cursor = pointer.advanced(by: Int(i))
-                let byte = cursor.pointee
-                let current = prev | ((byte >> 4) & 0x0f)
-                out[i - 2] = current
-                prev = (cursor.pointee << 4) & 0xf0
-            }
-            return out
+            let current = prev | ((bytes[i] >> 4) & 0x0f)
+            out[i - 2] = current
+            prev = (bytes[i] << 4) & 0xf0
         }
+        return out
     }
 }
