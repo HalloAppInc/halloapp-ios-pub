@@ -1190,22 +1190,41 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     func retract(post feedPost: FeedPost) {
         let postId = feedPost.id
+        DDLogInfo("FeedData/retract/postId \(feedPost.id), status: \(feedPost.status)")
+        switch feedPost.status {
 
-        // Mark post as "being retracted"
-        feedPost.status = .retracting
-        save(viewContext)
+        // these errors mean that server does not have a copy of the post.
+        // so we need send retract request to the server - just delete the local copy.
+        case .none, .sendError:
+            DDLogInfo("FeedData/retract/postId \(feedPost.id), delete local copy.")
+            processPostRetract(postId) {}
 
-        // Request to retract.
-        service.retractPost(feedPost) { result in
-            switch result {
-            case .success:
-                self.processPostRetract(postId) {}
+        // own posts or pending retract posts.
+        case .sent, .retracting:
+            DDLogInfo("FeedData/retract/postId \(feedPost.id), sending retract request")
+            // Mark post as "being retracted"
+            feedPost.status = .retracting
+            save(viewContext)
 
-            case .failure(_):
-                self.updateFeedPost(with: postId) { (post) in
-                    post.status = .sent
+            // Request to retract.
+            service.retractPost(feedPost) { result in
+                switch result {
+                case .success:
+                    DDLogInfo("FeedData/retract/postId \(feedPost.id), retract request was successful")
+                    self.processPostRetract(postId) {}
+
+                case .failure(_):
+                    DDLogError("FeedData/retract/postId \(feedPost.id), retract request failed")
+                    self.updateFeedPost(with: postId) { (post) in
+                        post.status = .sent
+                    }
                 }
             }
+
+        // everything else.
+        default:
+            DDLogError("FeedData/retract/postId \(feedPost.id) unexpected retract request here")
+            return
         }
     }
 
