@@ -8,1182 +8,1218 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "HalloApp burada! Bunu, sen ve sevdiklerin için kuruyoruz. Sosyal medya uygulamalarını aslına geri döndürürken dünyadaki herkesin erişmesi gerektiğini düşündüğümüz bir güvenlik ve gizlilik katmanı ekledik. HalloApp kişisel bilgilerini asla kullanmayacak ve sana asla reklam göstermeyecek. Bunun yerine, küçük bir maliyetle ek özellikler sunmayı planlıyoruz.";
+"about.body.1" = "HalloApp di sini! Kami sedang mengembangkan aplikasi ini untuk Anda dan orang-orang tersayang Anda. Kami telah membawakan aplikasi sosial yang sederhana, namun menambahkan berlapis pengamanan dan privasi karena kami pikir semua orang di dunia ini berhak mendapatkan akses itu. HalloApp tidak akan menggunakan informasi personal Anda atau memberikan iklan. Justru, kami berencana untuk menawarkan fitur kecil tambahan.";
 
 /* About screen: body text. */
-"about.body.2" = "HalloApp kullandığın ve bunu ailen ve arkadaşlarınla paylaştığın için teşekkürler. Uygulamayı geliştirmeye devam ediyoruz.";
+"about.body.2" = "Terima kasih sudah menggunakan dan membagikan HalloApp dengan teman dan keluarga. Setiap minggu kami meningkatkan performa aplikasi kami.";
 
 /* About screen: footer text. Parameter is support email address. */
-"about.footer" = "Soruların ve geri bildirimlerin için bize %@ adresinden e-posta ile ulaşabilirsin.";
+"about.footer" = "Jika Anda memiliki pertanyaan atau tanggapan, kirim surat elektronik ke %@";
 
 /* About screen: greeting. */
-"about.hallo" = "Oh Hallo";
+"about.hallo" = "Halo";
 
 /* About screen: navigation bar title. */
-"about.title" = "Hakkında";
+"about.title" = "Tentang";
 
 /* Longer title for the button that confirms marking all items in the activity center as read. */
-"activity.center.button.mark.all.read" = "Hepsini okundu olarak işaretle";
+"activity.center.button.mark.all.read" = "Tandai semua sudah dibaca";
 
 /* Short title for the button in activity center. */
-"activity.center.button.read.all" = "Hepsini oku";
+"activity.center.button.read.all" = "Baca semua";
 
 /* Message shown when a user first joins from a friend's invitation (e.g., 'You accepted David's invite 🎉' */
-"activity.center.invite.accepted.item" = "%@ kişisinin davetini kabul ettin 🎉";
+"activity.center.invite.accepted.item" = "kamu menerima undangan %@ 🎉";
 
 /* Title for the activity center screen. */
-"activity.center.title" = "Hareket";
+"activity.center.title" = "Aktivitas";
 
 /* Message shown when a user first joins */
-"activity.center.welcome.item" = "HalloApp'e hoş geldin!";
+"activity.center.welcome.item" = "Selamat datang di HalloApp!";
 
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "İnternet Bağlantısı Yok";
+"alert.no.internet.title" = "Tidak Ada Koneksi Internet";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Lütfen internet bağlantını kontrol et ve yeniden dene.";
+"alert.no.internet.try.again" = "Harap pastikan kamu punya konektivitas internet, lalu cobalah kembali.";
 
 /* Title of view where users can invite friends and family. */
-"app.ios.invite.friends" = "Aile ve arkadaşlarını davet et";
+"app.ios.invite.friends" = "Undang teman & keluarga";
 
 /* Translation of iPhone settings app. */
-"app.ios.settings" = "Ayarlar";
+"app.ios.settings" = "Pengaturan";
 
 /* Text to show on banner when no connection is available */
-"banner.no.connection" = "İnternet bağlantısı yok";
+"banner.no.connection" = "Tidak ada koneksi internet";
 
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
-"button.cancel" = "İptal et";
+"button.cancel" = "Batal";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
-"button.continue" = "Devam et";
+"button.continue" = "Lanjut";
 
 /* Title for generic Create button */
-"button.create" = "Oluştur";
+"button.create" = "Buat";
 
 /* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Reddet";
+"button.dismiss" = "Hilangkan";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Bitti";
+"button.done" = "Selesai";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ayarlara git";
+"button.go.to.settings" = "Ke Pengaturan";
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
-"button.install" = "Yükle";
+"button.install" = "Instal";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Daha fazlasını öğren";
+"button.learn.more" = "Pelajari Lebih Lanjut";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
-"button.more" = "Daha fazla";
+"button.more" = "Lainnya";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
-"button.next" = "İleri";
+"button.next" = "Selanjutnya";
 
 /* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "Şimdi değil";
+"button.not.now" = "Nanti";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
-"button.ok" = "Tamam";
+"button.ok" = "Oke";
 
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
-"button.remove" = "Kaldır";
+"button.remove" = "Hapus";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "Kaydet";
+"button.save" = "Simpan";
 
 /* Title for generic Send button. Mostly used to complete some modal flow. */
-"button.send" = "Gönder";
+"button.send" = "Kirim";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Paylaş";
+"button.share" = "Bagikan";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
-"button.update" = "Güncelle";
+"button.update" = "Memperbarui";
 
 /* Generic error when trying to use camera */
-"camera.error" = "Kamera hatası";
+"camera.error" = "Eror kamera";
 
 /* No comment provided by engineer. */
-"camera.init.error.1" = "Arka kamera açılamıyor";
+"camera.init.error.1" = "Tidak dapat menyiapkan kamera belakang";
 
 /* No comment provided by engineer. */
-"camera.init.error.2" = "Ön kamera açılamıyor";
+"camera.init.error.2" = "Tidak dapat menyiapkan kamera depan";
 
 /* No comment provided by engineer. */
-"camera.init.error.3" = "Mikrofon çalıştırılamıyor";
+"camera.init.error.3" = "Tidak dapat menyiapkan mikrofon";
 
 /* No comment provided by engineer. */
-"camera.init.error.4" = "Arka kameraya erişilemiyor";
+"camera.init.error.4" = "Tidak dapat mengakses kamera belakang";
 
 /* No comment provided by engineer. */
-"camera.init.error.5" = "Ön kameraya erişilemiyor";
+"camera.init.error.5" = "Tidak dapat mengakses kamera depan";
 
 /* No comment provided by engineer. */
-"camera.init.error.6" = "Ses girişine erişilemiyor";
+"camera.init.error.6" = "Tidak dapat mengakses audio";
 
 /* No comment provided by engineer. */
-"camera.init.error.7" = "Fotoğraf çekilemiyor";
+"camera.init.error.7" = "Tidak dapat mengambil foto";
 
 /* No comment provided by engineer. */
-"camera.init.error.8" = "Video çekilemiyor";
+"camera.init.error.8" = "Tidak dapat merekam video";
 
 /* Title for a popup alerting about camera initialization error. */
-"camera.init.error.title" = "Başlatma hatası";
+"camera.init.error.title" = "Terjadi kesalahan";
 
 /* Alert text shown when the contact has been added to the address book successfully */
-"chat.add.to.address.book.success" = "Kişi, başarıyla eklendi";
+"chat.add.to.address.book.success" = "Kontak Berhasil Ditambahkan";
 
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
-"chat.add.to.contacts.book.label" = "%@ kişisinin gönderilerini görmek için, numarasını kişi defterine ekle. Eklemek için dokun.";
+"chat.add.to.contacts.book.label" = "Untuk melihat postingan dari %@, tambahkan nomornya ke buku kontak Anda. Ketuk untuk menambahkan";
 
 /* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.name.placeholder" = "Grubuna bir ad ver";
+"chat.create.group.name.placeholder" = "Berikan grup Anda nama";
 
 /* Title of group creation screen */
-"chat.create.group.title" = "Grup bilgisi";
+"chat.create.group.title" = "Info Grup";
 
 /* Label for creating a new group */
-"chat.create.new.group" = "Yeni grup oluştur";
+"chat.create.new.group" = "Membuat Grup Baru";
 
 /* Title of group name edit screen */
-"chat.edit.group.title" = "Düzenle";
+"chat.edit.group.title" = "Edit";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
-"chat.encryption.label" = "Sohbetler uçtan uca şifrelenir ve HalloApp'in bunlara erişimi yoktur. Daha fazlasını öğrenmek için dokun.";
+"chat.encryption.label" = "Obrolan dienkripsi dari ujung ke ujung dan HalloApp tidak dapat mengaksesnya. Ketuk untuk mempelajari selengkapnya.";
 
 /* Label shown above background selection row */
-"chat.group.background.label" = "ARKA PLAN";
+"chat.group.background.label" = "LATAR BELAKANG";
 
 /* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "%@, Grup Davet İlişimi ile gruba katıldı";
+"chat.group.event.join" = "%@ bergabung dengan grup via Tautan Undangan Grup";
 
 /* Message text shown when you join a group via invite link */
-"chat.group.event.join.you" = "Gruba, Grup Davet İlişimi ile katıldın";
+"chat.group.event.join.you" = "Kamu bergabung ke grup lewat Tautan Undangan Grup";
 
 /* Message text shown with the user who left the group */
-"chat.group.event.member.left" = "%@ ayrıldı";
+"chat.group.event.member.left" = "%@ pergi";
 
 /* Message text shown when you leave a group */
-"chat.group.event.member.left.you" = "Ayrıldın";
+"chat.group.event.member.left.you" = "Kamu keluar";
 
 /* Action label for adding members to a group */
-"chat.group.info.add.members" = "Üye ekle";
+"chat.group.info.add.members" = "Tambah anggota";
 
 /* Label shown in the members list when member is an admin */
-"chat.group.info.admin.label" = "Yönetici";
+"chat.group.info.admin.label" = "administrator";
 
 /* Text label for a color selection of group feed background color */
-"chat.group.info.bg.color.label" = "Renk";
+"chat.group.info.bg.color.label" = "Warna";
 
 /* Text label for default selection of group feed background color */
-"chat.group.info.bg.default.label" = "Varsayılan";
+"chat.group.info.bg.default.label" = "Standar";
 
 /* Text for menu option of demoting a group member */
-"chat.group.info.demote" = "Yöneticilikten çıkar";
+"chat.group.info.demote" = "Hapus sebagai administrator";
 
 /* Action label for leaving group */
-"chat.group.info.leave.group" = "Gruptan ayrıl";
+"chat.group.info.leave.group" = "Meninggalkan grup";
 
 /* Text for menu option of making a group member admin */
-"chat.group.info.make.group.admin" = "Grup yöneticisi yap";
+"chat.group.info.make.group.admin" = "Membuat Administrator Grup";
 
 /* Text for menu option of messaging user */
-"chat.group.info.message.user" = "Mesaj";
+"chat.group.info.message.user" = "Pesan";
 
 /* Text label shown when the user is not a member of the group */
-"chat.group.info.not.a.member.label" = "Bu grubun üyesi değilsin";
+"chat.group.info.not.a.member.label" = "Anda bukan anggota dari grup ini";
 
 /* Text for menu option of removing a group member */
-"chat.group.info.remove.from.group" = "Gruptan çıkar";
+"chat.group.info.remove.from.group" = "Hapus dari Grup";
 
 /* Title of screen that shows group information */
-"chat.group.info.title" = "Grup bilgisi";
+"chat.group.info.title" = "Info Grup";
 
 /* Text for menu option of viewing profile */
-"chat.group.info.view.profile" = "Profili görüntüle";
+"chat.group.info.view.profile" = "Lihat profil";
 
 /* Confirmation message presented when leaving a group */
-"chat.group.leave.group.confirmation" = "“%@” grubundan ayrılmak mı istiyorsun?";
+"chat.group.leave.group.confirmation" = "Tinggalkan “%@”?";
 
 /* Label shown above group members list */
-"chat.group.members.label" = "ÜYELER";
+"chat.group.members.label" = "ANGGOTA";
 
 /* Label shown above group name input box */
-"chat.group.name.label" = "GRUP ADI";
+"chat.group.name.label" = "NAMA GRUP";
 
 /* Title for group photo actions */
-"chat.group.photo.label" = "Grup fotoğrafı";
+"chat.group.photo.label" = "Foto Grup";
 
 /* Action to take a picture or choose a photo from the library to use for the group photo */
-"chat.group.take.or.choose.photo" = "Fotoğraf çek ya da galeriden seç";
+"chat.group.take.or.choose.photo" = "Ambil atau pilih foto";
 
 /* Label for inviting friends */
-"chat.invite.friends" = "Arkadaşlarını davet et";
+"chat.invite.friends" = "Undang Teman";
 
 /* Message text shown for the message that was deleted */
-"chat.message.deleted" = "Bu mesaj silindi";
+"chat.message.deleted" = "Pesan ini sudah dihapus";
 
 /* Message text shown in a message that have photo media but no text */
-"chat.message.photo" = "Fotoğraf";
+"chat.message.photo" = "Foto";
 
 /* Text shown when chat input box is empty */
-"chat.message.placeholder" = "Bir mesaj yaz";
+"chat.message.placeholder" = "Tulis pesan";
 
 /* Text shown in place of a received message we are not able to process yet. */
-"chat.message.unsupported" = "HalloApp sürümün, bu tür mesajları desteklemiyor.";
+"chat.message.unsupported" = "Versi HalloApp-mu tidak mendukung jenis pesan ini.";
 
 /* Message text shown in a message that have video media but no text */
 "chat.message.video" = "Video";
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
-"chat.message.waiting" = "Mesaj bekleniyor. Bu biraz zaman alabilir.";
+"chat.message.waiting" = "Menanti pesan ini. Ini mungkin butuh waktu.";
 
 /* Label shown when user is typing */
-"chat.typing.capitalized" = "yazıyor...";
+"chat.typing.capitalized" = "sedang mengetik...";
 
 /* Text shown when user is about to remove the chat */
-"chats.list.remove.message" = "Bu sohbeti silerek sohbet geçmişini ve içeriğini cihazından temizleyeceksin.";
+"chats.list.remove.message" = "Dengan menghapus percakapan ini, Anda akan menghapus riwayat percakapan dan isi dari telepon genggam Anda.";
 
 /* Button revealed when user swipes on their comment. */
-"comment.delete" = "Sil";
+"comment.delete" = "Hapus";
 
 /* Title for the button in comment deletion confirmation prompt. */
-"comment.delete.action" = "Yorumu sil";
+"comment.delete.action" = "Hapus komentar";
 
 /* Confirmation text displayed at comment deletion prompt */
-"comment.delete.confirmation" = "Bu yorum silinsin mi? Bu eylem geri alınamaz.";
+"comment.delete.confirmation" = "Hapus komentar ini? Penghapusan harus diselesaikan";
 
 /* Text displayed in place of deleted comment. */
-"comment.deleted" = "Yorum silindi";
+"comment.deleted" = "Komentar ini sudah dihapus";
 
 /* Text displayed in place of a comment that is currently being deleted. */
-"comment.deleting" = "Yorum siliniyor";
+"comment.deleting" = "Menghapus komentar";
 
 /* Button in comment input field. Verb. */
-"comment.post" = "Gönder";
+"comment.post" = "Kiriman";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
-"comment.posting" = "Paylaşılıyor...";
+"comment.posting" = "Mengirimkan...";
 
 /* Title for the button displayed under feed post comment. Verb. */
-"comment.reply" = "Yanıtla";
+"comment.reply" = "Balas";
 
 /* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "Kendini yanıtla";
+"comment.replying.myself" = "Membalas kepada diri sendiri";
 
 /* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
-"comment.replying.someone" = "%@ kişisine cevap veriliyor";
+"comment.replying.someone" = "Membalas %@";
 
 /* Title for the button in comment resend confirmation prompt. */
-"comment.resend.action" = "Tekrar gönder";
+"comment.resend.action" = "Kirim lagi";
 
 /* Confirmation prompt for when resending comment that previously failed to send. */
-"comment.resend.confirmation" = "Yorum tekrar gönderilsin mi?";
+"comment.resend.confirmation" = "Kirim lagi Komentar?";
 
 /* Text displayed in gray inside of the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "Yorum ekle";
+"comment.textfield.placeholder" = "Tambahkan komentar";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
-"comment.unsupported" = "HalloApp sürümün, bu tür yorumları desteklemiyor.";
+"comment.unsupported" = "Versi HalloApp-mu tidak mendukung jenis komentar ini.";
 
 /* Warning text displayed in Comments when post wasn't available. */
-"comments.post.loading.failed" = "Bu gönderiyi yüklemeye çalışırken bir hata oldu. Lütfen daha sonra tekrar dene.";
+"comments.post.loading.failed" = "Terjadi kesalahan saat membuka kiriman ini. Coba lagi nanti.";
 
 /* Alert message in composer when a video is too long */
-"composer.max.video.length.message" = "Lütfen başka bir video seç ya da düzenle butonuna bas";
+"composer.max.video.length.message" = "Pilih video lain atau pilih tombol edit.";
 
 /* Alert title in composer when a video is too long */
-"composer.max.video.length.title" = "Bu video olması gerekenden %.0f saniye daha uzun";
+"composer.max.video.length.title" = "Video ini telah berakhir berdurasi %.0f detik";
 
 /* Composer subtitle for messages. */
-"composer.message.subtitle" = "%@ kişisine gönder";
+"composer.message.subtitle" = "Mengirimkan ke %@";
 
 /* Composer New Message title. */
-"composer.message.title" = "Yeni mesaj";
+"composer.message.title" = "Pesan baru";
 
 /* Placeholder text for media caption field in post composer. */
-"composer.placeholder.media.description" = "Bir açıklama yaz";
+"composer.placeholder.media.description" = "Menulis deskripsi";
 
 /* Placeholder text in text post composer screen. */
-"composer.placeholder.text.post" = "Bir gönderi yaz";
+"composer.placeholder.text.post" = "Menulis kiriman";
 
 /* Send button title. */
-"composer.post.button.send" = "Gönder";
+"composer.post.button.send" = "Kirim";
 
 /* Share button title. */
-"composer.post.button.share" = "Paylaş";
+"composer.post.button.share" = "Bagi";
 
 /* Composer subtitle for group posts. */
-"composer.post.subtitle" = "%@ ile paylaşılıyor";
+"composer.post.subtitle" = "Membagikan dengan %@";
 
 /* Composer New Post title. */
-"composer.post.title" = "Yeni gönderi";
+"composer.post.title" = "Kiriman Baru";
 
 /* Feed Privacy indicator in post composer. */
-"composer.privacy.value.excluded" = "Kişilerimden bazıları ile paylaşılıyor";
+"composer.privacy.value.excluded" = "Membagikan dengan beberapa kontak";
 
 /* Feed Privacy indicator in post composer. */
-"composer.privacy.value.my.contacts" = "Kişilerimle paylaşılıyor";
+"composer.privacy.value.my.contacts" = "Membagikan kontak";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.n.selected" = "penyusun.kerahasiaan.nilai.n.dipilih";
 
 /* No comment provided by engineer. */
-"CONNECTION" = "BAĞLANTI";
+"CONNECTION" = "KONEKSI";
 
 /* Shown when user denies contacts permission */
-"contacts.access.denied" = "Güncelleme almak ve göndermek için HalloApp'in kişilerine erişmesine izin ver ";
+"contacts.access.denied" = "Izinkan HalloApp mengakses kontak Anda sehingga Anda dapat mengirim dan menerima pembaruan";
 
 /* Message requesting the user enable contacts permission */
-"contacts.permission.explanation" = "Ailen ve arkadaşlarınla bağlantı kurmana yardımcı olmak için HalloApp'in kişilerine erişmesine izin ver.";
+"contacts.permission.explanation" = "Untuk membantumu terhubung dengan teman dan keluarga izinkan HalloApp mengakses kontakmu.";
 
 /* Title for modal view when showing how to change contact permissions.
    Title for tutorial explaining how user can enable contacts permission */
-"contacts.permission.tutorial.title" = "Kişiler";
+"contacts.permission.tutorial.title" = "Kontak";
 
 /* Alert message telling the user to try creating the group again after an error */
-"create.group.error" = "Grup oluşturulurken bir hata oluştu, lütfen daha sonra tekrar dene.";
+"create.group.error" = "Terjadi eror saat membuat grup, harap coba kembali";
 
 /* Title for generic delete button. */
-"Delete" = "Sil";
+"Delete" = "Hapus";
 
 /* Text to show on profile for users you are not connected with */
-"exchange.phone.numbers.to.connect" = "İletişim kurmak için birbirinize telefon numaralarınızı vermelisiniz";
+"exchange.phone.numbers.to.connect" = "Agar dapat tersambung, Anda harus mengganti nomor telepon";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Kamera";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Fotoğraf galerisi";
+"fab.accessibility.photo.library" = "Galeri foto";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
-"fab.accessibility.text" = "Metin";
+"fab.accessibility.text" = "Teks";
 
 /* Shown while content is being retracted from feed */
-"feed.deleting" = "Siliniyor...";
+"feed.deleting" = "Sedang menghapus...";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
-"feed.new.posts.indicator" = "Yeni gönderiler";
+"feed.new.posts.indicator" = "Kiriman Baru";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification..other.comment.no.text" = "<$author$> kişisi de yorum yaptı";
+"feed.notification..other.comment.no.text" = "<$author$> juga memberikan komentar";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "<$numberOthers$> diğerleri <$author$> kişisinin gönderisine yanıt verdi";
+"feed.notification.comment.grouped" = "<$numberOthers$> lainnya membalas postingan <$author$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.commented.no.text" = "<$author$>, gönderine yorum yaptı";
+"feed.notification.commented.no.text" = "<$author$> memberikan komentar pada kiriman Anda";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.commented.w.text" = "<$author$> yorum yaptı: <$text$>";
+"feed.notification.commented.w.text" = "<$author$> memberikan komentar: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.deleted.comment" = "<$author$>, yorumunu sildi";
+"feed.notification.deleted.comment" = "<$author$> telah menghapus komentar";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.deleted.post" = "<$author$>, yorum yaptı. Bu gönderi silindi.";
+"feed.notification.deleted.post" = "<$author$> telah memberikan komentar. Kiriman ini sudah dihapus.";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.comment.no.text" = "<$author$>, bir yorumda senden bahsetti";
+"feed.notification.mention.comment.no.text" = "<$author$> menyebut Anda di komentar";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.comment.w.text" = "<$author$> bir yorumda senden bahsetti: <$text$>";
+"feed.notification.mention.comment.w.text" = "<$author$> menyebutmu dalam komentar: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.no.text" = "<$author$> bir gönderide senden bahsetti";
+"feed.notification.mention.post.no.text" = "<$author$> menyebutmu dalam pos";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.w.text" = "<$author$> bir gönderide senden bahsetti: <$text$>";
+"feed.notification.mention.post.w.text" = "<$author$> menyebutmu dalam pos: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.other.comment.w.text" = "<$author$> kişisi de yorum yaptı: <$text$>";
+"feed.notification.other.comment.w.text" = "<$author$> juga berkomentar: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.replied.no.text" = "<$author$>, senin yorumuna cevap verdi";
+"feed.notification.replied.no.text" = "<$author$> membalas komentarmu";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.replied.w.text" = "<$author$>, cevap verdi: <$text$>";
+"feed.notification.replied.w.text" = "<$author$> membalas: <$text$>";
 
 /* Shown when post fails or is canceled. */
-"feed.post.failed" = "Paylaşılamadı.";
+"feed.post.failed" = "Gagal mengepos.";
 
 /* Shown when receiving a new (unsupported) type of post. */
-"feed.post.unsupported" = "HalloApp sürümün, bu tür gönderileri desteklemiyor.";
+"feed.post.unsupported" = "Versi HalloApp-mu tidak mendukung jenis pos ini.";
 
 /* Shown while content is being posted to feed */
-"feed.posting" = "Paylaşılıyor...";
+"feed.posting" = "Mengepos...";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Bütün kişilerinle paylaş";
+"feed.privacy.descr.all" = "Bagikan ke semua kontakmu";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Seçtiğin kişiler hariç, kişilerinle paylaş";
+"feed.privacy.descr.except" = "Bagikan dengan kontakmu kecuali orang yang kamu pilih";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.only" = "Yalnızca seçtiğin kişilerle paylaş";
+"feed.privacy.descr.only" = "Hanya bagikan dengan kontak terpilih";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
-"feed.privacy.list.all" = "Rehberimdeki kişiler";
+"feed.privacy.list.all" = "Kontak Telepon Saya";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
-"feed.privacy.list.except" = "... hariç kişilerim";
+"feed.privacy.list.except" = "Kontak Saya Kecuali...";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
-"feed.privacy.list.only" = "Yalnızca ... kişisiyle paylaş";
+"feed.privacy.list.only" = "Hanya Bagikan Dengan...";
 
 /* Possible Feed Privacy setting value. */
-"feed.privacy.value.my.contacts" = "Rehberimdeki kişiler";
+"feed.privacy.value.my.contacts" = "Kontak Telepon Saya";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.excluded" = "feed.privacy.value.n.contacts.excluded";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.selected" = "feed.privacy.value.n.contacts.selected";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.excluded" = "feed.privacy.value.n.excluded";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Button under someone's post. Verb. */
-"feedpost.button.comment" = "Yorum yap";
+"feedpost.button.comment" = "Komentar";
 
 /* Button under someoneelse's post. Verb. */
-"feedpost.button.reply" = "Yanıtla";
+"feedpost.button.reply" = "Balas";
 
 /* Label for choosing a color at the group background preview screen */
-"group.bg.pick.a.color.label" = "BİR RENK SEÇ";
+"group.bg.pick.a.color.label" = "PILIH SATU WARNA";
 
 /* Title of group background screen */
-"group.bg.title" = "Arka plan";
+"group.bg.title" = "Latar Belakang";
 
 /* Message text shown with the user who added a group member */
-"group.event.added.member" = "%1$@, %2$@ kişisini ekledi";
+"group.event.added.member" = "%1$@ menambahkan %2$@";
 
 /* Message text shown when you add a group member */
-"group.event.added.member.you" = "%1@ kişisini ekledin";
+"group.event.added.member.you" = "Kamu menambahkan %1@";
 
 /* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar" = "%@, grubun simgesini değiştirdi";
+"group.event.changed.avatar" = "%@ mengganti ikon grup";
 
 /* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar.you" = "Grup simgesini değiştirdin";
+"group.event.changed.avatar.you" = "Kamu mengganti ikon grup";
 
 /* Message text shown with the user who changed the background */
-"group.event.changed.background" = "%@, arka plan rengini değiştirdi";
+"group.event.changed.background" = "%@ ubah warna latar belakang";
 
 /* Message text shown when you change the background */
-"group.event.changed.background.you" = "Arka plan rengini değiştirdin";
+"group.event.changed.background.you" = "Kamu mengganti warna latar";
 
 /* Message text shown with the user who changed the group name */
-"group.event.changed.name" = "%1$@, grubun adını \"%2$@\" olarak değiştirdi";
+"group.event.changed.name" = "%1$@ mengganti nama grup menjadi \"%2$@\"";
 
 /* Message text shown when you change the group name */
-"group.event.changed.name.you" = "Grubun adını \"%1@\" olarak değiştirdin";
+"group.event.changed.name.you" = "Kamu mengganti nama grup menjadi \"%1@\"";
 
 /* Message text shown with the user who created the group */
-"group.event.created.group" = "%1$@,  \"%2$@\" adlı grubu kurdu";
+"group.event.created.group" = "%1$@ membuat grup \"%2$@\"";
 
 /* Message text shown when you create a group */
-"group.event.created.group.you" = "\"%1@\" grubunu kurdun";
+"group.event.created.group.you" = "Kamu membuat grup \"%1@\"";
 
 /* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "%1$@, %2$@ kişisini yöneticilikten çıkardı";
+"group.event.demoted.member" = "%1$@ menghapus %2$@ sebagai admin";
 
 /* Message text shown when you demote a group admin */
-"group.event.demoted.member.you" = "%1@ kişisini yöneticilikten çıkardın";
+"group.event.demoted.member.you" = "Kamu menghapus %1@ sebagai admin";
 
 /* Message text shown with the user who promoted a group member */
-"group.event.promoted.member" = "%1$@, %2$@ kişisini yönetici yaptı";
+"group.event.promoted.member" = "%1$@ menjadikan %2$@ sebagai admin";
 
 /* Message text shown when you promote a group member */
-"group.event.promoted.member.you" = "%1@ kişisini yönetici yaptın";
+"group.event.promoted.member.you" = "Kamu menjadikan %1@ sebagai admin";
 
 /* Message text shown with the user who removed a group member */
-"group.event.removed.member" = "%1$@, %2$@ kişisini sildi";
+"group.event.removed.member" = "%1$@ mengeluarkan %2$@";
 
 /* Message text shown when you remove a group member */
-"group.event.removed.member.you" = "%1@ kişisini sildin";
+"group.event.removed.member.you" = "Kamu menghapus %1@";
 
 /* Action label for inviting others to join the group via link */
-"group.info.invite.to.group.via.link" = "İlişim yoluyla Gruba davet et";
+"group.info.invite.to.group.via.link" = "Undang ke Grup lewat Tautan";
 
 /* Label for copying link */
-"group.invite.copy.link" = "İlişimi kopyala";
+"group.invite.copy.link" = "Salin Tautan";
 
 /* Text shown when link is copied */
-"group.invite.link.copied" = "Panoya kopyalandı";
+"group.invite.link.copied" = "Tersalin ke Papan Klip";
 
 /* Text to describe what the group invite link is */
-"group.invite.link.description" = "HalloApp kullanan herkes gruba üye olmak için bu ilişimi kullanabilir.";
+"group.invite.link.description" = "Siapa pun dengan HalloApp bisa mengikuti tautan ini untuk bergabung dengan grup ini.";
 
 /* Text label above the group link section in group invite screen */
-"group.invite.link.label" = "GRUP İLİŞİMİ";
+"group.invite.link.label" = "TAUTAN GRUP";
 
 /* Text shown when link is reset */
-"group.invite.link.reset" = "İlişim sıfırlandı";
+"group.invite.link.reset" = "Tautan Setel Ulang";
 
 /* Label for opening QR screen */
-"group.invite.qr.code" = "QR Kodu";
+"group.invite.qr.code" = "Kode QR";
 
 /* Label for resetting link */
-"group.invite.reset.link" = "İlişimi sıfırla";
+"group.invite.reset.link" = "Setel Ulang Tautan";
 
 /* Warning shown when user clicks on reset link action */
-"group.invite.reset.link.warning" = "Bu davet ilişimi sıfırlanırsa hiç kimse bunu gruba katılmak için kullanamaz.";
+"group.invite.reset.link.warning" = "Jika tautan undangan ini disetel ulang, tak akan ada yang bisa memakainya untuk bergabung dengan grup.";
 
 /* Label for sharing link */
-"group.invite.share.link" = "İlişimi paylaş";
+"group.invite.share.link" = "Bagikan Tautan";
 
 /* Text shown before the sharing link */
-"group.invite.share.link.message" = "HalloApp grubuma katılmak için bu ilişime tıklayın:";
+"group.invite.share.link.message" = "Klik tautan ini untuk bergabung ke grup HalloApp saya:";
 
 /* Title of group invite screen */
-"group.invite.title" = "Grup davet ilişimi";
+"group.invite.title" = "Undang Grup";
 
 /* Text for alert box when the user clicks on an invalid group invite link */
-"group.preview.get.info.error.invalid.link" = "Bu grup ilişimi geçersiz";
+"group.preview.get.info.error.invalid.link" = "Tautan undangan grup tidak sah";
 
 /* Text for alert box when the user can't join the group via group link when the group is full */
-"group.preview.join.error.group.full" = "Bu grup dolu";
+"group.preview.join.error.group.full" = "Grup penuh";
 
 /* Text for alert box when the user can't join the group via group link when link is invalid */
-"group.preview.join.error.invalid.link" = "İlişim geçersiz";
+"group.preview.join.error.invalid.link" = "Tautan tidak sah";
 
 /* Title for alert box when the user can't join the group via group link */
-"group.preview.join.error.title" = "Gruba katılma başarısız";
+"group.preview.join.error.title" = "Gagal bergabung ke grup";
 
 /* Label for joining group action */
-"group.preview.join.group" = "GRUBA KATIL";
+"group.preview.join.group" = "BERGABUNG DENGAN GRUP";
 
 /* Label for the number of members in the group */
-"group.preview.members" = "Üyeler";
+"group.preview.members" = "Anggota";
 
 /* Text shown to tell user the group title is tappable */
-"group.title.tap.for.info" = "Grup bilgisi için dokun";
+"group.title.tap.for.info" = "Ketuk di sini untuk info grup";
 
 /* Text shown in notification when the user is added to a new group */
-"groups.add.notification" = "Yeni bir gruba eklendin";
+"groups.add.notification" = "Kamu ditambahkan ke grup baru";
 
 /* A label to show that the groups below are groups in common */
-"groups.common" = "Ortak Gruplar";
+"groups.common" = "Grup Bersama";
 
 /* Text shown when user is about to remove the group */
-"groups.list.remove.message" = "Bu grubu ve içeriğini telefonundan silmek istediğine emin misin?";
+"groups.list.remove.message" = "Yakin ingin menghapus grup ini beserta kontennya dari perangkatmu?";
 
 /* A label on the header to indicate which person I have groups in common with */
-"groups.title" = "%@ ile";
+"groups.title" = "Dengan %@";
 
 /* Text shown in the email body when sending logs from the help screen */
-"help.send.logs.email.body" = "\n\n\nLütfen yukarıya, yaşadığın sorunla ilgili bir açıklama veya geri bildirim yaz.\nSürüm %1$@ - %2$@\n%3$@";
+"help.send.logs.email.body" = "Harap tulis masukan atau deskripsi masalahmu pada kolom di atas. \n\nVersi %1$@ - %2$@\n%3$@";
 
 /* Title for exit button that closes the app */
-"home.update.notice.button.exit" = "Çık";
+"home.update.notice.button.exit" = "Keluar";
 
 /* Text shown to users who have old versions of the app */
-"home.update.notice.text" = "Lütfen HalloApp'in son sürümünü yükle";
+"home.update.notice.text" = "Harap perbarui ke versi terkini HalloApp";
 
 /* Title of update notice shown to users who have old versions of the app */
-"home.update.notice.title" = "Bu sürüm güncel değil";
+"home.update.notice.title" = "Versi ini sudah usang";
 
 /* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
-"invite.already.halloapp.user" = "Halihazırda HalloApp kullanıcısı";
+"invite.already.halloapp.user" = "Sudah jadi pengguna HalloApp";
 
 /* Title for button that launches system SMS app to send invite. As short as possible! */
-"invite.app.sms" = "Mesajlar";
+"invite.app.sms" = "Pesan";
 
 /* Title for button that launches WhatsApp to send invite. Should match WhatsApp localization. */
 "invite.app.whatsapp" = "WhatsApp";
 
 /* Shows number of current HalloApp users who have this contact in their list */
-"invite.contact.count" = "HalloApp'te %d kişi";
+"invite.contact.count" = "%d kontak di HalloApp";
 
 /* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
-"invite.error.alert.message" = "Bir şeyler ters gitti. Lütfen daha sonra tekrar dene.";
+"invite.error.alert.message" = "Terjadi sesuatu. Cobalah kembali nanti.";
 
 /* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
-"invite.error.alert.title" = "Davet edilemiyor";
+"invite.error.alert.title" = "Gagal mengundang";
 
 /* Displayed when user does not have any invites left. Parameter is date. */
-"invite.out.of.invites.w.date" = "Davetiyelerin bitti. Lütfen %@ tarihinden sonra tekrar dene.";
+"invite.out.of.invites.w.date" = "Kamu kehabisan undangan. Kembalilah lagi setelah %@";
 
 /* Displayed white user is inviting someone. */
-"invite.please.wait" = "Lütfen bekle...";
+"invite.please.wait" = "Harap tunggu...";
 
 /* Text of invitation to join HalloApp. */
-"invite.text" = "HalloApp'te bana katıl — ailen ve arkadaşlarınla iletişimde kalmanın kolay, özel ve güvenli bir yolu. https://halloapp.com/dl adresinden indir.";
+"invite.text" = "Bergabunglah dengan saya di HalloApp - sebuah cara simpel, privat dan aman untuk tetap terhubung dengan teman dan keluarga. Dapatkan di https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Merhaba %1$@, seni, günün her anını kolayca paylaşabileceğin bir sosyal medya uygulaması olan HalloApp'te bana katılmaya davet ediyorum. Kaydolmak için %2$@ numarasını kullanabilir ya da https://halloapp.com/dl adresinden uygulamayı indirebilirsin.";
+"invite.text.specific" = "Hei %1$@, saya memiliki undangan untuk Anda bergabung dengan saya di HalloApp - jejaring hubungan sungguhan bagi mereka yang sangat dekat dengan saya. Gunakan %2$@ untuk mendaftar. Dapatkan di https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
-"invite.title" = "Davet et";
+"invite.title" = "Undang";
 
 /* Link text to open invite flow */
-"link.invite.friend" = "Bir arkadaşını davet et.";
+"link.invite.friend" = "Undang teman";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "Daha fazlası öğren";
+"link.learnMore" = "Pelajari lebih jauh";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Uygulamanı güncelle.";
+"link.update.your.app" = "Perbarui aplikasimu.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Ben";
+"meCapitalized" = "Saya";
 
 /* Refers to albums in Photo Library. */
-"media.albums" = "Albümler";
+"media.albums" = "Album";
 
 /* Button title. Refers to discarding photo/video edits in media composer. */
-"media.button.discard" = "Çıkar";
+"media.button.discard" = "Hapus";
 
 /* Button title. Refers to resetting photo / video to original version. */
-"media.button.reset" = "Sıfırla";
+"media.button.reset" = "Atur ulang";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
-"media.camera.access.request" = "HalloApp'in kamerana erişimi yok. Erişimi etkinleştirmek için Ayarlar'a dokun ve Kamera'yı aç.";
+"media.camera.access.request" = "HalloApp tidak memiliki akses ke kamera. Untuk mengizinkan akses, ketuk Pengaturan dan nyalakan Kamera";
 
 /* Confirmation prompt in media composer. */
-"media.discard.confirmation" = "Düzenlemelerini iptal etmek istiyor musun?";
+"media.discard.confirmation" = "Ingin menghapus editanmu?";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
-"media.mic.access.request.body" = "Videoları sesli kaydedebilmek için HalloApp'in mikrofona erişmesi gerekir. Erişimi etkinleştirmek için Ayarlar'a dokun ve Mikrofon'u aç.";
+"media.mic.access.request.body" = "Untuk merekam video dengan suara, HalloApp memerlukan akses mikrofon. Untuk mengizinkan akses, ketuk Pengaturan dan nyalakan Mikrofon.";
 
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
-"media.mic.access.request.title" = "Videoları sesli mi kaydetmek istiyorsun?";
+"media.mic.access.request.title" = "Ingin Video dengan Suara?";
+
+/* Error text displayed in post composer when some of the media selected couldn't be sent. */
+"media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
 /* Button that, when pressed, saves all the post's media to the user's camera roll */
-"media.save.all" = "Hepsini galeriye kaydet";
+"media.save.all" = "Simpan Semua Ke Camera Roll";
 
 /* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
-"media.save.all.singular" = "Görseli film rulosuna kaydet";
+"media.save.all.singular" = "Simpan Media ke Camera Roll";
 
 /* Button that lets the user save the current media displayed to their camera roll */
-"media.save.camera.roll" = "Galeriye kaydet";
+"media.save.camera.roll" = "Simpan Ke Camera Roll";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
-"media.save.needs.permissions" = "Fotoğraf izni gerekiyor";
+"media.save.needs.permissions" = "Izin foto diperlukan";
 
 /* Description telling the user why the photos couldn't be saved */
-"media.save.no.access" = "Fotoğraflar, galeriye erişim izni olmadan kaydedilemez.";
+"media.save.no.access" = "Foto tidak dapat disimpan tanpa akses ke Camera Roll.";
 
 /* Alert displayed explaining to the user that the media save operation failed */
-"media.save.not.saved" = "Fotoğraf kaydedilemiyor";
+"media.save.not.saved" = "Foto tidak dapat disimpan";
 
 /* Label indicating that media was successfully saved to the camera roll */
-"media.save.saved" = "Kaydedildi";
+"media.save.saved" = "Disimpan";
 
 /* Accessibility label for X (Close) button in media editor. */
-"media.voiceover.button.close" = "Kapat";
+"media.voiceover.button.close" = "Tutup";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.flip" = "Çevir";
+"media.voiceover.button.flip" = "Balik";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.rotate" = "Döndür";
+"media.voiceover.button.rotate" = "Putar";
 
 /* Message action. Verb. */
-"message.copy" = "Kopyala";
+"message.copy" = "Salin";
 
 /* Message action. Verb. */
-"message.delete" = "Sil";
+"message.delete" = "Hapus";
 
 /* Message action. Verb. */
-"message.info" = "Bilgi";
+"message.info" = "Info";
 
 /* Message action. Verb. */
-"message.reply" = "Yanıtla";
+"message.reply" = "Balas";
 
 /* One of the contact actions in My Post screen. */
-"mypost.action.hide.my.posts" = "Gönderilerimi gizle";
+"mypost.action.hide.my.posts" = "Sembunyikan Pos Saya";
 
 /* One of the contact actions in My Post screen. Verb. */
-"mypost.action.message" = "Mesaj";
+"mypost.action.message" = "Pesan";
 
 /* One of the contact actions in My Post screen. */
-"mypost.action.view.profile" = "Profili görüntüle";
+"mypost.action.view.profile" = "Lihat Profil";
 
 /* Message displayed to say when posts will disappear */
-"mypost.disappear.time.label" = "Gönderilerin, 30 gün sonra kaybolacak.";
+"mypost.disappear.time.label" = "Posmu akan menghilang setelah 30 hari.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
-"mypost.hide.posts.confirmation" = "Gelecekteki bütün gönderilerini %@ kişisinden gizlemek istediğine emin misin? Bunu daha sonra değiştirebilirsin.";
+"mypost.hide.posts.confirmation" = "Yakin ingin menyembunyikan semua pos mendatangmu dari %@? Kamu dapat selalu mengubah ini nanti.";
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
-"mypost.not.viewed.yet" = "Gönderini henüz kimse görmedi";
+"mypost.not.viewed.yet" = "Belum ada yang melihat posmu";
 
 /* Your Post screen: label for the row that opens the invite screen */
-"mypost.row.invite.to.halloapp" = "HalloApp'e davet et";
+"mypost.row.invite.to.halloapp" = "Undang Ke Halloapp";
 
 /* Your Post screen: label for the row that opens the privacy screen */
-"mypost.row.manage.privacy" = "Gizliliği düzenle";
+"mypost.row.manage.privacy" = "Kelola Privasi";
 
 /* Indicates how many invites are remaining */
-"n.invites.count" = "n.davetiye kaldı";
+"n.invites.count" = "n.invites.count";
 
 /* Indicates how many invites are remaining */
-"n.invites.remaining" = "n.davetiye kaldı";
+"n.invites.remaining" = "n.invites.remaining";
 
 /* Text shown to indicate user is not in the group anymore */
-"not.in.group.banner.text" = "Artık bu grupta değilsin";
+"not.in.group.banner.text" = "Kamu tak lagi ada di grup ini";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
-"notification.commented.with.text" = "Yorum yapıldı: %@";
+"notification.commented.with.text" = "Berkomentar: %@";
 
 /* Content for unknown contact notification. */
-"notification.contact.unknown.content" = "Kişilerinden biri şu an HalloApp'te";
+"notification.contact.unknown.content" = "Salah satu kontakmu kini menggunakan HalloApp";
 
 /* Content for inviter notification. */
-"notification.invite.accepted.content" = "%@, HalloApp'e katılma davetini kabul etti 🎉";
+"notification.invite.accepted.content" = "%@ baru saja menerima undanganmu untuk bergabung ke HalloApp 🎉";
+
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "notification.n.photos";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "notification.n.videos";
 
 /* Content for contact notification.
    Content for friend notification. */
-"notification.new.friend.content" = "%@ artık HalloApp'te";
+"notification.new.friend.content" = "%@ kini ada di HalloApp";
 
 /* Fallback text for new message notification. */
-"notification.new.message" = "Yeni mesaj";
+"notification.new.message" = "Pesan Baru";
 
 /* Title for the new feed post notification. */
-"notification.new.post" = "Yeni gönderi";
+"notification.new.post" = "Pos Baru";
 
 /* New post notification text when post is one photo without caption. */
-"notification.one.photo" = "📷 Fotoğraf";
+"notification.one.photo" = "📷 foto";
 
 /* New post notification text when post is one video without caption. */
-"notification.one.video" = "📹 Video";
+"notification.one.video" = "📹 video";
 
 /* Text for new user popup pointing at activity center icon */
-"nux.activity.center.icon" = "Hallo!";
+"nux.activity.center.icon" = "Halo!";
 
 /* Shown on chats list when there are no contacts or messages to display */
-"nux.chat.empty" = "Kişilerin ve mesajların burada görünecek.";
+"nux.chat.empty" = "Kontak & pesanmu akan tampil di sini";
 
 /* Text for new user popup pointing at chat list */
-"nux.chat.list" = "Ailen ve arkadaşlarından gelen mesajları burada bulacaksın. HalloApp'e yeni biri katıldığında, onu burada görebilirsin.";
+"nux.chat.list" = "Di sinilah kamu akan menemukan pesan dari teman dan keluarga. Saat pengguna baru bergabung ke HalloApp kamu dapat melihatnya di sini.";
 
 /* Shown on groups in common when there are no groups to display */
-"nux.groups.common.list.empty" = "Ortak grubunuz yok";
+"nux.groups.common.list.empty" = "Anda tidak memiliki grup bersama";
 
 /* Shown on groups list when there are no groups to display */
-"nux.groups.list.empty" = "Grupların burada görünecek";
+"nux.groups.list.empty" = "Grupmu akan tampil di sini";
 
 /* Shown on home feed when no posts are available */
-"nux.home.feed.empty" = "Kişilerinin gönderileri burada görünecek";
+"nux.home.feed.empty" = "Posmu dari kontak telepon akan tampil di sini";
 
 /* Text for new user popup pointing at new post button */
-"nux.new.post.button" = "HalloApp'te ailen ve arkadaşlarınla bir gönderi paylaşmak için dokun.";
+"nux.new.post.button" = "Ketuk untuk berbagi info terbaru dengan teman & keluarga di HalloApp";
 
 /* Message in media picker when access is denied. */
-"picker.access.denied.message" = "Lütfen Ayarlar'dan erişim izni ver";
+"picker.access.denied.message" = "Harap berikan akses dari Pengaturan";
 
 /* An option to give access from settings */
-"picker.access.denied.settings" = "Ayarlar";
+"picker.access.denied.settings" = "Pengaturan";
 
 /* Alert title in media picker when access is denied. */
-"picker.access.denied.title" = "Fotoğraf erişimi reddedildi";
+"picker.access.denied.title" = "Akses Foto Ditolak";
 
 /* Message shown only limited access to media. */
-"picker.access.limited.message" = "HalloApp'e, belirli sayıda fotoğraf ve videoya erişimi için izin verdin.";
+"picker.access.limited.message" = "Kamu telah memberi HalloApp akses ke jumlah foto dan video terpilih.";
 
 /* Initial picker screen title. The default source of picker photos */
-"picker.default.title" = "Film rulosu";
+"picker.default.title" = "Rol Kamera";
 
 /* Alert message in media picker when unable to load media file. */
-"picker.media.fail.message" = "Lütfen tekrar dene veya farklı fotoğraf ya da video seç.";
+"picker.media.fail.message" = "Harap coba kembali atau pilih foto atau video berbeda.";
 
 /* Alert title in media picker when unable to load media file. */
-"picker.media.fail.title" = "Görsel yüklenemedi";
+"picker.media.fail.title" = "Gagal memuat media";
 
 /* Button shown to update limited access to media. */
-"picker.media.limit.button" = "Güncelle";
+"picker.media.limit.button" = "Perbarui";
 
 /* An option to update limited access. */
-"picker.media.limit.settings" = "Ayarları değiştir";
+"picker.media.limit.settings" = "Ubah pengaturan";
 
 /* Alert title in media picker when selecting over limit. */
-"picker.media.limit.title" = "Azami öge seçildi";
+"picker.media.limit.title" = "Memilih item maksimal";
 
 /* An option to update limited access. */
-"picker.media.limit.updateSelection" = "Görüntü ve video seçimini güncelle";
+"picker.media.limit.updateSelection" = "Perbarui seleksi gambar & video";
+
+/* Message in media picker when selecting over limit. */
+"picker.media.n.limit" = "picker.media.n.limit";
 
 /* Displayed in place of a deleted feed post.
    Displayed in place of a deleted group feed post at group list screen */
-"post.has.been.deleted" = "Bu gönderi silindi";
+"post.has.been.deleted" = "Pos ini sudah dihapus";
 
 /* Displayed in place of a deleted feed post. */
-"post.has.been.deleted.by.author" = "%@, gönderisini sildi";
+"post.has.been.deleted.by.author" = "%@ menghapus posnya";
 
 /* Displayed in place of a deleted feed post. */
-"post.has.been.deleted.by.you" = "Gönderini sildin";
+"post.has.been.deleted.by.you" = "Kamu menghapus posmu";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
-"privacy.list.blocked" = "Engellendi";
+"privacy.list.blocked" = "Diblokir";
+
+/* Generic setting value telling how many contacts are blocked or muted. */
+"privacy.n.contacts" = "privacy.n.contacts";
 
 /* Title for the button allowing to delete current profile photo. */
-"profile.delete.photo" = "Fotoğrafı sil";
+"profile.delete.photo" = "Hapus Foto";
 
 /* A label for the button which leads to the page showing groups in common */
-"profile.groups.in.common" = "Ortak Gruplar";
+"profile.groups.in.common" = "Grup Bersama";
 
 /* Text for messaging user under profile header */
-"profile.header.message.user" = "Mesaj";
+"profile.header.message.user" = "Pesan";
 
 /* Item in Profile > Help screen. */
-"profile.help.faq" = "SSS";
+"profile.help.faq" = "Pertanyaan Populer";
 
 /* Item in Profile > Help screen. */
-"profile.help.feedback" = "Geri bildirim paylaş";
+"profile.help.feedback" = "Bagikan Masukan & Log";
 
 /* Item in Profile > Help screen. */
-"profile.help.pp" = "Gizlilik Politikası";
+"profile.help.pp" = "Kebijakan Privasi";
 
 /* Item in Profile > Help screen. */
-"profile.help.share.logs" = "Geri bildirim paylaş";
+"profile.help.share.logs" = "Bagikan Log";
 
 /* Item in Profile > Help screen. */
-"profile.help.tos" = "Kullanım Şartları";
+"profile.help.tos" = "Syarat Layanan";
+
+/* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
+"profile.name.length" = "%1$d/%2$d";
 
 /* Row in Profile screen. */
-"profile.row.about" = "HalloApp hakkında";
+"profile.row.about" = "Perihal";
 
 /* Row in Profile Screen */
-"profile.row.account" = "Hesap";
+"profile.row.account" = "Akun";
 
 /* Row in Profile screen. */
-"profile.row.archive" = "Arşiv";
+"profile.row.archive" = "Arsip";
 
 /* Row in Profile screen. */
-"profile.row.help" = "Yardım";
+"profile.row.help" = "Bantuan";
 
 /* Row in Profile screen. */
-"profile.row.invite" = "Arkadaşlarını davet et";
+"profile.row.invite" = "Undang ke HalloApp";
 
 /* Row in Settings screen */
-"profile.row.my.posts" = "Gönderilerim";
+"profile.row.my.posts" = "Pos Saya";
 
 /* Row in Profile Screen. */
-"profile.row.share" = "HalloApp'i paylaş";
+"profile.row.share" = "Bagikan HalloApp";
 
 /* Title for the button allowing to select a new profile photo. */
-"profile.take.choose.photo" = "Fotoğraf çek ya da seç";
+"profile.take.choose.photo" = "Ambil atau Pilih Foto";
 
 /* Title for the screen allowing to edit profile name */
-"profile.title.your.name" = "Adın";
+"profile.title.your.name" = "Namamu";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Bir onay kodu alacaksın. Bu mesaj ücretli olabilir.";
+"registration.code.disclaimer" = "Kamu akan menerima kode verifikasi.\nBiaya operator dapat berlaku.";
 
 /* Error message to display when user enters incorrect verification code */
-"registration.code.incorrect" = "Girdiğin kod yanlış";
+"registration.code.incorrect" = "Kode yang kamu masukkan salah";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
-"registration.code.instructions" = "%@ numarasına gönderdiğimiz kodu gir";
+"registration.code.instructions" = "Masukkan kode yang kami kirimkan ke %@";
 
 /* Error message to display when we cannot send a verification code */
-"registration.code.request.error" = "Kod gönderilemiyor. Lütfen daha sonra tekrar dene";
+"registration.code.request.error" = "Gagal mengirim kode. Cobalah kembali nanti.";
 
 /* Button label to resend verification code */
-"registration.code.resend" = "Tekrar SMS gönder";
+"registration.code.resend" = "Kirim ulang SMS";
 
 /* Button label to resend verification code by voice call */
-"registration.code.resend.by.voice" = "Beni ara";
+"registration.code.resend.by.voice" = "Panggil saya";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Ailen ve arkadaşlarınla bağlantı kurabilmen için kişilerine erişim iznine ihtiyacımız var.";
+"registration.contacts.content" = "Untuk menghubungkanmu dengan teman & keluarga kami membutuhkan izinmu untuk mengakses kontak.";
 
 /* Title for text explaining why we need contact permissions */
-"registration.contacts.title" = "Son bir şey";
+"registration.contacts.title" = "Satu hal terakhir";
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
-"registration.free.app.notice" = "iPhone App Store'da ücretsiz";
+"registration.free.app.notice" = "Gratis di iPhone App Store";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
-"registration.group.name" = "%@ grubuna katılmaya davetlisin";
+"registration.group.name" = "Anda diundang untuk bergabung ke grup %@";
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
-"registration.install.app.to.continue" = "Devam etmek için HalloApp'i yükle";
+"registration.install.app.to.continue" = "Instal HalloApp untuk melanjutkan";
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
-"registration.install.app.to.join.group" = "%@'e katılmak için HalloApp'i yükle";
+"registration.install.app.to.join.group" = "Instal HalloApp untuk membuka %@";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Şu anda yalnızca davet sistemiyle çalışıyoruz. HalloApp kullanan bir aile üyen veya arkadaşın varsa, telefon numaranı kullanarak sana davet göndermelerini isteyebilirsin.";
+"registration.invite.only" = "Jika kamu menggunakan Tautan Undangan Grup untuk mendaftar, silakan klik lagi tautannya untuk menyelesaikan pendaftaran dan bergabung ke grup.";
 
 /* Placeholder text for name entry */
-"registration.nameEntry.placeholder" = "Adın";
+"registration.nameEntry.placeholder" = "Namamu";
 
 /* Placeholder text for phone entry */
-"registration.phoneEntry.placeholder" = "Telefon numaran";
+"registration.phoneEntry.placeholder" = "Nomor telepon";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "HalloApp, seni HalloApp kullanan arkadaşlarınla eşleştirmek için yalnızca telefon numaranı kullanır; rehberindeki başka herhangi bir veriyi almaz.";
+"registration.privacy.content" = "HalloApp hanya menggunakan kolom nomor telepon untuk mencocokkanmu dengan teman-teman di HalloApp, dan tidak mengirimkan data tambahan apa pun dari buku kontakmu.";
 
 /* Title for modal describing how we use contacts data */
-"registration.privacy.title" = "Gizliliğin önceliğimizdir";
+"registration.privacy.title" = "Privasimu adalah prioritas kami";
 
 /* Title for popup that appears when user tries to register uninvited number */
-"registration.shucks" = "Tüh!";
+"registration.shucks" = "Ups!";
 
 /* Shown above name and phone inputs */
-"registration.welcome" = "Hoş geldin!";
+"registration.welcome" = "Selamat datang!";
 
 /* Instructions for how to use the safety number verification UI */
-"safety.number.instructions" = "%@ ile bağlantınızın güvenliğini doğrulamak için yukarıdaki numaraların, onun cihazında gösterilenlerle eşleşip eşleşmediğini kontrol et veya telefonundaki QR kodunu tarat.";
+"safety.number.instructions" = "Untuk memverifikasi keamanan koneksimu dengan %@, pastikan angka di atas sama dengan yang ditunjukkan pada perangkat mereka, atau pindai kode QR di ponsel mereka.";
 
 /* Message to show when safety number cannot be succesfully verified */
-"safety.number.not.verified" = "%@ için güvenlik numarası doğrulaması başarısız";
+"safety.number.not.verified" = "Gagal memverifikasi nomor keamanan untuk %@";
 
 /* Title for button that will open QR code scanner used to verify a contact's safety number */
-"safety.number.scan" = "Taratmak için dokun";
+"safety.number.scan" = "Ketuk untuk Memindai";
 
 /* Title for screen that allows users to verify a contact's safety number */
-"safety.number.title" = "Güvenlik numarasını doğrulat";
+"safety.number.title" = "Verifikasi Nomor Keamanan";
 
 /* Message to show when safety number is succesfully verified */
-"safety.number.verified" = "%@ için güvenlik numarası doğrulaması başarılı!";
+"safety.number.verified" = "Berhasil memverifikasi nomor keamanan untuk %@!";
 
 /* fallback text in notification for a new comment */
-"server.new.comment" = "Yeni yorum";
+"server.new.comment" = "Komentar Baru";
 
 /* fallback text in notification when a new contact joins */
-"server.new.contact" = "%@ şimdi HalloApp'te";
+"server.new.contact" = "%@ kini ada di HalloApp";
 
 /* fallback text in notification when user is added to a new group */
-"server.new.group" = "Yeni bir gruba eklendin";
+"server.new.group" = "Anda ditambahkan ke grup baru";
 
 /* fallback text in notification for a new group chat message */
-"server.new.group.message" = "Yeni grup mesajı";
+"server.new.group.message" = "Pesan Grup Baru";
 
 /* fallback text in notification when an invitee joins */
-"server.new.inviter" = "%@ HalloApp davetini kabul etti 🎉";
+"server.new.inviter" = "%@ baru menerima undangan Anda untuk bergabung di HalloApp 🎉";
 
 /* fallback text in notification for a new chat message */
-"server.new.message" = "Yeni mesaj";
+"server.new.message" = "Pesan Baru";
 
 /* fallback text in notification for a new feed post */
-"server.new.post" = "Yeni gönderi";
+"server.new.post" = "Unggahan Baru";
 
 /* text in the sms sent with verification code */
-"server.sms.verification" = "HalloApp doğrulama kodun";
+"server.sms.verification" = "Kode verifikasi HalloApp Anda";
 
 /* text in the voice call sent with verification code */
-"server.voicecall.verification" = "HalloApp doğrulama kodun";
+"server.voicecall.verification" = "Kode verifikasi HalloApp Anda adalah";
 
 /* Displayed while syncing account immediately after registration */
-"setting.up.halloapp" = "HalloApp kuruluyor";
+"setting.up.halloapp" = "Menyiapkan HalloApp";
 
 /* Title of alert telling the user they're about to delete their account */
-"settings.account.delete.action.title" = "Hesabı sil";
+"settings.account.delete.action.title" = "Hapus Akun";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet1" = "Hesap bilgilerini ve profil fotoğrafını sil";
+"settings.account.delete.bullet1" = "Hapus info akun Anda dan foto profil Anda";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet2" = "Bütün HalloApp gruplarından ayrıl";
+"settings.account.delete.bullet2" = "Keluarkan Anda dari semua grup HalloApp";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet3" = "Mesaj geçmişini bu telefondan sil";
+"settings.account.delete.bullet3" = "Hapus riwayat pesan Anda di ponsel ini";
 
 /* Label telling the user that their account has been deleted */
-"settings.account.delete.deleted" = "Hesap silindi";
+"settings.account.delete.deleted" = "Akun Dihapus";
 
 /* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
-"settings.account.delete.error" = "Hesabın silinirken bir hata oluştu. Lütfen telefon numaranın doğru olduğundan emin ol.";
+"settings.account.delete.error" = "Ada kesalahan menghapus akun Anda. Pastikan nomor telepon Anda benar.";
 
 /* Label above list of things that will happen if they delete their account */
-"settings.account.delete.header" = "Hesabın silinirse: ";
+"settings.account.delete.header" = "Menghapus akun Anda akan:";
 
 /* Alert message telling the user that account deletion is irreversible */
-"settings.account.delete.irreversible.label" = "Bu eylem geri alınamaz";
+"settings.account.delete.irreversible.label" = "Tindakan ini tidak dapat dikembalikan";
 
 /* Text field placeholder telling the user that their phone number should go into the field */
-"settings.account.delete.phone.number" = "Telefon Numaran";
+"settings.account.delete.phone.number" = "Nomor Telepon Anda";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
-"settings.account.delete.spinner.replacement" = "Sunucudan yanıt bekleniyor";
+"settings.account.delete.spinner.replacement" = "Menunggu respons server";
 
 /* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
-"settings.account.deleted.message" = "Uygulamayı yeniden başlatana kadar giriş yapamayacaksın.";
+"settings.account.deleted.message" = "Anda tidak akan dapat masuk sampai memulai ulang aplikasi";
 
 /* Alert title telling the user that their account was successfully deleted */
-"settings.account.deleted.title" = "Hesap başarıyla silindi";
+"settings.account.deleted.title" = "Akun berhasil dihapus";
 
 /* Label telling the user when their data export will be made available. %1$@ is a date. */
-"settings.account.export.date.available" = "Güvenlik gerekçesiyle verilerin %1$@ tarihinde geçerli olacak";
+"settings.account.export.date.available" = "Untuk alasan keamanan, data Anda akan tersedia pada %1$@";
 
 /* Label alerting the user that we were unable to retrieve the data. */
-"settings.account.export.error" = "Verilerin alınırken bir hata oluştu.";
+"settings.account.export.error" = "Ada kesalahan mengambil data Anda.";
 
 /* Explanation about what the data export function is. English language version taken from WhatsApp. */
-"settings.account.export.explanation" = "HalloApp hesap bilgileriniz ve ayarlarınızla ilgili, erişebileceğiniz veya başka bir uygulamaya taşıyabileceğiniz bir rapor oluşturun. Bu rapor, mesajlarınızı içermez.";
+"settings.account.export.explanation" = "Membuat laporan informasi dan pengaturan Akun HalloApp, yang dapat Anda akses atau portkan ke aplikasi lain. Laporan ini tidak termasuk pesan Anda.";
 
 /* String indicating device is awaiting a server response. Only visible in iOS 13. */
-"settings.account.export.loading" = "Veriler yükleniyor...";
+"settings.account.export.loading" = "Memuat Data...";
 
 /* Navigation bar title informing the user that this page lets them export their user data. */
-"settings.account.export.navbar" = "Verileri dışa aktar";
+"settings.account.export.navbar" = "Ekspor Data";
 
 /* Label for when the date at which the user data is not determined. */
-"settings.account.export.not.found" = "Hazırlanma tarihi belirlenemedi";
+"settings.account.export.not.found" = "Tanggal siap tidak dapat ditetapkan.";
 
 /* Button to open the user data exported from HalloApp. */
-"settings.account.export.open.data" = "Dışa aktarılan verileri aç";
+"settings.account.export.open.data" = "Buka data ekspor";
 
 /* Navigation bar title informing the user that this page lets them export their user data. */
-"settings.account.export.request.button" = "Veri Dışa Aktarma Talebi";
+"settings.account.export.request.button" = "Minta Ekspor Data";
 
 /* Label informing the user that they have requested their data. */
-"settings.account.export.requested" = "Veri talebi";
+"settings.account.export.requested" = "Data diminta";
 
 /* Button to delete a user's account. */
-"settings.account.list.delete.account" = "Sil";
+"settings.account.list.delete.account" = "Hapus";
 
 /* Row to export user data for GDPR compliance. */
-"settings.account.list.export.data" = "Dışa aktar";
+"settings.account.list.export.data" = "Ekspor";
 
 /* Title for settings page containing account options. */
-"settings.account.list.title" = "Hesap";
+"settings.account.list.title" = "Akun";
 
 /* App version text in Profile > Help. */
-"settings.app.version" = "HalloApp %@ sürümü";
+"settings.app.version" = "HalloApp Versi %@";
 
 /* Settings menu section. */
-"settings.notifications" = "Bildirimler";
+"settings.notifications" = "Notifikasi";
 
 /* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
-"settings.notifications.comments" = "Yorumlar";
+"settings.notifications.comments" = "Komentar";
 
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
-"settings.notifications.posts" = "Gönderiler";
+"settings.notifications.posts" = "Unggahan";
 
 /* Settings menu section */
-"settings.privacy" = "Gizlilik";
+"settings.privacy" = "Privasi";
 
 /* Settings > Privacy: name of a setting that defines who can see your posts. */
-"settings.privacy.posts" = "Gönderiler";
+"settings.privacy.posts" = "Unggahan";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "HalloApp'te bana katıl; halloapp.com/dl adresinden ücretsiz indir";
+"settings.share.text" = "Bergabunglah dengan saya di HalloApp, download gratis di halloapp.com/dl";
 
 /* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.add.reading.list" = "Okuma listesine ekle";
+"textlabel.context.menu.add.reading.list" = "Tambahkan ke Daftar Bacaan";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
-"textlabel.context.menu.call.number" = "%@ kişisini ara";
+"textlabel.context.menu.call.number" = "Hubungi %@";
 
 /* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.copy.link" = "İlişimi kopyala";
+"textlabel.context.menu.copy.link" = "Salin Tautan";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
-"textlabel.context.menu.copy.phone.number" = "Telefon numarasını kopyala";
+"textlabel.context.menu.copy.phone.number" = "Salin Nomor Telepon";
 
 /* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.open.link" = "İlişimi aç";
+"textlabel.context.menu.open.link" = "Buka Tautan";
 
 /* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.share" = "Paylaş...";
+"textlabel.context.menu.share" = "Bagikan...";
 
 /* Link to expand truncated text. */
-"textlabel.more" = "...daha fazla";
+"textlabel.more" = "...lebih banyak";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
-"thread.list.preview.already.user.default" = "%@ HalloApp'te";
+"thread.list.preview.already.user.default" = "%@ ada di HalloApp";
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
-"thread.list.preview.new.user.default" = "%@ HalloApp'te! 🎉";
+"thread.list.preview.new.user.default" = "%@ ada di HalloApp! 🎉";
 
 /* Last seen timestamp: full date in short format and time */
-"timestamp.last.seen.date.at.time" = "Son görülme %1$@, %2$@";
+"timestamp.last.seen.date.at.time" = "Terakhir terlihat %1$@ pada %2$@";
 
 /* Last seen timestamp: day of week and time */
-"timestamp.last.seen.dayofweek.at.time" = "Son görülme %1$@, %2$@";
+"timestamp.last.seen.dayofweek.at.time" = "Terakhir terlihat %1$@ pada %2$@";
 
 /* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "Son görülme bugün %@";
+"timestamp.last.seen.today.at" = "Terakhir terlihat hari ini pada %@";
 
 /* Last seen timestamp: yesterday at specific time. */
-"timestamp.last.seen.yesterday.at" = "Son görülme dün %@";
+"timestamp.last.seen.yesterday.at" = "Terakhir terlihat kemarin pada %@";
 
 /* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "Şimdi";
+"timestamp.now.capitalized" = "Sekarang";
 
 /* Lowercase translation of `Now` to be used as timestamp. */
-"timestamp.now.lowercase" = "şimdi";
+"timestamp.now.lowercase" = "sekarang";
 
 /* Timestamp: `Today` */
-"timestamp.today" = "Bugün";
+"timestamp.today" = "Hari ini";
 
 /* Timestamp: `Yesterday` */
-"timestamp.yesterday" = "Dün";
+"timestamp.yesterday" = "Kemarin";
 
 /* Screen title */
 "title.camera" = "Kamera";
 
 /* Title for new message screen where user chooses who to message */
-"title.chat.new.message" = "Yeni mesaj";
+"title.chat.new.message" = "Pesan Baru";
 
 /* Third tab in the main app interface. */
-"title.chats" = "Sohbetler";
+"title.chats" = "Obrolan";
 
 /* Title for the Comments screen. */
-"title.comments" = "Yorumlar";
+"title.comments" = "Komentar";
 
 /* Second tab in the main app interface. */
-"title.groups" = "Gruplar";
+"title.groups" = "Grup";
 
 /* First tab in the main app interface. */
-"title.home" = "Ana sayfa";
+"title.home" = "Beranda";
 
 /* Row in Settings screen */
-"title.notifications" = "Bildirimler";
+"title.notifications" = "Notifikasi";
 
 /* Row in Settings screen */
-"title.privacy" = "Gizlilik";
+"title.privacy" = "Privasi";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.create.group" = "Yeni Grup Oluştur";
+"title.select.group.members.create.group" = "Buat Grup Baru";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.title" = "Yeni Üyeler Ekle";
+"title.select.group.members.title" = "Tambah Anggota Baru";
 
 /* Fourth tab in the main app interface */
-"title.settings" = "Ayarlar";
+"title.settings" = "Setelan";
 
 /* Title for the screen with information about who saw your post. */
-"title.your.post" = "Gönderini ... gördü";
+"title.your.post" = "Terlihat Oleh";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
-"turn.on.contacts" = "\"Kişilerim\"i aç";
+"turn.on.contacts" = "Nyalakan \"Kontak\"";
 
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
-"tutorial.tap.below" = "Aşağıdaki “%@” butonuna bas";
+"tutorial.tap.below" = "Ketuk “%@” di bawah.";
 
 /* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Bilinmeyen kişi";
+"unknown.contact" = "Kontak Tak Dikenal";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
-"unknown.contact.accept.to.message" = "Cevaplamak için mesajı kabul et";
+"unknown.contact.accept.to.message" = "Terima Pesan untuk Balas";
 
 /* Button to confirm blocking user via profile page */
-"user.block" = "Engelle";
+"user.block" = "Blokir";
 
 /* Message asking if the user is sure they want to block this user */
-"user.block.message" = "%@ kişisini HalloApp'te engellemek istediğine emin misin? Bunu daha sonra değiştirebilirsin.";
+"user.block.message" = "Yakin ingin memblokir %@ di HalloApp? Kamu dapat selalu mengubah ini nanti.";
 
 /* Option when user taps more on profile page */
-"user.option.block" = "HalloApp'te engelle";
+"user.option.block" = "Blokir di HalloApp";
+
+/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
+"user.option.copy.phone.number" = "Salin Nomor Telepon";
 
 /* Option when user taps more on profile page */
-"user.option.unblock" = "HalloApp'teki engeli kaldır";
+"user.option.unblock" = "Buka Blokir di HalloApp";
 
 /* Button to confirm unblocking user via profile page */
-"user.unblock" = "Engeli kaldır";
+"user.unblock" = "Buka Blokir";
 
 /* Message asking if the user is sure they want to unblock this user */
-"user.unblock.message" = "%@ kişisinin HalloApp'teki engelini kaldırmak istediğine emin misin? Bunu daha sonra değiştirebilirsin.";
+"user.unblock.message" = "Anda yakin ingin membuka blokir %@ pada HalloApp? Anda selalu dapat mengubah ini nanti.";
 
 /* Reference to the user, second person pronoun */
-"user.you" = "sen";
+"user.you" = "Anda";
 
 /* Capitalized reference to the user, second person pronoun */
-"user.you.capitalized" = "Sen";
+"user.you.capitalized" = "Anda";
 
 /* No comment provided by engineer. */
-"VIDEO" = "VİDEO";
+"VIDEO" = "VIDEO";
 
 /* Title for the button that confirms intent to delete your own post. */
-"your.post.deletepost.button" = "Gönderiyi sil";
+"your.post.deletepost.button" = "Hapus Unggahan";
 
 /* Post deletion confirmation. Displayed as action sheet title. */
-"your.post.deletepost.confirmation" = "Bu gönderi silinsin mi? Bu eylem geri alınamaz.";
+"your.post.deletepost.confirmation" = "Hapus unggahan ini? Tindakan ini tak bisa dibatalkan.";
 

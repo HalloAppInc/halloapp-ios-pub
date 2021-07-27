@@ -684,10 +684,10 @@
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Закрыть";
 
-/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+/* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Отразить зеркально";
 
-/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+/* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.rotate" = "Вращать";
 
 /* Message action. Verb. */
@@ -1213,15 +1213,6 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "ВИДЕО";
-
-/* Button title. Refers to resetting video to original version. */
-"video.edit.button.reset" = "Сбросить";
-
-/* Message in video edit when the processing fails. */
-"video.processing.failed.message" = "Повторите попытку или выберите другое видео";
-
-/* Alert title in video edit when the processing fails. */
-"video.processing.failed.title" = "Не удалось обработать видео";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Удалить пост";

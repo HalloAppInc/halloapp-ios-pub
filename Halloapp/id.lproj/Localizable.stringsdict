@@ -5,17 +5,16 @@
 	<key>chat.n.users.typing</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%@ %#@n_users@</string>
+		<string>%@ %#@n_users@
+</string>
 		<key>n_users</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>está escribiendo...</string>
 			<key>other</key>
-			<string>están escribiendo</string>
+			<string>sedang mengetik...</string>
 		</dict>
 	</dict>
 	<key>composer.privacy.value.n.selected</key>
@@ -28,10 +27,8 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>Compartiendo con %d de mis contactos</string>
 			<key>other</key>
-			<string>Compartir con %d de mis contactos</string>
+			<string>Membagikan kontak dengan %d</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>
@@ -44,10 +41,8 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>%d contacto excluido</string>
 			<key>other</key>
-			<string>%d contacto excluido</string>
+			<string>%d Kontak Dikeluarkan</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.selected</key>
@@ -60,10 +55,8 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>%d contacto seleccionado</string>
 			<key>other</key>
-			<string>%d contactos seleccionados</string>
+			<string>%d Kontak Dipilih</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.excluded</key>
@@ -76,10 +69,8 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>%d excluido</string>
 			<key>other</key>
-			<string>%d excluidos</string>
+			<string>%d Dikeluarkan</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.selected</key>
@@ -92,10 +83,8 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>%d seleccionado</string>
 			<key>other</key>
-			<string>%d seleccionados</string>
+			<string>%d Dipilih</string>
 		</dict>
 	</dict>
 	<key>group.feed.n.members</key>
@@ -108,12 +97,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>un participante</string>
 			<key>other</key>
-			<string>%d participantes</string>
+			<string>%d anggota</string>
 			<key>zero</key>
-			<string>No hay participantes</string>
+			<string>Tidak ada anggota</string>
 		</dict>
 	</dict>
 	<key>media.prepare.failed.n.count</key>
@@ -126,10 +113,8 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>No se pudo preparar el archivo. Intente de nuevo o seleccione una foto o video diferente. </string>
 			<key>other</key>
-			<string>No se pudieron preparar %d archivos multimedia. Intenta de nuevo o trata de seleccionar una foto o video diferente.</string>
+			<string>Gagal menyiapkan media. Silakan coba lagi atau pilih foto/video berbeda.</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>
@@ -142,10 +127,8 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>Tienes %d invitación.</string>
 			<key>other</key>
-			<string>Tienes %d invitaciones.</string>
+			<string>Kamu punya %d undangan.</string>
 		</dict>
 	</dict>
 	<key>n.invites.remaining</key>
@@ -158,10 +141,8 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>Te queda %d invitación</string>
 			<key>other</key>
-			<string>Te quedan %d invitaciones</string>
+			<string>Kamu punya sisa %d undangan</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>
@@ -174,10 +155,8 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>📷 una foto</string>
 			<key>other</key>
-			<string>📷 %d fotos</string>
+			<string>📷 %d foto</string>
 		</dict>
 	</dict>
 	<key>notification.n.videos</key>
@@ -190,10 +169,8 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>📹 un video</string>
 			<key>other</key>
-			<string>📹 %d videos</string>
+			<string>📹%d video</string>
 		</dict>
 	</dict>
 	<key>picker.media.n.limit</key>
@@ -206,10 +183,8 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>Puedes seleccionar hasta un artículo</string>
 			<key>other</key>
-			<string>Puedes seleccionar hasta %d artículos</string>
+			<string>Anda dapat pilih maksimal satu item</string>
 		</dict>
 	</dict>
 	<key>privacy.n.contacts</key>
@@ -222,12 +197,10 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>un contacto</string>
 			<key>other</key>
-			<string>%d contactos</string>
+			<string>%d Kontak</string>
 			<key>zero</key>
-			<string>Ninguno</string>
+			<string>Tidak ada</string>
 		</dict>
 	</dict>
 </dict>

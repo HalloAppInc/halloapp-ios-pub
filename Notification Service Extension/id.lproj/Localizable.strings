@@ -1,0 +1,104 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "Tidak Ada Koneksi Internet";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Periksa apakah Anda tersambung ke internet, lalu coba lagi.";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Batal";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Lanjut";
+
+/* Title for generic Create button */
+"button.create" = "Buat";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Tutup";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Selesai";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Ke Pengaturan";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Selengkapnya";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Lainnya";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Berikutnya";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Nanti";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "Baik";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Hapus";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Simpan";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Kirim";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Bagikan";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Perbarui";
+
+/* Title for generic delete button. */
+"Delete" = "Hapus";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "Anda ditambahkan ke grup baru";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Pelajari lebih banyak";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Perbarui aplikasimu.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Saya";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "Berkomentar: %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "Salah satu kontak Anda kini ada di HalloApp";
+
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@ baru menerima undangan Anda untuk bergabung di HalloApp 🎉";
+
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "notification.n.photos";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "notification.n.videos";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@ kini ada di HalloApp";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "Pesan Baru";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "Unggahan Baru";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "📷 foto";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "📹 video";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Kontak Tak Dikenal";
+

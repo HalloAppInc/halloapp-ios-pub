@@ -1,145 +1,145 @@
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "No hay conexión a Internet";
+"alert.no.internet.title" = "Tidak Ada Koneksi Internet";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Comprueba si tienes conexión a Internet y vuelve a intentarlo.";
+"alert.no.internet.try.again" = "Harap pastikan kamu punya konektivitas internet, lalu cobalah kembali.";
 
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
-"button.cancel" = "Cancelar";
+"button.cancel" = "Batal";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
-"button.continue" = "Continuar";
+"button.continue" = "Lanjut";
 
 /* Title for generic Create button */
-"button.create" = "Crear";
+"button.create" = "Buat";
 
 /* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Descartar";
+"button.dismiss" = "Tutup";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Terminado";
+"button.done" = "Selesai";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ir a la configuración";
+"button.go.to.settings" = "Ke Pengaturan";
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
-"button.install" = "Instalar";
+"button.install" = "Instal";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Saber más";
+"button.learn.more" = "Pelajari Lebih Lanjut";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
-"button.more" = "Más";
+"button.more" = "Lainnya";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
-"button.next" = "Siguiente";
+"button.next" = "Lanjut";
 
 /* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "Ahora no";
+"button.not.now" = "Nanti";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
-"button.ok" = "De acuerdo";
+"button.ok" = "Oke";
 
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
-"button.remove" = "Eliminar";
+"button.remove" = "Hapus";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "Guardar";
+"button.save" = "Simpan";
 
 /* Title for generic Send button. Mostly used to complete some modal flow. */
-"button.send" = "Enviar";
+"button.send" = "Kirim";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Compartir";
+"button.share" = "Bagikan";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
-"button.update" = "Actualizar";
+"button.update" = "Perbarui";
 
 /* Title for generic delete button. */
-"Delete" = "Eliminar";
+"Delete" = "Hapus";
 
 /* Title for exit button that closes the app */
-"home.update.notice.button.exit" = "Salir";
+"home.update.notice.button.exit" = "Keluar";
 
 /* Text shown to users who have old versions of the app */
-"home.update.notice.text" = "Actualiza a la última versión de HalloApp";
+"home.update.notice.text" = "Harap perbarui ke versi HalloApp terkini";
 
 /* Title of update notice shown to users who have old versions of the app */
-"home.update.notice.title" = "Esta versión está desactualizada";
+"home.update.notice.title" = "Versi ini sudah usang";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "Más información";
+"link.learnMore" = "Pelajari lebih lanjut";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Actualiza tu aplicación.";
+"link.update.your.app" = "Perbarui aplikasimu.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Yo";
+"meCapitalized" = "Saya";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Recibirás un código de verificación.\nPueden aplicarse las tarifas del operador.";
+"registration.code.disclaimer" = "Kamu akan menerima kode verifikasi.\nDapat berlaku biaya operator.";
 
 /* Error message to display when user enters incorrect verification code */
-"registration.code.incorrect" = "El código que has introducido es incorrecto";
+"registration.code.incorrect" = "Kode yang kamu masukkan salah";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
-"registration.code.instructions" = "Introduce el código que hemos enviado a %@";
+"registration.code.instructions" = "Masukkan kode yang kami kirim ke %@";
 
 /* Error message to display when we cannot send a verification code */
-"registration.code.request.error" = "No se ha podido enviar el código. Vuelve a intentarlo más tarde.";
+"registration.code.request.error" = "Gagal mengirim kode. Cobalah kembali nanti.";
 
 /* Button label to resend verification code */
-"registration.code.resend" = "Reenviar SMS";
+"registration.code.resend" = "Kirim Ulang SMS";
 
 /* Button label to resend verification code by voice call */
-"registration.code.resend.by.voice" = "Llámame";
+"registration.code.resend.by.voice" = "Panggil saya";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Para poder conectarte con tus amigos y familiares necesitaremos tu permiso para acceder a tus contactos.";
+"registration.contacts.content" = "Untuk menghubungkanmu dengan teman dan keluarga kami butuh izin untuk mengakses kontakmu.";
 
 /* Title for text explaining why we need contact permissions */
-"registration.contacts.title" = "Una última cosa";
+"registration.contacts.title" = "Satu hal lagi";
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
-"registration.free.app.notice" = "Gratis en la App Store de iPhone";
+"registration.free.app.notice" = "Gratis di iPhone App Store";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
-"registration.group.name" = "Estás invitado a unirte al grupo %@";
+"registration.group.name" = "Anda diundang untuk bergabung ke grup %@";
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
-"registration.install.app.to.continue" = "Instala HalloApp para continuar";
+"registration.install.app.to.continue" = "Instal HalloApp untuk melanjutkan";
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
-"registration.install.app.to.join.group" = "Instala HalloApp para abrir %@";
+"registration.install.app.to.join.group" = "Instal HalloApp untuk membuka %@";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Si has seguido un enlace de invitación a un grupo para registrarte, vuelve a pulsar el enlace para finalizar el registro y unirte al grupo.";
+"registration.invite.only" = "Jika kamu mengikuti Tautan Undangan Grup untuk mendaftar, silakan klik kembali tautan untuk menyelesaikan pendaftaran dan bergabung ke grup.";
 
 /* Placeholder text for name entry */
-"registration.nameEntry.placeholder" = "Tu nombre";
+"registration.nameEntry.placeholder" = "Namamu";
 
 /* Placeholder text for phone entry */
-"registration.phoneEntry.placeholder" = "Número de teléfono";
+"registration.phoneEntry.placeholder" = "Nomor telepon";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "HalloApp solo utiliza el campo del número de teléfono para ponerte en contacto con tus amigos en HalloApp, y no transmite ningún dato adicional de tu agenda de contactos.";
+"registration.privacy.content" = "HalloApp hanya menggunakan kolom nomor telepon untuk mencocokkanmu dengan teman di HalloApp, dan tidak menyebarkan data tambahan apa pun dari buku kontakmu.";
 
 /* Title for modal describing how we use contacts data */
-"registration.privacy.title" = "Tu privacidad es nuestra prioridad";
+"registration.privacy.title" = "Privasimu adalah prioritas kami";
 
 /* Title for popup that appears when user tries to register uninvited number */
-"registration.shucks" = "¡Caramba!";
+"registration.shucks" = "Wah!";
 
 /* Shown above name and phone inputs */
-"registration.welcome" = "¡Bienvenido!";
+"registration.welcome" = "Selamat datang!";
 
 /* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
-"settings.account.deleted.message" = "No serás capaz de iniciar sesión hasta que no reinicies la aplicación";
+"settings.account.deleted.message" = "Anda tidak akan dapat masuk sampai memulai ulang aplikasi";
 
 /* Alert title telling the user that their account was successfully deleted */
-"settings.account.deleted.title" = "Cuenta eliminada con éxito";
+"settings.account.deleted.title" = "Akun berhasil dihapus";
 
 /* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Contacto desconocido";
+"unknown.contact" = "Kontak Tidak Dikenal";
 

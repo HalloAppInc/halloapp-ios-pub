@@ -1,145 +1,145 @@
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "No hay conexión a Internet";
+"alert.no.internet.title" = "Žádné připojení k internetu";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Comprueba si tienes conexión a Internet y vuelve a intentarlo.";
+"alert.no.internet.try.again" = "Zkontrolujte prosím své připojení k internetu a pak to zkuste znovu.";
 
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
-"button.cancel" = "Cancelar";
+"button.cancel" = "Zrušit";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
-"button.continue" = "Continuar";
+"button.continue" = "Pokračovat";
 
 /* Title for generic Create button */
-"button.create" = "Crear";
+"button.create" = "Vytvořit";
 
 /* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Descartar";
+"button.dismiss" = "Zamítnout";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Terminado";
+"button.done" = "Hotovo";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ir a la configuración";
+"button.go.to.settings" = "Přejít do nastavení";
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
-"button.install" = "Instalar";
+"button.install" = "Instalovat";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Saber más";
+"button.learn.more" = "Zjistit více";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
-"button.more" = "Más";
+"button.more" = "Více";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
-"button.next" = "Siguiente";
+"button.next" = "Další";
 
 /* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "Ahora no";
+"button.not.now" = "Nyní ne";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
-"button.ok" = "De acuerdo";
+"button.ok" = "OK";
 
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
-"button.remove" = "Eliminar";
+"button.remove" = "Odebrat";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "Guardar";
+"button.save" = "Uložit";
 
 /* Title for generic Send button. Mostly used to complete some modal flow. */
-"button.send" = "Enviar";
+"button.send" = "Odeslat";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Compartir";
+"button.share" = "Sdílet";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
-"button.update" = "Actualizar";
+"button.update" = "Aktualizovat";
 
 /* Title for generic delete button. */
-"Delete" = "Eliminar";
+"Delete" = "Odstranit";
 
 /* Title for exit button that closes the app */
-"home.update.notice.button.exit" = "Salir";
+"home.update.notice.button.exit" = "Ukončit";
 
 /* Text shown to users who have old versions of the app */
-"home.update.notice.text" = "Actualiza a la última versión de HalloApp";
+"home.update.notice.text" = "Aktualizujte prosím na nejnovější verzi HalloApp";
 
 /* Title of update notice shown to users who have old versions of the app */
-"home.update.notice.title" = "Esta versión está desactualizada";
+"home.update.notice.title" = "Tato verze je zastaralá";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "Más información";
+"link.learnMore" = "Další informace";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Actualiza tu aplicación.";
+"link.update.your.app" = "Aktualizujte svou aplikaci.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Yo";
+"meCapitalized" = "Já";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Recibirás un código de verificación.\nPueden aplicarse las tarifas del operador.";
+"registration.code.disclaimer" = "Obdržíte ověřovací kód.\nMohou být uplatněny sazby dopravce.";
 
 /* Error message to display when user enters incorrect verification code */
-"registration.code.incorrect" = "El código que has introducido es incorrecto";
+"registration.code.incorrect" = "Zadaný kód je nesprávný";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
-"registration.code.instructions" = "Introduce el código que hemos enviado a %@";
+"registration.code.instructions" = "Zadejte kód, který jsme poslali na číslo %@";
 
 /* Error message to display when we cannot send a verification code */
-"registration.code.request.error" = "No se ha podido enviar el código. Vuelve a intentarlo más tarde.";
+"registration.code.request.error" = "Kód se nepodařilo odeslat. Zkuste to znovu později.";
 
 /* Button label to resend verification code */
-"registration.code.resend" = "Reenviar SMS";
+"registration.code.resend" = "Odeslat SMS znovu";
 
 /* Button label to resend verification code by voice call */
-"registration.code.resend.by.voice" = "Llámame";
+"registration.code.resend.by.voice" = "Zavolejte mi";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Para poder conectarte con tus amigos y familiares necesitaremos tu permiso para acceder a tus contactos.";
+"registration.contacts.content" = "Abychom vás mohli spojit s přáteli a rodinou, budeme potřebovat vaše oprávnění k přístupu k vašim kontaktům.";
 
 /* Title for text explaining why we need contact permissions */
-"registration.contacts.title" = "Una última cosa";
+"registration.contacts.title" = "Ještě jedna poslední věc";
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
-"registration.free.app.notice" = "Gratis en la App Store de iPhone";
+"registration.free.app.notice" = "Zdarma v iPhone App Store";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
-"registration.group.name" = "Estás invitado a unirte al grupo %@";
+"registration.group.name" = "Jste pozváni, abyste se připojili ke skupině %@";
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
-"registration.install.app.to.continue" = "Instala HalloApp para continuar";
+"registration.install.app.to.continue" = "Pokud chcete pokračovat, nainstalujte si HalloApp";
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
-"registration.install.app.to.join.group" = "Instala HalloApp para abrir %@";
+"registration.install.app.to.join.group" = "Pokud chcete otevřít skupinu %@, nainstalujte si aplikaci HalloApp";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Si has seguido un enlace de invitación a un grupo para registrarte, vuelve a pulsar el enlace para finalizar el registro y unirte al grupo.";
+"registration.invite.only" = "Pokud jste se zaregistrovali pomocí odkazu Pozvánka do skupiny, opětovným kliknutím na odkaz dokončete registraci a připojte se ke skupině.";
 
 /* Placeholder text for name entry */
-"registration.nameEntry.placeholder" = "Tu nombre";
+"registration.nameEntry.placeholder" = "Vaše jméno";
 
 /* Placeholder text for phone entry */
-"registration.phoneEntry.placeholder" = "Número de teléfono";
+"registration.phoneEntry.placeholder" = "Telefonní číslo";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "HalloApp solo utiliza el campo del número de teléfono para ponerte en contacto con tus amigos en HalloApp, y no transmite ningún dato adicional de tu agenda de contactos.";
+"registration.privacy.content" = "Aplikace HalloApp používá pole s telefonním číslem pouze k tomu, aby vás propojila s vašimi přáteli v aplikaci HalloApp, a nepřenáší žádné další údaje z vašeho seznamu kontaktů.";
 
 /* Title for modal describing how we use contacts data */
-"registration.privacy.title" = "Tu privacidad es nuestra prioridad";
+"registration.privacy.title" = "Vaše soukromí je naší prioritou";
 
 /* Title for popup that appears when user tries to register uninvited number */
-"registration.shucks" = "¡Caramba!";
+"registration.shucks" = "No nazdar!";
 
 /* Shown above name and phone inputs */
-"registration.welcome" = "¡Bienvenido!";
+"registration.welcome" = "Vítejte!";
 
 /* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
-"settings.account.deleted.message" = "No serás capaz de iniciar sesión hasta que no reinicies la aplicación";
+"settings.account.deleted.message" = "Dokud aplikaci nerestartujete, nebudete se moci přihlásit";
 
 /* Alert title telling the user that their account was successfully deleted */
-"settings.account.deleted.title" = "Cuenta eliminada con éxito";
+"settings.account.deleted.title" = "Účet byl úspěšně odstraněn";
 
 /* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Contacto desconocido";
+"unknown.contact" = "Neznámý kontakt";
 

@@ -1,0 +1,104 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "Připojení k internetu není k dispozici";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Zkontrolujte, zda máte připojení k internetu, a zkuste to znovu.";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Zrušit";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Pokračovat";
+
+/* Title for generic Create button */
+"button.create" = "Vytvořit";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Zavrhnout";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Hotovo";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Přejít do Nastavení";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Další informace";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Více";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Další";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Teď ne";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Odstranit";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Uložit";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Poslat";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Sdílet";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Aktualizovat";
+
+/* Title for generic delete button. */
+"Delete" = "Odstranit";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "Byli jste přidáni do nové skupiny";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Zjistit více";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Aktualizujte svou aplikaci.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Já";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "Komentoval(a): %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "Jeden z tvých kontaktů je nyní na HalloApp";
+
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@ právě přijal(a) tvoji pozvánku přidat se na HalloApp 🎉";
+
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "oznámení.n.fotky";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "oznámení.n.videa";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@ je nyní na HalloApp";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "Nová zpráva";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "Nový příspěvek";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "📷 fotka";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "📹 video";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Neznámý kontakt";
+

@@ -684,10 +684,10 @@
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Fermer";
 
-/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+/* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Retourner la photo";
 
-/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+/* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.rotate" = "Faire pivoter la photo";
 
 /* Message action. Verb. */
@@ -1196,6 +1196,9 @@
 /* Option when user taps more on profile page */
 "user.option.block" = "Bloquer sur HalloApp";
 
+/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
+"user.option.copy.phone.number" = "Copier le numéro de téléphone";
+
 /* Option when user taps more on profile page */
 "user.option.unblock" = "Débloquer sur HalloApp";
 
@@ -1213,15 +1216,6 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDÉO";
-
-/* Button title. Refers to resetting video to original version. */
-"video.edit.button.reset" = "Réinitialiser";
-
-/* Message in video edit when the processing fails. */
-"video.processing.failed.message" = "Réessaye ou sélectionne une autre vidéo";
-
-/* Alert title in video edit when the processing fails. */
-"video.processing.failed.title" = "Le traitement de la vidéo a échoué";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Supprimer la publication";

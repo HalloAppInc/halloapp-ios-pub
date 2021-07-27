@@ -1,0 +1,113 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "Tidak Ada Koneksi Internet";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Periksa apakah Anda tersambung ke internet, lalu coba lagi.";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Batal";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Lanjut";
+
+/* Title for generic Create button */
+"button.create" = "Buat";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Tutup";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Selesai";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Ke Pengaturan";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Selengkapnya";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Lainnya";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Berikutnya";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Nanti";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "Baik";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Hapus";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Simpan";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Kirim";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Bagikan";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Perbarui";
+
+/* Title for generic delete button. */
+"Delete" = "Hapus";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Pelajari lebih banyak";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Perbarui aplikasimu.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Saya";
+
+/* Placeholder for media caption. */
+"share.composer.placeholder" = "Tuliskan deskripsi";
+
+/* Placeholder when sharing text only. */
+"share.composer.placeholder.text" = "Tuliskan unggahan";
+
+/* Composer subtitle when sharing with a contact */
+"share.composer.subtitle.contact" = "Kirim, kepada %@";
+
+/* Composer subtitle for group posts */
+"share.composer.subtitle.group" = "Bagikan dengan %@";
+
+/* Composer title when sharing with a contact */
+"share.composer.title.contact" = "Pesan Baru";
+
+/* Composer title when sharing to feed */
+"share.composer.title.feed" = "Pos Baru";
+
+/* Alert dialog message shown when uploading fails.
+   Alert dialog title shown when uploading fails. */
+"share.composer.uploading.fail.title" = "Gagal mengunggah";
+
+/* Alert dialog title shown when uploading begins. */
+"share.composer.uploading.title" = "Mengunggah...";
+
+/* Contacts category label */
+"share.destination.contacts" = "Kontak";
+
+/* Groups category label */
+"share.destination.groups" = "Grup";
+
+/* Share on the home feed label */
+"share.destination.home" = "Beranda";
+
+/* Destination screen title */
+"share.destination.title" = "HalloApp";
+
+/* Message of alert when user is not logged in */
+"share.notlogged.message" = "Bukalah HalloApp dan masuk.";
+
+/* Title of alert when user is not logged in */
+"share.notlogged.title" = "Kamu tidak masuk";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Kontak Tak Dikenal";
+

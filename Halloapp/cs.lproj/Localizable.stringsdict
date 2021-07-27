@@ -12,10 +12,14 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>píšou...</string>
+			<key>many</key>
+			<string>are typing...</string>
 			<key>one</key>
-			<string>está escribiendo...</string>
+			<string>píše...</string>
 			<key>other</key>
-			<string>están escribiendo</string>
+			<string>píšou...</string>
 		</dict>
 	</dict>
 	<key>composer.privacy.value.n.selected</key>
@@ -28,10 +32,14 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>Sdíleno s %d z mých kontaktů</string>
+			<key>many</key>
+			<string>Sharing with %d of my contacts</string>
 			<key>one</key>
-			<string>Compartiendo con %d de mis contactos</string>
+			<string>Sdíleno s %d z mých kontaktů</string>
 			<key>other</key>
-			<string>Compartir con %d de mis contactos</string>
+			<string>Sdíleno s %d z mých kontaktů</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>
@@ -44,10 +52,14 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>Kromě %d kontaktů</string>
+			<key>many</key>
+			<string>%d Contacts Excluded</string>
 			<key>one</key>
-			<string>%d contacto excluido</string>
+			<string>Kromě %d kontaktů</string>
 			<key>other</key>
-			<string>%d contacto excluido</string>
+			<string>Kromě %d kontaktů</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.selected</key>
@@ -60,10 +72,14 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>Vybráno %d kontaktů</string>
+			<key>many</key>
+			<string>%d Contacts Selected</string>
 			<key>one</key>
-			<string>%d contacto seleccionado</string>
+			<string>Vybráno %d kontaktů</string>
 			<key>other</key>
-			<string>%d contactos seleccionados</string>
+			<string>Vybráno %d kontaktů</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.excluded</key>
@@ -76,10 +92,14 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>Kromě %d</string>
+			<key>many</key>
+			<string>%d Excluded</string>
 			<key>one</key>
-			<string>%d excluido</string>
+			<string>Kromě %d</string>
 			<key>other</key>
-			<string>%d excluidos</string>
+			<string>Kromě %d</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.selected</key>
@@ -92,10 +112,14 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>%d vybráno</string>
+			<key>many</key>
+			<string>%d Selected</string>
 			<key>one</key>
-			<string>%d seleccionado</string>
+			<string>%d vybráno</string>
 			<key>other</key>
-			<string>%d seleccionados</string>
+			<string>%d vybráno</string>
 		</dict>
 	</dict>
 	<key>group.feed.n.members</key>
@@ -108,12 +132,16 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>%d členů</string>
+			<key>many</key>
+			<string>%d members</string>
 			<key>one</key>
-			<string>un participante</string>
+			<string>%d člen</string>
 			<key>other</key>
-			<string>%d participantes</string>
+			<string>%d členů</string>
 			<key>zero</key>
-			<string>No hay participantes</string>
+			<string>Žádní členové</string>
 		</dict>
 	</dict>
 	<key>media.prepare.failed.n.count</key>
@@ -126,10 +154,14 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>Nepodařilo se připravit %d mediálních položek. Zkus to prosím znovu, nebo vyber jinou fotku/video.</string>
+			<key>many</key>
+			<string>Failed to prepare %d media items. Please try again or select a different photo / video.</string>
 			<key>one</key>
-			<string>No se pudo preparar el archivo. Intente de nuevo o seleccione una foto o video diferente. </string>
+			<string>Nepodařilo se připravit médium. Zkus to prosím znovu, nebo vyber jinou fotku/video.</string>
 			<key>other</key>
-			<string>No se pudieron preparar %d archivos multimedia. Intenta de nuevo o trata de seleccionar una foto o video diferente.</string>
+			<string>Nepodařilo se připravit %d mediálních položek. Zkus to prosím znovu, nebo vyber jinou fotku/video.</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>
@@ -142,10 +174,14 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>Máte %d pozvánek.</string>
+			<key>many</key>
+			<string>You have %d invites.</string>
 			<key>one</key>
-			<string>Tienes %d invitación.</string>
+			<string>Máte %d pozvánku.</string>
 			<key>other</key>
-			<string>Tienes %d invitaciones.</string>
+			<string>Máte %d pozvánky.</string>
 		</dict>
 	</dict>
 	<key>n.invites.remaining</key>
@@ -158,10 +194,14 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>Zbývá vám %d pozvánek</string>
+			<key>many</key>
+			<string>You have %d invites remaining</string>
 			<key>one</key>
-			<string>Te queda %d invitación</string>
+			<string>Zbývá vám %d pozvánka</string>
 			<key>other</key>
-			<string>Te quedan %d invitaciones</string>
+			<string>Zbývají vám %d pozvánky</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>
@@ -174,10 +214,14 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>📷 %d fotek</string>
+			<key>many</key>
+			<string>📷 %d photos</string>
 			<key>one</key>
-			<string>📷 una foto</string>
+			<string>📷 %d fotka</string>
 			<key>other</key>
-			<string>📷 %d fotos</string>
+			<string>📷 %d fotek</string>
 		</dict>
 	</dict>
 	<key>notification.n.videos</key>
@@ -190,10 +234,14 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
-			<key>one</key>
-			<string>📹 un video</string>
-			<key>other</key>
+			<key>few</key>
+			<string>📹 %d videí</string>
+			<key>many</key>
 			<string>📹 %d videos</string>
+			<key>one</key>
+			<string>📹 %d video</string>
+			<key>other</key>
+			<string>📹 %d videí</string>
 		</dict>
 	</dict>
 	<key>picker.media.n.limit</key>
@@ -206,10 +254,14 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>Můžeš vybrat maximálně %d položek</string>
+			<key>many</key>
+			<string>You can select up to %d items</string>
 			<key>one</key>
-			<string>Puedes seleccionar hasta un artículo</string>
+			<string>Můžeš vybrat maximálně jednu položku</string>
 			<key>other</key>
-			<string>Puedes seleccionar hasta %d artículos</string>
+			<string>Můžeš vybrat maximálně %d položek</string>
 		</dict>
 	</dict>
 	<key>privacy.n.contacts</key>
@@ -222,12 +274,16 @@
 			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>%d kontaktů</string>
+			<key>many</key>
+			<string>%d Contacts</string>
 			<key>one</key>
-			<string>un contacto</string>
+			<string>%d kontakt</string>
 			<key>other</key>
-			<string>%d contactos</string>
+			<string>%d kontaktů</string>
 			<key>zero</key>
-			<string>Ninguno</string>
+			<string>Žádný</string>
 		</dict>
 	</dict>
 </dict>

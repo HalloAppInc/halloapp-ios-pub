@@ -370,6 +370,9 @@
 "feed.notification..other.comment.no.text" = "<$author$> hat auch kommentiert";
 
 /* Text for feed notification displayed in Activity Center. */
+"feed.notification.comment.grouped" = "<$numberOthers$> andere Personen haben auf <$author$>'s Beitrag geantwortet";
+
+/* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$> hat deinen Beitrag kommentiert";
 
 /* Text for feed notification displayed in Activity Center. */
@@ -532,13 +535,13 @@
 "group.preview.get.info.error.invalid.link" = "Der Einladungslink zur Gruppe ist ungültig";
 
 /* Text for alert box when the user can't join the group via group link when the group is full */
-"group.preview.join.error.group.full" = "Die Gruppe hat die maximale Teilnehmeranzahl erreicht";
+"group.preview.join.error.group.full" = "Die Gruppe hat die maximale Mitgliederanzahl erreicht";
 
 /* Text for alert box when the user can't join the group via group link when link is invalid */
 "group.preview.join.error.invalid.link" = "Der Link ist ungültig";
 
 /* Title for alert box when the user can't join the group via group link */
-"group.preview.join.error.title" = "Der Gruppe kann nicht beigetreten werden";
+"group.preview.join.error.title" = "Beitritt zur Gruppe nicht möglich";
 
 /* Label for joining group action */
 "group.preview.join.group" = "GRUPPE BEITRETEN";
@@ -666,10 +669,13 @@
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Schließen";
 
-/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+/* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Umdrehen";
 
-/* Accessibility label for a button in media composer. Refers to photo / video editing action. */
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "Stummschalten";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.rotate" = "Drehen";
 
 /* Message action. Verb. */
@@ -984,7 +990,7 @@
 "settings.account.delete.header" = "Das Löschen deines Accounts hat zur Folge, dass:";
 
 /* Alert message telling the user that account deletion is irreversible */
-"settings.account.delete.irreversible.label" = "Der Löschvorgang lässt sich nicht rückgängig machen";
+"settings.account.delete.irreversible.label" = "Dieser Vorgang kann nicht rückgängig gemacht werden";
 
 /* Text field placeholder telling the user that their phone number should go into the field */
 "settings.account.delete.phone.number" = "Deine Handynummer";
@@ -1163,6 +1169,9 @@
 /* Option when user taps more on profile page */
 "user.option.block" = "Auf HalloApp blocken";
 
+/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
+"user.option.copy.phone.number" = "Handynummer kopieren";
+
 /* Option when user taps more on profile page */
 "user.option.unblock" = "Auf HalloApp freigeben";
 
@@ -1180,15 +1189,6 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";
-
-/* Button title. Refers to resetting video to original version. */
-"video.edit.button.reset" = "Zurücksetzen";
-
-/* Message in video edit when the processing fails. */
-"video.processing.failed.message" = "Bitte noch einmal versuchen oder ein anderes Video auswählen";
-
-/* Alert title in video edit when the processing fails. */
-"video.processing.failed.title" = "Videoverarbeitung fehlgeschlagen";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Beitrag löschen";

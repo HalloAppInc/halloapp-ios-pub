@@ -8,435 +8,435 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \n\nHemos hecho que las aplicaciones sociales vuelvan a lo esencial, y agregamos un nivel de seguridad y privacidad al que creemos que todo el mundo debe tener acceso.\n\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nAl contrario, con el tiempo esperamos poder añadir nuevas funciones a un pequeño costo.";
+"about.body.1" = "HalloApp je tady! A budujeme ji pro tebe a tvé blízké.\nVrátili jsme aplikace sociálních médií zpátky k jejich základům a přitom jsme přidali vrstvu bezpečnosti a soukromí, o kterých si myslíme, že by k nim měl mít přístup každý na světě.\nHalloApp nikdy nepoužije tvé osobní informace ani ti nebude zobrazovat reklamy.\nMísto toho toho plánujeme za čas nabídnout dodatečné funkce za malý poplatek.";
 
 /* About screen: body text. */
-"about.body.2" = "Gracias por usar y compartir HalloApp con tus amigos y familia. Cada semana la optimizamos más.";
+"about.body.2" = "Děkujeme ti za používání a sdílení HalloApp s tvými přáteli a rodinou. Zlepšujeme ji každý den.";
 
 /* About screen: footer text. Parameter is support email address. */
-"about.footer" = "Si tienes preguntas o comentarios, envíanos un email a %@";
+"about.footer" = "Pokud máš nějaké otázky nebo zpětnou vazbu, pošli nám e-mail na %@";
 
 /* About screen: greeting. */
-"about.hallo" = "Oh Hallo";
+"about.hallo" = "Ahoj";
 
 /* About screen: navigation bar title. */
-"about.title" = "Acerca de";
+"about.title" = "O službě";
 
 /* Longer title for the button that confirms marking all items in the activity center as read. */
-"activity.center.button.mark.all.read" = "Marcar todos como leídos";
+"activity.center.button.mark.all.read" = "Označit vše jako přečtené";
 
 /* Short title for the button in activity center. */
-"activity.center.button.read.all" = "Leer todos";
+"activity.center.button.read.all" = "Přečíst vše";
 
 /* Message shown when a user first joins from a friend's invitation (e.g., 'You accepted David's invite 🎉' */
-"activity.center.invite.accepted.item" = "Has aceptado la invitación de %@ 🎉";
+"activity.center.invite.accepted.item" = "Přijali jste pozvání od %@'s 🎉";
 
 /* Title for the activity center screen. */
-"activity.center.title" = "Actividad";
+"activity.center.title" = "Aktivita";
 
 /* Message shown when a user first joins */
-"activity.center.welcome.item" = "¡Bienvenido a HalloApp!";
+"activity.center.welcome.item" = "Vítejte na HalloApp!";
 
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "No hay conexión a Internet";
+"alert.no.internet.title" = "Žádné připojení k internetu";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Comprueba si tienes conexión a Internet y vuelve a intentarlo.";
+"alert.no.internet.try.again" = "Zkontrolujte prosím své připojení k internetu a pak to zkuste znovu.";
 
 /* Title of view where users can invite friends and family. */
-"app.ios.invite.friends" = "Invitar a amigos y familia";
+"app.ios.invite.friends" = "Pozvat přátele a rodinu";
 
 /* Translation of iPhone settings app. */
-"app.ios.settings" = "Configuración";
+"app.ios.settings" = "Nastavení";
 
 /* Text to show on banner when no connection is available */
-"banner.no.connection" = "No hay conexión de Internet";
+"banner.no.connection" = "Žádné internetové připojení";
 
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
-"button.cancel" = "Cancelar";
+"button.cancel" = "Zrušit";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
-"button.continue" = "Continuar";
+"button.continue" = "Pokračovat";
 
 /* Title for generic Create button */
-"button.create" = "Crear";
+"button.create" = "Vytvořit";
 
 /* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Descartar";
+"button.dismiss" = "Zamítnout";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Hecho";
+"button.done" = "Hotovo";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
-"button.go.to.settings" = "Ir a configuración";
+"button.go.to.settings" = "Přejít na Nastavení";
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
-"button.install" = "Instalar";
+"button.install" = "Instalovat";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Saber más";
+"button.learn.more" = "Zjistit více";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
-"button.more" = "Más";
+"button.more" = "Více";
 
 /* Title for generic Next button. Mostly used to proceed to next screen in flow. */
-"button.next" = "Siguiente";
+"button.next" = "Další";
 
 /* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "Ahora no";
+"button.not.now" = "Teď ne";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
 "button.ok" = "OK";
 
 /* Title for generic Remove button. Mostly used to complete some modal flow. */
-"button.remove" = "Eliminar";
+"button.remove" = "Odstranit";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "Guardar";
+"button.save" = "Uložit";
 
 /* Title for generic Send button. Mostly used to complete some modal flow. */
-"button.send" = "Enviar";
+"button.send" = "Odeslat";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Compartir";
+"button.share" = "Sdílet";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
-"button.update" = "Actualizar";
+"button.update" = "Aktualizovat";
 
 /* Generic error when trying to use camera */
-"camera.error" = "Error de cámara";
+"camera.error" = "Chyba fotoaparátu";
 
 /* No comment provided by engineer. */
-"camera.init.error.1" = "No se puede iniciar la cámara trasera";
+"camera.init.error.1" = "Nepodařilo se spustit zadní fotoaparát";
 
 /* No comment provided by engineer. */
-"camera.init.error.2" = "No se puede iniciar la cámara frontal";
+"camera.init.error.2" = "Nepodařilo se spustit přední fotoaparát";
 
 /* No comment provided by engineer. */
-"camera.init.error.3" = "No se puede iniciar el micrófono";
+"camera.init.error.3" = "Nepodařilo se spustit mikrofon";
 
 /* No comment provided by engineer. */
-"camera.init.error.4" = "No hay acceso a la cámara posterior";
+"camera.init.error.4" = "Přístup k zadnímu fotoaparátu se nezdařil";
 
 /* No comment provided by engineer. */
-"camera.init.error.5" = "No hay acceso a la cámara frontal";
+"camera.init.error.5" = "Přístup k přednímu fotoaparátu se nezdařil";
 
 /* No comment provided by engineer. */
-"camera.init.error.6" = "No se pudo acceder al audio";
+"camera.init.error.6" = "Přístup ke zvuku se nezdařil";
 
 /* No comment provided by engineer. */
-"camera.init.error.7" = "No se puede tomar fotos";
+"camera.init.error.7" = "Nelze pořídit fotky";
 
 /* No comment provided by engineer. */
-"camera.init.error.8" = "No puede grabar videos";
+"camera.init.error.8" = "Nelze nahrát video";
 
 /* Title for a popup alerting about camera initialization error. */
-"camera.init.error.title" = "Error al inicializar";
+"camera.init.error.title" = "Chyba inicializace";
 
 /* Alert text shown when the contact has been added to the address book successfully */
-"chat.add.to.address.book.success" = "Contacto añadido con éxito";
+"chat.add.to.address.book.success" = "Kontakt byl úspěšně přidán";
 
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
-"chat.add.to.contacts.book.label" = "Para ver publicaiones de %@, añade su número de teléfono a tu agenda. Toca para agregar";
+"chat.add.to.contacts.book.label" = "Pokud chcete zobrazit příspěvky od uživatele %@, přidejte jeho číslo do svého seznamu kontaktů.  Přidejte klepnutím";
 
 /* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.name.placeholder" = "Dale un nombre a tu grupo";
+"chat.create.group.name.placeholder" = "Pojmenujte svoji skupinu";
 
 /* Title of group creation screen */
-"chat.create.group.title" = "Información del grupo";
+"chat.create.group.title" = "Informace o skupině";
 
 /* Label for creating a new group */
-"chat.create.new.group" = "Crear un grupo nuevo";
+"chat.create.new.group" = "Vytvořit novou skupinu";
 
 /* Title of group name edit screen */
-"chat.edit.group.title" = "Editar";
+"chat.edit.group.title" = "Upravit";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
-"chat.encryption.label" = "Las conversaciones están encriptadas de extremo a extremo y HalloApp no tiene acceso a ellas. Toca para saber más.";
+"chat.encryption.label" = "Chaty jsou komplexně šifrovány a HalloApp k nim nemá přístup. Další informace zobrazíte klepnutím.";
 
 /* Label shown above background selection row */
-"chat.group.background.label" = "FONDO DE PANTALLA";
+"chat.group.background.label" = "POZADÍ";
 
 /* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "%@ se unió al grupo con el enlace de invitación";
+"chat.group.event.join" = "%@ se přidal(a) ke skupině přes skupinový zvací odkaz";
 
 /* Message text shown when you join a group via invite link */
-"chat.group.event.join.you" = "Te has unido al grupo a través de un enlace de invitación al grupo";
+"chat.group.event.join.you" = "Přidali jste se do skupiny skrze Zvací odkaz skupiny";
 
 /* Message text shown with the user who left the group */
-"chat.group.event.member.left" = "%@ se salió";
+"chat.group.event.member.left" = "Uživatel %@ odešel";
 
 /* Message text shown when you leave a group */
-"chat.group.event.member.left.you" = "Te has ido";
+"chat.group.event.member.left.you" = "Odešli jste";
 
 /* Action label for adding members to a group */
-"chat.group.info.add.members" = "Añadir participantes";
+"chat.group.info.add.members" = "Přidat členy";
 
 /* Label shown in the members list when member is an admin */
-"chat.group.info.admin.label" = "Administrador";
+"chat.group.info.admin.label" = "Správce";
 
 /* Text label for a color selection of group feed background color */
-"chat.group.info.bg.color.label" = "Color";
+"chat.group.info.bg.color.label" = "Barva";
 
 /* Text label for default selection of group feed background color */
-"chat.group.info.bg.default.label" = "Por defecto";
+"chat.group.info.bg.default.label" = "Výchozí";
 
 /* Text for menu option of demoting a group member */
-"chat.group.info.demote" = "Descartar como administrador";
+"chat.group.info.demote" = "Odebrat správcovství";
 
 /* Action label for leaving group */
-"chat.group.info.leave.group" = "Salir del grupo";
+"chat.group.info.leave.group" = "Opustit skupinu";
 
 /* Text for menu option of making a group member admin */
-"chat.group.info.make.group.admin" = "Hacer administrador del grupo";
+"chat.group.info.make.group.admin" = "Vytvořit správce skupiny";
 
 /* Text for menu option of messaging user */
-"chat.group.info.message.user" = "Enviar mensaje";
+"chat.group.info.message.user" = "Zpráva";
 
 /* Text label shown when the user is not a member of the group */
-"chat.group.info.not.a.member.label" = "No eres un miembro de este grupo";
+"chat.group.info.not.a.member.label" = "Nejsi členem této skupiny";
 
 /* Text for menu option of removing a group member */
-"chat.group.info.remove.from.group" = "Eliminar del grupo";
+"chat.group.info.remove.from.group" = "Odstranit ze skupiny";
 
 /* Title of screen that shows group information */
-"chat.group.info.title" = "Información del grupo";
+"chat.group.info.title" = "Informace o skupině";
 
 /* Text for menu option of viewing profile */
-"chat.group.info.view.profile" = "Ver perfil";
+"chat.group.info.view.profile" = "Zobrazit profil";
 
 /* Confirmation message presented when leaving a group */
-"chat.group.leave.group.confirmation" = "¿Abandonar \"%@\"?";
+"chat.group.leave.group.confirmation" = "Opustit “%@”?";
 
 /* Label shown above group members list */
-"chat.group.members.label" = "PARTICIPANTES";
+"chat.group.members.label" = "ČLENOVÉ";
 
 /* Label shown above group name input box */
-"chat.group.name.label" = "NOMBRE DEL GRUPO";
+"chat.group.name.label" = "NÁZEV SKUPINY";
 
 /* Title for group photo actions */
-"chat.group.photo.label" = "Foto del grupo";
+"chat.group.photo.label" = "Skupinová fotka";
 
 /* Action to take a picture or choose a photo from the library to use for the group photo */
-"chat.group.take.or.choose.photo" = "Toma o escoge una foto";
+"chat.group.take.or.choose.photo" = "Pořídit nebo vybrat fotku";
 
 /* Label for inviting friends */
-"chat.invite.friends" = "Invita amigos";
+"chat.invite.friends" = "Pozvat přátele";
 
 /* Message text shown for the message that was deleted */
-"chat.message.deleted" = "Este mensaje fue eliminado.";
+"chat.message.deleted" = "Tato zpráva byla smazána";
 
 /* Message text shown in a message that have photo media but no text */
-"chat.message.photo" = "Foto";
+"chat.message.photo" = "Fotka";
 
 /* Text shown when chat input box is empty */
-"chat.message.placeholder" = "Escribir un mensaje";
+"chat.message.placeholder" = "Napište zprávu";
 
 /* Text shown in place of a received message we are not able to process yet. */
-"chat.message.unsupported" = "Tu versión de HalloApp no admite este tipo de mensajes.";
+"chat.message.unsupported" = "Vaše verze HalloApp nepodporuje tento typ zprávy.";
 
 /* Message text shown in a message that have video media but no text */
 "chat.message.video" = "Video";
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
-"chat.message.waiting" = "Esperando este mensaje. Podría llevar un tiempo.";
+"chat.message.waiting" = "Čeká se na tuto zprávu. Může to chvíli trvat.";
 
 /* Label shown when user is typing */
-"chat.typing.capitalized" = "escribiendo...";
+"chat.typing.capitalized" = "píše...";
 
 /* Text shown when user is about to remove the chat */
-"chats.list.remove.message" = "Al eliminar este chat estarás borrando toda la historia del chat y el contenido de tu dispositivo.";
+"chats.list.remove.message" = "Odstraněním této konverzace vymažeš její historii a obsah ze svého zařízení.";
 
 /* Button revealed when user swipes on their comment. */
-"comment.delete" = "Eliminar";
+"comment.delete" = "Smazat";
 
 /* Title for the button in comment deletion confirmation prompt. */
-"comment.delete.action" = "Eliminar comentario";
+"comment.delete.action" = "Smazat komentář";
 
 /* Confirmation text displayed at comment deletion prompt */
-"comment.delete.confirmation" = "¿Eliminar este comentario? Esta acción no se puede deshacer.";
+"comment.delete.confirmation" = "Smazat tento komentář? Tuto akci nelze vzít zpět.";
 
 /* Text displayed in place of deleted comment. */
-"comment.deleted" = "Este comentario ha sido eliminado";
+"comment.deleted" = "Tento komentář byl smazán.";
 
 /* Text displayed in place of a comment that is currently being deleted. */
-"comment.deleting" = "Eliminar comentario";
+"comment.deleting" = "Mazání komentáře";
 
 /* Button in comment input field. Verb. */
-"comment.post" = "Publicar";
+"comment.post" = "Příspěvek";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
-"comment.posting" = "Publicando...";
+"comment.posting" = "Zveřejňování...";
 
 /* Title for the button displayed under feed post comment. Verb. */
-"comment.reply" = "Responder";
+"comment.reply" = "Odpovědět";
 
 /* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
-"comment.replying.myself" = "Respondiéndome a mí mismo";
+"comment.replying.myself" = "Odpovídání sobě";
 
 /* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
-"comment.replying.someone" = "Respondiendo a %@";
+"comment.replying.someone" = "Odpovídáte %@";
 
 /* Title for the button in comment resend confirmation prompt. */
-"comment.resend.action" = "Reenviar";
+"comment.resend.action" = "Znovu poslat";
 
 /* Confirmation prompt for when resending comment that previously failed to send. */
-"comment.resend.confirmation" = "¿Reenviar el comentario?";
+"comment.resend.confirmation" = "Poslat komentář znovu?";
 
 /* Text displayed in gray inside of the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "Añadir un comentario";
+"comment.textfield.placeholder" = "Přidat komentář";
 
 /* Text displayed in place of a comment that is not supported in the current app version. */
-"comment.unsupported" = "Tu versión de HalloApp no admite este tipo de comentarios.";
+"comment.unsupported" = "Vaše verze HalloApp nepodporuje tento typ komentáře.";
 
 /* Warning text displayed in Comments when post wasn't available. */
-"comments.post.loading.failed" = "Se produjo un error al cargar la publicación. Inténtalo de nuevo más tarde.";
+"comments.post.loading.failed" = "Při načítání tohoto příspěvku se vyskytla chyba. Zkus to prosím později.";
 
 /* Alert message in composer when a video is too long */
-"composer.max.video.length.message" = "Por favor seleccione otro video o toque el botón para editar.";
+"composer.max.video.length.message" = "Vyber prosím jiné video nebo klikni na tlačítko úprav.";
 
 /* Alert title in composer when a video is too long */
-"composer.max.video.length.title" = "Este video dura más de %.0f segundos ";
+"composer.max.video.length.title" = "Toto video je více než %.0f sekund dlouhé";
 
 /* Composer subtitle for messages. */
-"composer.message.subtitle" = "Enviando a %@";
+"composer.message.subtitle" = "Posílám %@";
 
 /* Composer New Message title. */
-"composer.message.title" = "Mensaje nuevo";
+"composer.message.title" = "Nová zpráva";
 
 /* Placeholder text for media caption field in post composer. */
-"composer.placeholder.media.description" = "Escribir una descripción";
+"composer.placeholder.media.description" = "Napsat popis";
 
 /* Placeholder text in text post composer screen. */
-"composer.placeholder.text.post" = "Escribir un publicación";
+"composer.placeholder.text.post" = "Napsat příspěvek";
 
 /* Send button title. */
-"composer.post.button.send" = "Enviar";
+"composer.post.button.send" = "Poslat";
 
 /* Share button title. */
-"composer.post.button.share" = "Compartir";
+"composer.post.button.share" = "Sdílet";
 
 /* Composer subtitle for group posts. */
-"composer.post.subtitle" = "Compartir con %@";
+"composer.post.subtitle" = "Sdílení s %@";
 
 /* Composer New Post title. */
-"composer.post.title" = "Publicación nueva";
+"composer.post.title" = "Nový příspěvek";
 
 /* Feed Privacy indicator in post composer. */
-"composer.privacy.value.excluded" = "Compartir con algunos de mis contactos";
+"composer.privacy.value.excluded" = "Sdílení s některými z mých kontaktů";
 
 /* Feed Privacy indicator in post composer. */
-"composer.privacy.value.my.contacts" = "Compartir con mis contactos";
+"composer.privacy.value.my.contacts" = "Sdílení s mými kontakty";
 
 /* Feed Privacy indicator in post composer. */
-"composer.privacy.value.n.selected" = "compositor.privacidad.valor.n.seleccionado";
+"composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
 
 /* No comment provided by engineer. */
-"CONNECTION" = "CONEXIÓN";
+"CONNECTION" = "SPOJENÍ";
 
 /* Shown when user denies contacts permission */
-"contacts.access.denied" = "Permitir a HalloApp tener acceso a tus contactos para poder enviar y recibir actualizaciones";
+"contacts.access.denied" = "Povolte aplikaci HalloApp přístup ke svým kontaktům, abyste mohli odesílat a přijímat aktualizace";
 
 /* Message requesting the user enable contacts permission */
-"contacts.permission.explanation" = "Para ayudarte a conectar con tus amigos y familiares, permite a HalloApp acceder a tus contactos.";
+"contacts.permission.explanation" = "Aby vám HalloApp mohla pomoci spojit se s přáteli a rodinou, povolte jí přístup k vašim kontaktům.";
 
 /* Title for modal view when showing how to change contact permissions.
    Title for tutorial explaining how user can enable contacts permission */
-"contacts.permission.tutorial.title" = "Contactos";
+"contacts.permission.tutorial.title" = "Kontakty";
 
 /* Alert message telling the user to try creating the group again after an error */
-"create.group.error" = "Se ha producido un error al crear el grupo, inténtalo de nuevo";
+"create.group.error" = "Při vytváření skupiny se vyskytla chyba, zkuste to prosím později";
 
 /* Title for generic delete button. */
-"Delete" = "Eliminar";
+"Delete" = "Odstranit";
 
 /* Text to show on profile for users you are not connected with */
-"exchange.phone.numbers.to.connect" = "Para conectarse debéis intercambiar números de teléfono";
+"exchange.phone.numbers.to.connect" = "Pro spojení je nutné vyměnit si telefonní čísla";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
-"fab.accessibility.camera" = "Cámara";
+"fab.accessibility.camera" = "Fotoaparát";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Galería de fotos";
+"fab.accessibility.photo.library" = "Knihovna fotografií";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
-"fab.accessibility.text" = "Enviar mensaje de texto";
+"fab.accessibility.text" = "Text";
 
 /* Shown while content is being retracted from feed */
-"feed.deleting" = "Eliminando...";
+"feed.deleting" = "Mazání...";
 
 /* Text shown in indicator when new posts come in while user is scrolled down */
-"feed.new.posts.indicator" = "Publicaciones nuevas";
+"feed.new.posts.indicator" = "Nové příspěvky";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification..other.comment.no.text" = "<$author$> también comentó";
+"feed.notification..other.comment.no.text" = "<$author$> také komentoval/a";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "Otros <$numberOthers$> respondieron a la publicación de <$author$>";
+"feed.notification.comment.grouped" = "<$numberOthers$> další zareagovali na příspěvek uživatele <$author$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.commented.no.text" = "<$author$> comentó en tu publicación";
+"feed.notification.commented.no.text" = "<$author$> okomentoval/a váš příspěvek";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.commented.w.text" = "<$author$> comentó: <$text$>";
+"feed.notification.commented.w.text" = "<$author$> komentoval/a: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.deleted.comment" = "<$author$> eliminó su comentario";
+"feed.notification.deleted.comment" = "<$author$> smazal/a svůj komentář";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.deleted.post" = "<$author$> comentó. Esta publicación ha sido eliminada.";
+"feed.notification.deleted.post" = "<$author$> komentoval/a. Tento příspěvek byl smazán.";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.comment.no.text" = "<$author$> te mencionó en un comentario";
+"feed.notification.mention.comment.no.text" = "<$author$> vás zmínil/a v komentáři";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.comment.w.text" = "<$author$> te mencionó en un comentario: <$text$>";
+"feed.notification.mention.comment.w.text" = "<$author$> vás zmínil/a v komentáři: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.no.text" = "<$author$> te mencionó en una publicación";
+"feed.notification.mention.post.no.text" = "<$author$> vás zmínil/a v příspěvku";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.w.text" = "<$author$> te mencionó en una publicación <$text$>";
+"feed.notification.mention.post.w.text" = "<$author$> vás zmínilk/a v příspěvku: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.other.comment.w.text" = "<$author$> también comentó: <$text$>";
+"feed.notification.other.comment.w.text" = "<$author$> také komentoval/a: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.replied.no.text" = "<$author$> respondió a tu comentario";
+"feed.notification.replied.no.text" = "<$author$> odpověděl/a na váš komentář";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.replied.w.text" = "<$author$> respondió: <$text$>";
+"feed.notification.replied.w.text" = "<$author$> odpověděl/a: <$text$>";
 
 /* Shown when post fails or is canceled. */
-"feed.post.failed" = "No se pudo publicar.";
+"feed.post.failed" = "Zveřejnění se nezdařilo.";
 
 /* Shown when receiving a new (unsupported) type of post. */
-"feed.post.unsupported" = "Tu versión de HalloApp no admite este tipo de mensaje.";
+"feed.post.unsupported" = "Vaše verze HalloApp nepodporuje tento typ příspěvku.";
 
 /* Shown while content is being posted to feed */
-"feed.posting" = "Publicando...";
+"feed.posting" = "Zveřejňuji...";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Compartir con todos tus contactos";
+"feed.privacy.descr.all" = "Sdílet se všemi vašimi kontakty";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Compartir con tus contactos excepto con las personas que selecciones";
+"feed.privacy.descr.except" = "Sdílet s vašimi kontakty lidí, které zvolíte";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.only" = "Compartir solo con los contactos seleccionados";
+"feed.privacy.descr.only" = "Sdílet pouze s vybranými kontakty";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
-"feed.privacy.list.all" = "Mis contactos de teléfono";
+"feed.privacy.list.all" = "Moje telefonní kontakty";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
-"feed.privacy.list.except" = "Mis contactos excepto";
+"feed.privacy.list.except" = "Moje kontakty kromě...";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
-"feed.privacy.list.only" = "Solo compartir con...";
+"feed.privacy.list.only" = "Sdílet pouze s...";
 
 /* Possible Feed Privacy setting value. */
-"feed.privacy.value.my.contacts" = "Mis contactos de teléfono";
+"feed.privacy.value.my.contacts" = "Moje telefonní kontakty";
 
 /* Possible Feed Privacy setting value. Can be longer. */
 "feed.privacy.value.n.contacts.excluded" = "feed.privacy.value.n.contacts.excluded";
@@ -451,283 +451,280 @@
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Button under someone's post. Verb. */
-"feedpost.button.comment" = "Comentar";
+"feedpost.button.comment" = "Komentář";
 
 /* Button under someoneelse's post. Verb. */
-"feedpost.button.reply" = "Responder";
+"feedpost.button.reply" = "Odpovědět";
 
 /* Label for choosing a color at the group background preview screen */
-"group.bg.pick.a.color.label" = "ESCOGE UN COLOR";
+"group.bg.pick.a.color.label" = "VYBER BARVU";
 
 /* Title of group background screen */
-"group.bg.title" = "Fondo de pantalla";
+"group.bg.title" = "Pozadí";
 
 /* Message text shown with the user who added a group member */
-"group.event.added.member" = "%1$@ agregó a %2$@";
+"group.event.added.member" = "%1$@ přidal/a %2$@";
 
 /* Message text shown when you add a group member */
-"group.event.added.member.you" = "Has añadido a %1@";
+"group.event.added.member.you" = "Přidali jste %1@";
 
 /* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar" = "%@ cambió el ícono del grupo";
+"group.event.changed.avatar" = "%@ změnil/a ikonu skupiny";
 
 /* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar.you" = "Has cambiado el icono del grupo";
+"group.event.changed.avatar.you" = "Změnili jste ikonu skupiny";
 
 /* Message text shown with the user who changed the background */
-"group.event.changed.background" = "%@ cambió el color del fondo de pantalla";
+"group.event.changed.background" = "%@ změnil(a) barvu pozadí";
 
 /* Message text shown when you change the background */
-"group.event.changed.background.you" = "Has cambiado el color de fondo del pantalla";
+"group.event.changed.background.you" = "Změnili jste barvu pozadí";
 
 /* Message text shown with the user who changed the group name */
-"group.event.changed.name" = "%1$@ cambió el nombre del grupo a \"%2$@\"";
+"group.event.changed.name" = "%1$@ změnil/a jméno skupiny na \"%2$@\"";
 
 /* Message text shown when you change the group name */
-"group.event.changed.name.you" = "Has cambiado el nombre del grupo por el de \"%1@\".";
+"group.event.changed.name.you" = "Změnili jste jméno skupiny na \"%1@\"";
 
 /* Message text shown with the user who created the group */
-"group.event.created.group" = "%1$@ creó el grupo \"%2$@\"";
+"group.event.created.group" = "%1$@ vytvořil/a skupinu \"%2$@\"";
 
 /* Message text shown when you create a group */
-"group.event.created.group.you" = "Has creado el grupo \"%1@\"";
+"group.event.created.group.you" = "Vytvořili jste skupinu \"%1@\"";
 
 /* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "%1$@ descartó a %2$@ como administrador";
+"group.event.demoted.member" = "%1$@ odstranil %2$@ ze správců";
 
 /* Message text shown when you demote a group admin */
-"group.event.demoted.member.you" = "Has eliminado a %1@ como administrador";
+"group.event.demoted.member.you" = "Odstranili jste %1@ ze správců";
 
 /* Message text shown with the user who promoted a group member */
-"group.event.promoted.member" = "%1$@ designó a %2$@ como admin.";
+"group.event.promoted.member" = "%1$@ jmenoval/a %2$@ správcem";
 
 /* Message text shown when you promote a group member */
-"group.event.promoted.member.you" = "Tú asignaste a %1@ como administrador";
+"group.event.promoted.member.you" = "Učinili jste %1@ správcem";
 
 /* Message text shown with the user who removed a group member */
-"group.event.removed.member" = "%1$@ eliminó a %2$@";
+"group.event.removed.member" = "%1$@ odstranil/a %2$@";
 
 /* Message text shown when you remove a group member */
-"group.event.removed.member.you" = "Has eliminado a %1@";
+"group.event.removed.member.you" = "Odstranili jste %1@";
 
 /* Action label for inviting others to join the group via link */
-"group.info.invite.to.group.via.link" = "Invitar al grupo a través de un enlace";
+"group.info.invite.to.group.via.link" = "Pozvat do skupiny přes odkaz";
 
 /* Label for copying link */
-"group.invite.copy.link" = "Copiar el enlace";
+"group.invite.copy.link" = "Zkopírovat odkaz";
 
 /* Text shown when link is copied */
-"group.invite.link.copied" = "Enlace copiado";
+"group.invite.link.copied" = "Zkopírováno do schránky";
 
 /* Text to describe what the group invite link is */
-"group.invite.link.description" = "Cualquier persona que tenga HalloApp puede usar este enlace para unirse al grupo.";
+"group.invite.link.description" = "Tento odkaz může pro připojení k této skupině použít kdokoli s HalloApp.";
 
 /* Text label above the group link section in group invite screen */
-"group.invite.link.label" = "ENLACE DE GRUPO";
+"group.invite.link.label" = "SKUPINOVÝ ODKAZ";
 
 /* Text shown when link is reset */
-"group.invite.link.reset" = "Restablecer el enlace";
+"group.invite.link.reset" = "Odkaz byl resetován";
 
 /* Label for opening QR screen */
-"group.invite.qr.code" = "Código QR";
+"group.invite.qr.code" = "QR kód";
 
 /* Label for resetting link */
-"group.invite.reset.link" = "Restablecer el enlace";
+"group.invite.reset.link" = "Resetovat odkaz";
 
 /* Warning shown when user clicks on reset link action */
-"group.invite.reset.link.warning" = "Si este enlace se restablece, nadie podrá usarlo para unirse al grupo.";
+"group.invite.reset.link.warning" = "Pokud bude tento zvací odkaz resetován, nebude ho moci k připojení ke skupině použít nikdo.";
 
 /* Label for sharing link */
-"group.invite.share.link" = "Compartir el enlace";
+"group.invite.share.link" = "Sdílet odkaz";
 
 /* Text shown before the sharing link */
-"group.invite.share.link.message" = "Haz clic en este enlace para unirte a mi grupo de HalloApp:";
+"group.invite.share.link.message" = "Klikni na tento odkaz a přidejte se k mé skupině HalloApp:";
 
 /* Title of group invite screen */
-"group.invite.title" = "Enlace de invitación al grupo";
+"group.invite.title" = "Skupinová pozvánka";
 
 /* Text for alert box when the user clicks on an invalid group invite link */
-"group.preview.get.info.error.invalid.link" = "El enlace de invitación al grupo no es válido";
+"group.preview.get.info.error.invalid.link" = "Zvací odkaz skupiny je neplatný";
 
 /* Text for alert box when the user can't join the group via group link when the group is full */
-"group.preview.join.error.group.full" = "El grupo está lleno";
+"group.preview.join.error.group.full" = "Skupina je plná";
 
 /* Text for alert box when the user can't join the group via group link when link is invalid */
-"group.preview.join.error.invalid.link" = "El enlace no es válido";
+"group.preview.join.error.invalid.link" = "Odkaz je neplatný";
 
 /* Title for alert box when the user can't join the group via group link */
-"group.preview.join.error.title" = "No se puede unir al grupo";
+"group.preview.join.error.title" = "Nelze se přidat do skupiny";
 
 /* Label for joining group action */
-"group.preview.join.group" = "UNIRSE AL GRUPO";
+"group.preview.join.group" = "PŘIDAT SE KE";
 
 /* Label for the number of members in the group */
-"group.preview.members" = "Miembros";
+"group.preview.members" = "Členové";
 
 /* Text shown to tell user the group title is tappable */
-"group.title.tap.for.info" = "Toca aquí para ver la información del grupo";
+"group.title.tap.for.info" = "Pro info o skupině klepněte sem";
 
 /* Text shown in notification when the user is added to a new group */
-"groups.add.notification" = "Fuiste agregado a un grupo nuevo";
+"groups.add.notification" = "Byli jste přidáni do nové skupiny";
 
 /* A label to show that the groups below are groups in common */
-"groups.common" = "Grupos en común";
+"groups.common" = "Společné skupiny";
 
 /* Text shown when user is about to remove the group */
-"groups.list.remove.message" = "¿Estás seguro que quieres eliminar este grupo y su contenido de este dispositivo?";
+"groups.list.remove.message" = "Určitě si přejete odstranit tuto skupinu a její obsah ze svého zařízení?";
 
 /* A label on the header to indicate which person I have groups in common with */
-"groups.title" = "Con %@";
+"groups.title" = "S uživatelem %@";
 
 /* Text shown in the email body when sending logs from the help screen */
-"help.send.logs.email.body" = "\n\n\nPor favor deja un comentario o una descripción del problema en el espacio de arriba. \n\nVersión %1$@ - %2$@\n%3$@";
+"help.send.logs.email.body" = "V prostoru výše prosím zanechte zpětnou vazbu nebo popis problému.\n\nVerze %1$@ - %2$@\n%3$@";
 
 /* Title for exit button that closes the app */
-"home.update.notice.button.exit" = "Salir";
+"home.update.notice.button.exit" = "Odejít";
 
 /* Text shown to users who have old versions of the app */
-"home.update.notice.text" = "Por favor, actualiza HalloApp a su última versión";
+"home.update.notice.text" = "Aktualizujte prosím na nejnovější verzi HalloApp";
 
 /* Title of update notice shown to users who have old versions of the app */
-"home.update.notice.title" = "Esta versión está desactualizada";
+"home.update.notice.title" = "Tato verze je zastaralá";
 
 /* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
-"invite.already.halloapp.user" = "Ya es usuario de HalloApp";
+"invite.already.halloapp.user" = "Už používá HalloApp";
 
 /* Title for button that launches system SMS app to send invite. As short as possible! */
-"invite.app.sms" = "Mensajes";
+"invite.app.sms" = "Zprávy";
 
 /* Title for button that launches WhatsApp to send invite. Should match WhatsApp localization. */
 "invite.app.whatsapp" = "WhatsApp";
 
 /* Shows number of current HalloApp users who have this contact in their list */
-"invite.contact.count" = "%d contactos en HalloApp";
+"invite.contact.count" = "%d kontaktů na HalloApp";
 
 /* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
-"invite.error.alert.message" = "Algo salió mal. Por favor, inténtalo de nuevo más tarde.";
+"invite.error.alert.message" = "Něco se pokazilo. Zkuste to prosím později.";
 
 /* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
-"invite.error.alert.title" = "No se pudo invitar";
+"invite.error.alert.title" = "Nebylo možné pozvat";
 
 /* Displayed when user does not have any invites left. Parameter is date. */
-"invite.out.of.invites.w.date" = "Ya no tienes más invitaciones. Vuelve a revisar después del %@";
+"invite.out.of.invites.w.date" = "Došly vám pozvánky. Vraťte se prosím za %@";
 
 /* Displayed white user is inviting someone. */
-"invite.please.wait" = "Por favor espera...";
+"invite.please.wait" = "Čekejte prosím...";
 
 /* Text of invitation to join HalloApp. */
-"invite.text" = "Acompáñame en HalloApp, una forma privada, simple y segura de seguir en contacto con tus amigos y familia. Obténla en https://halloapp.com/dl";
+"invite.text" = "Přidejte se ke mně na HalloApp - jednoduchém, soukromém a bezpečném způsobu, jak zůstat v kontaktu s přáteli a rodinou. Získejte ji na https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Hola %1$@, tengo una invitación para que te unas a mí en HalloApp (una aplicación social simple para compartir los momentos cotidianos). Usa %2$@ para registrarte. Obténla en https://halloapp.com/dl";
+"invite.text.specific" = "Ahoj %1$@, zvu tě, aby ses ke mě přidal/a na HalloApp - síť skutečných vztahů pro ty, kdo jsou mi nejbližší. Pro registraci použij %2$@. Stahuj na https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
-"invite.title" = "Invitar";
+"invite.title" = "Pozvat";
 
 /* Link text to open invite flow */
-"link.invite.friend" = "Invita a un amigo";
+"link.invite.friend" = "Pozvat přítele";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
-"link.learnMore" = "Más información";
+"link.learnMore" = "Zjistit více";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Actualiza tu aplicación.";
+"link.update.your.app" = "Aktualizujte svou aplikaci.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Yo";
+"meCapitalized" = "Já";
 
 /* Refers to albums in Photo Library. */
-"media.albums" = "Álbums";
+"media.albums" = "Alba";
 
 /* Button title. Refers to discarding photo/video edits in media composer. */
-"media.button.discard" = "Descartar";
+"media.button.discard" = "Zahodit";
 
 /* Button title. Refers to resetting photo / video to original version. */
-"media.button.reset" = "Restaurar";
+"media.button.reset" = "Obnovit";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
-"media.camera.access.request" = "HalloApp no tiene acceso a tu cámara. Para permitir acceso, toca configuración y enciende la cámara";
+"media.camera.access.request" = "HalloApp nemá přístup k vašemu fotoaparátu. Pro povolení přístupu klepněte na Nastavení a zapněte Fotoaparát";
 
 /* Confirmation prompt in media composer. */
-"media.discard.confirmation" = "¿Te gustaría descartar lo que has editado?";
+"media.discard.confirmation" = "Přejete si zahodit své úpravy?";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
-"media.mic.access.request.body" = "Para grabar videos con sonido, HalloApp necesita acceso al micrófono. Para permitir este acceso, toca la Configuración y enciende el micrófono.";
+"media.mic.access.request.body" = "Pro nahrávání videí se zvukem HalloApp potřebuje přístup k mikrofonu. Pro povolení přístupu klepněte na Nastavení a zapněte Mikrofon";
 
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
-"media.mic.access.request.title" = "¿Quieres videos con sonido?";
+"media.mic.access.request.title" = "Chcete videa se zvukem?";
 
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
 /* Button that, when pressed, saves all the post's media to the user's camera roll */
-"media.save.all" = "Guardar todo en mi rollo de cámara";
+"media.save.all" = "Uložit vše do obsahu fotoaparátu";
 
 /* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
-"media.save.all.singular" = "Guardar foto o video en mi rollo de cámara";
+"media.save.all.singular" = "Uložit média do obsahu fotoaparátu";
 
 /* Button that lets the user save the current media displayed to their camera roll */
-"media.save.camera.roll" = "Guardar en mi rollo de cámara";
+"media.save.camera.roll" = "Uložit do obsahu fotoaparátu";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
-"media.save.needs.permissions" = "Necesita permisos de fotos";
+"media.save.needs.permissions" = "Vyžaduje oprávnění k fotografiím";
 
 /* Description telling the user why the photos couldn't be saved */
-"media.save.no.access" = "Fotos no se pueden guardar sin acceso al rollo de cámara.";
+"media.save.no.access" = "Fotografie nelze uložit bez přístupu k obsahu fotoaparátu.";
 
 /* Alert displayed explaining to the user that the media save operation failed */
-"media.save.not.saved" = "La foto no se pudo guardar";
+"media.save.not.saved" = "Fotografie se nepodařilo uložit";
 
 /* Label indicating that media was successfully saved to the camera roll */
-"media.save.saved" = "Guardado";
+"media.save.saved" = "Uloženo";
 
 /* Accessibility label for X (Close) button in media editor. */
-"media.voiceover.button.close" = "Cerrar";
+"media.voiceover.button.close" = "Zavřít";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.flip" = "Voltear";
+"media.voiceover.button.flip" = "Převrátit";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.mute" = "Silenciar";
-
-/* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.rotate" = "Rotar";
+"media.voiceover.button.rotate" = "Otočit";
 
 /* Message action. Verb. */
-"message.copy" = "Copiar";
+"message.copy" = "Kopírovat";
 
 /* Message action. Verb. */
-"message.delete" = "Eliminar";
+"message.delete" = "Smazat";
 
 /* Message action. Verb. */
-"message.info" = "Información";
+"message.info" = "Info";
 
 /* Message action. Verb. */
-"message.reply" = "Responder";
+"message.reply" = "Odpovědět";
 
 /* One of the contact actions in My Post screen. */
-"mypost.action.hide.my.posts" = "Esconder mis publicaciones";
+"mypost.action.hide.my.posts" = "Skrýt moje příspěvky";
 
 /* One of the contact actions in My Post screen. Verb. */
-"mypost.action.message" = "Enviar un mensaje";
+"mypost.action.message" = "Zpráva";
 
 /* One of the contact actions in My Post screen. */
-"mypost.action.view.profile" = "Ver perfil";
+"mypost.action.view.profile" = "Zobrazit profil";
 
 /* Message displayed to say when posts will disappear */
-"mypost.disappear.time.label" = "Tus publicaciones se borrarán después de 30 días.";
+"mypost.disappear.time.label" = "Vaše příspěvky zmizí za 30 dní.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
-"mypost.hide.posts.confirmation" = "¿Estás seguro que quieres ocultar todas las publicaciones futuras de %@? Siempre puedes hacer este cambio más adelante.";
+"mypost.hide.posts.confirmation" = "Určitě si přejete skrýt veškeré vaše budoucí příspěvky před %@? Toto můžete později kdykoliv změnit.";
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
-"mypost.not.viewed.yet" = "Nadie ha visto aún tu publicación";
+"mypost.not.viewed.yet" = "Nikdo zatím nezobrazil váš příspěvek";
 
 /* Your Post screen: label for the row that opens the invite screen */
-"mypost.row.invite.to.halloapp" = "Invitar a Halloapp";
+"mypost.row.invite.to.halloapp" = "Pozvat do Halloapp";
 
 /* Your Post screen: label for the row that opens the privacy screen */
-"mypost.row.manage.privacy" = "Gestionar la privacidad";
+"mypost.row.manage.privacy" = "Spravovat soukromí";
 
 /* Indicates how many invites are remaining */
 "n.invites.count" = "n.invites.count";
@@ -736,16 +733,16 @@
 "n.invites.remaining" = "n.invites.remaining";
 
 /* Text shown to indicate user is not in the group anymore */
-"not.in.group.banner.text" = "Ya no formas parte de este grupo";
+"not.in.group.banner.text" = "V této skupině již nejste";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
-"notification.commented.with.text" = "Comentó: %@";
+"notification.commented.with.text" = "Komentoval/a: %@";
 
 /* Content for unknown contact notification. */
-"notification.contact.unknown.content" = "Uno de tus contactos está ahora en HalloApp";
+"notification.contact.unknown.content" = "Jeden z vašich kontaktů je nyní na HalloApp";
 
 /* Content for inviter notification. */
-"notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
+"notification.invite.accepted.content" = "%@ právě přijal/a vaše pozvání přidat se na HalloApp 🎉";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -755,474 +752,474 @@
 
 /* Content for contact notification.
    Content for friend notification. */
-"notification.new.friend.content" = "%@ ahora está en HalloApp";
+"notification.new.friend.content" = "%@ je nyní na HalloApp";
 
 /* Fallback text for new message notification. */
-"notification.new.message" = "Mensaje nuevo";
+"notification.new.message" = "Nová zpráva";
 
 /* Title for the new feed post notification. */
-"notification.new.post" = "Publicación nueva";
+"notification.new.post" = "Nový příspěvek";
 
 /* New post notification text when post is one photo without caption. */
-"notification.one.photo" = "📷 foto";
+"notification.one.photo" = "📷 fotka";
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
 
 /* Text for new user popup pointing at activity center icon */
-"nux.activity.center.icon" = "¡Hola!";
+"nux.activity.center.icon" = "Hallo!";
 
 /* Shown on chats list when there are no contacts or messages to display */
-"nux.chat.empty" = "Tus contactos y mensajes aparecerán aquí";
+"nux.chat.empty" = "Zde se objeví vaše kontakty a zprávy";
 
 /* Text for new user popup pointing at chat list */
-"nux.chat.list" = "Aquí es donde encontrarás mensajes de tus amigos y de tu familia. Cuando alguien nuevo se une a HalloApp los puedes ver aquí.";
+"nux.chat.list" = "Zde najdete zprávy od přátel a rodiny. Když se k HalloApp přidá někdo nový, uvidíte jej zde.";
 
 /* Shown on groups in common when there are no groups to display */
-"nux.groups.common.list.empty" = "No hay grupo en común";
+"nux.groups.common.list.empty" = "Nemáte žádnou společnou skupinu";
 
 /* Shown on groups list when there are no groups to display */
-"nux.groups.list.empty" = "Tus grupos aparecerán aquí";
+"nux.groups.list.empty" = "Zde se objeví vaše skupiny";
 
 /* Shown on home feed when no posts are available */
-"nux.home.feed.empty" = "Las publicaciones de tus contactos de teléfono aparecerán aquí";
+"nux.home.feed.empty" = "Zde se objeví příspěvky vašich telefonních kontaktů";
 
 /* Text for new user popup pointing at new post button */
-"nux.new.post.button" = "Toca para compartir una novedad con tus amigos y familia en HalloApp";
+"nux.new.post.button" = "Klepněte a sdílejte aktualizaci s přáteli a rodinou na HalloApp";
 
 /* Message in media picker when access is denied. */
-"picker.access.denied.message" = "Por favor, otorga acceso en configuración";
+"picker.access.denied.message" = "Povolte prosím přístup v Nastavení";
 
 /* An option to give access from settings */
-"picker.access.denied.settings" = "Configuración";
+"picker.access.denied.settings" = "Nastavení";
 
 /* Alert title in media picker when access is denied. */
-"picker.access.denied.title" = "Acceso denegado a fotos";
+"picker.access.denied.title" = "Přístup k fotkám odepřen";
 
 /* Message shown only limited access to media. */
-"picker.access.limited.message" = "Has dado a HalloApp acceso a un seleccionado número de fotos y videos";
+"picker.access.limited.message" = "Umožnili jste HalloApp přístup k vybranému počtu fotek a videí.";
 
 /* Initial picker screen title. The default source of picker photos */
-"picker.default.title" = "Rollo de la cámara";
+"picker.default.title" = "Pořízené fotografie";
 
 /* Alert message in media picker when unable to load media file. */
-"picker.media.fail.message" = "Intenta de nuevo o selecciona un video o una foto diferente.";
+"picker.media.fail.message" = "Zkuste to prosím znovu nebo vyberte jinou fotku či video.";
 
 /* Alert title in media picker when unable to load media file. */
-"picker.media.fail.title" = "No se pudo cargar la foto o el video";
+"picker.media.fail.title" = "Načtení médií se nezdařilo";
 
 /* Button shown to update limited access to media. */
-"picker.media.limit.button" = "Actualizar";
+"picker.media.limit.button" = "Aktualizovat";
 
 /* An option to update limited access. */
-"picker.media.limit.settings" = "Cambiar configuración";
+"picker.media.limit.settings" = "Změnit nastavení";
 
 /* Alert title in media picker when selecting over limit. */
-"picker.media.limit.title" = "Cantidad máxima de artículos";
+"picker.media.limit.title" = "Vybráno maximum položek";
 
 /* An option to update limited access. */
-"picker.media.limit.updateSelection" = "Actualizar imagen y selección de video";
+"picker.media.limit.updateSelection" = "Aktualizovat obrázek a výběr videa";
 
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "picker.media.n.limit";
 
 /* Displayed in place of a deleted feed post.
    Displayed in place of a deleted group feed post at group list screen */
-"post.has.been.deleted" = "Esta publicación ha sido eliminada";
+"post.has.been.deleted" = "Tento příspěvek byl smazán";
 
 /* Displayed in place of a deleted feed post. */
-"post.has.been.deleted.by.author" = "%@ eliminó su publicación";
+"post.has.been.deleted.by.author" = "%@ smazal/a svůj příspěvek";
 
 /* Displayed in place of a deleted feed post. */
-"post.has.been.deleted.by.you" = "Eliminaste tu publicación";
+"post.has.been.deleted.by.you" = "Smazali jste svůj příspěvek";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
-"privacy.list.blocked" = "Bloqueado";
+"privacy.list.blocked" = "Blokované";
 
 /* Generic setting value telling how many contacts are blocked or muted. */
-"privacy.n.contacts" = "privacidad.n.contactos";
+"privacy.n.contacts" = "privacy.n.contacts";
 
 /* Title for the button allowing to delete current profile photo. */
-"profile.delete.photo" = "Eliminar foto";
+"profile.delete.photo" = "Smazat fotku";
 
 /* A label for the button which leads to the page showing groups in common */
-"profile.groups.in.common" = "Grupos en común";
+"profile.groups.in.common" = "Společné skupiny";
 
 /* Text for messaging user under profile header */
-"profile.header.message.user" = "Enviar un mensaje";
+"profile.header.message.user" = "Zpráva";
 
 /* Item in Profile > Help screen. */
-"profile.help.faq" = "Preguntas frecuentes";
+"profile.help.faq" = "FAQ";
 
 /* Item in Profile > Help screen. */
-"profile.help.feedback" = "Compartir comentarios e historial";
+"profile.help.feedback" = "Sdílet zpětnou v";
 
 /* Item in Profile > Help screen. */
-"profile.help.pp" = "Política de privacidad";
+"profile.help.pp" = "Zásady soukromí";
 
 /* Item in Profile > Help screen. */
-"profile.help.share.logs" = "Compartir historial";
+"profile.help.share.logs" = "Sdílet záznamy";
 
 /* Item in Profile > Help screen. */
-"profile.help.tos" = "Términos de servicio";
+"profile.help.tos" = "Podmínky používání";
 
 /* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
 "profile.name.length" = "%1$d/%2$d";
 
 /* Row in Profile screen. */
-"profile.row.about" = "Acerca de HalloApp";
+"profile.row.about" = "O";
 
 /* Row in Profile Screen */
-"profile.row.account" = "Cuenta";
+"profile.row.account" = "Účet";
 
 /* Row in Profile screen. */
-"profile.row.archive" = "Archivo";
+"profile.row.archive" = "Archiv";
 
 /* Row in Profile screen. */
-"profile.row.help" = "Ayuda";
+"profile.row.help" = "Podpora";
 
 /* Row in Profile screen. */
-"profile.row.invite" = "Invitar amigos";
+"profile.row.invite" = "Pozvat do HalloApp";
 
 /* Row in Settings screen */
-"profile.row.my.posts" = "Mis publicaciones";
+"profile.row.my.posts" = "Moje příspěvky";
 
 /* Row in Profile Screen. */
-"profile.row.share" = "Compartir HalloApp";
+"profile.row.share" = "Sdílet HalloApp";
 
 /* Title for the button allowing to select a new profile photo. */
-"profile.take.choose.photo" = "Tomar o seleccionar una foto";
+"profile.take.choose.photo" = "Pořídit nebo vybrat fotku";
 
 /* Title for the screen allowing to edit profile name */
-"profile.title.your.name" = "Tu nombre";
+"profile.title.your.name" = "Tvoje jméno";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Recibirás un código de verificación.\nEl proveedor de telefonía móvil podría aplicar cargos.";
+"registration.code.disclaimer" = "Obdržíš ověřovací kód.\nMohou být uplatněny sazby telefonního operátora.";
 
 /* Error message to display when user enters incorrect verification code */
-"registration.code.incorrect" = "El código que ingresaste es incorrecto";
+"registration.code.incorrect" = "Kód, který jsi zadal(a), není správně";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
-"registration.code.instructions" = "Ingresa el código que enviaste a %@";
+"registration.code.instructions" = "Zadej kód, který jsme zaslali na %@";
 
 /* Error message to display when we cannot send a verification code */
-"registration.code.request.error" = "No se pudo enviar el código. Por favor inténtelo de nuevo más tarde.";
+"registration.code.request.error" = "Odeslání kódu se nezdařilo. Zkus to prosím později.";
 
 /* Button label to resend verification code */
-"registration.code.resend" = "Reenviar el código por mensaje de texto";
+"registration.code.resend" = "Znovu poslat SMS";
 
 /* Button label to resend verification code by voice call */
-"registration.code.resend.by.voice" = "Llámame";
+"registration.code.resend.by.voice" = "Zavolejte mi";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Para conectarte con tus amigos y familia, vamos a necesitar permiso para tener acceso a tus contactos. ";
+"registration.contacts.content" = "Abychom tě spojili s tvými přáteli a rodinou, potřebujeme tvoje povolení k přístupu k tvým kontaktům.";
 
 /* Title for text explaining why we need contact permissions */
-"registration.contacts.title" = "Por último";
+"registration.contacts.title" = "Poslední věc";
 
 /* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
-"registration.free.app.notice" = "Gratis en el App Store de iPhone";
+"registration.free.app.notice" = "Zdarma na iPhone App Store";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
-"registration.group.name" = "Estás invitado a unirte al grupo %@";
+"registration.group.name" = "Jste pozváni, abyste se připojili ke skupině %@";
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
-"registration.install.app.to.continue" = "Instala HalloApp para continuar";
+"registration.install.app.to.continue" = "Pro pokračování nainstalujte HalloApp";
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
-"registration.install.app.to.join.group" = "Instala HalloApp para abrir %@";
+"registration.install.app.to.join.group" = "Pokud chcete otevřít skupinu %@, nainstalujte si aplikaci HalloApp";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Por el momento Hallo App solo se puede usar con invitación. Si tienes un amigo o un familiar que use HalloApp, diles que te inviten usando tu número de teléfono.";
+"registration.invite.only" = "Pokud jsi pro registraci použil(a) skupinový zvací odkaz, klikni prosím na odkaz ještě jednou pro dokončení registrace a připojení ke skupině.";
 
 /* Placeholder text for name entry */
-"registration.nameEntry.placeholder" = "Tu nombre";
+"registration.nameEntry.placeholder" = "Tvoje jméno";
 
 /* Placeholder text for phone entry */
-"registration.phoneEntry.placeholder" = "Número de teléfono";
+"registration.phoneEntry.placeholder" = "Telefonní číslo";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "HalloApp solo usa el número de teléfono para conectarte con tus amigos en HalloApp, y no captura ninguna otra información adicional de tu libreta de contactos.";
+"registration.privacy.content" = "HalloApp používá pole telefonního čísla jen pro to, aby tě spojila s tvými přáteli na HalloApp, a nepřenáší žádné dodatečné údaje z tvého seznamu kontaktů.";
 
 /* Title for modal describing how we use contacts data */
-"registration.privacy.title" = "Tu privacidad es nuestra prioridad";
+"registration.privacy.title" = "Tvoje soukromí je naší prioritou";
 
 /* Title for popup that appears when user tries to register uninvited number */
-"registration.shucks" = "¡Caramba! ";
+"registration.shucks" = "Jejda!";
 
 /* Shown above name and phone inputs */
-"registration.welcome" = "¡Bienvenido!";
+"registration.welcome" = "Vítejte!";
 
 /* Instructions for how to use the safety number verification UI */
-"safety.number.instructions" = "Para verificar la seguridad de tu conexión con %@, comprueba que los números anteriores coinciden con los que aparecen en su dispositivo, o escanea el código QR de su teléfono.";
+"safety.number.instructions" = "Pro ověření bezpečnosti vašeho spojení s %@ zkontrolujte, že se čísla výše shodují s čísly zobrazenými na jejich zařízení, nebo na jejich telefonu naskenujte QR kód.";
 
 /* Message to show when safety number cannot be succesfully verified */
-"safety.number.not.verified" = "No se puede verificar el número de seguridad de %@";
+"safety.number.not.verified" = "Nepodařilo se ověřit bezpečnostní číslo pro %@";
 
 /* Title for button that will open QR code scanner used to verify a contact's safety number */
-"safety.number.scan" = "Toca para escanear";
+"safety.number.scan" = "Klepněte pro skenování";
 
 /* Title for screen that allows users to verify a contact's safety number */
-"safety.number.title" = "Verificar el número de seguridad";
+"safety.number.title" = "Ověřit bezpečnostní číslo";
 
 /* Message to show when safety number is succesfully verified */
-"safety.number.verified" = "¡Se ha verificado con éxito el número de seguridad de %@!";
+"safety.number.verified" = "Úspěšně ověřeno bezpečnostní číslo pro %@!";
 
 /* fallback text in notification for a new comment */
-"server.new.comment" = "Comentario nuevo";
+"server.new.comment" = "Nový komentář";
 
 /* fallback text in notification when a new contact joins */
-"server.new.contact" = "%@ ya está en HalloApp";
+"server.new.contact" = "%@ je nyní na HalloApp";
 
 /* fallback text in notification when user is added to a new group */
-"server.new.group" = "Fuiste agregado a un grupo nuevo";
+"server.new.group" = "Byli jste přidáni do nové skupiny";
 
 /* fallback text in notification for a new group chat message */
-"server.new.group.message" = "Mensaje del grupo nuevo";
+"server.new.group.message" = "Nová skupinová zpráva";
 
 /* fallback text in notification when an invitee joins */
-"server.new.inviter" = "%@ acaba de aceptar tu invitación en HalloApp 🎉";
+"server.new.inviter" = "%@ právě přijal vaše pozvání přidat se na HalloApp 🎉";
 
 /* fallback text in notification for a new chat message */
-"server.new.message" = "Mensaje nuevo";
+"server.new.message" = "Nová zpráva";
 
 /* fallback text in notification for a new feed post */
-"server.new.post" = "Publicación nueva";
+"server.new.post" = "Nový příspěvek";
 
 /* text in the sms sent with verification code */
-"server.sms.verification" = "Tu código de verificación de HalloApp";
+"server.sms.verification" = "Váš ověřovací kód HalloApp";
 
 /* text in the voice call sent with verification code */
-"server.voicecall.verification" = "Tu código de verificación de HalloApp es";
+"server.voicecall.verification" = "Váš ověřovací kód HalloApp je";
 
 /* Displayed while syncing account immediately after registration */
-"setting.up.halloapp" = "Configurando HalloApp";
+"setting.up.halloapp" = "Nastavení aplikace HalloApp";
 
 /* Title of alert telling the user they're about to delete their account */
-"settings.account.delete.action.title" = "Borrar cuenta";
+"settings.account.delete.action.title" = "Odstranění účtu";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet1" = "Eliminar tu información de cuenta y foto de perfil";
+"settings.account.delete.bullet1" = "Odstranění informací o vašem účtu a profilové fotografie";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet2" = "Eliminarte de todos los grupos de HalloApp";
+"settings.account.delete.bullet2" = "Odstranění vaší osoby ze všech skupin HalloApp";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet3" = "Eliminar tu historial de mensajería en este teléfono";
+"settings.account.delete.bullet3" = "Odstranění historie zpráv z tohoto telefonu";
 
 /* Label telling the user that their account has been deleted */
-"settings.account.delete.deleted" = "Cuenta eliminada";
+"settings.account.delete.deleted" = "Účet byl odstraněn";
 
 /* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
-"settings.account.delete.error" = "Hubo un error eliminando tu cuenta. Por favor, revisa que tu número de teléfono esté escrito correctamente.";
+"settings.account.delete.error" = "Při odstraňování vašeho účtu došlo k chybě. Zkontrolujte, zda je vaše telefonní číslo správné.";
 
 /* Label above list of things that will happen if they delete their account */
-"settings.account.delete.header" = "Eliminar tu cuenta hará:";
+"settings.account.delete.header" = "Odstranění vašeho účtu způsobí:";
 
 /* Alert message telling the user that account deletion is irreversible */
-"settings.account.delete.irreversible.label" = "Esta acción es irreversible";
+"settings.account.delete.irreversible.label" = "Tato akce je nevratná";
 
 /* Text field placeholder telling the user that their phone number should go into the field */
-"settings.account.delete.phone.number" = "Tu número de teléfono";
+"settings.account.delete.phone.number" = "Vaše telefonní číslo";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
-"settings.account.delete.spinner.replacement" = "Esperando respuesta del servidor";
+"settings.account.delete.spinner.replacement" = "Čeká se na odpověď serveru";
 
 /* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
-"settings.account.deleted.message" = "No serás capaz de iniciar sesión hasta que no reinicies la aplicación";
+"settings.account.deleted.message" = "Dokud aplikaci nerestartujete, nebudete se moci přihlásit";
 
 /* Alert title telling the user that their account was successfully deleted */
-"settings.account.deleted.title" = "Cuenta eliminada con éxito";
+"settings.account.deleted.title" = "Účet byl úspěšně odstraněn";
 
 /* Label telling the user when their data export will be made available. %1$@ is a date. */
-"settings.account.export.date.available" = "Por cuestiones de seguridad, tus datos estarán disponibles el %1$@";
+"settings.account.export.date.available" = "Z bezpečnostních důvodů budou vaše data k dispozici dne %1$@";
 
 /* Label alerting the user that we were unable to retrieve the data. */
-"settings.account.export.error" = "Hubo un error al intentar conseguir tus datos.";
+"settings.account.export.error" = "Při načítání vašich dat došlo k chybě.";
 
 /* Explanation about what the data export function is. English language version taken from WhatsApp. */
-"settings.account.export.explanation" = "Crea una memoria sobre tu información y configuración en tu cuenta de HalloApp, que puedes acceder o transferir a otra aplicación. Esta memoria no incluye tus mensajes.";
+"settings.account.export.explanation" = "Vytvořte si přehled o informacích a nastaveních účtu HalloApp, ke které můžete přistupovat nebo ji přenést do jiné aplikace. Tento přehled nezahrnuje vaše zprávy.";
 
 /* String indicating device is awaiting a server response. Only visible in iOS 13. */
-"settings.account.export.loading" = "Cargando datos...";
+"settings.account.export.loading" = "Načítání dat…";
 
 /* Navigation bar title informing the user that this page lets them export their user data. */
-"settings.account.export.navbar" = "Exportar datos";
+"settings.account.export.navbar" = "Export dat";
 
 /* Label for when the date at which the user data is not determined. */
-"settings.account.export.not.found" = "No pudo ser establecida la fecha para que esté listo.";
+"settings.account.export.not.found" = "Datum připravenosti nebylo možné stanovit.";
 
 /* Button to open the user data exported from HalloApp. */
-"settings.account.export.open.data" = "Abrir datos exportados";
+"settings.account.export.open.data" = "Otevřít exportovaná data";
 
 /* Navigation bar title informing the user that this page lets them export their user data. */
-"settings.account.export.request.button" = "Requerir exportación de datos";
+"settings.account.export.request.button" = "Zažádání o export dat";
 
 /* Label informing the user that they have requested their data. */
-"settings.account.export.requested" = "Datos solicitados";
+"settings.account.export.requested" = "Bylo zažádáno o data";
 
 /* Button to delete a user's account. */
-"settings.account.list.delete.account" = "Eliminar";
+"settings.account.list.delete.account" = "Odstranit";
 
 /* Row to export user data for GDPR compliance. */
-"settings.account.list.export.data" = "Exportar";
+"settings.account.list.export.data" = "Exportovat";
 
 /* Title for settings page containing account options. */
-"settings.account.list.title" = "Cuenta";
+"settings.account.list.title" = "Účet";
 
 /* App version text in Profile > Help. */
-"settings.app.version" = "Versión %@ de HalloApp";
+"settings.app.version" = "HalloApp verze %@";
 
 /* Settings menu section. */
-"settings.notifications" = "Notificaciones";
+"settings.notifications" = "Oznámení";
 
 /* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
-"settings.notifications.comments" = "Comentarios";
+"settings.notifications.comments" = "Komentáře";
 
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
-"settings.notifications.posts" = "Publicaciones";
+"settings.notifications.posts" = "Příspěvky";
 
 /* Settings menu section */
-"settings.privacy" = "Privacidad";
+"settings.privacy" = "Soukromí";
 
 /* Settings > Privacy: name of a setting that defines who can see your posts. */
-"settings.privacy.posts" = "Publicaciones";
+"settings.privacy.posts" = "Příspěvky";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Únete a mí en HalloApp, baja la la aplicación gratis en halloapp.com/dl";
+"settings.share.text" = "Připojte se ke mně v aplikaci HalloApp, kterou si můžete stáhnout zdarma na adrese halloapp.com/dl";
 
 /* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.add.reading.list" = "Añadir a la lista de lectura";
+"textlabel.context.menu.add.reading.list" = "Přidat do seznamu četby";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
-"textlabel.context.menu.call.number" = "Llamar a %@";
+"textlabel.context.menu.call.number" = "Zavolat %@";
 
 /* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.copy.link" = "Copiar enlace";
+"textlabel.context.menu.copy.link" = "Zkopírovat odkaz";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
-"textlabel.context.menu.copy.phone.number" = "Copiar número de teléfono";
+"textlabel.context.menu.copy.phone.number" = "Zkopírovat telefonní číslo";
 
 /* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.open.link" = "Abrir enlace";
+"textlabel.context.menu.open.link" = "Otevřít odkaz";
 
 /* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.share" = "Compartir";
+"textlabel.context.menu.share" = "Sdílet...";
 
 /* Link to expand truncated text. */
-"textlabel.more" = "...más";
+"textlabel.more" = "...více";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
-"thread.list.preview.already.user.default" = "%@ está en HalloApp";
+"thread.list.preview.already.user.default" = "%@ je na HalloApp";
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
-"thread.list.preview.new.user.default" = "%@ está en HalloApp! 🎉";
+"thread.list.preview.new.user.default" = "%@ je na HalloApp! 🎉";
 
 /* Last seen timestamp: full date in short format and time */
-"timestamp.last.seen.date.at.time" = "Visto por última vez el %1$@ a la(s) %2$@";
+"timestamp.last.seen.date.at.time" = "Naposledy zobrazeno %1$@ v %2$@";
 
 /* Last seen timestamp: day of week and time */
-"timestamp.last.seen.dayofweek.at.time" = "Visto por última vez el %1$@ a la(s) %2$@";
+"timestamp.last.seen.dayofweek.at.time" = "Naposledy zobrazeno %1$@ v %2$@";
 
 /* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "Visto por última vez hoy a las %@";
+"timestamp.last.seen.today.at" = "Naposledy zobrazeno dnes v %@";
 
 /* Last seen timestamp: yesterday at specific time. */
-"timestamp.last.seen.yesterday.at" = "Visto por última vez ayer a las %@ ";
+"timestamp.last.seen.yesterday.at" = "Naposledy zobrazeno včera v %@";
 
 /* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "Ahora";
+"timestamp.now.capitalized" = "Teď";
 
 /* Lowercase translation of `Now` to be used as timestamp. */
-"timestamp.now.lowercase" = "ahora";
+"timestamp.now.lowercase" = "teď";
 
 /* Timestamp: `Today` */
-"timestamp.today" = "Hoy";
+"timestamp.today" = "Dnes";
 
 /* Timestamp: `Yesterday` */
-"timestamp.yesterday" = "Ayer";
+"timestamp.yesterday" = "Včera";
 
 /* Screen title */
-"title.camera" = "Cámara";
+"title.camera" = "Fotoaparát";
 
 /* Title for new message screen where user chooses who to message */
-"title.chat.new.message" = "Nuevo mensaje";
+"title.chat.new.message" = "Nová zpráva";
 
 /* Third tab in the main app interface. */
-"title.chats" = "Conversaciones";
+"title.chats" = "Konverzace";
 
 /* Title for the Comments screen. */
-"title.comments" = "Comentarios";
+"title.comments" = "Komentáře";
 
 /* Second tab in the main app interface. */
-"title.groups" = "Grupos";
+"title.groups" = "Skupiny";
 
 /* First tab in the main app interface. */
-"title.home" = "Inicio";
+"title.home" = "Domů";
 
 /* Row in Settings screen */
-"title.notifications" = "Notificaciones";
+"title.notifications" = "Oznámení";
 
 /* Row in Settings screen */
-"title.privacy" = "Privacidad";
+"title.privacy" = "Soukromí";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.create.group" = "Crear grupo nuevo";
+"title.select.group.members.create.group" = "Vytvoření nové skupiny";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.title" = "Añadir miembros nuevos";
+"title.select.group.members.title" = "Přidání nových členů";
 
 /* Fourth tab in the main app interface */
-"title.settings" = "Configuración";
+"title.settings" = "Nastavení";
 
 /* Title for the screen with information about who saw your post. */
-"title.your.post" = "Visto por";
+"title.your.post" = "Viděno";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
-"turn.on.contacts" = "Activar \"Contactos\"";
+"turn.on.contacts" = "Zapnout \"Kontakty\"";
 
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
-"tutorial.tap.below" = "Pulsa \"%@\" a continuación.";
+"tutorial.tap.below" = "Klepněte na “%@” níže.";
 
 /* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Contacto desconocido";
+"unknown.contact" = "Neznámý kontakt";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
-"unknown.contact.accept.to.message" = "Acepta el mensaje para responder";
+"unknown.contact.accept.to.message" = "Přijmout zprávu za účelem odpovědi";
 
 /* Button to confirm blocking user via profile page */
-"user.block" = "Bloquear";
+"user.block" = "Blokovat";
 
 /* Message asking if the user is sure they want to block this user */
-"user.block.message" = "¿Estás seguro de que quieres bloquear a %@ en HalloApp? Siempre puedes cambiarlo más tarde.";
+"user.block.message" = "Určitě si přejete zablokovat %@ na HalloApp? Toto můžete později kdykoliv změnit.";
 
 /* Option when user taps more on profile page */
-"user.option.block" = "Bloquear en HalloApp";
+"user.option.block" = "Blokovat na HalloApp";
 
 /* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
-"user.option.copy.phone.number" = "Copiar número de teléfono";
+"user.option.copy.phone.number" = "Zkopírovat telefonní číslo";
 
 /* Option when user taps more on profile page */
-"user.option.unblock" = "Desbloquear en HalloApp";
+"user.option.unblock" = "Odblokovat v HalloApp";
 
 /* Button to confirm unblocking user via profile page */
-"user.unblock" = "Desbloquear";
+"user.unblock" = "Odblokovat";
 
 /* Message asking if the user is sure they want to unblock this user */
-"user.unblock.message" = "¿Seguro que quieres desbloquear a %@ en HalloApp? Siempre puedes cambiar esto más tarde.";
+"user.unblock.message" = "Opravdu chcete odblokovat uživatele %@ v HalloApp? Vždy to můžete později změnit.";
 
 /* Reference to the user, second person pronoun */
-"user.you" = "tú";
+"user.you" = "ty";
 
 /* Capitalized reference to the user, second person pronoun */
-"user.you.capitalized" = "Tú";
+"user.you.capitalized" = "Ty";
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";
 
 /* Title for the button that confirms intent to delete your own post. */
-"your.post.deletepost.button" = "Eliminar publicación";
+"your.post.deletepost.button" = "Smazat příspěvek";
 
 /* Post deletion confirmation. Displayed as action sheet title. */
-"your.post.deletepost.confirmation" = "¿Eliminar esta publicación? Está acción no se puede deshacer.";
+"your.post.deletepost.confirmation" = "Smazat tento příspěvek? Tuto akci nelze vrátit zpět.";
 
