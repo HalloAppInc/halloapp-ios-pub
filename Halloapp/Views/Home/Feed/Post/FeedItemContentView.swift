@@ -133,6 +133,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) {
         feedPost = post
 
+        // TODO: Make media view reusable (it hurts scroll performance to reinitialize for each post)
         if let mediaView = mediaView {
             let keepMediaView = postId == post.id && mediaView.configuration.gutterWidth == gutterWidth
             if !keepMediaView {
@@ -144,7 +145,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             }
         }
 
-        let media = MainAppContext.shared.feedData.media(for: post.id) ?? []
+        let media = MainAppContext.shared.feedData.media(for: post) ?? []
         if !media.isEmpty {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: media, width: contentWidth)
             DDLogInfo("FeedItemContentView/media-view-height post=[\(post.id)] height=[\(mediaViewHeight)]")
@@ -213,12 +214,69 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         postId = post.id
     }
 
-    static var forSizing: FeedItemContentView { FeedItemContentView() }
+    private static var textContentViewForSizing = { TextContentView() }()
 
-    static func preferredHeight(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) -> CGFloat {
-        let sizingView = Self.forSizing
-        sizingView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
-        return sizingView.systemLayoutSizeFitting(CGSize(width: contentWidth, height: 0)).height
+    // TODO: Optimize the `configure` function so we can just measure a view instead of duplicating all the layout logic.
+    class func preferredHeight(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) -> CGFloat {
+        var contentHeight = LayoutConstants.topMargin
+
+        let media = MainAppContext.shared.feedData.media(for: post)
+        if !media.isEmpty {
+            contentHeight += MediaCarouselView.preferredHeight(for: media, width: contentWidth)
+        }
+
+        let textContentView: TextContentView? = {
+            let postContainsText = !(post.text ?? "").isEmpty
+            if post.isPostUnsupported  {
+                let text = NSMutableAttributedString(string: "⚠️ " + Localizations.feedPostUnsupported)
+
+                if let url = AppContext.appStoreURL {
+                    let link = NSMutableAttributedString(string: Localizations.linkUpdateYourApp)
+                    link.addAttribute(.link, value: url, range: link.utf16Extent)
+                    text.append(NSAttributedString(string: " "))
+                    text.append(link)
+                }
+
+                let font = UIFont.preferredFont(forTextStyle: .body).withItalicsIfAvailable
+
+                let textContentView = textContentViewForSizing
+                textContentView.textLabel.attributedText = text.with(font: font, color: .label)
+                textContentView.textLabel.numberOfLines = 0
+                textContentView.layoutMargins.top = 8
+
+                return textContentView
+            } else if postContainsText {
+                let isTextExpanded = displayData?.isTextExpanded ?? false
+                let postText = MainAppContext.shared.contactStore.textWithMentions(
+                    post.text,
+                    mentions: post.orderedMentions)
+                let postFont: UIFont = {
+                    let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
+                    let fontSizeDiff: CGFloat = media.isEmpty && (postText?.string ?? "").count <= 180 ? 3 : -1
+                    return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
+                }()
+
+                let textContentView = textContentViewForSizing
+                textContentView.textLabel.attributedText = postText?.with(font: postFont, color: .label)
+                textContentView.textLabel.numberOfLines = isTextExpanded ? 0 : media.isEmpty ? 10 : 3
+                // Adjust vertical margins around text.
+                textContentView.layoutMargins.top = media.isEmpty ? 9 : 11
+
+                return textContentView
+            } else {
+                return nil
+            }
+        }()
+
+        if let textContentView = textContentView {
+            let targetSize = CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
+            let textContentViewSize = textContentView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+
+            contentHeight += textContentViewSize.height
+        }
+
+        contentHeight += post.hideFooterSeparator ? LayoutConstants.bottomMarginNoSeparator : LayoutConstants.bottomMarginWithSeparator
+        return contentHeight
     }
 
     func prepareForReuse() { }

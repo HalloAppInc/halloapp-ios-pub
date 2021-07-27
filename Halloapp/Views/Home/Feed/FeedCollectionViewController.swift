@@ -640,7 +640,7 @@ extension FeedCollectionViewController {
     }
     
     private func getMedia(feedPost: FeedPost) -> [(type: FeedMediaType, url: URL)] {
-        guard let feedMedia = MainAppContext.shared.feedData.media(for: feedPost.id) else { return [] }
+        let feedMedia = MainAppContext.shared.feedData.media(for: feedPost)
 
         var mediaItems: [(type: FeedMediaType, url: URL)] = []
         

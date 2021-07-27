@@ -1312,13 +1312,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     // MARK: Feed Media
 
+    func media(for post: FeedPost) -> [FeedMedia] {
+        if let cachedMedia = cachedMedia[post.id] {
+            return cachedMedia
+        } else {
+            let media = (post.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
+            cachedMedia[post.id] = media
+            return media
+        }
+    }
+
     func media(for postID: FeedPostID) -> [FeedMedia]? {
         if let cachedMedia = cachedMedia[postID] {
             return cachedMedia
         } else if let post = MainAppContext.shared.feedData.feedPost(with: postID) {
-            let media = (post.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
-            cachedMedia[postID] = media
-            return media
+            return media(for: post)
         } else {
             return nil
         }

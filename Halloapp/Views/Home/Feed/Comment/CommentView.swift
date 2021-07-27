@@ -346,7 +346,8 @@ class CommentsTableHeaderView: UIView {
             mediaView.removeFromSuperview()
             self.mediaView = nil
         }
-        if !feedPost.orderedMedia.isEmpty, let media = MainAppContext.shared.feedData.media(for: feedPost.id) {
+        if !feedPost.orderedMedia.isEmpty {
+            let media = MainAppContext.shared.feedData.media(for: feedPost)
             MainAppContext.shared.feedData.loadImages(for: feedPost.id)
 
             var configuration = MediaCarouselViewConfiguration.minimal

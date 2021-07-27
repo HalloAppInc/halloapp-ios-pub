@@ -13,7 +13,8 @@ import UIKit
 
 fileprivate extension FeedPost {
     var hideFooterSeparator: Bool {
-        !orderedMedia.isEmpty && text?.isEmpty ?? true
+        // Separator should be hidden for media-only posts.
+        text?.isEmpty ?? true
     }
 }
 
