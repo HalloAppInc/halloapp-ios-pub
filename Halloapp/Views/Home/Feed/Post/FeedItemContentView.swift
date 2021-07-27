@@ -897,7 +897,7 @@ final class FeedItemFooterView: UIView {
         errorText.constrainMargins([ .leading, .top, .bottom ], to: view)
 
         deleteButton.constrainMargins([ .top, .bottom ], to: view)
-        deleteButton.widthAnchor.constraint(equalTo: retryButton.heightAnchor).isActive = true
+        deleteButton.widthAnchor.constraint(equalTo: deleteButton.heightAnchor).isActive = true
         deleteButton.leadingAnchor.constraint(equalToSystemSpacingAfter: errorText.trailingAnchor, multiplier: 1).isActive = true
 
         retryButton.constrainMargins([ .trailing, .top, .bottom ], to: view)

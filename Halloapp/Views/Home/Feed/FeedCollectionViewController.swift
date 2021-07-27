@@ -626,6 +626,10 @@ extension FeedCollectionViewController {
             guard let self = self else { return }
             self.retrySending(postId: postId)
         }
+        cell.deleteAction = { [weak self] in
+            guard let self = self else { return }
+            self.handleDeletePostTapped(postId: postId)
+        }
         cell.delegate = self
     }
     
