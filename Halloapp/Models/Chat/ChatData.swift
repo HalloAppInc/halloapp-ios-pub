@@ -1618,14 +1618,18 @@ extension ChatData {
                     switch $0 {
                     case .success(let result):
                         let path = self.relativePath(from: output)
-                        DDLogDebug("FeedData/process-mediaItem/success: \(msgID)/\(mediaIndex)")
+                        DDLogDebug("ChatData/process-mediaItem/success: \(msgID)/\(mediaIndex)")
                         self.updateChatMessage(with: msgID, block: { msg in
-                            guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
+                            guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else {
+                                DDLogError("ChatData/process-mediaItem/failed to save/msgId: \(msgID)/\(mediaIndex)")
+                                return
+                            }
 
                             media.size = result.size
                             media.key = result.key
                             media.sha256 = result.sha256
                             media.relativeFilePath = path
+                            DDLogDebug("ChatData/updating chat message: \(msgID), relativeFilePath: \(path)")
                         }) {
                             self.uploadChat(msgID: msgID, mediaIndex: mediaIndex, completion: uploadCompletion)
                         }
@@ -1665,13 +1669,13 @@ extension ChatData {
     }
 
     private func uploadChat(msgID: String, mediaIndex: Int16, completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
-        guard let msg = chatMessage(with: msgID),
+        guard let msg = chatMessage(with: msgID, in: bgContext),
               let chatMedia = msg.media?.first(where: { $0.order == mediaIndex }) else {
             DDLogError("ChatData/uploadChat/fetch msg and media \(msgID)/\(mediaIndex) - missing")
             return
         }
 
-        DDLogDebug("ChatData/uploadChat/media \(msgID)/\(chatMedia.order), index:\(mediaIndex)")
+        DDLogDebug("ChatData/uploadChat/media \(msgID)/\(chatMedia.order), index:\(mediaIndex), path: \(chatMedia.relativeFilePath)")
         guard let relativeFilePath = chatMedia.relativeFilePath else {
             DDLogError("ChatData/uploadChat/\(msgID)/\(mediaIndex) missing file path")
             return completion(.failure(MediaUploadError.invalidUrls))
@@ -1683,7 +1687,7 @@ extension ChatData {
 
             // Lookup object from coredata again instead of passing around the object across threads.
             DDLogInfo("ChatData/uploadChat/fetch upload hash \(msgID)/\(mediaIndex)")
-            guard let msg = self.chatMessage(with: msgID),
+            guard let msg = self.chatMessage(with: msgID, in: self.bgContext),
                   let media = msg.media?.first(where: { $0.order == mediaIndex }) else {
                 DDLogError("ChatData/uploadChat/fetch msg and media \(msgID)/\(mediaIndex) - missing")
                 return
@@ -1698,7 +1702,7 @@ extension ChatData {
                 }
                 media.url = url
             } else {
-                DDLogInfo("ChatData/uploadChat/uploading media now\(msgID)/\(media.order), index:\(mediaIndex)")
+                DDLogInfo("ChatData/uploadChat/uploading media now/\(msgID)/\(media.order), index:\(mediaIndex)")
             }
 
             self.mediaUploader.upload(media: media, groupId: msgID, didGetURLs: { (mediaURLs) in

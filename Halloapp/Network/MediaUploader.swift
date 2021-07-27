@@ -303,6 +303,8 @@ final class MediaUploader {
         case .directUpload:
             fileSize = 0
         }
+        DDLogInfo("MediaUploader/requestUrlsAndStartTask/fileSize: \(fileSize), fileURL: \(task.fileURL)")
+
         service.requestMediaUploadURL(size: fileSize, downloadURL: task.downloadURL) { result in
             guard !task.isCanceled else { return }
             switch result {
