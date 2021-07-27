@@ -12,17 +12,10 @@ import UIKit
 class MediaPickerSnapshotManager {
     private var assets: PHFetchResult<PHAsset>?
     private var snapshot = NSDiffableDataSourceSnapshot<Int, PHAsset>()
+    private var nextIndex = 0
     
     private let pageSize = 400
     private let filter: MediaPickerFilter
-    
-    private var nextIndex = 0
-    private var thisYear = Calendar.current.component(.year, from: Date())
-    private var currentYear = -1
-    private var currentDay = -1
-    private var currentMonth = -1
-    private var itemsInMonth = 0
-    private var itemsInDay = 0
     
     init(filter: MediaPickerFilter = .all) {
         self.filter = filter
@@ -31,17 +24,12 @@ class MediaPickerSnapshotManager {
     
     func reset(with assets: PHFetchResult<PHAsset>) {
         snapshot.deleteAllItems()
+
+        snapshot = NSDiffableDataSourceSnapshot<Int, PHAsset>()
         snapshot.appendSections([0])
+        nextIndex = 0
 
         self.assets = assets
-        
-        nextIndex = 0
-        thisYear = Calendar.current.component(.year, from: Date())
-        currentYear = -1
-        currentDay = -1
-        currentMonth = -1
-        itemsInMonth = 0
-        itemsInDay = 0
     }
 
     func update(change: PHChange) -> NSDiffableDataSourceSnapshot<Int, PHAsset>? {
