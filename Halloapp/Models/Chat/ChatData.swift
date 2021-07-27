@@ -87,10 +87,10 @@ class ChatData: ObservableObject {
     
     private let uploadQueue = DispatchQueue(label: "com.halloapp.chat.upload")
     
-    private let downloadQueue = DispatchQueue(label: "com.halloapp.chat.download", qos: .userInitiated)
+    private let downloadQueue = DispatchQueue(label: "com.halloapp.chat.download")
     private let maxNumDownloads: Int = 3
     private var currentlyDownloading: [URL] = []
-    private let maxTries: Int = 10
+    private let maxTries: Int = 100
     
     private let persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: MainAppContext.chatStoreURL)
@@ -276,7 +276,8 @@ class ChatData: ObservableObject {
                 self.processPendingSeenReceipts()
 
                 if (UIApplication.shared.applicationState == .active) {
-                    self.currentlyDownloading.removeAll()
+                    DDLogDebug("ChatData/didConnect/currentlyDownloading/num/\(self.currentlyDownloading.count)/removeAll")
+                    self.removeAllCurrentDownloads()
                     self.processInboundPendingChatMsgMedia()
                 }
 
@@ -502,13 +503,35 @@ class ChatData: ObservableObject {
             }
         }
     }
-    
+
+    private func appendToCurrentDownloads(url: URL?) {
+        guard let url = url else { return }
+        downloadQueue.sync { [weak self] in
+            self?.currentlyDownloading.append(url)
+        }
+    }
+
+    private func removeAllCurrentDownloads() {
+        downloadQueue.sync { [weak self] in
+            self?.currentlyDownloading.removeAll()
+        }
+    }
+
+    private func removeFromCurrentDownloads(url: URL?) {
+        guard let url = url else { return }
+        downloadQueue.sync { [weak self] in
+            guard let self = self else { return }
+            if let index = self.currentlyDownloading.firstIndex(of: url) {
+                self.currentlyDownloading.remove(at: index)
+            }
+        }
+    }
+
     func processInboundPendingChatMsgMedia() {
-        guard currentlyDownloading.count <= maxNumDownloads else { return }
-        
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            
+            guard self.currentlyDownloading.count <= self.maxNumDownloads else { return }
+
             let pendingMessagesWithMedia = self.pendingIncomingChatMessagesMedia(in: managedObjectContext)
             
             for chatMessage in pendingMessagesWithMedia {
@@ -521,8 +544,8 @@ class ChatData: ObservableObject {
                     guard $0.incomingStatus == .pending else { return false }
                     guard !self.currentlyDownloading.contains(url) else { return false }
                     if $0.numTries > self.maxTries {
-                        // just logging for now and not stopping the attempt
-                        DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\($0.order)/numTries: \($0.numTries)")
+                        DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\($0.order)/reached maxTries: \(self.maxTries), numTries: \($0.numTries)")
+                        return false
                     }
                     return true
                 } ) else { continue }
@@ -531,7 +554,7 @@ class ChatData: ObservableObject {
                 
                 guard let url = med.url else { continue }
                 
-                self.currentlyDownloading.append(url)
+                self.appendToCurrentDownloads(url: url)
 
                 let threadId = chatMessage.fromUserId
                 let messageId = chatMessage.id
@@ -552,9 +575,7 @@ class ChatData: ObservableObject {
                     self.didGetMediaDownloadProgress.send((messageId, Int(order), progress))
                 }, completion: { [weak self] (outputUrl) in
                     guard let self = self else { return }
-                    if let index = self.currentlyDownloading.firstIndex(of: url) {
-                        self.currentlyDownloading.remove(at: index)
-                    }
+                    self.removeFromCurrentDownloads(url: url)
                     
                     var encryptedData: Data
                     do {
@@ -572,6 +593,7 @@ class ChatData: ObservableObject {
                     do {
                         decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
                     } catch {
+                        DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\(med.order)/could not decrypt media data")
                         return
                     }
 
