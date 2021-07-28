@@ -604,7 +604,7 @@
 "invite.text" = "Mach mit bei HalloApp — eine Möglichkeit ganz einfach, privat und sicher den Kontakt zu Freunden und zur Familie zu halten. Hol sie dir auf: https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Hallo %1$@, ich lade dich ein, dich auch bei HalloApp anzumelden. Ein Netzwerk für echte Beziehungen und diejenigen, die mir am nächsten stehen. Nutze %2$@ zur Registrierung und hol sie dir auf https://halloapp.com/dl";
+"invite.text.specific" = "Hey %1$@, ich lade dich ein, dich auch bei HalloApp anzumelden. Ein Netzwerk für echte Beziehungen und diejenigen, die einem am nächsten stehen. Nutze %2$@ zur Registrierung und hol sie dir auf https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Einladen";
