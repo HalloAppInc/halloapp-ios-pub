@@ -61,7 +61,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
         if alreadyHaveMembers {
             navigationItem.title = Localizations.titleSelectGroupMembers
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add", style: .done, target: self, action: #selector(addAction))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonAdd, style: .done, target: self, action: #selector(addAction))
         } else {
             navigationItem.title = Localizations.titleSelectGroupMembersCreateGroup
             navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))

@@ -43,7 +43,7 @@ extension Localizations {
     static var buttonDone: String {
         NSLocalizedString("button.done", value: "Done", comment: "Title for generic Done button. Mostly used to complete some modal flow.")
     }
-    
+
     static var buttonSave: String {
         NSLocalizedString("button.save", value: "Save", comment: "Title for generic Save button. Mostly used to complete some modal flow.")
     }
@@ -82,6 +82,10 @@ extension Localizations {
     
     static var buttonDelete: String {
         NSLocalizedString("Delete", comment: "Title for generic delete button.")
+    }
+
+    static var buttonAdd: String {
+        NSLocalizedString("button.add", value: "Add", comment: "Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group)")
     }
     
     // MARK: Links
