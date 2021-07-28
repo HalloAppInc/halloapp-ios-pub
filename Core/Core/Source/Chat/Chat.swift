@@ -70,6 +70,22 @@ public struct ChatContext {
     public var chatReplyMessageSenderID: String? = nil
 }
 
+public extension ChatContext {
+    var clientContext: Clients_ChatContext {
+        var context = Clients_ChatContext()
+        if let feedPostID = feedPostID {
+            context.feedPostID = feedPostID
+            context.feedPostMediaIndex = feedPostMediaIndex
+        }
+        if let chatReplyMessageID = chatReplyMessageID, let chatReplyMessageSenderID = chatReplyMessageSenderID {
+            context.chatReplyMessageID = chatReplyMessageID
+            context.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
+            context.chatReplyMessageSenderID = chatReplyMessageSenderID
+        }
+        return context
+    }
+}
+
 public extension ChatMessageProtocol {
     var protoContainer: Clients_Container? {
         get {
@@ -85,6 +101,7 @@ public extension ChatMessageProtocol {
 
     var clientChatContainer: Clients_ChatContainer? {
         var container = Clients_ChatContainer()
+        container.context = context.clientContext
         switch content {
         case .album(let text, let media):
             var album = Clients_Album()
