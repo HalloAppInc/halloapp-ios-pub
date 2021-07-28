@@ -67,6 +67,12 @@ class ShareViewController: UINavigationController {
             ShareExtensionContext.shared.coreService.startConnectingIfNecessary()
         }
 
+        // When a user switches away from the extension - we want to abort the entire action here.
+        NotificationCenter.default.addObserver(forName: .NSExtensionHostWillResignActive, object: nil, queue: nil) { _ in
+            ShareExtensionContext.shared.coreService.disconnect()
+            self.extensionContext?.cancelRequest(withError: ShareError.cancel)
+        }
+
         guard ShareExtensionContext.shared.userData.isLoggedIn else {
             DDLogError("ShareViewController/init/error  user is not logged in")
 

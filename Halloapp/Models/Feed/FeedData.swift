@@ -2301,6 +2301,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/merge-data/duplicate (duplicate in batch) [\(post.id)")
                 continue
             }
+            // Dont merge posts with invalid status - these posts were interrupted in between by the user.
+            // So, we will discard them completeley and let the user retry it.
+            guard post.status != .none else {
+                DDLogError("FeedData/merge-data/ignore merging post [\(post.id)], status: \(post.status)")
+                continue
+            }
 
             let postId = post.id
             addedPostIDs.insert(postId)
