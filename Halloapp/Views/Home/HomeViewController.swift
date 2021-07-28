@@ -370,7 +370,8 @@ class HomeViewController: UITabBarController {
 
         let barItemWidth = tabBarItemView.bounds.width
 
-        let x = (barItemWidth * 0.5 + (barItems[index].selectedImage?.size.width ?? barItemWidth) / 2) - 5
+        let selectedItemWidth: CGFloat = barItems[index].selectedImage?.size.width ?? barItemWidth
+        let x: CGFloat = (barItemWidth + selectedItemWidth) * 0.5 - 5
         let y: CGFloat = 8
         let size: CGFloat = 6
 
