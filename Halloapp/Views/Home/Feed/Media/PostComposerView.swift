@@ -809,7 +809,7 @@ fileprivate struct TextView: UIViewRepresentable {
         textView.delegate = context.coordinator
         textView.font = .preferredFont(forTextStyle: .body)
         textView.inputAccessoryView = context.coordinator.mentionPicker
-        textView.isScrollEnabled = true
+        textView.isScrollEnabled = mediaItems.count > 0
         textView.isEditable = true
         textView.isUserInteractionEnabled = true
         textView.backgroundColor = UIColor.clear
@@ -838,26 +838,16 @@ fileprivate struct TextView: UIViewRepresentable {
             }
         }
 
-        TextView.recomputeHeight(textView: uiView, resultHeight: textHeight)
-        TextView.recomputeTextSize(
-            textView: uiView, textSize: input.value.text.count, isPostWithMedia: mediaItems.count > 0)
+        TextView.recomputeTextViewSizes(uiView, textSize: input.value.text.count, isPostWithMedia: mediaItems.count > 0, height: textHeight)
     }
 
-    private static func recomputeHeight(textView: UIView, resultHeight: GenericObservable<CGFloat>) {
-        let newSize = textView.sizeThatFits(CGSize(width: textView.frame.size.width, height: CGFloat.greatestFiniteMagnitude))
-        if resultHeight.value != newSize.height {
-            DispatchQueue.main.async {
-                resultHeight.value = newSize.height
-            }
-        }
-    }
+    private static func recomputeTextViewSizes(_ textView: UITextView, textSize: Int, isPostWithMedia: Bool, height: GenericObservable<CGFloat>) {
+        DispatchQueue.main.async {
+            let font = PostComposerLayoutConstants.getFontSize(textSize: textSize, isPostWithMedia: isPostWithMedia)
+            textView.font = font
 
-    private static func recomputeTextSize(textView: UITextView, textSize: Int, isPostWithMedia: Bool) {
-        let fontToUse = PostComposerLayoutConstants.getFontSize(textSize: textSize, isPostWithMedia: isPostWithMedia)
-        if textView.font != fontToUse {
-            DispatchQueue.main.async {
-                textView.font = fontToUse
-            }
+            let size = textView.sizeThatFits(CGSize(width: textView.frame.size.width, height: CGFloat.greatestFiniteMagnitude))
+            height.value = size.height
         }
     }
 
@@ -938,18 +928,16 @@ fileprivate struct TextView: UIViewRepresentable {
                 textView.text = mentionInput.text
                 textView.selectedRange = mentionInput.selectedRange
                 parent.input.value = mentionInput
-                TextView.recomputeHeight(textView: textView, resultHeight: parent.textHeight)
-                TextView.recomputeTextSize(
-                    textView: textView, textSize: parent.input.value.text.count, isPostWithMedia: parent.mediaItems.count > 0)
+
+                TextView.recomputeTextViewSizes(textView, textSize: parent.input.value.text.count, isPostWithMedia: parent.mediaItems.count > 0, height: parent.textHeight)
                 return false
             }
         }
 
         func textViewDidChange(_ textView: UITextView) {
             parent.input.value.text = textView.text ?? ""
-            TextView.recomputeHeight(textView: textView, resultHeight: parent.textHeight)
-            TextView.recomputeTextSize(
-                textView: textView, textSize: parent.input.value.text.count, isPostWithMedia: parent.mediaItems.count > 0)
+
+            TextView.recomputeTextViewSizes(textView, textSize: parent.input.value.text.count, isPostWithMedia: parent.mediaItems.count > 0, height: parent.textHeight)
             updateMentionPickerContent()
         }
 
