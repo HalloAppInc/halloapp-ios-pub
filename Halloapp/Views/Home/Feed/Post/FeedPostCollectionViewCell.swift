@@ -228,7 +228,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
         headerView.configure(with: post)
         if showGroupName {
-            configureGroupLabel(with: post.groupId)
+            configureGroupLabel(with: post.groupId, contentWidth: contentWidth, gutterWidth: gutterWidth)
         }
         headerView.showUserAction = { [weak self] in
             self?.showUserAction?(post.userId)
@@ -256,8 +256,8 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         footerView.configure(with: post, contentWidth: contentWidth)
     }
     
-    func configureGroupLabel(with groupID: String?) {
-        headerView.configureGroupLabel(with: groupID)
+    func configureGroupLabel(with groupID: String?, contentWidth: CGFloat, gutterWidth: CGFloat) {
+        headerView.configureGroupLabel(with: groupID, contentWidth: contentWidth, gutterWidth: gutterWidth)
     }
 
     // MARK: Height computation

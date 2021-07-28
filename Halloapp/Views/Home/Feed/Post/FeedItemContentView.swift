@@ -521,7 +521,7 @@ final class FeedItemHeaderView: UIView {
         moreButton.isHidden = !post.canSaveMedia && post.userId != MainAppContext.shared.userData.userId
     }
     
-    func configureGroupLabel(with groupID: String?) {
+    func configureGroupLabel(with groupID: String?, contentWidth: CGFloat, gutterWidth: CGFloat) {
         if let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) {
             
             let attrText = NSMutableAttributedString(string: "")
@@ -542,7 +542,7 @@ final class FeedItemHeaderView: UIView {
 
             groupNameLabel.attributedText = attrText
 
-            if isRowTruncated() {
+            if isRowTruncated(contentWidth: contentWidth, gutterWidth: gutterWidth) {
                 let shortAttrText = attrText.mutableCopy() as! NSMutableAttributedString
                 let range = (shortAttrText.string as NSString).range(of: " \(groupChat.name)")
                 shortAttrText.deleteCharacters(in: range)
@@ -575,7 +575,7 @@ final class FeedItemHeaderView: UIView {
         showGroupFeedAction?()
     }
 
-    private func isRowTruncated() -> Bool {
+    private func isRowTruncated(contentWidth: CGFloat, gutterWidth: CGFloat) -> Bool {
         var totalTextWidth = getLabelTextWidth(nameLabel)
         totalTextWidth += getLabelTextWidth(groupNameLabel)
         
@@ -583,9 +583,9 @@ final class FeedItemHeaderView: UIView {
             totalTextWidth += moreButton.frame.width
         }
         
-        totalTextWidth += avatarViewButton.frame.width + 65 // rough estimate of avatar, margins, paddings, etc.
+        totalTextWidth += avatarViewButton.frame.width + 2 * gutterWidth + 40 // estimated padding
         
-        if totalTextWidth > UIScreen.main.bounds.size.width {
+        if totalTextWidth > contentWidth {
             return true
         } else {
             return false
