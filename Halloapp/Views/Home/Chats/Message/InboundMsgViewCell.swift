@@ -451,17 +451,20 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     
     
     func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, displayText: DisplayText, media: Set<ChatMedia>?, timestamp: Date?) {
-        
+
         if isNextMsgSameSender {
             contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 3, right: 18)
         } else {
             contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 12, right: 18)
         }
-                
+
+        var showRightToLeft: Bool = false
+
         // text
         switch displayText {
         case .normal(let text, let orderedMentions):
-            if text.count <= 3 && text.containsOnlyEmoji {
+            showRightToLeft = text.isRightToLeftLanguage()
+            if text.count <= 4 && text.containsOnlyEmoji {
                 textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
             if orderedMentions.count > 0 {
@@ -490,7 +493,11 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 color: .chatTime)
         }
 
-        textView.makeTextWritingDirectionLeftToRight(nil)
+        if !showRightToLeft {
+            textView.makeTextWritingDirectionLeftToRight(nil)
+        } else {
+            textView.makeTextWritingDirectionRightToLeft(nil)
+        }
 
         // media
         if let media = media {

@@ -516,29 +516,31 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
             timeAndStatusLabel.attributedText = result
         }
-        
+    
         // text
-        var isLargeFontEmoji = false
         let text = text ?? ""
+        var isLargeFontEmoji = false
+        var showRightToLeft = text.isRightToLeftLanguage()
+
         if text.count <= 3 && text.containsOnlyEmoji {
             isLargeFontEmoji = true
+            showRightToLeft = true // show large emoji text from right to left
         }
-        
+
         let textRatio = isLargeFontEmoji ? 1.2 : 1.7
-            
+
         var blanks = " \u{2800}" // extra space so links can work
         let numBlanks = timeAndStatusLabel.text?.count ?? 1
         blanks += String(repeating: "\u{00a0}", count: Int(Double(numBlanks)*textRatio)) // nonbreaking spaces
-        
-        let font = textView.font ?? UIFont.preferredFont(forTextStyle: TextFontStyle)
+
+        var font = textView.font ?? UIFont.preferredFont(forTextStyle: TextFontStyle)
         let color = textView.textColor ?? UIColor.chatOwnMsg
-        
+
         let attrText = NSMutableAttributedString(string: "")
         
-        if !isLargeFontEmoji {
-
+        if !showRightToLeft {
             let textWithBlanks = text + blanks
-            
+
             if orderedMentions.count > 0 {
                 if let mentionText = MainAppContext.shared.contactStore.textWithMentions(textWithBlanks, mentions: orderedMentions) {
                     attrText.append(mentionText.with(font: font, color: color))
@@ -546,28 +548,27 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             } else {
                 attrText.append(NSMutableAttributedString(string: textWithBlanks, attributes: [.font: font, .foregroundColor: color]))
             }
-            
         } else {
-            // special case for large emoji
-            
-            // align to right instead of left
             let paragraph = NSMutableParagraphStyle()
             paragraph.alignment = .right
-
-            // set the font size to large
-            attrText.append(NSMutableAttributedString(string: text,
-                                                       attributes: [.font: UIFont.preferredFont(forTextStyle: .largeTitle),
-                                                                    .paragraphStyle: paragraph]))
+            
+            if isLargeFontEmoji {
+                font = UIFont.preferredFont(forTextStyle: .largeTitle)
+            }
+            attrText.append(NSMutableAttributedString(string: text, attributes: [.font: font, .paragraphStyle: paragraph]))
 
             // add newline and pad with spaces to accommodate timestamp below it
-            attrText.append(NSMutableAttributedString(string: "\n \u{2800}\(blanks)",
-                                                        attributes: [.font: UIFont.preferredFont(forTextStyle: .body),
-                                                                     .paragraphStyle: paragraph]))
-
+            let padStr = "\n \u{2800}\(blanks)"
+            let padTimeFont = UIFont.preferredFont(forTextStyle: .body)
+            attrText.append(NSMutableAttributedString(string: padStr, attributes: [.font: padTimeFont, .paragraphStyle: paragraph]))
         }
 
         textView.attributedText = attrText
-        textView.makeTextWritingDirectionLeftToRight(nil) // force ltr until we support rtl
+        if !showRightToLeft {
+            textView.makeTextWritingDirectionLeftToRight(nil)
+        } else {
+            textView.makeTextWritingDirectionRightToLeft(nil)
+        }
     }
     
     func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {
@@ -644,3 +645,4 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         delegate?.outboundMsgViewCell(self, didLongPressOn: messageID)
     }
 }
+
