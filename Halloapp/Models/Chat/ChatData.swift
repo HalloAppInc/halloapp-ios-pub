@@ -1651,7 +1651,7 @@ extension ChatData {
                             media.key = result.key
                             media.sha256 = result.sha256
                             media.relativeFilePath = path
-                            DDLogDebug("ChatData/updating chat message: \(msgID), relativeFilePath: \(path)")
+                            DDLogDebug("ChatData/updating chat message: \(msgID), relativeFilePath: \(path ?? "nil")")
                         }) {
                             self.uploadChat(msgID: msgID, mediaIndex: mediaIndex, completion: uploadCompletion)
                         }
@@ -1697,7 +1697,7 @@ extension ChatData {
             return
         }
 
-        DDLogDebug("ChatData/uploadChat/media \(msgID)/\(chatMedia.order), index:\(mediaIndex), path: \(chatMedia.relativeFilePath)")
+        DDLogDebug("ChatData/uploadChat/media \(msgID)/\(chatMedia.order), index:\(mediaIndex), path: \(chatMedia.relativeFilePath ?? "nil")")
         guard let relativeFilePath = chatMedia.relativeFilePath else {
             DDLogError("ChatData/uploadChat/\(msgID)/\(mediaIndex) missing file path")
             return completion(.failure(MediaUploadError.invalidUrls))
