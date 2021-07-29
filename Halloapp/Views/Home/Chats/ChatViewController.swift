@@ -55,8 +55,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private var cancellableSet: Set<AnyCancellable> = []
 
-    private var mediaPickerController: MediaPickerViewController?
-
     private var firstActionHappened: Bool = false
 
     // MARK: Lifecycle
@@ -892,8 +890,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                                                    chatReplyMessageID: chatReplyMessageID,
                                                    chatReplyMessageSenderID: chatReplyMessageSenderID,
                                                    chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
-        
-        
+
         chatInputView.closeQuoteFeedPanel()
 
         feedPostId = nil
@@ -914,31 +911,21 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     }
 
     private func presentMediaPicker() {
-        guard mediaPickerController == nil else { return }
-
-        mediaPickerController = MediaPickerViewController(camera: true) { [weak self] controller, media, cancel in
+        let vc = MediaPickerViewController(camera: true) { [weak self] controller, media, cancel in
             guard let self = self else { return }
-
             if cancel {
-                self.dismissMediaPicker(animated: true)
+                self.dismiss(animated: true)
             } else {
                 self.presentMediaComposer(pickerController: controller, media: media)
             }
         }
 
-        present(UINavigationController(rootViewController: mediaPickerController!), animated: true)
+        present(UINavigationController(rootViewController: vc), animated: true)
 
         if !firstActionHappened {
             delegate?.chatViewController(self, userActioned: true)
             firstActionHappened = true
         }
-    }
-
-    private func dismissMediaPicker(animated: Bool) {
-        if mediaPickerController != nil {
-            dismiss(animated: animated)
-        }
-        mediaPickerController = nil
     }
 
     private func presentMediaComposer(pickerController: MediaPickerViewController, media: [PendingMedia]) {
@@ -977,15 +964,22 @@ extension ChatViewController: CNContactViewControllerDelegate {
 
 // MARK: PostComposerView Delegates
 extension ChatViewController: PostComposerViewDelegate {
+
     func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia]) {
         sendMessage(text: mentionText.trimmed().collapsedText, media: media)
-        controller.dismiss(animated: false)
-        dismissMediaPicker(animated: false)
+        view.window?.rootViewController?.dismiss(animated: true, completion: nil)
     }
 
     func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia]) {
         controller.dismiss(animated: false)
-        mediaPickerController?.reset(selected: media)
+
+        let presentedVC = self.presentedViewController
+
+        if let viewControllers = (presentedVC as? UINavigationController)?.viewControllers {
+            if let mediaPickerController = viewControllers.last as? MediaPickerViewController {
+                mediaPickerController.reset(selected: media)
+            }
+        }
     }
 
     func willDismissWithInput(mentionInput: MentionInput) {
