@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "¡Bienvenido a HalloApp!";
 
+/* Text label for action button to add the contact to the address book */
+"add.to.contact.book" = "Añadir a libreta de contactos";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "No hay conexión a Internet";
 
@@ -51,6 +54,9 @@
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "No hay conexión de Internet";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Añadir";
 
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */

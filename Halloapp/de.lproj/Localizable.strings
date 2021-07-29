@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "Herzlich willkommen zu HalloApp!";
 
+/* Text label for action button to add the contact to the address book */
+"add.to.contact.book" = "Zu meinen Kontakten hinzufügen";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Keine Internetverbindung";
 
