@@ -1,0 +1,3 @@
+Use any phone number with SMS capability to sign in.
+
+CallKit functionality is disabled for Chinese locales.
