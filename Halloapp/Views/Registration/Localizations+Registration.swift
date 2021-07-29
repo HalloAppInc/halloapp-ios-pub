@@ -32,6 +32,14 @@ extension Localizations {
         NSLocalizedString("registration.invite.only", value: "If you followed a Group Invite Link to register, please click on the link again to finish registration and join the group.", comment: "Popup that appears when user tries to register uninvited number")
     }
 
+    static var registrationInvalidPhoneTitle: String {
+        NSLocalizedString("registration.invalidphone", value: "Shucks!", comment: "Title for popup that appears when user tries to register invalid number")
+    }
+
+    static var registrationInvalidPhoneText: String {
+        NSLocalizedString("registration.invalidphone.only", value: "The phone number you entered is invalid. Please recheck.", comment: "Popup that appears when user tries to register invalid number")
+    }
+
     static var registrationCodeDisclaimer: String {
         NSLocalizedString("registration.code.disclaimer", value: "You’ll receive a verification code.\nCarrier rates may apply.", comment: "Disclaimer text about receiving SMS verification code")
     }

@@ -262,6 +262,16 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
                         }))
                         self.present(alert, animated: true)
 
+                    case .invalid_phone_number:
+                        let alert = UIAlertController(
+                            title: Localizations.registrationInvalidPhoneTitle,
+                            message: Localizations.registrationInvalidPhoneText,
+                            preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel, handler: { [weak self] _ in
+                            self?.navigationController?.popViewController(animated: true)
+                        }))
+                        self.present(alert, animated: true)
+
                     case .invalidClientVersion:
                         let alert = self.getAppUpdateAlertController()
                         self.present(alert, animated: true)

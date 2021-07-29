@@ -291,6 +291,7 @@ public final class DefaultRegistrationService: RegistrationService {
 }
 
 public enum VerificationCodeRequestError: String, Error, RawRepresentable {
+    case invalid_phone_number = "invalid_phone_number"      // phone number provided is invalid
     case notInvited = "not_invited"
     case smsFailure = "sms_fail"
     case invalidClientVersion = "invalid_client_version"    // client version has expired.
@@ -304,6 +305,7 @@ public enum GetGroupNameError: String, Error, RawRepresentable {
 }
 
 public enum VerificationCodeValidationError: String, Error, RawRepresentable {
+    case invalid_phone_number = "invalid_phone_number"      // phone number provided is invalid
     case incorrectCode = "wrong_sms_code"                   // The sms code provided does not match
     case missingPhone = "missing_phone"                     // Request is missing phone field
     case missingCode = "missing_code"                       // Request is missing code field
