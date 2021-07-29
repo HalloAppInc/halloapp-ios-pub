@@ -370,7 +370,8 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         resendAllPendingRequests()
     }
 
-    open func didReceive(packet: Server_Packet, requestID: String) {
+    open func didReceive(packet: Server_Packet) {
+        let requestID = packet.requestID ?? "unknown-id"
         DDLogInfo("proto/didReceivePacket/\(requestID)")
         func removeRequest(with id: String, outOf requests: inout [ProtoRequestBase]) -> [ProtoRequestBase] {
             let filteredSequence = requests.enumerated().filter { $0.element.requestId == id }
@@ -401,12 +402,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
 extension ProtoServiceCore: NoiseDelegate {
     public func receivedPacket(_ packet: Server_Packet) {
-        guard let requestID = packet.requestID else {
-            // TODO: Remove this limitation (only present for parity with XMPP/ProtoStream behavior)
-            DDLogError("proto/receivedPacket/error packet missing request ID [\(packet)]")
-            return
-        }
-        didReceive(packet: packet, requestID: requestID)
+        didReceive(packet: packet)
     }
 
     public func receivedAuthResult(_ authResult: Server_AuthResult) {

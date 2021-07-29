@@ -500,8 +500,10 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    override func didReceive(packet: Server_Packet, requestID: String) {
-        super.didReceive(packet: packet, requestID: requestID)
+    override func didReceive(packet: Server_Packet) {
+        super.didReceive(packet: packet)
+
+        let requestID = packet.requestID ?? "unknown-id"
 
         switch packet.stanza {
         case .ack(let ack):
