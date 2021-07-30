@@ -141,24 +141,55 @@ final class MediaUploader {
 
     // MARK: Task Management
 
+    private let tasksQueue = DispatchQueue(label: "com.halloapp.media.uploader", qos: .userInitiated)
     private var tasks = Set<Task>()
 
-    func activeTaskGroupIdentifiers() -> Set<String> {
-        return Set(tasks.map({ $0.groupId }))
+    private func addTask(task: Task) {
+        tasksQueue.sync {
+            _ = tasks.insert(task)
+        }
     }
 
     func hasTasks(forGroupId groupId: String) -> Bool {
-        return tasks.contains(where: { $0.groupId == groupId })
+        return !tasks(forGroupId: groupId).isEmpty
+    }
+
+    private func tasks(forGroupId groupId: String) -> Set<Task> {
+        tasksQueue.sync {
+            return tasks.filter { $0.groupId == groupId }
+        }
+    }
+
+    private func cancelAllTasks() {
+        tasksQueue.sync {
+            for task in tasks {
+                task.cancel()
+                tasks.remove(task)
+            }
+        }
+    }
+
+    private func cancelTasks(withGroupID groupID: String) {
+        tasksQueue.sync {
+            for task in tasks.filter({ $0.groupId == groupID }) {
+                task.cancel()
+                tasks.remove(task)
+            }
+        }
     }
 
     private func finish(task: Task) {
-        task.finished()
-        tasks.remove(task)
+        tasksQueue.sync {
+            task.finished()
+            tasks.remove(task)
+        }
     }
 
     private func fail(task: Task, withError error: Error) {
-        task.failed(withError: error)
-        tasks.remove(task)
+        tasksQueue.sync {
+            task.failed(withError: error)
+            tasks.remove(task)
+        }
     }
 
     // Tus is the name of the protocol we use for resumable file uploads.
@@ -240,7 +271,7 @@ final class MediaUploader {
     let uploadProgressDidChange = PassthroughSubject<(String, Float), Never>()
 
     func uploadProgress(forGroupId groupId: String) -> Float {
-        let (totalSize, uploadedSize) = tasks.filter({ $0.groupId == groupId }).reduce(into: (Int64(0), Int64(0))) { (result, task) in
+        let (totalSize, uploadedSize) = tasks(forGroupId: groupId).reduce(into: (Int64(0), Int64(0))) { (result, task) in
             result.0 += task.totalUploadSize
             result.1 += task.completedSize
         }
@@ -261,23 +292,18 @@ final class MediaUploader {
     // MARK: Starting / canceling uploads.
 
     func cancelAllUploads() {
-        tasks.forEach({ $0.cancel() })
-        tasks.removeAll()
+        cancelAllTasks()
     }
 
     func cancelUpload(groupId: String) {
-        let tasksToCancel = tasks.filter({ $0.groupId == groupId })
-        tasksToCancel.forEach { (task) in
-            task.cancel()
-            tasks.remove(task)
-        }
+        cancelTasks(withGroupID: groupId)
     }
 
     func upload(media mediaItem: MediaUploadable, groupId: String, didGetURLs: @escaping (MediaURLInfo) -> (), completion: @escaping Completion) {
         let fileURL = resolveMediaPath(mediaItem.encryptedFilePath!)
         let task = Task(groupId: groupId, mediaUrls: mediaItem.urlInfo, index: Int(mediaItem.index), fileURL: fileURL, didGetUrls: didGetURLs, completion: completion)
         // Task might fail immediately so make sure it's added before being started.
-        tasks.insert(task)
+        addTask(task: task)
 
         // Fetch urls if necessary and start media upload.
         switch task.mediaUrls {
