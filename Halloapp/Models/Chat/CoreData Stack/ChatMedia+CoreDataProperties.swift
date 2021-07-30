@@ -34,7 +34,7 @@ extension ChatMedia {
 
     var `type`: ChatMessageMediaType {
         get {
-            return ChatMessageMediaType(rawValue: Int(self.typeValue))!
+            return ChatMessageMediaType(rawValue: Int(self.typeValue)) ?? .image
         }
         set {
             self.typeValue = Int16(newValue.rawValue)

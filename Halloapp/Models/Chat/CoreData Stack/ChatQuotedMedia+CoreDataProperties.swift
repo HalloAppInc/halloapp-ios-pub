@@ -36,7 +36,7 @@ extension ChatQuotedMedia {
 
     var type: ChatQuoteMediaType {
         get {
-            return ChatQuoteMediaType(rawValue: self.typeValue)!
+            return ChatQuoteMediaType(rawValue: self.typeValue) ?? .image
         }
         set {
             self.typeValue = newValue.rawValue

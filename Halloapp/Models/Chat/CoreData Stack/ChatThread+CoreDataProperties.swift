@@ -68,7 +68,7 @@ extension ChatThread {
     
     var type: ChatType {
         get {
-            return ChatType(rawValue: self.typeValue)!
+            return ChatType(rawValue: self.typeValue) ?? .oneToOne
         }
         set {
             self.typeValue = newValue.rawValue
@@ -77,7 +77,7 @@ extension ChatThread {
     
     var lastMsgStatus: LastMsgStatus {
         get {
-            return LastMsgStatus(rawValue: self.lastMsgStatusValue)!
+            return LastMsgStatus(rawValue: self.lastMsgStatusValue) ?? .none
         }
         set {
             self.lastMsgStatusValue = newValue.rawValue
@@ -86,7 +86,7 @@ extension ChatThread {
     
     var lastMsgMediaType: LastMediaType {
         get {
-            return LastMediaType(rawValue: self.lastMsgMediaTypeValue)!
+            return LastMediaType(rawValue: self.lastMsgMediaTypeValue) ?? .none
         }
         set {
             self.lastMsgMediaTypeValue = newValue.rawValue
@@ -95,7 +95,7 @@ extension ChatThread {
 
     var lastFeedStatus: LastFeedStatus {
         get {
-            return LastFeedStatus(rawValue: self.lastFeedStatusValue)!
+            return LastFeedStatus(rawValue: self.lastFeedStatusValue) ?? .none
         }
         set {
             self.lastFeedStatusValue = newValue.rawValue
@@ -104,7 +104,7 @@ extension ChatThread {
     
     var lastFeedMediaType: LastMediaType {
         get {
-            return LastMediaType(rawValue: self.lastMsgMediaTypeValue)!
+            return LastMediaType(rawValue: self.lastMsgMediaTypeValue) ?? .none
         }
         set {
             self.lastMsgMediaTypeValue = newValue.rawValue
