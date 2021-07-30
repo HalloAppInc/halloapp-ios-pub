@@ -122,20 +122,10 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
                         cell.configureWithReceipt(receipt, using: MainAppContext.shared.avatarStore)
                         return cell
                     case .more:
-                        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.actionCellReuseIdentifier, for: indexPath) as! ActionTableViewCell
-                        cell.color = .secondaryLabel
+                        guard let cell = tableView.dequeueReusableCell(withIdentifier: Constants.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell else { break }
+                        guard let image = UIImage(systemName: "chevron.down")?.withRenderingMode(.alwaysTemplate) else { break }
+                        cell.configure(icon: image, label: Localizations.buttonMore)
                         cell.imageBgColor = .clear
-
-                        let messageStatusIcon: UIImage? = UIImage(systemName: "chevron.down")?.withTintColor(.secondaryLabel)
-                        let result = NSMutableAttributedString(string: "")
-                        if let messageStatusIcon = messageStatusIcon {
-                            let iconAttachment = NSTextAttachment(image: messageStatusIcon)
-                            result.append(NSAttributedString(attachment: iconAttachment))
-                            result.append(NSAttributedString(string: "  ")) // two spaces, looks better
-                        }
-                        result.append(NSAttributedString(string: Localizations.buttonMore))
-
-                        cell.configure(attrText: result)
                         return cell
                     }
                 default:
@@ -148,14 +138,14 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
                 switch row.actionRow {
                 case .privacy:
                     if let image = UIImage(named: "settingsPrivacy")?.withRenderingMode(.alwaysTemplate) {
-                        cell.color = .secondaryLabel
+                        cell.color = .primaryBlue
                         cell.imageBgColor = .clear
                         cell.configure(icon: image, label: Localizations.myPostRowManagePrivacy)
                     }
                     return cell
                 case .invite:
                     if let image = UIImage(named: "settingsInvite")?.withRenderingMode(.alwaysTemplate) {
-                        cell.color = .secondaryLabel
+                        cell.color = .primaryBlue
                         cell.imageBgColor = .clear
                         cell.configure(icon: image, label: Localizations.myPostRowInvite)
                     }
