@@ -74,7 +74,8 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         labelTitle.numberOfLines = 0
         labelTitle.setContentCompressionResistancePriority(.required, for: .vertical)
         if let formattedNumber = delegate?.formattedPhoneNumber {
-            labelTitle.text = Localizations.registrationCodeInstructions(formattedNumber: formattedNumber)
+            let formattedNumberNonBreakingLines = formattedNumber.replacingOccurrences(of: " ", with: "\u{00a0}")
+            labelTitle.text = Localizations.registrationCodeInstructions(formattedNumber: formattedNumberNonBreakingLines)
         }
 
         activityIndicatorView.setContentHuggingPriority(.required, for: .horizontal)
