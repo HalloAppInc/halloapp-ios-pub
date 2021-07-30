@@ -585,11 +585,11 @@ class ContactStoreMain: ContactStore {
                     contact.status = .invalid
                     inserted.append(contact)
                     contacts.append(contact)
-                } else if existingContacts.count == 1 && phoneToContactMap.isEmpty {
+                } else if let firstContact = existingContacts.first, existingContacts.count == 1 && phoneToContactMap.isEmpty {
                     // If contact still has no phone numbers associated - mark it as current.
                     // Otherwise do nothing and let code below create ABContact entries for
                     // each phone number and entry without phone number will be deleted.
-                    contacts.append(existingContacts.first!)
+                    contacts.append(firstContact)
                 }
             }
         }
@@ -602,15 +602,15 @@ class ContactStoreMain: ContactStore {
                 continue
             }
             uniqueContactKeys.insert(contactKey)
-            var contact = phoneToContactMap[phoneProxy.phoneNumber.unformattedPhoneNumber()]
-            if contact == nil {
+            if let contact = phoneToContactMap[phoneProxy.phoneNumber.unformattedPhoneNumber()] {
+                contacts.append(contact)
+            } else {
                 let newContact = self.addNewContact(from: contactProxy, into: context)
                 newContact.phoneNumber = phoneProxy.phoneNumber
                 phoneToContactMap[phoneProxy.phoneNumber] = newContact
                 inserted.append(newContact)
-                contact = newContact
+                contacts.append(newContact)
             }
-            contacts.append(contact!)
         }
 
         // Update all contacts with the same name.
@@ -753,7 +753,7 @@ class ContactStoreMain: ContactStore {
     private func update(contacts: [ABContact], with xmppContact: XMPPContact) -> [ABContact] {
         var newUsers: [ABContact] = []
         if xmppContact.normalized == nil {
-            DDLogInfo("contacts/sync/process-results/invalid [\(xmppContact.raw!)]")
+            DDLogInfo("contacts/sync/process-results/invalid [\(xmppContact.raw ?? "<missing raw>")]")
         }
         for abContact in contacts {
             // status field is not modified in the sync anymore.
@@ -769,7 +769,7 @@ class ContactStoreMain: ContactStore {
                 if abContact.phoneNumberHash == nil {
                     let hashData: Data? = normalizedPhoneNumber.sha256()
                     abContact.phoneNumberHash = hashData?.prefix(8).toHexString()
-                    DDLogInfo("contacts/sync/process-results/hash-update [\(xmppContact.normalized!)]:[\(abContact.phoneNumberHash!)]")
+                    DDLogInfo("contacts/sync/process-results/hash-update [\(xmppContact.normalized ?? "<missing normalized number>")]:[\(abContact.phoneNumberHash ?? "<missing hash>")]")
                 }
             } else if abContact.phoneNumberHash != nil {
                 abContact.phoneNumberHash = nil
@@ -803,9 +803,9 @@ class ContactStoreMain: ContactStore {
 
         let startTime = Date()
         var discoveredUsers: [ABContact] = []
-        let phoneNumberToContactsMap = contactsMatching(phoneNumbers: results.map{ $0.raw! }, in: managedObjectContext)
+        let phoneNumberToContactsMap = contactsMatching(phoneNumbers: results.compactMap { $0.raw }, in: managedObjectContext)
         for xmppContact in results {
-            if let matchingContacts = phoneNumberToContactsMap[xmppContact.raw!], !matchingContacts.isEmpty {
+            if let raw = xmppContact.raw, let matchingContacts = phoneNumberToContactsMap[raw], !matchingContacts.isEmpty {
                 let contacts = update(contacts: matchingContacts, with: xmppContact)
                 discoveredUsers.append(contentsOf: contacts)
             }
@@ -835,7 +835,7 @@ class ContactStoreMain: ContactStore {
         DDLogInfo("contacts/notification/process userIds=[\(xmppContacts.map({ $0.userid ?? "<no userId>" }))]")
         let selfPhoneNumber = self.userData.normalizedPhoneNumber
         // Server can send a "new friend" notification for user's own phone number too (on first sync) - filter that one out.
-        let allNormalizedPhoneNumbers = xmppContacts.map{ $0.normalized! }.filter{ $0 != selfPhoneNumber }
+        let allNormalizedPhoneNumbers = xmppContacts.compactMap { $0.normalized }.filter { $0 != selfPhoneNumber }
         guard !allNormalizedPhoneNumbers.isEmpty else {
             DDLogInfo("contacts/notification/process/empty")
             return
@@ -843,7 +843,7 @@ class ContactStoreMain: ContactStore {
         var discoveredUsers: [ABContact] = []
         let phoneNumberToContactsMap = self.contactsMatching(normalizedPhoneNumbers: allNormalizedPhoneNumbers, in: managedObjectContext)
         for xmppContact in xmppContacts {
-            if let matchingContacts = phoneNumberToContactsMap[xmppContact.normalized!], !matchingContacts.isEmpty {
+            if let normalized = xmppContact.normalized, let matchingContacts = phoneNumberToContactsMap[normalized], !matchingContacts.isEmpty {
                 let contacts = update(contacts: matchingContacts, with: xmppContact)
                 discoveredUsers.append(contentsOf: contacts)
             }
