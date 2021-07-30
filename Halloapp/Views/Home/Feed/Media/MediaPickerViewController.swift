@@ -188,7 +188,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             guard let self = self else { return }
             
             let options = PHFetchOptions()
-            options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+            options.sortDescriptors = [NSSortDescriptor(key: "modificationDate", ascending: false)]
             
             if let album = album {
                 // Unable to filter album assets by type, will filter them in snapshot manager
@@ -740,6 +740,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     @objc private func openAlbumsAction() {
         let controller = MediaAlbumsViewController() {[weak self] controller, album, cancel in
             guard let self = self else { return }
+            DDLogInfo("openAlbumsAction \(album)")
             
             controller.dismiss(animated: true)
             
