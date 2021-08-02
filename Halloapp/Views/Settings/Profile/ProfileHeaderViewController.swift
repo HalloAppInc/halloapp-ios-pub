@@ -16,6 +16,10 @@ fileprivate struct Constants {
     static let MaxFontPointSize: CGFloat = 34
 }
 
+protocol ProfileHeaderDelegate: AnyObject {
+    func profileHeaderDidTapUnblock(_ profileHeader: ProfileHeaderViewController)
+}
+
 final class ProfileHeaderViewController: UIViewController {
     var isEditingAllowed: Bool = false {
         didSet {
@@ -26,6 +30,8 @@ final class ProfileHeaderViewController: UIViewController {
     }
     
     var name: String? { headerView.name }
+    var userId: UserID = ""
+    weak var delegate: ProfileHeaderDelegate?
 
     private var cancellableSet: Set<AnyCancellable> = []
     
@@ -57,7 +63,7 @@ final class ProfileHeaderViewController: UIViewController {
         headerView.userID = userId
         headerView.avatarViewButton.avatarView.configure(with: userId, using: MainAppContext.shared.avatarStore)
         headerView.name = MainAppContext.shared.contactStore.fullName(for: userId)
-
+        let isBlockedFlag = isBlocked(userId: userId)
         let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId)
 
         if isContactInAddressBook {
@@ -70,8 +76,17 @@ final class ProfileHeaderViewController: UIViewController {
                 headerView.messageButton.isHidden = true
                 headerView.phoneLabel.isHidden = true
             }
-            headerView.canMessage = true
-            headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
+          
+            if !isBlockedFlag {
+                headerView.messageButton.isHidden = false
+                headerView.canMessage = true
+                headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
+                headerView.unblockButton.isHidden = true
+            } else {
+                headerView.unblockButton.isHidden = false
+                headerView.messageButton.isHidden = true
+                headerView.unblockButton.addTarget(self, action: #selector(unblockButtonTappedprofile), for: .touchUpInside)
+            }
         } else {
             headerView.messageButton.isHidden = true
             headerView.phoneLabel.isHidden = true
@@ -79,9 +94,42 @@ final class ProfileHeaderViewController: UIViewController {
         headerView.avatarViewButton.addTarget(self, action: #selector(avatarViewTapped), for: .touchUpInside)
         
     }
+          
+    func isBlocked(userId: UserID) -> Bool {
+        guard let blockedList = MainAppContext.shared.privacySettings.blocked else {
+            return false
+        }
+        return blockedList.userIds.contains(userId)
+    }
 
     func configureAsHorizontal() {
         headerView.configureAsHorizontal()
+    }
+    
+    @objc func unblockButtonTappedprofile() {
+        
+        let unBlockMessage = Localizations.unBlockMessage(username: MainAppContext.shared.contactStore.fullName(for: userId))
+
+        let alert = UIAlertController(title: nil, message: unBlockMessage, preferredStyle: .actionSheet)
+        let button = UIAlertAction(title: Localizations.unBlockButton, style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+            let privacySettings = MainAppContext.shared.privacySettings
+            guard let blockedList = privacySettings.blocked else { return }
+            
+            var newBlockList = blockedList.userIds
+            newBlockList.removeAll { value in return value == self.userId}
+            privacySettings.replaceUserIDs(in: blockedList, with: newBlockList)
+            
+            self.headerView.updateBlockedStatus()
+            self.headerView.messageButton.addTarget(self, action: #selector(self.openChatView), for: .touchUpInside)
+            self.delegate?.profileHeaderDidTapUnblock(self)
+        }
+        alert.addAction(button)
+
+        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
+        alert.addAction(cancel)
+        
+        present(alert, animated: true)
     }
     
     // MARK: Profile Name Editing
@@ -336,6 +384,11 @@ private final class ProfileHeaderView: UIView {
         ])
         
     }
+    
+    func updateBlockedStatus() {
+        self.canMessage = true
+        self.unblockButton.isHidden = true
+    }
 
     private var vStackTopAnchorConstraint: NSLayoutConstraint?
     private var vStackBottomAnchorConstraint: NSLayoutConstraint?
@@ -398,7 +451,7 @@ private final class ProfileHeaderView: UIView {
     }()
     
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, phoneLabel, messageButton])
+        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, phoneLabel, messageButton, unblockButton ])
         view.axis = .vertical
         view.alignment = .center
         view.spacing = 5
@@ -415,6 +468,19 @@ private final class ProfileHeaderView: UIView {
         
         button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
         button.setTitle(Localizations.profileHeaderMessageUser, for: .normal)
+        
+        button.isHidden = true
+        return button
+        
+    }()
+    
+    private(set) lazy var unblockButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 10)
+        button.tintColor = .primaryBlue
+        
+        button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
+        button.setTitle(Localizations.unBlockedUser, for: .normal)
         
         button.isHidden = true
         return button
@@ -449,6 +515,10 @@ extension Localizations {
         NSLocalizedString("profile.header.message.user", value: "Message", comment: "Text for messaging user under profile header")
     }
     
+    static var unBlockedUser: String {
+        NSLocalizedString("profile.header.unblock.user", value: "Unblock", comment: "Text for unblocking user under profile header")
+    }
+  
     static var groupsInCommonButtonLabel: String {
         NSLocalizedString("profile.groups.in.common", value: "Groups In Common", comment: "A label for the button which leads to the page showing groups in common")
     }

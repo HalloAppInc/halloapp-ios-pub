@@ -21,15 +21,8 @@ class UserFeedViewController: FeedCollectionViewController {
 
     init(userId: UserID) {
         self.userId = userId
-        self.blockflag = false
+        self.isUserBlocked = false
         super.init(title: nil, fetchRequest: FeedDataSource.userFeedRequest(userID: userId))
-        
-        guard let blockedList = MainAppContext.shared.privacySettings.blocked else {
-            return
-        }
-        if blockedList.userIds.contains(self.userId) {
-            self.blockflag = true
-        }
     }
 
     required init?(coder: NSCoder) {
@@ -40,7 +33,7 @@ class UserFeedViewController: FeedCollectionViewController {
     private var headerViewController: ProfileHeaderViewController!
     private var cancellables = Set<AnyCancellable>()
     
-    private var blockflag: Bool
+    var isUserBlocked: Bool
 
     private lazy var exchangeNumbersView: UIView = {
         let image = UIImage(named: "FeedExchangeNumbers")?.withRenderingMode(.alwaysTemplate)
@@ -70,8 +63,16 @@ class UserFeedViewController: FeedCollectionViewController {
         super.viewDidLoad()
 
         installExchangeNumbersView()
+        
+        guard let blockedList = MainAppContext.shared.privacySettings.blocked else {
+            return
+        }
+        if blockedList.userIds.contains(self.userId) {
+            self.isUserBlocked = true
+        }
 
         headerViewController = ProfileHeaderViewController()
+        headerViewController.delegate = self
         if isOwnFeed {
             title = Localizations.titleMyPosts
             
@@ -137,7 +138,7 @@ class UserFeedViewController: FeedCollectionViewController {
         }
 
         /* Block on HalloApp */
-        if !blockflag {
+        if !isUserBlocked {
             let blockUserAction = UIAlertAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self] _ in
                 self?.blockUserTapped()
             }
@@ -182,7 +183,8 @@ class UserFeedViewController: FeedCollectionViewController {
             guard let blockedList = privacySettings.blocked else { return }
             guard let userId = self?.userId else { return }
             privacySettings.replaceUserIDs(in: blockedList, with: blockedList.userIds + [userId])
-            self?.blockflag = true
+            self?.isUserBlocked = true
+            self?.headerViewController.configureOrRefresh(userId: userId)
         }
         alert.addAction(button)
         
@@ -205,9 +207,9 @@ class UserFeedViewController: FeedCollectionViewController {
             
             var newBlockList = blockedList.userIds
             newBlockList.removeAll { value in return value == userId}
-            
             privacySettings.replaceUserIDs(in: blockedList, with: newBlockList)
-            self?.blockflag = false
+            self?.isUserBlocked = false
+            self?.headerViewController.configureOrRefresh(userId: userId)
         }
         alert.addAction(button)
 
@@ -317,9 +319,12 @@ class UserFeedViewController: FeedCollectionViewController {
     }
 }
 
-extension UserFeedViewController: CNContactViewControllerDelegate {
+extension UserFeedViewController: CNContactViewControllerDelegate, ProfileHeaderDelegate {
     func contactViewController(_ viewController: CNContactViewController, didCompleteWith contact: CNContact?) {
         navigationController?.popViewController(animated: true)
+    }
+    func profileHeaderDidTapUnblock(_ profileHeader: ProfileHeaderViewController) {
+        isUserBlocked = false
     }
 }
 
