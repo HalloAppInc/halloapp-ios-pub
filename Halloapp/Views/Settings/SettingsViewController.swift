@@ -39,7 +39,7 @@ private extension Localizations {
     }
     
     static var shareHalloAppString: String {
-        NSLocalizedString("settings.share.text", value: "Join me on HalloApp, download for free at halloapp.com/dl", comment: "String to auto-fill if a user tried to share to a friend.")
+        NSLocalizedString("settings.share.text", value: "Join my real-relationship network on HalloApp. Download for free at halloapp.com/dl", comment: "String to auto-fill if a user tried to share to a friend.")
     }
 }
 
