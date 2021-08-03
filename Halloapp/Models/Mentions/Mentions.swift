@@ -37,6 +37,9 @@ extension Mentions {
         // Allow mentioning everyone who has commented on the post
         contactSet.formUnion(post.comments?.map { $0.userId } ?? [])
 
+        // Allow mentioning everyone who has been mentioned in a comment
+        contactSet.formUnion(post.comments?.flatMap { $0.mentions?.map { $0.userID } ?? [] } ?? [])
+
         // Disallow self mentions
         contactSet.remove(MainAppContext.shared.userData.userId)
 
