@@ -319,6 +319,8 @@ class HomeViewController: UITabBarController {
                     self.dismiss(animated: true)
                 }))
                 self.present(alert, animated: true, completion: nil)
+                DDLogVerbose("HomeViewController/presentGroupPreviewIfNeeded/inviteToken/\(inviteToken)/remove inviteToken")
+                MainAppContext.shared.userData.groupInviteToken = nil
             }
         }
     }
