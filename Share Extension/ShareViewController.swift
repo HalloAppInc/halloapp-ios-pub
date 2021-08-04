@@ -64,11 +64,13 @@ class ShareViewController: UINavigationController {
 
         // Reconnect when a user switches between HalloApp and extension
         NotificationCenter.default.addObserver(forName: .NSExtensionHostWillEnterForeground, object: nil, queue: nil) { _ in
+            DDLogInfo("ShareViewController/Observer/NSExtensionHostWillEnterForeground - try connecting")
             ShareExtensionContext.shared.coreService.startConnectingIfNecessary()
         }
 
         // When a user switches away from the extension - we want to abort the entire action here.
         NotificationCenter.default.addObserver(forName: .NSExtensionHostWillResignActive, object: nil, queue: nil) { _ in
+            DDLogInfo("ShareViewController/Observer/NSExtensionHostWillResignActive - disconnect and cancel action")
             ShareExtensionContext.shared.coreService.disconnect()
             self.extensionContext?.cancelRequest(withError: ShareError.cancel)
         }
