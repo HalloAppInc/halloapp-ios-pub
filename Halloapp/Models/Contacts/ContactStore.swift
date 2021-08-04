@@ -392,7 +392,9 @@ class ContactStoreMain: ContactStore {
                             CNContactPhoneNumbersKey as CNKeyDescriptor, CNContactEmailAddressesKey as CNKeyDescriptor ]
         let cnContactFetchRequest = CNContactFetchRequest(keysToFetch: keysToFetch)
         ///TODO: check memory usage for larger address books on older devices
-        cnContactFetchRequest.predicate = CNContact.predicateForContacts(withIdentifiers: allContactIdentifiers)
+        if !allContactIdentifiers.isEmpty {
+            cnContactFetchRequest.predicate = CNContact.predicateForContacts(withIdentifiers: allContactIdentifiers)
+        }
         cnContactFetchRequest.sortOrder = .userDefault
         do {
             try cnContactStore.enumerateContacts(with: cnContactFetchRequest) { (cnContact, stop) in
