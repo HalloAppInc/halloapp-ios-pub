@@ -8,7 +8,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "Voici HalloApp ! Et nous l'avons créée pour vous et vos proches. \nNous avons redonné aux applications de réseaux sociaux leurs caractéristiques de base, tout en ajoutant une couche de sécurité et de confidentialité à laquelle nous pensons que tout le monde devrait avoir accès. \nHalloApp n'utilisera jamais vos informations personnelles et ne vous montrera jamais de publicités. \nEn revanche, nous prévoyons finalement d'offrir des fonctionnalités supplémentaires à un prix modique.";
+"about.body.1" = "Voici Hallo App ! Nous l'avons créée pour vous et vos proches. \n\nNous avons rapporté les applications de réseaux sociaux aux leurs caractéristiques de base, tout en ajoutant une couche de sécurité et de confidentialité à laquelle nous pensons que tout le monde devrait avoir accès.\n\nHalloApp n'utilisera jamais vos informations personnelles et ne vous montrera jamais de publicités.\n\nEn revance, nous prévoyons de vous offrir des fonctionnalités supplémentaires à un prix modique.";
 
 /* About screen: body text. */
 "about.body.2" = "Merci d'utiliser et de partager HalloApp avec vos amis et votre famille. Nous l'améliorons chaque semaine.";
@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "Bienvenue sur HalloApp !";
 
+/* Text label for action button to add the contact to the address book */
+"add.to.contact.book" = "Ajouter à mes contacts";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Pas de connexion Internet";
 
@@ -51,6 +54,9 @@
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Pas de connexion Internet";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Ajouter";
 
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
@@ -224,6 +230,9 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Inviter des amis";
 
+/* Message text shown in a message that have audio media but no text */
+"chat.message.audio" = "message vocale";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Ce message a été supprimé.";
 
@@ -241,6 +250,12 @@
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
 "chat.message.waiting" = "En attente de ce message. Cela peut prendre un certain temps.";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Pour activer l'enregistrement audio, appuyez sur Paramètres, puis activez le microphone";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Impossible d'accéder au micro";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "écrit...";
@@ -688,6 +703,9 @@
 "media.voiceover.button.flip" = "Retourner la photo";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "mode silencieux";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.rotate" = "Faire pivoter la photo";
 
 /* Message action. Verb. */
@@ -765,6 +783,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 vidéo";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "message vocale";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Hallo !";
@@ -928,6 +949,9 @@
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Installe HalloApp pour ouvrir %@";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Le numéro de téléphone que vous avez entré n'est pas valide. Veuillez revérifier.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Si tu as suivi un lien d'invitation de groupe pour t'inscrire, clique à nouveau sur le lien pour terminer l'inscription et rejoindre le groupe.";

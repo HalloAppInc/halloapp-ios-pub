@@ -102,6 +102,9 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
 
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Nota de voz";
+
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Contacto desconocido";
 

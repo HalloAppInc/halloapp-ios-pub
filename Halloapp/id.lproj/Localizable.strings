@@ -224,6 +224,9 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Undang Teman";
 
+/* Message text shown in a message that have audio media but no text */
+"chat.message.audio" = "Pesan suara";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Pesan ini sudah dihapus";
 
@@ -241,6 +244,12 @@
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
 "chat.message.waiting" = "Menanti pesan ini. Ini mungkin butuh waktu.";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Untuk mengaktifkan perekaman audio, ketuk pada pengaturan dan kemudian nyalakan Mikrofon";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Tidak dapat mengakses mikrofon";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "sedang mengetik...";
@@ -765,6 +774,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Pesan suara";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Halo!";

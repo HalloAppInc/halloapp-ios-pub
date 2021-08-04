@@ -224,6 +224,9 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Pozvat přátele";
 
+/* Message text shown in a message that have audio media but no text */
+"chat.message.audio" = "Hlasová poznámka";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Tato zpráva byla smazána";
 
@@ -241,6 +244,12 @@
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
 "chat.message.waiting" = "Čeká se na tuto zprávu. Může to chvíli trvat.";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Chcete-li povolit nahrávání zvuku, klepněte na možnost Nastavení a zapněte mikrofon.";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Nelze získat přístup k mikrofonu";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "píše...";
@@ -765,6 +774,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Hlasová poznámka";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Hallo!";

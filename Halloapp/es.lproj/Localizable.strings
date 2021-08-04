@@ -230,6 +230,9 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Invita amigos";
 
+/* Message text shown in a message that have audio media but no text */
+"chat.message.audio" = "Nota de voz";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Este mensaje fue eliminado.";
 
@@ -247,6 +250,12 @@
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
 "chat.message.waiting" = "Esperando este mensaje. Podría llevar un tiempo.";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Para poder grabar audio, por favor selecciona Configuración y enciende el micrófono";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "No pudo accederse al micrófono";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "escribiendo...";
@@ -775,6 +784,9 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
 
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Nota de voz";
+
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "¡Hola!";
 
@@ -857,6 +869,9 @@
 /* Text for messaging user under profile header */
 "profile.header.message.user" = "Enviar un mensaje";
 
+/* Text for unblocking user under profile header */
+"profile.header.unblock.user" = "Desbloquear";
+
 /* Item in Profile > Help screen. */
 "profile.help.faq" = "Preguntas frecuentes";
 
@@ -937,6 +952,12 @@
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Instala HalloApp para abrir %@";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "¡Caramba!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "El número de teléfono que has marcado no es válido. Por favor, revísalo.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Por el momento Hallo App solo se puede usar con invitación. Si tienes un amigo o un familiar que use HalloApp, diles que te inviten usando tu número de teléfono.";

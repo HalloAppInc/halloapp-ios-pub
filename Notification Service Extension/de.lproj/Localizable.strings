@@ -4,6 +4,9 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Bitte überprüfe, ob du eine Internetverbindung hast, und versuche es dann noch einmal.";
 
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Hinzufügen";
+
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
 "button.cancel" = "Abbrechen";
@@ -92,6 +95,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 Video";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Sprachnotiz";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Kontakt unbekannt";

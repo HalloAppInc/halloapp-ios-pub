@@ -4,6 +4,9 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Merci de vérifier si tu disposes d'une connexion Internet, puis réessaye.";
 
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Ajouter";
+
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
 "button.cancel" = "Annuler";
@@ -112,6 +115,9 @@
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Installe HalloApp pour ouvrir %@";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Le numéro de téléphone que vous avez entré n'est pas valide. Veuillez revérifier.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Si tu as suivi un lien d'invitation de groupe pour t'inscrire, clique à nouveau sur ce lien pour terminer l'inscription et rejoindre le groupe.";

@@ -8,7 +8,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "HalloApp ist da! Wir entwickeln diese App für dich und deine Liebsten. HalloApp ist eine Social-App, die sich wieder auf das Wesentliche besinnt und dabei gleichzeitig ein hohes Sicherheits- und Datenschutzniveau bietet, zu dem, wie wir meinen, jeder weltweit Zugriff haben sollte.\nHalloApp wird niemals deine persönlichen Daten verwenden oder dir Werbung anzeigen. Wir planen vielmehr, unseren Nutzern in Zukunft zusätzliche Funktionen zu einem günstigen Preis anzubieten.";
+"about.body.1" = "\nHalloApp ist da! Und wir entwickeln diese App für dich und deine Liebsten. HalloApp ist eine Social-App, die sich wieder auf das Wesentliche besinnt und dabei gleichzeitig ein hohes Sicherheits- und Datenschutzniveau bietet, zu dem, wie wir meinen, jeder weltweit Zugriff haben sollte.\nHalloApp wird niemals deine persönlichen Daten verwenden oder dir Werbung anzeigen. Wir planen vielmehr, unseren Nutzern in Zukunft zusätzliche Funktionen zu einem günstigen Preis anzubieten.";
 
 /* About screen: body text. */
 "about.body.2" = "Danke, dass du HalloApp nutzt und mit deinen Freunden und deiner Familie teilst. Wir verbessern diese App wöchentlich.";
@@ -54,6 +54,9 @@
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Keine Internetverbindung";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Hinzufügen";
 
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
@@ -126,7 +129,7 @@
 "camera.init.error.5" = "Auf die Frontkamera kann nicht zugegriffen werden";
 
 /* No comment provided by engineer. */
-"camera.init.error.6" = "Auf Audio kann nicht zugegriffen werden";
+"camera.init.error.6" = "Auf das Mikrofon kann nicht zugegriffen werden";
 
 /* No comment provided by engineer. */
 "camera.init.error.7" = "Fotos können nicht aufgenommen werden";
@@ -141,7 +144,7 @@
 "chat.add.to.address.book.success" = "Kontakt wurde erfolgreich hinzugefügt";
 
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
-"chat.add.to.contacts.book.label" = "Um die Beiträge von %@  zu sehen, bitte die Handynummer zu deinen Kontakten hinfügen.  Dazu hier tippen";
+"chat.add.to.contacts.book.label" = "Um die Beiträge von %@  zu sehen, bitte die Handynummer zu deinen Kontakten hinzufügen. Dazu hier tippen";
 
 /* Placeholder text shown inside the group name input box when it's empty */
 "chat.create.group.name.placeholder" = "Gruppennamen vergeben";
@@ -165,7 +168,7 @@
 "chat.group.event.join" = "%@ ist der Gruppe über einen Einladungslink beigetreten";
 
 /* Message text shown when you join a group via invite link */
-"chat.group.event.join.you" = "Du bist der Gruppe über einen Gruppeneinladungslink beigetreten";
+"chat.group.event.join.you" = "Du bist der Gruppe über einen Einladungslink beigetreten";
 
 /* Message text shown with the user who left the group */
 "chat.group.event.member.left" = "%@ hat die Gruppe verlassen";
@@ -227,6 +230,9 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Freunde einladen";
 
+/* Message text shown in a message that have audio media but no text */
+"chat.message.audio" = "Sprachnotiz";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Diese Nachricht wurde gelöscht.";
 
@@ -244,6 +250,12 @@
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
 "chat.message.waiting" = "Auf Nachrichteneingang wird gewartet. Dies kann eine Weile dauern.";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Für die Audioaufnahme bitte auf Einstellungen tippen, um das Mikrofon zu aktivieren";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Kein Zugriff auf das Mikrofon möglich";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "schreibt...";
@@ -658,7 +670,7 @@
 "media.save.camera.roll" = "In Kamerarolle speichern";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
-"media.save.needs.permissions" = "Fotoberechtigungen werden benötigt";
+"media.save.needs.permissions" = "Zugriff auf Fotos erlauben";
 
 /* Description telling the user why the photos couldn't be saved */
 "media.save.no.access" = "Fotos können nicht ohne Zugriffsberechtigung auf die Kamerarolle gespeichert werden.";
@@ -748,6 +760,9 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 Video";
 
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Sprachnotiz";
+
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Hallo!";
 
@@ -823,6 +838,9 @@
 
 /* Text for messaging user under profile header */
 "profile.header.message.user" = "Nachricht senden";
+
+/* Text for unblocking user under profile header */
+"profile.header.unblock.user" = "Freigeben";
 
 /* Item in Profile > Help screen. */
 "profile.help.faq" = "FAQ";
@@ -904,6 +922,12 @@
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Bitte HalloApp installieren, um %@ beizutreten";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "Ups!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Die von dir eingegebene Handynummer ist ungültig. Bitte überprüfe die Nummer noch einmal.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Wenn du einem Gruppeneinladungslink gefolgt bist, um dich zu registrieren, klicke bitte erneut auf den Link, um die Registrierung abzuschließen und der Gruppe beizutreten.";

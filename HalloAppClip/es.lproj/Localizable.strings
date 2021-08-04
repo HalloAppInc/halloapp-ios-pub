@@ -116,6 +116,12 @@
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Instala HalloApp para abrir %@";
 
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "¡Caramba!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "El número de teléfono que has marcado no es válido. Por favor, revísalo.";
+
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Si has seguido un enlace de invitación a un grupo para registrarte, vuelve a pulsar el enlace para finalizar el registro y unirte al grupo.";
 
