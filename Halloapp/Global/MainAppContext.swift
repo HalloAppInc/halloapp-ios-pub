@@ -38,6 +38,8 @@ class MainAppContext: AppContext {
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
     let groupFeedFromGroupTabPresentRequest = CurrentValueSubject<GroupID?, Never>(nil)
 
+    let didPrivacySettingChange = PassthroughSubject<UserID, Never>()
+
     var service: HalloService {
         coreService as! HalloService
     }

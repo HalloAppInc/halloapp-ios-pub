@@ -85,7 +85,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         navigationItem.scrollEdgeAppearance = navAppearance
         navigationItem.compactAppearance = navAppearance
 
-        let titleWidthConstraint = titleView.widthAnchor.constraint(equalToConstant: (self.view.frame.width*0.8))
+        let titleWidthConstraint = titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))
         titleWidthConstraint.priority = .defaultHigh // Lower priority to allow space for trailing button if necessary
         titleWidthConstraint.isActive = true
 
@@ -102,29 +102,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         tableView.backgroundColor = UIColor.primaryBg
 
-        let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(fromUserId)
-        let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: fromUserId)
-        let isPushNumberMessagingAccepted = MainAppContext.shared.contactStore.isPushNumberMessagingAccepted(userID: fromUserId)
-        let haveMessagedBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: fromUserId)
-
-        if !isUserInAddressBook, !isPushNumberMessagingAccepted, !haveMessagedBefore {
-            chatInputView.isHidden = true
-            view.addSubview(unknownContactActionBanner)
-            unknownContactActionBanner.constrain([.leading, .trailing, .bottom], to: view.safeAreaLayoutGuide)
-        }
-
-        if isUserBlocked {
-            unknownContactActionBanner.isHidden = true
-            chatInputView.isHidden = true
-        }
-
-        let headerHeight: CGFloat = isUserInAddressBook ? 90 : 150
-        let chatHeaderView = ChatHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: headerHeight))
-        chatHeaderView.configureOrRefresh(with: fromUserId)
-        chatHeaderView.delegate = self
-        tableView.tableHeaderView = chatHeaderView
-
-        tableView.tableFooterView = nil
+        setupOrRefreshHeaderAndFooter()
 
         dataSource = ChatDataSource(tableView: tableView) { [weak self] tableView, indexPath, chatMessage in
             guard let self = self else { return nil }
@@ -290,6 +268,15 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 }
                 self.chatInputView.isHidden = false
                 self.unknownContactActionBanner.isHidden = true
+            }
+        )
+
+        cancellableSet.insert(
+            MainAppContext.shared.didPrivacySettingChange.sink { [weak self] (userID) in
+                DDLogInfo("ChatViewController/didPrivacySettingChange/update header")
+                guard let self = self else { return }
+                guard userID == self.fromUserId else { return }
+                self.setupOrRefreshHeaderAndFooter()
             }
         )
 
@@ -513,7 +500,44 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         present(controller.withNavigationController(), animated: true)
     }
-    
+
+    private func setupOrRefreshHeaderAndFooter() {
+        guard let userID = fromUserId else { return }
+        let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
+        let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
+        let isPushNumberMessagingAccepted = MainAppContext.shared.contactStore.isPushNumberMessagingAccepted(userID: userID)
+        let haveMessagedBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: userID)
+
+        let showUnknownContactActionBanner = !isUserBlocked &&
+                                             !isUserInAddressBook &&
+                                             !isPushNumberMessagingAccepted &&
+                                             !haveMessagedBefore
+
+        if showUnknownContactActionBanner {
+            if view.subviews.contains(unknownContactActionBanner) {
+                unknownContactActionBanner.removeFromSuperview()
+            }
+            view.addSubview(unknownContactActionBanner)
+            unknownContactActionBanner.constrain([.leading, .trailing, .bottom], to: view.safeAreaLayoutGuide)
+        }
+        
+        unknownContactActionBanner.isHidden = !showUnknownContactActionBanner
+        chatInputView.isHidden = showUnknownContactActionBanner
+
+        var headerHeight: CGFloat = 90
+        if isUserBlocked {
+            headerHeight = 130
+        } else if !isUserInAddressBook {
+            headerHeight = 150
+        }
+        let chatHeaderView = ChatHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: headerHeight))
+        chatHeaderView.configureOrRefresh(with: userID)
+        chatHeaderView.delegate = self
+        tableView.tableHeaderView = chatHeaderView
+
+        tableView.tableFooterView = nil
+    }
+
     private lazy var titleView: TitleView = {
         let titleView = TitleView()
         titleView.delegate = self
@@ -591,18 +615,33 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         view.translatesAutoresizingMaskIntoConstraints = false
 
         view.acceptAction = { [weak self] in
-            guard let userID = self?.fromUserId else { return }
+            guard let self = self else { return }
+            guard let userID = self.fromUserId else { return }
             MainAppContext.shared.contactStore.setIsMessagingAccepted(userID: userID, isMessagingAccepted: true)
-            self?.unknownContactActionBanner.isHidden = true
-            self?.chatInputView.isHidden = false
+            self.unknownContactActionBanner.isHidden = true
+            self.chatInputView.isHidden = false
         }
 
         view.blockAction = { [weak self] in
-            let privacySettings = MainAppContext.shared.privacySettings
-            guard let blockedList = privacySettings.blocked else { return }
-            guard let userID = self?.fromUserId else { return }
-            privacySettings.replaceUserIDs(in: blockedList, with: blockedList.userIds + [userID])
-            self?.unknownContactActionBanner.isHidden = true
+            guard let self = self else { return }
+            guard let userID = self.fromUserId else { return }
+            let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID))
+
+            let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
+            let button = UIAlertAction(title: Localizations.blockButton, style: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                let privacySettings = MainAppContext.shared.privacySettings
+                guard let blockedList = privacySettings.blocked else { return }
+
+                privacySettings.replaceUserIDs(in: blockedList, with: blockedList.userIds + [userID])
+                MainAppContext.shared.didPrivacySettingChange.send(userID)
+            }
+            alert.addAction(button)
+
+            let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
+            alert.addAction(cancel)
+
+            self.present(alert, animated: true)
         }
 
         return view
@@ -945,9 +984,34 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
 // MARK: ChatHeaderViewDelegates
 extension ChatViewController: ChatHeaderViewDelegate {
+
     func chatHeaderViewOpenEncryptionBlog(_ chatHeaderView: ChatHeaderView) {
         let viewController = SFSafariViewController(url: URL(string: "https://halloapp.com/blog/encrypted-chat")!)
         present(viewController, animated: true)
+    }
+
+    func chatHeaderViewUnblockContact(_ chatHeaderView: ChatHeaderView) {
+        guard let userID = fromUserId else { return }
+
+        let unBlockMessage = Localizations.unBlockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID))
+
+        let alert = UIAlertController(title: nil, message: unBlockMessage, preferredStyle: .actionSheet)
+        let button = UIAlertAction(title: Localizations.unBlockButton, style: .destructive) { _ in
+            let privacySettings = MainAppContext.shared.privacySettings
+            guard let blockedList = privacySettings.blocked else { return }
+
+            var newBlockList = blockedList.userIds
+            newBlockList.removeAll { value in return value == userID}
+            privacySettings.replaceUserIDs(in: blockedList, with: newBlockList)
+
+            MainAppContext.shared.didPrivacySettingChange.send(userID)
+        }
+        alert.addAction(button)
+
+        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
+        alert.addAction(cancel)
+
+        present(alert, animated: true)
     }
 
     func chatHeaderViewAddToContactsBook(_ chatHeaderView: ChatHeaderView) {
@@ -1466,6 +1530,7 @@ class UnselectableUITextView: UITextView {
 
 protocol ChatHeaderViewDelegate: AnyObject {
     func chatHeaderViewOpenEncryptionBlog(_ chatHeaderView: ChatHeaderView)
+    func chatHeaderViewUnblockContact(_ chatHeaderView: ChatHeaderView)
     func chatHeaderViewAddToContactsBook(_ chatHeaderView: ChatHeaderView)
 }
 
@@ -1480,36 +1545,49 @@ class ChatHeaderView: UIView {
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     public func configureOrRefresh(with userID: UserID) {
+        let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
         let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
-        if !isContactInAddressBook {
+        let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userID) != nil
+
+        let showAddToContactsBubble = !isUserBlocked && !isContactInAddressBook && pushNumberExist
+
+        if showAddToContactsBubble {
             if let pushNumber = MainAppContext.shared.contactStore.pushNumber(userID) {
-                addToContactsLabel.text = Localizations.addToAddressBookLabel(pushNumber.formattedPhoneNumber)
-                addToContactsBubble.isHidden = false
+                addToContactsLabel.text = Localizations.chatAddToAddressBookLabel(pushNumber.formattedPhoneNumber)
             }
-        } else {
-            addToContactsBubble.isHidden = true
         }
+
+        blockedContactBubbleColumn.isHidden = !isUserBlocked
+        addToContactsBubble.isHidden = !showAddToContactsBubble
     }
 
     private func setup() {
-        addSubview(vStack)
-        vStack.constrain(to: self)
+        addSubview(mainColumn)
+        mainColumn.constrain(to: self)
     }
 
-    private lazy var vStack: UIStackView = {
+    private lazy var mainColumn: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        let view = UIStackView(arrangedSubviews: [ encryptionBubble, addToContactsBubble, spacer] )
+        let view = UIStackView(arrangedSubviews: [ encryptionBubbleColumn, blockedContactBubbleColumn, addToContactsBubble, spacer] )
 
         view.axis = .vertical
         view.alignment = .fill
-        view.spacing = 5
+        view.spacing = 20
         view.setCustomSpacing(20, after: encryptionBubble)
 
         view.layoutMargins = UIEdgeInsets(top: 10, left: 40, bottom: 0, right: 40)
         view.isLayoutMarginsRelativeArrangement = true
 
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    lazy var encryptionBubbleColumn: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ encryptionBubble ])
+        view.axis = .vertical
+        view.alignment = .fill
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -1555,10 +1633,53 @@ class ChatHeaderView: UIView {
         label.textColor = .chatInfoBubble
         label.font = UIFont.systemFont(ofSize: 12)
         label.adjustsFontForContentSizeCategory = true
-        label.text = Localizations.encryptionLabel
+        label.text = Localizations.chatEncryptionLabel
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    lazy var blockedContactBubbleColumn: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ blockedContactBubble ])
+        view.axis = .vertical
+        view.alignment = .center
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true
+        return view
+    }()
+
+    lazy var blockedContactBubble: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ blockedContactLabel ])
+        view.axis = .vertical
+        view.alignment = .center
+
+        view.layoutMargins = UIEdgeInsets(top: 8, left: 20, bottom: 8, right: 20)
+        view.isLayoutMarginsRelativeArrangement = true
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        let subView = UIView(frame: view.bounds)
+        subView.layer.cornerRadius = 10
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        subView.backgroundColor = UIColor.chatInfoBubbleBg
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(subView, at: 0)
+
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(unblockContact)))
+        return view
+    }()
+
+    private lazy var blockedContactLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 4
+        label.textAlignment = .center
+        label.textColor = .chatInfoBubble
+        label.font = UIFont.systemFont(ofSize: 12)
+        label.adjustsFontForContentSizeCategory = true
+        label.text = Localizations.chatBlockedContactLabel
 
         label.translatesAutoresizingMaskIntoConstraints = false
-
         return label
     }()
 
@@ -1597,10 +1718,15 @@ class ChatHeaderView: UIView {
 
         return label
     }()
-    
+
     @objc private func openEncryptionBlog() {
         guard let delegate = delegate else { return }
         delegate.chatHeaderViewOpenEncryptionBlog(self)
+    }
+
+    @objc private func unblockContact() {
+        guard let delegate = delegate else { return }
+        delegate.chatHeaderViewUnblockContact(self)
     }
 
     @objc private func addToContactsBook() {
@@ -1612,19 +1738,19 @@ class ChatHeaderView: UIView {
 
 private extension Localizations {
 
-    static var encryptionLabel: String {
+    static var chatEncryptionLabel: String {
         NSLocalizedString("chat.encryption.label", value: "Chats are end-to-end encrypted and HalloApp does not have access to them. Tap to learn more.", comment: "Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted")
     }
+    
+    static var chatBlockedContactLabel: String {
+        NSLocalizedString("chat.blocked.contact.label", value: "User is blocked, tap to unblock", comment: "Text shown at the top of the chat screen informing the user that the contact is blocked")
+    }
 
-    static func addToAddressBookLabel(_ name: String) -> String {
+    static func chatAddToAddressBookLabel(_ name: String) -> String {
         let format = NSLocalizedString("chat.add.to.contacts.book.label",
                                        value: "To see posts from %@ add their number to your contact book.  Tap to add",
                                        comment: "Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book")
         return String(format: format, name)
-    }
-    
-    static var addToAddressBookSuccess: String {
-        NSLocalizedString("chat.add.to.address.book.success", value: "Contact Added Successfully", comment: "Alert text shown when the contact has been added to the address book successfully")
     }
 
     static var micAccessDeniedTitle: String {
@@ -1635,3 +1761,4 @@ private extension Localizations {
         NSLocalizedString("chat.mic.access.denied.message", value: "To enable audio recording, please tap on Settings and then turn on Microphone", comment: "Alert message when missing microphone access")
     }
 }
+

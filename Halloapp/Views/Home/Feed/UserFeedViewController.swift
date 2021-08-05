@@ -83,7 +83,7 @@ class UserFeedViewController: FeedCollectionViewController {
                 self.viewIfLoaded?.setNeedsLayout()
             }))
         } else {
-            headerViewController.configureOrRefresh(userId: userId)
+            headerViewController.configureOrRefresh(userID: userId)
             navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .plain, target: self, action: #selector(moreButtonTapped))
         }
 
@@ -101,7 +101,7 @@ class UserFeedViewController: FeedCollectionViewController {
                 MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
                     guard let self = self else { return }
                     if newUserIDs.contains(self.userId) {
-                        self.headerViewController.configureOrRefresh(userId: self.userId)
+                        self.headerViewController.configureOrRefresh(userID: self.userId)
                         self.collectionView.reloadData()
                     }
                 }
@@ -180,11 +180,13 @@ class UserFeedViewController: FeedCollectionViewController {
         let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
         let button = UIAlertAction(title: Localizations.blockButton, style: .destructive) { [weak self] _ in
             let privacySettings = MainAppContext.shared.privacySettings
+            guard let self = self else { return }
             guard let blockedList = privacySettings.blocked else { return }
-            guard let userId = self?.userId else { return }
-            privacySettings.replaceUserIDs(in: blockedList, with: blockedList.userIds + [userId])
-            self?.isUserBlocked = true
-            self?.headerViewController.configureOrRefresh(userId: userId)
+            let userID = self.userId
+            privacySettings.replaceUserIDs(in: blockedList, with: blockedList.userIds + [userID])
+            self.isUserBlocked = true
+            self.headerViewController.configureOrRefresh(userID: userID)
+            MainAppContext.shared.didPrivacySettingChange.send(userID)
         }
         alert.addAction(button)
         
@@ -202,14 +204,16 @@ class UserFeedViewController: FeedCollectionViewController {
         let alert = UIAlertController(title: nil, message: unBlockMessage, preferredStyle: .actionSheet)
         let button = UIAlertAction(title: Localizations.unBlockButton, style: .destructive) { [weak self] _ in
             let privacySettings = MainAppContext.shared.privacySettings
+            guard let self = self else { return }
             guard let blockedList = privacySettings.blocked else { return }
-            guard let userId = self?.userId else { return }
+            let userID = self.userId
             
             var newBlockList = blockedList.userIds
-            newBlockList.removeAll { value in return value == userId}
+            newBlockList.removeAll { value in return value == userID}
             privacySettings.replaceUserIDs(in: blockedList, with: newBlockList)
-            self?.isUserBlocked = false
-            self?.headerViewController.configureOrRefresh(userId: userId)
+            self.isUserBlocked = false
+            self.headerViewController.configureOrRefresh(userID: userID)
+            MainAppContext.shared.didPrivacySettingChange.send(userID)
         }
         alert.addAction(button)
 

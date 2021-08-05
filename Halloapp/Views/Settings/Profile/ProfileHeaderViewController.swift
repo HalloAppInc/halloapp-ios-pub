@@ -59,22 +59,20 @@ final class ProfileHeaderViewController: UIViewController {
         headerView.phoneLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(editName)))
     }
 
-    func configureOrRefresh(userId: UserID) {
-        headerView.userID = userId
-        headerView.avatarViewButton.avatarView.configure(with: userId, using: MainAppContext.shared.avatarStore)
-        headerView.name = MainAppContext.shared.contactStore.fullName(for: userId)
+    func configureOrRefresh(userID: UserID) {
+        headerView.userID = userID
+        headerView.avatarViewButton.avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
+        headerView.name = MainAppContext.shared.contactStore.fullName(for: userID)
+
+        let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
+
         let isBlockedFlag = isBlocked(userId: userId)
-        let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId)
+        var showPhoneLabel = false
 
         if isContactInAddressBook {
-            if let contact = MainAppContext.shared.contactStore.contact(withUserId: userId), let phoneNumber = contact.phoneNumber {
+            if let contact = MainAppContext.shared.contactStore.contact(withUserId: userID), let phoneNumber = contact.phoneNumber {
                 headerView.phoneLabel.text = phoneNumber.formattedPhoneNumber
-                headerView.phoneLabel.isHidden = false
-                headerView.phoneLabel.isUserInteractionEnabled = true
-                headerView.phoneLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(copyPhoneNumber)))
-            } else {
-                headerView.messageButton.isHidden = true
-                headerView.phoneLabel.isHidden = true
+                showPhoneLabel = true
             }
           
             if !isBlockedFlag {
@@ -88,11 +86,20 @@ final class ProfileHeaderViewController: UIViewController {
                 headerView.unblockButton.addTarget(self, action: #selector(unblockButtonTappedprofile), for: .touchUpInside)
             }
         } else {
-            headerView.messageButton.isHidden = true
-            headerView.phoneLabel.isHidden = true
+            if let pushNumber = MainAppContext.shared.contactStore.pushNumber(userID) {
+                headerView.phoneLabel.text = pushNumber.formattedPhoneNumber
+                showPhoneLabel = true
+            }
         }
+
+        if showPhoneLabel {
+            headerView.phoneLabel.isUserInteractionEnabled = true
+            headerView.phoneLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(copyPhoneNumber)))
+        }
+
+        headerView.phoneLabel.isHidden = !showPhoneLabel
+
         headerView.avatarViewButton.addTarget(self, action: #selector(avatarViewTapped), for: .touchUpInside)
-        
     }
           
     func isBlocked(userId: UserID) -> Bool {
@@ -154,20 +161,17 @@ final class ProfileHeaderViewController: UIViewController {
     }
     
     @objc private func copyPhoneNumber() {
-        
         let alert = UIAlertController(title: MainAppContext.shared.contactStore.fullName(for: headerView.userID ?? ""), message: nil, preferredStyle: .actionSheet)
-        
-        
+
         let copyNumberAction = UIAlertAction(title: Localizations.userOptionCopyPhoneNumber, style: .default) { [weak self] _ in
-                self?.copyNumber()
+            self?.copyNumber()
         }
         alert.addAction(copyNumberAction)
-        
-        
+
         let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
         alert.view.tintColor = .systemBlue
         alert.addAction(cancel)
-        
+
         present(alert, animated: true)
     }
     
