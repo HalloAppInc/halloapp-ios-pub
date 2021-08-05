@@ -1078,8 +1078,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.4.0;
+				kind = exactVersion;
+				version = 8.5.0;
 			};
 		};
 		686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */ = {

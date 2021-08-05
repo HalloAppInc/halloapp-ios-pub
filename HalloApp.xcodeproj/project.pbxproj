@@ -4217,24 +4217,24 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ashleymills/Reachability.swift";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.1.0;
+				kind = exactVersion;
+				version = 5.1.0;
 			};
 		};
 		761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/marmelroy/Zip.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.0;
+				kind = exactVersion;
+				version = 2.1.1;
 			};
 		};
 		76E5153124A1770A003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:Alamofire/Alamofire.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.2.0;
+				kind = exactVersion;
+				version = 5.4.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
