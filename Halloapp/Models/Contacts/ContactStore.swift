@@ -641,7 +641,7 @@ class ContactStoreMain: ContactStore {
         fetchRequest.predicate = NSPredicate(format: "userId in %@", userIds)
         fetchRequest.returnsObjectsAsFaults = false
         do {
-            let contacts = try persistentContainer.viewContext.fetch(fetchRequest)
+            let contacts = try viewContext.fetch(fetchRequest)
             return contacts
         }
         catch {
@@ -656,7 +656,7 @@ class ContactStoreMain: ContactStore {
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
 
         do {
-            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
+            let contacts = try viewContext.fetch(fetchRequest)
             return contacts
         }
         catch {
@@ -668,7 +668,7 @@ class ContactStoreMain: ContactStore {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId == %@", userId)
         do {
-            let count = try persistentContainer.viewContext.count(for: fetchRequest)
+            let count = try viewContext.count(for: fetchRequest)
             return count > 0
         }
         catch {
@@ -948,7 +948,7 @@ class ContactStoreMain: ContactStore {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
         do {
-            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
+            let contacts = try viewContext.fetch(fetchRequest)
             if let name = contacts.first?.givenName {
                 firstName = name
             }

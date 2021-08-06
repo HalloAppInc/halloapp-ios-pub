@@ -33,9 +33,7 @@ open class ContactStore {
 
     public let userData: UserData
 
-    required public init(userData: UserData) {
-        self.userData = userData
-    }
+    private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.contactStore")
 
     // MARK: Access to Contacts
 
@@ -74,7 +72,7 @@ open class ContactStore {
         }
     }
 
-    public private(set) lazy var persistentContainer: NSPersistentContainer = {
+    public private(set) var persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: ContactStore.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
@@ -92,17 +90,26 @@ open class ContactStore {
         return container
     }()
 
-    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        let managedObjectContext = self.persistentContainer.newBackgroundContext()
-        managedObjectContext.performAndWait {
-            block(managedObjectContext)
-        }
-    }
+    public var viewContext: NSManagedObjectContext
+    private var bgContext: NSManagedObjectContext
 
-    public var viewContext: NSManagedObjectContext {
-        get {
-            self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-            return self.persistentContainer.viewContext
+    public private(set) var pushNames: [UserID: String] = [:]
+    private var pushNumbersData: [UserID: PushNumberData] = [:]
+
+    required public init(userData: UserData) {
+        self.userData = userData
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+        viewContext = persistentContainer.viewContext
+        bgContext = persistentContainer.newBackgroundContext()
+
+        pushNames = fetchAllPushNames(using: viewContext)
+        pushNumbersData = fetchAllPushNumbersData(using: viewContext)
+    }
+    
+    public func performOnBackgroundContextAndWait(_ block: @escaping (NSManagedObjectContext) -> Void) {
+        backgroundProcessingQueue.async { [weak self] in
+            guard let self = self else { return }
+            self.bgContext.performAndWait { block(self.bgContext) }
         }
     }
 
@@ -134,7 +141,7 @@ open class ContactStore {
         fetchRequst.propertiesToFetch = [ "userId" ]
         fetchRequst.resultType = .dictionaryResultType
         do {
-            let allContacts = try self.persistentContainer.viewContext.fetch(fetchRequst)
+            let allContacts = try viewContext.fetch(fetchRequst)
             return allContacts.compactMap { $0["userId"] as? UserID }
         }
         catch {
@@ -150,7 +157,7 @@ open class ContactStore {
             fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
         }
         do {
-            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
+            let contacts = try viewContext.fetch(fetchRequest)
             return contacts
         }
         catch {
@@ -159,14 +166,6 @@ open class ContactStore {
     }
 
     // MARK: Push names
-
-    public private(set) lazy var pushNames: [UserID: String] = {
-        var pushNames: [UserID: String] = [:]
-        performOnBackgroundContextAndWait { (managedObjectContext) in
-            pushNames = self.fetchAllPushNames(using: managedObjectContext)
-        }
-        return pushNames
-    }()
 
     private func fetchAllPushNames(using managedObjectContext: NSManagedObjectContext) -> [UserID: String] {
         let fetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
@@ -247,14 +246,6 @@ open class ContactStore {
         guard let pushNumberData = pushNumbersData[userID] else { return nil }
         return pushNumberData.normalizedPhoneNumber
     }
-    
-    private lazy var pushNumbersData: [UserID: PushNumberData] = {
-        var pushNumbersData: [UserID: PushNumberData] = [:]
-        performOnBackgroundContextAndWait { (managedObjectContext) in
-            pushNumbersData = self.fetchAllPushNumbersData(using: managedObjectContext)
-        }
-        return pushNumbersData
-    }()
 
     private func fetchAllPushNumbersData(using managedObjectContext: NSManagedObjectContext) -> [UserID: PushNumberData] {
         let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
@@ -409,7 +400,7 @@ open class ContactStore {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId == %@", userId)
         do {
-            let contacts = try persistentContainer.viewContext.fetch(fetchRequest)
+            let contacts = try viewContext.fetch(fetchRequest)
             return contacts.first
         }
         catch {
@@ -421,7 +412,7 @@ open class ContactStore {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPhoneNumber)
         do {
-            let contacts = try persistentContainer.viewContext.fetch(fetchRequest)
+            let contacts = try viewContext.fetch(fetchRequest)
             return contacts.first
         }
         catch {
@@ -485,7 +476,7 @@ open class ContactStore {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId in %@", userIds)
         fetchRequest.returnsObjectsAsFaults = false
-        let managedObjectContext = self.persistentContainer.newBackgroundContext()
+        let managedObjectContext = viewContext
         managedObjectContext.performAndWait {
             do {
                 let contacts = try managedObjectContext.fetch(fetchRequest)
