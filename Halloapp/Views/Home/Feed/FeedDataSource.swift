@@ -82,33 +82,6 @@ final class FeedDataSource: NSObject {
         itemsDidChange?(displayItems)
     }
     
-    func refreshShowDetailDeletions() {
-        displayItems = getListWithExpandingDeletions()
-        itemsDidChange?(displayItems)
-    }
-    
-    func getListWithExpandingDeletions() -> [FeedDisplayItem] {
-        var thisEvent: FeedEvent?
-        var index = -1
-        for term in displayItems {
-            index += 1
-            if let evt = term.event {
-                if deletionLabelToExpand == term {
-                    thisEvent = evt
-                    break
-                }
-            }
-        }
-        if let thisEvent = thisEvent {
-            displayItems.remove(at: index)
-            for addDeletion in thisEvent.containingItems! {
-                displayItems.insert(addDeletion, at: index)
-            }
-        }
-        return displayItems
-        
-    }
-    
     // MARK: Private
 
     private var fetchedResultsController: NSFetchedResultsController<FeedPost>?
