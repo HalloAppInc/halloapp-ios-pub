@@ -189,8 +189,13 @@ class DataStore: NotificationServiceExtensionDataStore {
                     chatMessage.text = text.text
                 case .contactCard:
                     DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [contact]")
-                case .voiceNote:
-                    DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [voice]")
+                case .voiceNote(let voiceNote):
+                    if let audioMediaData = XMPPChatMedia(audio: voiceNote.audio) {
+                        let sharedMedia = insertSharedMedia(for: audioMediaData, index: 0, into: managedObjectContext)
+                        sharedMedia.message = chatMessage
+                    } else {
+                        DDLogError("SharedDataStore/message/\(messageId)/unsupported [voice]")
+                    }
                 case .none:
                     DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [unknown]")
                 }

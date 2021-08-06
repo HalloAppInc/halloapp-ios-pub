@@ -21,10 +21,10 @@ final class NotificationRequest {
         notificationContent.populate(from: metadata, contactStore: MainAppContext.shared.contactStore)
         switch metadata.contentType {
         case .chatMessage:
-            guard let clientChatMessage = metadata.protoContainer?.chatMessage else {
+            guard let clientChatContainer = metadata.protoContainer?.chatContainer else {
                 return
             }
-            notificationContent.populateChatBody(from: clientChatMessage.chatContent, using: metadata, contactStore: MainAppContext.shared.contactStore)
+            notificationContent.populateChatBody(from: clientChatContainer.chatContent, using: metadata, contactStore: MainAppContext.shared.contactStore)
         default:
             break
         }
