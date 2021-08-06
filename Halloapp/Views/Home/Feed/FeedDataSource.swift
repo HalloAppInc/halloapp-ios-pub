@@ -145,7 +145,7 @@ final class FeedDataSource: NSObject {
         }
         
         //merge consecutive deletion posts when the count of consecutive deletion posts >=3
-        var displayItems = mergeDeletionPosts(originalItems: originalItems)
+        let displayItems = mergeDeletionPosts(originalItems: originalItems)
         return displayItems
             
     }

@@ -740,7 +740,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     @objc private func openAlbumsAction() {
         let controller = MediaAlbumsViewController() {[weak self] controller, album, cancel in
             guard let self = self else { return }
-            DDLogInfo("openAlbumsAction \(album)")
+            DDLogInfo("openAlbumsAction \(album?.description ?? "missing-album")")
             
             controller.dismiss(animated: true)
             

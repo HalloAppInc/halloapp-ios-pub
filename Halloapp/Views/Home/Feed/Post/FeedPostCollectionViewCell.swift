@@ -377,7 +377,7 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
             currentEvent = thisEvent
             tapFunc = tapFunction
             textLabel.isUserInteractionEnabled = true
-            textLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: Selector("tapAction")))
+            textLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapAction)))
         } else {
             textLabel.isUserInteractionEnabled = false
         }
