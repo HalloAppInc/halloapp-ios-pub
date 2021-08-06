@@ -634,17 +634,21 @@ class ChatData: ObservableObject {
                     }
                     
                     // delete the file if it already exists, ie. previous attempts
-                    if FileManager.default.fileExists(atPath: fileURL.path) {
-                        try! FileManager.default.removeItem(atPath: fileURL.path)
-                    } else {
-                        DDLogError("File does not exist")
+                    do {
+                        if FileManager.default.fileExists(atPath: fileURL.path) {
+                            DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\(med.order)/previous file exists, try removing first: \(fileURL.path)")
+                            try FileManager.default.removeItem(atPath: fileURL.path)
+                        }
                     }
-                    
+                    catch {
+                        DDLogError("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\(med.order)/remove previous file error: \(error)")
+                    }
+
                     do {
                         try decryptedData.write(to: fileURL, options: [])
                     }
                     catch {
-                        DDLogError("can't write error: \(error)")
+                        DDLogError("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\(med.order)/can't write error: \(error)")
                         return
                     }
                     
