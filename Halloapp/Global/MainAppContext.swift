@@ -13,6 +13,7 @@ import Core
 import FirebaseCore
 import FirebaseCrashlytics
 import Foundation
+import Intents
 
 class MainAppContext: AppContext {
     // MARK: Constants
@@ -35,6 +36,7 @@ class MainAppContext: AppContext {
     private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()
 
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
+    let didTapIntent = CurrentValueSubject<INIntent?, Never>(nil)
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
     let groupFeedFromGroupTabPresentRequest = CurrentValueSubject<GroupID?, Never>(nil)
 

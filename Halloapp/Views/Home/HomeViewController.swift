@@ -12,6 +12,7 @@ import Contacts
 import ContactsUI
 import Core
 import UIKit
+import Intents
 
 class HomeViewController: UITabBarController {
 
@@ -142,7 +143,7 @@ class HomeViewController: UITabBarController {
             MainAppContext.shared.groupFeedFromGroupTabPresentRequest.sink { [weak self] (groupID) in
                 guard let self = self else { return }
                 guard groupID != nil else { return }
-                self.selectedIndex = 1
+                self.switchTo(tab: .group)
         })
 
         cancellableSet.insert(
@@ -161,6 +162,17 @@ class HomeViewController: UITabBarController {
                 guard let self = self else { return }
                 self.presentGroupPreviewIfNeeded()
             }
+        )
+        
+        cancellableSet.insert(
+            MainAppContext.shared.didTapIntent.sink(receiveValue: { [weak self] intent in
+                if (intent as? INSendMessageIntent) != nil {
+                    guard let self = self else { return }
+                    DDLogInfo("HomeViewController/cancellableSet/didTapIntentNotification chat opened from intent donation")
+                    
+                    self.switchTo(tab: .chat)
+                }
+            })
         )
 
         // When the app just started (had been force-quit before)
@@ -328,7 +340,7 @@ class HomeViewController: UITabBarController {
     private func showHomeTabIndicatorIfNeeded() {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            if self.selectedIndex == 0 { // user is on the main feed
+            if self.currentlyOn() == .home { // user is on the main feed
                 guard let nc = self.viewControllers?[0] as? UINavigationController else { return }
                 guard let vc = nc.topViewController as? FeedViewController else { return }
                 guard !vc.isNearTop(100) else { return } // exit if user is at the top of the main feed
@@ -383,6 +395,26 @@ class HomeViewController: UITabBarController {
         dot.layer.cornerRadius = size/2
 
         tabBarItemView.addSubview(dot)
+    }
+    
+    /// Describes the status of which tab is selected
+    enum TabBarSelection: Int {
+        case home = 0
+        case group = 1
+        case chat = 2
+        case settings = 3
+    }
+    
+    /// Switches the view to be for whichever tab is selected
+    /// - Parameter tab: Tab to display as a `TabBarSelection`
+    private func switchTo(tab: TabBarSelection) {
+        self.selectedIndex = tab.rawValue
+    }
+    
+    /// Gets the current tab that the `HomeViewController` is displaying
+    /// - Returns: The `TabBarSelection` representing the currently displayed view
+    private func currentlyOn() -> TabBarSelection {
+        return TabBarSelection(rawValue: self.selectedIndex) ?? .home
     }
 }
 

@@ -13,6 +13,8 @@ import CoreData
 import SwiftUI
 import UIKit
 
+import Intents
+
 class FeedViewController: FeedCollectionViewController {
 
     private var cancellables: Set<AnyCancellable> = []

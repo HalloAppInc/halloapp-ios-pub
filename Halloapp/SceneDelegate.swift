@@ -10,6 +10,7 @@ import CocoaLumberjackSwift
 import Combine
 import Core
 import UIKit
+import Intents
 
 class SceneDelegate: UIResponder {
 
@@ -206,11 +207,16 @@ extension SceneDelegate: UIWindowSceneDelegate {
     // handles invite url while app is either in foreground or background
     func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
         DDLogInfo("application/scene/continue")
-        guard userActivity.activityType == NSUserActivityTypeBrowsingWeb else { return }
-        guard let incomingURL = userActivity.webpageURL else { return }
-        guard let inviteToken = ChatData.parseInviteURL(url: incomingURL) else { return }
-        DDLogInfo("application/scene/continue/incomingURL \(incomingURL)")
-        processGroupInviteToken(inviteToken)
+        if userActivity.activityType == NSUserActivityTypeBrowsingWeb {
+            guard let incomingURL = userActivity.webpageURL else { return }
+            guard let inviteToken = ChatData.parseInviteURL(url: incomingURL) else { return }
+            DDLogInfo("application/scene/continue/incomingURL \(incomingURL)")
+            processGroupInviteToken(inviteToken)
+        }
+        
+        if let intent = userActivity.interaction?.intent {
+            MainAppContext.shared.didTapIntent.send(intent)
+        }
     }
 }
 

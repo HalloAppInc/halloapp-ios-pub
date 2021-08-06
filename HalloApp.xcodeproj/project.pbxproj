@@ -226,6 +226,11 @@
 		76F43F2B2489BC4700D47920 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
 		94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */; };
+		E5230B1E267AABA60046A2EB /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5230B1D267AABA60046A2EB /* Intents.framework */; };
+		E5230B21267AABA60046A2EB /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5230B20267AABA60046A2EB /* IntentHandler.swift */; };
+		E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E5230B1C267AABA60046A2EB /* Intents Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E5230B2B267AABCA0046A2EB /* Intents.intentdefinition in Sources */ = {isa = PBXBuildFile; fileRef = E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */; };
+		E5230B2C267AABCE0046A2EB /* Intents.intentdefinition in Sources */ = {isa = PBXBuildFile; fileRef = E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */; };
 		E537A1B726792AEF0008B286 /* ChatDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E537A1B626792AEF0008B286 /* ChatDraft.swift */; };
 		E552E8E1268249EB00C7774D /* DateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E552E8E0268249EB00C7774D /* DateTests.swift */; };
 		E552E8E3268249F600C7774D /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AD2435A74E00FF0E82 /* Date.swift */; };
@@ -381,6 +386,13 @@
 			remoteGlobalIDString = 768123932485A240008C5216;
 			remoteInfo = "Notification Service Extension";
 		};
+		E5230B23267AABA60046A2EB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E5230B1B267AABA60046A2EB;
+			remoteInfo = "Intents Extension";
+		};
 		EAF3A1D62334192000805FF9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
@@ -426,6 +438,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed App Extensions */,
 				24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */,
 				7681239B2485A240008C5216 /* Notification Service Extension.appex in Embed App Extensions */,
 			);
@@ -770,6 +783,11 @@
 		CD26B1DB0D71EF2BBE67ADE9 /* Pods-HalloApp.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.internal beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.internal beta.xcconfig"; sourceTree = "<group>"; };
 		D0A0ED7F66A2EB2A804CC6EC /* Pods-Shared Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.external beta.xcconfig"; sourceTree = "<group>"; };
+		E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */ = {isa = PBXFileReference; lastKnownFileType = file.intentdefinition; path = Intents.intentdefinition; sourceTree = "<group>"; };
+		E5230B1C267AABA60046A2EB /* Intents Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Intents Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E5230B1D267AABA60046A2EB /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
+		E5230B20267AABA60046A2EB /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
+		E5230B22267AABA60046A2EB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E537A1B626792AEF0008B286 /* ChatDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatDraft.swift; sourceTree = "<group>"; };
 		E552E8E0268249EB00C7774D /* DateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTests.swift; sourceTree = "<group>"; };
 		E55B6098268B80C800A322DC /* ExportDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataModel.swift; sourceTree = "<group>"; };
@@ -921,6 +939,14 @@
 			files = (
 				768123DE2485DFB1008C5216 /* Core.framework in Frameworks */,
 				94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E5230B19267AABA60046A2EB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E5230B1E267AABA60046A2EB /* Intents.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1358,9 +1384,20 @@
 				BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */,
 				0069D57E244BE25C44408E11 /* Pods_Share_Extension.framework */,
 				B6B5578700125D5FF5728637 /* Pods_HalloAppTests.framework */,
+				E5230B1D267AABA60046A2EB /* Intents.framework */,
 				5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E5230B1F267AABA60046A2EB /* Intents Extension */ = {
+			isa = PBXGroup;
+			children = (
+				E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */,
+				E5230B20267AABA60046A2EB /* IntentHandler.swift */,
+				E5230B22267AABA60046A2EB /* Info.plist */,
+			);
+			path = "Intents Extension";
 			sourceTree = "<group>";
 		};
 		E59596EE268D24D500AA3BB9 /* Account */ = {
@@ -1727,6 +1764,7 @@
 				EAF3A1E32334192000805FF9 /* HalloappUITests */,
 				768123952485A240008C5216 /* Notification Service Extension */,
 				24D743D724B3D199001111BF /* Share Extension */,
+				E5230B1F267AABA60046A2EB /* Intents Extension */,
 				329E03F9268247BD00C2D250 /* HalloAppClip */,
 				329E0414268247BE00C2D250 /* HalloAppClipTests */,
 				329E041F268247BE00C2D250 /* HalloAppClipUITests */,
@@ -1744,6 +1782,7 @@
 				EAF3A1E02334192000805FF9 /* HalloAppUITests.xctest */,
 				768123942485A240008C5216 /* Notification Service Extension.appex */,
 				24D743D624B3D199001111BF /* Share Extension.appex */,
+				E5230B1C267AABA60046A2EB /* Intents Extension.appex */,
 				329E03F8268247BC00C2D250 /* HalloAppClip.app */,
 				329E0411268247BE00C2D250 /* HalloAppClipTests.xctest */,
 				329E041C268247BE00C2D250 /* HalloAppClipUITests.xctest */,
@@ -1920,6 +1959,23 @@
 			productReference = 768123942485A240008C5216 /* Notification Service Extension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		E5230B1B267AABA60046A2EB /* Intents Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E5230B2A267AABA60046A2EB /* Build configuration list for PBXNativeTarget "Intents Extension" */;
+			buildPhases = (
+				E5230B18267AABA60046A2EB /* Sources */,
+				E5230B19267AABA60046A2EB /* Frameworks */,
+				E5230B1A267AABA60046A2EB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Intents Extension";
+			productName = "Intents Extension";
+			productReference = E5230B1C267AABA60046A2EB /* Intents Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		EAF3A1BE2334191E00805FF9 /* HalloApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = EAF3A1E92334192000805FF9 /* Build configuration list for PBXNativeTarget "HalloApp" */;
@@ -1938,6 +1994,7 @@
 			dependencies = (
 				76F43F202489979600D47920 /* PBXTargetDependency */,
 				24D743DF24B3D199001111BF /* PBXTargetDependency */,
+				E5230B24267AABA60046A2EB /* PBXTargetDependency */,
 				329E0424268247BE00C2D250 /* PBXTargetDependency */,
 			);
 			name = HalloApp;
@@ -2013,6 +2070,9 @@
 					768123932485A240008C5216 = {
 						CreatedOnToolsVersion = 11.5;
 					};
+					E5230B1B267AABA60046A2EB = {
+						CreatedOnToolsVersion = 12.5;
+					};
 					EAF3A1BE2334191E00805FF9 = {
 						CreatedOnToolsVersion = 11.0;
 					};
@@ -2065,6 +2125,7 @@
 				EAF3A1DF2334192000805FF9 /* HalloAppUITests */,
 				768123932485A240008C5216 /* Notification Service Extension */,
 				24D743D524B3D199001111BF /* Share Extension */,
+				E5230B1B267AABA60046A2EB /* Intents Extension */,
 				329E03F7268247BC00C2D250 /* HalloAppClip */,
 				329E0410268247BE00C2D250 /* HalloAppClipTests */,
 				329E041B268247BE00C2D250 /* HalloAppClipUITests */,
@@ -2132,6 +2193,13 @@
 				687D5ECB265317F8008A3A65 /* InfoPlist.strings in Resources */,
 				7688FA4325489E26006B86B3 /* Localizable.strings in Resources */,
 				7688FA602548F1E1006B86B3 /* Localizable.stringsdict in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E5230B1A267AABA60046A2EB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2409,6 +2477,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E5230B18267AABA60046A2EB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E5230B2C267AABCE0046A2EB /* Intents.intentdefinition in Sources */,
+				E5230B21267AABA60046A2EB /* IntentHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EAF3A1BB2334191E00805FF9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2457,6 +2534,7 @@
 				76538091243D4B33000AD9A1 /* FeedNotification+CoreDataClass.swift in Sources */,
 				761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */,
 				768123A42485C56E008C5216 /* MainAppContext.swift in Sources */,
+				E5230B2B267AABCA0046A2EB /* Intents.intentdefinition in Sources */,
 				EA27790925B91E58009CA884 /* PrivacyViewController.swift in Sources */,
 				EAD476F62458F03700EF8591 /* ChatMessage+CoreDataClass.swift in Sources */,
 				761C6168242D89F90028AE19 /* TextLabel.swift in Sources */,
@@ -2685,6 +2763,11 @@
 			isa = PBXTargetDependency;
 			target = 768123932485A240008C5216 /* Notification Service Extension */;
 			targetProxy = 76F43F1F2489979600D47920 /* PBXContainerItemProxy */;
+		};
+		E5230B24267AABA60046A2EB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E5230B1B267AABA60046A2EB /* Intents Extension */;
+			targetProxy = E5230B23267AABA60046A2EB /* PBXContainerItemProxy */;
 		};
 		EAF3A1D72334192000805FF9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3858,6 +3941,170 @@
 			};
 			name = "External Beta";
 		};
+		E5230B26267AABA60046A2EB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 144;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				INFOPLIST_FILE = "Intents Extension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.8;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Intents-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E5230B27267AABA60046A2EB /* Internal Beta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 144;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = "Intents Extension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.8;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Intents-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Internal Beta";
+		};
+		E5230B28267AABA60046A2EB /* External Beta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 144;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = "Intents Extension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.8;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Intents-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "External Beta";
+		};
 		EAF3A1E72334192000805FF9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -4166,6 +4413,16 @@
 				7681239D2485A240008C5216 /* Debug */,
 				7681239E2485A240008C5216 /* Internal Beta */,
 				7681239F2485A240008C5216 /* External Beta */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "External Beta";
+		};
+		E5230B2A267AABA60046A2EB /* Build configuration list for PBXNativeTarget "Intents Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E5230B26267AABA60046A2EB /* Debug */,
+				E5230B27267AABA60046A2EB /* Internal Beta */,
+				E5230B28267AABA60046A2EB /* External Beta */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = "External Beta";

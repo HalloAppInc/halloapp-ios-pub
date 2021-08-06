@@ -10,6 +10,7 @@ import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreData
+import Intents
 import SwiftUI
 import UIKit
 
@@ -119,6 +120,20 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 guard let self = self else { return }
                 self.processNotification(metadata: metadata)
             }
+        )
+        
+        cancellableSet.insert(
+            MainAppContext.shared.didTapIntent.sink(receiveValue: { [weak self] intent in
+                guard let intent = intent as? INSendMessageIntent else { return }
+                guard let rawConversationID = intent.conversationIdentifier else { return }
+                guard let conversationID = ConversationID(rawConversationID), conversationID.conversationType == .chat else { return }
+                
+                self?.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
+                
+                let vc = ChatViewController(for: conversationID.id, with: nil, at: 0)
+                vc.delegate = self
+                self?.navigationController?.pushViewController(vc, animated: true)
+            })
         )
         
         // When the user was not on this view, and HomeView sends user to here

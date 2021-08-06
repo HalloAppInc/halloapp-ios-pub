@@ -11,6 +11,7 @@ import Combine
 import Core
 import CoreData
 import UIKit
+import Intents
 import Photos
 
 protocol FeedCollectionViewControllerDelegate: AnyObject {
