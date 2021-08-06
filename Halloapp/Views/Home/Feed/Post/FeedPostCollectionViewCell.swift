@@ -350,6 +350,7 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
     enum EventType {
         case event
         case deletedPost
+        case deletedPostsMerge
     }
 
     override init(frame: CGRect) {
@@ -370,9 +371,16 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
         "feed-event"
     }
 
-    func configure(with text: String, type: EventType, isThemed: Bool = false) {
+    func configure(with text: String, type: EventType, isThemed: Bool = false, tapFunction: ((FeedDisplayItem)->Void)?, thisEvent: FeedDisplayItem) {
         textLabel.text = text
-
+        if let tapFunction = tapFunction {
+            currentEvent = thisEvent
+            tapFunc = tapFunction
+            textLabel.isUserInteractionEnabled = true
+            textLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: Selector("tapAction")))
+        } else {
+            textLabel.isUserInteractionEnabled = false
+        }
         switch type {
         case .deletedPost:
             bubble.backgroundColor = UIColor.feedPostEventDeletedBg
@@ -380,14 +388,27 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
         case .event:
             bubble.backgroundColor = isThemed ? UIColor.feedPostEventThemedBg : UIColor.feedPostEventDefaultBg
             textLabel.textColor = isThemed ? UIColor.feedPostEventText : UIColor.black.withAlphaComponent(0.6)
+        case .deletedPostsMerge:
+            bubble.backgroundColor = UIColor.feedPostEventDeletedBg
+            textLabel.textColor = .secondaryLabel
         }
     }
-
+    
+    @objc func tapAction() {
+        if let currentEvent = currentEvent {
+            if let tapFunc = tapFunc {
+                tapFunc(currentEvent)
+            }
+        }
+        
+    }
     private static let cacheKey = "\(FeedEventCollectionViewCell.self).content"
     private static let sizingLabel = makeLabel(alignment: .natural, isMultiLine: true)
     private static let directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 50, bottom: 8, trailing: 50)
     private static let bubbleMargins = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
-    private let textLabel = makeLabel(alignment: .center, isMultiLine: true)
+    let textLabel = makeLabel(alignment: .center, isMultiLine: true)
+    var currentEvent: FeedDisplayItem?
+    var tapFunc: ((FeedDisplayItem)->Void)?
     private let bubble = makeBubble()
 
     private func commonInit() {

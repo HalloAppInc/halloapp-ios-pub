@@ -226,7 +226,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     // This works around an NSDiffableDataSource issue.
     // Cells for deleted posts need to be reloaded (but only when they're first deleted)
     private var deletedPostIDs = Set<FeedPostID>()
-
+    
     private func update(with items: [FeedDisplayItem]) {
         willUpdate(with: items)
 
@@ -499,12 +499,16 @@ extension FeedCollectionViewController {
             switch item {
             case .event(let event):
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier, for: indexPath)
-                (cell as? FeedEventCollectionViewCell)?.configure(with: event.description, type: .event, isThemed: event.isThemed)
+                if let _ = event.containingItems {
+                    (cell as? FeedEventCollectionViewCell)?.configure(with: event.description, type: .deletedPostsMerge, isThemed: event.isThemed, tapFunction: self?.tapFunction, thisEvent: item)
+                } else {
+                    (cell as? FeedEventCollectionViewCell)?.configure(with: event.description, type: .event, isThemed: event.isThemed, tapFunction: nil, thisEvent: item)
+                }
                 return cell
             case .post(let feedPost):
                 guard !feedPost.isPostRetracted else {
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier, for: indexPath)
-                    (cell as? FeedEventCollectionViewCell)?.configure(with: Localizations.deletedPost(from: feedPost.userId), type: .deletedPost)
+                    (cell as? FeedEventCollectionViewCell)?.configure(with: Localizations.deletedPost(from: feedPost.userId), type: .deletedPost, tapFunction: nil, thisEvent: item)
                     return cell
                 }
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier, for: indexPath)
@@ -517,6 +521,10 @@ extension FeedCollectionViewController {
             }
 
         }
+    }
+    
+    func tapFunction(expandEvent: FeedDisplayItem) {
+        feedDataSource.expand(expandItem: expandEvent)
     }
 
     private var cellContentWidth: CGFloat {
