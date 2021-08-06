@@ -21,7 +21,7 @@ fileprivate extension FeedPost {
 protocol FeedPostCollectionViewCellDelegate: AnyObject {
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didRequestOpen url: URL)
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didChangeMediaIndex index: Int)
-    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell, animations animationBlock: @escaping () -> Void)
+    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell)
 }
 
 class FeedPostCollectionViewCell: UICollectionViewCell {
@@ -157,6 +157,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        postId = nil
         headerView.prepareForReuse()
         itemContentView.prepareForReuse()
         footerView.prepareForReuse()
@@ -339,9 +340,7 @@ extension FeedPostCollectionViewCell: TextLabelDelegate {
     }
 
     func textLabelDidRequestToExpand(_ label: TextLabel) {
-        delegate?.feedPostCollectionViewCellDidRequestTextExpansion(self) {
-            self.itemContentView.textLabel.numberOfLines = 0
-        }
+        delegate?.feedPostCollectionViewCellDidRequestTextExpansion(self)
     }
 }
 

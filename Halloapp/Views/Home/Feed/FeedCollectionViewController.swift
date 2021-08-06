@@ -816,7 +816,7 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
         postDisplayData[postID] = displayData
     }
 
-    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell, animations animationBlock: @escaping () -> Void) {
+    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell) {
         guard let indexPath = collectionView.indexPath(for: cell),
               let postID = cell.postId else
         {
@@ -825,19 +825,21 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
         var displayData = postDisplayData[postID] ?? FeedPostDisplayData()
         displayData.isTextExpanded = true
         postDisplayData[postID] = displayData
-        UIView.animate(withDuration: 0.35) {
-            animationBlock()
 
-            guard let collectionViewDataSource = self.collectionViewDataSource,
-                  let displayItem = self.feedDataSource.item(at: indexPath.item) else
-            {
-                self.collectionView.reloadData()
-                return
-            }
+        guard let collectionViewDataSource = self.collectionViewDataSource,
+              let displayItem = self.feedDataSource.item(at: indexPath.item) else
+        {
+            self.collectionView.reloadData()
+            return
+        }
+        cachedCellHeights.removeValue(forKey: displayItem)
+        let offset = collectionView.contentOffset
+        UIView.animate(withDuration: 0.35) {
+            self.collectionView.collectionViewLayout.invalidateLayout()
             var snapshot = collectionViewDataSource.snapshot()
             snapshot.reloadItems([displayItem])
             collectionViewDataSource.apply(snapshot)
-            self.collectionView.collectionViewLayout.invalidateLayout()
+            self.collectionView.contentOffset = offset
         }
     }
 }
