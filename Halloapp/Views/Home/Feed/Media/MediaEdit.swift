@@ -141,8 +141,12 @@ class MediaEdit : ObservableObject {
         }
     }
 
+    func shouldProcess() -> Bool {
+        return type == .image && cropRegion != .any
+    }
+
     func process() -> PendingMedia {
-        guard hasChanges() else { return media }
+        guard hasChanges() || shouldProcess() else { return media }
         media.resetProgress()
 
         switch type {
