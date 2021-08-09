@@ -41,21 +41,12 @@ class MediaAlbumsViewController: UIViewController {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
 
-            let smartRecentAlbum = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumRecentlyAdded, options: nil).firstObject
             let smartAlbums = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .any, options: nil)
-            // smartAlbums will not include smartRecentAlbum. not sure why!
-
             let userAlbums = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .albumRegular, options: nil)
             var albums = [Album]()
-            var album: PHAssetCollection
 
             for i in 0..<smartAlbums.count {
-                album = smartAlbums[i]
-                // overwrite smart user album with recently added album if available.
-                if album.assetCollectionSubtype == .smartAlbumUserLibrary, let recentAlbum = smartRecentAlbum {
-                    album = recentAlbum
-                }
-                albums.append(Album(album))
+                albums.append(Album(smartAlbums[i]))
             }
 
             for i in 0..<userAlbums.count {

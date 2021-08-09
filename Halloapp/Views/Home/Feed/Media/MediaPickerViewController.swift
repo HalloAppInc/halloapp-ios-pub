@@ -189,23 +189,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             // Default options to begin with.
             let options = PHFetchOptions()
             options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-            // Filter assets.
-            switch self.filter{
-            case .all:
-                options.predicate = nil
-            case .image:
-                options.predicate = NSPredicate(format: "mediaType == %d", PHAssetMediaType.image.rawValue)
-            case .video:
-                options.predicate = NSPredicate(format: "mediaType == %d", PHAssetMediaType.video.rawValue)
-            }
-            // Use album selected - otherwise fetch assets from recently added album always.
-            let selectedAlbum = album ?? PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumRecentlyAdded, options: nil).firstObject
 
-            if let album = selectedAlbum {
-                // Adjust sorting order for recently added album.
-                if album.assetCollectionSubtype == .smartAlbumRecentlyAdded {
-                    options.sortDescriptors = [NSSortDescriptor(key: "modificationDate", ascending: false)]
-                }
+            if let album = album {
                 // Unable to filter album assets by type, will filter them in snapshot manager
                 self.snapshotManager.reset(with: PHAsset.fetchAssets(in: album, options: options))
             } else {
