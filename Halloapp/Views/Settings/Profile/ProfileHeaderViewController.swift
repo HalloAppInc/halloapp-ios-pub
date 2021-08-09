@@ -516,7 +516,7 @@ extension Localizations {
     }
     
     static var profileHeaderMessageUser: String {
-        NSLocalizedString("profile.header.message.user", value: "Message", comment: "Text for messaging user under profile header")
+        NSLocalizedString("profile.header.message.user", value: "Message", comment: "This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun.")
     }
     
     static var unBlockedUser: String {
