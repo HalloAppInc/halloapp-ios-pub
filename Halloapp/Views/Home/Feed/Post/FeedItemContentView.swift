@@ -687,35 +687,49 @@ final class FeedItemFooterView: UIView {
 
     // Gotham Medium, 15 pt (Subhead)
     lazy var commentButton: ButtonWithBadge = {
-        let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 6 : -6
+        let isLTR = self.effectiveUserInterfaceLayoutDirection == .leftToRight
+        let spacing: CGFloat = isLTR ? 4 : -4
         let stringComment = NSLocalizedString("feedpost.button.comment", value: "Comment", comment: "Button under someone's post. Verb.")
         let button = ButtonWithBadge(type: .system)
         button.setTitle(stringComment, for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
-        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 18)
+        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .footnote, weight: .medium, maximumPointSize: 18)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.lineBreakMode = .byWordWrapping
         button.contentEdgeInsets.top = 15
         button.contentEdgeInsets.bottom = 9
+        if isLTR {
+            button.contentEdgeInsets.left = 20
+        } else {
+            button.contentEdgeInsets.right = 20
+        }
         button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
         button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
+        button.contentHorizontalAlignment = .leading
         return button
     }()
 
     // Gotham Medium, 15 pt (Subhead)
     lazy var messageButton: UIButton = {
-        let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 8 : -8
-        let stringMessage = NSLocalizedString("feedpost.button.reply", value: "Reply", comment: "Button under someoneelse's post. Verb.")
+        let isLTR = self.effectiveUserInterfaceLayoutDirection == .leftToRight
+        let spacing: CGFloat = isLTR ? 6 : -6
+        let stringMessage = NSLocalizedString("feedpost.button.reply", value: "Reply Privately", comment: "Button under someoneelse's post. Verb.")
         let button = UIButton(type: .system)
         button.setTitle(stringMessage, for: .normal)
         button.setImage(UIImage(named: "FeedPostReply"), for: .normal)
-        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 18)
+        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .footnote, weight: .medium, maximumPointSize: 18)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.lineBreakMode = .byWordWrapping
         button.contentEdgeInsets.top = 15
         button.contentEdgeInsets.bottom = 9
+        if isLTR {
+            button.contentEdgeInsets.right = 20
+        } else {
+            button.contentEdgeInsets.left = 20
+        }
         button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
         button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
+        button.contentHorizontalAlignment = .trailing
         return button
     }()
 
