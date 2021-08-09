@@ -1743,7 +1743,7 @@ private extension Localizations {
     }
     
     static var chatBlockedContactLabel: String {
-        NSLocalizedString("chat.blocked.contact.label", value: "User is blocked, tap to unblock", comment: "Text shown at the top of the chat screen informing the user that the contact is blocked")
+        NSLocalizedString("chat.blocked.contact.label", value: "Contact is blocked, tap to unblock", comment: "Text shown at the top of the chat screen informing the user that the contact is blocked")
     }
 
     static func chatAddToAddressBookLabel(_ name: String) -> String {
