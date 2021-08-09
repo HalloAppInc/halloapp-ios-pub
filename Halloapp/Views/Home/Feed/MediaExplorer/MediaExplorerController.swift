@@ -79,14 +79,14 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         super.init(nibName: nil, bundle: nil)
     }
 
-    private class BackButton: UIButton {
+    private class LargeHitButton: UIButton {
         override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
             return bounds.insetBy(dx: -16, dy: -16).contains(point)
         }
     }
 
     private lazy var backBtn: UIButton = {
-        let backBtn = BackButton(type: .custom)
+        let backBtn = LargeHitButton(type: .custom)
         backBtn.contentEdgeInsets = UIEdgeInsets(top: 10, left: -8, bottom: 10, right: 10)
         backBtn.addTarget(self, action: #selector(backAction), for: [.touchUpInside, .touchUpOutside])
         backBtn.setImage(UIImage(named: "NavbarBack")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
@@ -98,6 +98,21 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         backBtn.translatesAutoresizingMaskIntoConstraints = false
 
         return backBtn
+    }()
+
+    private lazy var shareBtn: UIButton = {
+        let icon = UIImage(systemName: "square.and.arrow.up", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))?.withTintColor(.white, renderingMode: .alwaysOriginal)
+
+        let shareBtn = LargeHitButton(type: .custom)
+        shareBtn.addTarget(self, action: #selector(shareButtonPressed), for: [.touchUpInside, .touchUpOutside])
+        shareBtn.setImage(icon, for: .normal)
+        shareBtn.layer.masksToBounds = false
+        shareBtn.layer.shadowColor = UIColor.black.cgColor
+        shareBtn.layer.shadowOpacity = 1
+        shareBtn.layer.shadowOffset = .zero
+        shareBtn.layer.shadowRadius = 0.3
+        shareBtn.translatesAutoresizingMaskIntoConstraints = false
+        return shareBtn
     }()
 
     init(media: [FeedMedia], index: Int, canSaveMedia: Bool) {
@@ -177,9 +192,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backBtn)
         
         if canSaveMedia {
-            let icon = UIImage(systemName: "square.and.arrow.down")
-            let shareSymbol = icon?.applyingSymbolConfiguration(UIImage.SymbolConfiguration(weight: .heavy))
-            navigationItem.rightBarButtonItem = UIBarButtonItem(image: shareSymbol, style: .plain, target: self, action: #selector(shareButtonPressed))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(customView: shareBtn)
         }
 
         view.backgroundColor = .black
@@ -276,8 +289,15 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
     
     private func mediaSaved() {
-        let savedLabel = UILabel()
-        
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.layer.cornerRadius = 13
+        container.clipsToBounds = true
+
+        let background = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.3)
+        background.translatesAutoresizingMaskIntoConstraints = false
+        background.backgroundColor = UIColor(red: 0.24, green: 0.24, blue: 0.26, alpha: 0.80)
+
         let imageAttachment = NSTextAttachment()
         imageAttachment.image = UIImage(named: "CheckmarkLong")?.withTintColor(.white)
 
@@ -285,24 +305,26 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         fullString.append(NSAttributedString(attachment: imageAttachment))
         fullString.append(NSAttributedString(string: " ")) // Space between localized string for saved and checkmark
         fullString.append(NSAttributedString(string: Localizations.saveSuccessfulLabel))
-        savedLabel.attributedText = fullString
-        
-        savedLabel.layer.cornerRadius = 13
-        savedLabel.clipsToBounds = true
-        savedLabel.textColor = .white
-        savedLabel.backgroundColor = .primaryBlue
-        savedLabel.textAlignment = .center
-        
-        self.view.addSubview(savedLabel)
-        
+
+        let savedLabel = UILabel()
         savedLabel.translatesAutoresizingMaskIntoConstraints = false
-        savedLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
-        savedLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 22.5).isActive = true
-        savedLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -22.5).isActive = true
-        savedLabel.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -75).isActive = true
+        savedLabel.attributedText = fullString
+        savedLabel.textColor = .white
+        savedLabel.textAlignment = .center
+
+        container.addSubview(background)
+        container.addSubview(savedLabel)
+        view.addSubview(container)
+
+        container.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        container.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 22.5).isActive = true
+        container.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -22.5).isActive = true
+        container.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -75).isActive = true
+        background.constrain(to: container)
+        savedLabel.constrain(to: container)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            savedLabel.removeFromSuperview()
+            container.removeFromSuperview()
         }
     }
     
@@ -820,7 +842,7 @@ extension Localizations {
     }
     
     static var saveSuccessfulLabel: String {
-        return NSLocalizedString("media.save.saved", value: "Saved", comment: "Label indicating that media was successfully saved to the camera roll")
+        return NSLocalizedString("media.save.saved", value: "Saved to Camera Roll", comment: "Label indicating that media was successfully saved to the camera roll")
     }
     
     static var mediaSaveError: String {
