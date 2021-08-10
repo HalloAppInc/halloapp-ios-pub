@@ -481,9 +481,10 @@ public final class NoiseStream: NSObject {
             DDLogError("noise/auth/error received auth result in state \(state)")
             return
         }
-        if authResult.resultString == "success" {
+        switch authResult.result {
+        case .success:
             state = .connected(send, recv)
-        } else {
+        case .failure, .unknown, .UNRECOGNIZED:
             state = .disconnected
         }
 

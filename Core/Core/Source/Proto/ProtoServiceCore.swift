@@ -351,14 +351,19 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     open func authenticationFailed(with authResult: Server_AuthResult) {
         DDLogInfo("ProtoServiceCore/authenticationFailed [\(authResult)]")
-        switch authResult.reasonString {
-        case "invalid client version":
+        switch authResult.reason {
+        case .invalidClientVersion:
             DispatchQueue.main.async {
                 self.isAppVersionKnownExpired.send(true)
             }
-        default:
-            DispatchQueue.main.async {
-                self.userData.logout()
+        case .accountDeleted, .invalidResource, .invalidUidOrPassword, .ok, .spubMismatch, .unknownReason, .UNRECOGNIZED:
+            switch authResult.result {
+            case .failure:
+                DispatchQueue.main.async {
+                    self.userData.logout()
+                }
+            case .UNRECOGNIZED, .unknown, .success:
+                DDLogError("ProtoServiceCore/authenticationFailed/unexpected-result [\(authResult.result)] [\(authResult.reason)]")
             }
         }
     }
@@ -406,9 +411,11 @@ extension ProtoServiceCore: NoiseDelegate {
     }
 
     public func receivedAuthResult(_ authResult: Server_AuthResult) {
-        if authResult.resultString == "success" {
+        switch authResult.result {
+        case .success:
             authenticationSucceeded(with: authResult)
-        } else {
+        case .failure, .unknown, .UNRECOGNIZED:
+            // Consider any non-success result a failure (user won't necessarily be logged out)
             authenticationFailed(with: authResult)
         }
     }
