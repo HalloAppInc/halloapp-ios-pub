@@ -134,9 +134,6 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Ошибка инициализации";
 
-/* Alert text shown when the contact has been added to the address book successfully */
-"chat.add.to.address.book.success" = "Контакт успешно добавлен";
-
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
 "chat.add.to.contacts.book.label" = "Чтобы увидеть сообщения от %@, добавьте номер в свою контактную книгу. Нажмите, чтобы добавить";
 

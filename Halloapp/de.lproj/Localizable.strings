@@ -140,11 +140,11 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Initialisierungsfehler";
 
-/* Alert text shown when the contact has been added to the address book successfully */
-"chat.add.to.address.book.success" = "Kontakt wurde erfolgreich hinzugefügt";
-
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
 "chat.add.to.contacts.book.label" = "Um die Beiträge von %@  zu sehen, bitte die Handynummer zu deinen Kontakten hinzufügen. Dazu hier tippen";
+
+/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+"chat.blocked.contact.label" = "Der Kontakt ist gesperrt, zur Freigabe hier tippen";
 
 /* Placeholder text shown inside the group name input box when it's empty */
 "chat.create.group.name.placeholder" = "Gruppennamen vergeben";
@@ -728,6 +728,9 @@
 
 /* Your Post screen: label for the row that opens the privacy screen */
 "mypost.row.manage.privacy" = "Privatsphäre verwalten";
+
+/* Displayed in place of deleted feed posts. */
+"n.posts.deleted" = "%@ gelöschte Beiträge";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Du bist kein Mitglied dieser Gruppe mehr";

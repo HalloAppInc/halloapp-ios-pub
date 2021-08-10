@@ -8,7 +8,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "\nΗ HalloApp είναι εδώ! Την δημιουργούμε για εσάς και τους αγαπημένους σας.\nΈχουμε επαναφέρει τις κοινωνικές εφαρμογές πίσω στα βασικά, προσθέτοντας ταυτόχρονα ένα επίπεδο προστασίας και απορρήτου στο οποίο πιστεύουμε πως όλοι πρέπει να έχουν πρόσβαση στον κόσμο. \nΗ HalloApp δεν θα χρησιμοποιήσει ποτέ τις προσωπικές σας πληροφορίες και δεν θα σας δείξει διαφημίσεις. \nΑντί αυτού, σχεδιάζουμε τελικά να σας προσφέρουμε επιπρόσθετα χαρακτηριστικά σε μικρό κόστος. \n\n";
+"about.body.1" = "\nΗ HalloApp είναι εδώ! Την δημιουργήσαμε για εσάς και τους αγαπημένους σας.\nΕπαναφέραμε τις εφαρμογές κοινωνικής δικτύωσης πίσω στα βασικά, προσθέτοντας ταυτόχρονα ένα επίπεδο προστασίας και απορρήτου στο οποίο πιστεύουμε πως όλοι οι χρήστες ανά τον κόσμο, πρέπει να έχουν πρόσβαση.\nΗ HalloApp δεν θα χρησιμοποιήσει ποτέ τις προσωπικές σας πληροφορίες και δεν θα σας δείξει διαφημίσεις. \nΑντί αυτού, σχεδιάζουμε να σας προσφέρουμε στο μέλλον, την επιλογή επιπρόσθετων λειτουργιών έναντι μικρού κόστους. \n\n";
 
 /* About screen: body text. */
 "about.body.2" = "Ευχαριστούμε που χρησιμοποιείτε και κοινωνικοποιείται την εφαρμογή HalloApp με τους φίλους και την οικογένια σας. Βελτιωνόμαστε κάθε βδομάδα.";
@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "Καλώς ήρθατε στο HalloApp!";
 
+/* Text label for action button to add the contact to the address book */
+"add.to.contact.book" = "Πρόσθεση στο βιβλίο επαφών";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Δεν υπάρχει σύνδεση διαδικτύου";
 
@@ -51,6 +54,9 @@
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Μη διαθέσιμη σύνδεση";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Πρόσθεση";
 
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
@@ -133,9 +139,6 @@
 
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Σφάλμα Αρχικοποίησης";
-
-/* Alert text shown when the contact has been added to the address book successfully */
-"chat.add.to.address.book.success" = "Η επαφή προστέθηκε με επιτυχία";
 
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
 "chat.add.to.contacts.book.label" = "Για να δείτε δημοσιεύσεις από %@ προσθέστε τον αριθμό τους στο βιβλίο επαφών σας. Πατήστε για προσθήκη";
@@ -670,7 +673,7 @@
 "media.save.camera.roll" = "Αποθήκευση Σε Συλλογή Φωτογραφιών";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
-"media.save.needs.permissions" = "Χρειάζεται άδειες για φωτογραφίες";
+"media.save.needs.permissions" = "Απαιτείται άδεια πρόσβασης στις φωτογραφίες";
 
 /* Description telling the user why the photos couldn't be saved */
 "media.save.no.access" = "Δεν είναι δυνατή η αποθήκευση φωτογραφιών χωρίς την πρόσβαση στη συλλογή φωτογραφιών.";
@@ -825,7 +828,7 @@
 
 /* Displayed in place of a deleted feed post.
    Displayed in place of a deleted group feed post at group list screen */
-"post.has.been.deleted" = "Αυτή η δημοσίευση διαγράφηκε";
+"post.has.been.deleted" = "H δημοσίευση διαγράφηκε";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted.by.author" = "%@ διέγραψε ατομική δημοσίευση";
@@ -928,6 +931,12 @@
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Κατεβάστε το HalloApp για έχετε πρόσβαση στην ομάδα %@";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "Ωχ, λάθος αριθμός!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Εισαγωγή μη αποδεκτού αριθμού. Παρακαλώ ελέγξτε ξανά.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Αν ακολούθησες κάποιον λίνκ πρόσκλησης σε ομάδα για να εγγραφείς, παρακαλούμε κάνε κλικ ξανά στον λίνκ για να ολοκληρώσεις την εγγραφή και να μπεις στην ομάδα.";

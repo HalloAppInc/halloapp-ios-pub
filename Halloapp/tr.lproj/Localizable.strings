@@ -134,9 +134,6 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Başlatma hatası";
 
-/* Alert text shown when the contact has been added to the address book successfully */
-"chat.add.to.address.book.success" = "Kişi, başarıyla eklendi";
-
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
 "chat.add.to.contacts.book.label" = "%@ kişisinin gönderilerini görmek için, numarasını kişi defterine ekle. Eklemek için dokun.";
 

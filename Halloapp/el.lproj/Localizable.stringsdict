@@ -45,9 +45,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Εξαίρεση Επαφής </string>
+			<string>%d Εξαίρεση Επαφής</string>
 			<key>other</key>
-			<string>Εξαίρεση Επαφών</string>
+			<string>%d Εξαίρεση Επαφών</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.selected</key>

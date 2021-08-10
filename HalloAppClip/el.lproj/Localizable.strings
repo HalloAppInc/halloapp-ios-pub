@@ -4,6 +4,9 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Ελέγξτε αν έχετε σύνδεση στο διαδίκτυο και δοκιμάστε ξανά";
 
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Πρόσθεση";
+
 /* Title for generic Cancel button. Mostly used in popups and as such.
    Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
 "button.cancel" = "Ακύρωση";
@@ -112,6 +115,12 @@
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Κατεβάστε το HalloApp για έχετε πρόσβαση στην ομάδα %@";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "Ωχ, λάθος αριθμός!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Εισαγωγή μη αποδεκτού αριθμού. Παρακαλώ ελέγξτε ξανά.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Εάν ακολουθήσατε έναν Σύνδεσμο Πρόσκλησης Ομάδας για εγγραφή, κάντε ξανά κλικ στον σύνδεσμο για να ολοκληρώσετε την εγγραφή και να μπείτε στην ομάδα.";
