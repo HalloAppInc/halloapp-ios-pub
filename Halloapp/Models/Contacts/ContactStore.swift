@@ -326,8 +326,6 @@ class ContactStoreMain: ContactStore {
         - completion: Code to execute on method completion.
      */
     private func reloadContacts(using context: NSManagedObjectContext, completion: (_ deletedPhoneNumbers: Set<ABContact.NormalizedPhoneNumber>?, _ error: Error?) -> Void) {
-        context.retainsRegisteredObjects = true
-
         let startTime = Date()
         let contactsAvailable = self.isContactsAvailable
 
