@@ -76,9 +76,11 @@ final class SafetyNumberViewController: UIViewController {
         scrollView.addSubview(infoLabel)
         view.addSubview(scrollView)
 
-        statusLabel.constrainMargins([.leading, .top, .trailing], to: scrollView)
+        statusLabel.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor).isActive = true
+        statusLabel.constrainMargins([.leading, .trailing], to: scrollView)
 
         qrView.constrain([.centerX], to: scrollView)
+        qrView.widthAnchor.constraint(lessThanOrEqualTo: scrollView.widthAnchor).isActive = true
         qrView.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 16).isActive = true
         qrView.widthAnchor.constraint(equalTo: qrView.heightAnchor).isActive = true
 
@@ -177,12 +179,18 @@ final class QRView: UIControl {
 
         super.init(frame: frame)
 
-        backgroundColor = .feedPostBackground
+        backgroundView.backgroundColor = .feedPostBackground
 
         label.text = Localizations.safetyNumberScan
+        label.numberOfLines = 0
+        label.textAlignment = .center
 
+        addSubview(backgroundView)
         addSubview(imageView)
         addSubview(label)
+
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        backgroundView.constrain(to: self)
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
@@ -190,7 +198,7 @@ final class QRView: UIControl {
         imageView.heightAnchor.constraint(lessThanOrEqualTo: heightAnchor, multiplier: 0.65).isActive = true
 
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.constrain(anchor: .centerX, to: self)
+        label.constrain([.leading, .trailing], to: self)
         label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 16).isActive = true
         label.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor).isActive = true
     }
@@ -215,14 +223,15 @@ final class QRView: UIControl {
         imageView.image = image
     }
 
+    private let backgroundView = UIView()
     private let imageView = UIImageView()
     private let label = UILabel()
 
     private func updateMask() {
         let mask = CAShapeLayer()
         mask.path = UIBezierPath(ovalIn: bounds).cgPath
-        layer.mask = mask
-        layer.masksToBounds = true
+        backgroundView.layer.mask = mask
+        backgroundView.layer.masksToBounds = true
     }
 }
 
