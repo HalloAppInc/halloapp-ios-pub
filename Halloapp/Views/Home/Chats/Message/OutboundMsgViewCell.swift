@@ -591,7 +591,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             if isLargeFontEmoji {
                 font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
-            attrText.append(NSMutableAttributedString(string: text, attributes: [.font: font, .paragraphStyle: paragraph]))
+            attrText.append(NSMutableAttributedString(string: text, attributes: [.font: font, .foregroundColor: color, .paragraphStyle: paragraph]))
 
             // add newline and pad with spaces to accommodate timestamp below it
             let padStr = "\n \u{2800}\(blanks)"
