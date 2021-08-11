@@ -131,7 +131,7 @@ class SettingsViewController: UITableViewController {
         })
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         snapshot.appendSections([ .one, .two, .three ])
-        snapshot.appendItems([ .profile, .feed ], toSection: .one)
+        snapshot.appendItems([ .profile, .feed, .archive ], toSection: .one)
         snapshot.appendItems([ .account, .notifications, .privacy ], toSection: .two)
         snapshot.appendItems([ .help, .about, .invite, .share ], toSection: .three)
         dataSource.apply(snapshot, animatingDifferences: false)
@@ -217,7 +217,9 @@ class SettingsViewController: UITableViewController {
     }
 
     private func openArchive() {
-
+        let viewController = SettingsArchiveViewController()
+        viewController.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(viewController, animated: true)
     }
 
     private func openSettings() {

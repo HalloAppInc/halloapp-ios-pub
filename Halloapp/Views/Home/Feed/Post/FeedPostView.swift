@@ -1,9 +1,9 @@
 //
-//  FeedPostCollectionViewCell.swift
+//  FeedPostView.swift
 //  HalloApp
 //
-//  Created by Igor Solomennikov on 11/12/20.
-//  Copyright © 2020 HalloApp, Inc. All rights reserved.
+//  Created by Matt Geimer on 8/5/21.
+//  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
 import CocoaLumberjackSwift
@@ -11,20 +11,13 @@ import Combine
 import Core
 import UIKit
 
-extension FeedPost {
-    var hideFooterSeparator: Bool {
-        // Separator should be hidden for media-only posts.
-        text?.isEmpty ?? true
-    }
+protocol FeedPostViewDelegate: AnyObject {
+    func feedPostView(_ cell: FeedPostView, didRequestOpen url: URL)
+    func feedPostView(_ cell: FeedPostView, didChangeMediaIndex index: Int)
+    func feedPostViewDidRequestTextExpansion(_ cell: FeedPostView, animations animationBlock: @escaping () -> Void)
 }
 
-protocol FeedPostCollectionViewCellDelegate: AnyObject {
-    func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didRequestOpen url: URL)
-    func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didChangeMediaIndex index: Int)
-    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell)
-}
-
-class FeedPostCollectionViewCell: UICollectionViewCell {
+class FeedPostView: UIView {
 
     var postId: FeedPostID? = nil
 
@@ -38,7 +31,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     var retrySendingAction: (() -> ())?
     var deleteAction: (() -> ())?
 
-    weak var delegate: FeedPostCollectionViewCellDelegate?
+    weak var delegate: FeedPostViewDelegate?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -72,7 +65,15 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     private let backgroundPanelView = FeedItemBackgroundPanelView()
     private let headerView = FeedItemHeaderView()
     private let itemContentView = FeedItemContentView()
+    
+    var contentViewDelegate: FeedItemContentViewDelegate? {
+        didSet {
+            itemContentView.delegate = contentViewDelegate
+        }
+    }
+    
     private let footerView = FeedItemFooterView()
+    private var backgroundView: UIView?
     
     private var contentTopConstraint: NSLayoutConstraint? = nil
 
@@ -80,17 +81,21 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
         backgroundColor = .clear
         preservesSuperviewLayoutMargins = true
-        contentView.preservesSuperviewLayoutMargins = true
+        self.preservesSuperviewLayoutMargins = true
 
-        contentView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.constrain(to: self)
+        self.translatesAutoresizingMaskIntoConstraints = false
+        self.constrain(to: self)
 
         // Background
         backgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
-        let backgroundView = UIView()
-        backgroundView.preservesSuperviewLayoutMargins = true
-        backgroundView.addSubview(backgroundPanelView)
-        self.backgroundView = backgroundView
+        backgroundView = UIView()
+        backgroundView?.translatesAutoresizingMaskIntoConstraints = false
+        backgroundView?.preservesSuperviewLayoutMargins = true
+        backgroundView?.addSubview(backgroundPanelView)
+        if let backgroundView = backgroundView {
+            addSubview(backgroundView)
+        }
+        backgroundView?.constrain(to: self)
         updateBackgroundPanelShadow()
 
         if !Self.subscribedToContentSizeCategoryChangeNotification {
@@ -101,36 +106,34 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         }
 
         headerView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(headerView)
+        self.addSubview(headerView)
 
         itemContentView.translatesAutoresizingMaskIntoConstraints = false
         itemContentView.textLabel.delegate = self
-        contentView.addSubview(itemContentView)
+        self.addSubview(itemContentView)
 
         footerView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(footerView)
+        self.addSubview(footerView)
 
-        // Lower constraint priority to avoid unsatisfiable constraints situation when UITableViewCell's height is 44 during early table view layout passes.
-        let footerViewBottomConstraint = footerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -LayoutConstants.backgroundPanelViewOutsetV - LayoutConstants.interCardSpacing / 2)
-        footerViewBottomConstraint.priority = .defaultHigh
-        
+        let footerViewBottomConstraint = footerView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -LayoutConstants.backgroundPanelViewOutsetV - LayoutConstants.interCardSpacing / 2)
+
         contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 5)
         contentTopConstraint?.isActive = true
 
-        contentView.addConstraints([
+        self.addConstraints([
             // HEADER
-            headerView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            headerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing / 2),
-            headerView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+            headerView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor),
+            headerView.topAnchor.constraint(equalTo: self.topAnchor, constant: LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing / 2),
+            headerView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor),
 
             // CONTENT
-            itemContentView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            itemContentView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+            itemContentView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor),
+            itemContentView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor),
 
             // FOOTER
-            footerView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            footerView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor),
             footerView.topAnchor.constraint(equalTo: itemContentView.bottomAnchor),
-            footerView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+            footerView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor),
             footerViewBottomConstraint
         ])
 
@@ -153,14 +156,6 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         footerView.deleteAction = { [weak self] in
             self?.deleteAction?()
         }
-    }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        postId = nil
-        headerView.prepareForReuse()
-        itemContentView.prepareForReuse()
-        footerView.prepareForReuse()
     }
 
     override func layoutSubviews() {
@@ -191,6 +186,22 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     private lazy var maxWidthConstraint: NSLayoutConstraint = {
         widthAnchor.constraint(equalToConstant: maxWidth)
     }()
+    
+    var isShowingFooter: Bool = true {
+        didSet {
+            if isShowingFooter {
+                footerView.isHidden = false
+                footerView.constraints.forEach { constraint in
+                    constraint.isActive = true
+                }
+            } else {
+                footerView.isHidden = true
+                footerView.constraints.forEach { constraint in
+                    constraint.isActive = false
+                }
+            }
+        }
+    }
 
     var maxWidth: CGFloat = 0 {
         didSet {
@@ -218,10 +229,6 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         footerView.configure(with: feedPost, contentWidth: contentWidth)
     }
 
-    class var reuseIdentifier: String {
-        "active-post"
-    }
-
     func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool, displayData: FeedPostDisplayData?) {
         DDLogVerbose("FeedPostCollectionViewCell/configure [\(post.id)]")
 
@@ -245,7 +252,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
         itemContentView.didChangeMediaIndex = { [weak self] index in
             guard let self = self else { return }
-            self.delegate?.feedPostCollectionViewCell(self, didChangeMediaIndex: index)
+            self.delegate?.feedPostView(self, didChangeMediaIndex: index)
         }
         
         if post.media?.count ?? 0 > 0 {
@@ -263,11 +270,16 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
     // MARK: Height computation
 
-    class func height(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) -> CGFloat {
+    class func height(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?, showingFooter: Bool = true) -> CGFloat {
         let headerHeight = Self.headerHeight(forPost: post, contentWidth: contentWidth)
         let contentHeight = Self.contentHeight(forPost: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
-        let footerHeight = Self.footerHeight(forPost: post, contentWidth: contentWidth)
+        let footerHeight = showingFooter ? Self.footerHeight(forPost: post, contentWidth: contentWidth) : 0
+        
         return headerHeight + contentHeight + footerHeight + 2 * LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing
+    }
+    
+    func setHeaderHeight(forPost post: FeedPost, contentWidth: CGFloat) {
+        headerView.heightAnchor.constraint(equalToConstant: Self.headerHeight(forPost: post, contentWidth: contentWidth)).isActive = true
     }
 
     private static let headerCacheKey = "height.header"
@@ -319,14 +331,14 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     }
 }
 
-extension FeedPostCollectionViewCell: TextLabelDelegate {
+extension FeedPostView: TextLabelDelegate {
 
     func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
         switch link.linkType {
         case .link, .phoneNumber:
             if let url = link.result?.url, let delegate = delegate {
                 guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { break }
-                delegate.feedPostCollectionViewCell(self, didRequestOpen: url)
+                delegate.feedPostView(self, didRequestOpen: url)
             }
 
         case .userMention:
@@ -340,16 +352,17 @@ extension FeedPostCollectionViewCell: TextLabelDelegate {
     }
 
     func textLabelDidRequestToExpand(_ label: TextLabel) {
-        delegate?.feedPostCollectionViewCellDidRequestTextExpansion(self)
+        delegate?.feedPostViewDidRequestTextExpansion(self) {
+            self.itemContentView.textLabel.numberOfLines = 0
+        }
     }
 }
 
-final class FeedEventCollectionViewCell: UICollectionViewCell {
+final class FeedEventView: UIView {
 
     enum EventType {
         case event
         case deletedPost
-        case deletedPostsMerge
     }
 
     override init(frame: CGRect) {
@@ -362,24 +375,9 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
         commonInit()
     }
 
-    override func prepareForReuse() {
-        textLabel.text = nil
-    }
-
-    class var reuseIdentifier: String {
-        "feed-event"
-    }
-
-    func configure(with text: String, type: EventType, isThemed: Bool = false, tapFunction: ((FeedDisplayItem)->Void)?, thisEvent: FeedDisplayItem) {
+    func configure(with text: String, type: EventType, isThemed: Bool = false) {
         textLabel.text = text
-        if let tapFunction = tapFunction {
-            currentEvent = thisEvent
-            tapFunc = tapFunction
-            textLabel.isUserInteractionEnabled = true
-            textLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapAction)))
-        } else {
-            textLabel.isUserInteractionEnabled = false
-        }
+
         switch type {
         case .deletedPost:
             bubble.backgroundColor = UIColor.feedPostEventDeletedBg
@@ -387,42 +385,29 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
         case .event:
             bubble.backgroundColor = isThemed ? UIColor.feedPostEventThemedBg : UIColor.feedPostEventDefaultBg
             textLabel.textColor = isThemed ? UIColor.feedPostEventText : UIColor.black.withAlphaComponent(0.6)
-        case .deletedPostsMerge:
-            bubble.backgroundColor = UIColor.feedPostEventDeletedBg
-            textLabel.textColor = .secondaryLabel
         }
     }
-    
-    @objc func tapAction() {
-        if let currentEvent = currentEvent {
-            if let tapFunc = tapFunc {
-                tapFunc(currentEvent)
-            }
-        }
-        
-    }
+
     private static let cacheKey = "\(FeedEventCollectionViewCell.self).content"
     private static let sizingLabel = makeLabel(alignment: .natural, isMultiLine: true)
     private static let directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 50, bottom: 8, trailing: 50)
     private static let bubbleMargins = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
-    let textLabel = makeLabel(alignment: .center, isMultiLine: true)
-    var currentEvent: FeedDisplayItem?
-    var tapFunc: ((FeedDisplayItem)->Void)?
+    private let textLabel = makeLabel(alignment: .center, isMultiLine: true)
     private let bubble = makeBubble()
 
     private func commonInit() {
-        contentView.directionalLayoutMargins = Self.directionalLayoutMargins
+        self.directionalLayoutMargins = Self.directionalLayoutMargins
 
         bubble.addSubview(textLabel)
-        contentView.addSubview(bubble)
+        self.addSubview(bubble)
 
         textLabel.constrainMargins(to: bubble)
 
-        bubble.constrainMargins([.top, .bottom, .centerX], to: contentView)
-        bubble.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        bubble.trailingAnchor.constraint(lessThanOrEqualTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        bubble.constrainMargins([.top, .bottom, .centerX], to: self)
+        bubble.leadingAnchor.constraint(greaterThanOrEqualTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
+        bubble.trailingAnchor.constraint(lessThanOrEqualTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
 
-        contentView.widthAnchor.constraint(equalToConstant: bounds.width).isActive = true
+        self.widthAnchor.constraint(equalToConstant: bounds.width).isActive = true
     }
 
     static func makeLabel(alignment: NSTextAlignment, isMultiLine: Bool) -> UILabel {
@@ -448,24 +433,11 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
     }
 }
 
-extension FeedEventCollectionViewCell {
+extension FeedEventView {
     static func height(for text: String, width: CGFloat) -> CGFloat {
         sizingLabel.text = text
         let availableWidth = width - directionalLayoutMargins.leading - directionalLayoutMargins.trailing - bubbleMargins.leading - bubbleMargins.trailing
         let size = sizingLabel.sizeThatFits(CGSize(width: availableWidth, height: 0))
         return size.height + directionalLayoutMargins.bottom + directionalLayoutMargins.top + bubbleMargins.bottom + bubbleMargins.top
-    }
-}
-
-extension Localizations {
-    static func deletedPost(from userID: UserID) -> String {
-        if userID == MainAppContext.shared.userData.userId {
-            return  NSLocalizedString("post.has.been.deleted.by.you", value: "You deleted your post", comment: "Displayed in place of a deleted feed post.")
-        } else if let name = MainAppContext.shared.contactStore.fullNameIfAvailable(for: userID, ownName: nil) {
-            let format = NSLocalizedString("post.has.been.deleted.by.author", value: "%@ deleted their post", comment: "Displayed in place of a deleted feed post.")
-            return String(format: format, name)
-        } else {
-            return NSLocalizedString("post.has.been.deleted", value: "This post has been deleted", comment: "Displayed in place of a deleted feed post.")
-        }
     }
 }

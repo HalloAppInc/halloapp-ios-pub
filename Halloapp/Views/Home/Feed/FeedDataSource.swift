@@ -162,21 +162,35 @@ extension FeedDataSource: NSFetchedResultsControllerDelegate {
 extension FeedDataSource {
     static func groupFeedRequest(groupID: GroupID) -> NSFetchRequest<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "groupId == %@", groupID)
+        fetchRequest.predicate = NSPredicate(format: "groupId == %@ && timestamp >= %@", groupID, FeedData.cutoffDate as NSDate)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         return fetchRequest
     }
 
     static func homeFeedRequest() -> NSFetchRequest<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "groupId == nil || statusValue != %d", FeedPost.Status.retracted.rawValue)
+        fetchRequest.predicate = NSPredicate(format: "(groupId == nil || statusValue != %d) && timestamp >= %@",
+                                             FeedPost.Status.retracted.rawValue,
+                                             FeedData.cutoffDate as NSDate)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         return fetchRequest
     }
 
     static func userFeedRequest(userID: UserID) -> NSFetchRequest<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId == %@ && (groupId == nil || statusValue != %d)", userID, FeedPost.Status.retracted.rawValue)
+        fetchRequest.predicate = NSPredicate(format: "userId == %@ && (groupId == nil || statusValue != %d) && timestamp >= %@", userID,
+                                             FeedPost.Status.retracted.rawValue,
+                                             FeedData.cutoffDate as NSDate)
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
+        return fetchRequest
+    }
+    
+    static func archiveFeedRequest() -> NSFetchRequest<FeedPost> {
+        let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "userId == %@", MainAppContext.shared.userData.userId),
+            NSPredicate(format: "timestamp < %@", FeedData.cutoffDate as NSDate)
+        ])
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         return fetchRequest
     }

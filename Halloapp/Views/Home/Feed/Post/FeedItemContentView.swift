@@ -11,12 +11,6 @@ import Combine
 import Core
 import UIKit
 
-fileprivate extension FeedPost {
-    var hideFooterSeparator: Bool {
-        !orderedMedia.isEmpty && text?.isEmpty ?? true
-    }
-}
-
 final class FeedItemBackgroundPanelView: UIView {
 
     override init(frame: CGRect) {
@@ -59,11 +53,16 @@ final class FeedItemBackgroundPanelView: UIView {
     }
 }
 
+protocol FeedItemContentViewDelegate {
+    func playMedia(media: [FeedMedia], index: Int?, delegate: MediaExplorerTransitionDelegate?, canSaveMedia: Bool)
+}
+
 final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private let scaleThreshold: CGFloat = 1.3
     private var postId: FeedPostID? = nil
     private var feedPost: FeedPost?
+    var delegate: FeedItemContentViewDelegate?
 
     private enum LayoutConstants {
         static let topMargin: CGFloat = 5
@@ -295,7 +294,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         guard let postId = postId else { return }
         guard let media = MainAppContext.shared.feedData.media(for: postId) else { return }
 
-        presentExplorer(media: media, index: index, delegate: view)
+        presentMedia(media, index: index, delegate: view)
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
@@ -303,7 +302,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         guard let media = MainAppContext.shared.feedData.media(for: postId) else { return }
         guard media[index].type == .video else { return }
 
-        presentExplorer(media: media, index: index, delegate: view)
+        presentMedia(media, index: index, delegate: view)
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
@@ -312,13 +311,19 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         guard media[index].type == .video else { return }
         guard scale > scaleThreshold else { return }
 
-        presentExplorer(media: media, index: index, delegate: view)
+        presentMedia(media, index: index, delegate: view)
     }
 
-    private func presentExplorer(media: [FeedMedia], index: Int, delegate: MediaExplorerTransitionDelegate? = nil) {
+    private func presentMedia(_ media: [FeedMedia], index: Int, delegate transitionDelegate: MediaExplorerTransitionDelegate? = nil) {
         guard let post = feedPost else { return }
+        
+        if let delegate = delegate {
+            delegate.playMedia(media: media, index: index, delegate: transitionDelegate, canSaveMedia: post.canSaveMedia)
+            return
+        }
+        
         let explorerController = MediaExplorerController(media: media, index: index, canSaveMedia: post.canSaveMedia)
-        explorerController.delegate = delegate
+        explorerController.delegate = transitionDelegate
 
         if let controller = findController() {
             controller.present(explorerController.withNavigationController(), animated: true)

@@ -629,6 +629,7 @@ extension FeedCollectionViewController {
             alert.view.tintColor = .systemBlue
             self.present(alert, animated: true, completion: nil)
         }
+        
         cell.cancelSendingAction = { [weak self] in
             guard let self = self else { return }
             self.cancelSending(postId: postId)

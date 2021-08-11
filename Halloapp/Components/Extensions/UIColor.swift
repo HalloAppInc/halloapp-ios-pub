@@ -162,4 +162,9 @@ extension UIColor {
         UIColor(named: "PageIndicatorInactive")!
     }
 
+    // MARK: Archive
+    
+    class var archiveCellBackgroundPlaceholder: UIColor {
+        UIColor(named: "ArchiveCellBackgroundPlaceholder")!
+    }
 }

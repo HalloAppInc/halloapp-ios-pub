@@ -69,6 +69,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogInfo("Feed: Got event for didConnect")
 
                 self.deleteExpiredPosts()
+                self.performSeriallyOnBackgroundContext { managedObjectContext in
+                    self.getArchivedPosts { [weak self] posts in
+                        self?.deleteAssociatedData(for: posts, in: managedObjectContext)
+                    }
+                    self.deleteNotifications(olderThan: Self.cutoffDate, in: managedObjectContext)
+                }
                 self.resendStuckItems()
                 self.resendPendingReadReceipts()
 
@@ -364,10 +370,23 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Fetching Feed Data
 
-    private func feedPosts(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPost] {
+    private func feedPosts(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil, archived: Bool = false) -> [FeedPost] {
         let managedObjectContext = managedObjectContext ?? self.viewContext
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = predicate
+        
+        if let predicate = predicate {
+            if !archived {
+                fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+                    predicate,
+                    NSPredicate(format: "timestamp >= %@", Self.cutoffDate as NSDate)
+                ])
+            } else {
+                fetchRequest.predicate = predicate
+            }
+        } else {
+            fetchRequest.predicate = NSPredicate(format: "timestamp >= %@", Self.cutoffDate as NSDate)
+        }
+        
         fetchRequest.sortDescriptors = sortDescriptors
         fetchRequest.returnsObjectsAsFaults = false
         do {
@@ -380,12 +399,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func feedPost(with id: FeedPostID, in managedObjectContext: NSManagedObjectContext? = nil) -> FeedPost? {
-        return self.feedPosts(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
+    func feedPost(with id: FeedPostID, in managedObjectContext: NSManagedObjectContext? = nil, archived: Bool = false) -> FeedPost? {
+        return self.feedPosts(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext, archived: archived).first
     }
 
-    private func feedPosts(with ids: Set<FeedPostID>, in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPost] {
-        return feedPosts(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext)
+    private func feedPosts(with ids: Set<FeedPostID>, in managedObjectContext: NSManagedObjectContext? = nil, archived: Bool = false) -> [FeedPost] {
+        return feedPosts(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext, archived: archived)
     }
     
     func feedComment(with id: FeedPostCommentID, in managedObjectContext: NSManagedObjectContext? = nil) -> FeedPostComment? {
@@ -493,7 +512,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     performAfterSave()
                 }
             }
-            guard let feedPost = self.feedPost(with: id, in: managedObjectContext) else {
+            guard let feedPost = self.feedPost(with: id, in: managedObjectContext, archived: true) else {
                 DDLogError("FeedData/update-post/missing-post [\(id)]")
                 return
             }
@@ -1098,7 +1117,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         performSeriallyOnBackgroundContext { (managedObjectContext) in
             managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
 
-            guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else {
+            guard let feedPost = self.feedPost(with: postId, in: managedObjectContext, archived: true) else {
                 DDLogError("FeedData/retract-post/error Missing post. [\(postId)]")
                 completion()
                 return
@@ -2136,29 +2155,38 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.managedObjectContext?.delete(media)
         }
     }
-
-    @discardableResult
-    private func deletePosts(olderThan date: Date, in managedObjectContext: NSManagedObjectContext) -> [FeedPostID] {
+    
+    private func getPosts(olderThan date: Date, in managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
         let fetchRequest = NSFetchRequest<FeedPost>(entityName: FeedPost.entity().name!)
         fetchRequest.predicate = NSPredicate(format: "timestamp < %@", date as NSDate)
         do {
+            return try managedObjectContext.fetch(fetchRequest)
+        } catch {
+            DDLogError("FeedData/posts/get-expired/error  [\(error)]")
+            return []
+        }
+    }
+
+    private func deletePosts(with postIDs: [FeedPostID], in managedObjectContext: NSManagedObjectContext) {
+        let fetchRequest = NSFetchRequest<FeedPost>(entityName: FeedPost.entity().name!)
+        
+        fetchRequest.predicate = NSPredicate(format: "id IN %@", Set(postIDs))
+        
+        do {
             let posts = try managedObjectContext.fetch(fetchRequest)
-            let postIDs = posts.map { $0.id }
             guard !posts.isEmpty else {
-                DDLogInfo("FeedData/posts/delete-expired/empty")
-                return postIDs
+                DDLogInfo("FeedData/posts/delete/empty")
+                return
             }
-            DDLogInfo("FeedData/posts/delete-expired/begin  count=[\(posts.count)]")
+            DDLogInfo("FeedData/posts/delete/begin  count=[\(posts.count)]")
             posts.forEach { post in
                 deleteMedia(in: post)
                 managedObjectContext.delete(post)
             }
             DDLogInfo("FeedData/posts/delete-expired/finished")
-            return postIDs
-        }
-        catch {
+        } catch {
             DDLogError("FeedData/posts/delete-expired/error  [\(error)]")
-            return []
+            return
         }
     }
 
@@ -2201,16 +2229,48 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogError("FeedData/notifications/delete-for-post/error  [\(error)]")
         }
     }
-
+    
+    /// Cutoff date at which posts expire and are sent to the archive.
+    static let cutoffDate = Date(timeIntervalSinceNow: -Date.days(31))
+    
     private func deleteExpiredPosts() {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let cutoffDate = Date(timeIntervalSinceNow: -Date.days(31))
-            DDLogInfo("FeedData/delete-expired  date=[\(cutoffDate)]")
-            let expiredPostIDs = self.deletePosts(olderThan: cutoffDate, in: managedObjectContext)
-            self.deleteNotifications(olderThan: cutoffDate, in: managedObjectContext)
-            self.deleteNotifications(forPosts: expiredPostIDs, in: managedObjectContext)
-            self.deletePostCommentDrafts(forPosts: expiredPostIDs)
+            DDLogInfo("FeedData/delete-expired  date=[\(Self.cutoffDate)]")
+            let expiredPosts = self.getPosts(olderThan: Self.cutoffDate, in: managedObjectContext)
+            
+            let postsToDelete = expiredPosts
+                .filter({ $0.userId != MainAppContext.shared.userData.userId })
+                .map({ $0.id })
+            
+            self.deletePosts(with: postsToDelete, in: managedObjectContext)
+            self.deleteAssociatedData(for: postsToDelete, in: managedObjectContext)
             self.save(managedObjectContext)
+        }
+    }
+    
+    /// Gets expired posts that were posted by the user.
+    /// - Parameter completion: Callback function that returns the array of feed post ids
+    func getArchivedPosts(completion: @escaping ([FeedPostID]) -> ()) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            DDLogInfo("FeedData/get-archived  date=[\(Self.cutoffDate)]")
+            let expiredPosts = self.getPosts(olderThan: Self.cutoffDate, in: managedObjectContext)
+            
+            let archivedPostIDs = expiredPosts
+                .filter({ $0.userId == MainAppContext.shared.userData.userId })
+                .map({ $0.id })
+            
+            completion(archivedPostIDs)
+        }
+    }
+    
+    /// Delete data that is no longer relevant for archived posts. Data deleted includes notifications and post comment drafts.
+    /// - Parameter posts: Posts to delete related data from.
+    func deleteAssociatedData(for posts: [FeedPostID], in managedObjectContext: NSManagedObjectContext) {
+        self.performSeriallyOnBackgroundContext { managedObjectContext in
+            self.deleteNotifications(forPosts: posts, in: managedObjectContext)
+            self.deletePostCommentDrafts(forPosts: posts)
+            self.deletePostComments(for: posts, in: managedObjectContext)
+            try? managedObjectContext.save()
         }
     }
     
@@ -2220,6 +2280,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         Self.deletePostCommentDrafts { existingDraft in
             posts.contains(existingDraft.postID)
         }
+    }
+    
+    private func deletePostComments(for posts: [FeedPostID], in managedObjectContext: NSManagedObjectContext) {
+        posts.compactMap { id in
+            MainAppContext.shared.feedData.feedPost(with: id)
+        }.flatMap { post in
+            post.comments ?? []
+        }.forEach({ comment in
+            managedObjectContext.delete(comment)
+        })
     }
     
     /// Deletes drafts of comments in `userDefaults` that meet the condition argument.
