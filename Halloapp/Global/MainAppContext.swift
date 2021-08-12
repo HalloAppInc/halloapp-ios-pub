@@ -19,7 +19,7 @@ class MainAppContext: AppContext {
     // MARK: Constants
     private static let feedDatabaseFilename = "feed.sqlite"
     private static let chatDatabaseFilename = "chat.sqlite"
-    private static let cryptoStatsDatabaseFilename = "cryptoStats.sqlite"
+    private static let cryptoStatsDatabaseFilenameLegacy = "cryptoStats.sqlite"
     private static let uploadDatabaseFilename = "upload.sqlite"
 
     // MARK: Global objects
@@ -32,7 +32,6 @@ class MainAppContext: AppContext {
     private(set) var shareExtensionDataStore: ShareExtensionDataStore!
     private(set) var notificationServiceExtensionDataStore: NotificationServiceExtensionDataStore!
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
-    lazy var cryptoData: CryptoData = { CryptoData() }()
     private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()
 
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
@@ -95,8 +94,8 @@ class MainAppContext: AppContext {
         documentsDirectoryURL.appendingPathComponent(chatDatabaseFilename)
     }()
 
-    static let cryptoStatsStoreURL = {
-        documentsDirectoryURL.appendingPathComponent(cryptoStatsDatabaseFilename)
+    static let cryptoStatsStoreURLLegacy = {
+        documentsDirectoryURL.appendingPathComponent(cryptoStatsDatabaseFilenameLegacy)
     }()
 
     static let uploadStoreURL = {
@@ -159,8 +158,22 @@ class MainAppContext: AppContext {
                                                object: notificationServiceExtensionDataStore.persistentContainer.persistentStoreCoordinator)
 
         let oneHour = TimeInterval(60*60)
+        migrateLegacyCryptoDataIfNecessary()
         cryptoData.startReporting(interval: oneHour) { [weak self] events in
             self?.eventMonitor.observe(events)
+        }
+    }
+
+    private func migrateLegacyCryptoDataIfNecessary() {
+        guard FileManager.default.fileExists(atPath: Self.cryptoStatsStoreURLLegacy.path) else {
+            DDLogInfo("MainAppContext/migrateLegacyCryptoData/skipping [not found]")
+            return
+        }
+        DDLogInfo("MainAppContext/migrateLegacyCryptoData/starting")
+        let legacyCryptoData = CryptoData(persistentStoreURL: Self.cryptoStatsStoreURLLegacy)
+        cryptoData.integrateEarlierResults(from: legacyCryptoData) {
+            DDLogInfo("MainAppContext/migrateLegacyCryptoData/complete [destroying old store]")
+            legacyCryptoData.destroyStore()
         }
     }
 

@@ -1212,7 +1212,7 @@ extension ChatViewController: InboundMsgViewCellDelegate {
             }
 
             if ServerProperties.isInternalUser {
-                actionSheet.message = MainAppContext.shared.cryptoData.details(for: chatMessage.id)
+                actionSheet.message = MainAppContext.shared.cryptoData.details(for: chatMessage.id, dateFormatter: DateFormatter.dateTimeFormatterMonthDayTime)
             }
         }
         

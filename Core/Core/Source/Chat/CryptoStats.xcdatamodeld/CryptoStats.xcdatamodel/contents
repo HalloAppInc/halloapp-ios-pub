@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17511" systemVersion="19G73" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="MessageDecryption" representedClassName="MessageDecryption" syncable="YES" codeGenerationType="class">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20G80" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="MessageDecryption" representedClassName="MessageDecryption" syncable="YES">
         <attribute name="decryptionResult" optional="YES" attributeType="String"/>
         <attribute name="hasBeenReported" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="isSilent" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
@@ -17,6 +17,6 @@
         </uniquenessConstraints>
     </entity>
     <elements>
-        <element name="MessageDecryption" positionX="-63" positionY="-18" width="128" height="178"/>
+        <element name="MessageDecryption" positionX="-63" positionY="-18" width="128" height="164"/>
     </elements>
 </model>

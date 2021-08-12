@@ -79,8 +79,6 @@
 		6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4F924FEE97800A9C202 /* HalloService.swift */; };
 		6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FB24FEE97800A9C202 /* ProtoService.swift */; };
 		6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */; };
-		68419A8526029C2000C30B6A /* CryptoStats.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 68419A8326029C2000C30B6A /* CryptoStats.xcdatamodeld */; };
-		68419A932602AAB700C30B6A /* CryptoData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68419A922602AAB700C30B6A /* CryptoData.swift */; };
 		685B509B25E075FE00F782F9 /* Reachability in Frameworks */ = {isa = PBXBuildFile; productRef = 685B509A25E075FE00F782F9 /* Reachability */; };
 		685B76C124E262AF00BF666A /* MentionInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76BF24E262AF00BF666A /* MentionInputTests.swift */; };
 		685B76CC24E4A37600BF666A /* FloatingMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76CB24E4A37600BF666A /* FloatingMenu.swift */; };
@@ -564,8 +562,6 @@
 		6832F4F924FEE97800A9C202 /* HalloService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HalloService.swift; sourceTree = "<group>"; };
 		6832F4FB24FEE97800A9C202 /* ProtoService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoService.swift; sourceTree = "<group>"; };
 		6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequests.swift; sourceTree = "<group>"; };
-		68419A8426029C2000C30B6A /* CryptoStats.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = CryptoStats.xcdatamodel; sourceTree = "<group>"; };
-		68419A922602AAB700C30B6A /* CryptoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoData.swift; sourceTree = "<group>"; };
 		685479E5269E5B6800815BE0 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		685479E6269E5B6800815BE0 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		685B76BF24E262AF00BF666A /* MentionInputTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MentionInputTests.swift; sourceTree = "<group>"; };
@@ -1518,7 +1514,6 @@
 				EA35856F2450BE2900E6E8AB /* ChatData.swift */,
 				24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */,
 				EAA424F024EC71450025CBBE /* XMPPGroup.swift */,
-				68419A922602AAB700C30B6A /* CryptoData.swift */,
 				F8DFCDA826304B3A003F850F /* GroupList.swift */,
 				E598D4BF265F0188001A436A /* ConversationID.swift */,
 				E537A1B626792AEF0008B286 /* ChatDraft.swift */,
@@ -1669,7 +1664,6 @@
 		EA796B8E2469B99A00BC795E /* CoreData Stack */ = {
 			isa = PBXGroup;
 			children = (
-				68419A8326029C2000C30B6A /* CryptoStats.xcdatamodeld */,
 				EACC34C524F9F9EB007D6FC6 /* OneToOne */,
 				EAA424E224E8AF360025CBBE /* Group */,
 				EAD476EE2458F03700EF8591 /* ChatThread+CoreDataClass.swift */,
@@ -2602,7 +2596,6 @@
 				EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */,
 				68130169268D369A001BBDC6 /* ContactSelectionViewController.swift in Sources */,
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
-				68419A8526029C2000C30B6A /* CryptoStats.xcdatamodeld in Sources */,
 				7627173B257B0744006F7F3D /* AboutViewController.swift in Sources */,
 				766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */,
 				32C83FBD268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift in Sources */,
@@ -2612,7 +2605,6 @@
 				7653F2FA255DB4E7001CC946 /* FeedCollectionViewController.swift in Sources */,
 				EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */,
 				68C8264B251A77A000BB8F3A /* NUX.swift in Sources */,
-				68419A932602AAB700C30B6A /* CryptoData.swift in Sources */,
 				EAA0799725AFC71600B384AB /* ThreadListCell.swift in Sources */,
 				68B5C232264DC710004C7939 /* QRCodeScannerViewController.swift in Sources */,
 				EA62C28C2563577D008EA9C9 /* MsgUIProtocol.swift in Sources */,
@@ -4589,16 +4581,6 @@
 			);
 			currentVersion = 329E0404268247BD00C2D250 /* HalloAppClip.xcdatamodel */;
 			path = HalloAppClip.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
-		68419A8326029C2000C30B6A /* CryptoStats.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				68419A8426029C2000C30B6A /* CryptoStats.xcdatamodel */,
-			);
-			currentVersion = 68419A8426029C2000C30B6A /* CryptoStats.xcdatamodel */;
-			path = CryptoStats.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};

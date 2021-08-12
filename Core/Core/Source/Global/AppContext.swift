@@ -28,6 +28,7 @@ open class AppContext {
     private static let appGroupName = "group.com.halloapp.shared"
     private static let contactsDatabaseFilename = "contacts.sqlite"
     private static let keysDatabaseFilename = "keys.sqlite"
+    private static let cryptoStatsDatabaseFilename = "cryptoStats.sqlite"
 
     // MARK: Global App Properties
     public static let appVersionForDisplay: String = {
@@ -76,6 +77,7 @@ open class AppContext {
     public let userDefaults: UserDefaults! = AppContext.userDefaultsForAppGroup
     public let keyStore: KeyStore
     public var keyData: KeyData!
+    public lazy var cryptoData: CryptoData = { CryptoData(persistentStoreURL: AppContext.cryptoStatsStoreURL) }()
     public let messageCrypter: MessageCrypter
     public let fileLogger: DDFileLogger
     public let phoneNumberFormatter = PhoneNumberKit(metadataCallback: AppContext.phoneNumberKitMetadataCallback)
@@ -177,6 +179,10 @@ open class AppContext {
 
     static let keyStoreURL = {
         sharedDirectoryURL.appendingPathComponent(AppContext.keysDatabaseFilename)
+    }()
+
+    static let cryptoStatsStoreURL = {
+        sharedDirectoryURL.appendingPathComponent(AppContext.cryptoStatsDatabaseFilename)
     }()
     
     public func deleteSharedDirectory() {

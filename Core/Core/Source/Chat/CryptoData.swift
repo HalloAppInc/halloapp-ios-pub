@@ -7,18 +7,15 @@
 //
 
 import CocoaLumberjackSwift
-import Core
 import CoreData
 import Foundation
 
-final class CryptoData {
-    init() {
-        self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-        self.viewContext = persistentContainer.viewContext
-        self.bgContext = persistentContainer.newBackgroundContext()
+public final class CryptoData {
+    public init(persistentStoreURL: URL) {
+        self.persistentStoreURL = persistentStoreURL
     }
 
-    func update(messageID: String, timestamp: Date, result: String, rerequestCount: Int, sender: UserAgent, isSilent: Bool) {
+    public func update(messageID: String, timestamp: Date, result: String, rerequestCount: Int, sender: UserAgent, isSilent: Bool) {
         queue.async { [weak self] in
             guard let self = self else { return }
             guard let messageDecryption = self.fetchMessageDecryption(id: messageID, in: self.bgContext) ??
@@ -54,7 +51,7 @@ final class CryptoData {
         }
     }
 
-    func generateReport(markEventsReported: Bool = true) -> [DiscreteEvent] {
+    public func generateReport(markEventsReported: Bool = true) -> [DiscreteEvent] {
         let fetchRequest: NSFetchRequest<MessageDecryption> = MessageDecryption.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "hasBeenReported == false")
         fetchRequest.returnsObjectsAsFaults = false
@@ -77,7 +74,7 @@ final class CryptoData {
         }
     }
 
-    func startReporting(interval: TimeInterval, reportEvents: @escaping ([DiscreteEvent]) -> Void) {
+    public func startReporting(interval: TimeInterval, reportEvents: @escaping ([DiscreteEvent]) -> Void) {
         guard reportTimer == nil else {
             DDLogError("CryptoData/startReporting/error already-reporting")
             return
@@ -99,11 +96,11 @@ final class CryptoData {
     }
 
     // TODO: we should make this result an enum.
-    func result(for messageID: String) -> String? {
+    public func result(for messageID: String) -> String? {
         return fetchMessageDecryption(id: messageID, in: viewContext)?.decryptionResult
     }
 
-    func details(for messageID: String) -> String? {
+    public func details(for messageID: String, dateFormatter: DateFormatter) -> String? {
         guard let decryption = fetchMessageDecryption(id: messageID, in: viewContext) else {
             DDLogInfo("CryptoData/details/\(messageID)/not-found")
             return nil
@@ -115,10 +112,10 @@ final class CryptoData {
         }
         lines.append("Rerequests: \(decryption.rerequestCount)")
         if let timeReceived = decryption.timeReceived {
-            lines.append("Received: \(DateFormatter.dateTimeFormatterMonthDayTime.string(from: timeReceived))")
+            lines.append("Received: \(dateFormatter.string(from: timeReceived))")
         }
         if let timeDecrypted = decryption.timeDecrypted {
-            lines.append("Decrypted: \(DateFormatter.dateTimeFormatterMonthDayTime.string(from: timeDecrypted))")
+            lines.append("Decrypted: \(dateFormatter.string(from: timeDecrypted))")
         }
         // NB: A bug in 1.4.108 caused messages to be prematurely marked as reported
         lines.append("Reported: \(decryption.hasBeenReported)")
@@ -126,23 +123,102 @@ final class CryptoData {
         return lines.joined(separator: "\n")
     }
 
+    // Used to migrate old database from main app storage into shared container.
+    public func integrateEarlierResults(from oldDatabase: CryptoData, completion: (() -> Void)? = nil) {
+        queue.async {
+            let oldDecryptions = oldDatabase.fetchAllMessageDecryptions(in: oldDatabase.viewContext)
+            for oldDecryption in oldDecryptions {
+                let messageID = oldDecryption.messageID
+                if let newDecryption = self.fetchMessageDecryption(id: messageID, in: self.bgContext) {
+                    DDLogInfo("CryptoData/integrateEarlierResults/\(messageID)/updating")
+                    // Prefer original decryption timestamp and user agent
+                    newDecryption.timeReceived = oldDecryption.timeReceived ?? newDecryption.timeReceived
+                    newDecryption.userAgentSender = oldDecryption.userAgentSender ?? newDecryption.userAgentSender
+                    newDecryption.userAgentReceiver = oldDecryption.userAgentSender ?? newDecryption.userAgentReceiver
+
+                    // Mark hasBeenReported if either has been reported
+                    newDecryption.hasBeenReported = oldDecryption.hasBeenReported || newDecryption.hasBeenReported
+                } else if let newDecryption = NSEntityDescription.insertNewObject(forEntityName: "MessageDecryption", into: self.bgContext) as? MessageDecryption {
+                    DDLogInfo("CryptoData/integrateEarlierResults/\(messageID)/copying")
+                    // Copy all values from original decryption
+                    newDecryption.messageID = oldDecryption.messageID
+                    newDecryption.timeReceived = oldDecryption.timeReceived
+                    newDecryption.userAgentSender = oldDecryption.userAgentSender
+                    newDecryption.userAgentReceiver = oldDecryption.userAgentReceiver
+                    newDecryption.hasBeenReported = oldDecryption.hasBeenReported
+                    newDecryption.decryptionResult = oldDecryption.decryptionResult
+                    newDecryption.rerequestCount = oldDecryption.rerequestCount
+                    newDecryption.timeDecrypted = oldDecryption.timeDecrypted
+                    newDecryption.isSilent = oldDecryption.isSilent
+                } else {
+                    DDLogError("CryptoData/integrateEarlierResults/\(messageID)/error [copy failure]")
+                }
+            }
+            if self.bgContext.hasChanges {
+                do {
+                    try self.bgContext.save()
+                    DDLogInfo("CryptoData/integrateEarlierResults/saved [\(oldDecryptions.count)]")
+                } catch {
+                    DDLogError("CryptoData/integrateEarlierResults/save/error [\(error)]")
+                }
+            } else {
+                DDLogInfo("CryptoData/integrateEarlierResults/no-updates")
+            }
+            DispatchQueue.main.async {
+                completion?()
+            }
+        }
+    }
+
+    public func destroyStore() {
+        let coordinator = self.persistentContainer.persistentStoreCoordinator
+        do {
+            let stores = coordinator.persistentStores
+            stores.forEach { (store) in
+                do {
+                    try coordinator.remove(store)
+                    DDLogError("CryptoData/destroy/remove-store/finished [\(store)]")
+                }
+                catch {
+                    DDLogError("CryptoData/destroy/remove-store/error [\(error)]")
+                }
+            }
+
+            try coordinator.destroyPersistentStore(at: persistentStoreURL, ofType: NSSQLiteStoreType, options: nil)
+            try FileManager.default.removeItem(at: persistentStoreURL)
+            DDLogInfo("CryptoData/destroy/delete-store/complete")
+        }
+        catch {
+            DDLogError("CryptoData/destroy/delete-store/error [\(error)]")
+        }
+    }
+
     // MARK: Private
 
+    private let persistentStoreURL: URL
     private let queue = DispatchQueue(label: "com.halloapp.crypto-stats")
     private let deadline = TimeInterval(24*60*60) // 24 hour deadline
 
     private var reportTimer: DispatchSourceTimer?
 
-    private var viewContext: NSManagedObjectContext
-    private var bgContext: NSManagedObjectContext
+    private lazy var viewContext: NSManagedObjectContext = {
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+        return persistentContainer.viewContext
+    }()
 
-    private let persistentContainer: NSPersistentContainer = {
-        let storeDescription = NSPersistentStoreDescription(url: MainAppContext.cryptoStatsStoreURL)
+    private lazy var bgContext: NSManagedObjectContext = {
+        return persistentContainer.newBackgroundContext()
+    }()
+
+    private lazy var persistentContainer: NSPersistentContainer = {
+        let storeDescription = NSPersistentStoreDescription(url: persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
         storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
         storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
-        let container = NSPersistentContainer(name: "CryptoStats")
+        let modelURL = Bundle(for: KeyStore.self).url(forResource: "CryptoStats", withExtension: "momd")!
+        let managedObjectModel = NSManagedObjectModel(contentsOf: modelURL)
+        let container = NSPersistentContainer(name: "CryptoStats", managedObjectModel: managedObjectModel!)
         container.persistentStoreDescriptions = [ storeDescription ]
         container.loadPersistentStores(completionHandler: { (description, error) in
             if let error = error {
@@ -170,6 +246,19 @@ final class CryptoData {
         catch {
             DDLogError("CryptoData/fetch/\(id)/error \(error)")
             return nil
+        }
+    }
+
+    private func fetchAllMessageDecryptions(in context: NSManagedObjectContext) -> [MessageDecryption] {
+        let fetchRequest: NSFetchRequest<MessageDecryption> = MessageDecryption.fetchRequest()
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            return try context.fetch(fetchRequest)
+        }
+        catch {
+            DDLogError("CryptoData/fetchAll/error \(error)")
+            return []
         }
     }
 
@@ -215,7 +304,6 @@ extension MessageDecryption {
 
     func report(deadline: TimeInterval) -> DiscreteEvent? {
         guard
-            let messageID = messageID,
             let result = decryptionResult,
             let clientVersion = UserAgent(string: userAgentReceiver ?? "")?.version,
             let sender = UserAgent(string: userAgentSender ?? ""),
