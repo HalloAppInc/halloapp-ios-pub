@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>chat.n.users.typing</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%@ %#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>در حال نوشتن است...</string>
+			<key>other</key>
+			<string>در حال نوشتن هستند...</string>
+		</dict>
+	</dict>
+	<key>composer.privacy.value.n.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>در حال به اشتراک گذاشتن با d% مخاطب</string>
+			<key>other</key>
+			<string>در حال به اشتراک گذاشتن با d% مخاطب</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.contacts.excluded</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_excluded@</string>
+		<key>n_excluded</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>d% مخاطب حذف شد</string>
+			<key>other</key>
+			<string>d% مخاطب حذف شدند</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.contacts.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>d% مخاطب انتخاب شده است</string>
+			<key>other</key>
+			<string>d% مخاطب انتخاب شده‌اند</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.excluded</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_excluded@</string>
+		<key>n_excluded</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>d% حذف شد</string>
+			<key>other</key>
+			<string>d% حذف شدند</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>d% انتخاب شده است</string>
+			<key>other</key>
+			<string>d% انتخاب شده‌اند</string>
+		</dict>
+	</dict>
+	<key>group.feed.n.members</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_members@</string>
+		<key>n_members</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>d% عضو</string>
+			<key>other</key>
+			<string>d% عضو</string>
+			<key>zero</key>
+			<string>فاقد عضو</string>
+		</dict>
+	</dict>
+	<key>media.prepare.failed.n.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@mediaCount@</string>
+		<key>mediaCount</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>خطا در پردازش فایل. لطفاً‌ دوباره امتحان کنید یا عکس / ویدیوی دیگری انتخاب کنید.</string>
+			<key>other</key>
+			<string>خطا در پردازش d% فایل. لطفاً‌ دوباره امتحان کنید یا عکس / ویدیوی دیگری انتخاب کنید.</string>
+		</dict>
+	</dict>
+	<key>n.invites.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_invites_count@</string>
+		<key>n_invites_count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>شما d% دعوتنامه دارید.</string>
+			<key>other</key>
+			<string>شما d% دعوتنامه دارید.</string>
+		</dict>
+	</dict>
+	<key>n.invites.remaining</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_invites_remaining@</string>
+		<key>n_invites_remaining</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>شما d% دعوتنامه دارید.</string>
+			<key>other</key>
+			<string>شما d% دعوتنامه دارید.</string>
+		</dict>
+	</dict>
+	<key>notification.n.photos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_photos@</string>
+		<key>num_photos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>d% عکس 📷</string>
+			<key>other</key>
+			<string>d% عکس 📷</string>
+		</dict>
+	</dict>
+	<key>notification.n.videos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_videos@</string>
+		<key>num_videos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>d% ویدیو 📹</string>
+			<key>other</key>
+			<string>d% ویدیو 📹</string>
+		</dict>
+	</dict>
+	<key>picker.media.n.limit</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@max_photos@</string>
+		<key>max_photos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>میتوانید یک مورد انتخاب کنید.</string>
+			<key>other</key>
+			<string>میتوانید d% مورد انتخاب کنید.</string>
+		</dict>
+	</dict>
+	<key>privacy.n.contacts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>d% مخاطب</string>
+			<key>other</key>
+			<string>d% مخاطب</string>
+			<key>zero</key>
+			<string>هیچ</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

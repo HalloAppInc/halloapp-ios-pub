@@ -1,0 +1,154 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "Geen internetverbinding";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Controleer je internetverbinding en probeer opnieuw.";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Toevoegen";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Annuleren";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Doorgaan";
+
+/* Title for generic Create button */
+"button.create" = "Aanmaken";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Negeren";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Klaar";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Ga naar Instellingen";
+
+/* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
+"button.install" = "Installeren";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Meer informatie";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Meer";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Volgende";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Niet nu";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Verwijderen";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Opslaan";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Verzenden";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Delen";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Bijwerken";
+
+/* Title for generic delete button. */
+"Delete" = "Verwijderen";
+
+/* Title for exit button that closes the app */
+"home.update.notice.button.exit" = "Sluiten";
+
+/* Text shown to users who have old versions of the app */
+"home.update.notice.text" = "Download de nieuwste versie van HalloApp alsjeblieft";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.notice.title" = "Deze versie is verouderd";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Meer informatie";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Update je app.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Ik";
+
+/* Disclaimer text about receiving SMS verification code */
+"registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe aanbieder kan kosten in rekening brengen.";
+
+/* Error message to display when user enters incorrect verification code */
+"registration.code.incorrect" = "De code die je hebt ingevoerd is onjuist";
+
+/* Instructions for filling in SMS verification code. Parameter is formatted phone number */
+"registration.code.instructions" = "Voer de code in die we naar %@ hebben verzonden";
+
+/* Error message to display when we cannot send a verification code */
+"registration.code.request.error" = "Kon de code niet verzenden. Probeer later opnieuw.";
+
+/* Button label to resend verification code */
+"registration.code.resend" = "Sms opnieuw verzenden";
+
+/* Button label to resend verification code by voice call */
+"registration.code.resend.by.voice" = "Bel me";
+
+/* Text explaining why we need contact permissions */
+"registration.contacts.content" = "Om connecties te maken met je vrienden en familie hebben we toegang nodig tot je contacten.";
+
+/* Title for text explaining why we need contact permissions */
+"registration.contacts.title" = "Nog één ding";
+
+/* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
+"registration.free.app.notice" = "Gratis in de iPhone App Store";
+
+/* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
+"registration.group.name" = "Je bent uitgenodigd om deel te nemen aan de groep %@";
+
+/* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
+"registration.install.app.to.continue" = "Installeer HalloApp om door te gaan";
+
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "Installeer HalloApp om %@ te openen";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "Oeps!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Het ingevoerde telefoonnummer is ongeldig. Controleer het nummer opnieuw.";
+
+/* Popup that appears when user tries to register uninvited number */
+"registration.invite.only" = "Als je een uitnodigingslink hebt gevolgd om je te registreren voor de groep, klik dan opnieuw op de link om de registratie af te ronden en deel te nemen aan de groep.";
+
+/* Placeholder text for name entry */
+"registration.nameEntry.placeholder" = "Jouw naam";
+
+/* Placeholder text for phone entry */
+"registration.phoneEntry.placeholder" = "Telefoonnummer";
+
+/* Text for modal describing how we use contacts data */
+"registration.privacy.content" = "HalloApp gebruikt het telefoonnummer alleen om je te matchen met je vrienden op HalloApp en legt geen andere gegevens uit je contactenlijst vast.";
+
+/* Title for modal describing how we use contacts data */
+"registration.privacy.title" = "Jouw privacy is onze prioriteit";
+
+/* Title for popup that appears when user tries to register uninvited number */
+"registration.shucks" = "Oeps!";
+
+/* Shown above name and phone inputs */
+"registration.welcome" = "Welkom!";
+
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "Je kunt niet inloggen voordat je de applicatie opnieuw hebt opgestart";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "Account succesvol verwijderd";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Onbekend Contact";
+

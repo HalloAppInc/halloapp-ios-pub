@@ -1,0 +1,154 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "عدم دسترسی به اینترنت";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "لطفاً مطمئن شوید به اینترنت دسترسی دارید سپس دوباره امتحان کنید.";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "افزودن";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "لغو";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "ادامه";
+
+/* Title for generic Create button */
+"button.create" = "ایجاد";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "لغو";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "تأیید";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "رفتن به تنظیمات";
+
+/* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
+"button.install" = "نصب";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "بیشتر بدانید";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "بیشتر";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "بعدی";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "الآن نه";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "تأیید";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "حذف";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "ذخیره";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "ارسال";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "به اشتراک گذاشتن";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "به روز رسانی";
+
+/* Title for generic delete button. */
+"Delete" = "حذف";
+
+/* Title for exit button that closes the app */
+"home.update.notice.button.exit" = "خروج";
+
+/* Text shown to users who have old versions of the app */
+"home.update.notice.text" = "لطفاً آخرین ورژن هالواپ را نصب کنید";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.notice.title" = "این ورژن قدیمی است";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "بیشتر بدانید";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "برنامه را به روز رسانی کنید.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "من";
+
+/* Disclaimer text about receiving SMS verification code */
+"registration.code.disclaimer" = "یک کد دریافت خواهید کرد.\nممکن است اپراتور شما نرخی تحمیل کند.";
+
+/* Error message to display when user enters incorrect verification code */
+"registration.code.incorrect" = "کدی که وارد کردید اشتباه است";
+
+/* Instructions for filling in SMS verification code. Parameter is formatted phone number */
+"registration.code.instructions" = "کدی که به %@ ارسال شد را وارد کنید";
+
+/* Error message to display when we cannot send a verification code */
+"registration.code.request.error" = "خطا در ارسال کد. لطفاً بعداً امتحان کنید.";
+
+/* Button label to resend verification code */
+"registration.code.resend" = "ارسال مجدد پیامک";
+
+/* Button label to resend verification code by voice call */
+"registration.code.resend.by.voice" = "با من تماس بگیرید";
+
+/* Text explaining why we need contact permissions */
+"registration.contacts.content" = "برای ارتباط با دوستان و آشنایانتان نیاز به دسترسی به مخاطب‌های شما داریم.";
+
+/* Title for text explaining why we need contact permissions */
+"registration.contacts.title" = "نکته آخر";
+
+/* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
+"registration.free.app.notice" = "رایگان در اپ استور آیفون";
+
+/* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
+"registration.group.name" = "شما به گروه %@ دعوت شدید";
+
+/* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
+"registration.install.app.to.continue" = "هالواپ را برای ادامه دادن نصب کنید";
+
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "برای باز کردن %@ هالواپ را نصب کنید";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "آخ!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "شماره تلفنی که وارد کردید قابل قبول نیست. لطفاً دوباره بررسی کنید.";
+
+/* Popup that appears when user tries to register uninvited number */
+"registration.invite.only" = "اگر با لینک گروه ثبتنام کردید، لطفاً دوباره روی لینک کلیک کنید تا به گروه بپیوندید.";
+
+/* Placeholder text for name entry */
+"registration.nameEntry.placeholder" = "نام شما";
+
+/* Placeholder text for phone entry */
+"registration.phoneEntry.placeholder" = "شماره تلفن";
+
+/* Text for modal describing how we use contacts data */
+"registration.privacy.content" = "هالواپ فقط از شماره تلفن شما برای پیدا کردن دوستانتان استفاده میکند، و اطلاعات دیگری ارسال نمیکند.";
+
+/* Title for modal describing how we use contacts data */
+"registration.privacy.title" = "حریم خصوصی شما اولویت ماست";
+
+/* Title for popup that appears when user tries to register uninvited number */
+"registration.shucks" = "آخ!";
+
+/* Shown above name and phone inputs */
+"registration.welcome" = "خوش‌آمدید!";
+
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "بدون بازنشانی برنامه نمیتوانید وارد آن شوید";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "حساب کاربری با موفقیت حذف شد";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "مخاطب ناشناخته";
+

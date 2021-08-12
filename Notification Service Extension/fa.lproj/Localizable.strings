@@ -1,0 +1,110 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "عدم دسترسی به اینترنت";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "لطفاً مطمئن شوید به اینترنت دسترسی دارید سپس دوباره امتحان کنید.";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "افزودن";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "لغو";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "ادامه";
+
+/* Title for generic Create button */
+"button.create" = "ایجاد";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "لغو";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "تأیید";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "رفتن به تنظیمات";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "بیشتر بدانید";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "بیشتر";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "بعدی";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "الآن نه";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "تأیید";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "حذف";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "ذخیره";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "ارسال";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "به اشتراک گذاشتن";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "به روز رسانی";
+
+/* Title for generic delete button. */
+"Delete" = "حذف";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "شما به یک گروه دعوت شده‌اید";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "بیشتر بدانید";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "برنامه را به روز رسانی کنید.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "من";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "نظر نوشت: %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "یکی از مخاطب‌هایتان به هالواپ پیوست";
+
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@ دعوت شما را به هالواپ قبول کرد 🎉";
+
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "notification.n.photos";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "notification.n.videos";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@ به هالواپ پیوست";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "پیام جدید";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "پست جدید";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "عکس 📷";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "ویدیو 📹";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 پیام صوتی";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "مخاطب ناشناس";
+

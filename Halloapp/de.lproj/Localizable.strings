@@ -52,6 +52,12 @@
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Einstellungen";
 
+/* Placeholder text for when the archive is empty */
+"archive.empty.placeholder" = "Deine archivierten Beiträge werden hier angezeigt";
+
+/* Archive navigation label */
+"archive.title.label" = "Archiv";
+
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Keine Internetverbindung";
 
@@ -454,7 +460,7 @@
 "feedpost.button.comment" = "Kommentieren";
 
 /* Button under someoneelse's post. Verb. */
-"feedpost.button.reply" = "Antworten";
+"feedpost.button.reply" = "Privat antworten";
 
 /* Label for choosing a color at the group background preview screen */
 "group.bg.pick.a.color.label" = "FARBE AUSWÄHLEN";
@@ -679,7 +685,7 @@
 "media.save.not.saved" = "Das Foto kann nicht gespeichert werden";
 
 /* Label indicating that media was successfully saved to the camera roll */
-"media.save.saved" = "Gespeichert";
+"media.save.saved" = "In Kamerarolle gespeichert";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Schließen";
@@ -782,7 +788,7 @@
 "nux.groups.list.empty" = "Deine Gruppen erscheinen hier";
 
 /* Shown on home feed when no posts are available */
-"nux.home.feed.empty" = "Hier werden Beiträge deiner Kontakte angezeigt";
+"nux.home.feed.empty" = "Beiträge deiner Kontakte werden hier angezeigt";
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Tippe hier, um ein Update mit deinen Freunden und deiner Familie auf HalloApp zu teilen";
@@ -839,7 +845,7 @@
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Gemeinsame Gruppen";
 
-/* Text for messaging user under profile header */
+/* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Nachricht senden";
 
 /* Text for unblocking user under profile header */
@@ -1089,7 +1095,7 @@
 "settings.privacy.posts" = "Beiträge";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Mach mit bei HalloApp! Kostenlos herunterladen auf: halloapp.com/dl";
+"settings.share.text" = "Mach mit bei meinem HalloApp-Netzwerk für echte Beziehungen! Kostenlos herunterladen auf halloapp.com/dl";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Zur Leseliste hinzufügen";
@@ -1113,7 +1119,7 @@
 "textlabel.more" = "...mehr";
 
 /* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
-"thread.list.preview.already.user.default" = "%@ ist auf HalloApp";
+"thread.list.preview.already.user.default" = "%@ nutzt HalloApp";
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ ist nun auch auf HalloApp! 🎉";

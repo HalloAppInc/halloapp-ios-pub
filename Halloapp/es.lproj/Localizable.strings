@@ -863,7 +863,7 @@
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Grupos en común";
 
-/* Text for messaging user under profile header */
+/* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Enviar un mensaje";
 
 /* Text for unblocking user under profile header */

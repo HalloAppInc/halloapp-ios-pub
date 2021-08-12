@@ -1,0 +1,116 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "عدم دسترسی به اینترنت";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "لطفاً مطمئن شوید به اینترنت دسترسی دارید، سپس دوباره امتحان کنید.";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "افزودن";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "لغو";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "ادامه";
+
+/* Title for generic Create button */
+"button.create" = "ایجاد";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "لغو";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "تأیید";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "رفتن به تنظیمات";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "بیشتر بدانید";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "بیشتر";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "بعدی";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "الآن نه";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "تأیید";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "حذف";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "ذخیره";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "ارسال";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "به اشتراک گذاشتن";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "به روز رسانی";
+
+/* Title for generic delete button. */
+"Delete" = "حذف";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "بیشتر بدانید";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "برنامه را به روز رسانی کنید.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "من";
+
+/* Placeholder for media caption. */
+"share.composer.placeholder" = "افزودن توضیحات";
+
+/* Placeholder when sharing text only. */
+"share.composer.placeholder.text" = "نوشتن پست";
+
+/* Composer subtitle when sharing with a contact */
+"share.composer.subtitle.contact" = "ارسال به %@";
+
+/* Composer subtitle for group posts */
+"share.composer.subtitle.group" = "به اشتراک گذاشتن با %@";
+
+/* Composer title when sharing with a contact */
+"share.composer.title.contact" = "پیام جدید";
+
+/* Composer title when sharing to feed */
+"share.composer.title.feed" = "پست جدید";
+
+/* Alert dialog message shown when uploading fails.
+   Alert dialog title shown when uploading fails. */
+"share.composer.uploading.fail.title" = "خطا در بارگذاری";
+
+/* Alert dialog title shown when uploading begins. */
+"share.composer.uploading.title" = "در حال بارگذاری...";
+
+/* Contacts category label */
+"share.destination.contacts" = "مخاطب‌ها";
+
+/* Groups category label */
+"share.destination.groups" = "گروه‌ها";
+
+/* Share on the home feed label */
+"share.destination.home" = "صفحه اصلی";
+
+/* Destination screen title */
+"share.destination.title" = "هالواپ";
+
+/* Message of alert when user is not logged in */
+"share.notlogged.message" = "لطفاً هالواپ را باز کنید و وارد شوید.";
+
+/* Title of alert when user is not logged in */
+"share.notlogged.title" = "شما وارد نشده‌اید";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "مخاطب ناشناس";
+

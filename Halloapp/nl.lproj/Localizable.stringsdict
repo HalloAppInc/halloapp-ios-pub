@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>chat.n.users.typing</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%@ %#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>is aan het typen...</string>
+			<key>other</key>
+			<string>zijn aan het typen...</string>
+		</dict>
+	</dict>
+	<key>composer.privacy.value.n.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Delen met %d van mijn contacten</string>
+			<key>other</key>
+			<string>Delen met %d van mijn contacten</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.contacts.excluded</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_excluded@</string>
+		<key>n_excluded</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d Contact uitgesloten</string>
+			<key>other</key>
+			<string>%d Contacten uitgesloten</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.contacts.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d Contact geselecteerd</string>
+			<key>other</key>
+			<string>%d Contacten geselecteerd</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.excluded</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_excluded@</string>
+		<key>n_excluded</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d Uitgesloten</string>
+			<key>other</key>
+			<string>%d Uitgesloten</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d Geselecteerd</string>
+			<key>other</key>
+			<string>%d Geselecteerd</string>
+		</dict>
+	</dict>
+	<key>group.feed.n.members</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_members@</string>
+		<key>n_members</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d lid</string>
+			<key>other</key>
+			<string>%d leden</string>
+			<key>zero</key>
+			<string>Geen leden</string>
+		</dict>
+	</dict>
+	<key>media.prepare.failed.n.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@mediaCount@</string>
+		<key>mediaCount</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Voorbereiden media mislukt. Probeer alsjeblieft opnieuw of selecteer een andere foto / video.</string>
+			<key>other</key>
+			<string>Voorbereiden %d media-items mislukt. Probeer alsjeblieft opnieuw of selecteer een andere foto / video.</string>
+		</dict>
+	</dict>
+	<key>n.invites.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_invites_count@</string>
+		<key>n_invites_count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Je hebt %d uitnodiging.</string>
+			<key>other</key>
+			<string>Je hebt %d uitnodigingen.</string>
+		</dict>
+	</dict>
+	<key>n.invites.remaining</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_invites_remaining@</string>
+		<key>n_invites_remaining</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Je hebt nog %d uitnodiging over</string>
+			<key>other</key>
+			<string>Je hebt nog %d uitnodigingen over</string>
+		</dict>
+	</dict>
+	<key>notification.n.photos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_photos@</string>
+		<key>num_photos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>📷 %d foto</string>
+			<key>other</key>
+			<string>📷 %d foto's</string>
+		</dict>
+	</dict>
+	<key>notification.n.videos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_videos@</string>
+		<key>num_videos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>📹 %d video</string>
+			<key>other</key>
+			<string>📹 %d video's</string>
+		</dict>
+	</dict>
+	<key>picker.media.n.limit</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@max_photos@</string>
+		<key>max_photos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Je kunt maximaal één item selecteren</string>
+			<key>other</key>
+			<string>Je kunt maximaal %d items selecteren</string>
+		</dict>
+	</dict>
+	<key>privacy.n.contacts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d Contact</string>
+			<key>other</key>
+			<string>%d Contacten</string>
+			<key>zero</key>
+			<string>Geen</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

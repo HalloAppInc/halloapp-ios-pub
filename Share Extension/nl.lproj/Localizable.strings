@@ -1,0 +1,116 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "Geen Internetverbinding";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Controleer je internetverbinding en probeer opnieuw.";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Toevoegen";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "Annuleren";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Doorgaan";
+
+/* Title for generic Create button */
+"button.create" = "Aanmaken";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Negeren";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Klaar";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Ga naar Instellingen";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Meer informatie";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Meer";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Volgende";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Niet nu";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Verwijderen";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Opslaan";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Verzenden";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Delen";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Bijwerken";
+
+/* Title for generic delete button. */
+"Delete" = "Verwijderen";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Meer informatie";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Je app updaten.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Ik";
+
+/* Placeholder for media caption. */
+"share.composer.placeholder" = "Voeg een omschrijving toe";
+
+/* Placeholder when sharing text only. */
+"share.composer.placeholder.text" = "Schrijf een post";
+
+/* Composer subtitle when sharing with a contact */
+"share.composer.subtitle.contact" = "Wordt verzonden naar %@";
+
+/* Composer subtitle for group posts */
+"share.composer.subtitle.group" = "Delen met %@";
+
+/* Composer title when sharing with a contact */
+"share.composer.title.contact" = "Nieuw bericht";
+
+/* Composer title when sharing to feed */
+"share.composer.title.feed" = "Nieuwe Post";
+
+/* Alert dialog message shown when uploading fails.
+   Alert dialog title shown when uploading fails. */
+"share.composer.uploading.fail.title" = "Uploaden mislukt";
+
+/* Alert dialog title shown when uploading begins. */
+"share.composer.uploading.title" = "Uploaden...";
+
+/* Contacts category label */
+"share.destination.contacts" = "Contacten";
+
+/* Groups category label */
+"share.destination.groups" = "Groepen";
+
+/* Share on the home feed label */
+"share.destination.home" = "Home";
+
+/* Destination screen title */
+"share.destination.title" = "HalloApp";
+
+/* Message of alert when user is not logged in */
+"share.notlogged.message" = "Open HalloApp en log in.";
+
+/* Title of alert when user is not logged in */
+"share.notlogged.title" = "Je bent niet ingelogd";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Onbekend Contact";
+

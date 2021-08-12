@@ -1,0 +1,15 @@
+/* Bundle name */
+"CFBundleName" = "هالواپ";
+
+/* Privacy - Camera Usage Description */
+"NSCameraUsageDescription" = "این به شما اجازه میدهد با استفاده از هالواپ عکس و ویدیو بگیرید.";
+
+/* Privacy - Contacts Usage Description */
+"NSContactsUsageDescription" = "مخاطب‌های خود را وارد سرور هالواپ کنید تا بتوانید پست‌های دوستانتان را ببینید و اجازه دهید آن‌ها پست‌های شما را ببینند.";
+
+/* Privacy - Microphone Usage Description */
+"NSMicrophoneUsageDescription" = "این به شما اجازه میدهد ویدیو با صدا ضبط کنید.";
+
+/* Privacy - Photo Library Usage Description */
+"NSPhotoLibraryUsageDescription" = "این به شما اجازه میدهد عکس و فیلم از آلبوم خود به اشتراک بگذارید و عکس و فیلم‌هایی که میگیرید را ذخیره کنید.";
+

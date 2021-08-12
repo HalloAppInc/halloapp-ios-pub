@@ -1,0 +1,1261 @@
+/* No comment provided by engineer. */
+"%" = "%";
+
+/* No comment provided by engineer. */
+"%@" = "%@";
+
+/* No comment provided by engineer. */
+"• %@" = "%@";
+
+/* About screen: body text. */
+"about.body.2" = "ممنون از اینکه از هالواپ استفاده میکنید و آن را با دوستان و خانواده‌ به اشتراک میگذارید. ما هر هفته پیشرفت میکنیم.";
+
+/* About screen: footer text. Parameter is support email address. */
+"about.footer" = "اگر سؤال یا نظری دارید، برای ما به این آدرس %@ ایمیل بزنید";
+
+/* About screen: greeting. */
+"about.hallo" = "اوه سلام";
+
+/* About screen: navigation bar title. */
+"about.title" = "درباره برنامه";
+
+/* Longer title for the button that confirms marking all items in the activity center as read. */
+"activity.center.button.mark.all.read" = "همه را خوانده شده علامت بزن";
+
+/* Short title for the button in activity center. */
+"activity.center.button.read.all" = "خوانده شده";
+
+/* Message shown when a user first joins from a friend's invitation (e.g., 'You accepted David's invite 🎉' */
+"activity.center.invite.accepted.item" = "شما دعوت %@ را قبول کردید 🎉";
+
+/* Title for the activity center screen. */
+"activity.center.title" = "فعالیت‌ها";
+
+/* Message shown when a user first joins */
+"activity.center.welcome.item" = "به هالواپ خوش‌آمدید!";
+
+/* Text label for action button to add the contact to the address book */
+"add.to.contact.book" = "افزودن به لیست تلفن‌ها";
+
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "عدم دسترسی به اینترنت";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "لطفاً مطمئن شوید به اینترنت دسترسی دارید سپس دوباره امتحان کنید.";
+
+/* Title of view where users can invite friends and family. */
+"app.ios.invite.friends" = "دعوت دوستان و آشنایان";
+
+/* Translation of iPhone settings app. */
+"app.ios.settings" = "تنظیمات";
+
+/* Placeholder text for when the archive is empty */
+"archive.empty.placeholder" = "پست‌های بایگانی شده شما اینجا خواهند بود";
+
+/* Archive navigation label */
+"archive.title.label" = "بایگانی";
+
+/* Text to show on banner when no connection is available */
+"banner.no.connection" = "بدون اینترنت";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "افزودن";
+
+/* Title for generic Cancel button. Mostly used in popups and as such.
+   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel" = "لغو";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "ادامه";
+
+/* Title for generic Create button */
+"button.create" = "ایجاد";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "لغو";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "تمام";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "رفتن به تنظیمات";
+
+/* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
+"button.install" = "نصب";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "بیشتر بدانید";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "بیشتر";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "بعدی";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "الآن نه";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "تأیید";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "حذف";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "ذخیره";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "ارسال";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "به اشتراک گذاشتن";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "به روز رسانی";
+
+/* Generic error when trying to use camera */
+"camera.error" = "خطا در دوربین";
+
+/* No comment provided by engineer. */
+"camera.init.error.1" = "عدم فعالیت دوربین پشت";
+
+/* No comment provided by engineer. */
+"camera.init.error.2" = "عدم فعالیت دوربین جلو";
+
+/* No comment provided by engineer. */
+"camera.init.error.3" = "عدم فعالیت میکروفون";
+
+/* No comment provided by engineer. */
+"camera.init.error.4" = "عدم دسترسی به دوربین پشت";
+
+/* No comment provided by engineer. */
+"camera.init.error.5" = "عدم دسترسی به دوربین جلو";
+
+/* No comment provided by engineer. */
+"camera.init.error.6" = "عدم دسترسی به صدا";
+
+/* No comment provided by engineer. */
+"camera.init.error.7" = "گرفتن عکس غیرممکن است";
+
+/* No comment provided by engineer. */
+"camera.init.error.8" = "فیلمبرداری غیر ممکن است";
+
+/* Title for a popup alerting about camera initialization error. */
+"camera.init.error.title" = "خطا در شروع";
+
+/* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
+"chat.add.to.contacts.book.label" = "برای دیدن پست‌های %@، شماره تلفنش را وارد لیست مخاطب‌ها کنید. برای این کار کلیک کنید";
+
+/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+"chat.blocked.contact.label" = "مخاطب مسدود شد، برای رفع مسدودیت کلیک کنید";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"chat.create.group.name.placeholder" = "نامگذاری گروه";
+
+/* Title of group creation screen */
+"chat.create.group.title" = "اطلاعات گروه";
+
+/* Label for creating a new group */
+"chat.create.new.group" = "ایجاد گروه جدید";
+
+/* Title of group name edit screen */
+"chat.edit.group.title" = "ویرایش";
+
+/* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
+"chat.encryption.label" = "گفتگوها رمزگذاری سرتاسری شده‌اند و هالواپ به آن‌ها دسترسی ندارد. برای اطلاعات بیشتر کلیک کنید.";
+
+/* Label shown above background selection row */
+"chat.group.background.label" = "زمینه";
+
+/* Message text shown with the user who joined the group via invite link */
+"chat.group.event.join" = "%@ از طریق لینک به گروه پیوست";
+
+/* Message text shown when you join a group via invite link */
+"chat.group.event.join.you" = "شما با لینک به گروه پیوستید";
+
+/* Message text shown with the user who left the group */
+"chat.group.event.member.left" = "%@ گروه را ترک کرد";
+
+/* Message text shown when you leave a group */
+"chat.group.event.member.left.you" = "شما گروه را ترک کردید";
+
+/* Action label for adding members to a group */
+"chat.group.info.add.members" = "افزودن اعضا";
+
+/* Label shown in the members list when member is an admin */
+"chat.group.info.admin.label" = "مدیر";
+
+/* Text label for a color selection of group feed background color */
+"chat.group.info.bg.color.label" = "رنگ";
+
+/* Text label for default selection of group feed background color */
+"chat.group.info.bg.default.label" = "پیش فرض";
+
+/* Text for menu option of demoting a group member */
+"chat.group.info.demote" = "برکناری مدیر";
+
+/* Action label for leaving group */
+"chat.group.info.leave.group" = "ترک گروه";
+
+/* Text for menu option of making a group member admin */
+"chat.group.info.make.group.admin" = "مدیر کردن";
+
+/* Text for menu option of messaging user */
+"chat.group.info.message.user" = "پیام";
+
+/* Text label shown when the user is not a member of the group */
+"chat.group.info.not.a.member.label" = "شما عضو این گروه نیستید";
+
+/* Text for menu option of removing a group member */
+"chat.group.info.remove.from.group" = "حذف از گروه";
+
+/* Title of screen that shows group information */
+"chat.group.info.title" = "اطلاعات گروه";
+
+/* Text for menu option of viewing profile */
+"chat.group.info.view.profile" = "مشاهده صفحه کاربری";
+
+/* Confirmation message presented when leaving a group */
+"chat.group.leave.group.confirmation" = "مطمئنید میخواهید «%@» را ترک کنید؟";
+
+/* Label shown above group members list */
+"chat.group.members.label" = "اعضا";
+
+/* Label shown above group name input box */
+"chat.group.name.label" = "اسم گروه";
+
+/* Title for group photo actions */
+"chat.group.photo.label" = "عکس گروه";
+
+/* Action to take a picture or choose a photo from the library to use for the group photo */
+"chat.group.take.or.choose.photo" = "گرفتن یا انتخاب عکس";
+
+/* Label for inviting friends */
+"chat.invite.friends" = "دعوت دوستان";
+
+/* Message text shown in a message that have audio media but no text */
+"chat.message.audio" = "پیام صوتی";
+
+/* Message text shown for the message that was deleted */
+"chat.message.deleted" = "این پیام حذف شده است.";
+
+/* Message text shown in a message that have photo media but no text */
+"chat.message.photo" = "عکس";
+
+/* Text shown when chat input box is empty */
+"chat.message.placeholder" = "ایجاد پیام";
+
+/* Text shown in place of a received message we are not able to process yet. */
+"chat.message.unsupported" = "ورژن هالواپ شما این نوع پیام را نمیپذیرد.";
+
+/* Message text shown in a message that have video media but no text */
+"chat.message.video" = "ویدیو";
+
+/* Text shown in place of a received message we are not able to decrypt yet. */
+"chat.message.waiting" = "لطفاً‌ برای دریافت پیام صبر کنید. ممکن است طول بکشد.";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "برای فعال سازی ضبط صدا، لطفاً روی تنظیمات کلیک کنید و میکروفون را روشن کنید";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "عدم دسترسی به میکروفون";
+
+/* Label shown when user is typing */
+"chat.typing.capitalized" = "در حال نوشتن...";
+
+/* Text shown when user is about to remove the chat */
+"chats.list.remove.message" = "با حذف این گفتگو تاریخچه گفتگو و محتوای آن را از دستگاه خود پاک خواهید کرد.";
+
+/* Button revealed when user swipes on their comment. */
+"comment.delete" = "حذف";
+
+/* Title for the button in comment deletion confirmation prompt. */
+"comment.delete.action" = "حذف نظر";
+
+/* Confirmation text displayed at comment deletion prompt */
+"comment.delete.confirmation" = "مطمئنید میخواهید این نظر را حذف کنید؟ این کار برگشت ناپذیر است.";
+
+/* Text displayed in place of deleted comment. */
+"comment.deleted" = "این نظر حذف شده است";
+
+/* Text displayed in place of a comment that is currently being deleted. */
+"comment.deleting" = "در حال حذف نظر";
+
+/* Button in comment input field. Verb. */
+"comment.post" = "پست";
+
+/* Text displayed in place of comment timestamp while comment is being posted. */
+"comment.posting" = "در حال پست کردن...";
+
+/* Title for the button displayed under feed post comment. Verb. */
+"comment.reply" = "پاسخ";
+
+/* Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment. */
+"comment.replying.myself" = "پاسخ به خود";
+
+/* Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment. */
+"comment.replying.someone" = "پاسخ به %@";
+
+/* Title for the button in comment resend confirmation prompt. */
+"comment.resend.action" = "ارسال دوباره";
+
+/* Confirmation prompt for when resending comment that previously failed to send. */
+"comment.resend.confirmation" = "مطمئنید میخواهید دوباره ارسال کنید؟";
+
+/* Text displayed in gray inside of the comment input field when there is no user input. */
+"comment.textfield.placeholder" = "نوشتن نظر";
+
+/* Text displayed in place of a comment that is not supported in the current app version. */
+"comment.unsupported" = "ورژن هالواپ شما این نوع نظر را نمیپذیرد.";
+
+/* Warning text displayed in Comments when post wasn't available. */
+"comments.post.loading.failed" = "خطا در بارگذاری پست. لطفاً بعداً‌ دوباره امتحان کنید.";
+
+/* Alert message in composer when a video is too long */
+"composer.max.video.length.message" = "لطفاً‌ ویدیوی دیگری انتخاب کنید یا گزینه ویرایش را انتخاب کنید.";
+
+/* Alert title in composer when a video is too long */
+"composer.max.video.length.title" = "این ویدیو بیشتر از 0f.% ثانیه است";
+
+/* Composer subtitle for messages. */
+"composer.message.subtitle" = "در حال فرستادن به %@";
+
+/* Composer New Message title. */
+"composer.message.title" = "پیام جدید";
+
+/* Placeholder text for media caption field in post composer. */
+"composer.placeholder.media.description" = "نوشتن توضیحات";
+
+/* Placeholder text in text post composer screen. */
+"composer.placeholder.text.post" = "نوشتن پست";
+
+/* Send button title. */
+"composer.post.button.send" = "ارسال";
+
+/* Share button title. */
+"composer.post.button.share" = "اشتراک گذاری";
+
+/* Composer subtitle for group posts. */
+"composer.post.subtitle" = "اشتراک گذاری به %@";
+
+/* Composer New Post title. */
+"composer.post.title" = "پست جدید";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.excluded" = "اشتراک گذاری با بعضی از مخاطب‌ها";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.my.contacts" = "اشتراک گذاری با مخاطب‌ها";
+
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
+
+/* No comment provided by engineer. */
+"CONNECTION" = "ارتباط";
+
+/* Shown when user denies contacts permission */
+"contacts.access.denied" = "برای ارسال و دریافت خبرها به هالواپ اجازه دسترسی به مخاطب‌ها بدهید";
+
+/* Message requesting the user enable contacts permission */
+"contacts.permission.explanation" = "برای ارتباط با دوستان و آشنایانتان به هالواپ اجازه دسترسی به مخاطب‌هایتان دهید.";
+
+/* Title for modal view when showing how to change contact permissions.
+   Title for tutorial explaining how user can enable contacts permission */
+"contacts.permission.tutorial.title" = "مخاطب‌ها";
+
+/* Alert message telling the user to try creating the group again after an error */
+"create.group.error" = "خطا در ایجاد گروه، لطفاً دوباره امتحان کنید";
+
+/* Title for generic delete button. */
+"Delete" = "حذف";
+
+/* Text to show on profile for users you are not connected with */
+"exchange.phone.numbers.to.connect" = "برای اشتراک گذاری باید شماره تلفن رد و بدل کنید";
+
+/* VoiceOver label for camera button in floating compose post menu in Home view. */
+"fab.accessibility.camera" = "دوربین";
+
+/* VoiceOver label for photo button in floating compose post menu in Home view. */
+"fab.accessibility.photo.library" = "آلبوم عکس";
+
+/* VoiceOver label for text post button in floating compose post menu in Home view. */
+"fab.accessibility.text" = "متن";
+
+/* Shown while content is being retracted from feed */
+"feed.deleting" = "در حال پاک کردن...";
+
+/* Text shown in indicator when new posts come in while user is scrolled down */
+"feed.new.posts.indicator" = "پست جدید";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification..other.comment.no.text" = "<$author$> همچنین نظر نوشت";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.comment.grouped" = "<$numberOthers$> نفر دیگر به پست <$author$> پاسخ دادند";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.commented.no.text" = "<$author$> زیر پست شما نظر نوشت";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.commented.w.text" = "<$author$> نظر نوشت: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.deleted.comment" = "<$author$> نظرش را حذف کرد";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.deleted.post" = "<$author$> نظر نوشت. این پست حذف شده است.";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.comment.no.text" = "<$author$> در نظری از شما نام برد";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.comment.w.text" = "<$author$> در نظری از شما نام برد: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.post.no.text" = "<$author$> در پستی از شما نام برد";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.mention.post.w.text" = "<$author$> در پستی از شما نام برد: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.other.comment.w.text" = "<$author$> هم نظر نوشت: <$text$>";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.replied.no.text" = "<$author$> به نظر شما پاسخ داد";
+
+/* Text for feed notification displayed in Activity Center. */
+"feed.notification.replied.w.text" = "<$author$> پاسخ داد:‌ <$text$>";
+
+/* Shown when post fails or is canceled. */
+"feed.post.failed" = "خطا در ارسال پست.";
+
+/* Shown when receiving a new (unsupported) type of post. */
+"feed.post.unsupported" = "ورژن هالواپ شما این نوع پست را نمیپذیرد.";
+
+/* Shown while content is being posted to feed */
+"feed.posting" = "در حال ارسال...";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "به اشتراک گذاشتن با همه مخاطب‌ها";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "به اشتراک گذاشتن با همه مخاطب‌ها به جز آن‌هایی که انتخاب کرده‌اید";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "به اشتراک گذاشتن با مخاطب‌هایی که انتخاب کرده‌اید";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.all" = "مخاطب‌های تلفن";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.except" = "مخاطب‌ها به جز...";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.only" = "اشتراک گذاشتن با...";
+
+/* Possible Feed Privacy setting value. */
+"feed.privacy.value.my.contacts" = "مخاطب‌های تلفن";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.excluded" = "feed.privacy.value.n.contacts.excluded";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.selected" = "feed.privacy.value.n.contacts.selected";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.excluded" = "feed.privacy.value.n.excluded";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
+
+/* Button under someone's post. Verb. */
+"feedpost.button.comment" = "نظر نوشتن";
+
+/* Button under someoneelse's post. Verb. */
+"feedpost.button.reply" = "پاسخ خصوصی";
+
+/* Label for choosing a color at the group background preview screen */
+"group.bg.pick.a.color.label" = "انتخاب رنگ";
+
+/* Title of group background screen */
+"group.bg.title" = "زمینه";
+
+/* Message text shown with the user who added a group member */
+"group.event.added.member" = "%1$@ %2$@ را دعوت کرد";
+
+/* Message text shown when you add a group member */
+"group.event.added.member.you" = "شما @1% را دعوت کردید";
+
+/* Message text shown with the user who changed the group avatar */
+"group.event.changed.avatar" = "%@ تصویر گروه را تغییر داد";
+
+/* Message text shown with the user who changed the group avatar */
+"group.event.changed.avatar.you" = "شما تصویر گروه را تغییر دادید";
+
+/* Message text shown with the user who changed the background */
+"group.event.changed.background" = "%@ رنگ زمینه را تغییر داد";
+
+/* Message text shown when you change the background */
+"group.event.changed.background.you" = "شما رنگ زمینه را تغییر دادید";
+
+/* Message text shown with the user who changed the group name */
+"group.event.changed.name" = "%1$@ نام گروه را به \"%2$@\" تغییر داد";
+
+/* Message text shown when you change the group name */
+"group.event.changed.name.you" = "شما اسم گروه را به \"@1%\" تغییر دادید";
+
+/* Message text shown with the user who created the group */
+"group.event.created.group" = "%1$@ گروه \"%2$@\" را ایجاد کرد";
+
+/* Message text shown when you create a group */
+"group.event.created.group.you" = "شما گروه \"@1%\" را ایجاد کردید";
+
+/* Message text shown with the user who demoted a group admin */
+"group.event.demoted.member" = "@%1$ @%2$ را از سمت مدیر حذف کرد";
+
+/* Message text shown when you demote a group admin */
+"group.event.demoted.member.you" = "شما @1% را از سمت مدیر حذف کردید";
+
+/* Message text shown with the user who promoted a group member */
+"group.event.promoted.member" = "%1$@ %2$@ را مدیر گروه کرد";
+
+/* Message text shown when you promote a group member */
+"group.event.promoted.member.you" = "شما @1% را مدیر کردید";
+
+/* Message text shown with the user who removed a group member */
+"group.event.removed.member" = "%1$@ %2$@ را حذف کرد";
+
+/* Message text shown when you remove a group member */
+"group.event.removed.member.you" = "شما @1% را حذف کردید";
+
+/* Action label for inviting others to join the group via link */
+"group.info.invite.to.group.via.link" = "دعوت به گروه با لینک";
+
+/* Label for copying link */
+"group.invite.copy.link" = "کپی لینک";
+
+/* Text shown when link is copied */
+"group.invite.link.copied" = "کپی شد به کلیپبرد";
+
+/* Text to describe what the group invite link is */
+"group.invite.link.description" = "هرکس با هالواپ میتواند با این لینک عضو گروه شود.";
+
+/* Text label above the group link section in group invite screen */
+"group.invite.link.label" = "لینک گروه";
+
+/* Text shown when link is reset */
+"group.invite.link.reset" = "بازنشانی لینک";
+
+/* Label for opening QR screen */
+"group.invite.qr.code" = "کیو آر کد";
+
+/* Label for resetting link */
+"group.invite.reset.link" = "بازنشانی لینک";
+
+/* Warning shown when user clicks on reset link action */
+"group.invite.reset.link.warning" = "اگر این لینک بازنشانی شود، هیچکس نمیتواند از آن برای عضو شدن استفاده کند.";
+
+/* Label for sharing link */
+"group.invite.share.link" = "به اشتراک گذاشتن لینک";
+
+/* Text shown before the sharing link */
+"group.invite.share.link.message" = "روی این لینک کلیک کنید برای پیوست به گروه هالواپ من: ";
+
+/* Title of group invite screen */
+"group.invite.title" = "دعوت به گروه";
+
+/* Text for alert box when the user clicks on an invalid group invite link */
+"group.preview.get.info.error.invalid.link" = "لینک گروه اعتبار ندارد";
+
+/* Text for alert box when the user can't join the group via group link when the group is full */
+"group.preview.join.error.group.full" = "ظرفیت گروه تکمیل است";
+
+/* Text for alert box when the user can't join the group via group link when link is invalid */
+"group.preview.join.error.invalid.link" = "لینک اعتبار ندارد";
+
+/* Title for alert box when the user can't join the group via group link */
+"group.preview.join.error.title" = "خطا در پیوستن به گروه";
+
+/* Label for joining group action */
+"group.preview.join.group" = "پیوستن به گروه";
+
+/* Label for the number of members in the group */
+"group.preview.members" = "اعضا";
+
+/* Text shown to tell user the group title is tappable */
+"group.title.tap.for.info" = "برای اطلاعات گروه اینجا کلیک کنید";
+
+/* Text shown in notification when the user is added to a new group */
+"groups.add.notification" = "شما به گروه جدیدی دعوت شده‌اید";
+
+/* A label to show that the groups below are groups in common */
+"groups.common" = "گروه‌های مشترک";
+
+/* Text shown when user is about to remove the group */
+"groups.list.remove.message" = "مطمئنید میخواهید این گروه و محتوای آن را از دستگاه حذف کنید؟";
+
+/* A label on the header to indicate which person I have groups in common with */
+"groups.title" = "با %@";
+
+/* Text shown in the email body when sending logs from the help screen */
+"help.send.logs.email.body" = "لطفاً‌ نظر یا توضیحات مشکل را در جایگاه بالا بنویسید.\n\n@Version %1$@ - %2$\n@%3$";
+
+/* Title for exit button that closes the app */
+"home.update.notice.button.exit" = "خروج";
+
+/* Text shown to users who have old versions of the app */
+"home.update.notice.text" = "لطفاً‌ هالواپ را به روز رسانی کنید";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.notice.title" = "این نسخه قدیمی است";
+
+/* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
+"invite.already.halloapp.user" = "کاربر هالواپ است";
+
+/* Title for button that launches system SMS app to send invite. As short as possible! */
+"invite.app.sms" = "پیام‌ها";
+
+/* Title for button that launches WhatsApp to send invite. Should match WhatsApp localization. */
+"invite.app.whatsapp" = "واتس‌اپ";
+
+/* Shows number of current HalloApp users who have this contact in their list */
+"invite.contact.count" = "%d مخاطب در هالواپ";
+
+/* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
+"invite.error.alert.message" = "خطا. لطفاً‌ بعداً‌ امتحان کنید.";
+
+/* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
+"invite.error.alert.title" = "خطا در دعوت";
+
+/* Displayed when user does not have any invites left. Parameter is date. */
+"invite.out.of.invites.w.date" = "تعداد دعوت‌ها تمام شده است. لطفاً‌ بعد از @% تلاش کنید";
+
+/* Displayed white user is inviting someone. */
+"invite.please.wait" = "لطفاً صبر کنید...";
+
+/* Text of invitation to join HalloApp. */
+"invite.text" = "به من در هالواپ ملحق شوید - راهی ساده، خصوصی و مطمئن برای ارتباط با دوستان و آشنایان. آن را از طریق https://halloapp.com/dl نصب کنید";
+
+/* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
+"invite.text.specific" = "سلام @$1%، شما را دعوت میکنم به من در هالواپ ملحق شوید - یک شبکه برای آشنایانم. از @$2% برای ثبتنام استفاده کنیدد. آن را از https://halloapp.com/dl نصب کنید";
+
+/* Title for the screen that allows to select contact to invite. */
+"invite.title" = "دعوت";
+
+/* Link text to open invite flow */
+"link.invite.friend" = "دعوت کردن دوست";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "بیشتر بدانید";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "برنامه را به روز رسانی کنید.";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "من";
+
+/* Refers to albums in Photo Library. */
+"media.albums" = "آلبوم‌ها";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "لغو";
+
+/* Button title. Refers to resetting photo / video to original version. */
+"media.button.reset" = "بازنشانی";
+
+/* Alert asking to enable Camera permission after attempting to use in-app camera. */
+"media.camera.access.request" = "هالواپ دسترسی به دوربین شما ندارد. برای راه‌اندازی آن، به تنظیمات بروید و دوربین را فعال کنید";
+
+/* Confirmation prompt in media composer. */
+"media.discard.confirmation" = "میخواهید ویرایش را لغو کنید؟";
+
+/* Alert asking to enable Camera permission after attempting to use in-app camera. */
+"media.mic.access.request.body" = "برای فیلمبرداری با صدا، هالواپ نیاز دسترسی به میکروفون دارد. برای راه‌اندازی آن به تنظیمات بروید و آن را فعال کنید.";
+
+/* Alert asking to enable Microphone permission after attempting to use in-app camera. */
+"media.mic.access.request.title" = "ویدیو با صدا میخواهید؟";
+
+/* Error text displayed in post composer when some of the media selected couldn't be sent. */
+"media.prepare.failed.n.count" = "media.prepare.failed.n.count";
+
+/* Button that, when pressed, saves all the post's media to the user's camera roll */
+"media.save.all" = "ذخیره کردن همه در آلبوم دوربین";
+
+/* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
+"media.save.all.singular" = "ذخیره عکس یا فیلم به آلبوم دوربین";
+
+/* Button that lets the user save the current media displayed to their camera roll */
+"media.save.camera.roll" = "ذخیره کردن در آلبوم دوربین";
+
+/* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
+"media.save.needs.permissions" = "نیاز به دسترسی به عکس‌ها";
+
+/* Description telling the user why the photos couldn't be saved */
+"media.save.no.access" = "عکس‌ها ذخیره نمیشوند بدون دسترسی به آلبوم دوربین.";
+
+/* Alert displayed explaining to the user that the media save operation failed */
+"media.save.not.saved" = "عکس‌ها ذخیره نمیشوند";
+
+/* Label indicating that media was successfully saved to the camera roll */
+"media.save.saved" = "عکس‌ها در آلبوم دوربین ذخیره شدند";
+
+/* Accessibility label for X (Close) button in media editor. */
+"media.voiceover.button.close" = "بستن";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.flip" = "وارونه";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "بی صدا";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.rotate" = "چرخاندن";
+
+/* Message action. Verb. */
+"message.copy" = "کپی";
+
+/* Message action. Verb. */
+"message.delete" = "حذف";
+
+/* Message action. Verb. */
+"message.info" = "اطلاعات";
+
+/* Message action. Verb. */
+"message.reply" = "پاسخ";
+
+/* One of the contact actions in My Post screen. */
+"mypost.action.hide.my.posts" = "پنهان کردن پست";
+
+/* One of the contact actions in My Post screen. Verb. */
+"mypost.action.message" = "پیام";
+
+/* One of the contact actions in My Post screen. */
+"mypost.action.view.profile" = "مشاهده حساب کاربری";
+
+/* Message displayed to say when posts will disappear */
+"mypost.disappear.time.label" = "پست‌های شما بعد از ۳۰ روز حذف خواهند شد.";
+
+/* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
+"mypost.hide.posts.confirmation" = "مطمئنید میخواهید همه پست‌های آینده را از %@ پنهان کنید؟ میتوانید بعداً آن را تغییر دهید.";
+
+/* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
+"mypost.not.viewed.yet" = "هنوز کسی پست شما را ندیده است";
+
+/* Your Post screen: label for the row that opens the invite screen */
+"mypost.row.invite.to.halloapp" = "دعوت به هالواپ";
+
+/* Your Post screen: label for the row that opens the privacy screen */
+"mypost.row.manage.privacy" = "تنظیمات حریم خصوصی";
+
+/* Indicates how many invites are remaining */
+"n.invites.count" = "n.invites.count";
+
+/* Indicates how many invites are remaining */
+"n.invites.remaining" = "n.invites.remaining";
+
+/* Displayed in place of deleted feed posts. */
+"n.posts.deleted" = "%@ پست حذف شدند";
+
+/* Text shown to indicate user is not in the group anymore */
+"not.in.group.banner.text" = "شما دیگر در این گروه نیستید";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "نظر: %@";
+
+/* Content for unknown contact notification. */
+"notification.contact.unknown.content" = "یکی از مخاطب‌هایتان الآن در هالواپ است";
+
+/* Content for inviter notification. */
+"notification.invite.accepted.content" = "%@ دعوت شما را به هالواپ قبول کرد";
+
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "notification.n.photos";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "notification.n.videos";
+
+/* Content for contact notification.
+   Content for friend notification. */
+"notification.new.friend.content" = "%@ به هالواپ پیوست";
+
+/* Fallback text for new message notification. */
+"notification.new.message" = "پیام جدید";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "پست جدید";
+
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "عکس 📷";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "ویدیو 📹";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 پیام صوتی";
+
+/* Text for new user popup pointing at activity center icon */
+"nux.activity.center.icon" = "سلام!";
+
+/* Shown on chats list when there are no contacts or messages to display */
+"nux.chat.empty" = "مخاطب‌ها و پیام‌ها اینجا هستند";
+
+/* Text for new user popup pointing at chat list */
+"nux.chat.list" = "اینجا پیام‌های دوستان و آشنایانتان هستند. وقتی یه نفر جدید به هالواپ میپیوندد، میتوانید آن‌ها را اینجا ببینید.";
+
+/* Shown on groups in common when there are no groups to display */
+"nux.groups.common.list.empty" = "هیچ گروه مشترکی ندارید";
+
+/* Shown on groups list when there are no groups to display */
+"nux.groups.list.empty" = "گروه‌هایتان اینجا هستند";
+
+/* Shown on home feed when no posts are available */
+"nux.home.feed.empty" = "پست‌های مخاطب‌های موبایل شما اینجا هستند";
+
+/* Text for new user popup pointing at new post button */
+"nux.new.post.button" = "اینجا کلیک کنید برای به اشتراک گذاشتن اخبار با دوستان و ‌آشنایانتان در هالواپ";
+
+/* Message in media picker when access is denied. */
+"picker.access.denied.message" = "لطفاً از تنظیمات اجازه دسترسی بدهید";
+
+/* An option to give access from settings */
+"picker.access.denied.settings" = "تنظیمات";
+
+/* Alert title in media picker when access is denied. */
+"picker.access.denied.title" = "عدم دسترسی به عکس";
+
+/* Message shown only limited access to media. */
+"picker.access.limited.message" = "شما به هالواپ اجازه دسترسی به عکس‌ها و ویدیوهای انتخاب شده داده‌اید.";
+
+/* Initial picker screen title. The default source of picker photos */
+"picker.default.title" = "عکس‌های دوربین";
+
+/* Alert message in media picker when unable to load media file. */
+"picker.media.fail.message" = "لطفاً‌ دوباره امتحان کنید یا عکس یا ویدیوی دیگری انتخاب کنید.";
+
+/* Alert title in media picker when unable to load media file. */
+"picker.media.fail.title" = "خطا در بارگذاری";
+
+/* Button shown to update limited access to media. */
+"picker.media.limit.button" = "به روز رسانی";
+
+/* An option to update limited access. */
+"picker.media.limit.settings" = "تغییر تنظیمات";
+
+/* Alert title in media picker when selecting over limit. */
+"picker.media.limit.title" = "ماکسیمم موردهای انتخاب شده";
+
+/* An option to update limited access. */
+"picker.media.limit.updateSelection" = "به روز رسانی عکس‌ها و ویدیوهای انتخاب شده";
+
+/* Message in media picker when selecting over limit. */
+"picker.media.n.limit" = "picker.media.n.limit";
+
+/* Displayed in place of a deleted feed post.
+   Displayed in place of a deleted group feed post at group list screen */
+"post.has.been.deleted" = "این عکس حذف شده است";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted.by.author" = "%@ پست را حذف کرده است";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted.by.you" = "شما پست را حذف کرده‌اید";
+
+/* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
+"privacy.list.blocked" = "مسدود شده‌ها";
+
+/* Generic setting value telling how many contacts are blocked or muted. */
+"privacy.n.contacts" = "privacy.n.contacts";
+
+/* Title for the button allowing to delete current profile photo. */
+"profile.delete.photo" = "حذف عکس";
+
+/* A label for the button which leads to the page showing groups in common */
+"profile.groups.in.common" = "گروه‌های مشترک";
+
+/* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
+"profile.header.message.user" = "پیام";
+
+/* Text for unblocking user under profile header */
+"profile.header.unblock.user" = "رفع مسدودیت";
+
+/* Item in Profile > Help screen. */
+"profile.help.faq" = "پرسش‌های متداول";
+
+/* Item in Profile > Help screen. */
+"profile.help.feedback" = "ارسال بازخوردها و داده‌ها";
+
+/* Item in Profile > Help screen. */
+"profile.help.pp" = "حریم خصوصی";
+
+/* Item in Profile > Help screen. */
+"profile.help.share.logs" = "ارسال داده‌ها";
+
+/* Item in Profile > Help screen. */
+"profile.help.tos" = "شرایط استفاده از خدمات";
+
+/* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
+"profile.name.length" = "%1$d/%2$d";
+
+/* Row in Profile screen. */
+"profile.row.about" = "درباره";
+
+/* Row in Profile Screen */
+"profile.row.account" = "حساب کاربری";
+
+/* Row in Profile screen. */
+"profile.row.archive" = "بایگانی";
+
+/* Row in Profile screen. */
+"profile.row.help" = "کمک";
+
+/* Row in Profile screen. */
+"profile.row.invite" = "دعوت به هالواپ";
+
+/* Row in Settings screen */
+"profile.row.my.posts" = "پست‌های من";
+
+/* Row in Profile Screen. */
+"profile.row.share" = "به اشتراک گذاشتن هالواپ";
+
+/* Title for the button allowing to select a new profile photo. */
+"profile.take.choose.photo" = "عکس بگیرید یا انتخاب کنید";
+
+/* Title for the screen allowing to edit profile name */
+"profile.title.your.name" = "نام شما";
+
+/* Disclaimer text about receiving SMS verification code */
+"registration.code.disclaimer" = "یک کد دریافت خواهید کرد.\nممکن است اپراتور شما نرخی تحمیل کند.";
+
+/* Error message to display when user enters incorrect verification code */
+"registration.code.incorrect" = "کد درست نیست";
+
+/* Instructions for filling in SMS verification code. Parameter is formatted phone number */
+"registration.code.instructions" = "کدی که به %@ ارسال شد را وارد کنید";
+
+/* Error message to display when we cannot send a verification code */
+"registration.code.request.error" = "خطا در ارسال کد. لطفاً بعداً‌ امتحان کنید.";
+
+/* Button label to resend verification code */
+"registration.code.resend" = "ارسال دوباره پیامک";
+
+/* Button label to resend verification code by voice call */
+"registration.code.resend.by.voice" = "با من تماس بگیرید";
+
+/* Text explaining why we need contact permissions */
+"registration.contacts.content" = "برای ارتباط با دوستان و آشنایانتان نیاز به دسترسی به مخاطب‌هایتان داریم.";
+
+/* Title for text explaining why we need contact permissions */
+"registration.contacts.title" = "یک مسئله دیگر";
+
+/* Text indicating to the user that HalloApp is available for free on the iPhone App Store */
+"registration.free.app.notice" = "رایگان در اپ استور آیفون";
+
+/* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
+"registration.group.name" = "شما به گروه %@ دعوت شدید";
+
+/* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
+"registration.install.app.to.continue" = "برای ادامه هالواپ را نصب کنید";
+
+/* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
+"registration.install.app.to.join.group" = "برای باز کردن %@ هالواپ را نصب کنید";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "آخ!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "شماره تلفنی که وارد کردید قابل قبول نیست. لطفاً دوباره بررسی کنید.";
+
+/* Popup that appears when user tries to register uninvited number */
+"registration.invite.only" = "اگر با یک لینک گروه ثبتنام کردید، لطفاً روی لینک دوباره کلیک کنید تا به گروه بپیوندید.";
+
+/* Placeholder text for name entry */
+"registration.nameEntry.placeholder" = "نام شما";
+
+/* Placeholder text for phone entry */
+"registration.phoneEntry.placeholder" = "شماره تلفن";
+
+/* Text for modal describing how we use contacts data */
+"registration.privacy.content" = "هالواپ فقط از شماره تلفن شما برای وصل کردن شما با دوستانتان استفاده میکند و هیچ داده دیگری از لیست مخاطب‌های شما ارسال نمیکند.";
+
+/* Title for modal describing how we use contacts data */
+"registration.privacy.title" = "حریم خصوصی شما اولویت ماست";
+
+/* Title for popup that appears when user tries to register uninvited number */
+"registration.shucks" = "اوه!";
+
+/* Shown above name and phone inputs */
+"registration.welcome" = "خوش‌آمدید!";
+
+/* Instructions for how to use the safety number verification UI */
+"safety.number.instructions" = "برای اطمینان از ایمنی ارتباطتان با %@، لطفاً شماره بالا را با شماره‌ای که روی دستگاه ایشان هست مقایسه کنید، یا کد کیوآر را از تلفن ایشان اسکن کنید.";
+
+/* Message to show when safety number cannot be succesfully verified */
+"safety.number.not.verified" = "خطا در تأیید کد امنیتی برای %@";
+
+/* Title for button that will open QR code scanner used to verify a contact's safety number */
+"safety.number.scan" = "برای اسکن کردن کلیک کنید";
+
+/* Title for screen that allows users to verify a contact's safety number */
+"safety.number.title" = "تأیید کد امنیتی";
+
+/* Message to show when safety number is succesfully verified */
+"safety.number.verified" = "کد امنیتی با موفقیت تأیید شد برای %@!";
+
+/* fallback text in notification for a new comment */
+"server.new.comment" = "نظر جدید";
+
+/* fallback text in notification when a new contact joins */
+"server.new.contact" = "%@ به هالواپ پیوست";
+
+/* fallback text in notification when user is added to a new group */
+"server.new.group" = "به گروه جدیدی دعوت شدید";
+
+/* fallback text in notification for a new group chat message */
+"server.new.group.message" = "پیام گروهی جدید";
+
+/* fallback text in notification when an invitee joins */
+"server.new.inviter" = "%@ دعوت شما را به هالواپ پذیرفت 🎉";
+
+/* fallback text in notification for a new chat message */
+"server.new.message" = "پیام جدید";
+
+/* fallback text in notification for a new feed post */
+"server.new.post" = "پست جدید";
+
+/* text in the sms sent with verification code */
+"server.sms.verification" = "کد هالواپ شما";
+
+/* text in the voice call sent with verification code */
+"server.voicecall.verification" = "کد هالواپ شما این است";
+
+/* Displayed while syncing account immediately after registration */
+"setting.up.halloapp" = "راه‌اندازی هالواپ";
+
+/* Title of alert telling the user they're about to delete their account */
+"settings.account.delete.action.title" = "حذف حساب کاربری";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet1" = "حذف اطلاعات و عکس حساب کاربری";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet2" = "حذف شما از همه گروه‌های هالواپ";
+
+/* Action that will occur when users delete their account */
+"settings.account.delete.bullet3" = "حذف تاریخچه پیام‌هایتان از این تلفن";
+
+/* Label telling the user that their account has been deleted */
+"settings.account.delete.deleted" = "حذف حساب کاربری";
+
+/* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
+"settings.account.delete.error" = "خطا در حذف حساب کاربری. لطفاً مطمئن شوید شماره تلفن درست است.";
+
+/* Label above list of things that will happen if they delete their account */
+"settings.account.delete.header" = "حذف حساب کاربری شما به معنای این است که:";
+
+/* Alert message telling the user that account deletion is irreversible */
+"settings.account.delete.irreversible.label" = "این عمل برگشت ناپذیر است";
+
+/* Text field placeholder telling the user that their phone number should go into the field */
+"settings.account.delete.phone.number" = "شماره تلفن شما";
+
+/* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
+"settings.account.delete.spinner.replacement" = "در انتظار پاسخ از سرور";
+
+/* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
+"settings.account.deleted.message" = "بدون بازنشانی برنامه نمیتوانید وارد آن شوید";
+
+/* Alert title telling the user that their account was successfully deleted */
+"settings.account.deleted.title" = "حساب کاربری با موفقیت حذف شد";
+
+/* Label telling the user when their data export will be made available. %1$@ is a date. */
+"settings.account.export.date.available" = "برای امنیت شما، داده‌هایتان در تاریخ @$1% قابل دسترسی خواهند بود";
+
+/* Label alerting the user that we were unable to retrieve the data. */
+"settings.account.export.error" = "خطا در بازیابی داده‌هایتان.";
+
+/* Explanation about what the data export function is. English language version taken from WhatsApp. */
+"settings.account.export.explanation" = "ایجاد گزارش از اطلاعات حساب کاربری و تنظیمات هالواپ برای دسترسی یا انتقال به برنامه‌ دیگر. این گزارش شامل پیام‌های شما نمیباشد.";
+
+/* String indicating device is awaiting a server response. Only visible in iOS 13. */
+"settings.account.export.loading" = "در حال بارگذاری داده‌ها...";
+
+/* Navigation bar title informing the user that this page lets them export their user data. */
+"settings.account.export.navbar" = "استخراج داده‌ها";
+
+/* Label for when the date at which the user data is not determined. */
+"settings.account.export.not.found" = "تاریخ آماده سازی مشخص نیست.";
+
+/* Button to open the user data exported from HalloApp. */
+"settings.account.export.open.data" = "باز کردن داده‌های استخراج شده";
+
+/* Navigation bar title informing the user that this page lets them export their user data. */
+"settings.account.export.request.button" = "درخواست داده‌های استخراج شده";
+
+/* Label informing the user that they have requested their data. */
+"settings.account.export.requested" = "داده‌ها درخواست شدند";
+
+/* Button to delete a user's account. */
+"settings.account.list.delete.account" = "حذف";
+
+/* Row to export user data for GDPR compliance. */
+"settings.account.list.export.data" = "استخراج";
+
+/* Title for settings page containing account options. */
+"settings.account.list.title" = "حساب کاربری";
+
+/* App version text in Profile > Help. */
+"settings.app.version" = "هالواپ ورژن %@";
+
+/* Settings menu section. */
+"settings.notifications" = "اعلان‌ها";
+
+/* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
+"settings.notifications.comments" = "نظرها";
+
+/* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
+"settings.notifications.posts" = "پست‌ها";
+
+/* Settings menu section */
+"settings.privacy" = "حریم خصوصی";
+
+/* Settings > Privacy: name of a setting that defines who can see your posts. */
+"settings.privacy.posts" = "پست‌ها";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "به شبکه ارتباطی من در هالواپ بپیوندید. برنامه را رایگان از halloapp.com/dl دانلود کنید";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.add.reading.list" = "افزودن به لیست خواندنی‌ها";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
+"textlabel.context.menu.call.number" = "تماس با %@";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.copy.link" = "کپی لینک";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. */
+"textlabel.context.menu.copy.phone.number" = "کپی شماره تلفن";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.open.link" = "باز کردن لینک";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.share" = "به اشتراک گذاشتن...";
+
+/* Link to expand truncated text. */
+"textlabel.more" = "...بیشتر";
+
+/* Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet */
+"thread.list.preview.already.user.default" = "%@ در هالواپ است";
+
+/* Default preview text shown for a symmetric contact who just joined Halloapp */
+"thread.list.preview.new.user.default" = "%@ در هالواپ است! 🎉";
+
+/* Last seen timestamp: full date in short format and time */
+"timestamp.last.seen.date.at.time" = "آخرین بازدید @$1% ساعت @$2%";
+
+/* Last seen timestamp: day of week and time */
+"timestamp.last.seen.dayofweek.at.time" = "آخرین بازدید @$1% ساعت @$2%";
+
+/* Last seen timestamp: today at specific time. */
+"timestamp.last.seen.today.at" = "آخرین بازدید امروز ساعت %@";
+
+/* Last seen timestamp: yesterday at specific time. */
+"timestamp.last.seen.yesterday.at" = "آخرین بازدید دیروز ساعت %@";
+
+/* Capitalized translation of `Now` to be used as timestamp. */
+"timestamp.now.capitalized" = "الآن";
+
+/* Lowercase translation of `Now` to be used as timestamp. */
+"timestamp.now.lowercase" = "الآن";
+
+/* Timestamp: `Today` */
+"timestamp.today" = "امروز";
+
+/* Timestamp: `Yesterday` */
+"timestamp.yesterday" = "دیروز";
+
+/* Screen title */
+"title.camera" = "دوربین";
+
+/* Title for new message screen where user chooses who to message */
+"title.chat.new.message" = "پیام جدید";
+
+/* Third tab in the main app interface. */
+"title.chats" = "چت";
+
+/* Title for the Comments screen. */
+"title.comments" = "نظر";
+
+/* Second tab in the main app interface. */
+"title.groups" = "گروه‌ها";
+
+/* First tab in the main app interface. */
+"title.home" = "صفحه اصلی";
+
+/* Row in Settings screen */
+"title.notifications" = "اعلان‌ها";
+
+/* Row in Settings screen */
+"title.privacy" = "حریم خصوصی";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"title.select.group.members.create.group" = "ایجاد گروه جدید";
+
+/* Title of screen where user chooses members to add to either a new group or an existing one */
+"title.select.group.members.title" = "افزودن اعضای جدید";
+
+/* Fourth tab in the main app interface */
+"title.settings" = "تنظیمات";
+
+/* Title for the screen with information about who saw your post. */
+"title.your.post" = "دیده شد توسط";
+
+/* Indicates which switch a user needs to turn on to enable contacts permissions. */
+"turn.on.contacts" = "«مخاطب‌ها» را فعال کنید";
+
+/* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
+"tutorial.tap.below" = "روی «%@» کلیک کنید.";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "مخاطب ناشناخته";
+
+/* Text for action label that lets the user accept messages from unknown contacts */
+"unknown.contact.accept.to.message" = "برای پاسخ دادن پیام را قبول کنید";
+
+/* Button to confirm blocking user via profile page */
+"user.block" = "مسدود کردن";
+
+/* Message asking if the user is sure they want to block this user */
+"user.block.message" = "مطمئنید میخواهید %@ را در هالواپ مسدود کنید؟‌ میتوانید بعداً نظرتان را عوض کنید.";
+
+/* Option when user taps more on profile page */
+"user.option.block" = "مسدود کردن در هالواپ";
+
+/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
+"user.option.copy.phone.number" = "کپی شماره تلفن";
+
+/* Option when user taps more on profile page */
+"user.option.unblock" = "رفع مسدودیت در هالواپ";
+
+/* Button to confirm unblocking user via profile page */
+"user.unblock" = "رفع مسدودیت";
+
+/* Message asking if the user is sure they want to unblock this user */
+"user.unblock.message" = "مطمئنید میخواهید %@ را در هالواپ رفع مسدودیت کنید؟ میتوانید نظرتان را بعداً عوض کنید.";
+
+/* Reference to the user, second person pronoun */
+"user.you" = "شما";
+
+/* Capitalized reference to the user, second person pronoun */
+"user.you.capitalized" = "شما";
+
+/* No comment provided by engineer. */
+"VIDEO" = "ویدیو";
+
+/* Title for the button that confirms intent to delete your own post. */
+"your.post.deletepost.button" = "حذف پست";
+
+/* Post deletion confirmation. Displayed as action sheet title. */
+"your.post.deletepost.confirmation" = "مطمئینید این پست را میخواهید حذف کنید؟ این کار برگشت ناپذیر است.";
+

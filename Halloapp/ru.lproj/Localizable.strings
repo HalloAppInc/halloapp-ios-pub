@@ -842,7 +842,7 @@
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Общие группы";
 
-/* Text for messaging user under profile header */
+/* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Сообщение";
 
 /* Item in Profile > Help screen. */
@@ -957,7 +957,7 @@
 "safety.number.scan" = "Нажми для сканирования";
 
 /* Title for screen that allows users to verify a contact's safety number */
-"safety.number.title" = "Проверь код безопасности";
+"safety.number.title" = "Проверить код безопасности";
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "Код безопасности %@ успешно проверен!";
