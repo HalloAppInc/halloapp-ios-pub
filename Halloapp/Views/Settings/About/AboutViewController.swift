@@ -22,12 +22,7 @@ private extension Localizations {
 
     static var bodyPart1: String {
         NSLocalizedString("about.body.1",
-                          value: """
-HalloApp is here! And we’re building it for you and your loved ones. \
-We’ve brought social apps back to basics, while adding a layer of security and privacy that we think everyone in the world should have access to. \
-HalloApp will never use your personal information or show you ads. \
-Instead, we plan to eventually offer additional features at a small cost.
-""",
+                          value: "HalloApp is here! And we’re building it for you and your loved ones. We’ve brought social apps back to basics, while adding a layer of security and privacy that we think everyone in the world should have access to. HalloApp will never use your personal information or show you ads. Instead, we plan to eventually offer additional features at a small cost.",
                           comment: "About screen: body text.")
     }
 

@@ -21,7 +21,7 @@ extension Localizations {
     }
 
     static var buttonCancelCapitalized: String {
-        NSLocalizedString("button.cancel", value: "CANCEL", comment: "Title for generic capitalized CANCEL button. Mostly used in popups and as such.")
+        NSLocalizedString("button.cancel.capitalized", value: "CANCEL", comment: "Title for generic capitalized CANCEL button. Mostly used in popups and as such.")
     }
     
     static var buttonNext: String {

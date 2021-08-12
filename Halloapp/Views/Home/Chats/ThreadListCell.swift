@@ -161,7 +161,7 @@ class ThreadListCell: UITableViewCell {
         var messageText = chatThread.lastFeedText ?? ""
 
         if [.retracted].contains(chatThread.lastFeedStatus) {
-            messageText = Localizations.postHasBeenDeleted
+            messageText = Localizations.deletedPostGeneric
         }
 
         switch chatThread.lastFeedMediaType {
@@ -436,14 +436,6 @@ private class UnreadBadgeView: UIView {
         label.widthAnchor.constraint(greaterThanOrEqualTo: label.heightAnchor, multiplier: 1).isActive = true
         label.constrainMargins(to: self)
     }
-}
-
-private extension Localizations {
-
-    static var postHasBeenDeleted: String {
-        NSLocalizedString("post.has.been.deleted", value: "This post has been deleted", comment: "Displayed in place of a deleted group feed post at group list screen")
-    }
-
 }
 
 private extension NSMutableAttributedString {

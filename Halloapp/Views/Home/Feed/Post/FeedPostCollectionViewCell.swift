@@ -465,7 +465,11 @@ extension Localizations {
             let format = NSLocalizedString("post.has.been.deleted.by.author", value: "%@ deleted their post", comment: "Displayed in place of a deleted feed post.")
             return String(format: format, name)
         } else {
-            return NSLocalizedString("post.has.been.deleted", value: "This post has been deleted", comment: "Displayed in place of a deleted feed post.")
+            return deletedPostGeneric
         }
+    }
+
+    static var deletedPostGeneric: String {
+        return NSLocalizedString("post.has.been.deleted", value: "This post has been deleted", comment: "Displayed in place of a deleted feed post.")
     }
 }

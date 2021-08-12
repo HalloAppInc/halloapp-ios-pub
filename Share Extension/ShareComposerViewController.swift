@@ -50,7 +50,7 @@ private extension Localizations {
     }
 
     static var uploadingFailedMessage: String {
-        NSLocalizedString("share.composer.uploading.fail.title", value: "Please try again later.", comment: "Alert dialog message shown when uploading fails.")
+        NSLocalizedString("share.composer.uploading.fail.message", value: "Please try again later.", comment: "Alert dialog message shown when uploading fails.")
     }
 }
 

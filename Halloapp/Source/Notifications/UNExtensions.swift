@@ -148,7 +148,7 @@ extension Localizations {
 
     static var contactNotificationContent: String {
         NSLocalizedString(
-            "notification.new.friend.content",
+            "notification.new.contact.content",
             value: "%@ is now on HalloApp",
             comment: "Content for contact notification.")
     }
