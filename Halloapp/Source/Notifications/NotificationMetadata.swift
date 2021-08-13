@@ -666,12 +666,12 @@ extension NotificationMetadata {
 
     var postData: PostData? {
         if contentType == .feedPost || contentType == .groupFeedPost {
-            guard let data = data,
-                  let timestamp = timestamp,
+            guard let payload = data,
+                  let postTimestamp = timestamp,
                   let postData = PostData(id: contentId,
                                           userId: fromId,
-                                          timestamp: timestamp,
-                                          payload: data) else {
+                                          timestamp: postTimestamp,
+                                          payload: payload) else {
                 DDLogError("postData is null, dataLength:\(data?.bytes.count), timestamp: \(timestamp),  postId: \(contentId)")
                 return nil
             }
@@ -683,15 +683,15 @@ extension NotificationMetadata {
 
     var commentData: CommentData? {
         if contentType == .feedComment || contentType == .groupFeedComment {
-            guard let data = data,
-                  let timestamp = timestamp,
+            guard let payload = data,
+                  let commentTimestamp = timestamp,
                   let postId = feedPostId,
                   let commentData = CommentData(id: contentId,
                                                 userId: fromId,
                                                 feedPostId: postId,
                                                 parentId: parentId,
-                                                timestamp: timestamp,
-                                                payload: data) else {
+                                                timestamp: commentTimestamp,
+                                                payload: payload) else {
                 DDLogError("CommentData is null, dataLength:\(data?.bytes.count), timestamp: \(timestamp),  postId: \(feedPostId), commentId: \(contentId)")
                 return nil
             }
