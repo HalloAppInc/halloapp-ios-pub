@@ -71,26 +71,41 @@ public struct PostData: FeedPostProtocol {
 
 
     public init?(_ serverPost: Server_Post, isShared: Bool = false) {
+        self.init(id: serverPost.id,
+                  userId: UserID(serverPost.publisherUid),
+                  timestamp: Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp)),
+                  payload: serverPost.payload,
+                  isShared: isShared)
+    }
 
-        guard let protoContainer = try? Clients_Container(serializedData: serverPost.payload) else {
-            DDLogError("Could not deserialize post")
+    public init?(id: String, userId: UserID, timestamp: Date, payload: Data, isShared: Bool = false) {
+        self.id = id
+        self.userId = userId
+        self.timestamp = timestamp
+        self.isShared = isShared
+        guard let processedContent = PostData.extractContent(postId: id, payload: payload) else {
             return nil
         }
-        
-        self.isShared = isShared
+        self.content = processedContent
+    }
 
+    public static func extractContent(postId: String, payload: Data) -> PostContent? {
+        guard let protoContainer = try? Clients_Container(serializedData: payload) else {
+            DDLogError("Could not deserialize post [\(postId)]")
+            return nil
+        }
         if protoContainer.hasPostContainer {
             // Future-proof post
             let post = protoContainer.postContainer
 
             switch post.post {
             case .text(let clientText):
-                content = .text(clientText.mentionText)
+                return .text(clientText.mentionText)
             case .album(let album):
                 var media = [FeedMediaData]()
                 var foundUnsupportedMedia = false
                 for (i, albumMedia) in album.media.enumerated() {
-                    guard let mediaData = FeedMediaData(id: "\(serverPost.id)-\(i)", albumMedia: albumMedia) else {
+                    guard let mediaData = FeedMediaData(id: "\(postId)-\(i)", albumMedia: albumMedia) else {
                         foundUnsupportedMedia = true
                         continue
                     }
@@ -98,35 +113,31 @@ public struct PostData: FeedPostProtocol {
                 }
                 if foundUnsupportedMedia {
                     DDLogError("PostData/initFromServerPost/error unrecognized media")
-                    content = .unsupported(serverPost.payload)
+                    return .unsupported(payload)
                 } else {
-                    content = .album(album.text.mentionText, media)
+                    return .album(album.text.mentionText, media)
                 }
             case .none:
-                content = .unsupported(serverPost.payload)
+                return .unsupported(payload)
             }
 
         } else if protoContainer.hasPost {
             // Legacy post
             let protoPost = protoContainer.post
 
-            let media = protoPost.media.enumerated().compactMap { FeedMediaData(id: "\(serverPost.id)-\($0)", protoMedia: $1) }
+            let media = protoPost.media.enumerated().compactMap { FeedMediaData(id: "\(postId)-\($0)", protoMedia: $1) }
             let mentionText = protoPost.mentionText
 
             if media.isEmpty {
-                content = .text(mentionText)
+                return .text(mentionText)
             } else {
-                content = .album(mentionText, media)
+                return .album(mentionText, media)
             }
 
         } else {
             DDLogError("Unrecognized post (no post or post container set)")
             return nil
         }
-
-        self.id = serverPost.id
-        self.userId = UserID(serverPost.publisherUid)
-        self.timestamp = Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp))
     }
 }
 
@@ -242,6 +253,28 @@ public struct CommentData {
     public let parentId: FeedPostCommentID?
     public var content: CommentContent
 
+    
+    public var orderedMedia: [FeedMediaProtocol] {
+        // unsupported yet.
+        return []
+    }
+
+    public var orderedMentions: [FeedMentionProtocol] {
+        let mentions: [Int: MentionedUser] = {
+            switch content {
+            case .retracted, .unsupported:
+                return [:]
+            case .text(let mentionText):
+                return mentionText.mentions
+            }
+        }()
+        return mentions
+            .map { (i, user) in
+                MentionData(index: i, userID: user.userID, name: user.pushName ?? "")
+            }
+            .sorted { $0.index < $1.index }
+    }
+
     public init(id: FeedPostCommentID, userId: UserID, timestamp: Date = Date(), feedPostId: FeedPostID, parentId: FeedPostCommentID?, content: CommentContent) {
         self.id = id
         self.userId = userId
@@ -252,47 +285,49 @@ public struct CommentData {
     }
 
     public init?(_ serverComment: Server_Comment) {
+        // do we need fallback for some of these ids to the clients_container?
+        self.init(id: serverComment.id,
+                  userId: UserID(serverComment.publisherUid),
+                  feedPostId: serverComment.postID,
+                  parentId: serverComment.parentCommentID.isEmpty ? nil : serverComment.parentCommentID,
+                  timestamp: Date(timeIntervalSince1970: TimeInterval(serverComment.timestamp)),
+                  payload: serverComment.payload)
+    }
 
-        guard let protoContainer = try? Clients_Container(serializedData: serverComment.payload) else {
-            DDLogError("Could not deserialize comment")
+    public init?(id: String, userId: UserID, feedPostId: String, parentId: String?, timestamp: Date, payload: Data) {
+        self.id = id
+        self.userId = userId
+        self.timestamp = timestamp
+        self.feedPostId = feedPostId
+        self.parentId = parentId
+        guard let processedContent = CommentData.extractContent(commentId: id, payload: payload) else {
             return nil
         }
-
+        self.content = processedContent
+    }
+    
+    public static func extractContent(commentId: String, payload: Data) -> CommentContent? {
+        guard let protoContainer = try? Clients_Container(serializedData: payload) else {
+            DDLogError("Could not deserialize comment [\(commentId)]")
+            return nil
+        }
         if protoContainer.hasCommentContainer {
             // Future-proof comment
             let comment = protoContainer.commentContainer
-
-            // Fall back to IDs from payload if missing from top level
-            let postID = serverComment.postID.isEmpty ? comment.context.feedPostID : serverComment.postID
-            let parentID = serverComment.parentCommentID.isEmpty ? comment.context.parentCommentID : serverComment.parentCommentID
-
-            self.feedPostId = postID
-            self.parentId = parentID.isEmpty ? nil : parentID
             switch comment.comment {
             case .text(let clientText):
-                self.content = .text(clientText.mentionText)
+                return .text(clientText.mentionText)
             case .album, .voiceNote, .none:
-                self.content = .unsupported(serverComment.payload)
+                return .unsupported(payload)
             }
 
         } else if protoContainer.hasComment {
             // Legacy comment
             let protoComment = protoContainer.comment
-
-            // Fall back to IDs from payload if missing from top level
-            let postID = serverComment.postID.isEmpty ? protoComment.feedPostID : serverComment.postID
-            let parentID = serverComment.parentCommentID.isEmpty ? protoComment.parentCommentID : serverComment.parentCommentID
-
-            self.feedPostId = postID
-            self.parentId = parentID.isEmpty ? nil : parentID
-            self.content = .text(protoComment.mentionText)
+            return .text(protoComment.mentionText)
         } else {
             DDLogError("Unrecognized comment (no comment or comment container set)")
             return nil
         }
-
-        self.id = serverComment.id
-        self.userId = UserID(serverComment.publisherUid)
-        self.timestamp = Date(timeIntervalSince1970: TimeInterval(serverComment.timestamp))
     }
 }

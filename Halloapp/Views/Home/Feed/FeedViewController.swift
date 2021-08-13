@@ -393,29 +393,20 @@ class FeedViewController: FeedCollectionViewController {
 
         DDLogInfo("FeedViewController/notification/process type=\(metadata.contentType) contentId=\(metadata.contentId)")
 
-        guard let protoContainer = metadata.protoContainer, protoContainer.hasComment || protoContainer.hasPost else {
-            DDLogError("FeedViewController/notification/process/error Invalid protobuf")
-            return
-        }
-        guard let feedPostId = protoContainer.hasComment ? protoContainer.comment.feedPostID : metadata.feedPostId else {
-            DDLogError("FeedViewController/notification/process/error Can't find postId")
-            return
-        }
-
-        let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId)
-        if feedPost == nil {
-            DDLogWarn("FeedViewController/notification/process/warning Missing post with id=[\(feedPostId)]")
-        }
-
-        navigationController?.popToRootViewController(animated: false)
-
         switch metadata.contentType {
         case .feedComment, .groupFeedComment:
-            if let commentId = metadata.feedPostCommentId {
-                showCommentsView(for: feedPostId, highlighting: commentId)
+            guard let commentData = metadata.commentData else {
+                DDLogError("FeedViewController/notification/could not get commentData - failed to scroll \(metadata.contentId)")
+                return
             }
-
+            showCommentsView(for: commentData.feedPostId, highlighting: commentData.id)
         case .feedPost:
+            guard let postData = metadata.postData else {
+                DDLogError("FeedViewController/notification/could not get postData - failed to scroll \(metadata.contentId)")
+                return
+            }
+            let feedPostId = postData.id
+            let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId)
             if let feedPost = feedPost {
                 DDLogDebug("FeedViewController/scroll-to-post/immediate \(feedPostId)")
                 // Scroll to feed post now.
@@ -429,14 +420,12 @@ class FeedViewController: FeedCollectionViewController {
                     collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: false)
                 }
             }
-
         case .groupFeedPost:
+            // TODO: we should scroll to the specific post - separate diff.
             if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                 let vc = GroupFeedViewController(groupId: groupId)
                 navigationController?.pushViewController(vc, animated: false)
             }
-            break
-
         default:
             break
         }

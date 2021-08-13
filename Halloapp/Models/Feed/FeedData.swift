@@ -714,10 +714,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                 // Find parent if necessary.
                 var parentComment: FeedPostComment? = nil
-                if xmppComment.parentId != nil {
-                    parentComment = comments[xmppComment.parentId!]
+                if let parentId = xmppComment.parentId, !parentId.isEmpty {
+                    parentComment = comments[parentId]
                     if parentComment == nil {
-                        DDLogInfo("FeedData/process-comments/missing-parent/skip [\(xmppComment.id)]")
+                        DDLogInfo("FeedData/process-comments/missing-parent/skip [\(xmppComment.id)] - [\(parentId)]")
                         continue
                     }
                 }
@@ -1064,6 +1064,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                                     timestamp: comment.timestamp,
                                                     data: protobufData,
                                                     messageId: nil)
+                metadata.postId = comment.post.id
+                metadata.parentId = comment.parent?.id
                 if let groupId = comment.post.groupId,
                    let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                     metadata.groupId = group.groupId
@@ -2363,6 +2365,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }()
             feedPost.timestamp = post.timestamp
+            if let rawData = post.rawData {
+                feedPost.rawData = rawData
+                feedPost.status = .unsupported
+            }
 
             // Mentions
             var mentionSet = Set<FeedMention>()
@@ -2506,6 +2512,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }()
         feedComment.timestamp = sharedComment.timestamp
         
+        if let rawData = sharedComment.rawData {
+            feedComment.rawData = rawData
+            feedComment.status = .unsupported
+        }
         // Increase unread comments counter on post.
         feedPost.unreadCount += 1
 

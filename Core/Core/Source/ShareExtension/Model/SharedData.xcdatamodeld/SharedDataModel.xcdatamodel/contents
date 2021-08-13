@@ -20,6 +20,7 @@
         <attribute name="id" optional="YES" attributeType="String"/>
         <attribute name="parentCommentId" optional="YES" attributeType="String"/>
         <attribute name="postId" optional="YES" attributeType="String"/>
+        <attribute name="rawData" optional="YES" attributeType="Binary"/>
         <attribute name="statusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -41,6 +42,7 @@
         <attribute name="groupId" optional="YES" attributeType="String"/>
         <attribute name="id" attributeType="String"/>
         <attribute name="privacyListTypeValue" optional="YES" attributeType="String"/>
+        <attribute name="rawData" optional="YES" attributeType="Binary"/>
         <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
@@ -73,9 +75,9 @@
     </entity>
     <elements>
         <element name="SharedChatMessage" positionX="-54" positionY="81" width="128" height="239"/>
-        <element name="SharedFeedComment" positionX="-45" positionY="99" width="128" height="163"/>
+        <element name="SharedFeedComment" positionX="-45" positionY="99" width="128" height="164"/>
         <element name="SharedFeedMention" positionX="-54" positionY="81" width="128" height="88"/>
-        <element name="SharedFeedPost" positionX="-63" positionY="-18" width="128" height="193"/>
+        <element name="SharedFeedPost" positionX="-63" positionY="-18" width="128" height="194"/>
         <element name="SharedMedia" positionX="-45" positionY="27" width="128" height="223"/>
         <element name="SharedServerMessage" positionX="-45" positionY="108" width="128" height="73"/>
     </elements>

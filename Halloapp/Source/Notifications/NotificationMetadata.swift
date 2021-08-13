@@ -11,6 +11,50 @@ import Core
 import UserNotifications
 import SwiftNoise
 
+
+public enum NotificationMediaType: Int, Codable {
+    case image = 0
+    case video = 1
+    case audio = 2
+}
+
+public extension NotificationMediaType {
+    init?(clientsMediaType: Clients_MediaType) {
+        switch clientsMediaType {
+        case .image:
+            self = .image
+        case .video:
+            self = .video
+        case .audio:
+            self = .audio
+        case .unspecified, .UNRECOGNIZED:
+            return nil
+        }
+    }
+
+    init(chatMsgMediaType: ChatMessageMediaType) {
+        switch chatMsgMediaType {
+        case .image:
+            self = .image
+        case .video:
+            self = .video
+        case .audio:
+            self = .audio
+        }
+    }
+
+    init(feedMediaType: FeedMediaType) {
+        switch feedMediaType {
+        case .image:
+            self = .image
+        case .video:
+            self = .video
+        case .audio:
+            self = .audio
+        }
+    }
+}
+
 enum NotificationContentType: String, RawRepresentable, Codable {
     case feedPost = "feedpost"
     case groupFeedPost = "group_post"
@@ -71,6 +115,8 @@ class NotificationMetadata: Codable {
     var body: String = ""
 
     // Notification specific fields
+    var postId: String? = nil
+    var parentId: String? = nil
     var groupId: String? = nil
     var groupName: String? = nil
     var normalizedPhone: String? = nil
@@ -240,6 +286,8 @@ class NotificationMetadata: Codable {
                 pushName = post.publisherName
             case .comment(let comment):
                 contentId = comment.id
+                postId = comment.postID
+                parentId = comment.parentCommentID.isEmpty ? nil : comment.parentCommentID
                 switch feedItem.action {
                 case .retract:
                     contentType = .feedCommentRetract
@@ -275,6 +323,8 @@ class NotificationMetadata: Codable {
                 pushName = post.publisherName
             case .comment(let comment):
                 contentId = comment.id
+                postId = comment.postID
+                parentId = comment.parentCommentID.isEmpty ? nil : comment.parentCommentID
                 switch groupFeedItem.action {
                 case .retract:
                     contentType = .groupFeedCommentRetract
@@ -353,7 +403,7 @@ class NotificationMetadata: Codable {
         }
     }
 
-    private static func mediaIcon(_ mediaType: ChatMessageMediaType) -> String {
+    private static func mediaIcon(_ mediaType: NotificationMediaType) -> String {
         switch mediaType {
             case .image:
                 return "📷"
@@ -364,7 +414,7 @@ class NotificationMetadata: Codable {
         }
     }
 
-    private static func notificationBody(forMedia mediaTypes: [ChatMessageMediaType]) -> String {
+    private static func notificationBody(forMedia mediaTypes: [NotificationMediaType]) -> String {
         let numPhotos = mediaTypes.filter { $0 == .image }.count
         let numVideos = mediaTypes.filter { $0 == .video }.count
         if numPhotos == 1 && numVideos == 0 {
@@ -385,7 +435,7 @@ class NotificationMetadata: Codable {
         return ListFormatter.localizedString(byJoining: strings)
     }
 
-    func getMentionNames(contactStore: ContactStore, mentions: [Clients_Mention] = []) -> ((UserID) -> String) {
+    func getMentionNames(contactStore: ContactStore, mentions: [FeedMentionProtocol] = []) -> ((UserID) -> String) {
         // Add mention names if any in the payload to contactStore and then return dictionary.
         var contactNames = [UserID:String]()
         mentions.forEach{
@@ -415,32 +465,45 @@ class NotificationMetadata: Codable {
 
         // Post on user feed or group feed
         case .feedPost, .groupFeedPost:
-            guard let protoContainer = protoContainer else {
-                return false
-            }
-            let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: protoContainer.post.mentions)
-            subtitle = NSLocalizedString("notification.new.post", value: "New Post", comment: "Title for the new feed post notification.")
-            body = protoContainer.post.mentionText.expandedText(nameProvider: mentionNameProvider).string
-            let knownMediaTypes = protoContainer.post.media.compactMap { ChatMessageMediaType(clientsMediaType: $0.type) }
-            if !knownMediaTypes.isEmpty {
-                // Display how many photos and videos post contains if there's no caption.
-                if body.isEmpty {
-                    body = Self.notificationBody(forMedia: knownMediaTypes)
-                } else if let firstMediaType = knownMediaTypes.first {
-                    let mediaIcon = Self.mediaIcon(firstMediaType)
-                    body = "\(mediaIcon) \(body)"
+            let mentions: [FeedMentionProtocol] = postData?.orderedMentions ?? []
+            let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: mentions)
+            let newPostString = NSLocalizedString("notification.new.post", value: "New Post", comment: "Title for the new feed post notification.")
+
+            switch postData?.content {
+            case .text(let mentionText):
+                subtitle = newPostString
+                body = mentionText.expandedText(nameProvider: mentionNameProvider).string
+            case .album(let mentionText, let feedMediaData):
+                subtitle = newPostString
+                body = mentionText.expandedText(nameProvider: mentionNameProvider).string
+                let knownMediaTypes = feedMediaData.compactMap { NotificationMediaType(feedMediaType: $0.type) }
+                if !knownMediaTypes.isEmpty {
+                    // Display how many photos and videos post contains if there's no caption.
+                    if body.isEmpty {
+                        body = Self.notificationBody(forMedia: knownMediaTypes)
+                    } else if let firstMediaType = knownMediaTypes.first {
+                        let mediaIcon = Self.mediaIcon(firstMediaType)
+                        body = "\(mediaIcon) \(body)"
+                    }
                 }
+            case .none, .retracted, .unsupported(_):
+                subtitle = ""
+                body = newPostString
             }
 
         // Comment on user feed or group feed
         case .feedComment, .groupFeedComment:
-            guard let protoContainer = protoContainer else {
-                return false
-            }
-            let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: protoContainer.comment.mentions)
-            let commentText = protoContainer.comment.mentionText.expandedText(nameProvider: mentionNameProvider).string
-            body = String(format: NSLocalizedString("notification.commented.with.text", value: "Commented: %@", comment: "Push notification for a new comment. Parameter is the text of the comment"), commentText)
+            let mentions: [FeedMentionProtocol] = commentData?.orderedMentions ?? []
+            let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: mentions)
+            let newCommentString = NSLocalizedString("notification.new.comment", value: "New Comment", comment: "Title for the new comment notification.")
 
+            switch commentData?.content {
+            case .text(let mentionText):
+                let commentText = mentionText.expandedText(nameProvider: mentionNameProvider).string
+                body = String(format: NSLocalizedString("notification.commented.with.text", value: "Commented: %@", comment: "Push notification for a new comment. Parameter is the text of the comment"), commentText)
+            case .none, .retracted, .unsupported(_):
+                body = newCommentString
+            }
         // ChatMessage or GroupChatMessage
         case .chatMessage, .groupChatMessage:
             // Fallback text in case decryption fails.
@@ -491,11 +554,11 @@ class NotificationMetadata: Codable {
             return text
         case .album(let text, let media):
             guard let text = text, !text.isEmpty else {
-                return Self.notificationBody(forMedia: media.map { $0.mediaType} )
+                return Self.notificationBody(forMedia: media.map { NotificationMediaType(chatMsgMediaType: $0.mediaType) } )
             }
             let mediaIcon: String? = {
                 guard let firstMedia = media.first else { return nil }
-                return Self.mediaIcon(firstMedia.mediaType)
+                return Self.mediaIcon(NotificationMediaType(chatMsgMediaType: firstMedia.mediaType))
             }()
             return [mediaIcon, text].compactMap { $0 }.joined(separator: " ")
         case .voiceNote(_):
@@ -566,8 +629,8 @@ extension NotificationMetadata {
     }
 
     var feedPostId: FeedPostID? {
-        if contentType == .feedPost || contentType == .groupFeedPost {
-            return contentId
+        if contentType == .feedPost || contentType == .groupFeedPost || contentType == .feedComment || contentType == .groupFeedComment {
+            return postId
         }
         return nil
     }
@@ -594,6 +657,43 @@ extension NotificationMetadata {
             return true
         case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract, .chatRerequest:
             return false
+        }
+    }
+
+    var postData: PostData? {
+        if contentType == .feedPost || contentType == .groupFeedPost {
+            guard let data = data,
+                  let timestamp = timestamp,
+                  let postData = PostData(id: contentId,
+                                          userId: fromId,
+                                          timestamp: timestamp,
+                                          payload: data) else {
+                DDLogError("postData is null, dataLength:\(data?.bytes.count), timestamp: \(timestamp),  postId: \(contentId)")
+                return nil
+            }
+            return postData
+        } else {
+            return nil
+        }
+    }
+
+    var commentData: CommentData? {
+        if contentType == .feedComment || contentType == .groupFeedComment {
+            guard let data = data,
+                  let timestamp = timestamp,
+                  let postId = feedPostId,
+                  let commentData = CommentData(id: contentId,
+                                                userId: fromId,
+                                                feedPostId: postId,
+                                                parentId: parentId,
+                                                timestamp: timestamp,
+                                                payload: data) else {
+                DDLogError("CommentData is null, dataLength:\(data?.bytes.count), timestamp: \(timestamp),  postId: \(feedPostId), commentId: \(contentId)")
+                return nil
+            }
+            return commentData
+        } else {
+            return nil
         }
     }
 }

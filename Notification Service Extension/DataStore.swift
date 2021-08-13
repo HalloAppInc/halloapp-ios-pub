@@ -12,7 +12,7 @@ import CoreData
 
 class DataStore: NotificationServiceExtensionDataStore {
 
-    func save(protoPost: Clients_Post, notificationMetadata: NotificationMetadata) -> SharedFeedPost {
+    func save(postData: PostData, notificationMetadata: NotificationMetadata) -> SharedFeedPost {
         let managedObjectContext = persistentContainer.viewContext
 
         let userId = notificationMetadata.fromId
@@ -24,13 +24,20 @@ class DataStore: NotificationServiceExtensionDataStore {
         feedPost.id = postId
         feedPost.userId = userId
         feedPost.groupId = notificationMetadata.groupId
-        feedPost.text = protoPost.text.isEmpty ? nil : protoPost.text
+        feedPost.text = postData.text
         feedPost.status = .received
         feedPost.timestamp = notificationMetadata.timestamp ?? Date()
+        
+        switch postData.content {
+        case .album, .text, .retracted:
+            feedPost.rawData = nil
+        case .unsupported(let data):
+            feedPost.rawData = data
+        }
 
         // Add mentions
         var mentions: Set<SharedFeedMention> = []
-        for protoMention in protoPost.mentions {
+        for protoMention in postData.orderedMentions {
             let mention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
             mention.index = Int(protoMention.index)
             mention.userID = protoMention.userID
@@ -41,26 +48,20 @@ class DataStore: NotificationServiceExtensionDataStore {
 
         // Add media
         var postMedia: Set<SharedMedia> = []
-        for (index, protoMedia) in protoPost.media.enumerated() {
+        for (index, feedPostMedia) in postData.orderedMedia.enumerated() {
             guard let mediaType: FeedMediaType = {
-                switch protoMedia.type {
+                switch feedPostMedia.type {
                 case .image: return .image
                 case .video: return .video
                 default: return nil
                 }}() else { continue }
-
-            guard let url = URL(string: protoMedia.downloadURL) else { continue }
-
-            let width = CGFloat(protoMedia.width), height = CGFloat(protoMedia.height)
-            guard width > 0 && height > 0 else { continue }
-
             let media = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
             media.type = mediaType
             media.status = .none
-            media.url = url
-            media.size = CGSize(width: width, height: height)
-            media.key = protoMedia.encryptionKey.base64EncodedString()
-            media.sha256 = protoMedia.ciphertextHash.base64EncodedString()
+            media.url = feedPostMedia.url
+            media.size = feedPostMedia.size
+            media.key = feedPostMedia.key
+            media.sha256 = feedPostMedia.sha256
             media.order = Int16(index)
             postMedia.insert(media)
         }
@@ -73,33 +74,15 @@ class DataStore: NotificationServiceExtensionDataStore {
         return feedPost
     }
     
-    func save(protoComment: Clients_Comment, notificationMetadata: NotificationMetadata) {
+    func save(commentData: CommentData, notificationMetadata: NotificationMetadata) {
         let managedObjectContext = persistentContainer.viewContext
         
         // Extract info from parameters
-        let userId = notificationMetadata.fromId
-        let commentId = notificationMetadata.feedPostCommentId!
-        let postId = protoComment.feedPostID
-        let parentCommentId: String?
-        if protoComment.parentCommentID == "" {
-            parentCommentId = nil
-        } else {
-            parentCommentId = protoComment.parentCommentID
-        }
-        
-        // Add mentions
-        var mentionSet = Set<SharedFeedMention>()
-        for mention in protoComment.mentions {
-            let feedMention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
-            feedMention.index = Int(mention.index)
-            feedMention.userID = mention.userID
-            feedMention.name = mention.name
-            if feedMention.name == "" {
-                DDLogError("FeedData/new-comment/mention/\(mention.userID) missing push name")
-            }
-            mentionSet.insert(feedMention)
-        }
-        
+        let userId = commentData.userId
+        let commentId = commentData.id
+        let postId = commentData.feedPostId
+        let parentCommentId = commentData.parentId?.isEmpty ?? true ? nil : commentData.parentId
+
         // Create comment
         DDLogInfo("NotificationExtension/DataStore/new-comment/create id=[\(commentId)]  postId=[\(postId)]")
         let feedComment = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedComment", into: managedObjectContext) as! SharedFeedComment
@@ -107,11 +90,38 @@ class DataStore: NotificationServiceExtensionDataStore {
         feedComment.userId = userId
         feedComment.postId = postId
         feedComment.parentCommentId = parentCommentId
-        feedComment.text = protoComment.text
-        feedComment.mentions = mentionSet
         feedComment.status = .received
         feedComment.timestamp = notificationMetadata.timestamp ?? Date()
         
+        
+        // populate text with empty string as text is required, could be removed if this changes
+        var commentText: String = ""
+        switch commentData.content {
+        case .text(let mentionText):
+            commentText = mentionText.collapsedText
+            var mentions = Set<SharedFeedMention>()
+            for (i, mention) in mentionText.mentions {
+                let feedMention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
+                feedMention.index = Int(i)
+                feedMention.userID = mention.userID
+                feedMention.name = mention.pushName ?? ""
+                if feedMention.name == "" {
+                    DDLogError("NotificationExtension/DataStore/new-comment/mention/\(mention.userID) missing push name")
+                }
+                mentions.insert(feedMention)
+            }
+            feedComment.mentions = mentions
+            feedComment.rawData = nil
+        case .retracted:
+            DDLogError("NotificationExtension/DataStore/incoming-retracted-comment [\(commentId)]")
+            feedComment.rawData = nil
+        case .unsupported(let data):
+            feedComment.rawData = data
+        }
+
+        // set commentText depending on the content.
+        feedComment.text = commentText
+
         managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         save(managedObjectContext)
     }

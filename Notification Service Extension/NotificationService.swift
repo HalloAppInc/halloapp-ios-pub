@@ -62,8 +62,8 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         var invokeHandler = true
         switch metadata.contentType {
         case .feedPost, .groupFeedPost:
-            guard let protoContainer = metadata.protoContainer else {
-                DDLogError("didReceiveRequest/error Invalid protobuf.")
+            guard let postData = metadata.postData else {
+                DDLogError("didReceiveRequest/error Invalid fields in metadata.")
                 invokeCompletionHandler()
                 return
             }
@@ -74,19 +74,19 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 contentHandler(bestAttemptContent)
                 return
             }
-            let feedPost = dataStore.save(protoPost: protoContainer.post, notificationMetadata: metadata)
+            let feedPost = dataStore.save(postData: postData, notificationMetadata: metadata)
             if let firstMediaItem = feedPost.orderedMedia.first as? SharedMedia {
                 let downloadTask = startDownloading(media: firstMediaItem)
                 downloadTask?.feedMediaObjectId = firstMediaItem.objectID
                 invokeHandler = downloadTask == nil
             }
         case .feedComment, .groupFeedComment:
-            guard let protoContainer = metadata.protoContainer else {
-                DDLogError("didReceiveRequest/error Invalid protobuf.")
+            guard let commentData = metadata.commentData else {
+                DDLogError("didReceiveRequest/error Invalid fields in metadata.")
                 invokeCompletionHandler()
                 return
             }
-            dataStore.save(protoComment: protoContainer.comment, notificationMetadata: metadata)
+            dataStore.save(commentData: commentData, notificationMetadata: metadata)
         case .chatMessage:
             // TODO: add id as the constraint to the db and then remove this check.
             guard let messageId = metadata.messageId else {
