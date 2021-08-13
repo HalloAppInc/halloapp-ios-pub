@@ -19,6 +19,7 @@ enum ChatGroupAction: String {
     case leave = "leave"
     case delete = "delete"
     case changeName = "change_name"
+    case changeDescription = "change_description"
     case changeAvatar = "change_avatar"
     case setBackground = "set_background"
     case modifyMembers = "modify_members"
@@ -100,6 +101,7 @@ struct XMPPGroup {
             case .leave: return .leave
             case .changeAvatar: return .changeAvatar
             case .changeName: return .changeName
+            case .changeDescription: return .changeDescription
             case .modifyAdmins: return .modifyAdmins
             case .modifyMembers: return .modifyMembers
             case .setName: return nil

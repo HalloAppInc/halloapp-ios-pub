@@ -403,6 +403,7 @@ extension Server_GroupStanza.Action {
         case .leave: self = .leave
         case .delete: self = .delete
         case .changeName: self = .changeName
+        case .changeDescription: self = .changeDescription
         case .changeAvatar: self = .changeAvatar
         case .setBackground: self = .setBackground
         case .modifyAdmins: self = .modifyAdmins

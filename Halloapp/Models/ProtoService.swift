@@ -634,6 +634,8 @@ final class ProtoService: ProtoServiceCore {
         case .deliveryReceipt(let pbReceipt):
             handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id, ack: ack)
             hasAckBeenDelegated = true
+        case .playedReceipt(_):
+            DDLogInfo("proto/didReceive/\(msg.id)/playedReceipt")
         case .chatStanza(let serverChat):
             if !serverChat.senderName.isEmpty {
                 MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverChat.senderName ])
