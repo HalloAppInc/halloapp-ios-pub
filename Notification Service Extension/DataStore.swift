@@ -15,8 +15,8 @@ class DataStore: NotificationServiceExtensionDataStore {
     func save(postData: PostData, notificationMetadata: NotificationMetadata) -> SharedFeedPost {
         let managedObjectContext = persistentContainer.viewContext
 
-        let userId = notificationMetadata.fromId
-        let postId = notificationMetadata.feedPostId!
+        let userId = postData.userId
+        let postId = postData.id
 
         DDLogInfo("DataStore/post/\(postId)/create")
 

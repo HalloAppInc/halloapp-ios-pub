@@ -272,6 +272,7 @@ class NotificationMetadata: Codable {
             switch feedItem.item {
             case .post(let post):
                 contentId = post.id
+                postId = post.id
                 switch feedItem.action {
                 case .retract:
                     contentType = .feedPostRetract
@@ -309,6 +310,7 @@ class NotificationMetadata: Codable {
             switch groupFeedItem.item {
             case .post(let post):
                 contentId = post.id
+                postId = post.id
                 switch groupFeedItem.action {
                 case .retract:
                     contentType = .groupFeedPostRetract
@@ -629,7 +631,9 @@ extension NotificationMetadata {
     }
 
     var feedPostId: FeedPostID? {
-        if contentType == .feedPost || contentType == .groupFeedPost || contentType == .feedComment || contentType == .groupFeedComment {
+        if contentType == .feedPost || contentType == .groupFeedPost {
+            return contentId
+        } else if contentType == .feedComment || contentType == .groupFeedComment {
             return postId
         }
         return nil
