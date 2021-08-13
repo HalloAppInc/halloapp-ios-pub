@@ -327,6 +327,26 @@ final class ProtoChangeGroupAvatarRequest: ProtoRequest<String> {
     }
 }
 
+final class ProtoChangeGroupDescriptionRequest: ProtoRequest<String> {
+
+    init(groupID: GroupID, description: String, completion: @escaping Completion) {
+        var group = Server_GroupStanza()
+        group.gid = groupID
+        group.action = .changeDescription
+        group.description_p = description
+
+        super.init(
+            iqPacket: .iqPacket(type: .set, payload: .groupStanza(group)),
+            transform: { iq in
+                guard let group = HalloGroup(protoGroup: iq.groupStanza), let description = group.description else {
+                    return .failure(RequestError.malformedResponse)
+                }
+                return .success((description))
+            },
+            completion: completion)
+            
+    }
+}
 
 final class ProtoSetGroupBackgroundRequest: ProtoRequest<Void> {
 

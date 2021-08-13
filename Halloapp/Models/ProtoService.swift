@@ -1274,6 +1274,13 @@ extension ProtoService: HalloService {
             completion: completion))
     }
     
+    func changeGroupDescription(groupID: GroupID, description: String, completion: @escaping ServiceRequestCompletion<String>) {
+        enqueue(request: ProtoChangeGroupDescriptionRequest(
+            groupID: groupID,
+            description: description,
+            completion: completion))
+    }
+    
     func setGroupBackground(groupID: GroupID, background: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoSetGroupBackgroundRequest(
             groupID: groupID,

@@ -52,7 +52,7 @@ extension Localizations {
             name)
     }
     
-    // MARK: Chat Group
+    // MARK: Group
     
     static var chatInviteFriends: String {
         NSLocalizedString("chat.invite.friends", value: "Invite Friends", comment: "Label for inviting friends")
@@ -64,6 +64,10 @@ extension Localizations {
     
     static var chatGroupNameLabel: String {
         NSLocalizedString("chat.group.name.label", value: "GROUP NAME", comment: "Label shown above group name input box")
+    }
+    
+    static var groupDescriptionLabel: String {
+        NSLocalizedString("group.description.label", value: "DESCRIPTION", comment: "Label shown above group desscription input box")
     }
 
     static var chatGroupBackgroundLabel: String {

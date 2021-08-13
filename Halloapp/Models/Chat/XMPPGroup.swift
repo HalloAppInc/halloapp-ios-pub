@@ -57,6 +57,7 @@ struct XMPPGroups {
 struct XMPPGroup {
     let groupId: GroupID
     let name: String
+    var description: String? = nil
     var avatarID: String? = nil
     var background: Int32 = 0
     var retryCount: Int32 = 0
@@ -83,6 +84,7 @@ struct XMPPGroup {
         self.senderName = protoGroup.senderName
         self.groupId = protoGroup.gid
         self.name = protoGroup.name
+        self.description = protoGroup.description_p
         self.avatarID = protoGroup.avatarID
         self.members = protoGroup.members.compactMap { XMPPGroupMember(protoMember: $0) }
 

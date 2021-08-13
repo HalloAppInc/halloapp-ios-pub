@@ -66,6 +66,7 @@ protocol HalloService: CoreService {
                      action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>)
     func changeGroupName(groupID: GroupID, name: String, completion: @escaping ServiceRequestCompletion<Void>)
     func changeGroupAvatar(groupID: GroupID, data: Data?, completion: @escaping ServiceRequestCompletion<String>)
+    func changeGroupDescription(groupID: GroupID, description: String, completion: @escaping ServiceRequestCompletion<String>)
     func setGroupBackground(groupID: GroupID, background: Int32, completion: @escaping ServiceRequestCompletion<Void>)
     func exportDataStatus(isSetRequest: Bool, completion: @escaping ServiceRequestCompletion<Server_ExportData>)
     func requestAccountDeletion(phoneNumber: String, completion: @escaping ServiceRequestCompletion<Void>)

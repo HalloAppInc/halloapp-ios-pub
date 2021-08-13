@@ -2614,22 +2614,34 @@ extension ChatData {
 
     // MARK: Group Actions
     
-    public func createGroup(name: String, members: [UserID], data: Data?, completion: @escaping ServiceRequestCompletion<String>) {
+    public func createGroup(name: String, description: String, members: [UserID], data: Data?, completion: @escaping ServiceRequestCompletion<String>) {
         
         MainAppContext.shared.service.createGroup(name: name, members: members) { [weak self] result in
             guard let self = self else { return }
 
             switch result {
             case .success(let groupID):
-                if let data = data {
-                    self.changeGroupAvatar(groupID: groupID, data: data) { result in
-                        completion(.success(groupID)) // the group can be created regardless if avatar update succeeds or not
+                let dispatchGroup = DispatchGroup()
+
+                if !description.isEmpty {
+                    dispatchGroup.enter()
+                    self.changeGroupDescription(groupID: groupID, description: description) { result in
+                    
+                        dispatchGroup.leave() // the group can be created regardless if description update succeeds or not
                     }
-                } else {
+                }
+
+                if let data = data {
+                    dispatchGroup.enter()
+                    self.changeGroupAvatar(groupID: groupID, data: data) { result in
+                        dispatchGroup.leave() // the group can be created regardless if avatar update succeeds or not
+                    }
+                }
+                
+                dispatchGroup.notify(queue: self.backgroundProcessingQueue) {
                     completion(.success(groupID))
                 }
             case .failure(let error):
-                DDLogError("ChatData/groups/createGroup/error \(error)")
                 completion(.failure(error))
             }
         }
@@ -2669,7 +2681,7 @@ extension ChatData {
                     completion(.success(()))
                 }
             case .failure(let error):
-                DDLogError("CreateGroupViewController/createAction/error \(error)")
+                DDLogError("ChatData/changeGroupName/error \(error)")
                 completion(.failure(error))
             }
         }
@@ -2690,7 +2702,25 @@ extension ChatData {
                     completion(.success(()))
                 })
             case .failure(let error):
-                DDLogError("CreateGroupViewController/createAction/error \(error)")
+                DDLogError("ChatData/changeGroupAvatar/error \(error)")
+            }
+        }
+    }
+
+    public func changeGroupDescription(groupID: GroupID, description: String, completion: @escaping ServiceRequestCompletion<Void>) {
+        DDLogInfo("ChatData/changeGroupDescription")
+        MainAppContext.shared.service.changeGroupDescription(groupID: groupID, description: description) { [weak self] result in
+            guard let self = self else { return }
+     
+            switch result {
+            case .success(let desc):
+                self.updateChatGroup(with: groupID, block: { (chatGroup) in
+                    chatGroup.desc = desc
+                }, performAfterSave: {
+                    completion(.success(()))
+                })
+            case .failure(let error):
+                DDLogError("ChatData/changeGroupDescription/error \(error)")
             }
         }
     }
@@ -2774,6 +2804,9 @@ extension ChatData {
                 self.updateChatThread(type: .group, for: xmppGroup.groupId) { (chatThread) in
                     chatThread.title = xmppGroup.name
                 }
+            }
+            if chatGroup.desc != xmppGroup.description {
+                chatGroup.desc = xmppGroup.description
             }
             if chatGroup.avatar != xmppGroup.avatarID {
                 chatGroup.avatar = xmppGroup.avatarID
@@ -3320,6 +3353,8 @@ extension ChatData {
             processGroupModifyMembersAction(xmppGroup: xmppGroup, in: managedObjectContext)
         case .changeName:
             processGroupChangeNameAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .changeDescription:
+            processGroupChangeDescriptionAction(xmppGroup: xmppGroup, in: managedObjectContext)
         case .changeAvatar:
             processGroupChangeAvatarAction(xmppGroup: xmppGroup, in: managedObjectContext)
         case .setBackground:
@@ -3477,6 +3512,16 @@ extension ChatData {
         getAndSyncGroup(groupId: xmppGroup.groupId)
     }
 
+    private func processGroupChangeDescriptionAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("ChatData/group/processGroupChangeDescriptionAction")
+        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        // bug: server is not sending description for the change_description event yet
+//        group.desc = xmppGroup.description
+        save(managedObjectContext)
+        recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
+        getAndSyncGroup(groupId: xmppGroup.groupId)
+    }
+
     private func processGroupChangeAvatarAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("ChatData/group/processGroupChangeAvatarAction")
         let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
@@ -3529,15 +3574,16 @@ extension ChatData {
     
     private func recordGroupMessageEvent(xmppGroup: XMPPGroup, xmppGroupMember: XMPPGroupMember?, in managedObjectContext: NSManagedObjectContext) {
 
-        // hack, skip recording the event of an avatar change if the change is done when the group was created,
-        // since server api requires two  separate requests for it now but we want to show only the group creation event
-        // rough check by comparing if the last event (also first) was a group creation event and if avatar change happened right after
+        // hack: skip recording the event(s) of an avatar change and/or description change if the changes are done at group creation,
+        // since server api require separate requests for them but we want to show only the group creation event
+        // rough check by comparing if the last event (also first) was a group creation event and if avatar/description changes happened right after
         let groupFeedEventsList = groupFeedEvents(with: xmppGroup.groupId, in: managedObjectContext)
         if let lastMsg = groupFeedEventsList.last,
            let lastMsgEvent = lastMsg.event,
            [.create].contains(lastMsgEvent.action),
            lastMsgEvent.memberUserId == xmppGroupMember?.userId,
            let createEventTimestamp = lastMsg.timestamp,
+           [.changeAvatar, .changeDescription].contains(xmppGroup.action),
            let diff = Calendar.current.dateComponents([.second], from: createEventTimestamp, to: Date()).second,
            diff < 3 {
             return
@@ -3551,7 +3597,7 @@ extension ChatData {
         chatGroupMessage.groupId = xmppGroup.groupId
         chatGroupMessage.timestamp = Date()
 
-        let chatGroupMessageEvent = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMessageEvent.entity().name!, into: managedObjectContext) as! ChatGroupMessageEvent
+        let chatGroupMessageEvent = ChatGroupMessageEvent(context: managedObjectContext)
         chatGroupMessageEvent.sender = xmppGroup.sender
         chatGroupMessageEvent.memberUserId = xmppGroupMember?.userId
         chatGroupMessageEvent.groupName = xmppGroup.name
@@ -3563,6 +3609,7 @@ extension ChatData {
             case .leave: return .leave
             case .delete: return .delete
             case .changeName: return .changeName
+            case .changeDescription: return .changeDescription
             case .changeAvatar: return .changeAvatar
             case .setBackground: return .setBackground
             case .modifyAdmins: return .modifyAdmins

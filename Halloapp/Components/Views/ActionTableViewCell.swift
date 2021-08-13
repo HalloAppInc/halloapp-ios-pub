@@ -13,6 +13,15 @@ fileprivate struct Constants {
 
 class ActionTableViewCell: UITableViewCell {
 
+    public func configure(icon: UIImage? = nil, attrText: NSMutableAttributedString? = nil, label: String? = nil) {
+        iconView.image = icon
+        if let attrText = attrText {
+            bodyLabel.attributedText = attrText
+        } else if let label = label {
+            bodyLabel.text = label
+        }
+    }
+
     public var color: UIColor = UIColor.primaryBlue {
         didSet {
             iconView.tintColor = color
@@ -33,15 +42,6 @@ class ActionTableViewCell: UITableViewCell {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setup()
-    }
-
-    func configure(icon: UIImage? = nil, attrText: NSMutableAttributedString? = nil, label: String? = nil) {
-        iconView.image = icon
-        if let attrText = attrText {
-            bodyLabel.attributedText = attrText
-        } else if let label = label {
-            bodyLabel.text = label
-        }
     }
 
     private func setup() {

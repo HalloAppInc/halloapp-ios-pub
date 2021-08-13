@@ -11,9 +11,10 @@ import Core
 import UIKit
 
 fileprivate struct Constants {
-    static let MaxNameLength = 25
     static let AvatarSize: CGFloat = 100
     static let PhotoIconSize: CGFloat = 40
+    static let MaxNameLength = 25
+    static let MaxDescriptionLength = 500
 }
 
 protocol CreateGroupViewControllerDelegate: AnyObject {
@@ -24,7 +25,8 @@ class CreateGroupViewController: UIViewController {
     weak var delegate: CreateGroupViewControllerDelegate?
     
     private var selectedMembers: [UserID] = []
-    private var placeholderText = Localizations.chatCreateGroupNamePlaceholder
+    private var groupNamePlaceholderText = Localizations.createGroupNamePlaceholder
+    private var groupDescriptionPlaceholderText = Localizations.createGroupDescriptionPlaceholder
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var avatarData: Data? = nil
@@ -42,11 +44,11 @@ class CreateGroupViewController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonCreate, style: .done, target: self, action: #selector(createAction))
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
         navigationItem.rightBarButtonItem?.isEnabled = canCreate
-        
-        navigationItem.title = Localizations.chatCreateGroupTitle
+
+        navigationItem.title = Localizations.createGroupTitle
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.primaryBg
-        
+
         setupView()
     }
 
@@ -56,7 +58,7 @@ class CreateGroupViewController: UIViewController {
 
     var canCreate: Bool {
 //        return !textView.text.isEmpty && selectedMembers.count > 0
-        return !textView.text.isEmpty
+        return !groupNameTextView.text.isEmpty
     }
 
     func setupView() {
@@ -67,23 +69,28 @@ class CreateGroupViewController: UIViewController {
         mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         
-        textView.text = placeholderText
-        textView.textColor = .placeholderText
-        textView.becomeFirstResponder()
-        textView.selectedTextRange = textView.textRange(from: textView.beginningOfDocument, to: textView.beginningOfDocument)
-        
-        updateCount()
+        groupNameTextView.text = groupNamePlaceholderText
+        groupNameTextView.textColor = .placeholderText
+        groupNameTextView.becomeFirstResponder()
+        groupNameTextView.selectedTextRange = groupNameTextView.textRange(from: groupNameTextView.beginningOfDocument, to: groupNameTextView.beginningOfDocument)
+
+        groupDescriptionTextView.text = groupDescriptionPlaceholderText
+        groupDescriptionTextView.textColor = .placeholderText
+        groupDescriptionTextView.selectedTextRange = groupDescriptionTextView.textRange(from: groupDescriptionTextView.beginningOfDocument, to: groupDescriptionTextView.beginningOfDocument)
+
+        updateCounts()
     }
     
     private lazy var mainView: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, textView, membersRow, tableView ])
+        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextView, groupDescriptionLabelRow, groupDescriptionTextView, membersRow, tableView ])
         
         view.axis = .vertical
         view.spacing = 20
         view.setCustomSpacing(0, after: groupNameLabelRow)
+        view.setCustomSpacing(0, after: groupDescriptionLabelRow)
         view.setCustomSpacing(0, after: membersRow)
         
         view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
@@ -194,7 +201,7 @@ class CreateGroupViewController: UIViewController {
         return label
     }()
     
-    private lazy var textView: UITextView = {
+    private lazy var groupNameTextView: UITextView = {
         let view = UITextView()
         view.isScrollEnabled = false
         view.delegate = self
@@ -232,17 +239,52 @@ class CreateGroupViewController: UIViewController {
         return label
     }()
     
+    private lazy var groupDescriptionLabelRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [groupDescriptionLabel])
+        view.axis = .horizontal
+        
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 5, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        return view
+    }()
+    
+    private lazy var groupDescriptionLabel: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .left
+        label.textColor = .secondaryLabel
+        label.font = UIFont.preferredFont(forTextStyle: .caption1)
+        label.text = Localizations.createGroupDescriptionLabel.uppercased()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        return label
+    }()
+    
+    private lazy var groupDescriptionTextView: UITextView = {
+        let view = UITextView()
+        view.isScrollEnabled = false
+        view.delegate = self
+
+        view.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.backgroundColor = .secondarySystemGroupedBackground
+        view.font = UIFont.preferredFont(forTextStyle: .body)
+        view.tintColor = .systemBlue
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        return view
+    }()
+    
+    
     private lazy var membersRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ membersLabel ])
-        
         view.axis = .horizontal
         view.spacing = 20
 
         view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 5, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
-        
         return view
     }()
     
@@ -257,7 +299,6 @@ class CreateGroupViewController: UIViewController {
         label.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
       
         label.translatesAutoresizingMaskIntoConstraints = false
-        
         return label
     }()
 
@@ -284,9 +325,10 @@ class CreateGroupViewController: UIViewController {
 
         navigationItem.rightBarButtonItem?.isEnabled = false
 
-        let name = textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        let name = groupNameTextView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        let description = groupDescriptionTextView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
 
-        MainAppContext.shared.chatData.createGroup(name: name, members: selectedMembers, data: avatarData) { [weak self] result in
+        MainAppContext.shared.chatData.createGroup(name: name, description: description, members: selectedMembers, data: avatarData) { [weak self] result in
             guard let self = self else { return }
 
             switch result {
@@ -294,9 +336,7 @@ class CreateGroupViewController: UIViewController {
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
                     self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
-                    if ServerProperties.isGroupFeedEnabled {
-                        self.delegate?.createGroupViewController(self, didCreateGroup: groupID)
-                    }
+                    self.delegate?.createGroupViewController(self, didCreateGroup: groupID)
                 }
             case .failure(let error):
                 DDLogError("CreateGroupViewController/createAction/error \(error)")
@@ -324,13 +364,15 @@ class CreateGroupViewController: UIViewController {
 
     // MARK: Helpers
 
-    private func updateCount() {
-        textView.text = String(textView.text.prefix(Constants.MaxNameLength))
+    private func updateCounts() {
+        groupNameTextView.text = String(groupNameTextView.text.prefix(Constants.MaxNameLength))
         var label = "0"
-        if textView.textColor != .placeholderText {
-            label = String(textView.text.count)
+        if groupNameTextView.textColor != .placeholderText {
+            label = String(groupNameTextView.text.count)
         }
         characterCounter.text = "\(label)/\(Constants.MaxNameLength)"
+
+        groupDescriptionTextView.text = String(groupDescriptionTextView.text.prefix(Constants.MaxDescriptionLength))
     }
 
     private func presentPhotoLibraryPicker() {
@@ -387,6 +429,8 @@ extension CreateGroupViewController: UITextViewDelegate {
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         let currentText:String = textView.text
         let updatedText = (currentText as NSString).replacingCharacters(in: range, with: text)
+        let isGroupNameTextView = textView == groupNameTextView
+        let placeholderText = isGroupNameTextView ? groupNamePlaceholderText : groupDescriptionPlaceholderText
 
         if updatedText.isEmpty {
             textView.text = placeholderText
@@ -395,17 +439,19 @@ extension CreateGroupViewController: UITextViewDelegate {
             navigationItem.rightBarButtonItem?.isEnabled = false
         } else if textView.textColor == .placeholderText && !text.isEmpty {
             textView.textColor = .label
-            DispatchQueue.main.async { // workaround for bug in iOS that causes double capitalizations
+            DispatchQueue.main.async { [weak self] in // workaround for bug in iOS that causes double capitalizations
                 textView.text = text
-                self.updateCount()
+                self?.updateCounts()
             }
-            
-            navigationItem.rightBarButtonItem?.isEnabled = canCreate
+
+            if isGroupNameTextView {
+                navigationItem.rightBarButtonItem?.isEnabled = canCreate
+            }
         } else {
             return true
         }
 
-        updateCount()
+        updateCounts()
         return false
     }
     
@@ -416,10 +462,12 @@ extension CreateGroupViewController: UITextViewDelegate {
             }
         }
     }
-    
+
     func textViewDidChange(_ textView: UITextView) {
-        updateCount()
-        navigationItem.rightBarButtonItem?.isEnabled = canCreate
+        updateCounts()
+        if textView == groupNameTextView {
+            navigationItem.rightBarButtonItem?.isEnabled = canCreate
+        }
     }
     
 }
@@ -429,10 +477,11 @@ extension CreateGroupViewController: UITableViewDelegate, UITableViewDataSource 
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return selectedMembers.count
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as? ContactTableViewCell else {
             return UITableViewCell()
@@ -448,7 +497,7 @@ extension CreateGroupViewController: UITableViewDelegate, UITableViewDataSource 
     
     // resign keyboard so the entire tableview can be seen
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        textView.resignFirstResponder()
+        groupNameTextView.resignFirstResponder()
     }
     
 }
@@ -477,12 +526,20 @@ fileprivate extension UIImage {
 
 private extension Localizations {
 
-    static var chatCreateGroupTitle: String {
-        NSLocalizedString("chat.create.group.title", value: "Group Info", comment: "Title of group creation screen")
+    static var createGroupTitle: String {
+        NSLocalizedString("create.group.title", value: "Group Info", comment: "Title of group creation screen")
     }
 
-    static var chatCreateGroupNamePlaceholder: String {
-        NSLocalizedString("chat.create.group.name.placeholder", value: "Name your group", comment: "Placeholder text shown inside the group name input box when it's empty")
+    static var createGroupNamePlaceholder: String {
+        NSLocalizedString("create.group.name.placeholder", value: "Name your group", comment: "Placeholder text shown inside the group name input box when it's empty")
+    }
+    
+    static var createGroupDescriptionLabel: String {
+        NSLocalizedString("create.group.description.label", value: "Description", comment: "Text label for group description text box")
+    }
+    
+    static var createGroupDescriptionPlaceholder: String {
+        NSLocalizedString("create.group.description.placeholder", value: "Add a description (optional)", comment: "Placeholder text shown inside the group description input box when it's empty")
     }
     
     static var createGroupError: String {
