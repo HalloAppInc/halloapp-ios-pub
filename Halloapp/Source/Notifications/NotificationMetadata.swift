@@ -666,13 +666,14 @@ extension NotificationMetadata {
 
     var postData: PostData? {
         if contentType == .feedPost || contentType == .groupFeedPost {
-            guard let payload = data,
-                  let postTimestamp = timestamp,
+            guard let data = data,
+                  let timestamp = timestamp,
                   let postData = PostData(id: contentId,
                                           userId: fromId,
-                                          timestamp: postTimestamp,
-                                          payload: payload) else {
-                DDLogError("postData is null, dataLength:\(data?.bytes.count), timestamp: \(timestamp),  postId: \(contentId)")
+                                          timestamp: timestamp,
+                                          payload: data) else
+            {
+                DDLogError("postData is null \(debugDescription)")
                 return nil
             }
             return postData
@@ -683,21 +684,26 @@ extension NotificationMetadata {
 
     var commentData: CommentData? {
         if contentType == .feedComment || contentType == .groupFeedComment {
-            guard let payload = data,
-                  let commentTimestamp = timestamp,
+            guard let data = data,
+                  let timestamp = timestamp,
                   let postId = feedPostId,
                   let commentData = CommentData(id: contentId,
                                                 userId: fromId,
                                                 feedPostId: postId,
                                                 parentId: parentId,
-                                                timestamp: commentTimestamp,
-                                                payload: payload) else {
-                DDLogError("CommentData is null, dataLength:\(data?.bytes.count), timestamp: \(timestamp),  postId: \(feedPostId), commentId: \(contentId)")
+                                                timestamp: timestamp,
+                                                payload: data) else
+            {
+                DDLogError("CommentData is null \(debugDescription)")
                 return nil
             }
             return commentData
         } else {
             return nil
         }
+    }
+
+    private var debugDescription: String {
+        return "[\(data?.bytes.count ?? 0) bytes] [timestamp: \(timestamp?.timeIntervalSince1970 ?? 0)] [postID: \(postId ?? "nil")] [contentID: \(contentId)]"
     }
 }
