@@ -84,7 +84,7 @@ class CreateGroupViewController: UIViewController {
     private lazy var mainView: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
-        
+
         let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextView, membersRow, tableView ])
         
         view.axis = .vertical
@@ -326,7 +326,7 @@ class CreateGroupViewController: UIViewController {
         navigationItem.rightBarButtonItem?.isEnabled = false
 
         let name = groupNameTextView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-        let description = groupDescriptionTextView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        let description = ""
 
         MainAppContext.shared.chatData.createGroup(name: name, description: description, members: selectedMembers, data: avatarData) { [weak self] result in
             guard let self = self else { return }
