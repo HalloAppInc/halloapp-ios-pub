@@ -85,7 +85,7 @@ class CreateGroupViewController: UIViewController {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextView, groupDescriptionLabelRow, groupDescriptionTextView, membersRow, tableView ])
+        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextView, membersRow, tableView ])
         
         view.axis = .vertical
         view.spacing = 20
