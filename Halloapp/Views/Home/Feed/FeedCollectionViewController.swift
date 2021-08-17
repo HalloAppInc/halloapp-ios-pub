@@ -436,7 +436,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     private func willShowCell(atIndexPath indexPath: IndexPath) {
         guard let feedPost = feedDataSource.item(at: indexPath.item)?.post else { return }
         // Load downloaded images into memory.
-        MainAppContext.shared.feedData.loadImages(for: feedPost.id)
+        MainAppContext.shared.feedData.loadImages(postID: feedPost.id)
 
         // Initiate download for images that were not yet downloaded.
         MainAppContext.shared.feedData.downloadMedia(in: [feedPost])

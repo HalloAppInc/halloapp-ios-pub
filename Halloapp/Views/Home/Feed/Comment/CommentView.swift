@@ -193,7 +193,21 @@ class CommentView: UIView {
         profilePictureWidth.constant = isRootComment ? LayoutConstants.profilePictureSizeNormal : LayoutConstants.profilePictureSizeSmall
         profilePictureTrailingSpace.constant = isRootComment ? LayoutConstants.profilePictureTrailingSpaceNormal : LayoutConstants.profilePictureTrailingSpaceSmall
         leadingMargin.constant = isRootComment ? LayoutConstants.profilePictureLeadingMarginNormal : LayoutConstants.profilePictureLeadingMarginReply
-
+        
+        // TODO Nandini delete this once view is updated to handle media comments
+        if comment.media != nil {
+            showDeletedView()
+            let attributedText = NSMutableAttributedString(string: "⚠️ " + Localizations.commentIsNotSupported)
+            if let url = AppContext.appStoreURL {
+                let link = NSMutableAttributedString(string: Localizations.linkUpdateYourApp)
+                link.addAttribute(.link, value: url, range: link.utf16Extent)
+                attributedText.append(NSAttributedString(string: " "))
+                attributedText.append(link)
+            }
+            deletedCommentTextLabel.attributedText = attributedText.with(
+                font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable,
+                color: .secondaryLabel)
+        }
         switch comment.status {
         case .retracted:
             showDeletedView()
@@ -348,7 +362,7 @@ class CommentsTableHeaderView: UIView {
         }
         if !feedPost.orderedMedia.isEmpty {
             let media = MainAppContext.shared.feedData.media(for: feedPost)
-            MainAppContext.shared.feedData.loadImages(for: feedPost.id)
+            MainAppContext.shared.feedData.loadImages(postID: feedPost.id)
 
             var configuration = MediaCarouselViewConfiguration.minimal
             configuration.downloadProgressViewSize = 24

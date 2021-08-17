@@ -294,7 +294,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
      - returns: Download task if download has started.
      */
     private func startDownloading(media: FeedMediaProtocol) -> FeedDownloadManager.Task? {
-        let (taskAdded, task) = downloadManager.downloadMedia(for: media)
+        let (taskAdded, task) = downloadManager.downloadMedia(for: media, feedElementType: .post)
         if taskAdded {
             DDLogInfo("media/download/started \(task.id)")
             return task

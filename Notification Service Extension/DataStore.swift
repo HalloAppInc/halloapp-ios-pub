@@ -117,6 +117,9 @@ class DataStore: NotificationServiceExtensionDataStore {
             feedComment.rawData = nil
         case .unsupported(let data):
             feedComment.rawData = data
+        case .album:
+            // TODO Nandini support media comments
+            DDLogError("NotificationExtension/DataStore/incoming-media-comment [\(commentId)] not supported")
         }
 
         // set commentText depending on the content.

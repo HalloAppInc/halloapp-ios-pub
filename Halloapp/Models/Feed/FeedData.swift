@@ -422,7 +422,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func feedComments(with ids: Set<FeedPostCommentID>, in managedObjectContext: NSManagedObjectContext) -> [FeedPostComment] {
+    private func feedComments(with ids: Set<FeedPostCommentID>, in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPostComment] {
+        let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id in %@", ids)
         fetchRequest.returnsObjectsAsFaults = false
@@ -743,6 +744,39 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         mentions.insert(mention)
                     }
                     comment.mentions = mentions
+                case .album(let mentionText, let media):
+                    comment.status = .incoming
+                    comment.text = mentionText.collapsedText
+                    var mentions = Set<FeedMention>()
+                    for (i, user) in mentionText.mentions {
+                        let mention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
+                        mention.index = i
+                        mention.userID = user.userID
+                        mention.name = user.pushName ?? ""
+                        mentions.insert(mention)
+                    }
+                    comment.mentions = mentions
+                    // Process Comment Media
+                    for (index, xmppMedia) in media.enumerated() {
+                        DDLogDebug("FeedData/process-comments/new/add-comment-media [\(xmppMedia.url!)]")
+                        let feedCommentMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                        switch xmppMedia.type {
+                        case .image:
+                            feedCommentMedia.type = .image
+                        case .video:
+                            feedCommentMedia.type = .video
+                        case .audio:
+                            feedCommentMedia.type = .audio
+                        }
+                        feedCommentMedia.status = .none
+                        feedCommentMedia.url = xmppMedia.url
+                        feedCommentMedia.size = xmppMedia.size
+                        feedCommentMedia.key = xmppMedia.key
+                        feedCommentMedia.order = Int16(index)
+                        feedCommentMedia.sha256 = xmppMedia.sha256
+                        feedCommentMedia.comment = comment
+                    }
+
                 case .retracted:
                     DDLogError("FeedData/process-comments/incoming-retracted-comment [\(xmppComment.id)]")
                     comment.status = .retracted
@@ -812,7 +846,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         guard let pushName = user.pushName, !pushName.isEmpty else { continue }
                         contactNames[user.userID] = pushName
                     }
-                case .retracted, .unsupported:
+                case .album, .retracted, .unsupported:
                     break
                 }
                 if let name = name, !name.isEmpty {
@@ -918,6 +952,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogInfo("FeedData/generateNotifications  New notification [\(notification)]")
 
             // Step 3. Generate media preview for the notification.
+            // TODO Nandini check if media preview needs to be updated for media comments
             self.generateMediaPreview(for: [ notification ], feedPost: post, using: managedObjectContext)
         }
         if managedObjectContext.hasChanges {
@@ -1132,10 +1167,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogInfo("FeedData/retract-post [\(postId)]")
 
             // 1. Delete media.
-            self.deleteMedia(in: feedPost)
+            self.deleteMedia(feedPost: feedPost)
 
             // 2. Delete comments.
-            feedPost.comments?.forEach { managedObjectContext.delete($0) }
+            feedPost.comments?.forEach {
+                // Delete media comments if any
+                self.deleteMedia(feedPostComment: $0)
+                managedObjectContext.delete($0)
+            }
 
             // 3. Delete all notifications for this post.
             let notifications = self.notifications(for: postId, in: managedObjectContext)
@@ -1178,7 +1217,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedComment.text = ""
             feedComment.status = .retracted
 
-            // 2. Reset comment text copied over to notifications.
+            // 2. Delete comment media
+            self.deleteMedia(feedPostComment: feedComment)
+
+            // 3. Reset comment text copied over to notifications.
             let notifications = self.notifications(for: feedComment.post.id, commentId: feedComment.id, in: managedObjectContext)
             notifications.forEach { (notification) in
                 notification.event = .retractedComment
@@ -1366,7 +1408,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func media(for postID: FeedPostID) -> [FeedMedia]? {
+    func media(postID: FeedPostID) -> [FeedMedia]? {
         if let cachedMedia = cachedMedia[postID] {
             return cachedMedia
         } else if let post = MainAppContext.shared.feedData.feedPost(with: postID) {
@@ -1375,9 +1417,29 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return nil
         }
     }
+    
+    func media(commentID: FeedPostCommentID) -> [FeedMedia]? {
+        if let cachedMedia = cachedMedia[commentID] {
+            return cachedMedia
+        } else if let comment = MainAppContext.shared.feedData.feedComment(with: commentID) {
+            let media = (comment.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
+            cachedMedia[commentID] = media
+            return media
+            return nil
+        } else {
+            return nil
+        }
+    }
 
-    func loadImages(for postID: FeedPostID) {
-        guard let media = media(for: postID) else {
+    func loadImages(postID: FeedPostID) {
+        guard let media = media(postID: postID) else {
+            return
+        }
+        media.forEach { $0.loadImage() }
+    }
+    
+    func loadImages(commentID: FeedPostCommentID) {
+        guard let media = media(commentID: commentID) else {
             return
         }
         media.forEach { $0.loadImage() }
@@ -1387,9 +1449,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private var cachedMedia = [FeedPostID: [FeedMedia]]()
 
     func downloadTask(for mediaItem: FeedMedia) -> FeedDownloadManager.Task? {
-        guard let feedPostId = mediaItem.feedPostId, let feedPost = feedPost(with: feedPostId) else { return nil }
-        guard let feedPostMedia = feedPost.media?.first(where: { $0.order == mediaItem.order }) else { return nil }
-        return downloadManager.currentTask(for: feedPostMedia)
+        switch mediaItem.feedElementId {
+        case .post(let postId):
+            guard let feedPost = feedPost(with: postId) else { return nil }
+            guard let feedPostMedia = feedPost.media?.first(where: { $0.order == mediaItem.order }) else { return nil }
+            return downloadManager.currentTask(for: feedPostMedia)
+        case .comment(let commentId):
+            guard let feedComment = feedComment(with: commentId) else { return nil }
+            guard let feedPostCommentMedia = feedComment.media?.first(where: { $0.order == mediaItem.order }) else { return nil }
+            return downloadManager.currentTask(for: feedPostCommentMedia)
+        case .none:
+            return nil
+        }
     }
 
     // MARK: Suspending and Resuming
@@ -1401,6 +1472,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // We resume media downloads for all these objects on Application/WillEnterForeground.
     func resumeMediaDownloads() {
         var pendingPostIds: Set<FeedPostID> = []
+        var pendingCommentIds: Set<FeedPostCommentID> = []
         // Iterate through all the suspendedMediaObjectIds and download media for those posts.
         downloadManager.suspendedMediaObjectIds.forEach { feedMediaObjectId in
             // Fetch FeedPostMedia
@@ -1412,10 +1484,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogInfo("FeedData/resumeMediaDownloads/pendingPostId/added post_id - \(feedPost.id)")
                 pendingPostIds.insert(feedPost.id)
             }
+            if let feedComment = feedPostMedia.comment {
+                DDLogInfo("FeedData/resumeMediaDownloads/pendingCommentId/added comment_id - \(feedComment.id)")
+                pendingCommentIds.insert(feedComment.id)
+            }
         }
         downloadManager.suspendedMediaObjectIds.removeAll()
-        // Download media for all these posts.
+        // Download media for all these posts and comments
         downloadMedia(in: feedPosts(with: pendingPostIds))
+        downloadMedia(in: feedComments(with: pendingCommentIds))
     }
 
     /**
@@ -1445,7 +1522,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Status could be "downloading" if download has previously started
                 // but the app was terminated before the download has finished.
                 if feedPostMedia.url != nil && (feedPostMedia.status == .none || feedPostMedia.status == .downloading || feedPostMedia.status == .downloadError) {
-                    let (taskAdded, task) = downloadManager.downloadMedia(for: feedPostMedia)
+                    let (taskAdded, task) = downloadManager.downloadMedia(for: feedPostMedia, feedElementType: .post)
                     if taskAdded {
                         switch feedPostMedia.type {
                         case .image: photosDownloaded += 1
@@ -1503,15 +1580,114 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
     }
+    
+    
+    func downloadMedia(in feedPostComments: [FeedPostComment]) {
+        guard !feedPostComments.isEmpty else { return }
+        let managedObjectContext = self.viewContext
+        // FeedComment objects should belong to main queue's context.
+        assert(feedPostComments.first!.managedObjectContext! == managedObjectContext)
+
+        // List of comment mediaItems that will need UI update.
+        var mediaItemsToReload = [(FeedPostCommentID, Int)]()
+        var downloadStarted = false
+        feedPostComments.forEach { feedComment in
+            if let commentMedia = feedComment.media {
+                commentMedia.forEach { media in
+                    DDLogInfo("FeedData/downloadMedia/comment/_id - \(feedComment.id)")
+                    let commentMediaDownloadGroup = DispatchGroup()
+                    var startTime: Date?
+                    var photosDownloaded = 0
+                    var videosDownloaded = 0
+                    var totalDownloadSize = 0
+
+                    if media.url != nil && (media.status == .none || media.status == .downloading || media.status == .downloadError) {
+                        let(taskAdded, task) = downloadManager.downloadMedia(for: media, feedElementType: .comment)
+                        if taskAdded {
+                            switch media.type
+                            {
+                            case .image: photosDownloaded += 1
+                            case .video: videosDownloaded += 1
+                            case .audio: break
+                            }
+                            if startTime == nil {
+                                startTime = Date()
+                                DDLogInfo("FeedData/downloadMedia/comment/\(feedComment.id)/starting")
+                            }
+                            commentMediaDownloadGroup.enter()
+                            var isDownloadInProgress = true
+                            cancellableSet.insert(task.downloadProgress.sink() { progress in
+                                if isDownloadInProgress && progress == 1 {
+                                    totalDownloadSize += task.fileSize ?? 0
+                                    isDownloadInProgress = false
+                                    commentMediaDownloadGroup.leave()
+                                }
+                            })
+
+                            task.feedMediaObjectId = media.objectID
+                            media.status = .downloading
+                            downloadStarted = true
+                            // Add the mediaItem to a list - so that we can reload and update their UI.
+                            mediaItemsToReload.append((feedComment.id, 0))
+                        }
+                    }
+                    commentMediaDownloadGroup.notify(queue: .main) {
+                        guard photosDownloaded > 0 || videosDownloaded > 0 else { return }
+                        guard let startTime = startTime else {
+                            DDLogError("FeedData/downloadMedia/comment/\(feedComment.id)/error start time not set")
+                            return
+                        }
+                        let duration = Date().timeIntervalSince(startTime)
+                        DDLogInfo("FeedData/downloadMedia/comment/\(feedComment.id)/finished [photos: \(photosDownloaded)] [videos: \(videosDownloaded)] [t: \(duration)] [bytes: \(totalDownloadSize)]")
+                        // TODO Nandini investigate if below commented code is required for media comments
+    //                        AppContext.shared.eventMonitor.observe(
+    //                            .mediaDownload(
+    //                                postID: feedPost.id,
+    //                                commentId: feedComment.id,
+    //                                duration: duration,
+    //                                numPhotos: photosDownloaded,
+    //                                numVideos: videosDownloaded,
+    //                                totalSize: totalDownloadSize))
+                    }
+                }
+            }
+        }
+        // Use `downloadStarted` to prevent recursive saves when posting media.
+        if managedObjectContext.hasChanges && downloadStarted {
+            self.save(managedObjectContext)
+
+            // Update UI for these items.
+            // TODO Nandini investigate if below code is required
+            DispatchQueue.main.async {
+                mediaItemsToReload.forEach{ (feedCommentId, order) in
+                    self.reloadMedia(feedCommentID: feedCommentId, order: order)
+                }
+            }
+        }
+    }
 
     func reloadMedia(feedPostId: FeedPostID, order: Int) {
         DDLogInfo("FeedData/reloadMedia/postId:\(feedPostId), order/\(order)")
         guard let coreDataPost = feedPost(with: feedPostId),
               let coreDataMedia = coreDataPost.media?.first(where: { $0.order == order }),
-              let cachedMedia = media(for: feedPostId)?.first(where: { $0.order == order }) else
+              let cachedMedia = media(postID: feedPostId)?.first(where: { $0.order == order }) else
         {
             return
         }
+        DDLogInfo("FeedData/reloadMedia/postID: cache reload")
+        cachedMedia.reload(from: coreDataMedia)
+    }
+
+    func reloadMedia(feedCommentID: FeedPostCommentID, order: Int) {
+        DDLogInfo("FeedData/reloadMedia/commentId:\(feedCommentID), order/\(order)")
+        guard let coreDataComment = feedComment(with: feedCommentID),
+              let coreDataMedia = coreDataComment.media?.first(where: { $0.order == order }),
+              let cachedMedia = media(commentID: feedCommentID)?.first(where: { $0.order == order }) else
+        {
+            DDLogInfo("FeedData/reloadMedia/commentId: \(feedCommentID) not reloading media cache")
+            return
+        }
+        DDLogInfo("FeedData/reloadMedia/commentId: \(feedCommentID) cache reload")
         cachedMedia.reload(from: coreDataMedia)
     }
 
@@ -1548,15 +1724,26 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             // Step 3: Notify UI about finished download.
-            if let  feedPost = feedPostMedia.post {
-                let feedPostId = feedPost.id
-                let mediaOrder = Int(feedPostMedia.order)
-                DispatchQueue.main.async {
-                    self.reloadMedia(feedPostId: feedPostId, order: mediaOrder)
+            switch task.feedElementType {
+            case .post:
+                if let  feedPost = feedPostMedia.post {
+                    let feedPostId = feedPost.id
+                    let mediaOrder = Int(feedPostMedia.order)
+                    DispatchQueue.main.async {
+                        self.reloadMedia(feedPostId: feedPostId, order: mediaOrder)
+                    }
+                }
+            case .comment:
+                if let  feedComment = feedPostMedia.comment {
+                    let feedCommentId = feedComment.id
+                    let mediaOrder = Int(feedPostMedia.order)
+                    DispatchQueue.main.async {
+                        self.reloadMedia(feedCommentID: feedCommentId, order: mediaOrder)
+                    }
                 }
             }
-
             // Step 4: Update upload data to avoid duplicate uploads
+            // TODO Nandini : check this for comment media
             if let path = feedPostMedia.relativeFilePath, let downloadUrl = feedPostMedia.url {
                 let fileUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(path, isDirectory: false)
                 MainAppContext.shared.uploadData.update(upload: fileUrl, key: feedPostMedia.key, sha256: feedPostMedia.sha256, downloadURL: downloadUrl)
@@ -1566,7 +1753,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func updateNotificationMediaPreview(with postMedia: FeedPostMedia, using managedObjectContext: NSManagedObjectContext) {
         guard postMedia.relativeFilePath != nil else { return }
-        if let  feedPost = postMedia.post {
+        if let feedPost = postMedia.post {
             let feedPostId = feedPost.id
 
             // Fetch all associated notifications.
@@ -1583,6 +1770,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 fatalError("Failed to fetch feed notifications.")
             }
         }
+        // TODO Nandini : handle this for feedComment = postMedia.comment
     }
 
     private func generateMediaPreview(for notifications: [FeedNotification], feedPost: FeedPost, using managedObjectContext: NSManagedObjectContext) {
@@ -2091,7 +2279,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 return
             }
             DDLogError("FeedData/delete-unsent-post/deleting [\(postID)]")
-            self.deleteMedia(in: feedPost)
+            self.deleteMedia(feedPost: feedPost)
             managedObjectContext.delete(feedPost)
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
@@ -2112,7 +2300,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         DDLogError("FeedData/delete-unsent-post/missing-post [\(postID)]")
                         return
                     }
-                    self.deleteMedia(in: feedPost)
+                    self.deleteMedia(feedPost: feedPost)
                     managedObjectContext.delete(feedPost)
                 }
                 if managedObjectContext.hasChanges {
@@ -2128,7 +2316,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
     
 
-    private func deleteMedia(in feedPost: FeedPost) {
+    private func deleteMedia(feedPost feedPost: FeedPost) {
         feedPost.media?.forEach { (media) in
 
             // cancel any pending tasks for this media
@@ -2163,6 +2351,40 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
     
+    private func deleteMedia(feedPostComment: FeedPostComment) {
+        feedPostComment.media?.forEach { (media) in
+            // cancel any pending tasks for this media
+            DDLogInfo("FeedData/deleteMedia/comment-id \(feedPostComment.id), media-id: \(media.id)")
+            if let currentTask = downloadManager.currentTask(for: media) {
+                DDLogInfo("FeedData/deleteMedia/cancelTask/task: \(currentTask.id)")
+                currentTask.downloadRequest?.cancel(producingResumeData : false)
+            }
+            if let encryptedFilePath = media.encryptedFilePath {
+                let encryptedURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
+                do {
+                    if FileManager.default.fileExists(atPath: encryptedURL.path) {
+                        try FileManager.default.removeItem(at: encryptedURL)
+                        DDLogInfo("FeedData/delete-comment-media-encrypted/deleting [\(encryptedURL)]")
+                    }
+                }
+                catch {
+                    DDLogError("FeedData/delete-comment-media-encrypted/error [\(error)]")
+                }
+            }
+            if let relativeFilePath = media.relativeFilePath {
+                let fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+                do {
+                    try FileManager.default.removeItem(at: fileURL)
+                    DDLogInfo("FeedData/delete-comment-media/deleting [\(fileURL)]")
+                }
+                catch {
+                    DDLogError("FeedData/delete-comment-media/error [\(error)]")
+                }
+            }
+            feedPostComment.managedObjectContext?.delete(media)
+        }
+    }
+    
     private func getPosts(olderThan date: Date, in managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
         let fetchRequest = NSFetchRequest<FeedPost>(entityName: FeedPost.entity().name!)
         fetchRequest.predicate = NSPredicate(format: "timestamp < %@", date as NSDate)
@@ -2187,7 +2409,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
             DDLogInfo("FeedData/posts/delete/begin  count=[\(posts.count)]")
             posts.forEach { post in
-                deleteMedia(in: post)
+                deleteMedia(feedPost: post)
                 managedObjectContext.delete(post)
             }
             DDLogInfo("FeedData/posts/delete-expired/finished")

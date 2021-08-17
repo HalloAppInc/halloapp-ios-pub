@@ -20,6 +20,7 @@ public class FeedDownloadManager {
 
     public class Task: Identifiable, Hashable, Equatable {
         public let id: String
+        public let feedElementType: FeedElementType
 
         // Input parameters.
         var mediaData: FeedMediaData
@@ -40,8 +41,9 @@ public class FeedDownloadManager {
             }
         }
 
-        public init(media: FeedMediaProtocol) {
+        public init(media: FeedMediaProtocol, feedElementType: FeedElementType) {
             self.id = Self.taskId(for: media)
+            self.feedElementType = feedElementType
             self.mediaData = FeedMediaData(
                 id: media.id,
                 url: media.url,
@@ -81,13 +83,13 @@ public class FeedDownloadManager {
      - returns:
      True if download task was scheduled.
      */
-    public func downloadMedia(for feedPostMedia: FeedMediaProtocol) -> (Bool, Task) {
+    public func downloadMedia(for feedPostMedia: FeedMediaProtocol, feedElementType: FeedElementType) -> (Bool, Task) {
         assert(delegate != nil, "Must set delegate before starting any task.")
         if let existingTask = currentTask(for: feedPostMedia) {
             DDLogWarn("FeedDownloadManager/\(existingTask.id)/warning Already downloading")
             return (false, existingTask)
         }
-        let task = Task(media: feedPostMedia)
+        let task = Task(media: feedPostMedia, feedElementType: feedElementType)
         let taskAdded = self.addTask(task)
         return (taskAdded, task)
     }

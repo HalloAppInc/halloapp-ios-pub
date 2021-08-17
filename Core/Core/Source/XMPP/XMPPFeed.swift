@@ -237,6 +237,7 @@ public struct FeedMediaData: FeedMediaProtocol {
 
 public enum CommentContent {
     case text(MentionText)
+    case album(MentionText, [FeedMediaData])
     case unsupported(Data)
     case retracted
  }
@@ -266,6 +267,9 @@ public struct CommentData {
                 return [:]
             case .text(let mentionText):
                 return mentionText.mentions
+            case .album(let mentionText, _):
+                return mentionText.mentions
+            
             }
         }()
         return mentions
@@ -317,7 +321,24 @@ public struct CommentData {
             switch comment.comment {
             case .text(let clientText):
                 return .text(clientText.mentionText)
-            case .album, .voiceNote, .none:
+            case .album(let clientAlbum):
+                var media = [FeedMediaData]()
+                var foundUnsupportedMedia = false
+                for (i, albumMedia) in clientAlbum.media.enumerated() {
+                    // TODO Nandini is this ID set right?
+                    guard let mediaData = FeedMediaData(id: "\(commentId)-\(i)", albumMedia: albumMedia) else {
+                       foundUnsupportedMedia = true
+                       continue
+                   }
+                   media.append(mediaData)
+               }
+               if foundUnsupportedMedia {
+                   DDLogError("PostData/initFromServerPost/error unrecognized media")
+                   return  .unsupported(payload)
+               } else {
+                   return .album(clientAlbum.text.mentionText, media)
+               }
+            case .voiceNote, .none:
                 return .unsupported(payload)
             }
 

@@ -19,8 +19,8 @@ enum FeedMediaError: Error {
 class FeedMedia: Identifiable, Hashable {
     private static let imageLoadingQueue = DispatchQueue(label: "com.halloapp.media-loading", qos: .userInitiated)
 
-    let id: String?
-    let feedPostId: FeedPostID?
+    var id: String?
+    var feedElementId: FeedElementID?
     let order: Int
     let type: FeedMediaType
     var size: CGSize
@@ -116,11 +116,12 @@ class FeedMedia: Identifiable, Hashable {
     init(_ feedPostMedia: FeedPostMedia) {
         order = Int(feedPostMedia.order)
         if let feedPost = feedPostMedia.post {
-            feedPostId = feedPost.id
+            feedElementId = .post(feedPost.id)
             id = "\(feedPost.id)-\(order)"
-        } else {
-            id = nil
-            feedPostId = nil
+        }
+        if let feedComment = feedPostMedia.comment {
+            feedElementId = .comment(feedComment.id)
+            id = "\(feedComment.id)-\(order)"
         }
         type = feedPostMedia.type
         size = feedPostMedia.size
@@ -135,8 +136,17 @@ class FeedMedia: Identifiable, Hashable {
 
     func reload(from feedPostMedia: FeedPostMedia) {
         assert(feedPostMedia.order == self.order)
-        if let feedPost = feedPostMedia.post {
-            assert(feedPost.id == self.feedPostId)
+        switch feedElementId {
+        case .post(let postId) :
+            if let feedPost = feedPostMedia.post {
+                assert(feedPost.id == postId)
+            }
+        case .comment(let commentId):
+            if let feedComment = feedPostMedia.comment {
+                assert(feedComment.id == commentId)
+            }
+        case .none:
+            DDLogError("FeedMedia/reload/feedElement of type none")
         }
         assert(feedPostMedia.type == self.type)
         assert(feedPostMedia.size == self.size)
@@ -154,7 +164,6 @@ class FeedMedia: Identifiable, Hashable {
     init(_ media: PendingMedia, feedPostId: FeedPostID) {
         self.id = "\(feedPostId)-\(media.order)"
         self.status = .uploading
-        self.feedPostId = feedPostId
         self.order = media.order
         self.type = media.type
         self.image = media.image

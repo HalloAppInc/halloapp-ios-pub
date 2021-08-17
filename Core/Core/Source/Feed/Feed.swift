@@ -279,6 +279,16 @@ public enum MediaURLInfo {
 
 // MARK: FeedElement
 
+public enum FeedElementType: Int {
+    case post = 0
+    case comment = 1
+}
+
+public enum FeedElementID {
+    case post(FeedPostID)
+    case comment(FeedPostCommentID)
+}
+
 public enum FeedElement {
     case post(PostData)
     case comment(CommentData, publisherName: String?)
@@ -369,7 +379,7 @@ public extension CommentData {
                     return clientMention
                 }
                 .sorted { $0.index < $1.index }
-        case .retracted, .unsupported:
+        case .album, .retracted, .unsupported:
             break
         }
         comment.feedPostID = feedPostId

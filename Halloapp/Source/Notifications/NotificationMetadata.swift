@@ -503,7 +503,8 @@ class NotificationMetadata: Codable {
             case .text(let mentionText):
                 let commentText = mentionText.expandedText(nameProvider: mentionNameProvider).string
                 body = String(format: NSLocalizedString("notification.commented.with.text", value: "Commented: %@", comment: "Push notification for a new comment. Parameter is the text of the comment"), commentText)
-            case .none, .retracted, .unsupported(_):
+            // TODO Nandini support media comments
+            case .album, .none, .retracted, .unsupported(_):
                 body = newCommentString
             }
         // ChatMessage or GroupChatMessage

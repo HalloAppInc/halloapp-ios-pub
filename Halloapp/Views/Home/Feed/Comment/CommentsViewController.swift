@@ -879,7 +879,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 extension CommentsViewController: MediaCarouselViewDelegate {
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
-        guard let media = MainAppContext.shared.feedData.media(for: feedPostId) else { return }
+        guard let media = MainAppContext.shared.feedData.media(postID: feedPostId) else { return }
         
         var canSavePost = false
         

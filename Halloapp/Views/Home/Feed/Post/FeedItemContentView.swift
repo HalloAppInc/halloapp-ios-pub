@@ -292,14 +292,14 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
         guard let postId = postId else { return }
-        guard let media = MainAppContext.shared.feedData.media(for: postId) else { return }
+        guard let media = MainAppContext.shared.feedData.media(postID: postId) else { return }
 
         presentMedia(media, index: index, delegate: view)
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
         guard let postId = postId else { return }
-        guard let media = MainAppContext.shared.feedData.media(for: postId) else { return }
+        guard let media = MainAppContext.shared.feedData.media(postID: postId) else { return }
         guard media[index].type == .video else { return }
 
         presentMedia(media, index: index, delegate: view)
@@ -307,7 +307,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
         guard let postId = postId else { return }
-        guard let media = MainAppContext.shared.feedData.media(for: postId) else { return }
+        guard let media = MainAppContext.shared.feedData.media(postID: postId) else { return }
         guard media[index].type == .video else { return }
         guard scale > scaleThreshold else { return }
 
