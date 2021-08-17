@@ -26,6 +26,7 @@
 		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		24D743E824B3D504001111BF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
 		2918BD1FA51BFAD142F377E5 /* Pods_HalloAppClip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */; };
+		323E88DB26CC430600202655 /* Feed3ToFeed4.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 323E88DA26CC430600202655 /* Feed3ToFeed4.xcmappingmodel */; };
 		329E03FB268247BD00C2D250 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E03FA268247BD00C2D250 /* AppDelegate.swift */; };
 		329E03FD268247BD00C2D250 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E03FC268247BD00C2D250 /* SceneDelegate.swift */; };
 		329E0402268247BD00C2D250 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 329E0400268247BD00C2D250 /* Main.storyboard */; };
@@ -492,6 +493,7 @@
 		24D743DD24B3D199001111BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2762FD6E15286945AA56FCC7 /* Pods-HalloAppClip.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppClip.debug.xcconfig"; path = "Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip.debug.xcconfig"; sourceTree = "<group>"; };
 		323E88D626CC175900202655 /* Feed4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed4.xcdatamodel; sourceTree = "<group>"; };
+		323E88DA26CC430600202655 /* Feed3ToFeed4.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed3ToFeed4.xcmappingmodel; sourceTree = "<group>"; };
 		329E03F8268247BC00C2D250 /* HalloAppClip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloAppClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		329E03FA268247BD00C2D250 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		329E03FC268247BD00C2D250 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -1381,6 +1383,7 @@
 				6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */,
 				6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */,
 				68184008264B1F9800408D31 /* Feed2ToFeed3.xcmappingmodel */,
+				323E88DA26CC430600202655 /* Feed3ToFeed4.xcmappingmodel */,
 			);
 			path = "CoreData Stack";
 			sourceTree = "<group>";
@@ -2548,6 +2551,7 @@
 				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
 				F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */,
 				EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */,
+				323E88DB26CC430600202655 /* Feed3ToFeed4.xcmappingmodel in Sources */,
 				76271384252D24AD00389FBC /* FeedItemContentView.swift in Sources */,
 				EA796B9D2469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift in Sources */,
 				EAA424FD24ECF1480025CBBE /* ChatGroupMessage+CoreDataProperties.swift in Sources */,
