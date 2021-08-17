@@ -19,8 +19,8 @@ enum FeedMediaError: Error {
 class FeedMedia: Identifiable, Hashable {
     private static let imageLoadingQueue = DispatchQueue(label: "com.halloapp.media-loading", qos: .userInitiated)
 
-    let id: String
-    let feedPostId: FeedPostID
+    let id: String?
+    let feedPostId: FeedPostID?
     let order: Int
     let type: FeedMediaType
     var size: CGSize
@@ -114,8 +114,14 @@ class FeedMedia: Identifiable, Hashable {
     }
 
     init(_ feedPostMedia: FeedPostMedia) {
-        feedPostId = feedPostMedia.post.id
         order = Int(feedPostMedia.order)
+        if let feedPost = feedPostMedia.post {
+            feedPostId = feedPost.id
+            id = "\(feedPost.id)-\(order)"
+        } else {
+            id = nil
+            feedPostId = nil
+        }
         type = feedPostMedia.type
         size = feedPostMedia.size
         if let relativePath = feedPostMedia.relativeFilePath {
@@ -124,13 +130,14 @@ class FeedMedia: Identifiable, Hashable {
         if type == .video {
             isMediaAvailable = fileURL != nil
         }
-        id = "\(feedPostId)-\(order)"
         status = feedPostMedia.status
     }
 
     func reload(from feedPostMedia: FeedPostMedia) {
         assert(feedPostMedia.order == self.order)
-        assert(feedPostMedia.post.id == self.feedPostId)
+        if let feedPost = feedPostMedia.post {
+            assert(feedPost.id == self.feedPostId)
+        }
         assert(feedPostMedia.type == self.type)
         assert(feedPostMedia.size == self.size)
         guard feedPostMedia.status != self.status else { return }

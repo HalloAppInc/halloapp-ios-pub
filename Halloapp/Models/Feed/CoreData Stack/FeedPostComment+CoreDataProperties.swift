@@ -35,6 +35,7 @@ extension FeedPostComment {
     @NSManaged public var userId: UserID
     @NSManaged var parent: FeedPostComment?
     @NSManaged var post: FeedPost
+    @NSManaged var media: Set<FeedPostMedia>?
     @NSManaged var replies: Set<FeedPostComment>?
     @NSManaged var rawData: Data?
     @NSManaged private var statusValue: Int16
@@ -99,4 +100,20 @@ extension FeedPostComment {
             (Int($0.index), MentionedUser(userID: $0.userID, pushName: $0.name))
         })
     }
+}
+
+extension FeedPostComment {
+
+    @objc(addMediaObject:)
+    @NSManaged func addToMedia(_ value: FeedPostMedia)
+
+    @objc(removeMediaObject:)
+    @NSManaged func removeFromMedia(_ value: FeedPostMedia)
+
+    @objc(addMedia:)
+    @NSManaged func addToMedia(_ values: NSSet)
+
+    @objc(removeMedia:)
+    @NSManaged func removeFromMedia(_ values: NSSet)
+
 }

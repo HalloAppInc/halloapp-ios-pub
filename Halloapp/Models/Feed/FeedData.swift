@@ -1387,7 +1387,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private var cachedMedia = [FeedPostID: [FeedMedia]]()
 
     func downloadTask(for mediaItem: FeedMedia) -> FeedDownloadManager.Task? {
-        guard let feedPost = feedPost(with: mediaItem.feedPostId) else { return nil }
+        guard let feedPostId = mediaItem.feedPostId, let feedPost = feedPost(with: feedPostId) else { return nil }
         guard let feedPostMedia = feedPost.media?.first(where: { $0.order == mediaItem.order }) else { return nil }
         return downloadManager.currentTask(for: feedPostMedia)
     }
@@ -1408,8 +1408,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/resumeMediaDownloads/error missing-object [\(feedMediaObjectId)]")
                 return
             }
-            pendingPostIds.insert(feedPostMedia.post.id)
-            DDLogInfo("FeedData/resumeMediaDownloads/pendingPostId/added post_id - \(feedPostMedia.post.id)")
+            if let feedPost = feedPostMedia.post {
+                DDLogInfo("FeedData/resumeMediaDownloads/pendingPostId/added post_id - \(feedPost.id)")
+                pendingPostIds.insert(feedPost.id)
+            }
         }
         downloadManager.suspendedMediaObjectIds.removeAll()
         // Download media for all these posts.
@@ -1546,10 +1548,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             // Step 3: Notify UI about finished download.
-            let feedPostId = feedPostMedia.post.id
-            let mediaOrder = Int(feedPostMedia.order)
-            DispatchQueue.main.async {
-                self.reloadMedia(feedPostId: feedPostId, order: mediaOrder)
+            if let  feedPost = feedPostMedia.post {
+                let feedPostId = feedPost.id
+                let mediaOrder = Int(feedPostMedia.order)
+                DispatchQueue.main.async {
+                    self.reloadMedia(feedPostId: feedPostId, order: mediaOrder)
+                }
             }
 
             // Step 4: Update upload data to avoid duplicate uploads
@@ -1562,21 +1566,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func updateNotificationMediaPreview(with postMedia: FeedPostMedia, using managedObjectContext: NSManagedObjectContext) {
         guard postMedia.relativeFilePath != nil else { return }
-        let feedPost = postMedia.post
-        let feedPostId = postMedia.post.id
+        if let  feedPost = postMedia.post {
+            let feedPostId = feedPost.id
 
-        // Fetch all associated notifications.
-        let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "postId == %@", feedPostId)
-        do {
-            let notifications = try managedObjectContext.fetch(fetchRequest)
-            if !notifications.isEmpty {
-                generateMediaPreview(for: notifications, feedPost: feedPost, using: managedObjectContext)
+            // Fetch all associated notifications.
+            let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "postId == %@", feedPostId)
+            do {
+                let notifications = try managedObjectContext.fetch(fetchRequest)
+                if !notifications.isEmpty {
+                    generateMediaPreview(for: notifications, feedPost: feedPost, using: managedObjectContext)
+                }
             }
-        }
-        catch {
-            DDLogError("FeedData/fetch-notifications/error  [\(error)]")
-            fatalError("Failed to fetch feed notifications.")
+            catch {
+                DDLogError("FeedData/fetch-notifications/error  [\(error)]")
+                fatalError("Failed to fetch feed notifications.")
+            }
         }
     }
 

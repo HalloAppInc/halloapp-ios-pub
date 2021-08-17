@@ -7,6 +7,7 @@
 //
 //
 
+import CocoaLumberjackSwift
 import Core
 import CoreData
 import Foundation
@@ -40,7 +41,8 @@ extension FeedPostMedia {
     @NSManaged public var relativeFilePath: String?
     @NSManaged public var url: URL?
     @NSManaged public var uploadUrl: URL?
-    @NSManaged var post: FeedPost
+    @NSManaged var post: FeedPost?
+    @NSManaged var comment: FeedPostComment?
     @NSManaged private var statusValue: Int16
     var status: Status {
         get {
@@ -101,7 +103,14 @@ extension FeedPostMedia: MediaUploadable {
 extension FeedPostMedia: FeedMediaProtocol {
     public var id: String {
         get {
-            return "\(post.id)-\(order)"
+            if let feedPost = post {
+                return "\(feedPost.id)-\(order)"
+            } else if let feedComment = comment {
+                return "\(feedComment.id)-\(order)"
+            } else {
+                DDLogError("FeedPostMedia/FeedPostMedia not associated with post or comment")
+                return ""
+            }
         }
     }
 }
