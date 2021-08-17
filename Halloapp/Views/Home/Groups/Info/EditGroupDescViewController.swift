@@ -55,7 +55,7 @@ class EditGroupDescViewController: UIViewController {
     }
 
     private var canUpdate: Bool {
-        return !textView.text.isEmpty && textView.text != originalDesc
+        return textView.text != originalDesc
     }
     
     func setupView() {
@@ -106,7 +106,7 @@ class EditGroupDescViewController: UIViewController {
         label.textAlignment = .left
         label.textColor = .secondaryLabel
         label.font = .systemFont(ofSize: 12)
-        label.text = Localizations.groupDescriptionLabel
+        label.text = Localizations.groupDescriptionLabel.uppercased()
         label.translatesAutoresizingMaskIntoConstraints = false
         
         return label

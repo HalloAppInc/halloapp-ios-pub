@@ -67,15 +67,19 @@ extension Localizations {
     }
     
     static var groupDescriptionLabel: String {
-        NSLocalizedString("group.description.label", value: "DESCRIPTION", comment: "Label shown above group desscription input box")
+        NSLocalizedString("group.description.label", value: "Group Description", comment: "Label shown above group description input box")
     }
 
-    static var chatGroupBackgroundLabel: String {
-        NSLocalizedString("chat.group.background.label", value: "BACKGROUND", comment: "Label shown above background selection row")
+    static var groupAddDescription: String {
+        NSLocalizedString("group.add.description", value: "Add group description", comment: "Placeholder text shown in group description input box when there's no description")
     }
 
-    static var chatGroupMembersLabel: String {
-        NSLocalizedString("chat.group.members.label", value: "MEMBERS", comment: "Label shown above group members list")
+    static var groupBackgroundLabel: String {
+        NSLocalizedString("group.background.label", value: "Background", comment: "Label shown above background selection row")
+    }
+
+    static var groupMembersLabel: String {
+        NSLocalizedString("group.members.label", value: "Members", comment: "Label shown above group members list")
     }
 
     static var chatGroupPhotoTitle: String {

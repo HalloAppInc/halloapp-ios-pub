@@ -86,7 +86,7 @@ class CreateGroupViewController: UIViewController {
         spacer.translatesAutoresizingMaskIntoConstraints = false
 
         let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextView, membersRow, tableView ])
-        
+
         view.axis = .vertical
         view.spacing = 20
         view.setCustomSpacing(0, after: groupNameLabelRow)
@@ -294,7 +294,7 @@ class CreateGroupViewController: UIViewController {
         
         label.font = UIFont.preferredFont(forTextStyle: .caption1)
         label.textColor = .secondaryLabel
-        label.text = Localizations.chatGroupMembersLabel + " (\(String(selectedMembers.count)))"
+        label.text = Localizations.groupMembersLabel.uppercased() + " (\(String(selectedMembers.count)))"
       
         label.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
       

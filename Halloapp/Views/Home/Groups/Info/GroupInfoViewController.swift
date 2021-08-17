@@ -62,7 +62,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
 
         tableView.separatorStyle = .none
-        tableView.backgroundColor = UIColor.feedBackground
+        tableView.backgroundColor = UIColor.primaryBg
         tableView.register(BackgroundTableViewCell.self, forCellReuseIdentifier: backgroundCellReuseIdentifier)
         tableView.register(ActionTableViewCell.self, forCellReuseIdentifier: actionCellReuseIdentifier)
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
@@ -90,7 +90,14 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                     guard let chatGroup = self.chatGroup else { break }
                     let cell = UITableViewCell()
                     cell.textLabel?.numberOfLines = 0
-                    cell.textLabel?.text = chatGroup.desc
+                    cell.textLabel?.font = UIFont.systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
+                    if let desc = chatGroup.desc, !desc.isEmpty {
+                        cell.textLabel?.text = desc
+                    } else {
+                        cell.textLabel?.textColor = .secondaryLabel
+                        cell.textLabel?.text = Localizations.groupAddDescription
+                    }
+                    cell.heightAnchor.constraint(equalToConstant: Constants.ActionRowHeight).isActive = true
                     return cell
                 default: break
                 }
@@ -354,11 +361,11 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         label.font = UIFont.systemFont(ofSize: 13)
         label.textColor = UIColor.secondaryLabel
         if section == 0 {
-            label.text = Localizations.groupInfoDescriptionLabel.uppercased()
+            label.text = Localizations.groupDescriptionLabel.uppercased()
         } else if section == 1 {
-            label.text = Localizations.chatGroupBackgroundLabel
+            label.text = Localizations.groupBackgroundLabel.uppercased()
         } else if section == 2 {
-            label.text = Localizations.chatGroupMembersLabel.uppercased() + " (\(String(self.chatGroup?.members?.count ?? 0)))"
+            label.text = Localizations.groupMembersLabel.uppercased() + " (\(String(self.chatGroup?.members?.count ?? 0)))"
         }
         view.addSubview(label)
         return view
@@ -1149,10 +1156,6 @@ private extension Localizations {
 
     static var chatGroupInfoBgDefaultLabel: String {
         NSLocalizedString("chat.group.info.bg.default.label", value: "Default", comment: "Text label for default selection of group feed background color")
-    }
-
-    static var groupInfoDescriptionLabel: String {
-        NSLocalizedString("group.info.description.label", value: "Description", comment: "Text label for group description in Group Info screen")
     }
 
     static var chatGroupInfoBgColorLabel: String {
