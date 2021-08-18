@@ -55,10 +55,7 @@ extension ChatThread {
     @NSManaged private var lastMsgMediaTypeValue: Int16
     @NSManaged var lastMsgTimestamp: Date?
     @NSManaged var unreadCount: Int32
-    
-    @NSManaged var draft: String?
-    @NSManaged var draftMentions: Set<ChatMention>?
-    
+
     @NSManaged var lastFeedId: FeedPostID?
     @NSManaged var lastFeedUserID: UserID?
     @NSManaged private var lastFeedStatusValue: Int16
@@ -110,14 +107,6 @@ extension ChatThread {
         }
         set {
             self.lastMsgMediaTypeValue = newValue.rawValue
-        }
-    }
-    
-    
-    public var orderedDraftMentions: [ChatMention] {
-        get {
-            guard let mentions = self.draftMentions else { return [] }
-            return mentions.sorted { $0.index < $1.index }
         }
     }
 

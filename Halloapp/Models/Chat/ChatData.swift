@@ -1249,19 +1249,12 @@ extension ChatData {
             self.unreadThreadCount = Int(threads.count)
         }
     }
-    
+
     func updateUnreadMessageCount() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             let threads = self.chatThreads(predicate: NSPredicate(format: "unreadCount > 0"), in: managedObjectContext)
             self.unreadMessageCount = Int(threads.reduce(0) { $0 + $1.unreadCount })
-        }
-    }
-    
-    func saveDraft(type: ChatType, for id: String, with draft: String?) {
-        updateChatThread(type: type, for: id) { chatThread in
-            guard chatThread.draft != draft else { return }
-            chatThread.draft = draft
         }
     }
 
