@@ -1425,7 +1425,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let media = (comment.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
             cachedMedia[commentID] = media
             return media
-            return nil
         } else {
             return nil
         }
@@ -2316,7 +2315,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
     
 
-    private func deleteMedia(feedPost feedPost: FeedPost) {
+    private func deleteMedia(feedPost: FeedPost) {
         feedPost.media?.forEach { (media) in
 
             // cancel any pending tasks for this media

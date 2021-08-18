@@ -511,7 +511,7 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
     }
 
     func updateMediaStatusUI(with media: FeedMedia) {
-        DDLogVerbose("MediaCarouselView/updateMediaStatusUI/media: \(media.id), \(media.isDownloadRequired)")
+        DDLogVerbose("MediaCarouselView/updateMediaStatusUI/media: \(media.id ?? "[missing media id]"), \(media.isDownloadRequired)")
         guard media.isDownloadRequired else {
             hideProgressView()
             downloadProgressCancellable?.cancel()
