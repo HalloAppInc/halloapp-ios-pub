@@ -406,7 +406,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func feedPosts(with ids: Set<FeedPostID>, in managedObjectContext: NSManagedObjectContext? = nil, archived: Bool = false) -> [FeedPost] {
         return feedPosts(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext, archived: archived)
     }
-    
+
     func feedComment(with id: FeedPostCommentID, in managedObjectContext: NSManagedObjectContext? = nil) -> FeedPostComment? {
         let managedObjectContext = managedObjectContext ?? self.viewContext
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
@@ -2463,17 +2463,26 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     static let cutoffDate = Date(timeIntervalSinceNow: -Date.days(31))
     
     private func deleteExpiredPosts() {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             DDLogInfo("FeedData/delete-expired  date=[\(Self.cutoffDate)]")
             let expiredPosts = self.getPosts(olderThan: Self.cutoffDate, in: managedObjectContext)
-            
+
+            let postsToDeleteIncludingUser = expiredPosts.map({ $0.id }) // extract ids before objs get deleted
+
             let postsToDelete = expiredPosts
                 .filter({ $0.userId != MainAppContext.shared.userData.userId })
                 .map({ $0.id })
-            
+
             self.deletePosts(with: postsToDelete, in: managedObjectContext)
             self.deleteAssociatedData(for: postsToDelete, in: managedObjectContext)
             self.save(managedObjectContext)
+
+            // update groups list previews
+            MainAppContext.shared.chatData.updateThreadPreviewsOfExpiredPosts(expiredPostIDs: postsToDeleteIncludingUser)
+
+            // update groups list unread count (for unseen posts that expired)
+            self.reloadGroupFeedUnreadCounts()
         }
     }
     

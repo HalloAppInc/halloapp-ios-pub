@@ -10,9 +10,9 @@ import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreData
+import Intents
 import SwiftUI
 import UIKit
-import Intents
 
 fileprivate struct Constants {
     static let AvatarSize: CGFloat = 56

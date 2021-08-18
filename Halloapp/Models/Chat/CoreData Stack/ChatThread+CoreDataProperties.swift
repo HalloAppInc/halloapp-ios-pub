@@ -49,7 +49,7 @@ extension ChatThread {
     @NSManaged var isNew: Bool
     
     @NSManaged var lastMsgId: String?
-    @NSManaged var lastMsgUserId: String?
+    @NSManaged var lastMsgUserId: UserID?
     @NSManaged private var lastMsgStatusValue: Int16
     @NSManaged var lastMsgText: String?
     @NSManaged private var lastMsgMediaTypeValue: Int16
@@ -59,14 +59,15 @@ extension ChatThread {
     @NSManaged var draft: String?
     @NSManaged var draftMentions: Set<ChatMention>?
     
-    @NSManaged var lastFeedId: String?
-    @NSManaged var lastFeedUserID: String?
+    @NSManaged var lastFeedId: FeedPostID?
+    @NSManaged var lastFeedUserID: UserID?
     @NSManaged private var lastFeedStatusValue: Int16
     @NSManaged var lastFeedText: String?
     @NSManaged private var lastFeedMediaTypeValue: Int16
-    @NSManaged var lastFeedTimestamp: Date?
     @NSManaged var unreadFeedCount: Int32
-    
+
+    @NSManaged var lastFeedTimestamp: Date?
+
     var type: ChatType {
         get {
             return ChatType(rawValue: self.typeValue) ?? .oneToOne

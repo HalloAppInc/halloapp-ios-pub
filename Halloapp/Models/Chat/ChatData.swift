@@ -234,22 +234,37 @@ class ChatData: ObservableObject {
             self.cancellableSet.insert(
                 MainAppContext.shared.feedData.groupFeedStates.sink{ [weak self] (statesList) in
                     guard let self = self else { return }
-                    statesList.forEach({ (keyGroupId, state) in
+                    
+                    var groupThreadIDs = self.groupThreads().compactMap({ $0.groupId })
+                    
+                    statesList.forEach({ (groupID, state) in
                         switch state {
-                        case .noPosts: break
+                        case .noPosts:
+                            break
                         case .newPosts(let numNew, _):
-                            self.setThreadUnreadFeedCount(type: .group, for: keyGroupId, num: Int32(numNew))
+                            self.setThreadUnreadFeedCount(type: .group, for: groupID, num: Int32(numNew))
                         case .seenPosts(_):
-                            self.updateChatThread(type: .group, for: keyGroupId, block: { thread in
+                            self.updateChatThread(type: .group, for: groupID, block: { thread in
                                 guard thread.unreadFeedCount > 0 else { return }
                                 thread.unreadFeedCount = 0
                                 self.updateUnreadThreadGroupsCount()
                             })
                         }
+                        
+                        groupThreadIDs.removeAll(where: { $0 == groupID })
+                    })
+                    
+                    // leftover groupThreadIDs not found in groupFeedStates mean those groups do not have
+                    // any posts in feed and should reset its unread counter to 0
+                    groupThreadIDs.forEach({
+                        self.updateChatThread(type: .group, for: $0, block: { thread in
+                            guard thread.unreadFeedCount > 0 else { return }
+                            thread.unreadFeedCount = 0
+                            self.updateUnreadThreadGroupsCount()
+                        })
                     })
                 }
             )
-
         }
 
         cancellableSet.insert(
@@ -1268,11 +1283,19 @@ extension ChatData {
             fatalError("Failed to fetch chat threads")
         }
     }
-    
+
     func emptyOneToOneChatThreads(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
         return chatThreads(predicate: NSPredicate(format: "groupId == nil AND lastMsgId == nil"), in: managedObjectContext)
     }
-    
+
+    func groupThreadsWithExpiredPosts(expiredPostIDs: [FeedPostID], in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
+        return chatThreads(predicate: NSPredicate(format: "groupId != nil && lastFeedId IN %@", expiredPostIDs), in: managedObjectContext)
+    }
+
+    func groupThreads(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
+        return chatThreads(predicate: NSPredicate(format: "groupId != nil"), in: managedObjectContext)
+    }
+
     func chatThread(type: ChatType, id: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatThread? {
         if type == .group {
             return chatThreads(predicate: NSPredicate(format: "groupId == %@", id), in: managedObjectContext).first
@@ -1321,6 +1344,28 @@ extension ChatData {
                 self.save(managedObjectContext)
             }
         }
+    }
+
+    func updateThreadPreviewsOfExpiredPosts(expiredPostIDs: [FeedPostID]) {
+
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let groupThreadsWithExpiredPosts = self.groupThreadsWithExpiredPosts(expiredPostIDs: expiredPostIDs, in: managedObjectContext)
+            DDLogVerbose("ChatData/deletePreviewsOfExpiredPosts/groupThreadsWithExpiredPosts num: \(groupThreadsWithExpiredPosts)")
+
+            for thread in groupThreadsWithExpiredPosts {
+                // reset everything except for timestamp to keep order
+                thread.lastFeedId = nil
+                thread.lastFeedUserID = nil
+                thread.lastFeedStatus = .none
+                thread.lastFeedText = nil
+                thread.lastFeedMediaType = .none
+            }
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+        
     }
 
 }
