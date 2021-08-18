@@ -69,7 +69,7 @@ class GroupTitleView: UIView {
 
     private func setup() {
         avatarView = AvatarViewButton(type: .custom)
-        let avatarButtonWidth: CGFloat = LayoutConstants.avatarSize + (avatarView.hasNewPostsIndicator ? 2*(avatarView.newPostsIndicatorRingSpacing + avatarView.newPostsIndicatorRingWidth) : 0)
+        let avatarButtonWidth: CGFloat = LayoutConstants.avatarSize
         avatarView.widthAnchor.constraint(equalToConstant: avatarButtonWidth).isActive = true
         avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
 

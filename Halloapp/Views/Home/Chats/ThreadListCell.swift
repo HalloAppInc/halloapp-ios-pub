@@ -196,7 +196,7 @@ class ThreadListCell: UITableViewCell {
     
     func configureAvatarSize(_ size: CGFloat) {
         avatarSize = size
-        let avatarSizeWithIndicator: CGFloat = avatarSize + (avatarView.hasNewPostsIndicator ? 2*(avatarView.newPostsIndicatorRingSpacing + avatarView.newPostsIndicatorRingWidth) : 0)
+        let avatarSizeWithIndicator: CGFloat = avatarSize
         contentView.addConstraints([
             avatarView.widthAnchor.constraint(equalToConstant: avatarSizeWithIndicator),
             avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor),
