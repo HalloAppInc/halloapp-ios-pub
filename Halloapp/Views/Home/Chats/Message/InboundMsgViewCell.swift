@@ -390,14 +390,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             case .unsupported:
                 return .unsupported
             case .error, .haveSeen, .none, .sentSeenReceipt:
-                if ServerProperties.isInternalUser,
-                   let decryptionResult = MainAppContext.shared.cryptoData.result(for: chatMessage.id),
-                   let originalText = chatMessage.text
-                {
-                    return .normal(originalText + (decryptionResult == "success" ? " ✅" : " 💣"), orderedMentions: [])
-                } else {
-                    return .normal(chatMessage.text ?? "", orderedMentions: [])
-                }
+                return .normal(chatMessage.text ?? "", orderedMentions: [])
             }
         }()
 
