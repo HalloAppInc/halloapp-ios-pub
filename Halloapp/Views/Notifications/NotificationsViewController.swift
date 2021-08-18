@@ -56,6 +56,9 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         
         tableView.backgroundColor = .primaryBg
         view.backgroundColor = .primaryBg
+        
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 60 // set a number close to default to prevent cells overlapping issue, can't be auto
 
         dataSource = UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterNotification>(tableView: tableView) { tableView, indexPath, notification in
             let cell = tableView.dequeueReusableCell(withIdentifier: NotificationsViewController.cellReuseIdentifier, for: indexPath) as! NotificationTableViewCell
