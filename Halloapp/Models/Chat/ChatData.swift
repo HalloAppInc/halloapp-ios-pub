@@ -195,13 +195,14 @@ class ChatData: ObservableObject {
                     guard let self = self else { return }
                     guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postID) else { return }
                     guard let groupID = feedPost.groupId else { return }
+                    let isInbound = feedPost.userId != MainAppContext.shared.userData.userId
                     DDLogInfo("ChatData/didMergeFeedPost")
 
                     self.didGetAGroupFeed.send(groupID)
 
                     self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                         guard let self = self else { return }
-                        self.updateThreadWithGroupFeed(postID, isInbound: true, using: managedObjectContext)
+                        self.updateThreadWithGroupFeed(postID, isInbound: isInbound, using: managedObjectContext)
                     }
                 }
             )

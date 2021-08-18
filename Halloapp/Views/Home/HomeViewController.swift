@@ -98,9 +98,13 @@ class HomeViewController: UITabBarController {
         cancellableSet.insert(MainAppContext.shared.feedData.didGetNewFeedPost.sink { [weak self] _ in
             self?.showHomeTabIndicatorIfNeeded()
         })
-        // TODO: Do not count shared (old) merged feed posts
-        cancellableSet.insert(MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] _ in
-            self?.showHomeTabIndicatorIfNeeded()
+        // Can ignore shared (old) merged feed posts as they will not be sent when connection is passive
+        cancellableSet.insert(MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] feedPostID in
+            guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostID) else { return }
+            let isInbound = feedPost.userId != MainAppContext.shared.userData.userId
+            if isInbound {
+                self?.showHomeTabIndicatorIfNeeded()
+            }
         })
         cancellableSet.insert(MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.sink { [weak self] in
             self?.removeHomeTabIndicator()
@@ -163,7 +167,7 @@ class HomeViewController: UITabBarController {
                 self.presentGroupPreviewIfNeeded()
             }
         )
-        
+
         cancellableSet.insert(
             MainAppContext.shared.didTapIntent.sink(receiveValue: { [weak self] intent in
                 if (intent as? INSendMessageIntent) != nil {
