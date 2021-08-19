@@ -2,14 +2,16 @@
 "alert.no.internet.title" = "Geen internetverbinding";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Controleer je internetverbinding en probeer opnieuw.";
+"alert.no.internet.try.again" = "Controleer of je internetverbinding hebt en probeer opnieuw.";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Toevoegen";
 
-/* Title for generic Cancel button. Mostly used in popups and as such.
-   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+/* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Annuleren";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "ANNULEREN";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Doorgaan";
@@ -81,7 +83,7 @@
 "meCapitalized" = "Ik";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe aanbieder kan kosten in rekening brengen.";
+"registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe provider kan kosten in rekening brengen.";
 
 /* Error message to display when user enters incorrect verification code */
 "registration.code.incorrect" = "De code die je hebt ingevoerd is onjuist";
@@ -99,7 +101,7 @@
 "registration.code.resend.by.voice" = "Bel me";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Om connecties te maken met je vrienden en familie hebben we toegang nodig tot je contacten.";
+"registration.contacts.content" = "Om je te kunnen verbinden met je vrienden en familie hebben we je toestemming nodig voor toegang tot je contacten.";
 
 /* Title for text explaining why we need contact permissions */
 "registration.contacts.title" = "Nog één ding";
@@ -132,7 +134,7 @@
 "registration.phoneEntry.placeholder" = "Telefoonnummer";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "HalloApp gebruikt het telefoonnummer alleen om je te matchen met je vrienden op HalloApp en legt geen andere gegevens uit je contactenlijst vast.";
+"registration.privacy.content" = "HalloApp gebruikt alleen het telefoonnummer om je te kunnen matchen met je vrienden op HalloApp en legt geen andere gegevens uit je contactenlijst vast.";
 
 /* Title for modal describing how we use contacts data */
 "registration.privacy.title" = "Jouw privacy is onze prioriteit";

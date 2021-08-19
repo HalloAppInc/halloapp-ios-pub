@@ -667,6 +667,8 @@
 		68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Localizations+Registration.swift"; sourceTree = "<group>"; };
 		68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiredVersionViewController.swift; sourceTree = "<group>"; };
 		68E5E9D925F6FAF100250762 /* FeedDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataSource.swift; sourceTree = "<group>"; };
+		68EA2E5F26CEEDB20056FC55 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		68EA2E6026CEEDB20056FC55 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		68F0226D26AB93FD0058088D /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = fr; path = fr.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		68F0226E26AB93FD0058088D /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		68F0226F26AB93FD0058088D /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -2890,6 +2892,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				6818608826C58EEB008D69F6 /* fa */,
+				68EA2E5F26CEEDB20056FC55 /* nl */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
@@ -2926,6 +2929,7 @@
 				6807C40126AFA7B500BA3586 /* cs */,
 				688429B026AFA808009FC256 /* id */,
 				6818608B26C58EEB008D69F6 /* fa */,
+				68EA2E6026CEEDB20056FC55 /* nl */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";

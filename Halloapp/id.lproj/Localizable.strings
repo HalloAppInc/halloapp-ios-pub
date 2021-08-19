@@ -52,8 +52,7 @@
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Tidak ada koneksi internet";
 
-/* Title for generic Cancel button. Mostly used in popups and as such.
-   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+/* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Batal";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
@@ -137,12 +136,6 @@
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
 "chat.add.to.contacts.book.label" = "Untuk melihat postingan dari %@, tambahkan nomornya ke buku kontak Anda. Ketuk untuk menambahkan";
 
-/* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.name.placeholder" = "Berikan grup Anda nama";
-
-/* Title of group creation screen */
-"chat.create.group.title" = "Info Grup";
-
 /* Label for creating a new group */
 "chat.create.new.group" = "Membuat Grup Baru";
 
@@ -151,9 +144,6 @@
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Obrolan dienkripsi dari ujung ke ujung dan HalloApp tidak dapat mengaksesnya. Ketuk untuk mempelajari selengkapnya.";
-
-/* Label shown above background selection row */
-"chat.group.background.label" = "LATAR BELAKANG";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ bergabung dengan grup via Tautan Undangan Grup";
@@ -205,9 +195,6 @@
 
 /* Confirmation message presented when leaving a group */
 "chat.group.leave.group.confirmation" = "Tinggalkan “%@”?";
-
-/* Label shown above group members list */
-"chat.group.members.label" = "ANGGOTA";
 
 /* Label shown above group name input box */
 "chat.group.name.label" = "NAMA GRUP";
@@ -347,8 +334,7 @@
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Untuk membantumu terhubung dengan teman dan keluarga izinkan HalloApp mengakses kontakmu.";
 
-/* Title for modal view when showing how to change contact permissions.
-   Title for tutorial explaining how user can enable contacts permission */
+/* Title for tutorial explaining how user can enable contacts permission */
 "contacts.permission.tutorial.title" = "Kontak";
 
 /* Alert message telling the user to try creating the group again after an error */
@@ -756,8 +742,7 @@
 /* New post notification text when post is multiple videos without caption. */
 "notification.n.videos" = "notification.n.videos";
 
-/* Content for contact notification.
-   Content for friend notification. */
+/* Content for friend notification. */
 "notification.new.friend.content" = "%@ kini ada di HalloApp";
 
 /* Fallback text for new message notification. */
@@ -832,8 +817,7 @@
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "picker.media.n.limit";
 
-/* Displayed in place of a deleted feed post.
-   Displayed in place of a deleted group feed post at group list screen */
+/* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Pos ini sudah dihapus";
 
 /* Displayed in place of a deleted feed post. */

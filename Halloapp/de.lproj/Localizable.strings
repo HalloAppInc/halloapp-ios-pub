@@ -64,9 +64,11 @@
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Hinzufügen";
 
-/* Title for generic Cancel button. Mostly used in popups and as such.
-   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+/* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Abbrechen";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "ABBRECHEN";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Weiter";
@@ -152,12 +154,6 @@
 /* Text shown at the top of the chat screen informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Der Kontakt ist gesperrt, zur Freigabe hier tippen";
 
-/* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.name.placeholder" = "Gruppennamen vergeben";
-
-/* Title of group creation screen */
-"chat.create.group.title" = "Gruppen-Info";
-
 /* Label for creating a new group */
 "chat.create.new.group" = "Neue Gruppe erstellen";
 
@@ -166,9 +162,6 @@
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Die Chats sind Ende-zu-Ende verschlüsselt und HalloApp hat keinen Zugriff darauf. Tippe hier, um mehr zu erfahren.";
-
-/* Label shown above background selection row */
-"chat.group.background.label" = "HINTERGRUND";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ ist der Gruppe über einen Einladungslink beigetreten";
@@ -192,7 +185,7 @@
 "chat.group.info.bg.color.label" = "Farbe";
 
 /* Text label for default selection of group feed background color */
-"chat.group.info.bg.default.label" = "Standard";
+"chat.group.info.bg.default.label" = "Standardeinstellung";
 
 /* Text for menu option of demoting a group member */
 "chat.group.info.demote" = "Als Admin entfernen";
@@ -220,9 +213,6 @@
 
 /* Confirmation message presented when leaving a group */
 "chat.group.leave.group.confirmation" = "“%@” verlassen?";
-
-/* Label shown above group members list */
-"chat.group.members.label" = "MITGLIEDER";
 
 /* Label shown above group name input box */
 "chat.group.name.label" = "GRUPPENNAME";
@@ -359,12 +349,26 @@
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Um dir zu helfen, den Kontakt zu deinen Freunden und deiner Familie herzustellen, erlaube HalloApp den Zugriff auf deine Kontakte.";
 
-/* Title for modal view when showing how to change contact permissions.
-   Title for tutorial explaining how user can enable contacts permission */
-"contacts.permission.tutorial.title" = "Kontakte";
+/* Title for modal view when showing how to change contact permissions. */
+"contacts.permission.explanation.title" = "Kontakte";
+
+/* Title for tutorial explaining how user can enable contacts permission */
+"contacts.permission.tutorial.title" = "So werden \"Kontakte\" aktiviert";
+
+/* Text label for group description text box */
+"create.group.description.label" = "Gruppenbeschreibung";
+
+/* Placeholder text shown inside the group description input box when it's empty */
+"create.group.description.placeholder" = "Beschreibung hinzufügen (optional)";
 
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Bei der Erstellung der Gruppe ist ein Fehler aufgetreten. Bitte versuche es noch einmal";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"create.group.name.placeholder" = "Gruppenname hinzufügen";
+
+/* Title of group creation screen */
+"create.group.title" = "Gruppeninfo";
 
 /* Title for generic delete button. */
 "Delete" = "Löschen";
@@ -462,11 +466,23 @@
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Privat antworten";
 
+/* Placeholder text shown in group description input box when there's no description */
+"group.add.description" = "Gruppenbeschreibung hinzufügen";
+
+/* Label shown above background selection row */
+"group.background.label" = "Hintergrund";
+
 /* Label for choosing a color at the group background preview screen */
 "group.bg.pick.a.color.label" = "FARBE AUSWÄHLEN";
 
 /* Title of group background screen */
 "group.bg.title" = "Hintergrund";
+
+/* Label shown above group description input box */
+"group.description.label" = "GRUPPENBESCHREIBUNG";
+
+/* Title of group description edit screen */
+"group.edit.desc.title" = "Bearbeiten";
 
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ hat %2$@ hinzugefügt";
@@ -485,6 +501,12 @@
 
 /* Message text shown when you change the background */
 "group.event.changed.background.you" = "Du hast die Hintergrundfarbe geändert";
+
+/* Message text shown with the user who changed the group description */
+"group.event.changed.description" = "%1@ hat die Gruppenbeschreibung geändert";
+
+/* Message text shown when you change the group description */
+"group.event.changed.description.you" = "Du hast die Gruppenbeschreibung geändert";
 
 /* Message text shown with the user who changed the group name */
 "group.event.changed.name" = "%1$@ hat den Gruppennamen in \"%2$@\" umbenannt";
@@ -552,6 +574,9 @@
 /* Title of group invite screen */
 "group.invite.title" = "Gruppeneinladung";
 
+/* Label shown above group members list */
+"group.members.label" = "Mitglieder";
+
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "Der Einladungslink zur Gruppe ist ungültig";
 
@@ -598,7 +623,7 @@
 "home.update.notice.title" = "Diese Version ist veraltet";
 
 /* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
-"invite.already.halloapp.user" = "Ist bereits auf HalloApp";
+"invite.already.halloapp.user" = "Nutzt bereits HalloApp";
 
 /* Title for button that launches system SMS app to send invite. As short as possible! */
 "invite.app.sms" = "Nachricht";
@@ -745,7 +770,7 @@
 "notification.commented.with.text" = "Kommentar: %@";
 
 /* Content for unknown contact notification. */
-"notification.contact.unknown.content" = "Einer deiner Kontakte ist jetzt aktiv auf HalloApp";
+"notification.contact.unknown.content" = "Einer deiner Kontakte ist jetzt bei HalloApp";
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ hat deine HalloApp-Einladung angenommen 🎉";
@@ -753,9 +778,14 @@
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "Benachrichtigung.n.Fotos";
 
-/* Content for contact notification.
-   Content for friend notification. */
-"notification.new.friend.content" = "%@ ist jetzt aktiv auf HalloApp";
+/* Title for the new comment notification. */
+"notification.new.comment" = "Neuer Kommentar";
+
+/* Content for contact notification. */
+"notification.new.contact.content" = "%@ ist jetzt auf HalloApp";
+
+/* Content for friend notification. */
+"notification.new.friend.content" = "%@ ist jetzt bei HalloApp";
 
 /* Fallback text for new message notification. */
 "notification.new.message" = "Neue Nachricht";
@@ -826,12 +856,11 @@
 /* An option to update limited access. */
 "picker.media.limit.updateSelection" = "Bild- & Videoauswahl aktualisieren";
 
-/* Displayed in place of a deleted feed post.
-   Displayed in place of a deleted group feed post at group list screen */
+/* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Dieser Beitrag wurde gelöscht";
 
 /* Displayed in place of a deleted feed post. */
-"post.has.been.deleted.by.author" = "%@ hat den Beitrag gelöscht";
+"post.has.been.deleted.by.author" = "%@ hat einen Beitrag gelöscht";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted.by.you" = "Du hast deinen Beitrag gelöscht";
@@ -978,7 +1007,7 @@
 "server.new.comment" = "Neuer Kommentar";
 
 /* fallback text in notification when a new contact joins */
-"server.new.contact" = "%@ ist nun auch auf HalloApp";
+"server.new.contact" = "%@ ist jetzt auf HalloApp";
 
 /* fallback text in notification when user is added to a new group */
 "server.new.group" = "Du wurdest einer neuen Gruppe hinzugefügt";

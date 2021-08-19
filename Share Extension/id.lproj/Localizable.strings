@@ -4,8 +4,7 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Periksa apakah Anda tersambung ke internet, lalu coba lagi.";
 
-/* Title for generic Cancel button. Mostly used in popups and as such.
-   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+/* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Batal";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
@@ -83,8 +82,7 @@
 /* Composer title when sharing to feed */
 "share.composer.title.feed" = "Pos Baru";
 
-/* Alert dialog message shown when uploading fails.
-   Alert dialog title shown when uploading fails. */
+/* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Gagal mengunggah";
 
 /* Alert dialog title shown when uploading begins. */

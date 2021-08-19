@@ -1,3 +1,6 @@
 /* Bundle display name */
 "CFBundleDisplayName" = "HalloApp";
 
+/* Bundle name */
+"CFBundleName" = "HalloAppClip";
+

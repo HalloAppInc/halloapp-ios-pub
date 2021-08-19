@@ -2,14 +2,16 @@
 "alert.no.internet.title" = "Geen Internetverbinding";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Controleer je internetverbinding en probeer opnieuw.";
+"alert.no.internet.try.again" = "Controleer of je internetverbinding hebt en probeer opnieuw.";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Toevoegen";
 
-/* Title for generic Cancel button. Mostly used in popups and as such.
-   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+/* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Annuleren";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "ANNULEREN";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Doorgaan";
@@ -86,8 +88,10 @@
 /* Composer title when sharing to feed */
 "share.composer.title.feed" = "Nieuwe Post";
 
-/* Alert dialog message shown when uploading fails.
-   Alert dialog title shown when uploading fails. */
+/* Alert dialog message shown when uploading fails. */
+"share.composer.uploading.fail.message" = "Probeer later opnieuw alsjeblieft.";
+
+/* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Uploaden mislukt";
 
 /* Alert dialog title shown when uploading begins. */

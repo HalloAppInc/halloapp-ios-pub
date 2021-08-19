@@ -52,8 +52,7 @@
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "İnternet bağlantısı yok";
 
-/* Title for generic Cancel button. Mostly used in popups and as such.
-   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+/* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "İptal et";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
@@ -137,12 +136,6 @@
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
 "chat.add.to.contacts.book.label" = "%@ kişisinin gönderilerini görmek için, numarasını kişi defterine ekle. Eklemek için dokun.";
 
-/* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.name.placeholder" = "Grubuna bir ad ver";
-
-/* Title of group creation screen */
-"chat.create.group.title" = "Grup bilgisi";
-
 /* Label for creating a new group */
 "chat.create.new.group" = "Yeni grup oluştur";
 
@@ -151,9 +144,6 @@
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Sohbetler uçtan uca şifrelenir ve HalloApp'in bunlara erişimi yoktur. Daha fazlasını öğrenmek için dokun.";
-
-/* Label shown above background selection row */
-"chat.group.background.label" = "ARKA PLAN";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@, Grup Davet İlişimi ile gruba katıldı";
@@ -205,9 +195,6 @@
 
 /* Confirmation message presented when leaving a group */
 "chat.group.leave.group.confirmation" = "“%@” grubundan ayrılmak mı istiyorsun?";
-
-/* Label shown above group members list */
-"chat.group.members.label" = "ÜYELER";
 
 /* Label shown above group name input box */
 "chat.group.name.label" = "GRUP ADI";
@@ -335,8 +322,7 @@
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Ailen ve arkadaşlarınla bağlantı kurmana yardımcı olmak için HalloApp'in kişilerine erişmesine izin ver.";
 
-/* Title for modal view when showing how to change contact permissions.
-   Title for tutorial explaining how user can enable contacts permission */
+/* Title for tutorial explaining how user can enable contacts permission */
 "contacts.permission.tutorial.title" = "Kişiler";
 
 /* Alert message telling the user to try creating the group again after an error */
@@ -723,8 +709,7 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@, HalloApp'e katılma davetini kabul etti 🎉";
 
-/* Content for contact notification.
-   Content for friend notification. */
+/* Content for friend notification. */
 "notification.new.friend.content" = "%@ artık HalloApp'te";
 
 /* Fallback text for new message notification. */
@@ -793,8 +778,7 @@
 /* An option to update limited access. */
 "picker.media.limit.updateSelection" = "Görüntü ve video seçimini güncelle";
 
-/* Displayed in place of a deleted feed post.
-   Displayed in place of a deleted group feed post at group list screen */
+/* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Bu gönderi silindi";
 
 /* Displayed in place of a deleted feed post. */

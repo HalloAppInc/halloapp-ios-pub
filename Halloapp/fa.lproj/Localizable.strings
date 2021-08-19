@@ -8,6 +8,9 @@
 "• %@" = "%@";
 
 /* About screen: body text. */
+"about.body.1" = "هالواپ اینجاست! ما آن‌ را برای شما و کسانی که دوستشان دارید ساختیم.\nما برنامه‌های اجتماعی را به اصل خود برگرداندیم و در عین حال یک لایه امنیتی و حریم خصوصی اضافه کردیم که باور داریم همه مردم دنیا باید به آن دسترسی داشته باشند.\nهالواپ هیچ وقت از اطلاعات خصوصی شما استفاده نخواهد کرد و هیچ وقت تبلیغات نشان نخواهد داد.\nبه جای آن، ما قصد داریم با هزینه پایین امکانات مجزایی در اختیار شما قرار دهیم.";
+
+/* About screen: body text. */
 "about.body.2" = "ممنون از اینکه از هالواپ استفاده میکنید و آن را با دوستان و خانواده‌ به اشتراک میگذارید. ما هر هفته پیشرفت میکنیم.";
 
 /* About screen: footer text. Parameter is support email address. */
@@ -61,9 +64,11 @@
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "افزودن";
 
-/* Title for generic Cancel button. Mostly used in popups and as such.
-   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+/* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "لغو";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "لغو";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "ادامه";
@@ -149,12 +154,6 @@
 /* Text shown at the top of the chat screen informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "مخاطب مسدود شد، برای رفع مسدودیت کلیک کنید";
 
-/* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.name.placeholder" = "نامگذاری گروه";
-
-/* Title of group creation screen */
-"chat.create.group.title" = "اطلاعات گروه";
-
 /* Label for creating a new group */
 "chat.create.new.group" = "ایجاد گروه جدید";
 
@@ -163,9 +162,6 @@
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "گفتگوها رمزگذاری سرتاسری شده‌اند و هالواپ به آن‌ها دسترسی ندارد. برای اطلاعات بیشتر کلیک کنید.";
-
-/* Label shown above background selection row */
-"chat.group.background.label" = "زمینه";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ از طریق لینک به گروه پیوست";
@@ -217,9 +213,6 @@
 
 /* Confirmation message presented when leaving a group */
 "chat.group.leave.group.confirmation" = "مطمئنید میخواهید «%@» را ترک کنید؟";
-
-/* Label shown above group members list */
-"chat.group.members.label" = "اعضا";
 
 /* Label shown above group name input box */
 "chat.group.name.label" = "اسم گروه";
@@ -359,12 +352,26 @@
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "برای ارتباط با دوستان و آشنایانتان به هالواپ اجازه دسترسی به مخاطب‌هایتان دهید.";
 
-/* Title for modal view when showing how to change contact permissions.
-   Title for tutorial explaining how user can enable contacts permission */
+/* Title for modal view when showing how to change contact permissions. */
+"contacts.permission.explanation.title" = "مخاطب‌ها";
+
+/* Title for tutorial explaining how user can enable contacts permission */
 "contacts.permission.tutorial.title" = "مخاطب‌ها";
+
+/* Text label for group description text box */
+"create.group.description.label" = "توضیحات";
+
+/* Placeholder text shown inside the group description input box when it's empty */
+"create.group.description.placeholder" = "افزودن توضیحات (اختیاری)";
 
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "خطا در ایجاد گروه، لطفاً دوباره امتحان کنید";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"create.group.name.placeholder" = "نامگذاری گروه";
+
+/* Title of group creation screen */
+"create.group.title" = "اطلاعات گروه";
 
 /* Title for generic delete button. */
 "Delete" = "حذف";
@@ -474,11 +481,23 @@
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "پاسخ خصوصی";
 
+/* Placeholder text shown in group description input box when there's no description */
+"group.add.description" = "افزودن توضیحات گروه";
+
+/* Label shown above background selection row */
+"group.background.label" = "زمینه";
+
 /* Label for choosing a color at the group background preview screen */
 "group.bg.pick.a.color.label" = "انتخاب رنگ";
 
 /* Title of group background screen */
 "group.bg.title" = "زمینه";
+
+/* Label shown above group description input box */
+"group.description.label" = "توضیحات";
+
+/* Title of group description edit screen */
+"group.edit.desc.title" = "ویرایش";
 
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ %2$@ را دعوت کرد";
@@ -497,6 +516,12 @@
 
 /* Message text shown when you change the background */
 "group.event.changed.background.you" = "شما رنگ زمینه را تغییر دادید";
+
+/* Message text shown with the user who changed the group description */
+"group.event.changed.description" = "%1@ توضیحات گروه را تغییر داد";
+
+/* Message text shown when you change the group description */
+"group.event.changed.description.you" = "شما توضیحات گروه را تغییر دادید";
 
 /* Message text shown with the user who changed the group name */
 "group.event.changed.name" = "%1$@ نام گروه را به \"%2$@\" تغییر داد";
@@ -564,6 +589,9 @@
 /* Title of group invite screen */
 "group.invite.title" = "دعوت به گروه";
 
+/* Label shown above group members list */
+"group.members.label" = "اعضا";
+
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "لینک گروه اعتبار ندارد";
 
@@ -613,7 +641,7 @@
 "invite.already.halloapp.user" = "کاربر هالواپ است";
 
 /* Title for button that launches system SMS app to send invite. As short as possible! */
-"invite.app.sms" = "پیام‌ها";
+"invite.app.sms" = "پیامک";
 
 /* Title for button that launches WhatsApp to send invite. Should match WhatsApp localization. */
 "invite.app.whatsapp" = "واتس‌اپ";
@@ -628,7 +656,7 @@
 "invite.error.alert.title" = "خطا در دعوت";
 
 /* Displayed when user does not have any invites left. Parameter is date. */
-"invite.out.of.invites.w.date" = "تعداد دعوت‌ها تمام شده است. لطفاً‌ بعد از @% تلاش کنید";
+"invite.out.of.invites.w.date" = "تعداد دعوت‌ها تمام شده است. لطفاً‌ بعد از %@ تلاش کنید";
 
 /* Displayed white user is inviting someone. */
 "invite.please.wait" = "لطفاً صبر کنید...";
@@ -637,7 +665,7 @@
 "invite.text" = "به من در هالواپ ملحق شوید - راهی ساده، خصوصی و مطمئن برای ارتباط با دوستان و آشنایان. آن را از طریق https://halloapp.com/dl نصب کنید";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "سلام @$1%، شما را دعوت میکنم به من در هالواپ ملحق شوید - یک شبکه برای آشنایانم. از @$2% برای ثبتنام استفاده کنیدد. آن را از https://halloapp.com/dl نصب کنید";
+"invite.text.specific" = "سلام %1$@، شما را دعوت میکنم به من در هالواپ ملحق شوید - یک شبکه برای آشنایانم. از @$2% برای ثبتنام استفاده کنید. آن را از https://halloapp.com/dl نصب کنید";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "دعوت";
@@ -763,10 +791,10 @@
 "notification.commented.with.text" = "نظر: %@";
 
 /* Content for unknown contact notification. */
-"notification.contact.unknown.content" = "یکی از مخاطب‌هایتان الآن در هالواپ است";
+"notification.contact.unknown.content" = "یکی از مخاطب‌هایتان اکنون در هالواپ است";
 
 /* Content for inviter notification. */
-"notification.invite.accepted.content" = "%@ دعوت شما را به هالواپ قبول کرد";
+"notification.invite.accepted.content" = "%@ دعوت شما را به هالواپ پذیرفت";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -774,8 +802,13 @@
 /* New post notification text when post is multiple videos without caption. */
 "notification.n.videos" = "notification.n.videos";
 
-/* Content for contact notification.
-   Content for friend notification. */
+/* Title for the new comment notification. */
+"notification.new.comment" = "نظر جدید";
+
+/* Content for contact notification. */
+"notification.new.contact.content" = "%@ در حال حاضر در هالواپ است";
+
+/* Content for friend notification. */
 "notification.new.friend.content" = "%@ به هالواپ پیوست";
 
 /* Fallback text for new message notification. */
@@ -850,8 +883,7 @@
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "picker.media.n.limit";
 
-/* Displayed in place of a deleted feed post.
-   Displayed in place of a deleted group feed post at group list screen */
+/* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "این عکس حذف شده است";
 
 /* Displayed in place of a deleted feed post. */

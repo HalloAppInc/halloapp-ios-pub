@@ -7,9 +7,11 @@
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Hinzufügen";
 
-/* Title for generic Cancel button. Mostly used in popups and as such.
-   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+/* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Abbrechen";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "ABBRECHEN";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Weiter";
@@ -75,14 +77,19 @@
 "notification.commented.with.text" = "Kommentiert: %@";
 
 /* Content for unknown contact notification. */
-"notification.contact.unknown.content" = "Einer deiner Kontakte ist jetzt aktiv auf HalloApp";
+"notification.contact.unknown.content" = "Einer deiner Kontakte ist jetzt bei HalloApp";
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ hat deine HalloApp-Einladung angenommen 🎉";
 
-/* Content for contact notification.
-   Content for friend notification. */
-"notification.new.friend.content" = "%@ ist jetzt aktiv auf HalloApp";
+/* Title for the new comment notification. */
+"notification.new.comment" = "Neuer Kommentar";
+
+/* Content for contact notification. */
+"notification.new.contact.content" = "%@ ist jetzt auf HalloApp";
+
+/* Content for friend notification. */
+"notification.new.friend.content" = "%@ ist jetzt auf HalloApp";
 
 /* Fallback text for new message notification. */
 "notification.new.message" = "Neue Nachricht";

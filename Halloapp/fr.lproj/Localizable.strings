@@ -58,8 +58,7 @@
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Ajouter";
 
-/* Title for generic Cancel button. Mostly used in popups and as such.
-   Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+/* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Annuler";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
@@ -143,12 +142,6 @@
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
 "chat.add.to.contacts.book.label" = "Pour visualiser les messages de %@, ajoute son numéro à ton carnet d'adresses. Appuie pour ajouter";
 
-/* Placeholder text shown inside the group name input box when it's empty */
-"chat.create.group.name.placeholder" = "Donnez un nom à votre groupe";
-
-/* Title of group creation screen */
-"chat.create.group.title" = "Informations sur le groupe";
-
 /* Label for creating a new group */
 "chat.create.new.group" = "Créer un nouveau groupe";
 
@@ -157,9 +150,6 @@
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Les conversations sont cryptées de bout en bout et HalloApp ne peut pas y avoir accès. Appuye pour en savoir plus.";
-
-/* Label shown above background selection row */
-"chat.group.background.label" = "ARRIÈRE-PLAN";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ a rejoint le groupe avec un lien d'invitation de groupe";
@@ -211,9 +201,6 @@
 
 /* Confirmation message presented when leaving a group */
 "chat.group.leave.group.confirmation" = "Quitter « %@ » ?";
-
-/* Label shown above group members list */
-"chat.group.members.label" = "MEMBRES";
 
 /* Label shown above group name input box */
 "chat.group.name.label" = "NOM DU GROUPE";
@@ -353,8 +340,7 @@
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Pour t'aider à communiquer avec tes amis et ta famille, autorise HalloApp à accéder à tes contacts.";
 
-/* Title for modal view when showing how to change contact permissions.
-   Title for tutorial explaining how user can enable contacts permission */
+/* Title for tutorial explaining how user can enable contacts permission */
 "contacts.permission.tutorial.title" = "Contacts";
 
 /* Alert message telling the user to try creating the group again after an error */
@@ -765,8 +751,7 @@
 /* New post notification text when post is multiple videos without caption. */
 "notification.n.videos" = "notification.n.vidéos";
 
-/* Content for contact notification.
-   Content for friend notification. */
+/* Content for friend notification. */
 "notification.new.friend.content" = "%@ est désormais sur HalloApp";
 
 /* Fallback text for new message notification. */
@@ -841,8 +826,7 @@
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "choix.média.n.limite";
 
-/* Displayed in place of a deleted feed post.
-   Displayed in place of a deleted group feed post at group list screen */
+/* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "La publication a été supprimée";
 
 /* Displayed in place of a deleted feed post. */
