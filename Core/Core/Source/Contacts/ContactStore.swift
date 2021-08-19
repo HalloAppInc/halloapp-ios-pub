@@ -93,17 +93,11 @@ open class ContactStore {
     public var viewContext: NSManagedObjectContext
     private var bgContext: NSManagedObjectContext
 
-    public private(set) var pushNames: [UserID: String] = [:]
-    private var pushNumbersData: [UserID: PushNumberData] = [:]
-
     required public init(userData: UserData) {
         self.userData = userData
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
         viewContext = persistentContainer.viewContext
         bgContext = persistentContainer.newBackgroundContext()
-
-        pushNames = fetchAllPushNames(using: viewContext)
-        pushNumbersData = fetchAllPushNumbersData(using: viewContext)
     }
     
     public func performOnBackgroundContextAndWait(_ block: @escaping (NSManagedObjectContext) -> Void) {
@@ -166,6 +160,16 @@ open class ContactStore {
     }
 
     // MARK: Push names
+    
+    public private(set) lazy var pushNames: [UserID: String] = {
+        var pushNames: [UserID: String] = fetchAllPushNames(using: viewContext)
+        return pushNames
+    }()
+
+    private lazy var pushNumbersData: [UserID: PushNumberData] = {
+        var pushNumbersData: [UserID: PushNumberData] = fetchAllPushNumbersData(using: viewContext)
+        return pushNumbersData
+    }()
 
     private func fetchAllPushNames(using managedObjectContext: NSManagedObjectContext) -> [UserID: String] {
         let fetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
