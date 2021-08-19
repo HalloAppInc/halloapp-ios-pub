@@ -12,121 +12,120 @@ import CoreData
 
 class DataStore: NotificationServiceExtensionDataStore {
 
-    func save(postData: PostData, notificationMetadata: NotificationMetadata) -> SharedFeedPost {
-        let managedObjectContext = persistentContainer.viewContext
+    func save(postData: PostData, notificationMetadata: NotificationMetadata) {
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
 
-        let userId = postData.userId
-        let postId = postData.id
+            let userId = postData.userId
+            let postId = postData.id
 
-        DDLogInfo("DataStore/post/\(postId)/create")
+            DDLogInfo("DataStore/post/\(postId)/create")
 
-        let feedPost = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedPost", into: managedObjectContext) as! SharedFeedPost
-        feedPost.id = postId
-        feedPost.userId = userId
-        feedPost.groupId = notificationMetadata.groupId
-        feedPost.text = postData.text
-        feedPost.status = .received
-        feedPost.timestamp = notificationMetadata.timestamp ?? Date()
-        
-        switch postData.content {
-        case .album, .text, .retracted:
-            feedPost.rawData = nil
-        case .unsupported(let data):
-            feedPost.rawData = data
+            let feedPost = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedPost", into: managedObjectContext) as! SharedFeedPost
+            feedPost.id = postId
+            feedPost.userId = userId
+            feedPost.groupId = notificationMetadata.groupId
+            feedPost.text = postData.text
+            feedPost.status = .received
+            feedPost.timestamp = notificationMetadata.timestamp ?? Date()
+
+            switch postData.content {
+            case .album, .text, .retracted:
+                feedPost.rawData = nil
+            case .unsupported(let data):
+                feedPost.rawData = data
+            }
+
+            // Add mentions
+            var mentions: Set<SharedFeedMention> = []
+            for protoMention in postData.orderedMentions {
+                let mention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
+                mention.index = Int(protoMention.index)
+                mention.userID = protoMention.userID
+                mention.name = protoMention.name
+                mentions.insert(mention)
+            }
+            feedPost.mentions = mentions
+
+            // Add media
+            var postMedia: Set<SharedMedia> = []
+            for (index, feedPostMedia) in postData.orderedMedia.enumerated() {
+                guard let mediaType: FeedMediaType = {
+                    switch feedPostMedia.type {
+                    case .image: return .image
+                    case .video: return .video
+                    default: return nil
+                    }}() else { continue }
+                let media = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
+                media.type = mediaType
+                media.status = .none
+                media.url = feedPostMedia.url
+                media.size = feedPostMedia.size
+                media.key = feedPostMedia.key
+                media.sha256 = feedPostMedia.sha256
+                media.order = Int16(index)
+                postMedia.insert(media)
+            }
+            feedPost.media = postMedia
+
+            // set a merge policy so that we dont end up with duplicate feedposts.
+            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+            self.save(managedObjectContext)
         }
-
-        // Add mentions
-        var mentions: Set<SharedFeedMention> = []
-        for protoMention in postData.orderedMentions {
-            let mention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
-            mention.index = Int(protoMention.index)
-            mention.userID = protoMention.userID
-            mention.name = protoMention.name
-            mentions.insert(mention)
-        }
-        feedPost.mentions = mentions
-
-        // Add media
-        var postMedia: Set<SharedMedia> = []
-        for (index, feedPostMedia) in postData.orderedMedia.enumerated() {
-            guard let mediaType: FeedMediaType = {
-                switch feedPostMedia.type {
-                case .image: return .image
-                case .video: return .video
-                default: return nil
-                }}() else { continue }
-            let media = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
-            media.type = mediaType
-            media.status = .none
-            media.url = feedPostMedia.url
-            media.size = feedPostMedia.size
-            media.key = feedPostMedia.key
-            media.sha256 = feedPostMedia.sha256
-            media.order = Int16(index)
-            postMedia.insert(media)
-        }
-        feedPost.media = postMedia
-
-        // set a merge policy so that we dont end up with duplicate feedposts.
-        managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        save(managedObjectContext)
-
-        return feedPost
     }
     
     func save(commentData: CommentData, notificationMetadata: NotificationMetadata) {
-        let managedObjectContext = persistentContainer.viewContext
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
         
-        // Extract info from parameters
-        let userId = commentData.userId
-        let commentId = commentData.id
-        let postId = commentData.feedPostId
-        let parentCommentId = commentData.parentId?.isEmpty ?? true ? nil : commentData.parentId
+            // Extract info from parameters
+            let userId = commentData.userId
+            let commentId = commentData.id
+            let postId = commentData.feedPostId
+            let parentCommentId = commentData.parentId?.isEmpty ?? true ? nil : commentData.parentId
 
-        // Create comment
-        DDLogInfo("NotificationExtension/DataStore/new-comment/create id=[\(commentId)]  postId=[\(postId)]")
-        let feedComment = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedComment", into: managedObjectContext) as! SharedFeedComment
-        feedComment.id = commentId
-        feedComment.userId = userId
-        feedComment.postId = postId
-        feedComment.parentCommentId = parentCommentId
-        feedComment.status = .received
-        feedComment.timestamp = notificationMetadata.timestamp ?? Date()
-        
-        
-        // populate text with empty string as text is required, could be removed if this changes
-        var commentText: String = ""
-        switch commentData.content {
-        case .text(let mentionText):
-            commentText = mentionText.collapsedText
-            var mentions = Set<SharedFeedMention>()
-            for (i, mention) in mentionText.mentions {
-                let feedMention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
-                feedMention.index = Int(i)
-                feedMention.userID = mention.userID
-                feedMention.name = mention.pushName ?? ""
-                if feedMention.name == "" {
-                    DDLogError("NotificationExtension/DataStore/new-comment/mention/\(mention.userID) missing push name")
+            // Create comment
+            DDLogInfo("NotificationExtension/DataStore/new-comment/create id=[\(commentId)]  postId=[\(postId)]")
+            let feedComment = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedComment", into: managedObjectContext) as! SharedFeedComment
+            feedComment.id = commentId
+            feedComment.userId = userId
+            feedComment.postId = postId
+            feedComment.parentCommentId = parentCommentId
+            feedComment.status = .received
+            feedComment.timestamp = notificationMetadata.timestamp ?? Date()
+
+            // populate text with empty string as text is required, could be removed if this changes
+            var commentText: String = ""
+            switch commentData.content {
+            case .text(let mentionText):
+                commentText = mentionText.collapsedText
+                var mentions = Set<SharedFeedMention>()
+                for (i, mention) in mentionText.mentions {
+                    let feedMention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
+                    feedMention.index = Int(i)
+                    feedMention.userID = mention.userID
+                    feedMention.name = mention.pushName ?? ""
+                    if feedMention.name == "" {
+                        DDLogError("NotificationExtension/DataStore/new-comment/mention/\(mention.userID) missing push name")
+                    }
+                    mentions.insert(feedMention)
                 }
-                mentions.insert(feedMention)
+                feedComment.mentions = mentions
+                feedComment.rawData = nil
+            case .retracted:
+                DDLogError("NotificationExtension/DataStore/incoming-retracted-comment [\(commentId)]")
+                feedComment.rawData = nil
+            case .unsupported(let data):
+                feedComment.rawData = data
+            case .album:
+                // TODO Nandini support media comments
+                DDLogError("NotificationExtension/DataStore/incoming-media-comment [\(commentId)] not supported")
             }
-            feedComment.mentions = mentions
-            feedComment.rawData = nil
-        case .retracted:
-            DDLogError("NotificationExtension/DataStore/incoming-retracted-comment [\(commentId)]")
-            feedComment.rawData = nil
-        case .unsupported(let data):
-            feedComment.rawData = data
-        case .album:
-            // TODO Nandini support media comments
-            DDLogError("NotificationExtension/DataStore/incoming-media-comment [\(commentId)] not supported")
+
+            // set commentText depending on the content.
+            feedComment.text = commentText
+
+            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+            self.save(managedObjectContext)
         }
-
-        // set commentText depending on the content.
-        feedComment.text = commentText
-
-        managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        save(managedObjectContext)
     }
 
     func saveServerMsg(notificationMetadata: NotificationMetadata) {
@@ -135,13 +134,12 @@ class DataStore: NotificationServiceExtensionDataStore {
             return
         }
         DDLogInfo("NotificationExtension/DataStore/saveServerMsg, contentId: \(notificationMetadata.contentId)")
-        // why use view context in nse to save? all functions are using this.
-        // todo(murali@): update this.
-        let managedObjectContext = persistentContainer.viewContext
-        let serverMsg = NSEntityDescription.insertNewObject(forEntityName: "SharedServerMessage", into: managedObjectContext) as! SharedServerMessage
-        serverMsg.msg = serverMsgPb
-        serverMsg.timestamp = notificationMetadata.timestamp ?? Date()
-        save(managedObjectContext)
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let serverMsg = NSEntityDescription.insertNewObject(forEntityName: "SharedServerMessage", into: managedObjectContext) as! SharedServerMessage
+            serverMsg.msg = serverMsgPb
+            serverMsg.timestamp = notificationMetadata.timestamp ?? Date()
+            self.save(managedObjectContext)
+        }
     }
 
     func insertSharedMedia(for mediaData: XMPPChatMedia, index: Int, into managedObjectContext: NSManagedObjectContext) -> SharedMedia {

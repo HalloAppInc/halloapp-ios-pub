@@ -74,10 +74,9 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 contentHandler(bestAttemptContent)
                 return
             }
-            let feedPost = dataStore.save(postData: postData, notificationMetadata: metadata)
-            if let firstMediaItem = feedPost.orderedMedia.first as? SharedMedia {
+            dataStore.save(postData: postData, notificationMetadata: metadata)
+            if let firstMediaItem = postData.orderedMedia.first {
                 let downloadTask = startDownloading(media: firstMediaItem)
-                downloadTask?.feedMediaObjectId = firstMediaItem.objectID
                 invokeHandler = downloadTask == nil
             }
         case .feedComment, .groupFeedComment:
