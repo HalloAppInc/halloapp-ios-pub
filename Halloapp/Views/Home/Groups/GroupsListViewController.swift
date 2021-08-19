@@ -536,7 +536,7 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
             let actionSheet = UIAlertController(title: chatThread.title, message: Localizations.groupsListRemoveMessage, preferredStyle: .actionSheet)
             actionSheet.addAction(UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { [weak self] action in
                 guard let self = self else { return }
-                MainAppContext.shared.chatData.deleteChatGroup(groupId: groupId)
+                // remove filters first since indexPath will not be valid anymore once group is deleted
                 if self.isFiltering {
                     if (indexPath.section == 0 && self.filteredChatsTitles.count > 0) {
                         self.filteredChatsTitles.remove(at: indexPath.row)
@@ -544,6 +544,8 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
                         self.filteredChatsMembers.remove(at: indexPath.row)
                     }
                 }
+                MainAppContext.shared.chatData.deleteChatGroup(groupId: groupId)
+                self.tableView.reloadData()
             })
             actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
             self.present(actionSheet, animated: true)
