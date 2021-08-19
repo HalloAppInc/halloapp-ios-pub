@@ -309,24 +309,14 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             self.presentPhotoLibraryPicker()
         })
 
-        actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive) { _ in
-            MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: nil) { result in
-                switch result {
-                case .success:
-                    DispatchQueue.main.async() { [weak self] in
-                        guard let self = self else { return }
+        if !MainAppContext.shared.avatarStore.groupAvatarData(for: groupId).isEmpty {
+            actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive) { [weak self] _ in
+                self?.changeAvatar(data: nil)
+            })
+        }
 
-                        // configure again as avatar listens to cached object that's evicted if app goes into background
-                        if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
-                            tableHeaderView.configure(chatGroup: self.chatGroup)
-                        }
-                    }
-                case .failure(let error):
-                    DDLogError("GroupInfoViewController/createAction/error \(error)")
-                }
-            }
-        })
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+
         present(actionSheet, animated: true)
     }
 
@@ -551,6 +541,10 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
 
         let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
 
+        changeAvatar(data: data)
+    }
+
+    private func changeAvatar(data: Data?) {
         MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.groupId, data: data) { result in
             switch result {
             case .success:
@@ -563,7 +557,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                     }
                 }
             case .failure(let error):
-                DDLogError("GroupInfoViewController/createAction/error \(error)")
+                DDLogError("GroupInfoViewController/changeAvatar/error \(error)")
             }
         }
     }
