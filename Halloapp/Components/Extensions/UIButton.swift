@@ -22,6 +22,7 @@ extension UIButton {
             return
         }
 
+        let isRTL = self.effectiveUserInterfaceLayoutDirection == .rightToLeft
         let totalHeight = imageSize.height + titleLabelSize.height + padding
 
         self.imageEdgeInsets = UIEdgeInsets(
@@ -29,20 +30,30 @@ extension UIButton {
             left: 0.0,
             bottom: 0.0,
             right: -titleLabelSize.width
-        )
+        ).flippedHorizontally(isRTL)
 
         self.titleEdgeInsets = UIEdgeInsets(
             top: (totalHeight - imageSize.height),
             left: -imageSize.width,
             bottom: -(totalHeight - titleLabelSize.height),
             right: 0.0
-        )
+        ).flippedHorizontally(isRTL)
 
         self.contentEdgeInsets = UIEdgeInsets(
             top: 0.0,
             left: 0.0,
             bottom: titleLabelSize.height,
             right: 0.0
-        )
+        ).flippedHorizontally(isRTL)
+    }
+}
+
+private extension UIEdgeInsets {
+    func flippedHorizontally(_ flipped: Bool) -> UIEdgeInsets {
+        if flipped {
+            return UIEdgeInsets(top: top, left: right, bottom: bottom, right: left)
+        } else {
+            return self
+        }
     }
 }
