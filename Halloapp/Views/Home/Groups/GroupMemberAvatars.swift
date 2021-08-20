@@ -32,11 +32,13 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     func insert(with avatars: [UserID]) {
-        
+
+        var didAddNewAvatar = false
         for (_, avatarUserID) in avatars.enumerated() {
             guard !avatarUserIDs.contains(avatarUserID) else { continue }
             
             avatarUserIDs.append(avatarUserID)
+            didAddNewAvatar = true
             
             // avatar image
             let avatarView = AvatarView()
@@ -103,7 +105,7 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
         }
         
         DispatchQueue.main.async {
-            self.setContentSizeAndOffset()
+            self.setContentSizeAndOffset(scrollToEnd: self.scrollToLastAfterInsert && didAddNewAvatar)
         }
     }
     
@@ -163,7 +165,7 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
         innerStack.removeArrangedSubview(subview)
         subview.removeFromSuperview()
 
-        setContentSizeAndOffset()
+        setContentSizeAndOffset(scrollToEnd: false)
     }
     
     // MARK: Actions
@@ -180,24 +182,21 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
             parent.removeFromSuperview()
         }
         
-        setContentSizeAndOffset()
-        
+        setContentSizeAndOffset(scrollToEnd: false)
     }
     
     // MARK: Helpers
     
-    private func setContentSizeAndOffset() {
+    private func setContentSizeAndOffset(scrollToEnd: Bool) {
         let contentSizeWidth = innerStack.bounds.width + 20
+        let currentContentOffset = scrollView.contentOffset
+
+        let maxOffsetX = max(0, contentSizeWidth - scrollView.bounds.width)
+        let newOffsetX = scrollToEnd ? maxOffsetX : min(currentContentOffset.x, maxOffsetX)
+        let newOffset = CGPoint(x: newOffsetX, y: 0)
+
         scrollView.contentSize = CGSize(width: contentSizeWidth, height: 1)
-
-        guard scrollToLastAfterInsert else { return }
-
-        let diff = scrollView.contentSize.width - scrollView.bounds.size.width
-        let point = CGPoint(x: diff, y: 0)
-        
-        if diff > 0 {
-            scrollView.setContentOffset(point, animated: true)
-        }
+        scrollView.setContentOffset(newOffset, animated: true)
     }
     
 }
