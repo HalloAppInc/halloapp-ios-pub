@@ -435,6 +435,15 @@ extension HomeViewController: UITabBarControllerDelegate {
         makeTabBarLabelsFullWidth()
         return true
     }
+
+    func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
+        guard let navigationController = (viewController as? UINavigationController) else {
+            return
+        }
+        if(navigationController.topViewController != navigationController.viewControllers.first) {
+            navigationController.popToRootViewController(animated: false)
+        }
+    }
 }
 
 // MARK: Presenting Various View Controllers
