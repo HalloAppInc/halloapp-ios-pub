@@ -158,6 +158,9 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         DDLogInfo("ChatListViewController/viewWillDisappear")
         super.viewWillDisappear(animated)
         isVisible = false
+        if(searchController.isActive && isSearchBarEmpty) {
+            searchController.isActive = false
+        }
     }
 
     private lazy var rightBarButtonItem: UIBarButtonItem = {

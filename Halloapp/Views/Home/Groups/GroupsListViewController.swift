@@ -158,6 +158,10 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         DDLogInfo("GroupsListViewController/viewWillDisappear")
         super.viewWillDisappear(animated)
         isVisible = false
+        if(searchController.isActive && isSearchBarEmpty) {
+            searchController.isActive = false
+        }
+
     }
 
     private lazy var rightBarButtonItem: UIBarButtonItem = {
