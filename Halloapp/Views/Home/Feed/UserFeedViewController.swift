@@ -137,6 +137,11 @@ class UserFeedViewController: FeedCollectionViewController {
             alert.addAction(verifySafetyNumberAction)
         }
 
+        let groupCommonAction = UIAlertAction(title: Localizations.groupsInCommonButtonLabel, style: .default) { [weak self] _ in
+            self?.headerViewController.openGroupsCommonPage()
+        }
+        alert.addAction(groupCommonAction)
+
         /* Block on HalloApp */
         if !isUserBlocked {
             let blockUserAction = UIAlertAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self] _ in
@@ -152,12 +157,7 @@ class UserFeedViewController: FeedCollectionViewController {
 
         let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
         alert.view.tintColor = .systemBlue
-        
-        let groupCommonAction = UIAlertAction(title: Localizations.groupsInCommonButtonLabel, style: .default) { [weak self] _ in
-            self?.headerViewController.openGroupsCommonPage()
-        }
-        alert.addAction(groupCommonAction)
-        
+
         alert.addAction(cancel)
 
         present(alert, animated: true)

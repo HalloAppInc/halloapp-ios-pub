@@ -234,7 +234,11 @@ final class ProfileHeaderViewController: UIViewController {
     func openGroupsCommonPage() {
         guard let userID = headerView.userID else { return }
 
-        navigationController?.pushViewController(GroupsInCommonViewController(userID: userID), animated: true)
+        let commonGroupsVC = GroupsInCommonViewController(userID: userID)
+        let controller = UINavigationController(rootViewController: commonGroupsVC)
+        controller.modalPresentationStyle = .fullScreen
+
+        navigationController?.present(controller, animated:true)
     }
     
     private func presentPhotoPicker() {

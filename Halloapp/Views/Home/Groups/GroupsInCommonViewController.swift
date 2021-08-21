@@ -62,14 +62,17 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         }
     }
         
+    @objc
+    private func didTapDismiss() {
+        dismiss(animated: true)
+    }
+
     // MARK: Lifecycle
     
     init(userID: String) {
         self.userID = userID
         super.init(nibName: nil, bundle: nil)
-        let fromName = MainAppContext.shared.contactStore.fullName(for: userID)
-        self.title = String(format: Localizations.withPersonLabel, fromName)
-
+        self.title = String(format: Localizations.groupsInCommonLabel)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
@@ -79,7 +82,8 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
 
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
-        
+        navigationItem.leftBarButtonItem = .init(image: UIImage(named: "ReplyPanelClose"), style: .plain, target: self, action: #selector(didTapDismiss))
+
         definesPresentationContext = true
         
         searchController = UISearchController(searchResultsController: nil)
@@ -432,8 +436,6 @@ class GroupsInCommonHeaderView: UITableViewHeaderFooterView {
 
     private func setup() {
         preservesSuperviewLayoutMargins = true
-
-        vStack.addArrangedSubview(groupCommonLabel)
         addSubview(vStack)
 
         vStack.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 20)
@@ -447,15 +449,6 @@ class GroupsInCommonHeaderView: UITableViewHeaderFooterView {
         vStackBottomConstraint.isActive = true
     }
     
-    private lazy var groupCommonLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 17)
-        label.textColor = .systemGray
-        label.textAlignment = .left
-        label.text = Localizations.groupsInCommonLabel
-        return label
-    }()
-
     private let vStack: UIStackView = {
         let view = UIStackView()
         view.translatesAutoresizingMaskIntoConstraints = false
