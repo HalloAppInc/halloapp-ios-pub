@@ -38,8 +38,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
     private var previousHeight: CGFloat = 0
     
-    private var placeholderText = Localizations.chatInputPlaceholder
-    
     private var isVisible: Bool = false
     
     // only send a typing indicator once in 10 seconds
@@ -51,6 +49,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     private var typingDebounceTimer: Timer? = nil
 
     private var voiceNoteRecorder = AudioRecorder()
+    private var isVoiceNoteRecordingLocked = false
     
     // MARK: ChatInput Lifecycle
 
@@ -115,6 +114,9 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidHide), name: UIResponder.keyboardDidHideNotification, object: nil)
 
         autoresizingMask = .flexibleHeight
+
+        layer.borderWidth = 1
+        layer.borderColor = UIColor.chatTextFieldStroke.cgColor
         
         addSubview(containerView)
 //        containerView.backgroundColor = UIColor.systemBackground
@@ -145,6 +147,15 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         textView.topAnchor.constraint(equalTo: textViewContainer.topAnchor).isActive = true
         textView.trailingAnchor.constraint(equalTo: textViewContainer.trailingAnchor).isActive = true
         textView.bottomAnchor.constraint(equalTo: textViewContainer.bottomAnchor).isActive = true
+
+        placeholder.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
+        placeholder.topAnchor.constraint(equalTo: textViewContainer.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
+
+        voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
+        voiceNoteTime.topAnchor.constraint(equalTo: textViewContainer.topAnchor, constant: textView.textContainerInset.top).isActive = true
+
+        cancelRecordingButton.centerXAnchor.constraint(equalTo: textInputRow.centerXAnchor).isActive = true
+        cancelRecordingButton.centerYAnchor.constraint(equalTo: textInputRow.centerYAnchor, constant: 6).isActive = true
         
         textViewContainer.leadingAnchor.constraint(equalTo: textInputRow.leadingAnchor).isActive = true
         textViewContainer.topAnchor.constraint(equalTo: textInputRow.topAnchor).isActive = true
@@ -177,9 +188,31 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         
         mentionPickerTopConstraint = mentionPicker.topAnchor.constraint(equalTo: contentView.topAnchor)
         
-        setPlaceholderText()
+        placeholder.isHidden = false
+        updatePostButtons()
 
         voiceNoteRecorder.delegate = self
+        recordVoiceNoteControl.delegate = self
+    }
+
+    private func updatePostButtons() {
+        if voiceNoteRecorder.isRecording {
+            postMediaButton.removeFromSuperview()
+        } else {
+            postButtonsContainer.insertArrangedSubview(postMediaButton, at: 0)
+        }
+
+        if ServerProperties.isVoiceNotesEnabled && textView.text.isEmpty && !isVoiceNoteRecordingLocked {
+            postButtonsContainer.addArrangedSubview(recordVoiceNoteControl)
+        } else {
+            recordVoiceNoteControl.removeFromSuperview()
+        }
+
+        if isVoiceNoteRecordingLocked || !textView.text.isEmpty {
+            postButtonsContainer.addArrangedSubview(postButton)
+        } else {
+            postButton.removeFromSuperview()
+        }
     }
     
     class ContainerView: UIView {
@@ -373,8 +406,10 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     private lazy var textInputRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [textViewContainer, postButtonsContainer])
         view.axis = .horizontal
-        view.alignment = .trailing
+        view.alignment = .center
         view.spacing = 0
+
+        view.addSubview(cancelRecordingButton)
         
         view.translatesAutoresizingMaskIntoConstraints = false
         view.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -389,44 +424,79 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.textContainerInset.left = 8
         view.textContainerInset.right = 8
         view.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        view.tintColor = UIColor.systemBlue
+        view.tintColor = .systemBlue
+        view.textColor = .label
         
         view.inputTextViewDelegate = self
 
         return view
+    }()
+
+    private lazy var placeholder: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .preferredFont(forTextStyle: .subheadline)
+        label.textColor = .primaryBlackWhite
+        label.text = Localizations.chatInputPlaceholder
+        label.isHidden = true
+        label.alpha = 0.4
+
+        return label
     }()
     
     private lazy var textViewContainer: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.systemBackground
         view.addSubview(textView)
+        view.addSubview(placeholder)
+        view.addSubview(voiceNoteTime)
         
         view.translatesAutoresizingMaskIntoConstraints = false
         view.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return view
     }()
 
-    private lazy var recordVoiceNoteButton: UIButton = {
+    private lazy var cancelRecordingButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "mic.fill"), for: .normal)
-        button.addTarget(self, action: #selector(recordVoiceNoteClicked), for: .touchUpInside)
-        button.isEnabled = true
-        button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
-        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-        button.tintColor = UIColor.primaryBlue
-
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        button.addTarget(self, action: #selector(cancelRecordingButtonClicked), for: .touchUpInside)
+        button.tintColor = UIColor.primaryBlue
+        button.setTitle(Localizations.buttonCancel, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 19)
+        button.isHidden = true
+
         return button
+    }()
+
+    private lazy var voiceNoteTime: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 21)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.backgroundColor = .lavaOrange
+        label.layer.cornerRadius = 10
+        label.layer.masksToBounds = true
+        label.isHidden = true
+
+        label.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        label.heightAnchor.constraint(equalToConstant: 33).isActive = true
+
+        return label
+    }()
+
+    private lazy var recordVoiceNoteControl: AudioRecorderControlView = {
+        let controlView = AudioRecorderControlView()
+        controlView.translatesAutoresizingMaskIntoConstraints = false
+        controlView.layer.zPosition = 1
+
+        return controlView
     }()
     
     private lazy var postMediaButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "photo.fill"), for: .normal)
+        button.setImage(UIImage(named: "Photo")?.withTintColor(.primaryBlue), for: .normal)
         button.addTarget(self, action: #selector(postMediaButtonClicked), for: .touchUpInside)
-        button.isEnabled = true
-        button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.tintColor = UIColor.primaryBlue
         button.accessibilityLabel = Localizations.fabAccessibilityPhotoLibrary
@@ -434,6 +504,10 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+
+        button.widthAnchor.constraint(equalToConstant: 24).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 24).isActive = true
+
         return button
     }()
     
@@ -442,10 +516,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         button.setImage(UIImage(named: "Send"), for: .normal)
         button.accessibilityLabel = Localizations.buttonSend
         button.addTarget(self, action: #selector(postButtonClicked), for: .touchUpInside)
-        button.isEnabled = false
-        
-        // insets at 5 or higher to have a bigger hit area
-        button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
+
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.tintColor = UIColor.systemBlue
 
@@ -454,18 +525,14 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         
-        button.widthAnchor.constraint(equalToConstant: 35).isActive = true
+        button.widthAnchor.constraint(equalToConstant: 38).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 38).isActive = true
    
         return button
     }()
     
     private lazy var postButtonsContainer: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [postMediaButton, postButton])
-
-        if ServerProperties.isVoiceNotesEnabled {
-            view.insertArrangedSubview(recordVoiceNoteButton, at: 1)
-        }
-
+        let view = UIStackView()
         view.axis = .horizontal
         view.spacing = 10
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -658,20 +725,13 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     func setDraftText(text: String) {
         guard !text.isEmpty else { return }
         textView.text = text
-        textView.tag = 1
-        textView.textColor = UIColor.label
-        postMediaButton.isHidden = true // hide media button when there's text
-        recordVoiceNoteButton.isHidden = true
-        postButton.isEnabled = true
+        placeholder.isHidden = true
+        updatePostButtons()
     }
     
     var text: String {
         get {
-            if textView.tag != 0 {
-                return textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-            } else {
-                return ""
-            }
+            textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         }
         set {
             textView.text = newValue
@@ -691,21 +751,9 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         }
     }
 
-    @objc func recordVoiceNoteClicked() {
-        textView.resignFirstResponder()
-        
+    @objc func cancelRecordingButtonClicked() {
         if voiceNoteRecorder.isRecording {
             voiceNoteRecorder.stop(cancel: true)
-
-            AudioServicesPlaySystemSound(1111)
-        } else {
-            AudioServicesPlaySystemSound(1110)
-
-            // 300ms to avoid recording the start sound
-            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300)) { [weak self] in
-                guard let self = self else { return }
-                self.voiceNoteRecorder.start()
-            }
         }
     }
     
@@ -714,6 +762,11 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         acceptAutoCorrection()
 
         if voiceNoteRecorder.isRecording {
+            guard let duration = voiceNoteRecorder.duration, duration >= 1 else {
+                voiceNoteRecorder.stop(cancel: true)
+                return
+            }
+
             voiceNoteRecorder.stop(cancel: false)
 
             let media = PendingMedia(type: .audio)
@@ -738,14 +791,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         resetTypingTimers()
         
         delegate?.chatInputViewDidSelectMediaPicker(self)
-    }
-    
-    private func setPlaceholderText() {
-        if textView.text.isEmpty {
-            textView.text = placeholderText
-            textView.textColor = UIColor.systemGray3
-            textView.tag = 0
-        }
     }
     
     // MARK: Keyboard
@@ -922,11 +967,7 @@ extension ChatInputView: InputTextViewDelegate {
     func inputTextViewShouldBeginEditing(_ inputTextView: InputTextView) -> Bool {
         guard !voiceNoteRecorder.isRecording else { return false }
 
-        if (textView.tag == 0){
-            textView.text = ""
-            textView.textColor = UIColor.label
-            textView.tag = 1
-        }
+        placeholder.isHidden = true
         return true
     }
     
@@ -938,17 +979,13 @@ extension ChatInputView: InputTextViewDelegate {
     }
     
     func inputTextViewDidEndEditing(_ inputTextView: InputTextView) {
-        setPlaceholderText()
+        placeholder.isHidden = !inputTextView.text.isEmpty
     }
     
     func inputTextViewDidChange(_ inputTextView: InputTextView) {
         
         textIsUneditedReplyMention = false
         updateMentionPickerContent()
-        
-        postButton.isEnabled = !text.isEmpty
-        postMediaButton.isHidden = !text.isEmpty // hide media button when there's text
-        recordVoiceNoteButton.isHidden = !text.isEmpty
         
         if textView.contentSize.height >= 115 {
             textViewContainerHeightConstraint?.constant = 115
@@ -979,7 +1016,8 @@ extension ChatInputView: InputTextViewDelegate {
             self.typingThrottleTimer?.invalidate()
             self.typingThrottleTimer = nil
         }
-        
+
+        updatePostButtons()
     }
     
     func inputTextViewDidChangeSelection(_ inputTextView: InputTextView) {
@@ -989,6 +1027,42 @@ extension ChatInputView: InputTextViewDelegate {
         return true
     }
     
+}
+
+// MARK: AudioRecorderControlViewDelegate
+extension ChatInputView: AudioRecorderControlViewDelegate {
+    func audioRecorderControlViewLocked(_ view: AudioRecorderControlView) {
+        isVoiceNoteRecordingLocked = true
+        cancelRecordingButton.isHidden = false
+        postButton.tintColor = .white
+        postButton.backgroundColor = .primaryBlue
+        postButton.layer.cornerRadius = 19
+        postButton.layer.masksToBounds = true
+        updatePostButtons()
+    }
+
+    func audioRecorderControlViewStarted(_ view: AudioRecorderControlView) {
+        voiceNoteRecorder.start()
+    }
+
+    func audioRecorderControlViewFinished(_ view: AudioRecorderControlView, cancel: Bool) {
+        guard let duration = voiceNoteRecorder.duration, duration >= 1 else {
+            voiceNoteRecorder.stop(cancel: true)
+            return
+        }
+
+        voiceNoteRecorder.stop(cancel: cancel)
+
+        if !cancel {
+            let media = PendingMedia(type: .audio)
+            media.size = .zero
+            media.order = 1
+            media.fileURL = voiceNoteRecorder.url
+
+            let mentionText = MentionText(expandedText: "", mentionRanges: [:])
+            delegate?.chatInputView(self, mentionText: mentionText, media: [media])
+        }
+    }
 }
 
 // MARK: AudioRecorderDelegate
@@ -1003,31 +1077,34 @@ extension ChatInputView: AudioRecorderDelegate {
     func audioRecorderStarted(_ recorder: AudioRecorder) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.recordVoiceNoteButton.setImage(UIImage(systemName: "mic.slash.fill"), for: .normal)
-            self.recordVoiceNoteButton.tintColor = .systemRed
-            self.postMediaButton.isHidden = true
-            self.postButton.isEnabled = true
-            self.textView.text = "0:00"
-            self.textView.textColor = .red
+            self.voiceNoteTime.text = "0:00"
+            self.voiceNoteTime.isHidden = false
+            self.placeholder.isHidden = true
+            self.textView.text = ""
+            self.updatePostButtons()
         }
     }
 
     func audioRecorderStopped(_ recorder: AudioRecorder) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.recordVoiceNoteButton.setImage(UIImage(systemName: "mic.fill"), for: .normal)
-            self.recordVoiceNoteButton.tintColor = .primaryBlue
-            self.postMediaButton.isHidden = false
-            self.postButton.isEnabled = false
-            self.textView.text = ""
-            self.setPlaceholderText()
+            self.isVoiceNoteRecordingLocked = false
+            self.cancelRecordingButton.isHidden = true
+            self.voiceNoteTime.isHidden = true
+            self.placeholder.isHidden = false
+            self.postButton.tintColor = .primaryBlue
+            self.postButton.backgroundColor = .none
+            self.postButton.layer.cornerRadius = 0
+            self.postButton.layer.masksToBounds = false
+            self.hideKeyboard()
+            self.updatePostButtons()
         }
     }
 
     func audioRecorder(_ recorder: AudioRecorder, at time: String) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.textView.text = time
+            self.voiceNoteTime.text = time
         }
     }
 }

@@ -20,6 +20,7 @@ class AudioRecorder {
     public weak var delegate: AudioRecorderDelegate?
     public var url: URL? { recorder?.url }
     public var isRecording: Bool { recorder?.isRecording == true }
+    public var duration: TimeInterval? { recorder?.currentTime }
 
     private var recorder: AVAudioRecorder?
     private lazy var durationFormatter: DateComponentsFormatter = {
@@ -31,6 +32,7 @@ class AudioRecorder {
         return formatter
     }()
     private var timer: Timer?
+    private var task: DispatchWorkItem?
 
     init() {
         let nc = NotificationCenter.default
@@ -55,7 +57,12 @@ class AudioRecorder {
             guard let self = self else { return }
 
             if granted {
-                self.record()
+                AudioServicesPlaySystemSound(1110)
+
+                // 300ms to avoid recording the start sound
+                let task = DispatchWorkItem { self.record() }
+                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300), execute: task)
+                self.task = task
             } else {
                 self.delegate?.audioRecorderMicrphoneAccessDenied(self)
             }
@@ -127,12 +134,17 @@ class AudioRecorder {
     }
 
     func stop(cancel: Bool) {
-        guard let recorder = self.recorder, recorder.isRecording else { return }
-        recorder.stop()
+        task?.cancel()
         timer?.invalidate()
 
-        if cancel {
-            recorder.deleteRecording()
+        if let recorder = self.recorder, recorder.isRecording {
+            recorder.stop()
+
+            if cancel {
+                recorder.deleteRecording()
+            }
+
+            AudioServicesPlaySystemSound(1111)
         }
 
         delegate?.audioRecorderStopped(self)

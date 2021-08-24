@@ -76,6 +76,10 @@ extension UIColor {
         UIColor(named: "ChatTime")!
     }
 
+    class var chatTextFieldStroke: UIColor {
+        UIColor(named: "ChatTextFieldStroke")!
+    }
+
     class var composerButton: UIColor {
         get { UIColor(named: "ComposerButton")! }
     }
