@@ -116,11 +116,11 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest<WhisperKeyBundle> 
             return PreKey(id: protoKey.id, publicKey: protoKey.publicKey)
         }
 
-        let protoIdentity: Clients_IdentityKey
-        if let identity = try? Clients_IdentityKey(serializedData: pbKey.identityKey) {
+        let protoIdentity: Server_IdentityKey
+        if let identity = try? Server_IdentityKey(serializedData: pbKey.identityKey) {
             protoIdentity = identity
         } else if let decodedData = Data(base64Encoded: pbKey.identityKey, options: .ignoreUnknownCharacters),
-                  let identity = try? Clients_IdentityKey(serializedData: decodedData)
+                  let identity = try? Server_IdentityKey(serializedData: decodedData)
         {
             protoIdentity = identity
         } else {

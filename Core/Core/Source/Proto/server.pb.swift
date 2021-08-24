@@ -3053,6 +3053,7 @@ public struct Server_PushToken {
     case android // = 0
     case ios // = 1
     case iosDev // = 2
+    case iosAppclip // = 3
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -3064,6 +3065,7 @@ public struct Server_PushToken {
       case 0: self = .android
       case 1: self = .ios
       case 2: self = .iosDev
+      case 3: self = .iosAppclip
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -3073,6 +3075,7 @@ public struct Server_PushToken {
       case .android: return 0
       case .ios: return 1
       case .iosDev: return 2
+      case .iosAppclip: return 3
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -3090,6 +3093,7 @@ extension Server_PushToken.Os: CaseIterable {
     .android,
     .ios,
     .iosDev,
+    .iosAppclip,
   ]
 }
 
@@ -3677,6 +3681,528 @@ public struct Server_IdentityKey {
 
   public init() {}
 }
+
+public struct Server_RegisterRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var request: Server_RegisterRequest.OneOf_Request? = nil
+
+  public var otpRequest: Server_OtpRequest {
+    get {
+      if case .otpRequest(let v)? = request {return v}
+      return Server_OtpRequest()
+    }
+    set {request = .otpRequest(newValue)}
+  }
+
+  public var verifyRequest: Server_VerifyOtpRequest {
+    get {
+      if case .verifyRequest(let v)? = request {return v}
+      return Server_VerifyOtpRequest()
+    }
+    set {request = .verifyRequest(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Request: Equatable {
+    case otpRequest(Server_OtpRequest)
+    case verifyRequest(Server_VerifyOtpRequest)
+
+  #if !swift(>=4.1)
+    public static func ==(lhs: Server_RegisterRequest.OneOf_Request, rhs: Server_RegisterRequest.OneOf_Request) -> Bool {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch (lhs, rhs) {
+      case (.otpRequest, .otpRequest): return {
+        guard case .otpRequest(let l) = lhs, case .otpRequest(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.verifyRequest, .verifyRequest): return {
+        guard case .verifyRequest(let l) = lhs, case .verifyRequest(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      default: return false
+      }
+    }
+  #endif
+  }
+
+  public init() {}
+}
+
+public struct Server_RegisterResponse {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var response: Server_RegisterResponse.OneOf_Response? = nil
+
+  public var otpResponse: Server_OtpResponse {
+    get {
+      if case .otpResponse(let v)? = response {return v}
+      return Server_OtpResponse()
+    }
+    set {response = .otpResponse(newValue)}
+  }
+
+  public var verifyResponse: Server_VerifyOtpResponse {
+    get {
+      if case .verifyResponse(let v)? = response {return v}
+      return Server_VerifyOtpResponse()
+    }
+    set {response = .verifyResponse(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Response: Equatable {
+    case otpResponse(Server_OtpResponse)
+    case verifyResponse(Server_VerifyOtpResponse)
+
+  #if !swift(>=4.1)
+    public static func ==(lhs: Server_RegisterResponse.OneOf_Response, rhs: Server_RegisterResponse.OneOf_Response) -> Bool {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch (lhs, rhs) {
+      case (.otpResponse, .otpResponse): return {
+        guard case .otpResponse(let l) = lhs, case .otpResponse(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.verifyResponse, .verifyResponse): return {
+        guard case .verifyResponse(let l) = lhs, case .verifyResponse(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      default: return false
+      }
+    }
+  #endif
+  }
+
+  public init() {}
+}
+
+public struct Server_OtpRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var phone: String = String()
+
+  public var method: Server_OtpRequest.Method = .sms
+
+  public var langID: String = String()
+
+  public var groupInviteToken: String = String()
+
+  public var userAgent: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Method: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case sms // = 0
+    case voiceCall // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .sms
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .sms
+      case 1: self = .voiceCall
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .sms: return 0
+      case .voiceCall: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_OtpRequest.Method: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_OtpRequest.Method] = [
+    .sms,
+    .voiceCall,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Server_OtpResponse {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var phone: String = String()
+
+  public var result: Server_OtpResponse.Result = .unknownResult
+
+  public var reason: Server_OtpResponse.Reason = .unknownReason
+
+  public var retryAfterSecs: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Result: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownResult // = 0
+    case success // = 1
+    case failure // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownResult
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownResult
+      case 1: self = .success
+      case 2: self = .failure
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownResult: return 0
+      case .success: return 1
+      case .failure: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum Reason: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownReason // = 0
+    case invalidPhoneNumber // = 1
+    case invalidClientVersion // = 2
+    case badMethod // = 3
+    case otpFail // = 4
+    case notInvited // = 5
+    case invalidGroupInviteToken // = 6
+    case retriedTooSoon // = 7
+    case badRequest // = 8
+    case internalServerError // = 9
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownReason
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownReason
+      case 1: self = .invalidPhoneNumber
+      case 2: self = .invalidClientVersion
+      case 3: self = .badMethod
+      case 4: self = .otpFail
+      case 5: self = .notInvited
+      case 6: self = .invalidGroupInviteToken
+      case 7: self = .retriedTooSoon
+      case 8: self = .badRequest
+      case 9: self = .internalServerError
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownReason: return 0
+      case .invalidPhoneNumber: return 1
+      case .invalidClientVersion: return 2
+      case .badMethod: return 3
+      case .otpFail: return 4
+      case .notInvited: return 5
+      case .invalidGroupInviteToken: return 6
+      case .retriedTooSoon: return 7
+      case .badRequest: return 8
+      case .internalServerError: return 9
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_OtpResponse.Result: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_OtpResponse.Result] = [
+    .unknownResult,
+    .success,
+    .failure,
+  ]
+}
+
+extension Server_OtpResponse.Reason: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_OtpResponse.Reason] = [
+    .unknownReason,
+    .invalidPhoneNumber,
+    .invalidClientVersion,
+    .badMethod,
+    .otpFail,
+    .notInvited,
+    .invalidGroupInviteToken,
+    .retriedTooSoon,
+    .badRequest,
+    .internalServerError,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Server_VerifyOtpRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var phone: String = String()
+
+  public var code: String = String()
+
+  public var name: String = String()
+
+  public var staticKey: Data = Data()
+
+  public var signedPhrase: Data = Data()
+
+  public var identityKey: Data = Data()
+
+  public var signedKey: Data = Data()
+
+  public var oneTimeKeys: [Data] = []
+
+  public var groupInviteToken: String = String()
+
+  /// Only for ios-appclip
+  public var pushRegister: Server_PushRegister {
+    get {return _pushRegister ?? Server_PushRegister()}
+    set {_pushRegister = newValue}
+  }
+  /// Returns true if `pushRegister` has been explicitly set.
+  public var hasPushRegister: Bool {return self._pushRegister != nil}
+  /// Clears the value of `pushRegister`. Subsequent reads from it will return its default value.
+  public mutating func clearPushRegister() {self._pushRegister = nil}
+
+  public var userAgent: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _pushRegister: Server_PushRegister? = nil
+}
+
+public struct Server_VerifyOtpResponse {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var phone: String = String()
+
+  public var uid: Int64 = 0
+
+  public var name: String = String()
+
+  public var result: Server_VerifyOtpResponse.Result = .unknownResult
+
+  public var reason: Server_VerifyOtpResponse.Reason = .unknownReason
+
+  public var groupInviteResult: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Result: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownResult // = 0
+    case success // = 1
+    case failure // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownResult
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownResult
+      case 1: self = .success
+      case 2: self = .failure
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownResult: return 0
+      case .success: return 1
+      case .failure: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum Reason: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownReason // = 0
+    case invalidPhoneNumber // = 1
+    case invalidClientVersion // = 2
+    case wrongSmsCode // = 3
+    case missingPhone // = 4
+    case missingCode // = 5
+    case missingName // = 6
+    case invalidName // = 7
+    case missingIdentityKey // = 8
+    case missingSignedKey // = 9
+    case missingOneTimeKeys // = 10
+    case badBase64Key // = 11
+    case invalidOneTimeKeys // = 12
+    case tooFewOneTimeKeys // = 13
+    case tooManyOneTimeKeys // = 14
+    case tooBigIdentityKey // = 15
+    case tooBigSignedKey // = 16
+    case tooBigOneTimeKeys // = 17
+    case invalidSEdPub // = 18
+    case invalidSignedPhrase // = 19
+    case unableToOpenSignedPhrase // = 20
+    case badRequest // = 21
+    case internalServerError // = 22
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownReason
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownReason
+      case 1: self = .invalidPhoneNumber
+      case 2: self = .invalidClientVersion
+      case 3: self = .wrongSmsCode
+      case 4: self = .missingPhone
+      case 5: self = .missingCode
+      case 6: self = .missingName
+      case 7: self = .invalidName
+      case 8: self = .missingIdentityKey
+      case 9: self = .missingSignedKey
+      case 10: self = .missingOneTimeKeys
+      case 11: self = .badBase64Key
+      case 12: self = .invalidOneTimeKeys
+      case 13: self = .tooFewOneTimeKeys
+      case 14: self = .tooManyOneTimeKeys
+      case 15: self = .tooBigIdentityKey
+      case 16: self = .tooBigSignedKey
+      case 17: self = .tooBigOneTimeKeys
+      case 18: self = .invalidSEdPub
+      case 19: self = .invalidSignedPhrase
+      case 20: self = .unableToOpenSignedPhrase
+      case 21: self = .badRequest
+      case 22: self = .internalServerError
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownReason: return 0
+      case .invalidPhoneNumber: return 1
+      case .invalidClientVersion: return 2
+      case .wrongSmsCode: return 3
+      case .missingPhone: return 4
+      case .missingCode: return 5
+      case .missingName: return 6
+      case .invalidName: return 7
+      case .missingIdentityKey: return 8
+      case .missingSignedKey: return 9
+      case .missingOneTimeKeys: return 10
+      case .badBase64Key: return 11
+      case .invalidOneTimeKeys: return 12
+      case .tooFewOneTimeKeys: return 13
+      case .tooManyOneTimeKeys: return 14
+      case .tooBigIdentityKey: return 15
+      case .tooBigSignedKey: return 16
+      case .tooBigOneTimeKeys: return 17
+      case .invalidSEdPub: return 18
+      case .invalidSignedPhrase: return 19
+      case .unableToOpenSignedPhrase: return 20
+      case .badRequest: return 21
+      case .internalServerError: return 22
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_VerifyOtpResponse.Result: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_VerifyOtpResponse.Result] = [
+    .unknownResult,
+    .success,
+    .failure,
+  ]
+}
+
+extension Server_VerifyOtpResponse.Reason: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_VerifyOtpResponse.Reason] = [
+    .unknownReason,
+    .invalidPhoneNumber,
+    .invalidClientVersion,
+    .wrongSmsCode,
+    .missingPhone,
+    .missingCode,
+    .missingName,
+    .invalidName,
+    .missingIdentityKey,
+    .missingSignedKey,
+    .missingOneTimeKeys,
+    .badBase64Key,
+    .invalidOneTimeKeys,
+    .tooFewOneTimeKeys,
+    .tooManyOneTimeKeys,
+    .tooBigIdentityKey,
+    .tooBigSignedKey,
+    .tooBigOneTimeKeys,
+    .invalidSEdPub,
+    .invalidSignedPhrase,
+    .unableToOpenSignedPhrase,
+    .badRequest,
+    .internalServerError,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
@@ -7658,6 +8184,7 @@ extension Server_PushToken.Os: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "ANDROID"),
     1: .same(proto: "IOS"),
     2: .same(proto: "IOS_DEV"),
+    3: .same(proto: "IOS_APPCLIP"),
   ]
 }
 
@@ -8531,4 +9058,468 @@ extension Server_IdentityKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_RegisterRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".RegisterRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "otp_request"),
+    2: .standard(proto: "verify_request"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Server_OtpRequest?
+        var hadOneofValue = false
+        if let current = self.request {
+          hadOneofValue = true
+          if case .otpRequest(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.request = .otpRequest(v)
+        }
+      }()
+      case 2: try {
+        var v: Server_VerifyOtpRequest?
+        var hadOneofValue = false
+        if let current = self.request {
+          hadOneofValue = true
+          if case .verifyRequest(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.request = .verifyRequest(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every case branch when no optimizations are
+    // enabled. https://github.com/apple/swift-protobuf/issues/1034
+    switch self.request {
+    case .otpRequest?: try {
+      guard case .otpRequest(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .verifyRequest?: try {
+      guard case .verifyRequest(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_RegisterRequest, rhs: Server_RegisterRequest) -> Bool {
+    if lhs.request != rhs.request {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_RegisterResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".RegisterResponse"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "otp_response"),
+    2: .standard(proto: "verify_response"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Server_OtpResponse?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .otpResponse(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .otpResponse(v)
+        }
+      }()
+      case 2: try {
+        var v: Server_VerifyOtpResponse?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .verifyResponse(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .verifyResponse(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every case branch when no optimizations are
+    // enabled. https://github.com/apple/swift-protobuf/issues/1034
+    switch self.response {
+    case .otpResponse?: try {
+      guard case .otpResponse(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .verifyResponse?: try {
+      guard case .verifyResponse(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_RegisterResponse, rhs: Server_RegisterResponse) -> Bool {
+    if lhs.response != rhs.response {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_OtpRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".OtpRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "phone"),
+    2: .same(proto: "method"),
+    3: .standard(proto: "lang_id"),
+    4: .standard(proto: "group_invite_token"),
+    5: .standard(proto: "user_agent"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.phone) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.method) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.langID) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.groupInviteToken) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.userAgent) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.phone.isEmpty {
+      try visitor.visitSingularStringField(value: self.phone, fieldNumber: 1)
+    }
+    if self.method != .sms {
+      try visitor.visitSingularEnumField(value: self.method, fieldNumber: 2)
+    }
+    if !self.langID.isEmpty {
+      try visitor.visitSingularStringField(value: self.langID, fieldNumber: 3)
+    }
+    if !self.groupInviteToken.isEmpty {
+      try visitor.visitSingularStringField(value: self.groupInviteToken, fieldNumber: 4)
+    }
+    if !self.userAgent.isEmpty {
+      try visitor.visitSingularStringField(value: self.userAgent, fieldNumber: 5)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_OtpRequest, rhs: Server_OtpRequest) -> Bool {
+    if lhs.phone != rhs.phone {return false}
+    if lhs.method != rhs.method {return false}
+    if lhs.langID != rhs.langID {return false}
+    if lhs.groupInviteToken != rhs.groupInviteToken {return false}
+    if lhs.userAgent != rhs.userAgent {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_OtpRequest.Method: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "SMS"),
+    1: .same(proto: "VOICE_CALL"),
+  ]
+}
+
+extension Server_OtpResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".OtpResponse"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "phone"),
+    2: .same(proto: "result"),
+    3: .same(proto: "reason"),
+    4: .standard(proto: "retry_after_secs"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.phone) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.result) }()
+      case 3: try { try decoder.decodeSingularEnumField(value: &self.reason) }()
+      case 4: try { try decoder.decodeSingularInt64Field(value: &self.retryAfterSecs) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.phone.isEmpty {
+      try visitor.visitSingularStringField(value: self.phone, fieldNumber: 1)
+    }
+    if self.result != .unknownResult {
+      try visitor.visitSingularEnumField(value: self.result, fieldNumber: 2)
+    }
+    if self.reason != .unknownReason {
+      try visitor.visitSingularEnumField(value: self.reason, fieldNumber: 3)
+    }
+    if self.retryAfterSecs != 0 {
+      try visitor.visitSingularInt64Field(value: self.retryAfterSecs, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_OtpResponse, rhs: Server_OtpResponse) -> Bool {
+    if lhs.phone != rhs.phone {return false}
+    if lhs.result != rhs.result {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs.retryAfterSecs != rhs.retryAfterSecs {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_OtpResponse.Result: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_RESULT"),
+    1: .same(proto: "SUCCESS"),
+    2: .same(proto: "FAILURE"),
+  ]
+}
+
+extension Server_OtpResponse.Reason: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_REASON"),
+    1: .same(proto: "INVALID_PHONE_NUMBER"),
+    2: .same(proto: "INVALID_CLIENT_VERSION"),
+    3: .same(proto: "BAD_METHOD"),
+    4: .same(proto: "OTP_FAIL"),
+    5: .same(proto: "NOT_INVITED"),
+    6: .same(proto: "INVALID_GROUP_INVITE_TOKEN"),
+    7: .same(proto: "RETRIED_TOO_SOON"),
+    8: .same(proto: "BAD_REQUEST"),
+    9: .same(proto: "INTERNAL_SERVER_ERROR"),
+  ]
+}
+
+extension Server_VerifyOtpRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".VerifyOtpRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "phone"),
+    2: .same(proto: "code"),
+    3: .same(proto: "name"),
+    4: .standard(proto: "static_key"),
+    5: .standard(proto: "signed_phrase"),
+    6: .standard(proto: "identity_key"),
+    7: .standard(proto: "signed_key"),
+    8: .standard(proto: "one_time_keys"),
+    9: .standard(proto: "group_invite_token"),
+    10: .standard(proto: "push_register"),
+    11: .standard(proto: "user_agent"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.phone) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.code) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 4: try { try decoder.decodeSingularBytesField(value: &self.staticKey) }()
+      case 5: try { try decoder.decodeSingularBytesField(value: &self.signedPhrase) }()
+      case 6: try { try decoder.decodeSingularBytesField(value: &self.identityKey) }()
+      case 7: try { try decoder.decodeSingularBytesField(value: &self.signedKey) }()
+      case 8: try { try decoder.decodeRepeatedBytesField(value: &self.oneTimeKeys) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self.groupInviteToken) }()
+      case 10: try { try decoder.decodeSingularMessageField(value: &self._pushRegister) }()
+      case 11: try { try decoder.decodeSingularStringField(value: &self.userAgent) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.phone.isEmpty {
+      try visitor.visitSingularStringField(value: self.phone, fieldNumber: 1)
+    }
+    if !self.code.isEmpty {
+      try visitor.visitSingularStringField(value: self.code, fieldNumber: 2)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 3)
+    }
+    if !self.staticKey.isEmpty {
+      try visitor.visitSingularBytesField(value: self.staticKey, fieldNumber: 4)
+    }
+    if !self.signedPhrase.isEmpty {
+      try visitor.visitSingularBytesField(value: self.signedPhrase, fieldNumber: 5)
+    }
+    if !self.identityKey.isEmpty {
+      try visitor.visitSingularBytesField(value: self.identityKey, fieldNumber: 6)
+    }
+    if !self.signedKey.isEmpty {
+      try visitor.visitSingularBytesField(value: self.signedKey, fieldNumber: 7)
+    }
+    if !self.oneTimeKeys.isEmpty {
+      try visitor.visitRepeatedBytesField(value: self.oneTimeKeys, fieldNumber: 8)
+    }
+    if !self.groupInviteToken.isEmpty {
+      try visitor.visitSingularStringField(value: self.groupInviteToken, fieldNumber: 9)
+    }
+    if let v = self._pushRegister {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
+    }
+    if !self.userAgent.isEmpty {
+      try visitor.visitSingularStringField(value: self.userAgent, fieldNumber: 11)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_VerifyOtpRequest, rhs: Server_VerifyOtpRequest) -> Bool {
+    if lhs.phone != rhs.phone {return false}
+    if lhs.code != rhs.code {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.staticKey != rhs.staticKey {return false}
+    if lhs.signedPhrase != rhs.signedPhrase {return false}
+    if lhs.identityKey != rhs.identityKey {return false}
+    if lhs.signedKey != rhs.signedKey {return false}
+    if lhs.oneTimeKeys != rhs.oneTimeKeys {return false}
+    if lhs.groupInviteToken != rhs.groupInviteToken {return false}
+    if lhs._pushRegister != rhs._pushRegister {return false}
+    if lhs.userAgent != rhs.userAgent {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_VerifyOtpResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".VerifyOtpResponse"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "phone"),
+    2: .same(proto: "uid"),
+    3: .same(proto: "name"),
+    4: .same(proto: "result"),
+    5: .same(proto: "reason"),
+    6: .standard(proto: "group_invite_result"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.phone) }()
+      case 2: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 4: try { try decoder.decodeSingularEnumField(value: &self.result) }()
+      case 5: try { try decoder.decodeSingularEnumField(value: &self.reason) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.groupInviteResult) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.phone.isEmpty {
+      try visitor.visitSingularStringField(value: self.phone, fieldNumber: 1)
+    }
+    if self.uid != 0 {
+      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 2)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 3)
+    }
+    if self.result != .unknownResult {
+      try visitor.visitSingularEnumField(value: self.result, fieldNumber: 4)
+    }
+    if self.reason != .unknownReason {
+      try visitor.visitSingularEnumField(value: self.reason, fieldNumber: 5)
+    }
+    if !self.groupInviteResult.isEmpty {
+      try visitor.visitSingularStringField(value: self.groupInviteResult, fieldNumber: 6)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_VerifyOtpResponse, rhs: Server_VerifyOtpResponse) -> Bool {
+    if lhs.phone != rhs.phone {return false}
+    if lhs.uid != rhs.uid {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.result != rhs.result {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs.groupInviteResult != rhs.groupInviteResult {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_VerifyOtpResponse.Result: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_RESULT"),
+    1: .same(proto: "SUCCESS"),
+    2: .same(proto: "FAILURE"),
+  ]
+}
+
+extension Server_VerifyOtpResponse.Reason: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_REASON"),
+    1: .same(proto: "INVALID_PHONE_NUMBER"),
+    2: .same(proto: "INVALID_CLIENT_VERSION"),
+    3: .same(proto: "WRONG_SMS_CODE"),
+    4: .same(proto: "MISSING_PHONE"),
+    5: .same(proto: "MISSING_CODE"),
+    6: .same(proto: "MISSING_NAME"),
+    7: .same(proto: "INVALID_NAME"),
+    8: .same(proto: "MISSING_IDENTITY_KEY"),
+    9: .same(proto: "MISSING_SIGNED_KEY"),
+    10: .same(proto: "MISSING_ONE_TIME_KEYS"),
+    11: .same(proto: "BAD_BASE64_KEY"),
+    12: .same(proto: "INVALID_ONE_TIME_KEYS"),
+    13: .same(proto: "TOO_FEW_ONE_TIME_KEYS"),
+    14: .same(proto: "TOO_MANY_ONE_TIME_KEYS"),
+    15: .same(proto: "TOO_BIG_IDENTITY_KEY"),
+    16: .same(proto: "TOO_BIG_SIGNED_KEY"),
+    17: .same(proto: "TOO_BIG_ONE_TIME_KEYS"),
+    18: .same(proto: "INVALID_S_ED_PUB"),
+    19: .same(proto: "INVALID_SIGNED_PHRASE"),
+    20: .same(proto: "UNABLE_TO_OPEN_SIGNED_PHRASE"),
+    21: .same(proto: "BAD_REQUEST"),
+    22: .same(proto: "INTERNAL_SERVER_ERROR"),
+  ]
 }

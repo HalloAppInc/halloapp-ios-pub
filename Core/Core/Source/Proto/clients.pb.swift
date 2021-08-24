@@ -317,18 +317,6 @@ public struct Clients_ChatMessage {
   public init() {}
 }
 
-public struct Clients_IdentityKey {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var publicKey: Data = Data()
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-}
-
 public struct Clients_SignedPreKey {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -750,6 +738,22 @@ public struct Clients_Image {
   fileprivate var _img: Clients_EncryptedResource? = nil
 }
 
+public struct Clients_StreamingInfo {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var blobVersion: Clients_BlobVersion = .default
+
+  public var chunkSize: Int32 = 0
+
+  public var blobSize: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Clients_Video {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -768,11 +772,21 @@ public struct Clients_Video {
 
   public var height: Int32 = 0
 
+  public var streamingInfo: Clients_StreamingInfo {
+    get {return _streamingInfo ?? Clients_StreamingInfo()}
+    set {_streamingInfo = newValue}
+  }
+  /// Returns true if `streamingInfo` has been explicitly set.
+  public var hasStreamingInfo: Bool {return self._streamingInfo != nil}
+  /// Clears the value of `streamingInfo`. Subsequent reads from it will return its default value.
+  public mutating func clearStreamingInfo() {self._streamingInfo = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
   fileprivate var _video: Clients_EncryptedResource? = nil
+  fileprivate var _streamingInfo: Clients_StreamingInfo? = nil
 }
 
 public struct Clients_AlbumMedia {
@@ -1408,38 +1422,6 @@ extension Clients_ChatMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     if lhs.chatReplyMessageMediaIndex != rhs.chatReplyMessageMediaIndex {return false}
     if lhs.chatReplyMessageSenderID != rhs.chatReplyMessageSenderID {return false}
     if lhs.contacts != rhs.contacts {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Clients_IdentityKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".IdentityKey"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "public_key"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularBytesField(value: &self.publicKey) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.publicKey.isEmpty {
-      try visitor.visitSingularBytesField(value: self.publicKey, fieldNumber: 1)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Clients_IdentityKey, rhs: Clients_IdentityKey) -> Bool {
-    if lhs.publicKey != rhs.publicKey {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2150,12 +2132,57 @@ extension Clients_Image: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   }
 }
 
+extension Clients_StreamingInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".StreamingInfo"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "blob_version"),
+    2: .standard(proto: "chunk_size"),
+    3: .standard(proto: "blob_size"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.blobVersion) }()
+      case 2: try { try decoder.decodeSingularInt32Field(value: &self.chunkSize) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.blobSize) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.blobVersion != .default {
+      try visitor.visitSingularEnumField(value: self.blobVersion, fieldNumber: 1)
+    }
+    if self.chunkSize != 0 {
+      try visitor.visitSingularInt32Field(value: self.chunkSize, fieldNumber: 2)
+    }
+    if self.blobSize != 0 {
+      try visitor.visitSingularInt64Field(value: self.blobSize, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_StreamingInfo, rhs: Clients_StreamingInfo) -> Bool {
+    if lhs.blobVersion != rhs.blobVersion {return false}
+    if lhs.chunkSize != rhs.chunkSize {return false}
+    if lhs.blobSize != rhs.blobSize {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Clients_Video: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Video"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "video"),
     2: .same(proto: "width"),
     3: .same(proto: "height"),
+    4: .standard(proto: "streaming_info"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2167,6 +2194,7 @@ extension Clients_Video: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
       case 1: try { try decoder.decodeSingularMessageField(value: &self._video) }()
       case 2: try { try decoder.decodeSingularInt32Field(value: &self.width) }()
       case 3: try { try decoder.decodeSingularInt32Field(value: &self.height) }()
+      case 4: try { try decoder.decodeSingularMessageField(value: &self._streamingInfo) }()
       default: break
       }
     }
@@ -2182,6 +2210,9 @@ extension Clients_Video: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     if self.height != 0 {
       try visitor.visitSingularInt32Field(value: self.height, fieldNumber: 3)
     }
+    if let v = self._streamingInfo {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2189,6 +2220,7 @@ extension Clients_Video: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     if lhs._video != rhs._video {return false}
     if lhs.width != rhs.width {return false}
     if lhs.height != rhs.height {return false}
+    if lhs._streamingInfo != rhs._streamingInfo {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

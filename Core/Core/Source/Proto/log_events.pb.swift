@@ -69,65 +69,102 @@ public struct Server_EventData {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var uid: UInt64 = 0
+  public var uid: UInt64 {
+    get {return _storage._uid}
+    set {_uniqueStorage()._uid = newValue}
+  }
 
   /// client platform `android` or `ios`
-  public var platform: Server_Platform = .unknown
+  public var platform: Server_Platform {
+    get {return _storage._platform}
+    set {_uniqueStorage()._platform = newValue}
+  }
 
   /// client version (eg.`0.94`)
-  public var version: String = String()
+  public var version: String {
+    get {return _storage._version}
+    set {_uniqueStorage()._version = newValue}
+  }
 
   /// set by server to indicate when event was received
-  public var timestampMs: UInt64 = 0
+  public var timestampMs: UInt64 {
+    get {return _storage._timestampMs}
+    set {_uniqueStorage()._timestampMs = newValue}
+  }
 
-  public var edata: Server_EventData.OneOf_Edata? = nil
+  /// 2 letter country code
+  public var cc: String {
+    get {return _storage._cc}
+    set {_uniqueStorage()._cc = newValue}
+  }
+
+  public var edata: OneOf_Edata? {
+    get {return _storage._edata}
+    set {_uniqueStorage()._edata = newValue}
+  }
 
   public var mediaUpload: Server_MediaUpload {
     get {
-      if case .mediaUpload(let v)? = edata {return v}
+      if case .mediaUpload(let v)? = _storage._edata {return v}
       return Server_MediaUpload()
     }
-    set {edata = .mediaUpload(newValue)}
+    set {_uniqueStorage()._edata = .mediaUpload(newValue)}
   }
 
   public var mediaDownload: Server_MediaDownload {
     get {
-      if case .mediaDownload(let v)? = edata {return v}
+      if case .mediaDownload(let v)? = _storage._edata {return v}
       return Server_MediaDownload()
     }
-    set {edata = .mediaDownload(newValue)}
+    set {_uniqueStorage()._edata = .mediaDownload(newValue)}
   }
 
   public var mediaComposeLoad: Server_MediaComposeLoad {
     get {
-      if case .mediaComposeLoad(let v)? = edata {return v}
+      if case .mediaComposeLoad(let v)? = _storage._edata {return v}
       return Server_MediaComposeLoad()
     }
-    set {edata = .mediaComposeLoad(newValue)}
+    set {_uniqueStorage()._edata = .mediaComposeLoad(newValue)}
   }
 
   public var pushReceived: Server_PushReceived {
     get {
-      if case .pushReceived(let v)? = edata {return v}
+      if case .pushReceived(let v)? = _storage._edata {return v}
       return Server_PushReceived()
     }
-    set {edata = .pushReceived(newValue)}
+    set {_uniqueStorage()._edata = .pushReceived(newValue)}
   }
 
   public var decryptionReport: Server_DecryptionReport {
     get {
-      if case .decryptionReport(let v)? = edata {return v}
+      if case .decryptionReport(let v)? = _storage._edata {return v}
       return Server_DecryptionReport()
     }
-    set {edata = .decryptionReport(newValue)}
+    set {_uniqueStorage()._edata = .decryptionReport(newValue)}
   }
 
   public var permissions: Server_Permissions {
     get {
-      if case .permissions(let v)? = edata {return v}
+      if case .permissions(let v)? = _storage._edata {return v}
       return Server_Permissions()
     }
-    set {edata = .permissions(newValue)}
+    set {_uniqueStorage()._edata = .permissions(newValue)}
+  }
+
+  public var mediaObjectDownload: Server_MediaObjectDownload {
+    get {
+      if case .mediaObjectDownload(let v)? = _storage._edata {return v}
+      return Server_MediaObjectDownload()
+    }
+    set {_uniqueStorage()._edata = .mediaObjectDownload(newValue)}
+  }
+
+  public var groupDecryptionReport: Server_GroupDecryptionReport {
+    get {
+      if case .groupDecryptionReport(let v)? = _storage._edata {return v}
+      return Server_GroupDecryptionReport()
+    }
+    set {_uniqueStorage()._edata = .groupDecryptionReport(newValue)}
   }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -139,6 +176,8 @@ public struct Server_EventData {
     case pushReceived(Server_PushReceived)
     case decryptionReport(Server_DecryptionReport)
     case permissions(Server_Permissions)
+    case mediaObjectDownload(Server_MediaObjectDownload)
+    case groupDecryptionReport(Server_GroupDecryptionReport)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_EventData.OneOf_Edata, rhs: Server_EventData.OneOf_Edata) -> Bool {
@@ -170,6 +209,14 @@ public struct Server_EventData {
         guard case .permissions(let l) = lhs, case .permissions(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
+      case (.mediaObjectDownload, .mediaObjectDownload): return {
+        guard case .mediaObjectDownload(let l) = lhs, case .mediaObjectDownload(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.groupDecryptionReport, .groupDecryptionReport): return {
+        guard case .groupDecryptionReport(let l) = lhs, case .groupDecryptionReport(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
       default: return false
       }
     }
@@ -177,7 +224,258 @@ public struct Server_EventData {
   }
 
   public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
+
+public struct Server_MediaObjectDownload {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// id of post or message
+  public var id: String = String()
+
+  /// 0-based index of the media item in the post/msg
+  public var index: UInt64 = 0
+
+  public var type: Server_MediaObjectDownload.TypeEnum = .post
+
+  public var mediaType: Server_MediaObjectDownload.MediaType = .photo
+
+  /// time in ms it took to download the media object
+  public var durationMs: UInt64 = 0
+
+  /// byte size of the object
+  public var size: UInt64 = 0
+
+  /// number of bytes downloaded during this attempt
+  public var progressBytes: UInt64 = 0
+
+  /// should be cloudfront for now
+  public var cdn: Server_MediaObjectDownload.Cdn = .unknownCdn
+
+  /// value of the `x-amz-cf-pop` result header
+  public var cdnPop: String = String()
+
+  /// value of the `x-amz-cf-id` result header
+  public var cdnID: String = String()
+
+  public var cdnCache: Server_MediaObjectDownload.CdnCache = .unknownCache
+
+  public var status: Server_MediaObjectDownload.Status = .ok
+
+  /// number of attempts to download, either so far or until status=ok
+  public var retryCount: UInt64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum TypeEnum: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case post // = 0
+    case message // = 1
+    case comment // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .post
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .post
+      case 1: self = .message
+      case 2: self = .comment
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .post: return 0
+      case .message: return 1
+      case .comment: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum MediaType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case photo // = 0
+    case video // = 1
+    case audio // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .photo
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .photo
+      case 1: self = .video
+      case 2: self = .audio
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .photo: return 0
+      case .video: return 1
+      case .audio: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum Cdn: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownCdn // = 0
+    case cloudfront // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownCdn
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownCdn
+      case 1: self = .cloudfront
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownCdn: return 0
+      case .cloudfront: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum CdnCache: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownCache // = 0
+    case hit // = 1
+    case miss // = 2
+    case refreshHit // = 3
+    case refreshMiss // = 4
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownCache
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownCache
+      case 1: self = .hit
+      case 2: self = .miss
+      case 3: self = .refreshHit
+      case 4: self = .refreshMiss
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownCache: return 0
+      case .hit: return 1
+      case .miss: return 2
+      case .refreshHit: return 3
+      case .refreshMiss: return 4
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum Status: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case ok // = 0
+    case fail // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .ok
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .ok
+      case 1: self = .fail
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .ok: return 0
+      case .fail: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_MediaObjectDownload.TypeEnum: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_MediaObjectDownload.TypeEnum] = [
+    .post,
+    .message,
+    .comment,
+  ]
+}
+
+extension Server_MediaObjectDownload.MediaType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_MediaObjectDownload.MediaType] = [
+    .photo,
+    .video,
+    .audio,
+  ]
+}
+
+extension Server_MediaObjectDownload.Cdn: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_MediaObjectDownload.Cdn] = [
+    .unknownCdn,
+    .cloudfront,
+  ]
+}
+
+extension Server_MediaObjectDownload.CdnCache: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_MediaObjectDownload.CdnCache] = [
+    .unknownCache,
+    .hit,
+    .miss,
+    .refreshHit,
+    .refreshMiss,
+  ]
+}
+
+extension Server_MediaObjectDownload.Status: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_MediaObjectDownload.Status] = [
+    .ok,
+    .fail,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 public struct Server_MediaUpload {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -518,6 +816,117 @@ extension Server_DecryptionReport.Status: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_GroupDecryptionReport {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var result: Server_GroupDecryptionReport.Status = .unknownStatus
+
+  public var reason: String = String()
+
+  public var msgID: String = String()
+
+  public var gid: String = String()
+
+  public var itemType: Server_GroupDecryptionReport.ItemType = .unknownType
+
+  /// at time msg id was first encountered
+  public var originalVersion: String = String()
+
+  public var rerequestCount: UInt32 = 0
+
+  public var timeTakenS: UInt32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Status: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownStatus // = 0
+    case ok // = 1
+    case fail // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownStatus
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownStatus
+      case 1: self = .ok
+      case 2: self = .fail
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownStatus: return 0
+      case .ok: return 1
+      case .fail: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum ItemType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownType // = 0
+    case post // = 1
+    case comment // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownType
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownType
+      case 1: self = .post
+      case 2: self = .comment
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownType: return 0
+      case .post: return 1
+      case .comment: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_GroupDecryptionReport.Status: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_GroupDecryptionReport.Status] = [
+    .unknownStatus,
+    .ok,
+    .fail,
+  ]
+}
+
+extension Server_GroupDecryptionReport.ItemType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_GroupDecryptionReport.ItemType] = [
+    .unknownType,
+    .post,
+    .comment,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 public struct Server_Permissions {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -627,12 +1036,264 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     2: .same(proto: "platform"),
     3: .same(proto: "version"),
     4: .standard(proto: "timestamp_ms"),
+    5: .same(proto: "cc"),
     10: .standard(proto: "media_upload"),
     11: .standard(proto: "media_download"),
     12: .standard(proto: "media_compose_load"),
     13: .standard(proto: "push_received"),
     14: .standard(proto: "decryption_report"),
     15: .same(proto: "permissions"),
+    16: .standard(proto: "media_object_download"),
+    17: .standard(proto: "group_decryption_report"),
+  ]
+
+  fileprivate class _StorageClass {
+    var _uid: UInt64 = 0
+    var _platform: Server_Platform = .unknown
+    var _version: String = String()
+    var _timestampMs: UInt64 = 0
+    var _cc: String = String()
+    var _edata: Server_EventData.OneOf_Edata?
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _uid = source._uid
+      _platform = source._platform
+      _version = source._version
+      _timestampMs = source._timestampMs
+      _cc = source._cc
+      _edata = source._edata
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularUInt64Field(value: &_storage._uid) }()
+        case 2: try { try decoder.decodeSingularEnumField(value: &_storage._platform) }()
+        case 3: try { try decoder.decodeSingularStringField(value: &_storage._version) }()
+        case 4: try { try decoder.decodeSingularUInt64Field(value: &_storage._timestampMs) }()
+        case 5: try { try decoder.decodeSingularStringField(value: &_storage._cc) }()
+        case 10: try {
+          var v: Server_MediaUpload?
+          var hadOneofValue = false
+          if let current = _storage._edata {
+            hadOneofValue = true
+            if case .mediaUpload(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .mediaUpload(v)
+          }
+        }()
+        case 11: try {
+          var v: Server_MediaDownload?
+          var hadOneofValue = false
+          if let current = _storage._edata {
+            hadOneofValue = true
+            if case .mediaDownload(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .mediaDownload(v)
+          }
+        }()
+        case 12: try {
+          var v: Server_MediaComposeLoad?
+          var hadOneofValue = false
+          if let current = _storage._edata {
+            hadOneofValue = true
+            if case .mediaComposeLoad(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .mediaComposeLoad(v)
+          }
+        }()
+        case 13: try {
+          var v: Server_PushReceived?
+          var hadOneofValue = false
+          if let current = _storage._edata {
+            hadOneofValue = true
+            if case .pushReceived(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .pushReceived(v)
+          }
+        }()
+        case 14: try {
+          var v: Server_DecryptionReport?
+          var hadOneofValue = false
+          if let current = _storage._edata {
+            hadOneofValue = true
+            if case .decryptionReport(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .decryptionReport(v)
+          }
+        }()
+        case 15: try {
+          var v: Server_Permissions?
+          var hadOneofValue = false
+          if let current = _storage._edata {
+            hadOneofValue = true
+            if case .permissions(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .permissions(v)
+          }
+        }()
+        case 16: try {
+          var v: Server_MediaObjectDownload?
+          var hadOneofValue = false
+          if let current = _storage._edata {
+            hadOneofValue = true
+            if case .mediaObjectDownload(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .mediaObjectDownload(v)
+          }
+        }()
+        case 17: try {
+          var v: Server_GroupDecryptionReport?
+          var hadOneofValue = false
+          if let current = _storage._edata {
+            hadOneofValue = true
+            if case .groupDecryptionReport(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .groupDecryptionReport(v)
+          }
+        }()
+        default: break
+        }
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      if _storage._uid != 0 {
+        try visitor.visitSingularUInt64Field(value: _storage._uid, fieldNumber: 1)
+      }
+      if _storage._platform != .unknown {
+        try visitor.visitSingularEnumField(value: _storage._platform, fieldNumber: 2)
+      }
+      if !_storage._version.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._version, fieldNumber: 3)
+      }
+      if _storage._timestampMs != 0 {
+        try visitor.visitSingularUInt64Field(value: _storage._timestampMs, fieldNumber: 4)
+      }
+      if !_storage._cc.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._cc, fieldNumber: 5)
+      }
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch _storage._edata {
+      case .mediaUpload?: try {
+        guard case .mediaUpload(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
+      }()
+      case .mediaDownload?: try {
+        guard case .mediaDownload(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
+      }()
+      case .mediaComposeLoad?: try {
+        guard case .mediaComposeLoad(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
+      }()
+      case .pushReceived?: try {
+        guard case .pushReceived(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
+      }()
+      case .decryptionReport?: try {
+        guard case .decryptionReport(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
+      }()
+      case .permissions?: try {
+        guard case .permissions(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
+      }()
+      case .mediaObjectDownload?: try {
+        guard case .mediaObjectDownload(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
+      }()
+      case .groupDecryptionReport?: try {
+        guard case .groupDecryptionReport(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
+      }()
+      case nil: break
+      }
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_EventData, rhs: Server_EventData) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._uid != rhs_storage._uid {return false}
+        if _storage._platform != rhs_storage._platform {return false}
+        if _storage._version != rhs_storage._version {return false}
+        if _storage._timestampMs != rhs_storage._timestampMs {return false}
+        if _storage._cc != rhs_storage._cc {return false}
+        if _storage._edata != rhs_storage._edata {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_MediaObjectDownload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".MediaObjectDownload"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .same(proto: "index"),
+    3: .same(proto: "type"),
+    4: .standard(proto: "media_type"),
+    5: .standard(proto: "duration_ms"),
+    6: .same(proto: "size"),
+    7: .standard(proto: "progress_bytes"),
+    8: .same(proto: "cdn"),
+    9: .standard(proto: "cdn_pop"),
+    10: .standard(proto: "cdn_id"),
+    11: .standard(proto: "cdn_cache"),
+    12: .same(proto: "status"),
+    13: .standard(proto: "retry_count"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -641,148 +1302,124 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.uid) }()
-      case 2: try { try decoder.decodeSingularEnumField(value: &self.platform) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self.version) }()
-      case 4: try { try decoder.decodeSingularUInt64Field(value: &self.timestampMs) }()
-      case 10: try {
-        var v: Server_MediaUpload?
-        var hadOneofValue = false
-        if let current = self.edata {
-          hadOneofValue = true
-          if case .mediaUpload(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.edata = .mediaUpload(v)
-        }
-      }()
-      case 11: try {
-        var v: Server_MediaDownload?
-        var hadOneofValue = false
-        if let current = self.edata {
-          hadOneofValue = true
-          if case .mediaDownload(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.edata = .mediaDownload(v)
-        }
-      }()
-      case 12: try {
-        var v: Server_MediaComposeLoad?
-        var hadOneofValue = false
-        if let current = self.edata {
-          hadOneofValue = true
-          if case .mediaComposeLoad(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.edata = .mediaComposeLoad(v)
-        }
-      }()
-      case 13: try {
-        var v: Server_PushReceived?
-        var hadOneofValue = false
-        if let current = self.edata {
-          hadOneofValue = true
-          if case .pushReceived(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.edata = .pushReceived(v)
-        }
-      }()
-      case 14: try {
-        var v: Server_DecryptionReport?
-        var hadOneofValue = false
-        if let current = self.edata {
-          hadOneofValue = true
-          if case .decryptionReport(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.edata = .decryptionReport(v)
-        }
-      }()
-      case 15: try {
-        var v: Server_Permissions?
-        var hadOneofValue = false
-        if let current = self.edata {
-          hadOneofValue = true
-          if case .permissions(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.edata = .permissions(v)
-        }
-      }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.index) }()
+      case 3: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      case 4: try { try decoder.decodeSingularEnumField(value: &self.mediaType) }()
+      case 5: try { try decoder.decodeSingularUInt64Field(value: &self.durationMs) }()
+      case 6: try { try decoder.decodeSingularUInt64Field(value: &self.size) }()
+      case 7: try { try decoder.decodeSingularUInt64Field(value: &self.progressBytes) }()
+      case 8: try { try decoder.decodeSingularEnumField(value: &self.cdn) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self.cdnPop) }()
+      case 10: try { try decoder.decodeSingularStringField(value: &self.cdnID) }()
+      case 11: try { try decoder.decodeSingularEnumField(value: &self.cdnCache) }()
+      case 12: try { try decoder.decodeSingularEnumField(value: &self.status) }()
+      case 13: try { try decoder.decodeSingularUInt64Field(value: &self.retryCount) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.uid != 0 {
-      try visitor.visitSingularUInt64Field(value: self.uid, fieldNumber: 1)
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
     }
-    if self.platform != .unknown {
-      try visitor.visitSingularEnumField(value: self.platform, fieldNumber: 2)
+    if self.index != 0 {
+      try visitor.visitSingularUInt64Field(value: self.index, fieldNumber: 2)
     }
-    if !self.version.isEmpty {
-      try visitor.visitSingularStringField(value: self.version, fieldNumber: 3)
+    if self.type != .post {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 3)
     }
-    if self.timestampMs != 0 {
-      try visitor.visitSingularUInt64Field(value: self.timestampMs, fieldNumber: 4)
+    if self.mediaType != .photo {
+      try visitor.visitSingularEnumField(value: self.mediaType, fieldNumber: 4)
     }
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every case branch when no optimizations are
-    // enabled. https://github.com/apple/swift-protobuf/issues/1034
-    switch self.edata {
-    case .mediaUpload?: try {
-      guard case .mediaUpload(let v)? = self.edata else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
-    }()
-    case .mediaDownload?: try {
-      guard case .mediaDownload(let v)? = self.edata else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
-    }()
-    case .mediaComposeLoad?: try {
-      guard case .mediaComposeLoad(let v)? = self.edata else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
-    }()
-    case .pushReceived?: try {
-      guard case .pushReceived(let v)? = self.edata else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
-    }()
-    case .decryptionReport?: try {
-      guard case .decryptionReport(let v)? = self.edata else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
-    }()
-    case .permissions?: try {
-      guard case .permissions(let v)? = self.edata else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
-    }()
-    case nil: break
+    if self.durationMs != 0 {
+      try visitor.visitSingularUInt64Field(value: self.durationMs, fieldNumber: 5)
+    }
+    if self.size != 0 {
+      try visitor.visitSingularUInt64Field(value: self.size, fieldNumber: 6)
+    }
+    if self.progressBytes != 0 {
+      try visitor.visitSingularUInt64Field(value: self.progressBytes, fieldNumber: 7)
+    }
+    if self.cdn != .unknownCdn {
+      try visitor.visitSingularEnumField(value: self.cdn, fieldNumber: 8)
+    }
+    if !self.cdnPop.isEmpty {
+      try visitor.visitSingularStringField(value: self.cdnPop, fieldNumber: 9)
+    }
+    if !self.cdnID.isEmpty {
+      try visitor.visitSingularStringField(value: self.cdnID, fieldNumber: 10)
+    }
+    if self.cdnCache != .unknownCache {
+      try visitor.visitSingularEnumField(value: self.cdnCache, fieldNumber: 11)
+    }
+    if self.status != .ok {
+      try visitor.visitSingularEnumField(value: self.status, fieldNumber: 12)
+    }
+    if self.retryCount != 0 {
+      try visitor.visitSingularUInt64Field(value: self.retryCount, fieldNumber: 13)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Server_EventData, rhs: Server_EventData) -> Bool {
-    if lhs.uid != rhs.uid {return false}
-    if lhs.platform != rhs.platform {return false}
-    if lhs.version != rhs.version {return false}
-    if lhs.timestampMs != rhs.timestampMs {return false}
-    if lhs.edata != rhs.edata {return false}
+  public static func ==(lhs: Server_MediaObjectDownload, rhs: Server_MediaObjectDownload) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.index != rhs.index {return false}
+    if lhs.type != rhs.type {return false}
+    if lhs.mediaType != rhs.mediaType {return false}
+    if lhs.durationMs != rhs.durationMs {return false}
+    if lhs.size != rhs.size {return false}
+    if lhs.progressBytes != rhs.progressBytes {return false}
+    if lhs.cdn != rhs.cdn {return false}
+    if lhs.cdnPop != rhs.cdnPop {return false}
+    if lhs.cdnID != rhs.cdnID {return false}
+    if lhs.cdnCache != rhs.cdnCache {return false}
+    if lhs.status != rhs.status {return false}
+    if lhs.retryCount != rhs.retryCount {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_MediaObjectDownload.TypeEnum: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "POST"),
+    1: .same(proto: "MESSAGE"),
+    2: .same(proto: "COMMENT"),
+  ]
+}
+
+extension Server_MediaObjectDownload.MediaType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "PHOTO"),
+    1: .same(proto: "VIDEO"),
+    2: .same(proto: "AUDIO"),
+  ]
+}
+
+extension Server_MediaObjectDownload.Cdn: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_CDN"),
+    1: .same(proto: "CLOUDFRONT"),
+  ]
+}
+
+extension Server_MediaObjectDownload.CdnCache: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_CACHE"),
+    1: .same(proto: "HIT"),
+    2: .same(proto: "MISS"),
+    3: .same(proto: "REFRESH_HIT"),
+    4: .same(proto: "REFRESH_MISS"),
+  ]
+}
+
+extension Server_MediaObjectDownload.Status: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "OK"),
+    1: .same(proto: "FAIL"),
+  ]
 }
 
 extension Server_MediaUpload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -1135,6 +1772,96 @@ extension Server_DecryptionReport.Status: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "OK"),
     1: .same(proto: "FAIL"),
+  ]
+}
+
+extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GroupDecryptionReport"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "result"),
+    2: .same(proto: "reason"),
+    3: .standard(proto: "msg_id"),
+    4: .same(proto: "gid"),
+    5: .standard(proto: "item_type"),
+    6: .standard(proto: "original_version"),
+    7: .standard(proto: "rerequest_count"),
+    8: .standard(proto: "time_taken_s"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.result) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.reason) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.msgID) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.gid) }()
+      case 5: try { try decoder.decodeSingularEnumField(value: &self.itemType) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.originalVersion) }()
+      case 7: try { try decoder.decodeSingularUInt32Field(value: &self.rerequestCount) }()
+      case 8: try { try decoder.decodeSingularUInt32Field(value: &self.timeTakenS) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.result != .unknownStatus {
+      try visitor.visitSingularEnumField(value: self.result, fieldNumber: 1)
+    }
+    if !self.reason.isEmpty {
+      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 2)
+    }
+    if !self.msgID.isEmpty {
+      try visitor.visitSingularStringField(value: self.msgID, fieldNumber: 3)
+    }
+    if !self.gid.isEmpty {
+      try visitor.visitSingularStringField(value: self.gid, fieldNumber: 4)
+    }
+    if self.itemType != .unknownType {
+      try visitor.visitSingularEnumField(value: self.itemType, fieldNumber: 5)
+    }
+    if !self.originalVersion.isEmpty {
+      try visitor.visitSingularStringField(value: self.originalVersion, fieldNumber: 6)
+    }
+    if self.rerequestCount != 0 {
+      try visitor.visitSingularUInt32Field(value: self.rerequestCount, fieldNumber: 7)
+    }
+    if self.timeTakenS != 0 {
+      try visitor.visitSingularUInt32Field(value: self.timeTakenS, fieldNumber: 8)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_GroupDecryptionReport, rhs: Server_GroupDecryptionReport) -> Bool {
+    if lhs.result != rhs.result {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs.msgID != rhs.msgID {return false}
+    if lhs.gid != rhs.gid {return false}
+    if lhs.itemType != rhs.itemType {return false}
+    if lhs.originalVersion != rhs.originalVersion {return false}
+    if lhs.rerequestCount != rhs.rerequestCount {return false}
+    if lhs.timeTakenS != rhs.timeTakenS {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_GroupDecryptionReport.Status: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_STATUS"),
+    1: .same(proto: "OK"),
+    2: .same(proto: "FAIL"),
+  ]
+}
+
+extension Server_GroupDecryptionReport.ItemType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_TYPE"),
+    1: .same(proto: "POST"),
+    2: .same(proto: "COMMENT"),
   ]
 }
 

@@ -94,9 +94,9 @@ public struct WhisperKeyBundle {
 // MARK: - WhisperKeyBundle: Protobufs
 
 public extension WhisperKeyBundle {
-    var protoIdentityKey: Clients_IdentityKey {
+    var protoIdentityKey: Server_IdentityKey {
         get {
-            var protoIdentityKey = Clients_IdentityKey()
+            var protoIdentityKey = Server_IdentityKey()
             protoIdentityKey.publicKey = identity
             return protoIdentityKey
         }
