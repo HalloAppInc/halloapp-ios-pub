@@ -192,7 +192,8 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
         let currentContentOffset = scrollView.contentOffset
 
         let maxOffsetX = max(0, contentSizeWidth - scrollView.bounds.width)
-        let newOffsetX = scrollToEnd ? maxOffsetX : min(currentContentOffset.x, maxOffsetX)
+        let endOffsetX = effectiveUserInterfaceLayoutDirection == .leftToRight ? maxOffsetX : 0
+        let newOffsetX = scrollToEnd ? endOffsetX : min(currentContentOffset.x, maxOffsetX)
         let newOffset = CGPoint(x: newOffsetX, y: 0)
 
         scrollView.contentSize = CGSize(width: contentSizeWidth, height: 1)
