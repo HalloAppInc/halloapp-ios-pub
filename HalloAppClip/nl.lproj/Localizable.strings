@@ -32,7 +32,7 @@
 "button.install" = "Installeren";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Meer informatie";
+"button.learn.more" = "Meer Informatie";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
 "button.more" = "Meer";
@@ -41,7 +41,7 @@
 "button.next" = "Volgende";
 
 /* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "Niet nu";
+"button.not.now" = "Niet Nu";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
 "button.ok" = "OK";
@@ -83,7 +83,7 @@
 "meCapitalized" = "Ik";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe provider kan kosten in rekening brengen.";
+"registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe aanbieder kan hiervoor kosten in rekening brengen.";
 
 /* Error message to display when user enters incorrect verification code */
 "registration.code.incorrect" = "De code die je hebt ingevoerd is onjuist";
@@ -98,7 +98,7 @@
 "registration.code.resend" = "Sms opnieuw verzenden";
 
 /* Button label to resend verification code by voice call */
-"registration.code.resend.by.voice" = "Bel me";
+"registration.code.resend.by.voice" = "Bel mij";
 
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Om je te kunnen verbinden met je vrienden en familie hebben we je toestemming nodig voor toegang tot je contacten.";
@@ -128,7 +128,7 @@
 "registration.invite.only" = "Als je een uitnodigingslink hebt gevolgd om je te registreren voor de groep, klik dan opnieuw op de link om de registratie af te ronden en deel te nemen aan de groep.";
 
 /* Placeholder text for name entry */
-"registration.nameEntry.placeholder" = "Jouw naam";
+"registration.nameEntry.placeholder" = "Jouw Naam";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "Telefoonnummer";

@@ -13,7 +13,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>está digitando...</string>
+			<string>está a escrever...</string>
 			<key>other</key>
 			<string>estão digitando...</string>
 		</dict>
@@ -29,7 +29,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Compartilhando com %d dos meus contatos</string>
+			<string>Partilhando com %d dos meus contatos</string>
 			<key>other</key>
 			<string>Compartilhando com %d dos meus contatos</string>
 		</dict>
@@ -45,7 +45,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d contato excluído</string>
+			<string>%d contato removido</string>
 			<key>other</key>
 			<string>%d contatos excluídos</string>
 		</dict>
@@ -77,7 +77,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d excluído</string>
+			<string>%d removido</string>
 			<key>other</key>
 			<string>%d excluídos</string>
 		</dict>
@@ -127,7 +127,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Falha ao preparar mídia. Por favor, tente novamente ou selecione uma foto/vídeo diferente.</string>
+			<string>Falha ao preparar média. Por favor, tente novamente ou selecione uma foto/vídeo diferente.</string>
 			<key>other</key>
 			<string>Falha ao preparar %d itens de mídia. Por favor, tente novamente ou selecione uma foto/vídeo diferente.</string>
 		</dict>
@@ -143,9 +143,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Você tem %d convite.</string>
+			<string>Tem %d convite.</string>
 			<key>other</key>
-			<string>Você tem %d convites.</string>
+			<string>Tem %d convites.</string>
 		</dict>
 	</dict>
 	<key>n.invites.remaining</key>
@@ -159,9 +159,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Você tem %d convite restante</string>
+			<string>Tem %d convite restante</string>
 			<key>other</key>
-			<string>Você tem %d convites restantes</string>
+			<string>Tem %d convites restantes</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>
@@ -207,7 +207,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Você pode selecionar até um item</string>
+			<string>Pode selecionar até um item</string>
 			<key>other</key>
 			<string>Você pode selecionar até %d itens</string>
 		</dict>

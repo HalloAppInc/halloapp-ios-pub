@@ -665,7 +665,7 @@
 "invite.text" = "به من در هالواپ ملحق شوید - راهی ساده، خصوصی و مطمئن برای ارتباط با دوستان و آشنایان. آن را از طریق https://halloapp.com/dl نصب کنید";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "سلام %1$@، شما را دعوت میکنم به من در هالواپ ملحق شوید - یک شبکه برای آشنایانم. از @$2% برای ثبتنام استفاده کنید. آن را از https://halloapp.com/dl نصب کنید";
+"invite.text.specific" = "سلام %1$@، شما را دعوت میکنم به من در هالواپ ملحق شوید - یک شبکه برای آشنایانم. از %2$@ برای ثبت نام استفاده کنید. آن را از https://halloapp.com/dl نصب کنید";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "دعوت";

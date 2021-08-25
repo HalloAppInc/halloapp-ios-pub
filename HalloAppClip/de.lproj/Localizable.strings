@@ -2,7 +2,7 @@
 "alert.no.internet.title" = "Keine Internetverbindung";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Bitte überprüfe, ob du über eine Internetverbindung verfügst, und versuche es dann noch einmal.";
+"alert.no.internet.try.again" = "Bitte überprüfe, ob du eine Internetverbindung hast, und versuche es dann noch einmal.";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Hinzufügen";
@@ -110,7 +110,7 @@
 "registration.free.app.notice" = "Kostenlos im iPhone App Store";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
-"registration.group.name" = "Du bist eingeladen, der Gruppe %@ beizutreten ";
+"registration.group.name" = "Du bist eingeladen, der Gruppe %@ beizutreten";
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Installiere HalloApp, um fortzufahren";

@@ -1,8 +1,8 @@
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "Sem conexão com a internet";
+"alert.no.internet.title" = "Sem ligação à internet";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Verifique se você tem conexão com a internet, em seguida, tente novamente";
+"alert.no.internet.try.again" = "Verifique se tem ligação à internet e tente novamente";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Cancelar";
@@ -41,25 +41,25 @@
 "button.remove" = "Remover";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "Salvar";
+"button.save" = "Guardar";
 
 /* Title for generic Send button. Mostly used to complete some modal flow. */
 "button.send" = "Enviar";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Compartilhar";
+"button.share" = "Partilhar";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Atualizar";
 
 /* Title for generic delete button. */
-"Delete" = "Excluir";
+"Delete" = "Apagar";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Saiba mais";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Atualize seu aplicativo.";
+"link.update.your.app" = "Atualize a aplicação.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Eu";
@@ -68,25 +68,25 @@
 "share.composer.placeholder" = "Escreva uma descrição";
 
 /* Placeholder when sharing text only. */
-"share.composer.placeholder.text" = "Escreva uma postagem";
+"share.composer.placeholder.text" = "Faça uma publicação";
 
 /* Composer subtitle when sharing with a contact */
-"share.composer.subtitle.contact" = "Enviando para %@";
+"share.composer.subtitle.contact" = "A enviar para %@";
 
 /* Composer subtitle for group posts */
-"share.composer.subtitle.group" = "Compartilhando com %@";
+"share.composer.subtitle.group" = "A partilhar com %@";
 
 /* Composer title when sharing with a contact */
 "share.composer.title.contact" = "Nova mensagem";
 
 /* Composer title when sharing to feed */
-"share.composer.title.feed" = "Nova postagem";
+"share.composer.title.feed" = "Nova publicação";
 
 /* Alert dialog title shown when uploading fails. */
-"share.composer.uploading.fail.title" = "Falha no upload";
+"share.composer.uploading.fail.title" = "Falha ao fazer upload";
 
 /* Alert dialog title shown when uploading begins. */
-"share.composer.uploading.title" = "Fazendo upload...";
+"share.composer.uploading.title" = "Upload em progresso...";
 
 /* Contacts category label */
 "share.destination.contacts" = "Contatos";
@@ -101,10 +101,10 @@
 "share.destination.title" = "HalloApp";
 
 /* Message of alert when user is not logged in */
-"share.notlogged.message" = "Por favor, abra o HalloApp e faça o login.";
+"share.notlogged.message" = "Por favor, abra o HalloApp e faça login.";
 
 /* Title of alert when user is not logged in */
-"share.notlogged.title" = "Você não está logado";
+"share.notlogged.title" = "Não está com login feito";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Contato desconhecido";

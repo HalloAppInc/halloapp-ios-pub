@@ -109,11 +109,11 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d lid</string>
+			<string>%d deelnemer</string>
 			<key>other</key>
-			<string>%d leden</string>
+			<string>%d deelnemers</string>
 			<key>zero</key>
-			<string>Geen leden</string>
+			<string>Geen deelnemers</string>
 		</dict>
 	</dict>
 	<key>media.prepare.failed.n.count</key>

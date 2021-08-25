@@ -29,7 +29,7 @@
 "button.go.to.settings" = "Ga naar Instellingen";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Meer informatie";
+"button.learn.more" = "Meer Informatie";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
 "button.more" = "Meer";
@@ -38,7 +38,7 @@
 "button.next" = "Volgende";
 
 /* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "Niet nu";
+"button.not.now" = "Niet Nu";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
 "button.ok" = "OK";
@@ -77,13 +77,13 @@
 "share.composer.placeholder.text" = "Schrijf een post";
 
 /* Composer subtitle when sharing with a contact */
-"share.composer.subtitle.contact" = "Wordt verzonden naar %@";
+"share.composer.subtitle.contact" = "Verzenden naar %@";
 
 /* Composer subtitle for group posts */
 "share.composer.subtitle.group" = "Delen met %@";
 
 /* Composer title when sharing with a contact */
-"share.composer.title.contact" = "Nieuw bericht";
+"share.composer.title.contact" = "Nieuw Bericht";
 
 /* Composer title when sharing to feed */
 "share.composer.title.feed" = "Nieuwe Post";

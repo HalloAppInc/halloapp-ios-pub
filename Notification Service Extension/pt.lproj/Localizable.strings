@@ -1,8 +1,8 @@
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "Sem conexão com a internet";
+"alert.no.internet.title" = "Sem ligação à internet";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Verifique se você tem conexão com a internet, em seguida, tente novamente";
+"alert.no.internet.try.again" = "Verifique se tem ligação à internet e tente novamente.";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Cancelar";
@@ -41,34 +41,34 @@
 "button.remove" = "Remover";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "Salvar";
+"button.save" = "Guardar";
 
 /* Title for generic Send button. Mostly used to complete some modal flow. */
 "button.send" = "Enviar";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Compartilhar";
+"button.share" = "Partilhar";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Atualizar";
 
 /* Title for generic delete button. */
-"Delete" = "Excluir";
+"Delete" = "Apagar";
 
 /* Text shown in notification when the user is added to a new group */
-"groups.add.notification" = "Você foi adicionado a um novo grupo";
+"groups.add.notification" = "Foi adicionado a um novo grupo";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Saiba mais";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Atualize seu aplicativo.";
+"link.update.your.app" = "Atualize a aplicação.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Eu";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
-"notification.commented.with.text" = "Comentado: %@";
+"notification.commented.with.text" = "Comentou: %@";
 
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Um de seus contatos está agora no HalloApp";
@@ -89,7 +89,7 @@
 "notification.new.message" = "Nova mensagem";
 
 /* Title for the new feed post notification. */
-"notification.new.post" = "Nova postagem";
+"notification.new.post" = "Nova publicação";
 
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 foto";

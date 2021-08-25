@@ -29,7 +29,7 @@
 "button.go.to.settings" = "Ga naar Instellingen";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Meer informatie";
+"button.learn.more" = "Meer Informatie";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
 "button.more" = "Meer";
@@ -113,5 +113,5 @@
 "notification.voicenote" = "🎤 Spraakbericht";
 
 /* Displayed in place of contact name if name is not known. */
-"unknown.contact" = "Onbekend contact";
+"unknown.contact" = "Onbekend Contact";
 

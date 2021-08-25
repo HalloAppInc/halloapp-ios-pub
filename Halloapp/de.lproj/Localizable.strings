@@ -23,7 +23,7 @@
 "about.title" = "Über HalloApp";
 
 /* Longer title for the button that confirms marking all items in the activity center as read. */
-"activity.center.button.mark.all.read" = "Als gelesen markieren";
+"activity.center.button.mark.all.read" = "Alle als gelesen markieren";
 
 /* Short title for the button in activity center. */
 "activity.center.button.read.all" = "Gelesen";
@@ -44,7 +44,7 @@
 "alert.no.internet.title" = "Keine Internetverbindung";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Bitte überprüfe, ob du über eine Internetverbindung verfügst, und versuche es dann noch einmal.";
+"alert.no.internet.try.again" = "Bitte überprüfe, ob du eine Internetverbindung hast, und versuche es dann noch einmal.";
 
 /* Title of view where users can invite friends and family. */
 "app.ios.invite.friends" = "Freunde & Familie einladen";
@@ -149,7 +149,7 @@
 "camera.init.error.title" = "Initialisierungsfehler";
 
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
-"chat.add.to.contacts.book.label" = "Um die Beiträge von %@  zu sehen, bitte die Handynummer zu deinen Kontakten hinzufügen. Dazu hier tippen";
+"chat.add.to.contacts.book.label" = "Um die Beiträge von %@  zu sehen, einfach die Handynummer zu deinen Kontakten hinzufügen. Dazu hier tippen";
 
 /* Text shown at the top of the chat screen informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Der Kontakt ist gesperrt, zur Freigabe hier tippen";
@@ -248,10 +248,10 @@
 "chat.message.waiting" = "Auf Nachrichteneingang wird gewartet. Dies kann eine Weile dauern.";
 
 /* Alert message when missing microphone access */
-"chat.mic.access.denied.message" = "Für die Audioaufnahme bitte auf Einstellungen tippen, um das Mikrofon zu aktivieren";
+"chat.mic.access.denied.message" = "Für die Audioaufnahme bitte in den Einstellungen das Mikrofon aktivieren";
 
 /* Alert title when missing microphone access */
-"chat.mic.access.denied.title" = "Kein Zugriff auf das Mikrofon möglich";
+"chat.mic.access.denied.title" = "Auf das Mikrofon kann nicht zugegriffen werden";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "schreibt...";
@@ -308,7 +308,7 @@
 "composer.max.video.length.message" = "Bitte wähle ein anderes Video aus oder tippe auf bearbeiten.";
 
 /* Alert title in composer when a video is too long */
-"composer.max.video.length.title" = "Das Video ist länger als %.0f Sekunden";
+"composer.max.video.length.title" = "Dieses Video ist über %.0f Sekunden lang";
 
 /* Composer subtitle for messages. */
 "composer.message.subtitle" = "Senden an %@";
@@ -368,7 +368,7 @@
 "create.group.name.placeholder" = "Gruppenname hinzufügen";
 
 /* Title of group creation screen */
-"create.group.title" = "Gruppeninfo";
+"create.group.title" = "Gruppen-Info";
 
 /* Title for generic delete button. */
 "Delete" = "Löschen";
@@ -596,7 +596,7 @@
 "group.preview.members" = "Mitglieder";
 
 /* Text shown to tell user the group title is tappable */
-"group.title.tap.for.info" = "Für Gruppeninfo hier tippen";
+"group.title.tap.for.info" = "Für Gruppen-Info hier tippen";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Du wurdest zu einer neuen Gruppe hinzugefügt";
@@ -635,7 +635,7 @@
 "invite.contact.count" = "%d Kontakte auf HalloApp";
 
 /* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
-"invite.error.alert.message" = "Etwas ist etwas schiefgegangen.  Bitte versuche es später noch einmal.";
+"invite.error.alert.message" = "Etwas ist schiefgelaufen. Bitte versuche es später noch einmal.";
 
 /* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
 "invite.error.alert.title" = "Einladung fehlgeschlagen";
@@ -701,7 +701,7 @@
 "media.save.camera.roll" = "In Kamerarolle speichern";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
-"media.save.needs.permissions" = "Zugriff auf Fotos erlauben";
+"media.save.needs.permissions" = "Erlaube Zugriff auf Fotos";
 
 /* Description telling the user why the photos couldn't be saved */
 "media.save.no.access" = "Fotos können nicht ohne Zugriffsberechtigung auf die Kamerarolle gespeichert werden.";
@@ -767,10 +767,10 @@
 "not.in.group.banner.text" = "Du bist kein Mitglied dieser Gruppe mehr";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
-"notification.commented.with.text" = "Kommentar: %@";
+"notification.commented.with.text" = "Kommentierte: %@";
 
 /* Content for unknown contact notification. */
-"notification.contact.unknown.content" = "Einer deiner Kontakte ist jetzt bei HalloApp";
+"notification.contact.unknown.content" = "Einer deiner Kontakte ist jetzt auf HalloApp";
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ hat deine HalloApp-Einladung angenommen 🎉";
@@ -785,7 +785,7 @@
 "notification.new.contact.content" = "%@ ist jetzt auf HalloApp";
 
 /* Content for friend notification. */
-"notification.new.friend.content" = "%@ ist jetzt bei HalloApp";
+"notification.new.friend.content" = "%@ ist jetzt auf HalloApp";
 
 /* Fallback text for new message notification. */
 "notification.new.message" = "Neue Nachricht";
@@ -830,13 +830,13 @@
 "picker.access.denied.settings" = "Einstellungen";
 
 /* Alert title in media picker when access is denied. */
-"picker.access.denied.title" = "Zugriff auf Fotos abgelehnt";
+"picker.access.denied.title" = "Zugriff auf Fotos nicht erlaubt";
 
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Du hast HalloApp den Zugriff auf eine bestimmte Anzahl von Fotos und Videos gewährt.";
 
 /* Initial picker screen title. The default source of picker photos */
-"picker.default.title" = "Aufnahmen";
+"picker.default.title" = "Kamerarolle";
 
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Versuch es bitte noch einmal oder wähle ein anderes Foto oder Video aus.";
@@ -971,7 +971,7 @@
 "registration.invite.only" = "Wenn du einem Gruppeneinladungslink gefolgt bist, um dich zu registrieren, klicke bitte erneut auf den Link, um die Registrierung abzuschließen und der Gruppe beizutreten.";
 
 /* Placeholder text for name entry */
-"registration.nameEntry.placeholder" = "Name";
+"registration.nameEntry.placeholder" = "Dein Name";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "Handynummer";
@@ -989,7 +989,7 @@
 "registration.welcome" = "Herzlich willkommen!";
 
 /* Instructions for how to use the safety number verification UI */
-"safety.number.instructions" = "Um die Sicherheit deiner Verbindung mit %@ zu verifizieren, prüfe bitte, ob die obige Nummer mit der auf dem Gerät angezeigten übereinstimmt oder scanne den QR-Code auf dem Handy.";
+"safety.number.instructions" = "Um die Sicherheit deiner Verbindung mit %@ zu verifizieren, prüfe bitte, ob die obigen Nummern mit denen auf dem anderen Mobilgerät angezeigten übereinstimmen oder scanne den QR-Code.";
 
 /* Message to show when safety number cannot be succesfully verified */
 "safety.number.not.verified" = "Sicherheitsnummer für %@ kann nicht verifiziert werden";
@@ -1214,10 +1214,10 @@
 "title.your.post" = "Gesehen von";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
-"turn.on.contacts" = "Aktiviere Zugriff auf \"Kontakte\"";
+"turn.on.contacts" = "Erlaube den Zugriff auf \"Kontakte\"";
 
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
-"tutorial.tap.below" = "Tippe unten auf \"%@\"";
+"tutorial.tap.below" = "Tippe unten auf \"%@\".";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Kontakt unbekannt";

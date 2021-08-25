@@ -8,13 +8,13 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "HalloApp is hier! En we maken het voor jou en iedereen die je dierbaar is. We brengen sociale apps terug naar de basis, met een focus op veiligheid en privacy waarvan we vinden dat iedereen in de wereld toegang toe zou moeten hebben.\nHalloApp zal nooit je persoonlijke gegevens gebruiken of advertenties laten zien.\nIn plaats daarvan zullen we in de toekomst extra functies tegen een kleine betaling aanbieden.";
+"about.body.1" = "Hier is HalloApp! En we maken het voor jou en iedereen die je dierbaar is. We brengen sociale apps terug naar de basis, met een focus op veiligheid en privacy waarvan we vinden dat iedereen in de wereld toegang toe zou moeten hebben.\nHalloApp zal nooit je persoonlijke gegevens gebruiken of advertenties laten zien.\nIn plaats daarvan zijn we van plan om in de toekomst extra functies tegen een kleine betaling aan te bieden.";
 
 /* About screen: body text. */
-"about.body.2" = "Bedankt voor het gebruiken en delen van HalloApp met je vrienden en familie. We verbeteren de app iedere week.";
+"about.body.2" = "Bedankt voor het gebruiken en delen van HalloApp met je vrienden en familie. We maken het iedere week beter!";
 
 /* About screen: footer text. Parameter is support email address. */
-"about.footer" = "Als je vragen hebt of feedback wilt geven, e-mail ons dan op %@";
+"about.footer" = "Heb je vragen of wil je feedback geven? E-mail ons dan op %@";
 
 /* About screen: greeting. */
 "about.hallo" = "Hallo!";
@@ -23,10 +23,10 @@
 "about.title" = "Over";
 
 /* Longer title for the button that confirms marking all items in the activity center as read. */
-"activity.center.button.mark.all.read" = "Alles markeren als gelezen";
+"activity.center.button.mark.all.read" = "Alles Markeren als Gelezen";
 
 /* Short title for the button in activity center. */
-"activity.center.button.read.all" = "Alles gelezen";
+"activity.center.button.read.all" = "Alles Gelezen";
 
 /* Message shown when a user first joins from a friend's invitation (e.g., 'You accepted David's invite 🎉' */
 "activity.center.invite.accepted.item" = "Je hebt de uitnodiging van %@ geaccepteerd";
@@ -38,10 +38,10 @@
 "activity.center.welcome.item" = "Welkom op HalloApp!";
 
 /* Text label for action button to add the contact to the address book */
-"add.to.contact.book" = "Toevoegen aan mijn contacten";
+"add.to.contact.book" = "Toevoegen aan mijn Contacten";
 
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "Geen internetverbinding";
+"alert.no.internet.title" = "Geen Internetverbinding";
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Controleer of je internetverbinding hebt en probeer opnieuw.";
@@ -89,7 +89,7 @@
 "button.install" = "Installeren";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
-"button.learn.more" = "Meer informatie";
+"button.learn.more" = "Meer Informatie";
 
 /* Title for generic More button. Mostly used to complete some modal flow. */
 "button.more" = "Meer";
@@ -98,7 +98,7 @@
 "button.next" = "Volgende";
 
 /* Title for generic Not Now button. Mostly used to complete some modal flow. */
-"button.not.now" = "Niet nu";
+"button.not.now" = "Niet Nu";
 
 /* Title for generic OK button. Mostly used in popups and as such. */
 "button.ok" = "OK";
@@ -155,7 +155,7 @@
 "chat.blocked.contact.label" = "Contact is geblokkeerd, tik om te deblokkeren";
 
 /* Label for creating a new group */
-"chat.create.new.group" = "Nieuwe groep aanmaken";
+"chat.create.new.group" = "Nieuwe Groep Aanmaken";
 
 /* Title of group name edit screen */
 "chat.edit.group.title" = "Bewerken";
@@ -176,7 +176,7 @@
 "chat.group.event.member.left.you" = "Je hebt de groep verlaten";
 
 /* Action label for adding members to a group */
-"chat.group.info.add.members" = "Leden toevoegen";
+"chat.group.info.add.members" = "Deelnemers toevoegen";
 
 /* Label shown in the members list when member is an admin */
 "chat.group.info.admin.label" = "Beheerder";
@@ -188,28 +188,28 @@
 "chat.group.info.bg.default.label" = "Standaard";
 
 /* Text for menu option of demoting a group member */
-"chat.group.info.demote" = "Verwijderen als beheerder";
+"chat.group.info.demote" = "Verwijderen Als Beheerder";
 
 /* Action label for leaving group */
 "chat.group.info.leave.group" = "Groep verlaten";
 
 /* Text for menu option of making a group member admin */
-"chat.group.info.make.group.admin" = "Groepsbeheerder maken";
+"chat.group.info.make.group.admin" = "Groepsbeheerder Maken";
 
 /* Text for menu option of messaging user */
-"chat.group.info.message.user" = "Bericht sturen";
+"chat.group.info.message.user" = "Bericht Sturen";
 
 /* Text label shown when the user is not a member of the group */
-"chat.group.info.not.a.member.label" = "Je bent geen lid van deze groep";
+"chat.group.info.not.a.member.label" = "Je bent geen deelnemer van deze groep";
 
 /* Text for menu option of removing a group member */
-"chat.group.info.remove.from.group" = "Verwijderen uit groep";
+"chat.group.info.remove.from.group" = "Verwijderen Uit Groep";
 
 /* Title of screen that shows group information */
 "chat.group.info.title" = "Groepsinformatie";
 
 /* Text for menu option of viewing profile */
-"chat.group.info.view.profile" = "Profiel bekijken";
+"chat.group.info.view.profile" = "Profiel Bekijken";
 
 /* Confirmation message presented when leaving a group */
 "chat.group.leave.group.confirmation" = "“%@” verlaten?";
@@ -221,10 +221,10 @@
 "chat.group.photo.label" = "Groepsafbeelding";
 
 /* Action to take a picture or choose a photo from the library to use for the group photo */
-"chat.group.take.or.choose.photo" = "Foto maken of kiezen";
+"chat.group.take.or.choose.photo" = "Foto Maken of Kiezen";
 
 /* Label for inviting friends */
-"chat.invite.friends" = "Vrienden uitnodigen";
+"chat.invite.friends" = "Vrienden Uitnodigen";
 
 /* Message text shown in a message that have audio media but no text */
 "chat.message.audio" = "Spraakbericht";
@@ -263,7 +263,7 @@
 "comment.delete" = "Verwijderen";
 
 /* Title for the button in comment deletion confirmation prompt. */
-"comment.delete.action" = "Reactie verwijderen";
+"comment.delete.action" = "Reactie Verwijderen";
 
 /* Confirmation text displayed at comment deletion prompt */
 "comment.delete.confirmation" = "Deze reactie verwijderen? Dit kan niet ongedaan worden gemaakt.";
@@ -275,10 +275,10 @@
 "comment.deleting" = "Reactie wordt verwijderd";
 
 /* Button in comment input field. Verb. */
-"comment.post" = "Posten";
+"comment.post" = "Plaatsen";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
-"comment.posting" = "Wordt gepost...";
+"comment.posting" = "Wordt geplaatst...";
 
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Beantwoorden";
@@ -293,7 +293,7 @@
 "comment.resend.action" = "Opnieuw verzenden";
 
 /* Confirmation prompt for when resending comment that previously failed to send. */
-"comment.resend.confirmation" = "Reactie opnieuw verzenden?";
+"comment.resend.confirmation" = "Reactie Opnieuw Verzenden?";
 
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Voeg een reactie toe";
@@ -311,10 +311,10 @@
 "composer.max.video.length.title" = "Deze video is langer dan %.0f seconden";
 
 /* Composer subtitle for messages. */
-"composer.message.subtitle" = "Wordt verzonden naar %@";
+"composer.message.subtitle" = "Verzenden naar %@";
 
 /* Composer New Message title. */
-"composer.message.title" = "Nieuw bericht";
+"composer.message.title" = "Nieuw Bericht";
 
 /* Placeholder text for media caption field in post composer. */
 "composer.placeholder.media.description" = "Voeg een omschrijving toe";
@@ -350,7 +350,7 @@
 "contacts.access.denied" = "Geef HalloApp toegang tot je contacten, zodat je updates kunt verzenden en ontvangen";
 
 /* Message requesting the user enable contacts permission */
-"contacts.permission.explanation" = "Om je te helpen connecties te maken met je vrienden en familie geef HalloApp toegang tot je contacten.";
+"contacts.permission.explanation" = "Geef HalloApp toegang tot je contacten om je te helpen connecties te maken met je vrienden en familie.";
 
 /* Title for modal view when showing how to change contact permissions. */
 "contacts.permission.explanation.title" = "Contacten";
@@ -413,16 +413,16 @@
 "feed.notification.deleted.post" = "<$author$> heeft gereageerd. Deze post is verwijderd.";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.comment.no.text" = "<$author$> heeft je genoemd in een reactie";
+"feed.notification.mention.comment.no.text" = "<$author$> heeft je vermeld in een reactie";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.comment.w.text" = "<$author$> heeft je genoemd in een reactie: <$text$>";
+"feed.notification.mention.comment.w.text" = "<$author$> heeft je vermeld in een reactie: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.no.text" = "<$author$> heeft je genoemd in een post";
+"feed.notification.mention.post.no.text" = "<$author$> heeft je vermeld in een post";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.w.text" = "<$author$> heeft je genoemd in een post: <$text$>";
+"feed.notification.mention.post.w.text" = "<$author$> heeft je vermeld in een post: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.other.comment.w.text" = "<$author$> heeft ook gereageerd: <$text$>";
@@ -434,34 +434,34 @@
 "feed.notification.replied.w.text" = "<$author$> heeft geantwoord: <$text$>";
 
 /* Shown when post fails or is canceled. */
-"feed.post.failed" = "Posten mislukt.";
+"feed.post.failed" = "Plaatsen mislukt.";
 
 /* Shown when receiving a new (unsupported) type of post. */
 "feed.post.unsupported" = "Je versie van HalloApp ondersteunt dit type post niet.";
 
 /* Shown while content is being posted to feed */
-"feed.posting" = "Wordt gepost...";
+"feed.posting" = "Wordt geplaatst...";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Delen met alle contacten";
+"feed.privacy.descr.all" = "Delen met al je contacten";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Delen met iedereen behalve geselecteerde contacten";
+"feed.privacy.descr.except" = "Delen met je contacten behalve de personen die je selecteert";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Alleen delen met geselecteerde contacten";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
-"feed.privacy.list.all" = "Mijn contacten";
+"feed.privacy.list.all" = "Mijn Contacten";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
-"feed.privacy.list.except" = "Mijn contacten, behalve...";
+"feed.privacy.list.except" = "Mijn Contacten, Behalve...";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
-"feed.privacy.list.only" = "Alleen delen met...";
+"feed.privacy.list.only" = "Alleen Delen Met...";
 
 /* Possible Feed Privacy setting value. */
-"feed.privacy.value.my.contacts" = "Mijn contacten";
+"feed.privacy.value.my.contacts" = "Mijn Contacten";
 
 /* Possible Feed Privacy setting value. Can be longer. */
 "feed.privacy.value.n.contacts.excluded" = "feed.privacy.value.n.contacts.excluded";
@@ -554,13 +554,13 @@
 "group.event.removed.member.you" = "Je hebt %1@ verwijderd";
 
 /* Action label for inviting others to join the group via link */
-"group.info.invite.to.group.via.link" = "Uitnodigen voor groep via link";
+"group.info.invite.to.group.via.link" = "Uitnodigen voor Groep via Link";
 
 /* Label for copying link */
-"group.invite.copy.link" = "Link kopiëren";
+"group.invite.copy.link" = "Link Kopiëren";
 
 /* Text shown when link is copied */
-"group.invite.link.copied" = "Gekopieerd naar klembord";
+"group.invite.link.copied" = "Gekopieerd Naar Klembord";
 
 /* Text to describe what the group invite link is */
 "group.invite.link.description" = "Iedereen met HalloApp kan deze link gebruiken om deel te nemen aan deze groep.";
@@ -569,19 +569,19 @@
 "group.invite.link.label" = "GROEPSLINK";
 
 /* Text shown when link is reset */
-"group.invite.link.reset" = "Link gereset";
+"group.invite.link.reset" = "Link Gereset";
 
 /* Label for opening QR screen */
 "group.invite.qr.code" = "QR-Code";
 
 /* Label for resetting link */
-"group.invite.reset.link" = "Link resetten";
+"group.invite.reset.link" = "Link Resetten";
 
 /* Warning shown when user clicks on reset link action */
 "group.invite.reset.link.warning" = "Als deze uitnodigingslink wordt gereset, kan niemand de link meer gebruiken om deel te nemen aan deze groep.";
 
 /* Label for sharing link */
-"group.invite.share.link" = "Link delen";
+"group.invite.share.link" = "Link Delen";
 
 /* Text shown before the sharing link */
 "group.invite.share.link.message" = "Klik op deze link om deel te nemen aan mijn HalloApp-groep: ";
@@ -590,13 +590,13 @@
 "group.invite.title" = "Groepsuitnodiging";
 
 /* Label shown above group members list */
-"group.members.label" = "Leden";
+"group.members.label" = "Deelnemers";
 
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "De uitnodigingslink voor de groep is ongeldig";
 
 /* Text for alert box when the user can't join the group via group link when the group is full */
-"group.preview.join.error.group.full" = "Het maximaal aantal deelnemers van de groep is bereikt";
+"group.preview.join.error.group.full" = "Deze groep is vol";
 
 /* Text for alert box when the user can't join the group via group link when link is invalid */
 "group.preview.join.error.invalid.link" = "De link is ongeldig";
@@ -608,7 +608,7 @@
 "group.preview.join.group" = "GROEP DEELNEMEN";
 
 /* Label for the number of members in the group */
-"group.preview.members" = "Leden";
+"group.preview.members" = "Deelnemers";
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Tik hier voor groepsinformatie";
@@ -617,7 +617,7 @@
 "groups.add.notification" = "Je bent toegevoegd aan een nieuwe groep";
 
 /* A label to show that the groups below are groups in common */
-"groups.common" = "Gemeenschappelijke groepen";
+"groups.common" = "Gemeenschappelijke Groepen";
 
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "Weet je zeker dat je deze groep en de inhoud ervan wilt verwijderen?";
@@ -665,7 +665,7 @@
 "invite.text" = "Kom ook op HalloApp - een simpele, privé en veilige manier om in contact te blijven met vrienden en familie. Download de app op https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Hey %1$@, ik wil je graag uitnodigen voor HalloApp - een netwerk voor echte relaties en degenen die het dichtst bij me staan. Gebruik %2$@ om je te registreren. Download de app op https://halloapp.com/dl";
+"invite.text.specific" = "Hey %1$@, ik wil je graag uitnodigen voor HalloApp - een netwerk voor échte relaties die het dichtst bij me staan. Gebruik %2$@ om je te registreren. Download de app op https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Uitnodigen";
@@ -707,13 +707,13 @@
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
 /* Button that, when pressed, saves all the post's media to the user's camera roll */
-"media.save.all" = "Alles opslaan op filmrol";
+"media.save.all" = "Alles Opslaan Op Filmrol";
 
 /* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
-"media.save.all.singular" = "Media opslaan op filmrol";
+"media.save.all.singular" = "Media Opslaan Op Filmrol";
 
 /* Button that lets the user save the current media displayed to their camera roll */
-"media.save.camera.roll" = "Opslaan op filmrol";
+"media.save.camera.roll" = "Opslaan Op Filmrol";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
 "media.save.needs.permissions" = "Toegang tot foto's nodig";
@@ -725,7 +725,7 @@
 "media.save.not.saved" = "Foto kon niet worden opgeslagen";
 
 /* Label indicating that media was successfully saved to the camera roll */
-"media.save.saved" = "Opgeslagen op filmrol";
+"media.save.saved" = "Opgeslagen op Filmrol";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Sluiten";
@@ -752,10 +752,10 @@
 "message.reply" = "Beantwoorden";
 
 /* One of the contact actions in My Post screen. */
-"mypost.action.hide.my.posts" = "Mijn posts verbergen";
+"mypost.action.hide.my.posts" = "Mijn Posts Verbergen";
 
 /* One of the contact actions in My Post screen. Verb. */
-"mypost.action.message" = "Bericht sturen";
+"mypost.action.message" = "Bericht Sturen";
 
 /* One of the contact actions in My Post screen. */
 "mypost.action.view.profile" = "Profiel bekijken";
@@ -770,10 +770,10 @@
 "mypost.not.viewed.yet" = "Niemand heeft je post nog gezien";
 
 /* Your Post screen: label for the row that opens the invite screen */
-"mypost.row.invite.to.halloapp" = "Uitnodigen voor HalloApp";
+"mypost.row.invite.to.halloapp" = "Uitnodigen Voor HalloApp";
 
 /* Your Post screen: label for the row that opens the privacy screen */
-"mypost.row.manage.privacy" = "Privacy beheren";
+"mypost.row.manage.privacy" = "Privacy Beheren";
 
 /* Indicates how many invites are remaining */
 "n.invites.count" = "n.invites.count";
@@ -785,7 +785,7 @@
 "n.posts.deleted" = "%@ posts verwijderd";
 
 /* Text shown to indicate user is not in the group anymore */
-"not.in.group.banner.text" = "Je bent niet langer lid van deze groep";
+"not.in.group.banner.text" = "Je bent geen deelnemer meer van deze groep";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Gereageerd: %@";
@@ -812,7 +812,7 @@
 "notification.new.friend.content" = "%@ gebruikt nu HalloApp";
 
 /* Fallback text for new message notification. */
-"notification.new.message" = "Nieuw bericht";
+"notification.new.message" = "Nieuw Bericht";
 
 /* Title for the new feed post notification. */
 "notification.new.post" = "Nieuwe Post";
@@ -854,7 +854,7 @@
 "picker.access.denied.settings" = "Instellingen";
 
 /* Alert title in media picker when access is denied. */
-"picker.access.denied.title" = "Toegang tot foto's geweigerd";
+"picker.access.denied.title" = "Toegang Foto's Geweigerd";
 
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Je hebt HalloApp toegang gegeven tot een beperkt aantal foto's en video's.";
@@ -875,7 +875,7 @@
 "picker.media.limit.settings" = "Instellingen wijzigen";
 
 /* Alert title in media picker when selecting over limit. */
-"picker.media.limit.title" = "Maximum aantal items geselecteerd";
+"picker.media.limit.title" = "Maximumaantal items geselecteerd";
 
 /* An option to update limited access. */
 "picker.media.limit.updateSelection" = "Foto- & videoselectie bijwerken";
@@ -899,28 +899,28 @@
 "privacy.n.contacts" = "privacy.n.contacts";
 
 /* Title for the button allowing to delete current profile photo. */
-"profile.delete.photo" = "Foto verwijderen";
+"profile.delete.photo" = "Foto Verwijderen";
 
 /* A label for the button which leads to the page showing groups in common */
-"profile.groups.in.common" = "Gemeenschappelijke groepen";
+"profile.groups.in.common" = "Gemeenschappelijke Groepen";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
-"profile.header.message.user" = "Bericht sturen";
+"profile.header.message.user" = "Stuur bericht";
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Deblokkeren";
 
 /* Item in Profile > Help screen. */
-"profile.help.faq" = "FAQ";
+"profile.help.faq" = "Veelgestelde Vragen";
 
 /* Item in Profile > Help screen. */
-"profile.help.feedback" = "Feedback & logs delen";
+"profile.help.feedback" = "Feedback & Logs Delen";
 
 /* Item in Profile > Help screen. */
 "profile.help.pp" = "Privacybeleid";
 
 /* Item in Profile > Help screen. */
-"profile.help.share.logs" = "Logs delen";
+"profile.help.share.logs" = "Logs Delen";
 
 /* Item in Profile > Help screen. */
 "profile.help.tos" = "Gebruiksvoorwaarden";
@@ -950,13 +950,13 @@
 "profile.row.share" = "Deel HalloApp";
 
 /* Title for the button allowing to select a new profile photo. */
-"profile.take.choose.photo" = "Foto maken of kiezen";
+"profile.take.choose.photo" = "Foto Maken of Kiezen";
 
 /* Title for the screen allowing to edit profile name */
-"profile.title.your.name" = "Jouw naam";
+"profile.title.your.name" = "Jouw Naam";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe provider kan kosten in rekening brengen.";
+"registration.code.disclaimer" = "Je ontvangt een verificatiecode.\nJe aanbieder kan hiervoor kosten in rekening brengen.";
 
 /* Error message to display when user enters incorrect verification code */
 "registration.code.incorrect" = "De code die je hebt ingevoerd is onjuist";
@@ -971,7 +971,7 @@
 "registration.code.resend" = "Sms opnieuw verzenden";
 
 /* Button label to resend verification code by voice call */
-"registration.code.resend.by.voice" = "Bel me";
+"registration.code.resend.by.voice" = "Bel mij";
 
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Om je te kunnen verbinden met je vrienden en familie hebben we je toestemming nodig voor toegang tot je contacten.";
@@ -1001,7 +1001,7 @@
 "registration.invite.only" = "Als je een uitnodigingslink hebt gevolgd om je te registreren voor deze groep, klik dan opnieuw op de link om de registratie af te ronden en deel te nemen aan de groep.";
 
 /* Placeholder text for name entry */
-"registration.nameEntry.placeholder" = "Jouw naam";
+"registration.nameEntry.placeholder" = "Jouw Naam";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "Telefoonnummer";
@@ -1025,7 +1025,7 @@
 "safety.number.not.verified" = "Veiligheidsnummer voor %@ kan niet geverifieerd worden";
 
 /* Title for button that will open QR code scanner used to verify a contact's safety number */
-"safety.number.scan" = "Tik om te scannen";
+"safety.number.scan" = "Tik om te Scannen";
 
 /* Title for screen that allows users to verify a contact's safety number */
 "safety.number.title" = "Veiligheidsnummer verifiëren";
@@ -1055,40 +1055,40 @@
 "server.new.post" = "Nieuwe Post";
 
 /* text in the sms sent with verification code */
-"server.sms.verification" = "Je HalloApp verificatiecode";
+"server.sms.verification" = "Jouw HalloApp-verificatiecode";
 
 /* text in the voice call sent with verification code */
-"server.voicecall.verification" = "Je HalloApp verificatiecode is";
+"server.voicecall.verification" = "Jouw HalloApp-verificatiecode is";
 
 /* Displayed while syncing account immediately after registration */
 "setting.up.halloapp" = "HalloApp wordt ingesteld";
 
 /* Title of alert telling the user they're about to delete their account */
-"settings.account.delete.action.title" = "Account verwijderen";
+"settings.account.delete.action.title" = "Account Verwijderen";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet1" = "Je accountinformatie en profielfoto wordt verwijderd";
+"settings.account.delete.bullet1" = "Je accountinformatie en profielfoto verwijderen";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet2" = "Je wordt verwijderd uit al je HalloApp-groepen";
+"settings.account.delete.bullet2" = "Je uit al je HalloApp-groepen verwijderen";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet3" = "Je chatgeschiedenis wordt verwijderd van je telefoon";
+"settings.account.delete.bullet3" = "Je chatgeschiedenis van je telefoon verwijderen";
 
 /* Label telling the user that their account has been deleted */
-"settings.account.delete.deleted" = "Account is verwijderd";
+"settings.account.delete.deleted" = "Account Is Verwijderd";
 
 /* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
 "settings.account.delete.error" = "Er is een fout opgetreden tijdens het verwijderen van je account. Zorg ervoor dat je telefoonnummer juist is.";
 
 /* Label above list of things that will happen if they delete their account */
-"settings.account.delete.header" = "Het verwijderen van je account houdt in dat:";
+"settings.account.delete.header" = "Het verwijderen van je account zal:";
 
 /* Alert message telling the user that account deletion is irreversible */
 "settings.account.delete.irreversible.label" = "Deze actie kan niet ongedaan worden gemaakt";
 
 /* Text field placeholder telling the user that their phone number should go into the field */
-"settings.account.delete.phone.number" = "Je telefoonnummer";
+"settings.account.delete.phone.number" = "Je Telefoonnummer";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
 "settings.account.delete.spinner.replacement" = "Wachten op antwoord van de server";
@@ -1106,13 +1106,13 @@
 "settings.account.export.error" = "Er is een fout opgetreden bij het ophalen van je gegevens.";
 
 /* Explanation about what the data export function is. English language version taken from WhatsApp. */
-"settings.account.export.explanation" = "Maak een rapport aan van je HalloApp-accountinformatie en -instellingen welke je daarna kunt openen of overzetten naar een andere app. Dit rapport bevat geen chatberichten.";
+"settings.account.export.explanation" = "Maak een rapport aan van je HalloApp-accountinformatie en -instellingen, dat je kunt openen of overzetten naar een andere app. Dit rapport bevat geen chatberichten.";
 
 /* String indicating device is awaiting a server response. Only visible in iOS 13. */
-"settings.account.export.loading" = "Gegevens worden geladen...";
+"settings.account.export.loading" = "Gegevens Worden Geladen...";
 
 /* Navigation bar title informing the user that this page lets them export their user data. */
-"settings.account.export.navbar" = "Gegevens exporteren";
+"settings.account.export.navbar" = "Gegevens Exporteren";
 
 /* Label for when the date at which the user data is not determined. */
 "settings.account.export.not.found" = "Datum waarop de export gereed is, kon niet worden bepaald.";
@@ -1121,7 +1121,7 @@
 "settings.account.export.open.data" = "Geëxporteerde gegevens openen";
 
 /* Navigation bar title informing the user that this page lets them export their user data. */
-"settings.account.export.request.button" = "Gegevensexport aanvragen";
+"settings.account.export.request.button" = "Gegevensexport Aanvragen";
 
 /* Label informing the user that they have requested their data. */
 "settings.account.export.requested" = "Gegevens opgevraagd";
@@ -1154,22 +1154,22 @@
 "settings.privacy.posts" = "Posts";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Word lid van mijn netwerk voor echte relaties op HalloApp. Download gratis op halloapp.com/dl";
+"settings.share.text" = "Sluit je aan bij mijn netwerk voor échte relaties op HalloApp. Download gratis op halloapp.com/dl";
 
 /* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.add.reading.list" = "Toevoegen aan leeslijst";
+"textlabel.context.menu.add.reading.list" = "Toevoegen aan Leeslijst";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
 "textlabel.context.menu.call.number" = "Bel %@";
 
 /* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.copy.link" = "Link kopiëren";
+"textlabel.context.menu.copy.link" = "Link Kopiëren";
 
 /* One of the items in context menu presented upon long press on linkified phone number in text. */
-"textlabel.context.menu.copy.phone.number" = "Telefoonnummer kopiëren";
+"textlabel.context.menu.copy.phone.number" = "Telefoonnummer Kopiëren";
 
 /* One of the items in context menu presented upon long press on web link. */
-"textlabel.context.menu.open.link" = "Link openen";
+"textlabel.context.menu.open.link" = "Link Openen";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.share" = "Delen...";
@@ -1232,10 +1232,10 @@
 "title.privacy" = "Privacy";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.create.group" = "Nieuwe groep aanmaken";
+"title.select.group.members.create.group" = "Nieuwe Groep Aanmaken";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.title" = "Nieuwe leden toevoegen";
+"title.select.group.members.title" = "Nieuwe Deelnemers Toevoegen";
 
 /* Fourth tab in the main app interface */
 "title.settings" = "Instellingen";
@@ -1253,7 +1253,7 @@
 "unknown.contact" = "Onbekend Contact";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
-"unknown.contact.accept.to.message" = "Bericht accepteren om te reageren";
+"unknown.contact.accept.to.message" = "Bericht Accepteren Om Te Reageren";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Blokkeren";
@@ -1265,7 +1265,7 @@
 "user.option.block" = "Blokkeren op HalloApp";
 
 /* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
-"user.option.copy.phone.number" = "Telefoonnummer kopiëren";
+"user.option.copy.phone.number" = "Telefoonnummer Kopiëren";
 
 /* Option when user taps more on profile page */
 "user.option.unblock" = "Deblokkeren op HalloApp";
@@ -1277,16 +1277,16 @@
 "user.unblock.message" = "Weet je zeker dat je %@ wilt deblokkeren op HalloApp? Je kunt dit later altijd weer aanpassen.";
 
 /* Reference to the user, second person pronoun */
-"user.you" = "jij";
+"user.you" = "je";
 
 /* Capitalized reference to the user, second person pronoun */
-"user.you.capitalized" = "Jij";
+"user.you.capitalized" = "Je";
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";
 
 /* Title for the button that confirms intent to delete your own post. */
-"your.post.deletepost.button" = "Post verwijderen";
+"your.post.deletepost.button" = "Post Verwijderen";
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Deze post verwijderen? Dit kan niet ongedaan worden gemaakt.";

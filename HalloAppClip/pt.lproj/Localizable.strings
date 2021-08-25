@@ -1,8 +1,8 @@
 /* Title for alert shown when there's no internet connectivity */
-"alert.no.internet.title" = "Sem conexão com a internet";
+"alert.no.internet.title" = "Sem ligação à internet";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Por favor, confira se você tem conectividade com a internet, e tente novamente.";
+"alert.no.internet.try.again" = "Por favor, confira se tem ligação à internet, e tente novamente.";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Cancelar";
@@ -44,19 +44,19 @@
 "button.remove" = "Remover";
 
 /* Title for generic Save button. Mostly used to complete some modal flow. */
-"button.save" = "Salvar";
+"button.save" = "Guardar";
 
 /* Title for generic Send button. Mostly used to complete some modal flow. */
 "button.send" = "Enviar";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Compartilhar";
+"button.share" = "Partilhar";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Atualizar";
 
 /* Title for generic delete button. */
-"Delete" = "Excluir";
+"Delete" = "Apagar";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Sair";
@@ -71,16 +71,16 @@
 "link.learnMore" = "Saiba mais";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Atualize seu aplicativo.";
+"link.update.your.app" = "Atualize a aplicação.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Eu";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Você receberá um código de verificação.\nTarifas da operadora podem ser aplicadas.";
+"registration.code.disclaimer" = "Receberá um código de verificação.\nTarifas da operadora podem ser aplicadas.";
 
 /* Error message to display when user enters incorrect verification code */
-"registration.code.incorrect" = "O código que você digitou está incorreto";
+"registration.code.incorrect" = "O código que digitou está incorreto";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
 "registration.code.instructions" = "Digite o código que enviamos para %@";
@@ -95,7 +95,7 @@
 "registration.code.resend.by.voice" = "Ligue-me";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Para conectá-lo com seus amigos e familiares, precisaremos de sua permissão para acessar seus contatos.";
+"registration.contacts.content" = "Para ligar-lo com os seus amigos e familiares, precisaremos de sua permissão para aceder aos seus contatos.";
 
 /* Title for text explaining why we need contact permissions */
 "registration.contacts.title" = "Mais uma coisa";
@@ -104,40 +104,40 @@
 "registration.free.app.notice" = "Gratuito na App Store do iPhone";
 
 /* When user registers via group invite link, the name of the group they are invited to is displayed on the registration screen */
-"registration.group.name" = "Você foi convidado para entrar no grupo %@";
+"registration.group.name" = "Foi convidado para entrar no grupo %@";
 
 /* Once the user completes registration in the app clip, this text is displayed in the AppClip prompting the user to install the full app to continue using HalloApp */
 "registration.install.app.to.continue" = "Instalar o HalloApp para continuar";
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
-"registration.install.app.to.join.group" = "Instalar HalloApp para abrir %@";
+"registration.install.app.to.join.group" = "Instale o HalloApp para abrir %@";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Se você usou um link de convite de grupo para se cadastrar, clique novamente no link para finalizar o cadastro e entrar no grupo.";
+"registration.invite.only" = "Se usou um link de convite de grupo para se registar, clique novamente no link para finalizar o registo e entrar no grupo.";
 
 /* Placeholder text for name entry */
-"registration.nameEntry.placeholder" = "Seu nome";
+"registration.nameEntry.placeholder" = "O seu nome";
 
 /* Placeholder text for phone entry */
 "registration.phoneEntry.placeholder" = "Número do telefone";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "O HalloApp usa apenas o campo do número de telefone para relacionar você com seus amigos no HalloApp e não transmite nenhuma informação adicional de sua lista de contatos.";
+"registration.privacy.content" = "O HalloApp usa apenas o campo do número de telefone para ligar-lo com seus amigos no HalloApp e não transmite nenhuma informação adicional de sua lista de contatos.";
 
 /* Title for modal describing how we use contacts data */
-"registration.privacy.title" = "Sua privacidade é nossa prioridade";
+"registration.privacy.title" = "A sua privacidade é nossa prioridade";
 
 /* Title for popup that appears when user tries to register uninvited number */
-"registration.shucks" = "Caramba!";
+"registration.shucks" = "Ups!";
 
 /* Shown above name and phone inputs */
 "registration.welcome" = "Bem-vindo!";
 
 /* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
-"settings.account.deleted.message" = "Você não poderá fazer login até reiniciar o aplicativo";
+"settings.account.deleted.message" = "Não poderá fazer login até reiniciar a aplicação";
 
 /* Alert title telling the user that their account was successfully deleted */
-"settings.account.deleted.title" = "Conta excluída com sucesso";
+"settings.account.deleted.title" = "Conta apagada com sucesso";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Contato desconhecido";
