@@ -332,22 +332,64 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }()
 
     // MARK: Voice Note Row
-    private lazy var voiceNoteRow: AudioView = {
-        let view = AudioView()
-        view.textColor = .systemGray
+    private lazy var voiceNoteRow: UIView = {
+        let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layoutMargins = UIEdgeInsets(top: 8, left: 4, bottom: 0, right: 4)
+
+        view.addSubview(voiceNoteAvatarView)
+        view.addSubview(voiceNoteView)
+        view.addSubview(voiceNoteTimeLabel)
+
+        view.heightAnchor.constraint(equalToConstant: 20).isActive = true
+        voiceNoteAvatarView.topAnchor.constraint(equalTo: view.topAnchor, constant: 10).isActive = true
+        voiceNoteAvatarView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10).isActive = true
+        voiceNoteAvatarView.trailingAnchor.constraint(equalTo: voiceNoteView.leadingAnchor, constant: -10).isActive = true
+        voiceNoteView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        voiceNoteView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        voiceNoteTimeLabel.leadingAnchor.constraint(equalTo: voiceNoteView.leadingAnchor, constant: 36).isActive = true
+        voiceNoteTimeLabel.topAnchor.constraint(equalTo: voiceNoteView.bottomAnchor, constant: 6).isActive = true
+
+        return view
+    }()
+
+    private lazy var voiceNoteView: AudioView = {
+        let view = AudioView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layoutMargins = UIEdgeInsets(top: 8, left: 4, bottom: 0, right: 12)
 
         NSLayoutConstraint.activate([
-            view.heightAnchor.constraint(equalToConstant: 32),
+            view.heightAnchor.constraint(equalToConstant: 28),
             view.widthAnchor.constraint(equalToConstant: MaxWidthOfMsgBubble - 96),
         ])
 
         return view
     } ()
 
+    private lazy var voiceNoteTimeLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+
+        label.font = UIFont.preferredFont(forTextStyle: .caption2)
+        label.textColor = UIColor.chatTime
+
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+
+        return label
+    }()
+
+    private lazy var voiceNoteAvatarView: AvatarView = {
+        let avatar = AvatarView()
+        avatar.translatesAutoresizingMaskIntoConstraints = false
+        avatar.widthAnchor.constraint(equalToConstant: 35).isActive = true
+        avatar.heightAnchor.constraint(equalToConstant: 35).isActive = true
+
+        return avatar
+    }()
+
     func stopPlayback() {
-        voiceNoteRow.pause()
+        voiceNoteView.pause()
     }
     
     func highlight() {
@@ -480,7 +522,13 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         if isVoiceNote, let item = media?.first {
             let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(item.relativeFilePath ?? "", isDirectory: false)
 
-            voiceNoteRow.url = url
+            voiceNoteView.delegate = self
+            voiceNoteView.url = url
+
+            if let userId = item.message?.userId {
+                voiceNoteAvatarView.configure(with: userId, using: MainAppContext.shared.avatarStore)
+            }
+
             bubbleWrapper.insertArrangedSubview(voiceNoteRow, at: bubbleWrapper.arrangedSubviews.count - 1)
         }
 
@@ -654,6 +702,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         textView.textColor = UIColor.chatOwnMsg
         textView.text = ""
 
+        voiceNoteView.delegate = nil
         voiceNoteRow.removeFromSuperview()
 
         timeAndStatusLabel.attributedText = nil
@@ -677,6 +726,12 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     @objc func gotoMsgInfo(_ sender: UIView) {
         guard let messageID = messageID else { return }
         delegate?.outboundMsgViewCell(self, didLongPressOn: messageID)
+    }
+}
+
+extension OutboundMsgViewCell: AudioViewDelegate {
+    func audioView(_ view: AudioView, at time: String) {
+        voiceNoteTimeLabel.text = time
     }
 }
 

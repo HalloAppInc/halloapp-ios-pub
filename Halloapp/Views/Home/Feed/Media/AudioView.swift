@@ -9,12 +9,13 @@ import AVFoundation
 import CocoaLumberjackSwift
 import Foundation
 
+protocol AudioViewDelegate: AnyObject {
+    func audioView(_ view: AudioView, at time: String)
+}
+
 class AudioView : UIStackView {
 
-    var textColor: UIColor {
-        get { timeLabel.textColor }
-        set { timeLabel.textColor = newValue }
-    }
+    weak var delegate: AudioViewDelegate?
 
     var url: URL? {
         didSet {
@@ -106,27 +107,15 @@ class AudioView : UIStackView {
         return slider
     } ()
 
-    private lazy var timeLabel: UILabel = {
-        let time = UILabel()
-        time.translatesAutoresizingMaskIntoConstraints = false
-        time.textColor = .white
-        time.font = .gothamFont(ofFixedSize: 13)
-        time.widthAnchor.constraint(equalToConstant: 48).isActive = true
-        time.textAlignment = .center
-
-        return time
-    } ()
-
     init() {
         super.init(frame: .zero)
 
         axis = .horizontal
         alignment = .center
-        spacing = 4
+        spacing = 12
         isLayoutMarginsRelativeArrangement = true
 
         addArrangedSubview(playButton)
-        addArrangedSubview(timeLabel)
         addArrangedSubview(slider)
     }
 
@@ -178,7 +167,10 @@ class AudioView : UIStackView {
         let current = player.currentTime().seconds / duration.seconds
         slider.setValue(Float(current), animated: false)
         playButton.setImage(player.rate > 0 ? pauseIcon : playIcon, for: .normal)
-        timeLabel.text = timeFormatter.string(from: player.rate > 0 ? (duration.seconds * current) : duration.seconds)
+
+        if let time = timeFormatter.string(from: player.rate > 0 ? (duration.seconds * current) : duration.seconds) {
+            delegate?.audioView(self, at: time)
+        }
     }
 
     @objc private func onSliderValueUpdate() {

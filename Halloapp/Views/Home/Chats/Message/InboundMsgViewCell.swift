@@ -146,13 +146,15 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }()
     
     private lazy var timeRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ timeLabel ])
-        view.axis = .vertical
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+
+        let view = UIStackView(arrangedSubviews: [ spacer, timeLabel ])
+        view.axis = .horizontal
         view.spacing = 0
-        view.layoutMargins = UIEdgeInsets(top: 5, left: 5, bottom: 0, right: 10)
+        view.layoutMargins = UIEdgeInsets(top: 5, left: 5, bottom: 0, right: 5)
         view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
+
         return view
     }()
     
@@ -298,7 +300,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     private lazy var textRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ textView, timeRow ])
         view.axis = .vertical
-        view.alignment = .leading
+        view.alignment = .fill
         view.spacing = 1
         view.layoutMargins = UIEdgeInsets(top: 10, left: 7, bottom: 7, right: 7)
         view.isLayoutMarginsRelativeArrangement = true
@@ -326,22 +328,64 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }()
 
     // MARK: Voice Note Row
-    private lazy var voiceNoteRow: AudioView = {
-        let view = AudioView()
-        view.textColor = .systemGray
+    private lazy var voiceNoteRow: UIView = {
+        let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layoutMargins = UIEdgeInsets(top: 8, left: 4, bottom: 0, right: 4)
+
+        view.addSubview(voiceNoteAvatarView)
+        view.addSubview(voiceNoteView)
+        view.addSubview(voiceNoteTimeLabel)
+
+        view.heightAnchor.constraint(equalToConstant: 20).isActive = true
+        voiceNoteAvatarView.topAnchor.constraint(equalTo: view.topAnchor, constant: 10).isActive = true
+        voiceNoteAvatarView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10).isActive = true
+        voiceNoteAvatarView.trailingAnchor.constraint(equalTo: voiceNoteView.leadingAnchor, constant: -10).isActive = true
+        voiceNoteView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        voiceNoteView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        voiceNoteTimeLabel.leadingAnchor.constraint(equalTo: voiceNoteView.leadingAnchor, constant: 36).isActive = true
+        voiceNoteTimeLabel.topAnchor.constraint(equalTo: voiceNoteView.bottomAnchor, constant: 6).isActive = true
+
+        return view
+    }()
+
+    private lazy var voiceNoteView: AudioView = {
+        let view = AudioView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layoutMargins = UIEdgeInsets(top: 8, left: 4, bottom: 0, right: 12)
 
         NSLayoutConstraint.activate([
-            view.heightAnchor.constraint(equalToConstant: 32),
+            view.heightAnchor.constraint(equalToConstant: 28),
             view.widthAnchor.constraint(equalToConstant: MaxWidthOfMsgBubble - 96),
         ])
 
         return view
     } ()
 
+    private lazy var voiceNoteTimeLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+
+        label.font = UIFont.preferredFont(forTextStyle: .caption2)
+        label.textColor = UIColor.chatTime
+
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+
+        return label
+    }()
+
+    private lazy var voiceNoteAvatarView: AvatarView = {
+        let avatar = AvatarView()
+        avatar.translatesAutoresizingMaskIntoConstraints = false
+        avatar.widthAnchor.constraint(equalToConstant: 35).isActive = true
+        avatar.heightAnchor.constraint(equalToConstant: 35).isActive = true
+
+        return avatar
+    }()
+
     func stopPlayback() {
-        voiceNoteRow.pause()
+        voiceNoteView.pause()
     }
 
     func highlight() {
@@ -484,7 +528,13 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         if isVoiceNote, let item = media?.first {
             let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(item.relativeFilePath ?? "", isDirectory: false)
 
-            voiceNoteRow.url = url
+            voiceNoteView.delegate = self
+            voiceNoteView.url = url
+
+            if let userId = item.message?.userId {
+                voiceNoteAvatarView.configure(with: userId, using: MainAppContext.shared.avatarStore)
+            }
+
             bubbleWrapper.insertArrangedSubview(voiceNoteRow, at: bubbleWrapper.arrangedSubviews.count - 1)
         }
                 
@@ -599,7 +649,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             guard let image = UIImage(contentsOfFile: url.path) else { return }
             mediaImageView.updateMedia(SliderMedia(image: image, type: .image, order: Int(media.order)))
         case .audio:
-            voiceNoteRow.url = url
+            voiceNoteView.url = url
         }
     }
     
@@ -636,6 +686,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
         textView.textColor = traitCollection.userInterfaceStyle == .light ? .darkText : .lightText
 
+        voiceNoteView.delegate = nil
         voiceNoteRow.removeFromSuperview()
         
         timeLabel.isHidden = false
@@ -657,5 +708,11 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     @objc func gotoMsgInfo(_ sender: UIView) {
         guard let messageID = messageID else { return }
         delegate?.inboundMsgViewCell(self, didLongPressOn: messageID)
+    }
+}
+
+extension InboundMsgViewCell: AudioViewDelegate {
+    func audioView(_ view: AudioView, at time: String) {
+        voiceNoteTimeLabel.text = time
     }
 }
