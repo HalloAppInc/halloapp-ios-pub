@@ -360,10 +360,18 @@ final class FeedItemHeaderView: UIView {
 
     private var contentSizeCategoryDidChangeCancellable: AnyCancellable!
 
+    private let avatarButtonWidth: CGFloat = 36
+    private let avatarButtonSpacing: CGFloat = 8
+    private let moreButtonWidth: CGFloat = 18
+    private let moreButtonSpacing: CGFloat = 4
+
     private lazy var avatarViewButton: AvatarViewButton = {
         let avatarViewButton = AvatarViewButton(type: .custom)
         avatarViewButton.translatesAutoresizingMaskIntoConstraints = false
         avatarViewButton.addTarget(self, action: #selector(showUser), for: .touchUpInside)
+
+        avatarViewButton.widthAnchor.constraint(equalToConstant: avatarButtonWidth).isActive = true
+        avatarViewButton.heightAnchor.constraint(equalTo: avatarViewButton.widthAnchor).isActive = true
         return avatarViewButton
     }()
 
@@ -371,54 +379,71 @@ final class FeedItemHeaderView: UIView {
         let view = UIStackView(arrangedSubviews: [ userAndGroupNameRow, secondLineGroupNameLabel, timestampLabel ])
         view.axis = .vertical
         view.spacing = 3
+        view.alignment = .leading
         
         view.translatesAutoresizingMaskIntoConstraints = false
 
         return view
     }()
-    
-    private lazy var userAndGroupNameRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, groupNameLabel ])
-        view.axis = .horizontal
-        view.spacing = 4
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
 
+    private lazy var groupIndicatorLabel: UILabel = {
+        let label = Self.makeLabel()
+        label.isHidden = true
+
+        let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate).imageFlippedForRightToLeftLayoutDirection()
+        let groupIndicatorColor = UIColor(named: "GroupNameArrow") ?? .label
+
+        if let groupIndicator = groupIndicatorImage, let font = label.font {
+            let iconAttachment = NSTextAttachment(image: groupIndicator)
+            let attrText = NSMutableAttributedString(attachment: iconAttachment)
+            attrText.addAttributes([.font: font, .foregroundColor: groupIndicatorColor], range: NSRange(location: 0, length: attrText.length))
+            label.attributedText = attrText
+        }
+        return label
+    }()
+    
+    private lazy var userAndGroupNameRow: UIView = {
+        let view = UIView()
+        view.addSubview(nameLabel)
+        view.addSubview(groupIndicatorLabel)
+        view.addSubview(groupNameLabel)
+
+        nameLabel.constrain([.leading, .top, .bottom], to: view)
+        groupIndicatorLabel.constrain([.top, .bottom], to: view)
+        groupNameLabel.constrain([.top, .bottom, .trailing], to: view)
+
+        groupIndicatorLabel.leadingAnchor.constraint(equalTo: nameLabel.trailingAnchor, constant: 4).isActive = true
+        groupNameLabel.leadingAnchor.constraint(equalTo: groupIndicatorLabel.trailingAnchor, constant: 4).isActive = true
+
+        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
     private lazy var secondLineGroupNameLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
-        label.adjustsFontForContentSizeCategory = true
-        label.textColor = .label
-        label.textAlignment = .natural
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultLow - 20, for: .horizontal)
+        let label = Self.makeLabel()
         label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         label.isUserInteractionEnabled = true
         label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showGroupFeed)))
-        label.isHidden = true
         return label
     }()
     
     // Gotham Medium, 15 pt (Subhead)
     private lazy var nameLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
-        label.adjustsFontForContentSizeCategory = true
-        label.textColor = .label
-        label.textAlignment = .natural
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultLow - 10, for: .horizontal)
+        let label = Self.makeLabel()
         label.isUserInteractionEnabled = true
         label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showUser)))
         return label
     }()
     
     private lazy var groupNameLabel: UILabel = {
+        let label = Self.makeLabel()
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        label.isUserInteractionEnabled = true
+        label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showGroupFeed)))
+        return label
+    }()
+
+    private static func makeLabel() -> UILabel {
         let label = UILabel()
         label.numberOfLines = 1
         label.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
@@ -426,13 +451,8 @@ final class FeedItemHeaderView: UIView {
         label.textColor = .label
         label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultLow - 20, for: .horizontal)
-        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        label.isUserInteractionEnabled = true
-        label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showGroupFeed)))
-        label.isHidden = true
         return label
-    }()
+    }
 
     // Gotham Medium, 13 pt
     private lazy var timestampLabel: UILabel = {
@@ -465,7 +485,7 @@ final class FeedItemHeaderView: UIView {
         button.topAnchor.constraint(equalTo: wrapperView.topAnchor).isActive = true
         button.heightAnchor.constraint(equalToConstant: 18).isActive = true
         
-        wrapperView.widthAnchor.constraint(equalToConstant: 18).isActive = true
+        wrapperView.widthAnchor.constraint(equalToConstant: moreButtonWidth).isActive = true
         
         return wrapperView
     }()
@@ -483,16 +503,14 @@ final class FeedItemHeaderView: UIView {
 
         let hStack = UIStackView(arrangedSubviews: [ nameColumn, moreButton ])
         hStack.axis = .horizontal
-        hStack.spacing = 4
+        hStack.spacing = moreButtonSpacing
         hStack.translatesAutoresizingMaskIntoConstraints = false
  
         addSubview(hStack)
 
-        avatarViewButton.heightAnchor.constraint(equalToConstant: 36).isActive = true
-        avatarViewButton.heightAnchor.constraint(equalTo: avatarViewButton.widthAnchor).isActive = true
         avatarViewButton.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
         avatarViewButton.topAnchor.constraint(equalTo: topAnchor).isActive = true
-        hStack.leadingAnchor.constraint(equalToSystemSpacingAfter: avatarViewButton.trailingAnchor, multiplier: 1).isActive = true
+        hStack.leadingAnchor.constraint(equalTo: avatarViewButton.trailingAnchor, constant: avatarButtonSpacing).isActive = true
         hStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
         hStack.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
@@ -525,50 +543,30 @@ final class FeedItemHeaderView: UIView {
         
         moreButton.isHidden = !post.canSaveMedia && post.userId != MainAppContext.shared.userData.userId
     }
-    
+
     func configureGroupLabel(with groupID: String?, contentWidth: CGFloat, gutterWidth: CGFloat) {
-        if let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) {
-            
-            let attrText = NSMutableAttributedString(string: "")
-            let groupNameColor = UIColor.label
-            let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate).imageFlippedForRightToLeftLayoutDirection()
-            let groupIndicatorColor = UIColor(named: "GroupNameArrow") ?? groupNameColor
-
-            if let groupIndicator = groupIndicatorImage, let font = groupNameLabel.font {
-                let iconAttachment = NSTextAttachment(image: groupIndicator)
-                attrText.append(NSAttributedString(attachment: iconAttachment))
-
-                attrText.addAttributes([.font: font, .foregroundColor: groupIndicatorColor], range: NSRange(location: 0, length: attrText.length))
-
-                let groupNameAttributes = [NSAttributedString.Key.font: font, NSAttributedString.Key.foregroundColor: groupNameColor]
-                let groupNameAttributedStr = NSAttributedString(string: " \(groupChat.name)", attributes: groupNameAttributes)
-                attrText.append(groupNameAttributedStr)
-            }
-
-            groupNameLabel.attributedText = attrText
-
-            if isRowTruncated(contentWidth: contentWidth, gutterWidth: gutterWidth) {
-                let shortAttrText = attrText.mutableCopy() as! NSMutableAttributedString
-                let range = (shortAttrText.string as NSString).range(of: " \(groupChat.name)")
-                shortAttrText.deleteCharacters(in: range)
-                groupNameLabel.attributedText = shortAttrText
-
-                let secondLineGroupNameAttributedStr = NSAttributedString(string: "\(groupChat.name)")
-                secondLineGroupNameLabel.attributedText = secondLineGroupNameAttributedStr
-                secondLineGroupNameLabel.isHidden = false
-            } else {
-                secondLineGroupNameLabel.isHidden = true
-            }
-            groupNameLabel.isHidden = false
+        guard let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) else {
+            groupNameLabel.isHidden = true
+            secondLineGroupNameLabel.isHidden = true
+            groupIndicatorLabel.isHidden = true
+            return
         }
+
+        groupNameLabel.text = groupChat.name
+        secondLineGroupNameLabel.text = groupChat.name
+
+        let shouldShowTwoLines = isRowTruncated(contentWidth: contentWidth, gutterWidth: gutterWidth)
+        groupNameLabel.isHidden = shouldShowTwoLines
+        secondLineGroupNameLabel.isHidden = !shouldShowTwoLines
+        groupIndicatorLabel.isHidden = false
     }
     
     func prepareForReuse() {
         avatarViewButton.avatarView.prepareForReuse()
-        groupNameLabel.attributedText = nil
-        groupNameLabel.textColor = .label
+        groupNameLabel.text = nil
         groupNameLabel.isHidden = true
-        secondLineGroupNameLabel.attributedText = nil
+        groupIndicatorLabel.isHidden = true
+        secondLineGroupNameLabel.text = nil
         secondLineGroupNameLabel.isHidden = true
     }
 
@@ -581,27 +579,13 @@ final class FeedItemHeaderView: UIView {
     }
 
     private func isRowTruncated(contentWidth: CGFloat, gutterWidth: CGFloat) -> Bool {
-        var totalTextWidth = getLabelTextWidth(nameLabel)
-        totalTextWidth += getLabelTextWidth(groupNameLabel)
-        
-        if !moreButton.isHidden {
-            totalTextWidth += moreButton.frame.width
-        }
-        
-        totalTextWidth += avatarViewButton.frame.width + 2 * gutterWidth + 40 // estimated padding
-        
-        if totalTextWidth > contentWidth {
-            return true
-        } else {
-            return false
-        }
-    }
-    
-    private func getLabelTextWidth(_ label: UILabel) -> CGFloat {
-        let text = NSString(string: label.text ?? "")
-        let attr = [NSAttributedString.Key.font: label.font]
-        let size = text.size(withAttributes: attr as [NSAttributedString.Key : Any])
-        return size.width
+        let availableWidth = contentWidth - 2 * gutterWidth
+
+        var requiredWidth = userAndGroupNameRow.systemLayoutSizeFitting(CGSize(width: contentWidth, height: 20)).width
+        requiredWidth += moreButton.isHidden ? 0 : (moreButtonWidth + moreButtonSpacing)
+        requiredWidth += avatarButtonWidth + avatarButtonSpacing
+
+        return requiredWidth > availableWidth
     }
 }
 
