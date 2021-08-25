@@ -1419,7 +1419,7 @@ fileprivate class TitleView: UIView {
         case .available:
             // prefer to show typing over online
             lastSeenLabel.isHidden = !isShowingTypingIndicator ? false : true
-            lastSeenLabel.text = "online"
+            lastSeenLabel.text = Localizations.chatOnlineLabel
         default:
             lastSeenLabel.isHidden = true
             lastSeenLabel.text = ""
@@ -1737,6 +1737,10 @@ class ChatHeaderView: UIView {
 }
 
 private extension Localizations {
+
+    static var chatOnlineLabel: String {
+        NSLocalizedString("chat.online.label", value: "online", comment: "Text below the contact's name when the contact is online in the Chat Screen")
+    }
 
     static var chatEncryptionLabel: String {
         NSLocalizedString("chat.encryption.label", value: "Chats are end-to-end encrypted and HalloApp does not have access to them. Tap to learn more.", comment: "Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted")

@@ -54,14 +54,17 @@ class HomeViewController: UITabBarController {
 
     private func commonSetup() {
         self.delegate = self
-        
+
         // Set background color for navigation bar and search bar system-wide.
         UINavigationBar.appearance().standardAppearance = .opaqueAppearance
         // Setting background color through appearance proxy seems to be the only way
         // to modify navigation bar in SwiftUI's NavigationView.
         UINavigationBar.appearance().backgroundColor = .primaryBg
         UISearchBar.appearance().backgroundColor = .primaryBg
-        
+
+        // sets the search bar cancel button text system-wide
+        UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self]).title = Localizations.buttonCancel
+
         // need to set UITabBarItem in addition to appearance as the very first load does not respect appearance (for font)
         let fontAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 9.5, weight: .semibold),
                                 NSAttributedString.Key.kern: 0.01,

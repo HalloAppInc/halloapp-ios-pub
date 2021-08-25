@@ -37,7 +37,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     
     private var filteredChatsMembers: [ChatThread] = []
     private var filteredChatsTitles: [ChatThread] = []
-    private var searchController: UISearchController!
+    private var searchController = UISearchController(searchResultsController: nil)
     
     private var isSearchBarEmpty: Bool {
         return searchController.searchBar.text?.isEmpty ?? true
@@ -71,8 +71,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         navigationItem.rightBarButtonItem = rightBarButtonItem
         
         definesPresentationContext = true
-        
-        searchController = UISearchController(searchResultsController: nil)
+
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.definesPresentationContext = true
@@ -83,6 +82,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         searchController.searchBar.backgroundImage = UIImage()
         searchController.searchBar.tintColor = UIColor.primaryBlue
         searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
+        searchController.searchBar.searchTextField.placeholder = Localizations.labelSearch
 
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -669,7 +669,7 @@ class GroupsListHeaderView: UITableViewHeaderFooterView {
         vStack.addArrangedSubview(createGroupLabel)
         addSubview(vStack)
 
-        vStack.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 20)
+        vStack.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
         vStack.isLayoutMarginsRelativeArrangement = true
         
         vStack.topAnchor.constraint(equalTo: topAnchor).isActive = true

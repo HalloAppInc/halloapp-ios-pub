@@ -88,6 +88,10 @@ extension Localizations {
         NSLocalizedString("button.add", value: "Add", comment: "Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group)")
     }
     
+    static var labelSearch: String {
+        NSLocalizedString("label.search", value: "Search", comment: "Generic label for search, mostly used as placeholder text for searchbar")
+    }
+    
     // MARK: Links
 
     static var linkLearnMore: String {

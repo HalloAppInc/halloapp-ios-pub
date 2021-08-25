@@ -137,6 +137,7 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
             searchController.searchResultsUpdater = self
             searchController.searchBar.autocapitalizationType = .none
             searchController.definesPresentationContext = true
+            searchController.searchBar.searchTextField.placeholder = Localizations.labelSearch
             navigationItem.searchController = searchController
             navigationItem.hidesSearchBarWhenScrolling = false
         }

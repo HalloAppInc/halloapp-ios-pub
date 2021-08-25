@@ -552,15 +552,16 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
             timeAndStatusLabel.attributedText = result
         }
-    
+
         // text
-        let text = text ?? ""
+        var text = text ?? ""
         var isLargeFontEmoji = false
-        var showRightToLeft = text.isRightToLeftLanguage()
+        var showTextRTL = text.isRightToLeftLanguage() // show RTL languages right to left even when interface is LTR and vice versa
+        let isInterfaceRTL = self.effectiveUserInterfaceLayoutDirection == .rightToLeft
 
         if text.count <= 3 && text.containsOnlyEmoji {
             isLargeFontEmoji = true
-            showRightToLeft = true // show large emoji text from right to left
+            showTextRTL = true // show large emoji text RTL
         }
 
         let textRatio = isLargeFontEmoji ? 1.2 : 1.7
@@ -571,28 +572,23 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
         var font = textView.font ?? UIFont.preferredFont(forTextStyle: TextFontStyle)
         let color = textView.textColor ?? UIColor.chatOwnMsg
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = showTextRTL ? .right : .left
+
+        if isLargeFontEmoji {
+            font = UIFont.preferredFont(forTextStyle: .largeTitle)
+        }
 
         let attrText = NSMutableAttributedString(string: "")
-        
-        if !showRightToLeft {
-            let textWithBlanks = text + blanks
 
-            if orderedMentions.count > 0 {
-                if let mentionText = MainAppContext.shared.contactStore.textWithMentions(textWithBlanks, mentions: orderedMentions) {
-                    attrText.append(mentionText.with(font: font, color: color))
-                }
-            } else {
-                attrText.append(NSMutableAttributedString(string: textWithBlanks, attributes: [.font: font, .foregroundColor: color]))
-            }
-        } else {
-            let paragraph = NSMutableParagraphStyle()
-            paragraph.alignment = .right
-            
-            if isLargeFontEmoji {
-                font = UIFont.preferredFont(forTextStyle: .largeTitle)
-            }
-            attrText.append(NSMutableAttributedString(string: text, attributes: [.font: font, .foregroundColor: color, .paragraphStyle: paragraph]))
+        if !showTextRTL && !isInterfaceRTL {
+            text += blanks
+        }
 
+        attrText.append(NSMutableAttributedString(string: text, attributes: [.font: font, .foregroundColor: color, .paragraphStyle: paragraph]))
+
+        // when the interface is RTL or when the text is RTL, always show the timestamp on the line below for simplicity
+        if isInterfaceRTL || showTextRTL {
             // add newline and pad with spaces to accommodate timestamp below it
             let padStr = "\n \u{2800}\(blanks)"
             let padTimeFont = UIFont.preferredFont(forTextStyle: .body)
@@ -600,7 +596,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         }
 
         textView.attributedText = attrText
-        if !showRightToLeft {
+        if !showTextRTL {
             textView.makeTextWritingDirectionLeftToRight(nil)
         } else {
             textView.makeTextWritingDirectionRightToLeft(nil)

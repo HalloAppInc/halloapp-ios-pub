@@ -83,6 +83,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         
         searchController.searchBar.showsCancelButton = false
         searchController.searchBar.autocapitalizationType = .none
+        searchController.searchBar.searchTextField.placeholder = Localizations.labelSearch
         
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
