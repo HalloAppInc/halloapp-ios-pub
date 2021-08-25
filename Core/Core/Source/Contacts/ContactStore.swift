@@ -91,19 +91,42 @@ open class ContactStore {
     }()
 
     public var viewContext: NSManagedObjectContext
-    private var bgContext: NSManagedObjectContext
+    private var bgContext: NSManagedObjectContext? = nil
+
+    public private(set) var pushNames: [UserID: String]
+    private var pushNumbersData: [UserID: PushNumberData]
 
     required public init(userData: UserData) {
         self.userData = userData
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
         viewContext = persistentContainer.viewContext
-        bgContext = persistentContainer.newBackgroundContext()
+
+        pushNames = ContactStore.fetchAllPushNames(using: viewContext)
+        pushNumbersData = ContactStore.fetchAllPushNumbersData(using: viewContext)
     }
-    
-    public func performOnBackgroundContextAndWait(_ block: @escaping (NSManagedObjectContext) -> Void) {
+
+    public func performOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
-            self.bgContext.performAndWait { block(self.bgContext) }
+            self.initBgContext()
+            guard let bgContext = self.bgContext else { return }
+            bgContext.performAndWait { block(bgContext) }
+        }
+    }
+
+    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
+        backgroundProcessingQueue.sync { [weak self] in
+            guard let self = self else { return }
+            self.initBgContext()
+            guard let bgContext = self.bgContext else { return }
+            bgContext.performAndWait { block(bgContext) }
+        }
+    }
+
+    private func initBgContext() {
+        if bgContext == nil {
+            bgContext = persistentContainer.newBackgroundContext()
+            bgContext?.automaticallyMergesChangesFromParent = true
         }
     }
 
@@ -160,18 +183,8 @@ open class ContactStore {
     }
 
     // MARK: Push names
-    
-    public private(set) lazy var pushNames: [UserID: String] = {
-        var pushNames: [UserID: String] = fetchAllPushNames(using: viewContext)
-        return pushNames
-    }()
 
-    private lazy var pushNumbersData: [UserID: PushNumberData] = {
-        var pushNumbersData: [UserID: PushNumberData] = fetchAllPushNumbersData(using: viewContext)
-        return pushNumbersData
-    }()
-
-    private func fetchAllPushNames(using managedObjectContext: NSManagedObjectContext) -> [UserID: String] {
+    private static func fetchAllPushNames(using managedObjectContext: NSManagedObjectContext) -> [UserID: String] {
         let fetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
         do {
             let results = try managedObjectContext.fetch(fetchRequest)
@@ -193,7 +206,7 @@ open class ContactStore {
     private var pushNameUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.push-name")
 
     private func savePushNames(_ names: [UserID: String]) {
-        performOnBackgroundContextAndWait { (managedObjectContext) in
+        performOnBackgroundContext { (managedObjectContext) in
             var existingNames: [UserID : PushName] = [:]
 
             // Fetch existing names.
@@ -251,7 +264,7 @@ open class ContactStore {
         return pushNumberData.normalizedPhoneNumber
     }
 
-    private func fetchAllPushNumbersData(using managedObjectContext: NSManagedObjectContext) -> [UserID: PushNumberData] {
+    private static func fetchAllPushNumbersData(using managedObjectContext: NSManagedObjectContext) -> [UserID: PushNumberData] {
         let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
         do {
             let results = try managedObjectContext.fetch(fetchRequest)
@@ -274,7 +287,7 @@ open class ContactStore {
     private var pushNumberUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.pushNumber")
 
     private func savePushNumbersData(_ pushNumbersData: [UserID: PushNumberData]) {
-        performOnBackgroundContextAndWait { (managedObjectContext) in
+        performOnBackgroundContext { (managedObjectContext) in
 
             var existingPushNumbers: [UserID : PushNumber] = [:]
 
@@ -350,7 +363,7 @@ open class ContactStore {
     }
 
     open func setIsMessagingAccepted(userID: UserID, isMessagingAccepted: Bool) {
-        performOnBackgroundContextAndWait { (managedObjectContext) in
+        performOnBackgroundContext { (managedObjectContext) in
             let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "userID = %@", userID)
             do {
@@ -375,7 +388,7 @@ open class ContactStore {
     }
 
     open func deleteAllPushNamesAndNumbers() {
-        performOnBackgroundContextAndWait { (managedObjectContext) in
+        performOnBackgroundContext { (managedObjectContext) in
 
             let pushNameFetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
             do {

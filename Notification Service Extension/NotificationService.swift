@@ -33,6 +33,13 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
     }
 
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            return self.processDidReceive(request: request, contentHandler: contentHandler)
+        }
+    }
+
+    private func processDidReceive(request: UNNotificationRequest, contentHandler: @escaping (UNNotificationContent) -> Void) {
         DDLogInfo("didReceiveRequest/begin \(request)")
         initAppContext(AppExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self, appTarget: AppTarget.notificationExtension)
         service = AppExtensionContext.shared.coreService
