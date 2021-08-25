@@ -174,6 +174,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    func migrate(from oldAppVersion: String?) {
+        processUnsupportedItems()
+    }
+
     func destroyStore() {
         DDLogInfo("FeedData/destroy/start")
 
@@ -231,6 +235,84 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     // MARK: Fetched Results Controller
+
+    private func processUnsupportedItems() {
+        var groupFeedElements = [GroupID: [FeedElement]]()
+        var homeFeedElements = [FeedElement]()
+
+        let postsFetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+        postsFetchRequest.predicate = NSPredicate(format: "statusValue = %d", FeedPost.Status.unsupported.rawValue)
+        do {
+            let unsupportedPosts = try viewContext.fetch(postsFetchRequest)
+            for post in unsupportedPosts {
+                guard let rawData = post.rawData else {
+                    DDLogError("FeedData/processUnsupportedItems/posts/error [missing data] [\(post.id)]")
+                    continue
+                }
+                // NB: Set isShared to true to avoid "New Post" banner
+                guard let postData = PostData(id: post.id, userId: post.userId, timestamp: post.timestamp, payload: rawData, isShared: true) else {
+                    DDLogError("FeedData/processUnsupportedItems/posts/error [deserialization] [\(post.id)]")
+                    continue
+                }
+                switch postData.content {
+                case .album, .text, .retracted:
+                    DDLogInfo("FeedData/processUnsupportedItems/posts/migrating [\(post.id)]")
+                case .unsupported:
+                    DDLogInfo("FeedData/processUnsupportedItems/posts/skipping [still unsupported] [\(post.id)]")
+                    continue
+                }
+                if let groupID = post.groupId {
+                    var elements = groupFeedElements[groupID] ?? []
+                    elements.append(.post(postData))
+                    groupFeedElements[groupID] = elements
+                } else {
+                    homeFeedElements.append(.post(postData))
+                }
+            }
+        } catch {
+            DDLogError("FeedData/processUnsupportedItems/posts/error [\(error)]")
+        }
+
+        let commentsFetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
+        commentsFetchRequest.predicate = NSPredicate(format: "statusValue = %d", FeedPostComment.Status.unsupported.rawValue)
+        do {
+            let unsupportedComments = try viewContext.fetch(commentsFetchRequest)
+            for comment in unsupportedComments {
+                guard let rawData = comment.rawData else {
+                    DDLogError("FeedData/processUnsupportedItems/comments/error [missing data] [\(comment.id)]")
+                    continue
+                }
+                guard let commentData = CommentData(id: comment.id, userId: comment.userId, feedPostId: comment.post.id, parentId: comment.parent?.id, timestamp: comment.timestamp, payload: rawData) else {
+                    DDLogError("FeedData/processUnsupportedItems/comments/error [deserialization] [\(comment.id)]")
+                    continue
+                }
+                switch commentData.content {
+                case .album, .retracted, .text:
+                    DDLogInfo("FeedData/processUnsupportedItems/comments/migrating [\(comment.id)]")
+                case .unsupported:
+                    DDLogInfo("FeedData/processUnsupportedItems/comments/skipping [still unsupported] [\(comment.id)]")
+                    continue
+                }
+                if let groupID = comment.post.groupId {
+                    var elements = groupFeedElements[groupID] ?? []
+                    elements.append(.comment(commentData, publisherName: nil))
+                    groupFeedElements[groupID] = elements
+                } else {
+                    homeFeedElements.append(.comment(commentData, publisherName: nil))
+                }
+            }
+        } catch {
+            DDLogError("FeedData/processUnsupportedItems/comments/error [\(error)]")
+            return
+        }
+
+        DDLogInfo("FeedData/processUnsupportedItems/homeFeed [\(homeFeedElements.count)]")
+        processIncomingFeedItems(homeFeedElements, groupID: nil, presentLocalNotifications: false, ack: nil)
+        for (groupID, elements) in groupFeedElements {
+            DDLogInfo("FeedData/processUnsupportedItems/groupFeed [\(groupID)] [\(elements.count)]")
+            processIncomingFeedItems(elements, groupID: groupID, presentLocalNotifications: false, ack: nil)
+        }
+    }
 
     private func resendStuckItems() {
         let commentsFetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
@@ -561,7 +643,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let didReceiveFeedPostComment = PassthroughSubject<FeedPostComment, Never>()
 
     @discardableResult private func process(posts xmppPosts: [PostData],
-                                            receivedIn group: HalloGroup?,
+                                            receivedIn groupID: GroupID?,
                                             using managedObjectContext: NSManagedObjectContext,
                                             presentLocalNotifications: Bool) -> [FeedPost] {
         guard !xmppPosts.isEmpty else { return [] }
@@ -576,17 +658,28 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 sharedPosts.append(xmppPost.id)
             }
 
-            guard existingPosts[xmppPost.id] == nil else {
-                DDLogError("FeedData/process-posts/duplicate [\(xmppPost.id)]")
+            let feedPost: FeedPost = {
+                if let existingPost = existingPosts[xmppPost.id] {
+                    DDLogError("FeedData/process-posts/existing [\(xmppPost.id)]")
+                    return existingPost
+                } else {
+                    // Add new FeedPost to database.
+                    DDLogDebug("FeedData/process-posts/new [\(xmppPost.id)]")
+                    return NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
+                }
+            }()
+
+            switch feedPost.status {
+            case .none, .unsupported:
+                break
+            case .incoming, .seen, .seenSending, .sendError, .sending, .sent, .retracted, .retracting:
+                DDLogError("FeedData/process-posts/skipping [duplicate] [\(xmppPost.id)]")
                 continue
             }
 
-            // Add new FeedPost to database.
-            DDLogDebug("FeedData/process-posts/new [\(xmppPost.id)]")
-            let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
             feedPost.id = xmppPost.id
             feedPost.userId = xmppPost.userId
-            feedPost.groupId = group?.groupId
+            feedPost.groupId = groupID
             feedPost.text = xmppPost.text
             feedPost.timestamp = xmppPost.timestamp
 
@@ -670,7 +763,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     @discardableResult private func process(comments xmppComments: [CommentData],
-                                            receivedIn group: HalloGroup?,
+                                            receivedIn groupID: GroupID?,
                                             using managedObjectContext: NSManagedObjectContext,
                                             presentLocalNotifications: Bool) -> [FeedPostComment] {
         guard !xmppComments.isEmpty else { return [] }
@@ -685,13 +778,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         var duplicateCount = 0, numRuns = 0
         while !xmppCommentsMutable.isEmpty && numRuns < 100 {
             for xmppComment in xmppCommentsMutable {
-                // Detect duplicate comments.
-                guard comments[xmppComment.id] == nil else {
-                    duplicateCount += 1
-                    DDLogError("FeedData/process-comments/duplicate [\(xmppComment.id)]")
-                    continue
-                }
-
                 // Find comment's post.
                 guard let feedPost = posts[xmppComment.feedPostId] else {
                     DDLogError("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]")
@@ -700,8 +786,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
 
                 // Additional check: post's groupId must match groupId of the comment.
-                guard feedPost.groupId == group?.groupId else {
-                    DDLogError("FeedData/process-comments/incorrect-group-id post:[\(feedPost.groupId ?? "")] comment:[\(group?.groupId ?? "")]")
+                guard feedPost.groupId == groupID else {
+                    DDLogError("FeedData/process-comments/incorrect-group-id post:[\(feedPost.groupId ?? "")] comment:[\(groupID ?? "")]")
                     ignoredCommentIds.insert(xmppComment.id)
                     continue
                 }
@@ -723,9 +809,24 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 }
 
-                // Add new FeedPostComment to database.
-                DDLogDebug("FeedData/process-comments/new [\(xmppComment.id)]")
-                let comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
+                let comment: FeedPostComment
+
+                if let existingComment = comments[xmppComment.id] {
+                    switch existingComment.status {
+                    case .unsupported:
+                        DDLogDebug("FeedData/process-comments/updating [\(xmppComment.id)]")
+                        comment = existingComment
+                    case .incoming, .none, .retracted, .retracting, .sent, .sending, .sendError:
+                        duplicateCount += 1
+                        DDLogError("FeedData/process-comments/duplicate [\(xmppComment.id)]")
+                        continue
+                    }
+                } else {
+                    // Add new FeedPostComment to database.
+                    DDLogDebug("FeedData/process-comments/new [\(xmppComment.id)]")
+                    comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
+                }
+
                 comment.id = xmppComment.id
                 comment.userId = xmppComment.userId
                 comment.parent = parentComment
@@ -825,7 +926,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return newComments
     }
 
-    private func processIncomingFeedItems(_ items: [FeedElement], group: HalloGroup?, presentLocalNotifications: Bool, ack: (() -> Void)?) {
+    private func processIncomingFeedItems(_ items: [FeedElement], groupID: GroupID?, presentLocalNotifications: Bool, ack: (() -> Void)?) {
         var feedPosts = [PostData]()
         var comments = [CommentData]()
         var contactNames = [UserID:String]()
@@ -860,10 +961,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         
         performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let posts = self.process(posts: feedPosts, receivedIn: group, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
+            let posts = self.process(posts: feedPosts, receivedIn: groupID, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
             self.generateNotifications(for: posts, using: managedObjectContext)
 
-            let comments = self.process(comments: comments, receivedIn: group, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
+            let comments = self.process(comments: comments, receivedIn: groupID, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
             self.generateNotifications(for: comments, using: managedObjectContext)
 
             ack?()
@@ -1235,7 +1336,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func processIncomingFeedRetracts(_ retracts: [FeedRetract], group: HalloGroup?, ack: (() -> Void)?) {
+    private func processIncomingFeedRetracts(_ retracts: [FeedRetract], groupID: GroupID?, ack: (() -> Void)?) {
         let processingGroup = DispatchGroup()
         for retract in retracts {
             switch retract {
@@ -2763,10 +2864,10 @@ extension FeedData: HalloFeedDelegate {
     func halloService(_ halloService: HalloService, didReceiveFeedPayload payload: HalloServiceFeedPayload, ack: (() -> Void)?) {
         switch payload.content {
         case .newItems(let feedItems):
-            processIncomingFeedItems(feedItems, group: payload.group, presentLocalNotifications: payload.isEligibleForNotification, ack: ack)
+            processIncomingFeedItems(feedItems, groupID: payload.group?.groupId, presentLocalNotifications: payload.isEligibleForNotification, ack: ack)
 
         case .retracts(let retracts):
-            processIncomingFeedRetracts(retracts, group: payload.group, ack: ack)
+            processIncomingFeedRetracts(retracts, groupID: payload.group?.groupId, ack: ack)
         }
     }
 

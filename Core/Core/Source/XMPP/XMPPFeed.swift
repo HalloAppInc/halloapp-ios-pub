@@ -25,7 +25,7 @@ public struct PostData: FeedPostProtocol {
     public let id: FeedPostID
     public let userId: UserID
     public var timestamp: Date = Date()
-    
+
     public let isShared: Bool
 
     // MARK: FeedPost

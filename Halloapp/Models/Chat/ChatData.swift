@@ -413,6 +413,52 @@ class ChatData: ObservableObject {
         groupList.listenForChanges(using: bgContext)
     }
 
+    // MARK: Migration
+
+    func migrate(from oldAppVersion: String?) {
+        processUnsupportedItems()
+    }
+
+    private func processUnsupportedItems() {
+        let messageFetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
+        messageFetchRequest.predicate = NSPredicate(format: "incomingStatusValue = %d", ChatMessage.IncomingStatus.unsupported.rawValue)
+        do {
+            let unsupportedMessages = try viewContext.fetch(messageFetchRequest)
+            var messagesMigrated = 0
+            for message in unsupportedMessages {
+                guard let rawData = message.rawData else {
+                    DDLogError("ChatData/processUnsupportedItems/messages/error [missing data] [\(message.id)]")
+                    continue
+                }
+                guard let chatContainer = try? Clients_ChatContainer(serializedData: rawData) else {
+                    DDLogError("ChatData/processUnsupportedItems/messages/error [deserialization] [\(message.id)]")
+                    continue
+                }
+                let content = chatContainer.chatContent
+                switch content {
+                case .album, .text, .voiceNote:
+                    let timestamp = message.timestamp ?? Date()
+                    let reinterpretedMessage = XMPPChatMessage(
+                        content: chatContainer.chatContent,
+                        context: chatContainer.chatContext,
+                        timestamp: Int64(timestamp.timeIntervalSince1970),
+                        from: message.fromUserId,
+                        to: message.toUserId,
+                        id: message.id,
+                        retryCount: 0, //TODO
+                        rerequestCount: Int32(message.resendAttempts))
+                    messagesMigrated += 1
+                    processIncomingChatMessage(.decrypted(reinterpretedMessage))
+                case .unsupported:
+                    DDLogInfo("ChatData/processUnsupportedItems/messages/skipping [still-unsupported] [\(message.id)]")
+                }
+            }
+            DDLogInfo("ChatData/processUnsupportedItems/messages/complete [\(messagesMigrated) / \(unsupportedMessages.count)]")
+        } catch {
+            DDLogError("ChatData/processUnsupportedItems/messages/error [\(error)]")
+        }
+    }
+
     func clearAllChatsAndMedia() {
 
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
@@ -2247,10 +2293,15 @@ extension ChatData {
 
     private func processInboundChatMessage(xmppChatMessage: ChatMessageProtocol, using managedObjectContext: NSManagedObjectContext, isAppActive: Bool) {
         let existingChatMessage = chatMessage(with: xmppChatMessage.id, in: managedObjectContext)
-        if let existingChatMessage = existingChatMessage, existingChatMessage.incomingStatus != .rerequesting {
-            // This is expected if we rerequest a message where decryption failed but a plaintext version was included
-            DDLogInfo("ChatData/process/already-exists [\(xmppChatMessage.id)]")
-            return
+        if let existingChatMessage = existingChatMessage {
+            switch existingChatMessage.incomingStatus {
+            case .unsupported, .rerequesting:
+                DDLogInfo("ChatData/process/already-exists/updating [\(existingChatMessage.incomingStatus)] [\(xmppChatMessage.id)]")
+                break
+            case .error, .haveSeen, .none, .retracted, .sentSeenReceipt:
+                DDLogError("ChatData/process/already-exists/error [\(existingChatMessage.incomingStatus)] [\(xmppChatMessage.id)]")
+                return
+            }
         }
 
         let isCurrentlyChattingWithUser = isCurrentlyChatting(with: xmppChatMessage.fromUserId)

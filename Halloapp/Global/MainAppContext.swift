@@ -21,6 +21,7 @@ class MainAppContext: AppContext {
     private static let chatDatabaseFilename = "chat.sqlite"
     private static let cryptoStatsDatabaseFilenameLegacy = "cryptoStats.sqlite"
     private static let uploadDatabaseFilename = "upload.sqlite"
+    private static let userDefaultsAppVersion = "com.halloapp.app.version"
 
     // MARK: Global objects
     private(set) var avatarStore: AvatarStore!
@@ -143,6 +144,8 @@ class MainAppContext: AppContext {
         shareExtensionDataStore = ShareExtensionDataStore()
         notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()
 
+        performAppUpdateMigrationIfNecessary()
+
         // Add observer to notify us when persistentStore records changes.
         // These notifications are triggered for all cross process writes to the store.
 
@@ -161,6 +164,16 @@ class MainAppContext: AppContext {
         migrateLegacyCryptoDataIfNecessary()
         cryptoData.startReporting(interval: oneHour) { [weak self] events in
             self?.eventMonitor.observe(events)
+        }
+    }
+
+    private func performAppUpdateMigrationIfNecessary() {
+        let userDefaults = Self.userDefaultsForAppGroup
+        let oldAppVersion = userDefaults?.string(forKey: Self.userDefaultsAppVersion)
+        if Self.appVersionForService != oldAppVersion {
+            feedData.migrate(from: oldAppVersion)
+            chatData.migrate(from: oldAppVersion)
+            userDefaults?.setValue(Self.appVersionForService, forKey: Self.userDefaultsAppVersion)
         }
     }
 
