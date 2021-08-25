@@ -531,7 +531,7 @@ final class FeedItemHeaderView: UIView {
             
             let attrText = NSMutableAttributedString(string: "")
             let groupNameColor = UIColor.label
-            let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate)
+            let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate).imageFlippedForRightToLeftLayoutDirection()
             let groupIndicatorColor = UIColor(named: "GroupNameArrow") ?? groupNameColor
 
             if let groupIndicator = groupIndicatorImage, let font = groupNameLabel.font {
