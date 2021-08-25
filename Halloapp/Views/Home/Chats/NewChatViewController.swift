@@ -82,16 +82,6 @@ class NewChatViewController: NewChatTableViewController {
         } catch {
             fatalError("Failed to fetch contacts. \(error)")
         }
-        
-        if !ServerProperties.isGroupFeedEnabled {
-            let headerView = TableHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 44))
-            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(createNewGroup))
-            headerView.isUserInteractionEnabled = true
-            headerView.addGestureRecognizer(tapGesture)
-            
-            tableView.tableHeaderView = headerView
-        }
-        
     }
 
     // MARK: ContactPickerViewController

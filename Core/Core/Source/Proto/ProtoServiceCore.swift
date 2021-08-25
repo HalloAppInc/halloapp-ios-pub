@@ -564,7 +564,7 @@ extension ProtoServiceCore: CoreService {
                 AppContext.shared.eventMonitor.count(.encryption(error: error))
                 DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending encrypted")
                 self.send(packetData)
-                self.sendSilentChats(ServerProperties.silentChatMessages)
+                self.sendSilentChats(0)
                 DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) success")
                 completion(.success(()))
             }

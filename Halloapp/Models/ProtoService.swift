@@ -1197,7 +1197,7 @@ extension ProtoService: HalloService {
 
         DDLogInfo("ProtoService/sendGroupChatMessage/\(message.id) sending (unencrypted)")
         send(packetData)
-        sendSilentChats(ServerProperties.silentChatMessages)
+        sendSilentChats(0)
     }
 
     func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String) {

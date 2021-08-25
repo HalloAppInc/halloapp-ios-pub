@@ -15,13 +15,8 @@ public struct ServerProperties {
 
     private enum Key: String {
         case internalUser = "dev"
-        case groups
         case maxGroupSize = "max_group_size"
         case groupSyncTime = "group_sync_time"
-        case groupFeed = "group_feed"
-        case groupInviteLinks = "group_invite_links"
-        case groupBackground = "group_background"
-        case silentChatMessages = "silent_chat_messages"
         case maxFeedVideoDuration = "max_feed_video_duration"
         case maxChatVideoDuration = "max_chat_video_duration"
         case maxVideoBitRate = "max_video_bit_rate"
@@ -42,13 +37,8 @@ public struct ServerProperties {
 
     private struct Defaults {
         static let internalUser = false
-        static let groups = true
-        static let groupFeed = true
-        static let groupInviteLinks = false
-        static let groupBackground = true
         static let maxGroupSize = 50
         static let groupSyncTime = 604800
-        static let silentChatMessages = 0
         static let maxFeedVideoDuration = 60.0
         static let maxChatVideoDuration = 120.0
         static let maxVideoBitRate = 8000000.0
@@ -186,33 +176,12 @@ public struct ServerProperties {
         ServerProperties.bool(forKey: .internalUser) ?? Defaults.internalUser
     }
 
-    public static var isGroupsEnabled: Bool {
-        ServerProperties.bool(forKey: .groups) ?? Defaults.groups
-    }
-
-    public static var isGroupFeedEnabled: Bool {
-        ServerProperties.bool(forKey: .groupFeed) ?? Defaults.groupFeed
-    }
-
     public static var maxGroupSize: Int {
         ServerProperties.integer(forKey: .maxGroupSize) ?? Defaults.maxGroupSize
     }
 
     public static var groupSyncTime: Int {
         ServerProperties.integer(forKey: .groupSyncTime) ?? Defaults.groupSyncTime
-    }
-
-    public static var isGroupInviteLinksEnabled: Bool {
-        ServerProperties.bool(forKey: .groupInviteLinks) ?? Defaults.groupInviteLinks
-    }
-
-    public static var isGroupBackgroundEnabled: Bool {
-        ServerProperties.bool(forKey: .groupBackground) ?? Defaults.groupBackground
-    }
-
-    /// Number of silent chat messages to send alongside each user-initiated message
-    public static var silentChatMessages: Int {
-        ServerProperties.integer(forKey: .silentChatMessages) ?? Defaults.silentChatMessages
     }
 
     public static var maxFeedVideoDuration: TimeInterval {

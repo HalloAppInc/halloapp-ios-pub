@@ -257,7 +257,6 @@ class HomeViewController: UITabBarController {
     private func updateGroupsNavigationControllerBadge(_ count: Int) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            guard ServerProperties.isGroupFeedEnabled else { return }
             if let controller = self.viewControllers?[1] {
                 controller.tabBarItem.badgeValue = count == 0 ? nil : String(count)
             }
@@ -267,7 +266,7 @@ class HomeViewController: UITabBarController {
     private func updateChatNavigationControllerBadge(_ count: Int) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            if let controller = self.viewControllers?[ServerProperties.isGroupFeedEnabled ? 2 : 1] {
+            if let controller = self.viewControllers?[2] {
                 controller.tabBarItem.badgeValue = count == 0 ? nil : String(count)
             }
         }
