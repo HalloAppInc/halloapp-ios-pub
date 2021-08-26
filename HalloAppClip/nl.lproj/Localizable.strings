@@ -65,13 +65,16 @@
 "Delete" = "Verwijderen";
 
 /* Title for exit button that closes the app */
-"home.update.notice.button.exit" = "Sluiten";
+"home.update.notice.button.exit" = "Afsluiten";
 
 /* Text shown to users who have old versions of the app */
 "home.update.notice.text" = "Download de nieuwste versie van HalloApp alsjeblieft";
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Deze versie is verouderd";
+
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Zoeken";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Meer informatie";
@@ -134,7 +137,7 @@
 "registration.phoneEntry.placeholder" = "Telefoonnummer";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "HalloApp gebruikt alleen het telefoonnummer om je te kunnen matchen met je vrienden op HalloApp en legt geen andere gegevens uit je contactenlijst vast.";
+"registration.privacy.content" = "HalloApp gebruikt alleen het telefoonnummer om je te kunnen koppelen met je vrienden op HalloApp en legt geen andere gegevens uit je contactenlijst vast.";
 
 /* Title for modal describing how we use contacts data */
 "registration.privacy.title" = "Jouw privacy is onze prioriteit";

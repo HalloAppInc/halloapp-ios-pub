@@ -73,6 +73,9 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Diese Version ist veraltet";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Suchen";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Mehr erfahren";
 

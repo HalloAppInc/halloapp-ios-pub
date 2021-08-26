@@ -247,9 +247,6 @@
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Yorum siliniyor";
 
-/* Button in comment input field. Verb. */
-"comment.post" = "Gönder";
-
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Paylaşılıyor...";
 

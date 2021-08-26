@@ -209,7 +209,7 @@
 			<key>one</key>
 			<string>میتوانید یک مورد انتخاب کنید.</string>
 			<key>other</key>
-			<string>میتوانید d% مورد انتخاب کنید.</string>
+			<string>میتوانید حداکثر d% مورد انتخاب کنید.</string>
 		</dict>
 	</dict>
 	<key>privacy.n.contacts</key>

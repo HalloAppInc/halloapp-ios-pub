@@ -247,9 +247,6 @@
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Удаляем комментарий";
 
-/* Button in comment input field. Verb. */
-"comment.post" = "Опубликовать";
-
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Публикуем...";
 

@@ -8,7 +8,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "Hier is HalloApp! En we maken het voor jou en iedereen die je dierbaar is. We brengen sociale apps terug naar de basis, met een focus op veiligheid en privacy waarvan we vinden dat iedereen in de wereld toegang toe zou moeten hebben.\nHalloApp zal nooit je persoonlijke gegevens gebruiken of advertenties laten zien.\nIn plaats daarvan zijn we van plan om in de toekomst extra functies tegen een kleine betaling aan te bieden.";
+"about.body.1" = "Hier is HalloApp! En we maken het voor jou en iedereen die je dierbaar is. We brengen sociale apps terug naar de basis, met een focus op veiligheid en privacy waarvan we vinden dat iedereen in de wereld toegang toe zou moeten hebben.\n\nHalloApp zal nooit je persoonlijke gegevens gebruiken of advertenties laten zien.\nIn plaats daarvan zijn we van plan om in de toekomst extra functies tegen een kleine betaling aan te bieden.";
 
 /* About screen: body text. */
 "about.body.2" = "Bedankt voor het gebruiken en delen van HalloApp met je vrienden en familie. We maken het iedere week beter!";
@@ -253,6 +253,9 @@
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "Kan geen toegang krijgen tot microfoon";
 
+/* Text below the contact's name when the contact is online in the Chat Screen */
+"chat.online.label" = "online";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "aan het typen...";
 
@@ -273,9 +276,6 @@
 
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Reactie wordt verwijderd";
-
-/* Button in comment input field. Verb. */
-"comment.post" = "Plaatsen";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Wordt geplaatst...";
@@ -670,6 +670,9 @@
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Uitnodigen";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Zoeken";
+
 /* Link text to open invite flow */
 "link.invite.friend" = "Nodig een vriend uit";
 
@@ -1007,7 +1010,7 @@
 "registration.phoneEntry.placeholder" = "Telefoonnummer";
 
 /* Text for modal describing how we use contacts data */
-"registration.privacy.content" = "HalloApp gebruikt alleen het telefoonnummer om je te kunnen matchen met je vrienden op HalloApp en legt geen andere gegevens uit je contactenlijst vast.";
+"registration.privacy.content" = "HalloApp gebruikt alleen het telefoonnummer om je te kunnen koppelen met je vrienden op HalloApp en legt geen andere gegevens uit je contactenlijst vast.";
 
 /* Title for modal describing how we use contacts data */
 "registration.privacy.title" = "Jouw privacy is onze prioriteit";

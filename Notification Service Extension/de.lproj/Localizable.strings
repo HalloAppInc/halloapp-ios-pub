@@ -64,6 +64,9 @@
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Du wurdest einer neuen Gruppe hinzugefügt";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Suchen";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Mehr erfahren";
 

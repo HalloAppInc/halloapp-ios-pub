@@ -253,6 +253,9 @@
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "Auf das Mikrofon kann nicht zugegriffen werden";
 
+/* Text below the contact's name when the contact is online in the Chat Screen */
+"chat.online.label" = "online";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "schreibt...";
 
@@ -273,9 +276,6 @@
 
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Kommentar wird gelöscht";
-
-/* Button in comment input field. Verb. */
-"comment.post" = "Posten";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Beitrag wird gepostet...";
@@ -654,6 +654,9 @@
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Einladen";
+
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Suchen";
 
 /* Link text to open invite flow */
 "link.invite.friend" = "Freunde einladen";

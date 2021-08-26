@@ -64,6 +64,9 @@
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "شما به یک گروه دعوت شده‌اید";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "جستجو";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "بیشتر بدانید";
 

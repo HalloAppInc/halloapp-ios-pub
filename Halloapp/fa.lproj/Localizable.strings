@@ -253,6 +253,9 @@
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "عدم دسترسی به میکروفون";
 
+/* Text below the contact's name when the contact is online in the Chat Screen */
+"chat.online.label" = "آنلاین";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "در حال نوشتن...";
 
@@ -273,9 +276,6 @@
 
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "در حال حذف نظر";
-
-/* Button in comment input field. Verb. */
-"comment.post" = "پست";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "در حال پست کردن...";
@@ -669,6 +669,9 @@
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "دعوت";
+
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "جستجو";
 
 /* Link text to open invite flow */
 "link.invite.friend" = "دعوت کردن دوست";

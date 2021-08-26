@@ -61,6 +61,9 @@
 /* Title for generic delete button. */
 "Delete" = "Löschen";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Suchen";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Mehr erfahren";
 

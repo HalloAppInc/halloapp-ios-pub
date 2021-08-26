@@ -11,5 +11,5 @@
 "NSMicrophoneUsageDescription" = "Dit zorgt ervoor dat je video's met geluid kunt opnemen.";
 
 /* Privacy - Photo Library Usage Description */
-"NSPhotoLibraryUsageDescription" = "Dit zorgt ervoor dat je foto's en video's kunt delen uit je bibliotheek en de gemaakte items kunt opslaan.";
+"NSPhotoLibraryUsageDescription" = "Dit zorgt ervoor dat je foto's en video's uit je bibliotheek kunt delen en gemaakte items kunt opslaan.";
 
