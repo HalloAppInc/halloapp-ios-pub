@@ -8,6 +8,7 @@
 
 import Combine
 import UIKit
+import CocoaLumberjackSwift
 
 public class AvatarView: UIView {
     public static let defaultImage = UIImage(named: "AvatarUser")
@@ -122,6 +123,7 @@ public class AvatarView: UIView {
         avatarUpdatingCancellable?.cancel()
         avatarUpdatingCancellable = userAvatar.imageDidChange.sink { [weak self] image in
             guard let self = self else { return }
+            DDLogInfo("ImageDidChange received, size: \(image?.size)")
             self.hasImage = image != nil
             if let image = image {
                 self.avatar.image = image

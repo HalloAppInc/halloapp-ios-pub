@@ -161,6 +161,7 @@ public class AvatarStore: ServiceAvatarDelegate {
         DDLogInfo("AvatarStore/save avatarId \(avatarId) for userId \(userId) has been saved")
         
         if let userAvatar = userAvatars.object(forKey: userId as NSString) {
+            DDLogInfo("updating userAvatar for userId: \(userId) - avatarId: \(avatarId)")
             userAvatar.image = nil
             userAvatar.data = nil
             userAvatar.fileUrl = nil
@@ -178,6 +179,8 @@ public class AvatarStore: ServiceAvatarDelegate {
     public func save(image: UIImage, forUserId userId: UserID, avatarId: AvatarID) {
         let managedObjectContext = bgContext
     
+        // TODO: it is not great that we remove the current image data and set a new one here in separate steps.
+        // setting image to nil will update the avatarView to refresh to show blank image which results in a flicker when updating profile picture.
         let currentAvatar = save(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
         
         let data = image.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
@@ -204,6 +207,7 @@ public class AvatarStore: ServiceAvatarDelegate {
         DDLogInfo("AvatarStore/save avatar for user \(userId) has been saved to \(currentAvatar.relativeFilePath!)")
         
         if let userAvatar = userAvatars.object(forKey: userId as NSString) {
+            DDLogInfo("updating userAvatar for userId: \(userId) - avatarId: \(avatarId)")
             userAvatar.image = image
             userAvatar.data = data
         }
