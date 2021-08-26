@@ -388,8 +388,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     private func encodeReplyData() -> ReplyContext? {
         if let replyMessageID = chatReplyMessageID,
            let replySenderID = chatReplyMessageSenderID,
-           let replyMessage = MainAppContext.shared.chatData.chatMessage(with: replyMessageID) {
-            
+           let replyMessage = MainAppContext.shared.chatData.chatMessage(with: replyMessageID, in: MainAppContext.shared.chatData.viewContext) {
+
             if let replyMedia = replyMessage.media, !replyMedia.isEmpty {
                 let replyIndex = replyMedia.index(replyMedia.startIndex, offsetBy: Int(chatReplyMessageMediaIndex))
                 let mediaObject = replyMedia[replyIndex]
@@ -506,7 +506,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
         let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
         let isPushNumberMessagingAccepted = MainAppContext.shared.contactStore.isPushNumberMessagingAccepted(userID: userID)
-        let haveMessagedBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: userID)
+        let haveMessagedBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
 
         let showUnknownContactActionBanner = !isUserBlocked &&
                                              !isUserInAddressBook &&
