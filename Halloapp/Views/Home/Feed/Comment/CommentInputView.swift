@@ -375,6 +375,9 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         if viewController.isMovingFromParent {
             // Popping
             deferResigns = true
+        } else if let nav = viewController.navigationController, nav.isBeingDismissed {
+            // Being dismissed (e.g., from activity center)
+            deferResigns = true
         } else if self.isKeyboardVisible {
             // Pushing or presenting
             deferResigns = viewController.transitionCoordinator != nil && viewController.transitionCoordinator!.initiallyInteractive
