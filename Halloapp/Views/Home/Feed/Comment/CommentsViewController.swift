@@ -55,6 +55,10 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     static private let cellHighlightAnimationDuration = 0.15
     static private let sectionMain = 0
     
+    private var uploadMedia: PendingMedia?
+    private var mediaPickerController: MediaPickerViewController?
+    private var cancellableSet: Set<AnyCancellable> = []
+
     /// Key used to encode/decode array of comment drafts from `UserDefaults`.
     static let postCommentDraftKey = "posts.comments.drafts"
 
@@ -817,10 +821,21 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         return mentionableUsers.filter { Mentions.isPotentialMatch(fullName: $0.fullName, input: input) }
     }
 
+    func commentInputViewPickMedia(_ inputView: CommentInputView) {
+        presentMediaPicker()
+    }
+
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText) {
+        postComment(text: text, media: self.uploadMedia)
+    }
+
+    func postComment(text: MentionText, media: PendingMedia?) {
         let parentCommentId = replyContext?.parentCommentId
-        commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, media: [], to: feedPostId, replyingTo: parentCommentId)
-      
+        var sendMedia: [PendingMedia] = []
+        if let media = media {
+            sendMedia.append(media)
+        }
+        commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, media: sendMedia, to: feedPostId, replyingTo: parentCommentId)
         FeedData.deletePostCommentDrafts { existingDraft in
             existingDraft.postID == feedPostId
         }
@@ -836,6 +851,11 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
     func commentInputViewResetReplyContext(_ inputView: CommentInputView) {
         self.replyContext = nil
+    }
+
+    func commentInputViewResetInputMedia(_ inputView: CommentInputView) {
+        self.uploadMedia = nil
+        commentsInputView.removeMediaPanel()
     }
 
     private func refreshCommentInputViewReplyPanel() {
@@ -878,6 +898,53 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         label.numberOfLines = 0
         isPostTextExpanded = true
         tableView.reloadData()
+    }
+
+    func presentMediaPicker() {
+        guard  mediaPickerController == nil else {
+            return
+        }
+        mediaPickerController = MediaPickerViewController(filter: .all, multiselect: false, camera: false) {[weak self] controller, media, cancel in
+            guard let self = self else { return }
+            guard let media = media.first, !cancel else {
+                DDLogInfo("CommentsView/media comment cancelled")
+                self.dismissMediaPicker(animated: true)
+                return
+            }
+            self.uploadMedia = media
+            if media.ready.value {
+                self.commentsInputView.showMediaPanel(with: media)
+            } else {
+                self.cancellableSet.insert(
+                    media.ready.sink { [weak self] ready in
+                        guard let self = self else { return }
+                        guard ready else { return }
+                        self.commentsInputView.showMediaPanel(with: media)
+                    }
+                )
+            }
+
+            self.dismissMediaPicker(animated: true)
+            self.commentsInputView.showKeyboard(from: self)
+        }
+        present(UINavigationController(rootViewController: mediaPickerController!), animated: true)
+    }
+
+    func dismissMediaPicker(animated: Bool) {
+        if mediaPickerController != nil {
+            dismiss(animated: true)
+        }
+        mediaPickerController = nil
+    }
+}
+
+extension CommentsViewController: CommentViewDelegate {
+    func commentView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
+        let canSavePost = false
+        guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID) else { return }
+        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
+        controller.delegate = view
+        present(controller.withNavigationController(), animated: true)
     }
 }
 

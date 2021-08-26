@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import AVKit
 import CocoaLumberjackSwift
 import Core
 import UIKit
@@ -19,7 +20,9 @@ protocol CommentInputViewDelegate: AnyObject {
     func commentInputView(_ inputView: CommentInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve)
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText)
     func commentInputView(_ inputView: CommentInputView, possibleMentionsForInput input: String) -> [MentionableUser]
+    func commentInputViewPickMedia(_ inputView: CommentInputView)
     func commentInputViewResetReplyContext(_ inputView: CommentInputView)
+    func commentInputViewResetInputMedia(_ inputView: CommentInputView)
 }
 
 class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
@@ -41,7 +44,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             if !isEnabled {
                 return false
             }
-            return !(textView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            return !(textView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (mediaView.image != nil)
         }
     }
     var isEnabled: Bool = true {
@@ -118,6 +121,13 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         return textView
     }()
 
+    private lazy var textFieldPanel: UIView = {
+        let textFieldPanel = UIView()
+        textFieldPanel.backgroundColor = .systemBackground
+        textFieldPanel.translatesAutoresizingMaskIntoConstraints = false
+        textFieldPanel.preservesSuperviewLayoutMargins = true
+        return textFieldPanel
+    }()
 
     private lazy var placeholder: UILabel = {
         let label = UILabel()
@@ -127,9 +137,24 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         return label
     }()
 
+    private lazy var pickMediaButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "photo.fill"), for: .normal)
+        button.addTarget(self, action: #selector(pickMediaButtonClicked), for: .touchUpInside)
+        button.isEnabled = true
+        button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
+        button.tintColor = UIColor.primaryBlue
+
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        return button
+    }()
+
     private lazy var postButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle(NSLocalizedString("comment.post", value: "Post", comment: "Button in comment input field. Verb."), for: .normal)
+        button.setImage(UIImage(named: "Send"), for: .normal)
         button.isEnabled = false
         button.tintColor = .systemBlue
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
@@ -137,6 +162,33 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
+    }()
+
+    private lazy var mediaView: UIImageView = {
+        let mediaView = UIImageView()
+        mediaView.contentMode = .scaleAspectFit
+        mediaView.translatesAutoresizingMaskIntoConstraints = false
+        mediaView.widthAnchor.constraint(equalToConstant: 100).isActive = true
+        mediaView.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        return mediaView
+    }()
+
+    private lazy var mediaPanel: UIView = {
+        var mediaPanel = UIView()
+        mediaPanel.translatesAutoresizingMaskIntoConstraints = false
+        mediaPanel.preservesSuperviewLayoutMargins = true
+        mediaPanel.backgroundColor = .systemBackground
+
+        let backgroundView = UIView()
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        backgroundView.backgroundColor = .systemBackground
+        mediaPanel.addSubview(backgroundView)
+        backgroundView.leadingAnchor.constraint(equalTo: mediaPanel.leadingAnchor).isActive = true
+        backgroundView.topAnchor.constraint(equalTo: mediaPanel.topAnchor).isActive = true
+        backgroundView.trailingAnchor.constraint(equalTo: mediaPanel.trailingAnchor).isActive = true
+        backgroundView.bottomAnchor.constraint(equalTo: mediaPanel.bottomAnchor).isActive = true
+
+        return mediaPanel
     }()
 
     private lazy var contactNameLabel: UILabel = {
@@ -260,15 +312,12 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.placeholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
 
         // Horizontal stack view: [input field][post button]
-        let hStack = UIStackView(arrangedSubviews: [textViewContainer, self.postButton ])
+        let hStack = UIStackView(arrangedSubviews: [textViewContainer, self.pickMediaButton, self.postButton ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.spacing = 0
-        let textFieldPanel = UIView()
-        textFieldPanel.backgroundColor = .systemBackground
-        textFieldPanel.translatesAutoresizingMaskIntoConstraints = false
-        textFieldPanel.preservesSuperviewLayoutMargins = true
-        textFieldPanel.addSubview(hStack)
+
+        self.textFieldPanel.addSubview(hStack)
         hStack.leadingAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.leadingAnchor).isActive = true
         hStack.topAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.topAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.trailingAnchor).isActive = true
@@ -396,11 +445,54 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.delegate?.commentInputViewResetReplyContext(self)
     }
 
+    @objc private func didTapCloseMediaPanel() {
+        self.delegate?.commentInputViewResetInputMedia(self)
+    }
+
+    func showMediaPanel(with media : PendingMedia) {
+        // Prepare cell for reuse
+        if vStack.arrangedSubviews.contains(mediaPanel) {
+            mediaView.image = nil
+            mediaView.removeFromSuperview()
+            vStack.removeArrangedSubview(mediaPanel)
+            mediaView.removeFromSuperview()
+        }
+        if media.type == .image {
+            mediaView.image = media.image
+        } else if media.type == .video {
+            guard let url = media.fileURL else { return }
+            mediaView.image = VideoUtils.videoPreviewImage(url: url)
+        } else {
+         return
+        }
+        mediaPanel.addSubview(mediaView)
+
+        mediaView.topAnchor.constraint(equalTo: mediaPanel.layoutMarginsGuide.topAnchor).isActive = true
+        mediaView.bottomAnchor.constraint(equalTo: mediaPanel.layoutMarginsGuide.bottomAnchor).isActive = true
+        mediaView.centerXAnchor.constraint(equalTo: mediaPanel.centerXAnchor).isActive = true
+        mediaView.layoutIfNeeded()
+        self.vStack.insertArrangedSubview(self.mediaPanel, at: vStack.arrangedSubviews.firstIndex(of: textFieldPanel)!)
+
+        mediaView.roundCorner(10)
+        postButton.isEnabled = isPostButtonEnabled
+    }
+
+    func removeMediaPanel() {
+        // remove media panel from stack
+        mediaView.image = nil
+        vStack.removeArrangedSubview(mediaPanel)
+        mediaPanel.removeFromSuperview()
+        postButton.isEnabled = isPostButtonEnabled
+        self.setNeedsUpdateHeight()
+    }
+
+
     // MARK: Text view
 
     func clear() {
         textView.text = ""
         textView.resetMentions()
+        removeMediaPanel()
         self.inputTextViewDidChange(self.textView)
         self.setNeedsUpdateHeight(animationDuration: 0.25)
     }
@@ -428,6 +520,10 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.delegate?.commentInputView(self, wantsToSend: mentionText.trimmed())
     }
     
+    @objc func pickMediaButtonClicked() {
+        delegate?.commentInputViewPickMedia(self)
+    }
+
     var mentionText: MentionText {
         get {
             return MentionText(expandedText: textView.text, mentionRanges: textView.mentions)

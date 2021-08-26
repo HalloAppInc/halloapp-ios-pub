@@ -610,7 +610,6 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
 
     override func apply(configuration: MediaCarouselViewConfiguration) {
         super.apply(configuration: configuration)
-
         if (configuration.alwaysScaleToFitContent) {
             imageView.contentMode = .scaleAspectFit
         } else {
