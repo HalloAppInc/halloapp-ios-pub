@@ -21,6 +21,10 @@ fileprivate struct LayoutConstants {
     static let profilePictureTrailingSpaceNormal: CGFloat = 10
 }
 
+protocol CommentViewDelegate: AnyObject {
+    func commentView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
+}
+
 private extension Localizations {
 
     static var commentReply: String {
@@ -46,10 +50,14 @@ private extension Localizations {
 
 class CommentView: UIView {
 
+    var feedPostCommentID: FeedPostCommentID?
+
     // MARK: Variable Constraints
     private var leadingMargin: NSLayoutConstraint!
     private var profilePictureWidth: NSLayoutConstraint!
     private var profilePictureTrailingSpace: NSLayoutConstraint!
+    weak var delegate: CommentViewDelegate?
+    private(set) var mediaCarouselView: MediaCarouselView?
   
     var isReplyButtonVisible: Bool = true {
         didSet {
@@ -63,13 +71,29 @@ class CommentView: UIView {
         return button
     }()
 
-    private(set) lazy var textLabel: TextLabel = {
+    private(set) lazy var nameTextLabel: TextLabel = {
         let label = TextLabel()
         label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
+    let textCommentLabel: TextLabel = {
+        let label = TextLabel()
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    let mediaView: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        let mediaStack = UIStackView(arrangedSubviews: [ spacer ])
+        mediaStack.translatesAutoresizingMaskIntoConstraints = false
+        mediaStack.spacing = 4
+        return mediaStack
+    }()
+
     private lazy var timestampLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.preferredFont(forTextStyle: .footnote)
@@ -139,7 +163,8 @@ class CommentView: UIView {
         bottomRow.axis = .horizontal
         bottomRow.spacing = 8
 
-        vStack = UIStackView(arrangedSubviews: [ textLabel, bottomRow ])
+        vStack = UIStackView(arrangedSubviews: [ nameTextLabel, bottomRow ])
+        vStack.spacing = 8
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         addSubview(vStack)
@@ -160,26 +185,84 @@ class CommentView: UIView {
         vStack.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
     }
 
-    func updateWith(comment: FeedPostComment) {
-        let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
-        let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
-
-        let contactName = MainAppContext.shared.contactStore.fullName(for: comment.userId)
-        let attributedText = NSMutableAttributedString(string: contactName,
-                                                       attributes: [NSAttributedString.Key.userMention: comment.userId,
-                                                                    NSAttributedString.Key.font: nameFont])
-
-        attributedText.append(NSAttributedString(string: " "))
-
-        if let commentText = MainAppContext.shared.contactStore.textWithMentions(comment.text, mentions: Array(comment.mentions ?? Set())),
-            !comment.isRetracted
-        {
-            attributedText.append(commentText.with(font: baseFont).applyingFontForMentions(nameFont))
+    func configure(withComment feedPostComment: FeedPostComment) {
+        if let mediaCarouselView = mediaCarouselView {
+            mediaView.removeArrangedSubview(mediaCarouselView)
+            mediaCarouselView.removeFromSuperview()
+            vStack.removeArrangedSubview(mediaView)
+            mediaView.removeFromSuperview()
+            vStack.removeArrangedSubview(textCommentLabel)
+            textCommentLabel.removeFromSuperview()
+            self.mediaCarouselView = nil
         }
 
-        attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
+        if let feedCommentMedia = feedPostComment.media,
+           let media = MainAppContext.shared.feedData.media(commentID: feedPostComment.id),
+           feedCommentMedia.count > 0 {
 
-        textLabel.attributedText = attributedText
+            // Set Name
+            let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
+            let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
+            let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId)
+            let attributedText = NSMutableAttributedString(string: contactName,
+                                                           attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
+                                                                        NSAttributedString.Key.font: nameFont])
+            attributedText.append(NSAttributedString(string: " "))
+            attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
+            nameTextLabel.attributedText = attributedText
+
+            // Set Media
+            MainAppContext.shared.feedData.loadImages(commentID: feedPostComment.id)
+            var configuration = MediaCarouselViewConfiguration.default
+            configuration.downloadProgressViewSize = 24
+            configuration.alwaysScaleToFitContent = false
+            let mediaCarouselView = MediaCarouselView(media: media, configuration: configuration)
+            mediaCarouselView.widthAnchor.constraint(equalToConstant: 170).isActive = true
+            mediaCarouselView.heightAnchor.constraint(equalToConstant: 170).isActive = true
+            mediaCarouselView.delegate = self
+            mediaView.insertArrangedSubview(mediaCarouselView, at: mediaView.arrangedSubviews.count - 1)
+            vStack.insertArrangedSubview(mediaView, at: vStack.arrangedSubviews.count - 1)
+            self.mediaCarouselView = mediaCarouselView
+
+            // Text below media
+            if !feedPostComment.text.isEmpty {
+                let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
+                    feedPostComment.text,
+                    mentions: Array(feedPostComment.mentions ?? Set()))
+
+                let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+                let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
+                let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
+                textCommentLabel.attributedText = textWithMentions?.with(font: font, color: .label).applyingFontForMentions(boldFont)
+
+                vStack.insertArrangedSubview(textCommentLabel, at: vStack.arrangedSubviews.count - 1)
+            }
+        } else {
+            // No media, set name and append text to name label
+            let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
+            let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
+
+            let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId)
+            let attributedText = NSMutableAttributedString(string: contactName,
+                                                           attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
+                                                                        NSAttributedString.Key.font: nameFont])
+
+            attributedText.append(NSAttributedString(string: " "))
+
+            if let commentText = MainAppContext.shared.contactStore.textWithMentions(feedPostComment.text, mentions: Array(feedPostComment.mentions ?? Set())),
+                !feedPostComment.isRetracted
+            {
+                attributedText.append(commentText.with(font: baseFont).applyingFontForMentions(nameFont))
+            }
+
+            attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
+            nameTextLabel.attributedText = attributedText
+        }
+    }
+
+    func updateWith(comment: FeedPostComment) {
+        feedPostCommentID = comment.id
+        configure(withComment: comment)
         isReplyButtonVisible = comment.isPosted
         switch comment.status {
         case .sending:
@@ -193,21 +276,7 @@ class CommentView: UIView {
         profilePictureWidth.constant = isRootComment ? LayoutConstants.profilePictureSizeNormal : LayoutConstants.profilePictureSizeSmall
         profilePictureTrailingSpace.constant = isRootComment ? LayoutConstants.profilePictureTrailingSpaceNormal : LayoutConstants.profilePictureTrailingSpaceSmall
         leadingMargin.constant = isRootComment ? LayoutConstants.profilePictureLeadingMarginNormal : LayoutConstants.profilePictureLeadingMarginReply
-        
-        // TODO Nandini delete this once view is updated to handle media comments
-        if comment.media != nil {
-            showDeletedView()
-            let attributedText = NSMutableAttributedString(string: "⚠️ " + Localizations.commentIsNotSupported)
-            if let url = AppContext.appStoreURL {
-                let link = NSMutableAttributedString(string: Localizations.linkUpdateYourApp)
-                link.addAttribute(.link, value: url, range: link.utf16Extent)
-                attributedText.append(NSAttributedString(string: " "))
-                attributedText.append(link)
-            }
-            deletedCommentTextLabel.attributedText = attributedText.with(
-                font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable,
-                color: .secondaryLabel)
-        }
+
         switch comment.status {
         case .retracted:
             showDeletedView()
@@ -237,7 +306,7 @@ class CommentView: UIView {
     private func showDeletedView() {
         deletedCommentView.isHidden = false
         if deletedCommentView.superview == nil {
-            vStack.insertArrangedSubview(deletedCommentView, at: vStack.arrangedSubviews.firstIndex(of: textLabel)! + 1)
+            vStack.insertArrangedSubview(deletedCommentView, at: vStack.arrangedSubviews.firstIndex(of: nameTextLabel)! + 1)
         }
     }
 
@@ -248,6 +317,25 @@ class CommentView: UIView {
         }
     }
 
+}
+
+extension CommentView: MediaCarouselViewDelegate {
+    func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
+        if let commentID = feedPostCommentID {
+            delegate?.commentView(view, forComment: commentID, didTapMediaAtIndex: index)
+        }
+    }
+    func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
+
+    }
+
+    func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
+
+    }
+
+    func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
+
+    }
 }
 
 extension CommentView: TextLabelDelegate {

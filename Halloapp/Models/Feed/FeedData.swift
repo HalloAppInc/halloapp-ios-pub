@@ -1519,6 +1519,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
     
+    func media(for comment: FeedPostComment) -> [FeedMedia] {
+        if let cachedMedia = cachedMedia[comment.id] {
+            return cachedMedia
+        } else {
+            let media = (comment.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
+            cachedMedia[comment.id] = media
+            return media
+        }
+    }
+
     func media(commentID: FeedPostCommentID) -> [FeedMedia]? {
         if let cachedMedia = cachedMedia[commentID] {
             return cachedMedia

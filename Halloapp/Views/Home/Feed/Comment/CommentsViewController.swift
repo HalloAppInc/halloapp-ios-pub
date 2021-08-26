@@ -701,8 +701,13 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
         let feedPostComment = self.sortedComments[indexPath.row]
+
+        // Initiate download for images that were not yet downloaded.
+        MainAppContext.shared.feedData.downloadMedia(in: [feedPostComment])
+
         let commentId = feedPostComment.id
         let commentAuthorUserId = feedPostComment.userId
+        cell.commentView.delegate = self
         cell.update(with: feedPostComment)
         cell.openProfileAction = { [weak self] in
             guard let self = self else { return }
@@ -718,7 +723,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             guard let self = self else { return }
             self.confirmResending(commentWithId: commentId)
         }
-        cell.commentView.textLabel.delegate = self
+        cell.commentView.nameTextLabel.delegate = self
         cell.isCellHighlighted = self.replyContext?.parentCommentId == commentId || self.highlightedCommentId == commentId
         if !isCommentingEnabled {
             cell.isReplyingEnabled = false
@@ -873,6 +878,16 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         label.numberOfLines = 0
         isPostTextExpanded = true
         tableView.reloadData()
+    }
+}
+
+extension CommentsViewController: CommentViewDelegate {
+    func commentView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
+        let canSavePost = false
+        guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID) else { return }
+        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
+        controller.delegate = view
+        present(controller.withNavigationController(), animated: true)
     }
 }
 

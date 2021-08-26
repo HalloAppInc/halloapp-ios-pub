@@ -611,6 +611,11 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
     override func apply(configuration: MediaCarouselViewConfiguration) {
         super.apply(configuration: configuration)
 
+        if (configuration.alwaysScaleToFitContent) {
+            imageView.contentMode = .scaleAspectFit
+        } else {
+            imageView.contentMode = .scaleAspectFill
+        }
         imageView.cornerRadius = configuration.cornerRadius
         imageView.isZoomEnabled = configuration.isZoomEnabled
         imageView.borderWidth = configuration.borderWidth
