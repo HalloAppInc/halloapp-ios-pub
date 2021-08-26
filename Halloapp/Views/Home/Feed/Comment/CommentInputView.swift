@@ -38,6 +38,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     private var textView5LineHeight: CGFloat = 0
 
     private var previousHeight: CGFloat = 0
+    let closeButtonDiameter: CGFloat = 24
 
     private var isPostButtonEnabled: Bool {
         get {
@@ -171,6 +172,17 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         mediaView.widthAnchor.constraint(equalToConstant: 100).isActive = true
         mediaView.heightAnchor.constraint(equalToConstant: 100).isActive = true
         return mediaView
+    }()
+
+    private lazy var mediaCloseButton: UIButton = {
+        let closeButton = UIButton(type: .custom)
+        closeButton.bounds.size = CGSize(width: closeButtonDiameter, height: closeButtonDiameter)
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.setImage(UIImage(systemName: "xmark.circle.fill")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        closeButton.tintColor = .placeholderText
+        closeButton.layer.cornerRadius = 0.5 * closeButtonDiameter
+        closeButton.addTarget(self, action: #selector(didTapCloseMediaPanel), for: .touchUpInside)
+        return closeButton
     }()
 
     private lazy var mediaPanel: UIView = {
@@ -455,8 +467,9 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         if vStack.arrangedSubviews.contains(mediaPanel) {
             mediaView.image = nil
             mediaView.removeFromSuperview()
+            mediaCloseButton.removeFromSuperview()
             vStack.removeArrangedSubview(mediaPanel)
-            mediaView.removeFromSuperview()
+            mediaPanel.removeFromSuperview()
         }
         if media.type == .image {
             mediaView.image = media.image
@@ -468,18 +481,27 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         }
         mediaPanel.addSubview(mediaView)
 
-        mediaView.topAnchor.constraint(equalTo: mediaPanel.layoutMarginsGuide.topAnchor).isActive = true
+        let closeButtonRadius = closeButtonDiameter / 2
+        mediaView.topAnchor.constraint(equalTo: mediaPanel.layoutMarginsGuide.topAnchor, constant: closeButtonRadius).isActive = true
         mediaView.bottomAnchor.constraint(equalTo: mediaPanel.layoutMarginsGuide.bottomAnchor).isActive = true
         mediaView.centerXAnchor.constraint(equalTo: mediaPanel.centerXAnchor).isActive = true
         mediaView.layoutIfNeeded()
         self.vStack.insertArrangedSubview(self.mediaPanel, at: vStack.arrangedSubviews.firstIndex(of: textFieldPanel)!)
 
+        mediaPanel.addSubview(mediaCloseButton)
         mediaView.roundCorner(10)
+        if let imageRect = mediaView.getImageRect() {
+            let x = imageRect.origin.x > 0 ? (imageRect.origin.x + closeButtonRadius) : closeButtonRadius
+            mediaCloseButton.leadingAnchor.constraint(equalTo: mediaView.trailingAnchor, constant: -x).isActive = true
+            let y = imageRect.origin.y > 0 ? (imageRect.origin.y + closeButtonRadius) : closeButtonRadius
+            mediaCloseButton.bottomAnchor.constraint(equalTo: mediaView.topAnchor, constant: y).isActive = true
+        }
         postButton.isEnabled = isPostButtonEnabled
     }
 
     func removeMediaPanel() {
         // remove media panel from stack
+        mediaCloseButton.removeFromSuperview()
         mediaView.image = nil
         vStack.removeArrangedSubview(mediaPanel)
         mediaPanel.removeFromSuperview()
