@@ -2021,7 +2021,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     @discardableResult
-    func post(comment: MentionText, to feedPostID: FeedPostID, replyingTo parentCommentId: FeedPostCommentID? = nil) -> FeedPostCommentID {
+    func post(comment: MentionText, media: [PendingMedia], to feedPostID: FeedPostID, replyingTo parentCommentId: FeedPostCommentID? = nil) -> FeedPostCommentID {
         let commentId: FeedPostCommentID = PacketID.generate()
 
         // Create and save FeedPostComment
@@ -2060,10 +2060,39 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedComment.post = feedPost
         feedComment.status = .sending
         feedComment.timestamp = Date()
+
+        // Add post comment media.
+        for (index, mediaItem) in media.enumerated() {
+            DDLogDebug("FeedData/new-comment/add-media [\(mediaItem.fileURL!)]")
+
+            let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+            feedMedia.type = mediaItem.type
+            feedMedia.status = .uploading
+            feedMedia.url = mediaItem.url
+            feedMedia.size = mediaItem.size!
+            feedMedia.key = ""
+            feedMedia.sha256 = ""
+            feedMedia.order = Int16(index)
+            feedMedia.comment = feedComment
+
+            // Copying depends on all data fields being set, so do this last.
+            do {
+                try downloadManager.copyMedia(from: mediaItem, to: feedMedia)
+
+                if let encryptedFileURL = mediaItem.encryptedFileUrl {
+                    try FileManager.default.removeItem(at: encryptedFileURL)
+                    DDLogInfo("FeedData/new-comment/removed-temporary-file [\(encryptedFileURL.absoluteString)]")
+                }
+            }
+            catch {
+                DDLogError("FeedData/new-comment/copy-media/error [\(error)]")
+            }
+        }
+
         save(managedObjectContext)
 
-        // Now send data over the wire.
-        send(comment: feedComment)
+        // Now upload media if any and send data over the wire.
+        uploadMediaAndSend(feedComment: feedComment)
 
         return commentId
     }
@@ -2094,17 +2123,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func send(comment: FeedPostComment) {
+        DDLogInfo("FeedData/send-comment/commentID: \(comment.id) begin")
         let commentId = comment.id
         let groupId = comment.post.groupId
         service.publishComment(comment.commentData, groupId: groupId) { result in
             switch result {
             case .success(let timestamp):
+                DDLogInfo("FeedData/send-comment/commentID: \(comment.id) success")
                 self.updateFeedPostComment(with: commentId) { (feedComment) in
                     feedComment.timestamp = timestamp
                     feedComment.status = .sent
                 }
 
             case .failure(let error):
+                DDLogError("FeedData/send-comment/commentID: \(comment.id) error \(error)")
                 // TODO: Track this state more precisely. Even if this attempt was a definite failure, a previous attempt may have succeeded.
                 if error.isKnownFailure {
                     self.updateFeedPostComment(with: commentId) { (feedComment) in
@@ -2287,6 +2319,95 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    private func uploadMediaAndSend(feedComment: FeedPostComment) {
+
+        guard let mediaItemsToUpload = feedComment.media?.filter({ $0.status == .none || $0.status == .uploading || $0.status == .uploadError }), !mediaItemsToUpload.isEmpty else {
+            send(comment: feedComment)
+            return
+        }
+
+        var numberOfFailedUploads = 0
+        var totalUploadSize = 0
+        let totalUploads = 1
+        let startTime = Date()
+        DDLogInfo("FeedData/upload-media/commentID/\(feedComment.id)/starting [\(totalUploads)]")
+
+        let uploadGroup = DispatchGroup()
+        let uploadCompletion: (Result<Int, Error>) -> Void = { result in
+            switch result {
+            case .success(let size):
+                totalUploadSize += size
+            case .failure(_):
+                numberOfFailedUploads += 1
+            }
+
+            uploadGroup.leave()
+        }
+
+        for mediaItemToUpload in mediaItemsToUpload {
+            let mediaIndex = mediaItemToUpload.order
+            uploadGroup.enter()
+            DDLogDebug("FeedData/process-mediaItem: comment \(feedComment.id)/\(mediaItemToUpload.order), index: \(mediaIndex)")
+
+            if let relativeFilePath = mediaItemToUpload.relativeFilePath, mediaItemToUpload.sha256.isEmpty && mediaItemToUpload.key.isEmpty {
+                let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+                let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
+
+                imageServer.prepare(mediaItemToUpload.type, url: url, output: output) { [weak self] in
+                    guard let self = self else { return }
+                    switch $0 {
+                    case .success(let result):
+                        let path = self.downloadManager.relativePath(from: output)
+                        DDLogDebug("FeedData/process-comment-mediaItem/success: comment \(feedComment.id)/ commment:\(feedComment.id)\(mediaIndex)")
+                        self.updateFeedPostComment(with: feedComment.id, block: { (feedPostComment) in
+                            if let media = feedPostComment.media?.first(where: { $0.order == mediaIndex }) {
+                                media.size = result.size
+                                media.key = result.key
+                                media.sha256 = result.sha256
+                                media.relativeFilePath = path
+                            }
+                        }) {
+                            self.uploadCommentMedia(postId: feedComment.post.id, commentId: feedComment.id, mediaIndex: mediaIndex, completion: uploadCompletion)
+                        }
+                    case .failure(_):
+                        DDLogDebug("FeedData/process-comment-mediaItem/failure: comment \(feedComment.id)/\(mediaIndex) url\(url) output \(output)")
+                        numberOfFailedUploads += 1
+
+                        self.updateFeedPostComment(with: feedComment.id, block: { (feedComment) in
+                            if let media = feedComment.media?.first(where: { $0.order == mediaIndex }){
+                                media.status = .uploadError
+                            }
+                        }) {
+                            uploadGroup.leave()
+                        }
+                    }
+                }
+            } else {
+                DDLogDebug("FeedData/process-comment-mediaItem/processed already: comment \(feedComment.id)/\(mediaIndex)")
+                self.uploadCommentMedia(postId: feedComment.post.id, commentId: feedComment.id, mediaIndex: mediaIndex, completion: uploadCompletion)
+            }
+        }
+
+        uploadGroup.notify(queue: .main) {
+            DDLogInfo("FeedData/upload-comment-media/\(feedComment.id)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
+            if numberOfFailedUploads > 0 {
+                self.updateFeedPost(with: feedComment.post.id) { (feedPost) in
+                    feedPost.status = .sendError
+                }
+            } else if let feedComment = self.feedComment(with: feedComment.id) {
+                self.send(comment: feedComment)
+                // TODO dini update this with commentid
+//                AppContext.shared.eventMonitor.observe(
+//                    .mediaUpload(
+//                        postID: feedComment.post.id,
+//                        duration: Date().timeIntervalSince(startTime),
+//                        numPhotos: mediaItemsToUpload.filter { $0.type == .image }.count,
+//                        numVideos: mediaItemsToUpload.filter { $0.type == .video }.count,
+//                        totalSize: totalUploadSize))
+            }
+        }
+    }
+
     private func upload(postId: FeedPostID, mediaIndex: Int16, completion: @escaping (Result<Int, Error>) -> Void) {
         guard let post = self.feedPost(with: postId),
               let postMedia = post.media?.first(where: { $0.order == mediaIndex }) else {
@@ -2349,6 +2470,88 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Save URLs acquired during upload to the database.
                 self.updateFeedPost(with: postId, block: { feedPost in
                     if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
+                        switch uploadResult {
+                        case .success(let details):
+                            media.url = details.downloadURL
+                            media.status = .uploaded
+
+                            if media.url == upload?.url, let key = upload?.key, let sha256 = upload?.sha256 {
+                                media.key = key
+                                media.sha256 = sha256
+                            }
+
+                            MainAppContext.shared.uploadData.update(upload: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
+                        case .failure(_):
+                            media.status = .uploadError
+                        }
+                    }
+                }) {
+                    completion(uploadResult.map { $0.fileSize })
+                }
+            }
+        }
+    }
+
+    private func uploadCommentMedia(postId: FeedPostID, commentId: FeedPostCommentID, mediaIndex: Int16, completion: @escaping (Result<Int, Error>) -> Void) {
+        guard let comment = self.feedComment(with: commentId), let postCommentMedia = comment.media?.first(where: { $0.order == mediaIndex }) else {
+            DDLogError("FeedData/upload/fetch post, comment and media \(postId)/\(commentId)/\(mediaIndex) - missing")
+            return
+        }
+
+        DDLogDebug("FeedData/upload/media/coment postid: \(postId)/ commentid: \(commentId)/ order: \(postCommentMedia), index:\(mediaIndex)")
+        guard let relativeFilePath = postCommentMedia.relativeFilePath else {
+            DDLogError("FeedData/upload-media/comment postid: \(postId)/ commentid: \(commentId)/\(mediaIndex) missing file path")
+            return completion(.failure(MediaUploadError.invalidUrls))
+        }
+        let processed = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+
+        MainAppContext.shared.uploadData.fetch(upload: processed) { [weak self] upload in
+            guard let self = self else { return }
+
+            // Lookup object from coredata again instead of passing around the object across threads.
+            DDLogInfo("FeedData/upload/fetch upload hash comment \(commentId)/\(mediaIndex)")
+            guard let comment = self.feedComment(with: commentId),
+                  let media = comment.media?.first(where: { $0.order == mediaIndex })  else {
+                DDLogError("FeedData/upload/upload hash finished/fetch post and media/ \(postId)/ comment: \(commentId)/\(mediaIndex) - missing")
+                return
+            }
+
+            if let url = upload?.url {
+                DDLogInfo("Media \(processed) has been uploaded before at \(url).")
+                if let uploadUrl = media.uploadUrl {
+                    DDLogInfo("FeedData/upload/upload url is supposed to be nil here/\(postId)/\(media.order), uploadUrl: \(uploadUrl)")
+                    // we set it to be nil here explicitly.
+                    media.uploadUrl = nil
+                }
+                media.url = url
+            } else {
+                DDLogInfo("FeedData/uploading media now for comment postid: \(postId)/ commentid: \(commentId) /\(media.order) , index:\(mediaIndex)")
+            }
+            self.mediaUploader.upload(media: media, groupId: commentId, didGetURLs: { (mediaURLs) in
+                DDLogInfo("FeedData/upload-media/ comment postid: \(postId)/\(mediaIndex) commentid: \(commentId)/acquired-urls [\(mediaURLs)]")
+
+                // Save URLs acquired during upload to the database.
+                self.updateFeedPostComment(with: commentId) { (feedPostComment) in
+                    if let media = feedPostComment.media?.first(where: { $0.order == mediaIndex }) {
+                        switch mediaURLs {
+                        case .getPut(let getURL, let putURL):
+                            media.url = getURL
+                            media.uploadUrl = putURL
+
+                        case .patch(let patchURL):
+                            media.uploadUrl = patchURL
+
+                        case .download(let downloadURL):
+                            media.url = downloadURL
+                        }
+                    }
+                }
+            }) { (uploadResult) in
+                DDLogInfo("FeedData/upload-media/ comment postid: \(postId)/\(mediaIndex)  commentid: \(commentId) /finished result=[\(uploadResult)]")
+
+                // Save URLs acquired during upload to the database.
+                self.updateFeedPostComment(with: commentId, block: { feedPostComment in
+                    if let media = feedPostComment.media?.first(where: { $0.order == mediaIndex }) {
                         switch uploadResult {
                         case .success(let details):
                             media.url = details.downloadURL

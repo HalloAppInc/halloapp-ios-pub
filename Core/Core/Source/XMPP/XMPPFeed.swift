@@ -256,8 +256,12 @@ public struct CommentData {
 
     
     public var orderedMedia: [FeedMediaProtocol] {
-        // unsupported yet.
-        return []
+        switch content {
+        case .album(_, let media):
+            return media
+        case .retracted, .text, .unsupported:
+            return []
+        }
     }
 
     public var orderedMentions: [FeedMentionProtocol] {

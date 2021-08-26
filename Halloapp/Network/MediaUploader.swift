@@ -48,7 +48,7 @@ final class MediaUploader {
     typealias FetchUrls = (MediaURLInfo) -> ()
 
     class Task: Hashable, Equatable {
-        let groupId: String // Could be FeedPostID or ChatMessageID.
+        let groupId: String // Could be FeedPostID or ChatMessageID or CommentID
         let index: Int
         let fileURL: URL
         private let completion: Completion

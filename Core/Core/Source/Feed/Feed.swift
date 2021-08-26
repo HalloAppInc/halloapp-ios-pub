@@ -107,6 +107,38 @@ extension FeedMediaProtocol {
             return media
         }
     }
+
+    var albumMedia: Clients_AlbumMedia? {
+        guard let downloadURL = url?.absoluteString,
+              let encryptionKey = Data(base64Encoded: key),
+              let cipherTextHash = Data(base64Encoded: sha256) else
+        {
+            return nil
+        }
+        var albumMedia = Clients_AlbumMedia()
+        var res = Clients_EncryptedResource()
+        res.ciphertextHash = cipherTextHash
+        res.downloadURL = downloadURL
+        res.encryptionKey = encryptionKey
+        switch type {
+        case .image:
+            var img = Clients_Image()
+            img.img = res
+            img.width = Int32(size.width)
+            img.height = Int32(size.height)
+            albumMedia.media = .image(img)
+        case .video:
+            var vid = Clients_Video()
+            vid.video = res
+            vid.width = Int32(size.width)
+            vid.height = Int32(size.height)
+            albumMedia.media = .video(vid)
+        case .audio:
+            return nil
+        }
+        return albumMedia
+    }
+
 }
 
 public struct PendingVideoEdit: Equatable {
@@ -360,12 +392,42 @@ public extension CommentData {
 
     var clientContainer: Clients_Container {
         var container = Clients_Container()
-        container.comment = clientCommentLegacy
+        // Populate container.comment only if its not a media comment
+        if let clientCommentLegacy = clientCommentLegacy {
+            container.comment = clientCommentLegacy
+        }
+        container.commentContainer = clientCommentContainer
         return container
     }
 
+    var clientCommentContainer: Clients_CommentContainer {
+        var commentContainer = Clients_CommentContainer()
+        switch content {
+        case .text(let mentionText):
+            var clientText = Clients_Text()
+            clientText.text = mentionText.collapsedText
+            clientText.mentions = orderedMentions.map { $0.protoMention }
+            commentContainer.text = clientText
+        case .album(let mentionText, let media):
+            var album = Clients_Album()
+            album.media = media.compactMap { $0.albumMedia }
+            var clientText = Clients_Text()
+            clientText.text = mentionText.collapsedText
+            clientText.mentions = orderedMentions.map { $0.protoMention }
+            album.text = clientText
+            commentContainer.album = album
+        case .retracted, .unsupported:
+            break
+        }
+        commentContainer.context.feedPostID = feedPostId
+        if let parentId = parentId {
+            commentContainer.context.parentCommentID = parentId
+        }
+        return commentContainer
+    }
+
     /// Legacy format comment (will be superseded by Clients_CommentContainer)
-    var clientCommentLegacy: Clients_Comment {
+    var clientCommentLegacy: Clients_Comment? {
         var comment = Clients_Comment()
         switch content {
         case .text(let mentionText):
@@ -379,7 +441,9 @@ public extension CommentData {
                     return clientMention
                 }
                 .sorted { $0.index < $1.index }
-        case .album, .retracted, .unsupported:
+        case .album(_, _):
+            return nil
+        case .retracted, .unsupported:
             break
         }
         comment.feedPostID = feedPostId

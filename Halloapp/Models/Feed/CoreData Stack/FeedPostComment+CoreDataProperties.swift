@@ -74,6 +74,28 @@ extension FeedPostComment {
 extension FeedPostComment {
     public var commentData: CommentData {
         let mentionText = self.mentionText ?? MentionText(collapsedText: "", mentions: [:])
+        if let media = self.media {
+            var mediaItems = [FeedMediaData]()
+            media.forEach{ (media) in
+                let mediaData = FeedMediaData(
+                    id: "\(self.id)-\(media.order)",
+                    url: media.url,
+                    type: media.type,
+                    size: media.size,
+                    key: media.key,
+                    sha256: media.sha256)
+                mediaItems.append(mediaData)
+            }
+
+            return CommentData(
+                id: id,
+                userId: userId,
+                timestamp: timestamp,
+                feedPostId: post.id,
+                parentId: parent?.id,
+                content: .album(mentionText, mediaItems))
+        }
+
         return CommentData(
             id: id,
             userId: userId,

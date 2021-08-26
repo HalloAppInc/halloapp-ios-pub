@@ -819,7 +819,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText) {
         let parentCommentId = replyContext?.parentCommentId
-        commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, to: feedPostId, replyingTo: parentCommentId)
+        commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, media: [], to: feedPostId, replyingTo: parentCommentId)
       
         FeedData.deletePostCommentDrafts { existingDraft in
             existingDraft.postID == feedPostId
