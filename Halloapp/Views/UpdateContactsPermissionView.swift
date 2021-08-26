@@ -13,6 +13,7 @@ import UIKit
 class UpdateContactsPermissionView: UIView {
 
     private let settingsURL = URL(string: UIApplication.openSettingsURLString)
+    private let learnMoreURL = URL(string: "https://halloapp.com/blog/why-address-book/")
 
     public override init(frame: CGRect) {
         super.init(frame: frame)
@@ -38,9 +39,14 @@ class UpdateContactsPermissionView: UIView {
         settingsButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 18, bottom: 10, right: 18)
         settingsButton.layer.cornerRadius = 19
         settingsButton.addTarget(self, action: #selector(didTapOpenSettings), for: .touchUpInside)
-        settingsButton.isEnabled = true
 
-        let stackView = UIStackView(arrangedSubviews: [imageView, label, settingsButton])
+        let learnMoreButton = UIButton()
+        learnMoreButton.setTitle(Localizations.buttonLearnMore, for: .normal)
+        learnMoreButton.setTitleColor(.systemBlue, for: .normal)
+        learnMoreButton.titleLabel?.font = .systemFont(forTextStyle: .footnote, weight: .medium)
+        learnMoreButton.addTarget(self, action: #selector(didTapLearnMore), for: .touchUpInside)
+
+        let stackView = UIStackView(arrangedSubviews: [imageView, label, settingsButton, learnMoreButton])
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .vertical
         stackView.alignment = .center
@@ -60,6 +66,15 @@ class UpdateContactsPermissionView: UIView {
             return
         }
         UIApplication.shared.open(settingsURL)
+    }
+
+    @objc
+    private func didTapLearnMore() {
+        guard let learnMoreURL = learnMoreURL else {
+            DDLogError("UpdateContactsPermissionView/didTapLearnMore/error learn-more-url-unavailable")
+            return
+        }
+        UIApplication.shared.open(learnMoreURL)
     }
 }
 
