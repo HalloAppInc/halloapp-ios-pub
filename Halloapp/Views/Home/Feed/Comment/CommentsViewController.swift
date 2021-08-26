@@ -948,16 +948,6 @@ extension CommentsViewController: CommentViewDelegate {
     }
 }
 
-extension CommentsViewController: CommentViewDelegate {
-    func commentView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
-        let canSavePost = false
-        guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID) else { return }
-        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
-        controller.delegate = view
-        present(controller.withNavigationController(), animated: true)
-    }
-}
-
 extension CommentsViewController: MediaCarouselViewDelegate {
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {

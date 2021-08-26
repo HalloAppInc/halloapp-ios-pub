@@ -312,7 +312,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.placeholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
 
         // Horizontal stack view: [input field][post button]
-        let hStack = UIStackView(arrangedSubviews: [textViewContainer, self.pickMediaButton, self.postButton ])
+        let inputViews: [UIView] = ServerProperties.isMediaCommentsEnabled ? [textViewContainer, pickMediaButton, postButton] : [textViewContainer, postButton]
+        let hStack = UIStackView(arrangedSubviews: inputViews)
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.spacing = 0

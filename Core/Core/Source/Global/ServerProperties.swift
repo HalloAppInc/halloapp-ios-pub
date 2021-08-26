@@ -23,6 +23,7 @@ public struct ServerProperties {
         case useClientContainer = "new_client_container"
         case contactSyncFrequency = "contact_sync_frequency"
         case isVoiceNotesEnabled = "voice_notes"
+        case isMediaCommentsEnabled = "media_comments"
     }
 
     private struct UserDefaultsKey {
@@ -45,6 +46,7 @@ public struct ServerProperties {
         static let useClientContainer = false
         static let contactSyncFrequency: TimeInterval = 24 * 3600
         static let isVoiceNotesEnabled = false
+        static let isMediaCommentsEnabled = false
     }
 
     // MARK: Storage
@@ -206,5 +208,9 @@ public struct ServerProperties {
 
     public static var isVoiceNotesEnabled: Bool {
         ServerProperties.bool(forKey: .isVoiceNotesEnabled) ?? Defaults.isVoiceNotesEnabled
+    }
+
+    public static var isMediaCommentsEnabled: Bool {
+        ServerProperties.bool(forKey: .isMediaCommentsEnabled) ?? Defaults.isVoiceNotesEnabled
     }
 }
