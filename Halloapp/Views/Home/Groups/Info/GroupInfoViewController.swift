@@ -119,16 +119,14 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                     switch contactRow {
                     case .addMembers:
                         guard let cell = tableView.dequeueReusableCell(withIdentifier: self.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell else { break }
-                        guard let image = UIImage(named: "settingsPrivacy")?.withRenderingMode(.alwaysTemplate) else { break }
+                        guard let image = UIImage(named: "GroupsAddMembers")?.withRenderingMode(.alwaysTemplate) else { break }
                         cell.color = .primaryBlue
-                        cell.imageBgColor = .clear
-                        cell.configure(icon: image, label: Localizations.chatGroupInfoAddMembers)
+                        cell.configure(icon: image, label: Localizations.chatGroupInfoAddMembers.localizedCapitalized)
                         return cell
                     case .inviteToGroup:
                         guard let cell = tableView.dequeueReusableCell(withIdentifier: self.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell else { break }
-                        guard let image = UIImage(named: "settingsInvite")?.withRenderingMode(.alwaysTemplate) else { break }
+                        guard let image = UIImage(named: "ShareLink")?.withRenderingMode(.alwaysTemplate) else { break }
                         cell.color = .primaryBlue
-                        cell.imageBgColor = .clear
                         cell.configure(icon: image, label: Localizations.groupInfoInviteToGroupViaLink)
                         return cell
                     case .contact(let memberUserID):
@@ -220,7 +218,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         return thisName < thatName
     }
 
-    private func reloadData() {
+    private func reloadData(animated: Bool = true) {
 
         /* description section */
         var descriptionRows = [Row]()
@@ -293,7 +291,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         snapshot.appendItems(contactRows, toSection: .contacts(numContacts: numContacts))
 
         dataSource?.defaultRowAnimation = .fade
-        dataSource?.apply(snapshot, animatingDifferences: viewIfLoaded?.window != nil)
+        dataSource?.apply(snapshot, animatingDifferences: animated)
     }
 
     // MARK: Actions
@@ -462,7 +460,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
 
     private func showAllContactsTapped() {
         showAllContacts = true
-        reloadData()
+        reloadData(animated: false) // animation causes jumpiness for long lists for some reason
     }
 
     // MARK: Helpers
@@ -1126,6 +1124,7 @@ private extension ContactTableViewCell {
 
     func configure(groupID: GroupID, memberUserID: UserID) {
         contactImage.configure(with: memberUserID, using: MainAppContext.shared.avatarStore)
+        nameLabel.font = UIFont.systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: memberUserID)
         if let member = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: memberUserID) {
             accessoryLabel.text = member.type == .admin ? Localizations.chatGroupInfoAdminLabel : ""
@@ -1157,7 +1156,7 @@ private extension Localizations {
     }
 
     static var chatGroupInfoAddMembers: String {
-        NSLocalizedString("chat.group.info.add.members", value: "Add members", comment: "Action label for adding members to a group")
+        NSLocalizedString("chat.group.info.add.members", value: "Add Members", comment: "Action label for adding members to a group")
     }
     
     static var groupInfoInviteToGroupViaLink: String {
