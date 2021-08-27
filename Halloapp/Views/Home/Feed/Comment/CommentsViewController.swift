@@ -841,6 +841,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         }
 
         replyContext = nil
+        uploadMedia = nil
         commentsInputView.clear()
 
         preventAdjustContentOffsetOnChatBarBottomInsetChangeCounter += 1
