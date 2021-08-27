@@ -74,7 +74,7 @@ extension FeedPostComment {
 extension FeedPostComment {
     public var commentData: CommentData {
         let mentionText = self.mentionText ?? MentionText(collapsedText: "", mentions: [:])
-        if let media = self.media {
+        if let media = self.media, !media.isEmpty {
             var mediaItems = [FeedMediaData]()
             media.forEach{ (media) in
                 let mediaData = FeedMediaData(
