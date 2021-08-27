@@ -38,7 +38,6 @@
 		685B509725E065AD00F782F9 /* UserAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B509625E065AD00F782F9 /* UserAgent.swift */; };
 		686814AE252BA91E003C8784 /* clients.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AC252BA91E003C8784 /* clients.pb.swift */; };
 		686A1034259152F100F7B53F /* SwiftNoise in Frameworks */ = {isa = PBXBuildFile; productRef = 686A1033259152F100F7B53F /* SwiftNoise */; };
-		686CDFD9254A3E0900DB7266 /* SilentChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686CDFD8254A3E0900DB7266 /* SilentChat.swift */; };
 		6880F33C257EF5A700D1F585 /* NoiseStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6880F33B257EF5A700D1F585 /* NoiseStream.swift */; };
 		6880F354258017C400D1F585 /* ErrorLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6880F353258017C400D1F585 /* ErrorLogger.swift */; };
 		6880F35E2584241C00D1F585 /* log_events.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6880F35D2584241C00D1F585 /* log_events.pb.swift */; };
@@ -152,7 +151,6 @@
 		685B509625E065AD00F782F9 /* UserAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAgent.swift; sourceTree = "<group>"; };
 		686814AC252BA91E003C8784 /* clients.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = clients.pb.swift; sourceTree = "<group>"; };
 		686A10392591539E00F7B53F /* swift-noise-protocol */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "swift-noise-protocol"; path = "../swift-noise-protocol"; sourceTree = "<group>"; };
-		686CDFD8254A3E0900DB7266 /* SilentChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SilentChat.swift; sourceTree = "<group>"; };
 		6880F33B257EF5A700D1F585 /* NoiseStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoiseStream.swift; sourceTree = "<group>"; };
 		6880F353258017C400D1F585 /* ErrorLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLogger.swift; sourceTree = "<group>"; };
 		6880F35D2584241C00D1F585 /* log_events.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = log_events.pb.swift; sourceTree = "<group>"; };
@@ -350,7 +348,6 @@
 				68B5851C26C1D8800055FB66 /* CryptoData.swift */,
 				683DFA2026C1D80400F99557 /* CryptoStats.xcdatamodeld */,
 				76608ECC24EC2B5100DD61C3 /* Chat.swift */,
-				686CDFD8254A3E0900DB7266 /* SilentChat.swift */,
 				681811D225E9AB6D00F9126C /* MessageCrypter.swift */,
 				681811D525E9ABB300F9126C /* WhisperSession.swift */,
 				68D64BFB25EEE220000AB07C /* Whisper.swift */,
@@ -775,7 +772,6 @@
 				EAAE7B4A24DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift in Sources */,
 				6A1B25272630BD0600D8BC60 /* CrashlyticsLogger.swift in Sources */,
 				7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */,
-				686CDFD9254A3E0900DB7266 /* SilentChat.swift in Sources */,
 				768123F724861068008C5216 /* ABContact+CoreDataProperties.swift in Sources */,
 				EAAE7B3724DCD98C00946B77 /* Keys.xcdatamodeld in Sources */,
 				249028AB24C5E0600019C4D5 /* SharedDataStore.swift in Sources */,

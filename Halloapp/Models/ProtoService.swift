@@ -53,7 +53,7 @@ final class ProtoService: ProtoServiceCore {
         requestServerPropertiesIfNecessary()
         NotificationSettings.current.sendConfigIfNecessary(using: self)
         MainAppContext.shared.startReportingEvents()
-        pruneSilentChatRerequestRecords()
+        clearSilentChatRerequestRecords()
     }
 
     override func authenticationSucceeded(with authResult: Server_AuthResult) {
@@ -286,71 +286,10 @@ final class ProtoService: ProtoServiceCore {
 
     // MARK: Silent Chats
 
-    struct SilentRerequestRecord: Codable {
-        var resendCount: Int32
-        var lastRerequest: Date
-    }
-
-    /// Should only be called on serviceQueue
-    private func _loadSilentRerequestRecords() -> [String: SilentRerequestRecord] {
-        guard let archive = MainAppContext.shared.userDefaults.data(forKey: userDefaultsKeyForSilentRerequestRecords),
-              let records = try? PropertyListDecoder().decode([String: SilentRerequestRecord].self, from: archive) else
-        {
-            return [:]
-        }
-        return records
-    }
-
-    /// Should only be called on serviceQueue
-    private func _saveSilentRerequestRecords(_ records: [String: SilentRerequestRecord]) {
-        guard let archive = try? PropertyListEncoder().encode(records) else {
-            DDLogError("proto/_saveSilentRerequestRecords/error [encoding]")
-            return
-        }
-        MainAppContext.shared.userDefaults.setValue(archive, forKey: userDefaultsKeyForSilentRerequestRecords)
-    }
-
-    private func pruneSilentChatRerequestRecords() {
+    private func clearSilentChatRerequestRecords() {
         serviceQueue.async {
-            // Remove records for silent chats that haven't been rerequested for a week
-            let allRecords = self._loadSilentRerequestRecords()
-            let oneWeek = TimeInterval(60 * 60 * 24 * 7)
-            let earliestDateToPreserve = Date().addingTimeInterval(-oneWeek)
-            let preservedRecords = allRecords.filter { (k, v) in
-                v.lastRerequest > earliestDateToPreserve
-            }
-            let numberOfRecordsPruned = allRecords.count - preservedRecords.count
-            if numberOfRecordsPruned > 0 {
-                DDLogInfo("proto/pruneSilentChatRerequestRecords [\(numberOfRecordsPruned)]")
-                self._saveSilentRerequestRecords(preservedRecords)
-            }
-        }
-    }
-
-    private func handleSilentChatRerequest(_ id: String) {
-        guard var silentChat = SilentChatMessage.fromID(id) else {
-            DDLogError("proto/handleSilentChatRerequest/error unable to recreate chat [\(id)]")
-            return
-        }
-
-        serviceQueue.async {
-            var records = self._loadSilentRerequestRecords()
-
-            // Assume this is the first rerequest if no record exists
-            let resendCount = records[id]?.resendCount ?? 0
-
-            guard resendCount < 5 else {
-                DDLogInfo("proto/handleSilentChatRerequest/\(silentChat.id)/skipping [\(resendCount)]")
-                return
-            }
-
-            silentChat.rerequestCount = resendCount + 1
-            DDLogInfo("proto/handleSilentChatRerequest/\(silentChat.id)/resending [\(silentChat.rerequestCount)]")
-
-            self.sendSilentChatMessage(silentChat) { _ in }
-
-            records[silentChat.id] = SilentRerequestRecord(resendCount: silentChat.rerequestCount, lastRerequest: Date())
-            self._saveSilentRerequestRecords(records)
+            // Remove records for silent chats (no longer used)
+            MainAppContext.shared.userDefaults.set(nil, forKey: userDefaultsKeyForSilentRerequestRecords)
         }
     }
 
@@ -522,13 +461,9 @@ final class ProtoService: ProtoServiceCore {
                     // Ack has been handled, no need to proceed further
                     return
                 }
-                if SilentChatMessage.isSilentChatID(ack.id) {
-                    // No need to update chat data for silent messages
-                    DDLogInfo("proto/didReceive/silentAck \(ack.id)")
-                } else {
-                    // Not a receipt or silent ack, must be a chat ack
-                    self.didGetChatAck.send((id: ack.id, timestamp: timestamp))
-                }
+
+                // Not a receipt, must be a chat ack
+                self.didGetChatAck.send((id: ack.id, timestamp: timestamp))
             }
         case .msg(let msg):
             handleMessage(msg, isEligibleForNotification: msg.retryCount == 0)
@@ -745,14 +680,10 @@ final class ProtoService: ProtoServiceCore {
                     sessionSetupEphemeralKey: rerequest.sessionSetupEphemeralKey,
                     messageEphemeralKey: rerequest.messageEphemeralKey),
                 from: userID)
-            if SilentChatMessage.isSilentChatID(rerequest.id) {
-                self.handleSilentChatRerequest(rerequest.id)
-            } else {
-                DDLogInfo("proto/didReceive/\(msg.id)/rerequest/chat")
-                if let delegate = chatDelegate {
-                    delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID, ack: ack)
-                    hasAckBeenDelegated = true
-                }
+            DDLogInfo("proto/didReceive/\(msg.id)/rerequest/chat")
+            if let delegate = chatDelegate {
+                delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID, ack: ack)
+                hasAckBeenDelegated = true
             }
         case .chatRetract(let pbChatRetract):
             let fromUserID = UserID(msg.fromUid)
@@ -1206,7 +1137,6 @@ extension ProtoService: HalloService {
 
         DDLogInfo("ProtoService/sendGroupChatMessage/\(message.id) sending (unencrypted)")
         send(packetData)
-        sendSilentChats(0)
     }
 
     func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String) {

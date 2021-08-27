@@ -212,62 +212,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         callbacks.forEach{ $0.work(group) }
     }
 
-    // MARK: Silent chats
-
-    public func sendSilentChats(_ n: Int) {
-        let contactIDs = AppContext.shared.contactStore.allRegisteredContactIDs().filter { $0 != userData.userId }
-        var messagesRemaining = n
-        while messagesRemaining > 0 {
-            guard let toUserID = contactIDs.randomElement() else {
-                DDLogError("Proto/sendSilentChats/error no contacts available")
-                return
-            }
-            let silentChat = SilentChatMessage(from: userData.userId, to: toUserID)
-            sendSilentChatMessage(silentChat) { _ in }
-            messagesRemaining -= 1
-        }
-    }
-
-    public func sendSilentChatMessage(_ message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
-        let fromUserID = userData.userId
-
-        makeChatStanza(message) { chat, error in
-            guard let chat = chat else {
-                completion(.failure(RequestError.malformedRequest))
-                return
-            }
-
-            var silentStanza = Server_SilentChatStanza()
-            silentStanza.chatStanza = chat
-            let packet = Server_Packet.msgPacket(
-                from: fromUserID,
-                to: message.toUserId,
-                id: message.id,
-                type: .chat,
-                rerequestCount: message.rerequestCount,
-                payload: .silentChatStanza(silentStanza))
-
-            guard let packetData = try? packet.serializedData() else {
-                AppContext.shared.eventMonitor.count(.encryption(error: .serialization))
-                DDLogError("ProtoServiceCore/sendSilentChatMessage/\(message.id)/error could not serialize chat message!")
-                completion(.failure(RequestError.malformedRequest))
-                return
-            }
-
-            DispatchQueue.main.async {
-                guard self.isConnected else {
-                    DDLogInfo("ProtoServiceCore/sendSilentChatMessage/\(message.id) skipping (disconnected)")
-                    completion(.failure(RequestError.notConnected))
-                    return
-                }
-                AppContext.shared.eventMonitor.count(.encryption(error: error))
-                DDLogInfo("ProtoServiceCore/sendSilentChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
-                self.send(packetData)
-                completion(.success(()))
-            }
-        }
-    }
-
     // MARK: Requests
 
     private let requestsQueue = DispatchQueue(label: "com.halloapp.proto.requests", qos: .userInitiated)
@@ -564,7 +508,6 @@ extension ProtoServiceCore: CoreService {
                 AppContext.shared.eventMonitor.count(.encryption(error: error))
                 DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending encrypted")
                 self.send(packetData)
-                self.sendSilentChats(0)
                 DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) success")
                 completion(.success(()))
             }
