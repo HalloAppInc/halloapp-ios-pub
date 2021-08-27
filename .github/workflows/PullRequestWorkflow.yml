@@ -1,9 +1,9 @@
-name: Master Branch Workflow
+name: Pull Request Workflow
 
 # Triggers
 on:
-  push:
-    branches: [ master ] # On push/commit to master (whenever `origin/master` receives a new commit)
+  pull_request:
+    branches: [ master ] # On commits to a PR into master
   workflow_dispatch: # Manual trigger (run via Actions -> CI Workflow (lefthand side) -> Run workflow)
 
 # Jobs to run. Each job is a seperate container and may/may not have dependency jobs (like finishing building before testing)
@@ -34,8 +34,6 @@ jobs:
         with:
           path: Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
             
         # If the pods couldn't be loaded, then run `pod install` to fetch and build the `CocoaPods`
       - name: Install CocoaPods
@@ -47,14 +45,28 @@ jobs:
         uses: actions/cache@v2
         with:
           path: SourcePackages
-          key: ${{ runner.os }}-pods-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-spm-
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          
+      - name: Extract branch name
+        id: branch-name
+        shell: bash
+        run: |
+            BRANCHNAME="${GITHUB_REF#refs/*/}"
+            BRANCHNAME="${BRANCHNAME//\//_}"
+            echo "::set-output name=branch::${BRANCHNAME}"
+        
+        # Loads a cache of the build from when the PR was first opened. Not perfect, but should speed a lot up
+      - name: Load build cache from first push
+        id: check-built
+        uses: actions/cache@v2
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ steps.branch-name.outputs.branch }}
                 
         # Build the project for all devices
         # If you want to build for more devices, change destination to include whatever devices you want
       - name: Build Project
-        run: xcodebuild clean build-for-testing
+        run: xcodebuild build-for-testing
             -workspace "Halloapp.xcworkspace"
             -scheme "Halloapp"
             -destination 'platform=iOS Simulator,name=iPhone 12 Pro'
@@ -97,10 +109,10 @@ jobs:
           uses: actions/cache@v2
           with:
             path: SourcePackages
-            key: ${{ runner.os }}-pods-${{ hashFiles('**/Package.resolved') }}
+            key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
             restore-keys: |
               ${{ runner.os }}-spm-
-              
+        
         - name: Cache build
           uses: actions/cache@v2
           with:
@@ -114,51 +126,3 @@ jobs:
               -destination "${{matrix.destination}}"
               -only-testing "HalloAppTests"
               -clonedSourcePackagesDirPath SourcePackages
-
-  export-localizations:
-      name: Export Localizations
-      runs-on: macOS-latest
-      needs: compile
-      steps:
-        - name: Checkout
-          uses: actions/checkout@master
-
-          # Load cached CocoaPods if the Podfile matches. Also creates end-of-script step to save the CocoaPods if the Podfile didn't match or wasn't cached
-        - name: Cache Pods
-          id: cache-pods
-          uses: actions/cache@v2
-          with:
-            path: Pods
-            key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-            restore-keys: |
-              ${{ runner.os }}-pods-
-
-          # If the pods couldn't be loaded, then run `pod install` to fetch and build the `CocoaPods`
-        - name: Install CocoaPods
-          if: steps.cache-pods.outputs.cache-hit != 'true'
-          run: pod install
-
-        - name: Cache Swift Packages
-          id: cache-packages
-          uses: actions/cache@v2
-          with:
-            path: SourcePackages
-            key: ${{ runner.os }}-pods-${{ hashFiles('**/Package.resolved') }}
-            restore-keys: |
-              ${{ runner.os }}-spm-
-        - name: Cache build
-          uses: actions/cache@v2
-          with:
-            path: ~/Library/Developer/Xcode/DerivedData
-            key: "$GITHUB_SHA"
-
-        - name: Build Localizations
-          run: xcodebuild
-              -exportLocalizations
-              -localizationPath .
-              -project HalloApp.xcodeproj
-              -clonedSourcePackagesDirPath SourcePackages
-
-          # Upload the localized files using the POEditor API
-        - name: Upload Localizations
-          run: curl -X POST https://api.poeditor.com/v2/projects/upload -F api_token=${{secrets.POEDITOR_API_KEY}} -F id="420915" -F updating="terms_translations" -F language="en" -F overwrite="1" -F fuzzy_trigger="1" -F file=@"en.xcloc/Localized Contents/en.xliff" -F tags="{\"obsolete\":\"removed-strings\"}"
