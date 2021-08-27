@@ -84,6 +84,44 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
         searchController.searchBar.searchTextField.placeholder = Localizations.labelSearch
 
+        
+        
+//        if let view = searchController.searchBar.subviews.first {
+//
+//            print("--> \(view.subviews.count)")
+//            for subview in view.subviews {
+//
+//                print("--> \(subview)")
+//                print("--> \(subview.subviews.count)")
+//
+////                if subview.isKind(of: _UISearchBarSearchContainerView.self)  {
+////
+//                    for subview2 in subview.subviews {
+//                                print("--> \(subview2)")
+//                print("--> \(subview2.subviews.count)")
+//                        if let but = subview2 as? UIButton {
+//                            but.setTitle("sdfsdf", for: .normal)
+//                        }
+//
+//                    }
+////                }
+//
+//            }
+//        }
+
+//for view:UIView in (searchView?.subviews)!
+//{
+//        for subView:UIView in (view.subviews)
+//        {
+//            if ( subView is UIButton )
+//            {
+//                let cancelBut = subView as! UIButton
+//
+//                //do stuff with cancelButton here
+//            }
+//        }
+//    }
+
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.constrain(to: view)
@@ -576,6 +614,15 @@ extension GroupsListViewController: UISearchBarDelegate {
         DispatchQueue.main.async {
             self.scrollToTop(animated: false)
         }
+    }
+    
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(false, animated: true)
+    }
+
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(true, animated: true)
+        searchBar.setCancelButtonTitleIfExist()
     }
 }
 

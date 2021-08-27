@@ -20,7 +20,7 @@ fileprivate let sectionHeaderReuseIdentifier = "SectionHeaderView"
     var searchTokens: [String] { get }
 }
 
-class ContactPickerViewController<ContactType>: UITableViewController, UISearchResultsUpdating where ContactType: IndexableContact, ContactType: SearchableContact, ContactType: Hashable {
+class ContactPickerViewController<ContactType>: UITableViewController, UISearchResultsUpdating, UISearchBarDelegate where ContactType: IndexableContact, ContactType: SearchableContact, ContactType: Hashable {
 
     final class DataSource: UITableViewDiffableDataSource<String, ContactType> {
 
@@ -135,9 +135,10 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
             let searchResultsController = makeSearchResultsController()
             searchController = UISearchController(searchResultsController: searchResultsController)
             searchController.searchResultsUpdater = self
-            searchController.searchBar.autocapitalizationType = .none
             searchController.definesPresentationContext = true
+            searchController.searchBar.autocapitalizationType = .none
             searchController.searchBar.searchTextField.placeholder = Localizations.labelSearch
+            searchController.searchBar.delegate = self
             navigationItem.searchController = searchController
             navigationItem.hidesSearchBarWhenScrolling = false
         }
@@ -199,6 +200,16 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
         }
         view.titleLabel.text = title
         return view
+    }
+    
+    // MARK: UISearchController SearchBar Delegates
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(false, animated: true)
+    }
+
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(true, animated: true)
+        searchBar.setCancelButtonTitleIfExist()
     }
 }
 

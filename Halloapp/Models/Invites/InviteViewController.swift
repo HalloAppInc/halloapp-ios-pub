@@ -38,6 +38,7 @@ final class InviteViewController: UIViewController {
             searchController.searchResultsUpdater = searchResultsController
             searchController.searchBar.autocapitalizationType = .none
             searchController.searchBar.tintColor = .systemBlue
+            searchController.searchBar.searchTextField.placeholder = Localizations.labelSearch
             searchController.obscuresBackgroundDuringPresentation = false
             searchController.hidesNavigationBarDuringPresentation = false
             searchController.definesPresentationContext = true
@@ -75,6 +76,8 @@ final class InviteViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        searchController?.searchBar.delegate = self
 
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
@@ -381,6 +384,17 @@ extension InviteViewController: UISearchResultsUpdating {
             // Cells need to be reloaded in order to update the dividers.
             self?.collectionView.reloadData()
         }
+    }
+}
+
+extension InviteViewController: UISearchBarDelegate {
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(false, animated: true)
+    }
+
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(true, animated: true)
+        searchBar.setCancelButtonTitleIfExist()
     }
 }
 

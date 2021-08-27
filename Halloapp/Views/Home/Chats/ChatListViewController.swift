@@ -588,6 +588,15 @@ extension ChatListViewController: UISearchBarDelegate {
             self.scrollToTop(animated: false)
         }
     }
+    
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(false, animated: true)
+    }
+
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(true, animated: true)
+        searchBar.setCancelButtonTitleIfExist()
+    }    
 }
 
 extension ChatListViewController: NewChatViewControllerDelegate {
