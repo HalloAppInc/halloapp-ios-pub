@@ -438,9 +438,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                    timestamp: chatMessage.timestamp,
                    statusIcon: statusIcon(chatMessage.outgoingStatus))
 
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
+        let gesture = UILongPressGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
         bubbleWrapper.isUserInteractionEnabled = true
-        bubbleWrapper.addGestureRecognizer(tapGesture)
+        bubbleWrapper.addGestureRecognizer(gesture)
         
         if chatMessage.outgoingStatus == .pending {
             listenForUploadProgress()
@@ -722,10 +722,23 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     @objc func gotoMediaPreview(_ sender: UIView) {
         delegate?.outboundMsgViewCell(self, previewMediaAt: mediaImageView.currentPage, withDelegate: mediaImageView)
     }
-    
-    @objc func gotoMsgInfo(_ sender: UIView) {
+
+    @objc func gotoMsgInfo(_ recognizer: UILongPressGestureRecognizer) {
         guard let messageID = messageID else { return }
-        delegate?.outboundMsgViewCell(self, didLongPressOn: messageID)
+        guard let bubbleWrapperFirstSubview = bubbleWrapper.subviews.first else { return }
+
+        if (recognizer.state == .began) {
+            UIView.animate(withDuration: 0.5, animations: {
+                bubbleWrapperFirstSubview.backgroundColor = .systemGray4
+            })
+
+            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+            delegate?.outboundMsgViewCell(self, didLongPressOn: messageID)
+        } else if (recognizer.state == .ended || recognizer.state == .cancelled) {
+            UIView.animate(withDuration: 3.0, animations: {
+                bubbleWrapperFirstSubview.backgroundColor = UIColor.chatOwnBubbleBg
+            })
+        }
     }
 }
 
