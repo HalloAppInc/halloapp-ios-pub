@@ -86,7 +86,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         fetchedResultsController.delegate = self
         do {
             try fetchedResultsController!.performFetch()
-            dataSource.apply(makeDataSnapshot())
+            dataSource.apply(makeDataSnapshot(), animatingDifferences: false)
         } catch { }
         
         setupBottomBar()
@@ -130,7 +130,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     // MARK: Fetched Results Controller
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        dataSource.apply(makeDataSnapshot())
+        dataSource.apply(makeDataSnapshot(), animatingDifferences: false)
     }
     
     private func makeDataSnapshot() -> NSDiffableDataSourceSnapshot<ActivityCenterSection, ActivityCenterNotification> {
