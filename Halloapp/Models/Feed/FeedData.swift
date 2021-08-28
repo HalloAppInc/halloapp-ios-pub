@@ -3043,6 +3043,29 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             mentionSet.insert(feedMention)
         })
 
+        // Add media
+        var mediaItems = Set<FeedPostMedia>()
+        sharedComment.media?.forEach({ mediaItem in
+            let feedCommentMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+            feedCommentMedia.type = mediaItem.type
+            feedCommentMedia.status = {
+                switch mediaItem.status {
+                // Incoming
+                case .none: return .none
+                case .downloaded: return .downloaded
+
+                // Outgoing
+                case .uploaded: return .uploaded
+                case .uploading, .error: return .uploadError
+                }
+            }()
+            feedCommentMedia.url = mediaItem.url
+            feedCommentMedia.size = mediaItem.size
+            feedCommentMedia.key = mediaItem.key
+            feedCommentMedia.order = mediaItem.order
+            feedCommentMedia.sha256 = mediaItem.sha256
+            mediaItems.insert(feedCommentMedia)
+        })
         // Create comment
         DDLogInfo("FeedData/merge/comment id=[\(commentId)]  postId=[\(postId)]")
         let feedComment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
@@ -3050,6 +3073,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedComment.userId = sharedComment.userId
         feedComment.text = sharedComment.text
         feedComment.mentions = mentionSet
+        feedComment.media = mediaItems
         feedComment.parent = parentComment
         feedComment.post = feedPost
         feedComment.status = {

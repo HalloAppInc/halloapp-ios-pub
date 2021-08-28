@@ -93,39 +93,59 @@ class DataStore: NotificationServiceExtensionDataStore {
             feedComment.timestamp = notificationMetadata.timestamp ?? Date()
 
             // populate text with empty string as text is required, could be removed if this changes
-            var commentText: String = ""
             switch commentData.content {
             case .text(let mentionText):
-                commentText = mentionText.collapsedText
-                var mentions = Set<SharedFeedMention>()
-                for (i, mention) in mentionText.mentions {
-                    let feedMention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
-                    feedMention.index = Int(i)
-                    feedMention.userID = mention.userID
-                    feedMention.name = mention.pushName ?? ""
-                    if feedMention.name == "" {
-                        DDLogError("NotificationExtension/DataStore/new-comment/mention/\(mention.userID) missing push name")
+                self.processText(feedComment: feedComment, mentionText: mentionText, managedObjectContext: managedObjectContext)
+                feedComment.rawData = nil
+            case .album(let mentionText, let media):
+                self.processText(feedComment: feedComment, mentionText: mentionText, managedObjectContext: managedObjectContext)
+                // Process Comment Media
+                for (index, mediaItem) in media.enumerated() {
+                    DDLogDebug("NotificationExtension/DataStore/add-comment-media [\(mediaItem.url!)]")
+                    let feedCommentMedia = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
+                    switch mediaItem.type {
+                    case .image:
+                        feedCommentMedia.type = .image
+                    case .video:
+                        feedCommentMedia.type = .video
+                    case .audio:
+                        feedCommentMedia.type = .audio
                     }
-                    mentions.insert(feedMention)
+                    feedCommentMedia.status = .none
+                    feedCommentMedia.url = mediaItem.url
+                    feedCommentMedia.size = mediaItem.size
+                    feedCommentMedia.key = mediaItem.key
+                    feedCommentMedia.order = Int16(index)
+                    feedCommentMedia.sha256 = mediaItem.sha256
+                    feedCommentMedia.comment = feedComment
                 }
-                feedComment.mentions = mentions
                 feedComment.rawData = nil
             case .retracted:
                 DDLogError("NotificationExtension/DataStore/incoming-retracted-comment [\(commentId)]")
                 feedComment.rawData = nil
             case .unsupported(let data):
                 feedComment.rawData = data
-            case .album:
-                // TODO Nandini support media comments
-                DDLogError("NotificationExtension/DataStore/incoming-media-comment [\(commentId)] not supported")
             }
-
-            // set commentText depending on the content.
-            feedComment.text = commentText
 
             managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             self.save(managedObjectContext)
         }
+    }
+
+    func processText(feedComment: SharedFeedComment, mentionText: MentionText, managedObjectContext: NSManagedObjectContext) {
+        feedComment.text = mentionText.collapsedText
+        var mentions = Set<SharedFeedMention>()
+        for (i, mention) in mentionText.mentions {
+            let feedMention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
+            feedMention.index = Int(i)
+            feedMention.userID = mention.userID
+            feedMention.name = mention.pushName ?? ""
+            if feedMention.name == "" {
+                DDLogError("NotificationExtension/DataStore/new-comment/mention/\(mention.userID) missing push name")
+            }
+            mentions.insert(feedMention)
+        }
+        feedComment.mentions = mentions
     }
 
     func saveServerMsg(notificationMetadata: NotificationMetadata) {
