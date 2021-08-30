@@ -626,7 +626,8 @@ fileprivate struct PostComposerView: View {
                 pendingMention: $pendingMention,
                 input: inputToPost,
                 mentionableUsers: mentionableUsers,
-                textHeight: postTextHeight)
+                textHeight: postTextHeight,
+                shouldFocusOnLoad: mediaCount == 0)
                 .frame(height: postTextComputedHeight.value)
         }
         .background(Color(mediaCount == 0 ? .secondarySystemGroupedBackground : .clear))
@@ -798,6 +799,7 @@ fileprivate struct TextView: UIViewRepresentable {
     var input: GenericObservable<MentionInput>
     let mentionableUsers: [MentionableUser]
     var textHeight: GenericObservable<CGFloat>
+    var shouldFocusOnLoad: Bool
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -838,6 +840,11 @@ fileprivate struct TextView: UIViewRepresentable {
             }
         }
 
+        if shouldFocusOnLoad && !context.coordinator.hasTextViewLoaded {
+            uiView.becomeFirstResponder()
+        }
+        context.coordinator.hasTextViewLoaded = true
+
         TextView.recomputeTextViewSizes(uiView, textSize: input.value.text.count, isPostWithMedia: mediaItems.count > 0, height: textHeight)
     }
 
@@ -853,6 +860,7 @@ fileprivate struct TextView: UIViewRepresentable {
 
     class Coordinator: NSObject, UITextViewDelegate {
         var parent: TextView
+        var hasTextViewLoaded = false
 
         init(_ uiTextView: TextView) {
             parent = uiTextView
