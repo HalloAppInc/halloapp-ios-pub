@@ -59,7 +59,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         guard let metadata = NotificationMetadata.load(from: request, userData: AppExtensionContext.shared.userData) else {
             DDLogError("didReceiveRequest/error Invalid metadata. \(request.content.userInfo)")
             recordPushEvent(requestID: request.identifier, messageID: nil)
-            contentHandler(bestAttemptContent)
+            invokeCompletionHandler()
             return
         }
         bestAttemptContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
@@ -78,21 +78,26 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             // TODO(murali@): test and remove this.
             guard !dataStore.posts().contains(where: { $0.id == metadata.feedPostId }) else {
                 DDLogError("didReceiveRequest/error duplicate post ID [\(metadata.feedPostId ?? "nil")]")
-                contentHandler(bestAttemptContent)
+                invokeCompletionHandler()
                 return
             }
-            dataStore.save(postData: postData, notificationMetadata: metadata)
-            if let firstMediaItem = postData.orderedMedia.first {
-                let downloadTask = startDownloading(media: firstMediaItem)
-                invokeHandler = downloadTask == nil
+            dataStore.save(postData: postData, notificationMetadata: metadata) { sharedFeedPost in
+                if let firstMediaItem = sharedFeedPost.orderedMedia.first as? SharedMedia {
+                    let downloadTask = self.startDownloading(media: firstMediaItem)
+                    downloadTask?.feedMediaObjectId = firstMediaItem.objectID
+                } else {
+                    self.invokeCompletionHandler()
+                }
             }
+            invokeHandler = false
         case .feedComment, .groupFeedComment:
             guard let commentData = metadata.commentData else {
                 DDLogError("didReceiveRequest/error Invalid fields in metadata.")
                 invokeCompletionHandler()
                 return
             }
-            dataStore.save(commentData: commentData, notificationMetadata: metadata)
+            dataStore.save(commentData: commentData, notificationMetadata: metadata) {_ in }
+            invokeHandler = true
         case .chatMessage:
             // TODO: add id as the constraint to the db and then remove this check.
             guard let messageId = metadata.messageId else {
@@ -314,7 +319,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         if let error = task.error {
             DDLogError("media/download/error \(error)")
             DDLogInfo("Invoking completion handler now")
-            contentHandler(bestAttemptContent)
+            invokeCompletionHandler()
             return
         }
 
@@ -351,8 +356,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             }
         }
 
-        DDLogInfo("Invoking completion handler now")
-        contentHandler(bestAttemptContent)
+        invokeCompletionHandler()
     }
 
     override func serviceExtensionTimeWillExpire() {

@@ -12,7 +12,7 @@ import CoreData
 
 class DataStore: NotificationServiceExtensionDataStore {
 
-    func save(postData: PostData, notificationMetadata: NotificationMetadata) {
+    func save(postData: PostData, notificationMetadata: NotificationMetadata, completion: @escaping (SharedFeedPost) -> ()) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
 
             let userId = postData.userId
@@ -70,10 +70,12 @@ class DataStore: NotificationServiceExtensionDataStore {
             // set a merge policy so that we dont end up with duplicate feedposts.
             managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             self.save(managedObjectContext)
+
+            completion(feedPost)
         }
     }
     
-    func save(commentData: CommentData, notificationMetadata: NotificationMetadata) {
+    func save(commentData: CommentData, notificationMetadata: NotificationMetadata, completion: @escaping (SharedFeedComment) -> ()) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
         
             // Extract info from parameters
@@ -129,6 +131,8 @@ class DataStore: NotificationServiceExtensionDataStore {
 
             managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             self.save(managedObjectContext)
+
+            completion(feedComment)
         }
     }
 
