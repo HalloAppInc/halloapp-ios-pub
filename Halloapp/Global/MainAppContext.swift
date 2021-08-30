@@ -156,9 +156,16 @@ class MainAppContext: AppContext {
         // NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
         //                                        name: .NSPersistentStoreRemoteChange,
         //                                        object: shareExtensionDataStore.persistentContainer.persistentStoreCoordinator)
-        NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
-                                               name: .NSPersistentStoreRemoteChange,
-                                               object: notificationServiceExtensionDataStore.persistentContainer.persistentStoreCoordinator)
+
+        // this notification is removing messages from nse immediately - somehow.
+        // i initially thought - this will work only if the mainApp is active - but it is not fully clear now on how it works.
+        // as a result of this: some messages are being merged from nse-shared container to main app immediately.
+        // so we are not able to ack them properly.
+        // disable this for now - shared models in all these cases would work really well!
+        // lets get there soon!
+        // NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges),
+        //                                       name: .NSPersistentStoreRemoteChange,
+        //                                       object: notificationServiceExtensionDataStore.persistentContainer.persistentStoreCoordinator)
 
         let oneHour = TimeInterval(60*60)
         migrateLegacyCryptoDataIfNecessary()

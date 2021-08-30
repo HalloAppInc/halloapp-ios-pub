@@ -186,133 +186,138 @@ class DataStore: NotificationServiceExtensionDataStore {
         return chatMedia
     }
 
-    func save(protobuf: MessageProtobuf?, metadata: NotificationMetadata, status: SharedChatMessage.Status, failure: DecryptionFailure?) -> SharedChatMessage? {
-        let managedObjectContext = persistentContainer.viewContext
+    func save(protobuf: MessageProtobuf?, metadata: NotificationMetadata, status: SharedChatMessage.Status, failure: DecryptionFailure?, completion: @escaping (SharedChatMessage) -> ()) {
+        performSeriallyOnBackgroundContext { [self] (managedObjectContext) in
 
-        let messageId = metadata.contentId
-        DDLogInfo("NotificationExtension/SharedDataStore/message/\(messageId)/created")
+            let messageId = metadata.contentId
+            DDLogInfo("NotificationExtension/SharedDataStore/message/\(messageId)/created")
 
-        // TODO(murali@): add a field for retryCount of this message if necessary.
-        let chatMessage = NSEntityDescription.insertNewObject(forEntityName: "SharedChatMessage", into: managedObjectContext) as! SharedChatMessage
-        chatMessage.id = messageId
-        chatMessage.toUserId = AppContext.shared.userData.userId
-        chatMessage.fromUserId = metadata.fromId
-        chatMessage.status = status
-        chatMessage.decryptionError = failure?.error.rawValue
-        chatMessage.ephemeralKey = failure?.ephemeralKey
-        chatMessage.senderClientVersion = metadata.senderClientVersion
-        chatMessage.serverMsgPb = metadata.serverMsgPb
-        chatMessage.serverTimestamp = metadata.timestamp
-        chatMessage.timestamp = Date()
-        let serialID = AppContext.shared.getchatMsgSerialId()
-        DDLogInfo("SharedDataStore/message/\(messageId)/created/serialId \(serialID)")
-        chatMessage.serialID = serialID
+            // TODO(murali@): add a field for retryCount of this message if necessary.
+            let chatMessage = NSEntityDescription.insertNewObject(forEntityName: "SharedChatMessage", into: managedObjectContext) as! SharedChatMessage
+            chatMessage.id = messageId
+            chatMessage.toUserId = AppContext.shared.userData.userId
+            chatMessage.fromUserId = metadata.fromId
+            chatMessage.status = status
+            chatMessage.decryptionError = failure?.error.rawValue
+            chatMessage.ephemeralKey = failure?.ephemeralKey
+            chatMessage.senderClientVersion = metadata.senderClientVersion
+            chatMessage.serverMsgPb = metadata.serverMsgPb
+            chatMessage.serverTimestamp = metadata.timestamp
+            chatMessage.timestamp = Date()
+            let serialID = AppContext.shared.getchatMsgSerialId()
+            DDLogInfo("SharedDataStore/message/\(messageId)/created/serialId \(serialID)")
+            chatMessage.serialID = serialID
 
-        switch status {
-        case .received:
-            switch protobuf {
-            case .container(let container):
-                switch container.message {
-                case .album(let album):
-                    chatMessage.text = album.text.text
-                    for (index, mediaItem) in album.media.enumerated() {
-                        guard let mediaData = XMPPChatMedia(albumMedia: mediaItem) else { continue }
+            switch status {
+            case .received:
+                switch protobuf {
+                case .container(let container):
+                    switch container.message {
+                    case .album(let album):
+                        chatMessage.text = album.text.text
+                        for (index, mediaItem) in album.media.enumerated() {
+                            guard let mediaData = XMPPChatMedia(albumMedia: mediaItem) else { continue }
+                            let sharedMedia = insertSharedMedia(for: mediaData, index: index, into: managedObjectContext)
+                            sharedMedia.message = chatMessage
+                        }
+                    case .text(let text):
+                        chatMessage.text = text.text
+                    case .contactCard:
+                        DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [contact]")
+                    case .voiceNote(let voiceNote):
+                        if let audioMediaData = XMPPChatMedia(audio: voiceNote.audio) {
+                            let sharedMedia = insertSharedMedia(for: audioMediaData, index: 0, into: managedObjectContext)
+                            sharedMedia.message = chatMessage
+                        } else {
+                            DDLogError("SharedDataStore/message/\(messageId)/unsupported [voice]")
+                        }
+                    case .none:
+                        DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [unknown]")
+                    }
+                    chatMessage.clientChatMsgPb = try? container.serializedData()
+                case .legacy(let clientChatMsg):
+                    chatMessage.text = clientChatMsg.text
+                    for (index, mediaItem) in clientChatMsg.media.enumerated() {
+                        guard let mediaData = XMPPChatMedia(protoMedia: mediaItem) else { continue }
                         let sharedMedia = insertSharedMedia(for: mediaData, index: index, into: managedObjectContext)
                         sharedMedia.message = chatMessage
                     }
-                case .text(let text):
-                    chatMessage.text = text.text
-                case .contactCard:
-                    DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [contact]")
-                case .voiceNote(let voiceNote):
-                    if let audioMediaData = XMPPChatMedia(audio: voiceNote.audio) {
-                        let sharedMedia = insertSharedMedia(for: audioMediaData, index: 0, into: managedObjectContext)
-                        sharedMedia.message = chatMessage
-                    } else {
-                        DDLogError("SharedDataStore/message/\(messageId)/unsupported [voice]")
-                    }
+                    chatMessage.clientChatMsgPb = try? clientChatMsg.serializedData()
                 case .none:
-                    DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [unknown]")
+                    DDLogError("SharedDataStore/message/\(messageId)/missing-protobuf")
+                    break
                 }
-                chatMessage.clientChatMsgPb = try? container.serializedData()
-            case .legacy(let clientChatMsg):
-                chatMessage.text = clientChatMsg.text
-                for (index, mediaItem) in clientChatMsg.media.enumerated() {
-                    guard let mediaData = XMPPChatMedia(protoMedia: mediaItem) else { continue }
-                    let sharedMedia = insertSharedMedia(for: mediaData, index: index, into: managedObjectContext)
-                    sharedMedia.message = chatMessage
-                }
-                chatMessage.clientChatMsgPb = try? clientChatMsg.serializedData()
-            case .none:
-                DDLogError("SharedDataStore/message/\(messageId)/missing-protobuf")
+
+            case .decryptionError:
+                break
+            case .acked, .rerequesting:
+                // when we save the message initially - status will always be received/decryptionError.
+                break
+            case .none, .sent, .sendError:
+                // not relevant here.
                 break
             }
-
-        case .decryptionError:
-            break
-        case .acked, .rerequesting:
-            // when we save the message initially - status will always be received/decryptionError.
-            break
-        case .none, .sent, .sendError:
-            // not relevant here.
-            break
+            DDLogInfo("saving message: \(messageId) - \(status)")
+            save(managedObjectContext)
+            completion(chatMessage)
         }
-        save(managedObjectContext)
-        return chatMessage
     }
 
-    func getChatMessagesToAck() -> [SharedChatMessage] {
-        let managedObjectContext = persistentContainer.viewContext
+    func getChatMessagesToAck(completion: @escaping ([SharedChatMessage]) -> ()) {
+        performSeriallyOnBackgroundContext { managedObjectContext in
 
-        let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
+            let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
 
-        // We fetch (and ack) these messages in ascending order so the sender receives delivery receipts in order.
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: true)]
+            // We fetch (and ack) these messages in ascending order so the sender receives delivery receipts in order.
+            fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: true)]
 
-        var messagesToAck = [SharedChatMessage]()
-        do {
-            let chatMessages = try managedObjectContext.fetch(fetchRequest)
-            for message in chatMessages {
-                switch message.status {
-                case .received, .rerequesting:
-                    messagesToAck.append(message)
-                case .acked, .decryptionError:
-                    break
-                case .sent, .sendError, .none:
-                    DDLogError("NotificationExtension/getChatMessagesToAck/unexpected-status [\(message.status)] [\(message.id)]")
+            var messagesToAck = [SharedChatMessage]()
+            do {
+                let chatMessages = try managedObjectContext.fetch(fetchRequest)
+                for message in chatMessages {
+                    DDLogInfo("message : \(message.id)")
+                    switch message.status {
+                    case .received, .rerequesting:
+                        messagesToAck.append(message)
+                    case .acked, .decryptionError:
+                        break
+                    case .sent, .sendError, .none:
+                        DDLogError("NotificationExtension/getChatMessagesToAck/unexpected-status [\(message.status)] [\(message.id)]")
+                    }
                 }
+            } catch {
+                DDLogError("NotificationExtension/SharedDataStore/getChatMessagesToAck/error  [\(error)]")
             }
-        } catch {
-            DDLogError("NotificationExtension/SharedDataStore/getChatMessagesToAck/error  [\(error)]")
+            DDLogInfo("NotificationExtension/SharedDataStore/getChatMessagesToAck - num: \(messagesToAck.count)")
+            completion(messagesToAck)
         }
-        return messagesToAck
     }
 
-    func getChatMessagesToRerequest() -> [SharedChatMessage] {
-        let managedObjectContext = persistentContainer.viewContext
+    func getChatMessagesToRerequest(completion: @escaping ([SharedChatMessage]) -> ()) {
+        performSeriallyOnBackgroundContext { managedObjectContext in
+            let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
+            // We fetch (and rerequest) these messages in ascending order.
+            fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: true)]
 
-        let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
-
-        // We fetch (and rerequest) these messages in ascending order.
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: true)]
-
-        var messagesToRerequest = [SharedChatMessage]()
-        do {
-            let chatMessages = try managedObjectContext.fetch(fetchRequest)
-            for message in chatMessages {
-                switch message.status {
-                case .decryptionError:
-                    messagesToRerequest.append(message)
-                case .acked, .received, .rerequesting:
-                    break
-                case .sent, .sendError, .none:
-                    DDLogError("NotificationExtension/getChatMessagesToRerequest/unexpected-status [\(message.status)] [\(message.id)]")
+            var messagesToRerequest = [SharedChatMessage]()
+            do {
+                let chatMessages = try managedObjectContext.fetch(fetchRequest)
+                for message in chatMessages {
+                    switch message.status {
+                    case .decryptionError:
+                        messagesToRerequest.append(message)
+                    case .acked, .received, .rerequesting:
+                        break
+                    case .sent, .sendError, .none:
+                        DDLogError("NotificationExtension/getChatMessagesToRerequest/unexpected-status [\(message.status)] [\(message.id)]")
+                    }
                 }
+            } catch {
+                DDLogError("NotificationExtension/SharedDataStore/getChatMessagesToRerequest/error  [\(error)]")
             }
-        } catch {
-            DDLogError("NotificationExtension/SharedDataStore/getChatMessagesToRerequest/error  [\(error)]")
+            DDLogInfo("NotificationExtension/SharedDataStore/getChatMessagesToRerequest - num: \(messagesToRerequest.count)")
+            completion(messagesToRerequest)
         }
-        return messagesToRerequest
     }
 
     func sharedMediaObject(forObjectId objectId: NSManagedObjectID) throws -> SharedMedia? {
@@ -320,23 +325,22 @@ class DataStore: NotificationServiceExtensionDataStore {
     }
 
     func updateMessageStatus(for msgId: String, status: SharedChatMessage.Status) {
-        let managedObjectContext = persistentContainer.viewContext
-
-        let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id = %@", msgId)
-        do {
-            let chatMessages = try managedObjectContext.fetch(fetchRequest)
-            guard let message = chatMessages.first else {
-                DDLogError("NotificationExtension/SharedDataStore/sharedChatMessage/ no message found for \(msgId)")
-                return
+        performSeriallyOnBackgroundContext { managedObjectContext in
+            let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id = %@", msgId)
+            do {
+                let chatMessages = try managedObjectContext.fetch(fetchRequest)
+                guard let message = chatMessages.first else {
+                    DDLogError("NotificationExtension/SharedDataStore/sharedChatMessage/ no message found for \(msgId)")
+                    return
+                }
+                DDLogInfo("NotificationExtension/SharedDataStore/sharedChatMessage/update status to: \(status)")
+                message.status = status
+                self.save(managedObjectContext)
+            } catch {
+                DDLogError("NotificationExtension/SharedDataStore/sharedChatMessage/error  [\(error)], msgId: \(msgId)")
             }
-            DDLogInfo("NotificationExtension/SharedDataStore/sharedChatMessage/update status to: \(status)")
-            message.status = status
-            save(managedObjectContext)
-        } catch {
-            DDLogError("NotificationExtension/SharedDataStore/sharedChatMessage/error  [\(error)], msgId: \(msgId)")
         }
-        return
     }
 }
 

@@ -206,12 +206,9 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 protobufToSave = nil
             }
 
-            guard let chatMessage = self.dataStore.save(protobuf: protobufToSave, metadata: metadata, status: messageStatus, failure: decryptionFailure) else {
-                DDLogError("DecryptionError/decryptChat/failed to save message, contentId: \(metadata.contentId)")
-                self.invokeCompletionHandler()
-                return
+            self.dataStore.save(protobuf: protobufToSave, metadata: metadata, status: messageStatus, failure: decryptionFailure) { sharedChatMessage in
+                self.processChatAndInvokeHandler(chatMessage: sharedChatMessage, protobuf: protobufToSave, metadata: metadata)
             }
-            self.processChatAndInvokeHandler(chatMessage: chatMessage, protobuf: protobufToSave, metadata: metadata)
         }
     }
 
@@ -242,47 +239,49 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         // We must first rerequest messages and then ack them.
 
         // We rerequest messages with status = .decryptionError
-        let sharedChatMessagesToRerequest = dataStore.getChatMessagesToRerequest()
-        sharedChatMessagesToRerequest.forEach{ sharedChatMessage in
-            let msgId = sharedChatMessage.id
-            if let failedEphemeralKey = sharedChatMessage.ephemeralKey, let serverMsgPb = sharedChatMessage.serverMsgPb {
-                do {
-                    let serverMsg = try Server_Msg(serializedData: serverMsgPb)
-                    service?.rerequestMessage(serverMsg, failedEphemeralKey: failedEphemeralKey) { result in
-                        switch result {
-                        case .success(_):
-                            DDLogInfo("sendRerequest/success sent rerequest, msgId: \(msgId)")
-                            dataStore.updateMessageStatus(for: msgId, status: .rerequesting)
-                        case .failure(let error):
-                            DDLogError("sendRerequest/failure sending rerequest, msgId: \(msgId), error: \(error)")
+        dataStore.getChatMessagesToRerequest() { [self] sharedChatMessagesToRerequest in
+            sharedChatMessagesToRerequest.forEach{ sharedChatMessage in
+                let msgId = sharedChatMessage.id
+                if let failedEphemeralKey = sharedChatMessage.ephemeralKey, let serverMsgPb = sharedChatMessage.serverMsgPb {
+                    do {
+                        let serverMsg = try Server_Msg(serializedData: serverMsgPb)
+                        service?.rerequestMessage(serverMsg, failedEphemeralKey: failedEphemeralKey) { result in
+                            switch result {
+                            case .success(_):
+                                DDLogInfo("sendRerequest/success sent rerequest, msgId: \(msgId)")
+                                dataStore.updateMessageStatus(for: msgId, status: .rerequesting)
+                            case .failure(let error):
+                                DDLogError("sendRerequest/failure sending rerequest, msgId: \(msgId), error: \(error)")
+                            }
                         }
+                    } catch {
+                        DDLogError("sendRerequest/Unable to initialize Server_Msg")
                     }
-                } catch {
-                    DDLogError("sendRerequest/Unable to initialize Server_Msg")
                 }
             }
         }
 
         // We ack messages only that are successfully decrypted or successfully rerequested.
-        let sharedChatMessagesToAck = dataStore.getChatMessagesToAck()
-        sharedChatMessagesToAck.forEach{ sharedChatMessage in
-            let msgId = sharedChatMessage.id
-            service?.sendAck(messageId: msgId) { result in
-                let finalStatus: SharedChatMessage.Status
-                switch sharedChatMessage.status {
-                case .received:
-                    finalStatus = .acked
-                case .rerequesting:
-                    finalStatus = .rerequesting
-                case .acked, .sendError, .sent, .none, .decryptionError:
-                    return
-                }
-                switch result {
-                case .success(_):
-                    DDLogInfo("sendAck/success sent ack, msgId: \(msgId)")
-                    dataStore.updateMessageStatus(for: msgId, status: finalStatus)
-                case .failure(let error):
-                    DDLogError("sendAck/failure sending ack, msgId: \(msgId), error: \(error)")
+        dataStore.getChatMessagesToAck() { [self] sharedChatMessagesToAck in
+            sharedChatMessagesToAck.forEach{ sharedChatMessage in
+                let msgId = sharedChatMessage.id
+                service?.sendAck(messageId: msgId) { result in
+                    let finalStatus: SharedChatMessage.Status
+                    switch sharedChatMessage.status {
+                    case .received:
+                        finalStatus = .acked
+                    case .rerequesting:
+                        finalStatus = .rerequesting
+                    case .acked, .sendError, .sent, .none, .decryptionError:
+                        return
+                    }
+                    switch result {
+                    case .success(_):
+                        DDLogInfo("sendAck/success sent ack, msgId: \(msgId)")
+                        dataStore.updateMessageStatus(for: msgId, status: finalStatus)
+                    case .failure(let error):
+                        DDLogError("sendAck/failure sending ack, msgId: \(msgId), error: \(error)")
+                    }
                 }
             }
         }
