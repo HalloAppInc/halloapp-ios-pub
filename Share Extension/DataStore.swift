@@ -133,7 +133,7 @@ class DataStore: ShareExtensionDataStore {
         feedMedia.size = media.size!
         feedMedia.key = ""
         feedMedia.sha256 = ""
-        feedMedia.order = Int16(media.order) - 1
+        feedMedia.order = Int16(media.order)
 
         switch target {
         case .post(let feedPost):
@@ -211,6 +211,11 @@ class DataStore: ShareExtensionDataStore {
         }
 
         save(managedObjectContext)
+
+        // All this code is not great - we are using viewContext to perform all Coredata write operations here
+        // and we are passing coredata objects across threads.
+        // it will result in unexpected behaviors at times.
+        // TOOD: check with team and refactor this code.
 
         // 2. Upload any media if necesary.
         if let itemsToUpload = feedPost.media?.sorted(by: { $0.order < $1.order }), !itemsToUpload.isEmpty {
@@ -318,6 +323,8 @@ class DataStore: ShareExtensionDataStore {
     }
 
     private func send(message: SharedChatMessage, completion: @escaping (Result<String, Error>) -> ()) {
+        // Found a case with chatMsg.status=sent but the shared.outgoingStatus=.uploading
+        // not clear how that can happen? check with team on this.
         if let managedObjectContext = message.managedObjectContext {
             message.status = .sent
             save(managedObjectContext)

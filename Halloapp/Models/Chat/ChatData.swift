@@ -853,15 +853,16 @@ class ChatData: ObservableObject {
             }
         }
 
+        DDLogInfo("ChatData/copyFiles/\(messageId), source: \(fileUrl), destination: \(toUrl)")
         try FileManager.default.copyItem(at: fileUrl, to: toUrl)
+        let relativePath = self.relativePath(from: toUrl)
+        chatMedia.relativeFilePath = relativePath
 
         if let encryptedFileUrl = encryptedFileUrl {
             let encryptedDestinationUrl = toUrl.appendingPathExtension("enc")
+            DDLogInfo("ChatData/copyFiles/\(messageId), encryptedSourceUrl: \(encryptedFileUrl), encryptedDestinationUrl: \(encryptedDestinationUrl)")
             try FileManager.default.copyItem(at: encryptedFileUrl, to: encryptedDestinationUrl)
         }
-        
-        let relativePath = self.relativePath(from: toUrl)
-        chatMedia.relativeFilePath = relativePath
     }
     
     private func relativePath(from fileURL: URL) -> String? {
@@ -986,7 +987,7 @@ class ChatData: ObservableObject {
             switch message.status {
             case .none:
                 chatMessage.incomingStatus = .none
-                chatMessage.outgoingStatus = .error
+                chatMessage.outgoingStatus = .pending
             case .sent:
                 chatMessage.incomingStatus = .none
                 chatMessage.outgoingStatus = .sentOut
@@ -1068,6 +1069,7 @@ class ChatData: ObservableObject {
                     do {
                         let sourceUrl = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
                         let encryptedFileUrl = chatMedia.outgoingStatus == .error ? sourceUrl.appendingPathExtension("enc") : nil
+                        DDLogInfo("ChatData/mergeSharedData/media/\(messageId)/sourceUrl: \(sourceUrl), encryptedFileUrl: \(encryptedFileUrl), \(media.status)")
                         try copyFiles(toChatMedia: chatMedia, fileUrl: sourceUrl, encryptedFileUrl: encryptedFileUrl)
                     } catch {
                         DDLogError("ChatData/mergeSharedData/media/copy-media/error [\(error)]")
@@ -1149,6 +1151,8 @@ class ChatData: ObservableObject {
             didGetAChatMsg.send(chatMsg.fromUserId)
         })
 
+        // send pending chat messages
+        processPendingChatMsgs()
         // download chat message media
         processInboundPendingChatMsgMedia()
 
