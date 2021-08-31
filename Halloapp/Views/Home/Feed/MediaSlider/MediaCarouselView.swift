@@ -762,6 +762,11 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     override func apply(configuration: MediaCarouselViewConfiguration) {
         super.apply(configuration: configuration)
 
+        if (configuration.alwaysScaleToFitContent) {
+            avPlayerViewController.videoGravity = .resizeAspect
+        } else {
+            avPlayerViewController.videoGravity = .resizeAspectFill
+        }
         cornerRadius = configuration.cornerRadius
         borderWidth = configuration.borderWidth
         borderColor = configuration.borderColor
@@ -772,7 +777,6 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     override func configure(with media: FeedMedia) {
         super.configure(with: media)
 
-        avPlayerViewController.videoGravity = .resizeAspect
         videoSize = media.size
 
         if media.isMediaAvailable {
@@ -933,10 +937,6 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func setPlayerView(frame: CGRect) {
-        guard avPlayerViewController.view.frame != frame else {
-            DDLogInfo("MediaCarouselView/setPlayerViewFrame/skipping [equal]")
-            return
-        }
         avPlayerViewController.view.frame = frame
 
         let maskLayer = CAShapeLayer()
