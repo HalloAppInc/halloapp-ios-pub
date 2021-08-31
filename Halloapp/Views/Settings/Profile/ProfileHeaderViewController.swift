@@ -308,6 +308,8 @@ final class ProfileHeaderViewController: UIViewController {
         DDLogInfo("profile/edit-photo Deleting photo")
         MainAppContext.shared.avatarStore.save(avatarId: "", forUserId: MainAppContext.shared.userData.userId)
         MainAppContext.shared.service.sendCurrentAvatarIfPossible()
+        // need to configure again as avatar listens to cached objects and they get evicted once app goes to the background
+        headerView.avatarViewButton.avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
     }
 }
 
