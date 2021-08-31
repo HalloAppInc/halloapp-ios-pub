@@ -108,6 +108,28 @@ extension FeedMediaProtocol {
         }
     }
 
+    var protoResource: Clients_EncryptedResource? {
+        guard let url = url else {
+            DDLogError("FeedMediaProtocol/protoResource/error missing url")
+            return nil
+        }
+        guard let encryptionKey = Data(base64Encoded: key) else {
+            DDLogError("FeedMediaProtocol/protoResource/error encryption key")
+            return nil
+        }
+        guard let ciphertextHash = Data(base64Encoded: sha256) else {
+            DDLogError("FeedMediaProtocol/protoResource/error ciphertext hash")
+            return nil
+        }
+
+        var resource = Clients_EncryptedResource()
+        resource.encryptionKey = encryptionKey
+        resource.ciphertextHash = ciphertextHash
+        resource.downloadURL = url.absoluteString
+
+        return resource
+    }
+
     var albumMedia: Clients_AlbumMedia? {
         guard let downloadURL = url?.absoluteString,
               let encryptionKey = Data(base64Encoded: key),
@@ -416,6 +438,11 @@ public extension CommentData {
             clientText.mentions = orderedMentions.map { $0.protoMention }
             album.text = clientText
             commentContainer.album = album
+        case .voiceNote(let media):
+            guard let protoResource = media.protoResource else { break }
+            var voiceNote = Clients_VoiceNote()
+            voiceNote.audio = protoResource
+            commentContainer.voiceNote = voiceNote
         case .retracted, .unsupported:
             break
         }
@@ -441,7 +468,7 @@ public extension CommentData {
                     return clientMention
                 }
                 .sorted { $0.index < $1.index }
-        case .album(_, _):
+        case .album(_, _), .voiceNote:
             return nil
         case .retracted, .unsupported:
             break

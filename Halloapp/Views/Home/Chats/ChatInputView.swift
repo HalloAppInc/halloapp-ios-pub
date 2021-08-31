@@ -152,10 +152,10 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         placeholder.topAnchor.constraint(equalTo: textViewContainer.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
 
         voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
-        voiceNoteTime.topAnchor.constraint(equalTo: textViewContainer.topAnchor, constant: textView.textContainerInset.top).isActive = true
+        voiceNoteTime.centerYAnchor.constraint(equalTo: textViewContainer.centerYAnchor).isActive = true
 
         cancelRecordingButton.centerXAnchor.constraint(equalTo: textInputRow.centerXAnchor).isActive = true
-        cancelRecordingButton.centerYAnchor.constraint(equalTo: textInputRow.centerYAnchor, constant: 6).isActive = true
+        cancelRecordingButton.centerYAnchor.constraint(equalTo: textInputRow.centerYAnchor).isActive = true
         
         textViewContainer.leadingAnchor.constraint(equalTo: textInputRow.leadingAnchor).isActive = true
         textViewContainer.topAnchor.constraint(equalTo: textInputRow.topAnchor).isActive = true
@@ -196,22 +196,25 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     }
 
     private func updatePostButtons() {
-        if voiceNoteRecorder.isRecording {
-            postMediaButton.removeFromSuperview()
-        } else {
-            postButtonsContainer.insertArrangedSubview(postMediaButton, at: 0)
-        }
+        postMediaButton.isHidden = true
+        recordVoiceNoteControl.isHidden = true
+        postButton.isHidden = true
 
-        if ServerProperties.isVoiceNotesEnabled && textView.text.isEmpty && !isVoiceNoteRecordingLocked {
-            postButtonsContainer.addArrangedSubview(recordVoiceNoteControl)
+        if !textView.text.isEmpty {
+            postMediaButton.isHidden = false
+            postButton.isHidden = false
+        } else if voiceNoteRecorder.isRecording {
+            if isVoiceNoteRecordingLocked {
+                postButton.isHidden = false
+            } else {
+                recordVoiceNoteControl.isHidden = false
+            }
         } else {
-            recordVoiceNoteControl.removeFromSuperview()
-        }
+            postMediaButton.isHidden = false
 
-        if isVoiceNoteRecordingLocked || !textView.text.isEmpty {
-            postButtonsContainer.addArrangedSubview(postButton)
-        } else {
-            postButton.removeFromSuperview()
+            if ServerProperties.isVoiceNotesEnabled {
+                recordVoiceNoteControl.isHidden = false
+            }
         }
     }
     
@@ -505,9 +508,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
 
-        button.widthAnchor.constraint(equalToConstant: 24).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 24).isActive = true
-
         return button
     }()
     
@@ -524,20 +524,21 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        
-        button.widthAnchor.constraint(equalToConstant: 38).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 38).isActive = true
+
+        button.widthAnchor.constraint(equalTo: button.heightAnchor).isActive = true
    
         return button
     }()
     
     private lazy var postButtonsContainer: UIStackView = {
-        let view = UIStackView()
+        let view = UIStackView(arrangedSubviews: [postMediaButton, recordVoiceNoteControl, postButton])
         view.axis = .horizontal
         view.spacing = 10
         view.translatesAutoresizingMaskIntoConstraints = false
         view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         view.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        view.heightAnchor.constraint(equalToConstant: 38).isActive = true
+
         return view
     }()
     

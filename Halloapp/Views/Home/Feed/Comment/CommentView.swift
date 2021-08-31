@@ -58,6 +58,7 @@ class CommentView: UIView {
     private var profilePictureTrailingSpace: NSLayoutConstraint!
     weak var delegate: CommentViewDelegate?
     private(set) var mediaCarouselView: MediaCarouselView?
+    private var mediaStatusCancellable: AnyCancellable?
   
     var isReplyButtonVisible: Bool = true {
         didSet {
@@ -136,6 +137,61 @@ class CommentView: UIView {
 
     }()
 
+    private lazy var voiceCommentRow: UIView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        spacer.widthAnchor.constraint(equalToConstant: 8).isActive = true
+
+        let stack = UIStackView(arrangedSubviews: [voiceCommentView, voiceCommentTimeLabel, spacer])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.spacing = 6
+        stack.backgroundColor = .commentVoiceNoteBackground
+        stack.layer.borderWidth = 0.5
+        stack.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
+        stack.layer.cornerRadius = 15
+        stack.layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
+        stack.layer.shadowOffset = CGSize(width: 0, height: 2)
+        stack.layer.shadowRadius = 4
+        stack.layer.shadowOpacity = 0.5
+        stack.isLayoutMarginsRelativeArrangement = true
+
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        container.addSubview(stack)
+
+        stack.heightAnchor.constraint(equalToConstant: 46).isActive = true
+        stack.topAnchor.constraint(equalTo: container.topAnchor, constant: 6).isActive = true
+        stack.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
+        stack.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
+        stack.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -30).isActive = true
+
+        return container
+    }()
+
+    private lazy var voiceCommentView: AudioView = {
+        let view = AudioView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 14, bottom: 0, right: 0)
+
+        view.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        view.delegate = self
+
+        return view
+    } ()
+
+    private lazy var voiceCommentTimeLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .caption2)
+        label.textColor = UIColor.chatTime
+
+        return label
+    }()
+
     private var vStack: UIStackView!
     private var bottomRow: UIStackView!
 
@@ -163,7 +219,7 @@ class CommentView: UIView {
         bottomRow.axis = .horizontal
         bottomRow.spacing = 8
 
-        vStack = UIStackView(arrangedSubviews: [ nameTextLabel, bottomRow ])
+        vStack = UIStackView(arrangedSubviews: [ nameTextLabel, voiceCommentRow, bottomRow ])
         vStack.spacing = 8
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
@@ -186,6 +242,9 @@ class CommentView: UIView {
     }
 
     func configure(withComment feedPostComment: FeedPostComment) {
+        mediaStatusCancellable?.cancel()
+        voiceCommentRow.isHidden = true
+
         if let mediaCarouselView = mediaCarouselView {
             mediaView.removeArrangedSubview(mediaCarouselView)
             mediaCarouselView.removeFromSuperview()
@@ -211,18 +270,33 @@ class CommentView: UIView {
             attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
             nameTextLabel.attributedText = attributedText
 
-            // Set Media
-            MainAppContext.shared.feedData.loadImages(commentID: feedPostComment.id)
-            var configuration = MediaCarouselViewConfiguration.default
-            configuration.downloadProgressViewSize = 24
-            configuration.alwaysScaleToFitContent = false
-            let mediaCarouselView = MediaCarouselView(media: media, configuration: configuration)
-            mediaCarouselView.widthAnchor.constraint(equalToConstant: 170).isActive = true
-            mediaCarouselView.heightAnchor.constraint(equalToConstant: 170).isActive = true
-            mediaCarouselView.delegate = self
-            mediaView.insertArrangedSubview(mediaCarouselView, at: mediaView.arrangedSubviews.count - 1)
-            vStack.insertArrangedSubview(mediaView, at: vStack.arrangedSubviews.count - 1)
-            self.mediaCarouselView = mediaCarouselView
+            if media.count == 1 && media[0].type == .audio {
+                voiceCommentRow.isHidden = false
+
+                voiceCommentTimeLabel.text = "0:00"
+                voiceCommentView.url = media[0].fileURL
+
+                if media[0].fileURL == nil {
+                    mediaStatusCancellable = media[0].mediaStatusDidChange.sink { [weak self] mediaItem in
+                        guard let self = self else { return }
+                        guard let url = mediaItem.fileURL else { return }
+                        self.voiceCommentView.url = url
+                    }
+                }
+            } else {
+                // Set Media
+                MainAppContext.shared.feedData.loadImages(commentID: feedPostComment.id)
+                var configuration = MediaCarouselViewConfiguration.default
+                configuration.downloadProgressViewSize = 24
+                configuration.alwaysScaleToFitContent = false
+                let mediaCarouselView = MediaCarouselView(media: media, configuration: configuration)
+                mediaCarouselView.widthAnchor.constraint(equalToConstant: 170).isActive = true
+                mediaCarouselView.heightAnchor.constraint(equalToConstant: 170).isActive = true
+                mediaCarouselView.delegate = self
+                mediaView.insertArrangedSubview(mediaCarouselView, at: mediaView.arrangedSubviews.count - 1)
+                vStack.insertArrangedSubview(mediaView, at: vStack.arrangedSubviews.count - 1)
+                self.mediaCarouselView = mediaCarouselView
+            }
 
             // Text below media
             if !feedPostComment.text.isEmpty {
@@ -488,5 +562,12 @@ class CommentsTableHeaderView: UIView {
         
         // Avatar
         profilePictureButton.avatarView.configure(with: feedPost.userId, using: MainAppContext.shared.avatarStore)
+    }
+}
+
+// MARK: AudioViewDelegate
+extension CommentView: AudioViewDelegate {
+    func audioView(_ view: AudioView, at time: String) {
+        voiceCommentTimeLabel.text = time
     }
 }

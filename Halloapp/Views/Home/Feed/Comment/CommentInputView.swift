@@ -18,11 +18,12 @@ fileprivate protocol ContainerViewDelegate: AnyObject {
 
 protocol CommentInputViewDelegate: AnyObject {
     func commentInputView(_ inputView: CommentInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve)
-    func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText)
+    func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText, andMedia media: PendingMedia?)
     func commentInputView(_ inputView: CommentInputView, possibleMentionsForInput input: String) -> [MentionableUser]
     func commentInputViewPickMedia(_ inputView: CommentInputView)
     func commentInputViewResetReplyContext(_ inputView: CommentInputView)
     func commentInputViewResetInputMedia(_ inputView: CommentInputView)
+    func commentInputViewMicrophoneAccessDenied(_ inputView: CommentInputView)
 }
 
 class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
@@ -39,6 +40,9 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private var previousHeight: CGFloat = 0
     let closeButtonDiameter: CGFloat = 24
+
+    private var voiceNoteRecorder = AudioRecorder()
+    private var isVoiceNoteRecordingLocked = false
 
     private var isPostButtonEnabled: Bool {
         get {
@@ -127,8 +131,45 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         textFieldPanel.backgroundColor = .systemBackground
         textFieldPanel.translatesAutoresizingMaskIntoConstraints = false
         textFieldPanel.preservesSuperviewLayoutMargins = true
+
+        textFieldPanel.addSubview(textFieldPanelContent)
+        textFieldPanelContent.leadingAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.leadingAnchor).isActive = true
+        textFieldPanelContent.topAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.topAnchor).isActive = true
+        textFieldPanelContent.trailingAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.trailingAnchor).isActive = true
+        textFieldPanelContent.bottomAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.bottomAnchor).isActive = true
+
         return textFieldPanel
     }()
+
+    private lazy var textFieldPanelContent: UIStackView = {
+        let textViewContainer = UIView()
+        textViewContainer.translatesAutoresizingMaskIntoConstraints = false
+
+        textViewContainer.addSubview(textView)
+        textView.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
+        textView.topAnchor.constraint(equalTo: textViewContainer.topAnchor).isActive = true
+        textView.trailingAnchor.constraint(equalTo: textViewContainer.trailingAnchor).isActive = true
+        textView.bottomAnchor.constraint(equalTo: textViewContainer.bottomAnchor).isActive = true
+
+        textViewContainer.addSubview(placeholder)
+        placeholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor).isActive = true
+        placeholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
+
+        textViewContainer.addSubview(voiceNoteTime)
+        voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
+        voiceNoteTime.centerYAnchor.constraint(equalTo: textViewContainer.centerYAnchor).isActive = true
+
+        let stack = UIStackView(arrangedSubviews: [textViewContainer, pickMediaButton, recordVoiceNoteControl, postButton])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        stack.spacing = 14
+
+        stack.addSubview(cancelRecordingButton)
+        cancelRecordingButton.centerXAnchor.constraint(equalTo: stack.centerXAnchor).isActive = true
+        cancelRecordingButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
+
+        return stack
+    } ()
 
     private lazy var placeholder: UILabel = {
         let label = UILabel()
@@ -140,16 +181,16 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private lazy var pickMediaButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "photo.fill"), for: .normal)
+        button.setImage(UIImage(named: "Photo")?.withTintColor(.primaryBlue), for: .normal)
         button.addTarget(self, action: #selector(pickMediaButtonClicked), for: .touchUpInside)
         button.isEnabled = true
-        button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.tintColor = UIColor.primaryBlue
 
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+
         return button
     }()
 
@@ -159,9 +200,12 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         button.isEnabled = false
         button.tintColor = .systemBlue
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 0)
+        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 0)
         button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
+
+        button.widthAnchor.constraint(equalTo: button.heightAnchor).isActive = true
+
         return button
     }()
 
@@ -201,6 +245,43 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         backgroundView.bottomAnchor.constraint(equalTo: mediaPanel.bottomAnchor).isActive = true
 
         return mediaPanel
+    }()
+
+    private lazy var cancelRecordingButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(cancelRecordingButtonClicked), for: .touchUpInside)
+        button.tintColor = UIColor.primaryBlue
+        button.setTitle(Localizations.buttonCancel, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 19)
+        button.isHidden = true
+
+        return button
+    }()
+
+    private lazy var voiceNoteTime: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 21)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.backgroundColor = .lavaOrange
+        label.layer.cornerRadius = 10
+        label.layer.masksToBounds = true
+        label.isHidden = true
+
+        label.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        label.heightAnchor.constraint(equalToConstant: 33).isActive = true
+
+        return label
+    }()
+
+    private lazy var recordVoiceNoteControl: AudioRecorderControlView = {
+        let controlView = AudioRecorderControlView()
+        controlView.translatesAutoresizingMaskIntoConstraints = false
+        controlView.layer.zPosition = 1
+
+        return controlView
     }()
 
     private lazy var contactNameLabel: UILabel = {
@@ -304,37 +385,13 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         bottomBackgroundView.bottomAnchor.constraint(equalTo: self.containerView.bottomAnchor).isActive = true
 
         // Input field wrapper
-        let textViewContainer = UIView()
-        textViewContainer.translatesAutoresizingMaskIntoConstraints = false
-        textViewContainer.addSubview(self.textView)
-        self.textView.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
-        self.textView.topAnchor.constraint(equalTo: textViewContainer.topAnchor).isActive = true
-        self.textView.trailingAnchor.constraint(equalTo: textViewContainer.trailingAnchor).isActive = true
-        self.textView.bottomAnchor.constraint(equalTo: textViewContainer.bottomAnchor).isActive = true
         self.textView.inputTextViewDelegate = self
         self.textView.text = ""
 
         // Placeholder
-        textViewContainer.addSubview(self.placeholder)
         self.placeholder.text = NSLocalizedString("comment.textfield.placeholder",
                                                   value: "Add a comment",
                                                   comment: "Text displayed in gray inside of the comment input field when there is no user input.")
-        // Don't really understand why constants below but it works.
-        self.placeholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor).isActive = true
-        self.placeholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
-
-        // Horizontal stack view: [input field][post button]
-        let inputViews: [UIView] = ServerProperties.isMediaCommentsEnabled ? [textViewContainer, pickMediaButton, postButton] : [textViewContainer, postButton]
-        let hStack = UIStackView(arrangedSubviews: inputViews)
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.axis = .horizontal
-        hStack.spacing = 0
-
-        self.textFieldPanel.addSubview(hStack)
-        hStack.leadingAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.topAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.topAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.trailingAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.bottomAnchor).isActive = true
 
         // Vertical stack view:
         // [Replying to]?
@@ -349,7 +406,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
         // mention picker
         self.contentView.addSubview(self.mentionPicker)
-        self.mentionPicker.constrain([.leading, .trailing], to: hStack)
+        self.mentionPicker.constrain([.leading, .trailing], to: textFieldPanelContent)
         self.mentionPicker.bottomAnchor.constraint(equalTo: self.textView.topAnchor).isActive = true
         self.mentionPicker.heightAnchor.constraint(lessThanOrEqualToConstant: 120).isActive = true
         self.mentionPicker.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
@@ -359,6 +416,39 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
         self.textViewHeight = self.textView.heightAnchor.constraint(equalToConstant: self.textView1LineHeight)
         self.textViewHeight?.isActive = true
+
+        voiceNoteRecorder.delegate = self
+        recordVoiceNoteControl.delegate = self
+
+        updatePostButtons()
+    }
+
+    private func updatePostButtons() {
+        pickMediaButton.isHidden = true
+        recordVoiceNoteControl.isHidden = true
+        postButton.isHidden = true
+
+        if !textView.text.isEmpty || mediaPanel.superview != nil {
+            if ServerProperties.isMediaCommentsEnabled {
+                pickMediaButton.isHidden = false
+            }
+
+            postButton.isHidden = false
+        } else if voiceNoteRecorder.isRecording {
+            if isVoiceNoteRecordingLocked {
+                postButton.isHidden = false
+            } else {
+                recordVoiceNoteControl.isHidden = false
+            }
+        } else {
+            if ServerProperties.isMediaCommentsEnabled {
+                pickMediaButton.isHidden = false
+            }
+
+            if ServerProperties.isVoiceNotesEnabled {
+                recordVoiceNoteControl.isHidden = false
+            }
+        }
     }
 
     func willAppear(in viewController: UIViewController) {
@@ -500,6 +590,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             mediaCloseButton.bottomAnchor.constraint(equalTo: mediaView.topAnchor, constant: y).isActive = true
         }
         postButton.isEnabled = isPostButtonEnabled
+        updatePostButtons()
     }
 
     func removeMediaPanel() {
@@ -509,6 +600,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         vStack.removeArrangedSubview(mediaPanel)
         mediaPanel.removeFromSuperview()
         postButton.isEnabled = isPostButtonEnabled
+        updatePostButtons()
         self.setNeedsUpdateHeight()
     }
 
@@ -542,12 +634,30 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }
 
     @objc func postButtonClicked() {
-        self.acceptAutoCorrection()
-        self.delegate?.commentInputView(self, wantsToSend: mentionText.trimmed())
+        if voiceNoteRecorder.isRecording {
+            voiceNoteRecorder.stop(cancel: false)
+
+            let media = PendingMedia(type: .audio)
+            media.size = .zero
+            media.order = 1
+            media.fileURL = voiceNoteRecorder.url
+
+            let text = MentionText(expandedText: "", mentionRanges: [:])
+            delegate?.commentInputView(self, wantsToSend: text, andMedia: media)
+        } else {
+            acceptAutoCorrection()
+            delegate?.commentInputView(self, wantsToSend: mentionText.trimmed(), andMedia: nil)
+        }
     }
     
     @objc func pickMediaButtonClicked() {
         delegate?.commentInputViewPickMedia(self)
+    }
+
+    @objc func cancelRecordingButtonClicked() {
+        if voiceNoteRecorder.isRecording {
+            voiceNoteRecorder.stop(cancel: true)
+        }
     }
 
     var mentionText: MentionText {
@@ -605,6 +715,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         placeholder.isHidden = !inputTextView.text.isEmpty
 
         updateMentionPickerContent()
+        updatePostButtons()
     }
     
     func updateInputView() {
@@ -628,7 +739,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }
 
     func inputTextViewShouldBeginEditing(_ inputTextView: InputTextView) -> Bool {
-        return true
+        return !voiceNoteRecorder.isRecording
     }
 
     func inputTextViewDidBeginEditing(_ inputTextView: InputTextView) {
@@ -882,6 +993,89 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             if (newValue.size.width != oldBounds.size.width) {
                 self.setNeedsUpdateHeight()
             }
+        }
+    }
+}
+
+// MARK: AudioRecorderControlViewDelegate
+extension CommentInputView: AudioRecorderControlViewDelegate {
+    func audioRecorderControlViewLocked(_ view: AudioRecorderControlView) {
+        isVoiceNoteRecordingLocked = true
+        cancelRecordingButton.isHidden = false
+        postButton.tintColor = .white
+        postButton.backgroundColor = .primaryBlue
+        postButton.layer.cornerRadius = 18
+        postButton.layer.masksToBounds = true
+        postButton.isEnabled = true
+        updatePostButtons()
+    }
+
+    func audioRecorderControlViewStarted(_ view: AudioRecorderControlView) {
+        voiceNoteRecorder.start()
+    }
+
+    func audioRecorderControlViewFinished(_ view: AudioRecorderControlView, cancel: Bool) {
+        guard let duration = voiceNoteRecorder.duration, duration >= 1 else {
+            voiceNoteRecorder.stop(cancel: true)
+            return
+        }
+
+        voiceNoteRecorder.stop(cancel: cancel)
+
+        if !cancel {
+            let media = PendingMedia(type: .audio)
+            media.size = .zero
+            media.order = 1
+            media.fileURL = voiceNoteRecorder.url
+
+            let mentionText = MentionText(expandedText: "", mentionRanges: [:])
+            delegate?.commentInputView(self, wantsToSend: mentionText.trimmed(), andMedia: media)
+        }
+    }
+}
+
+// MARK: AudioRecorderDelegate
+extension CommentInputView: AudioRecorderDelegate {
+    func audioRecorderMicrphoneAccessDenied(_ recorder: AudioRecorder) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.delegate?.commentInputViewMicrophoneAccessDenied(self)
+        }
+    }
+
+    func audioRecorderStarted(_ recorder: AudioRecorder) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.voiceNoteTime.text = "0:00"
+            self.voiceNoteTime.isHidden = false
+            self.placeholder.isHidden = true
+            self.textView.isHidden = true
+            self.updatePostButtons()
+        }
+    }
+
+    func audioRecorderStopped(_ recorder: AudioRecorder) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.isVoiceNoteRecordingLocked = false
+            self.cancelRecordingButton.isHidden = true
+            self.voiceNoteTime.isHidden = true
+            self.textView.isHidden = false
+            self.placeholder.isHidden = !self.textView.text.isEmpty
+            self.postButton.tintColor = .primaryBlue
+            self.postButton.backgroundColor = .none
+            self.postButton.layer.cornerRadius = 0
+            self.postButton.layer.masksToBounds = false
+            self.postButton.isEnabled = false
+            self.hideKeyboard()
+            self.updatePostButtons()
+        }
+    }
+
+    func audioRecorder(_ recorder: AudioRecorder, at time: String) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.voiceNoteTime.text = time
         }
     }
 }

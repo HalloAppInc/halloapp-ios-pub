@@ -131,8 +131,6 @@ class AudioRecorderControlView: UIView {
         addSubview(expandingContainer)
         addSubview(mainButton)
 
-        mainButton.widthAnchor.constraint(equalToConstant: 24).isActive = true
-        mainButton.heightAnchor.constraint(equalToConstant: 24).isActive = true
         mainButton.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
         mainButton.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
         mainButton.topAnchor.constraint(equalTo: topAnchor).isActive = true

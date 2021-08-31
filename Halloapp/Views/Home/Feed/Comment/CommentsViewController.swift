@@ -47,6 +47,14 @@ private extension Localizations {
                           value:"Resend",
                           comment: "Title for the button in comment resend confirmation prompt.")
     }
+
+    static var micAccessDeniedTitle: String {
+        NSLocalizedString("comment.mic.access.denied.title", value: "Unable to access microphone", comment: "Alert title when missing microphone access")
+    }
+
+    static var micAccessDeniedMessage: String {
+        NSLocalizedString("comment.mic.access.denied.message", value: "To enable audio recording, please tap on Settings and then turn on Microphone", comment: "Alert message when missing microphone access")
+    }
 }
 
 class CommentsViewController: UITableViewController, CommentInputViewDelegate, NSFetchedResultsControllerDelegate, TextLabelDelegate {
@@ -825,8 +833,8 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         presentMediaPicker()
     }
 
-    func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText) {
-        postComment(text: text, media: self.uploadMedia)
+    func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText, andMedia media: PendingMedia?) {
+        postComment(text: text, media: media ?? self.uploadMedia)
     }
 
     func postComment(text: MentionText, media: PendingMedia?) {
@@ -857,6 +865,17 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     func commentInputViewResetInputMedia(_ inputView: CommentInputView) {
         self.uploadMedia = nil
         commentsInputView.removeMediaPanel()
+    }
+
+    func commentInputViewMicrophoneAccessDenied(_ inputView: CommentInputView) {
+        let alert = UIAlertController(title: Localizations.micAccessDeniedTitle, message: Localizations.micAccessDeniedMessage, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default, handler: { _ in
+            guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
+            UIApplication.shared.open(settingsUrl)
+        }))
+
+        present(alert, animated: true)
     }
 
     private func refreshCommentInputViewReplyPanel() {

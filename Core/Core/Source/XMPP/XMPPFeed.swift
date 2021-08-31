@@ -170,11 +170,12 @@ public struct FeedMediaData: FeedMediaProtocol {
             switch protoMedia.type {
             case .image: return .image
             case .video: return .video
+            case .audio: return .audio
             default: return nil
             }}() else { return nil }
         guard let url = URL(string: protoMedia.downloadURL) else { return nil }
         let width = CGFloat(protoMedia.width), height = CGFloat(protoMedia.height)
-        guard width > 0 && height > 0 else { return nil }
+        guard (width > 0 && height > 0) || type == .audio else { return nil }
 
         self.id = id
         self.url = url
@@ -223,6 +224,20 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.sha256 = clientVideo.video.ciphertextHash.base64EncodedString()
     }
 
+    public init?(id: String, clientVoiceNote: Clients_VoiceNote) {
+        guard let url = URL(string: clientVoiceNote.audio.downloadURL) else {
+            DDLogError("FeedMediaData/initFromClientVoiceNote/\(id)/error invalid downloadURL [\(clientVoiceNote.audio.downloadURL)]")
+            return nil
+        }
+
+        self.id = id
+        self.url = url
+        self.type = .audio
+        self.size = .zero
+        self.key = clientVoiceNote.audio.encryptionKey.base64EncodedString()
+        self.sha256 = clientVoiceNote.audio.ciphertextHash.base64EncodedString()
+    }
+
     public init?(id: String, albumMedia: Clients_AlbumMedia) {
         switch albumMedia.media {
         case .image(let image):
@@ -238,6 +253,7 @@ public struct FeedMediaData: FeedMediaProtocol {
 public enum CommentContent {
     case text(MentionText)
     case album(MentionText, [FeedMediaData])
+    case voiceNote(FeedMediaData)
     case unsupported(Data)
     case retracted
  }
@@ -259,6 +275,8 @@ public struct CommentData {
         switch content {
         case .album(_, let media):
             return media
+        case .voiceNote(let mediaItem):
+            return [mediaItem]
         case .retracted, .text, .unsupported:
             return []
         }
@@ -267,7 +285,7 @@ public struct CommentData {
     public var orderedMentions: [FeedMentionProtocol] {
         let mentions: [Int: MentionedUser] = {
             switch content {
-            case .retracted, .unsupported:
+            case .retracted, .unsupported, .voiceNote:
                 return [:]
             case .text(let mentionText):
                 return mentionText.mentions
@@ -337,12 +355,18 @@ public struct CommentData {
                    media.append(mediaData)
                }
                if foundUnsupportedMedia {
-                   DDLogError("PostData/initFromServerPost/error unrecognized media")
+                   DDLogError("CommentData/album/error unrecognized media")
                    return  .unsupported(payload)
                } else {
                    return .album(clientAlbum.text.mentionText, media)
                }
-            case .voiceNote, .none:
+            case .voiceNote(let voiceNote):
+                guard let media = FeedMediaData(id: "\(commentId)-0", clientVoiceNote: voiceNote) else {
+                    DDLogError("CommentData/voiceNote/error unrecognized media")
+                    return .unsupported(payload)
+                }
+                return .voiceNote(media)
+            case .none:
                 return .unsupported(payload)
             }
 

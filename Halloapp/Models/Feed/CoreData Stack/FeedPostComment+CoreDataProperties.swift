@@ -74,6 +74,8 @@ extension FeedPostComment {
 extension FeedPostComment {
     public var commentData: CommentData {
         let mentionText = self.mentionText ?? MentionText(collapsedText: "", mentions: [:])
+        let content: CommentContent
+
         if let media = self.media, !media.isEmpty {
             var mediaItems = [FeedMediaData]()
             media.forEach{ (media) in
@@ -87,13 +89,13 @@ extension FeedPostComment {
                 mediaItems.append(mediaData)
             }
 
-            return CommentData(
-                id: id,
-                userId: userId,
-                timestamp: timestamp,
-                feedPostId: post.id,
-                parentId: parent?.id,
-                content: .album(mentionText, mediaItems))
+            if media.count == 1 && media.first?.type == .audio {
+                content = .voiceNote(mediaItems[0])
+            } else {
+                content = .album(mentionText, mediaItems)
+            }
+        } else {
+            content = .text(mentionText)
         }
 
         return CommentData(
@@ -102,7 +104,7 @@ extension FeedPostComment {
             timestamp: timestamp,
             feedPostId: post.id,
             parentId: parent?.id,
-            content: .text(mentionText))
+            content: content)
     }
 
     public var mentionText: MentionText? {

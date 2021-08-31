@@ -122,6 +122,17 @@ class DataStore: NotificationServiceExtensionDataStore {
                     feedCommentMedia.comment = feedComment
                 }
                 feedComment.rawData = nil
+            case .voiceNote(let media):
+                let feedCommentMedia = SharedMedia(context: managedObjectContext)
+                feedCommentMedia.type = .audio
+                feedCommentMedia.status = .none
+                feedCommentMedia.url = media.url
+                feedCommentMedia.size = media.size
+                feedCommentMedia.key = media.key
+                feedCommentMedia.order = 0
+                feedCommentMedia.sha256 = media.sha256
+                feedCommentMedia.comment = feedComment
+                feedComment.rawData = nil
             case .retracted:
                 DDLogError("NotificationExtension/DataStore/incoming-retracted-comment [\(commentId)]")
                 feedComment.rawData = nil

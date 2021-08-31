@@ -516,7 +516,7 @@ class NotificationMetadata: Codable {
                     }
                 }
                 body = String(format: NSLocalizedString("notification.commented.with.text", value: "Commented: %@", comment: "Push notification for a new comment. Parameter is the text of the comment"), commentText)
-            case .none, .retracted, .unsupported(_):
+            case .none, .retracted, .unsupported, .voiceNote:
                 body = newCommentString
             }
         // ChatMessage or GroupChatMessage

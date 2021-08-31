@@ -287,7 +287,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     continue
                 }
                 switch commentData.content {
-                case .album, .retracted, .text:
+                case .album, .retracted, .voiceNote, .text:
                     DDLogInfo("FeedData/processUnsupportedItems/comments/migrating [\(comment.id)]")
                 case .unsupported:
                     DDLogInfo("FeedData/processUnsupportedItems/comments/skipping [still unsupported] [\(comment.id)]")
@@ -877,7 +877,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         feedCommentMedia.sha256 = xmppMedia.sha256
                         feedCommentMedia.comment = comment
                     }
+                case .voiceNote(let media):
+                    comment.status = .incoming
+                    comment.text = ""
+                    comment.mentions = Set<FeedMention>()
 
+                    let feedCommentMedia = FeedPostMedia(context: managedObjectContext)
+                    feedCommentMedia.type = .audio
+                    feedCommentMedia.status = .none
+                    feedCommentMedia.url = media.url
+                    feedCommentMedia.size = media.size
+                    feedCommentMedia.key = media.key
+                    feedCommentMedia.order = 0
+                    feedCommentMedia.sha256 = media.sha256
+                    feedCommentMedia.comment = comment
                 case .retracted:
                     DDLogError("FeedData/process-comments/incoming-retracted-comment [\(xmppComment.id)]")
                     comment.status = .retracted
@@ -947,7 +960,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         guard let pushName = user.pushName, !pushName.isEmpty else { continue }
                         contactNames[user.userID] = pushName
                     }
-                case .album, .retracted, .unsupported:
+                case .album, .voiceNote, .retracted, .unsupported:
                     break
                 }
                 if let name = name, !name.isEmpty {
@@ -1709,6 +1722,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     var startTime: Date?
                     var photosDownloaded = 0
                     var videosDownloaded = 0
+                    var audiosDownloaded = 0
                     var totalDownloadSize = 0
 
                     if media.url != nil && (media.status == .none || media.status == .downloading || media.status == .downloadError) {
@@ -1718,7 +1732,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                             {
                             case .image: photosDownloaded += 1
                             case .video: videosDownloaded += 1
-                            case .audio: break
+                            case .audio: audiosDownloaded += 1
                             }
                             if startTime == nil {
                                 startTime = Date()
@@ -1742,13 +1756,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         }
                     }
                     commentMediaDownloadGroup.notify(queue: .main) {
-                        guard photosDownloaded > 0 || videosDownloaded > 0 else { return }
+                        guard photosDownloaded > 0 || videosDownloaded > 0 || audiosDownloaded > 0 else { return }
                         guard let startTime = startTime else {
                             DDLogError("FeedData/downloadMedia/comment/\(feedComment.id)/error start time not set")
                             return
                         }
                         let duration = Date().timeIntervalSince(startTime)
-                        DDLogInfo("FeedData/downloadMedia/comment/\(feedComment.id)/finished [photos: \(photosDownloaded)] [videos: \(videosDownloaded)] [t: \(duration)] [bytes: \(totalDownloadSize)]")
+                        DDLogInfo("FeedData/downloadMedia/comment/\(feedComment.id)/finished [photos: \(photosDownloaded)] [videos: \(videosDownloaded)] [audios: \(audiosDownloaded)] [t: \(duration)] [bytes: \(totalDownloadSize)]")
                         // TODO Nandini investigate if below commented code is required for media comments
     //                        AppContext.shared.eventMonitor.observe(
     //                            .mediaDownload(

@@ -125,6 +125,10 @@ extension UIColor {
     class var commentIndicatorUnread: UIColor {
         UIColor(named: "CommentIndicatorUnread")!
     }
+
+    class var commentVoiceNoteBackground: UIColor {
+        UIColor(named: "CommentVoiceNoteBackground")!
+    }
     
     // MARK: Notifications
     
