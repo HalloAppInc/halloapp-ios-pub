@@ -538,6 +538,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     private var trackingPerRowFRCChanges = false
 
     private var needsScrollToTargetAfterTableUpdates = false
+    private var isCATransactionInProgress = false
 
     private var numberOfInsertedItems = 0
 
@@ -577,7 +578,10 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         trackingPerRowFRCChanges = isViewLoaded && view.window != nil && UIApplication.shared.applicationState == .active
         if trackingPerRowFRCChanges {
             numberOfInsertedItems = 0
-            CATransaction.begin()
+            if !isCATransactionInProgress {
+                CATransaction.begin()
+                isCATransactionInProgress = true
+            }
         }
 
         DDLogDebug("CommentsView/frc/will-change perRowChanges=[\(trackingPerRowFRCChanges)]")
@@ -663,14 +667,17 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             notifyImmediately = true
         }
 
-        CATransaction.setCompletionBlock {
-            if needsNotify {
-                needsNotify = false
-                self.didUpdateCommentsTableAfterControllerDidChangeContent()
+        if isCATransactionInProgress {
+            CATransaction.setCompletionBlock {
+                if needsNotify {
+                    needsNotify = false
+                    self.didUpdateCommentsTableAfterControllerDidChangeContent()
+                }
             }
-        }
 
-        CATransaction.commit() // triggers a full layout pass
+            CATransaction.commit() // triggers a full layout pass
+            isCATransactionInProgress = false
+        }
 
         trackingPerRowFRCChanges = false
         if needsNotify && notifyImmediately {
