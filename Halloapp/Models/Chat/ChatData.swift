@@ -3003,7 +3003,7 @@ extension ChatData {
 
         if scheme == "https" {
             guard host == "halloapp.com" || host == "www.halloapp.com" else { return nil }
-            guard path == "/invite/" else { return nil }
+            guard path == "/invite/" || path == "/appclip/" else { return nil }
         } else if scheme == "halloapp" {
             guard host == "invite" else { return nil }
             guard path == "/" else { return nil }
