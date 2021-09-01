@@ -28,7 +28,7 @@ struct MediaCarouselViewConfiguration {
     var isZoomEnabled = true
     var showVideoPlaybackControls = true
     var disablePlayback = true
-    var alwaysScaleToFitContent = false
+    var alwaysScaleToFitContent = true
     var cellSpacing: CGFloat = 20
     var cornerRadius: CGFloat = 15
     var borderWidth: CGFloat = 1 / UIScreen.main.scale
