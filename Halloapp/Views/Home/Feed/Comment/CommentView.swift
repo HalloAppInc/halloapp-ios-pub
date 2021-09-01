@@ -219,7 +219,7 @@ class CommentView: UIView {
         bottomRow.axis = .horizontal
         bottomRow.spacing = 8
 
-        vStack = UIStackView(arrangedSubviews: [ nameTextLabel, voiceCommentRow, bottomRow ])
+        vStack = UIStackView(arrangedSubviews: [ nameTextLabel, bottomRow ])
         vStack.spacing = 8
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
@@ -243,7 +243,11 @@ class CommentView: UIView {
 
     func configure(withComment feedPostComment: FeedPostComment) {
         mediaStatusCancellable?.cancel()
-        voiceCommentRow.isHidden = true
+        
+        if voiceCommentView.url != nil {
+            vStack.removeArrangedSubview(voiceCommentRow)
+            voiceCommentRow.removeFromSuperview()
+        }
 
         if let mediaCarouselView = mediaCarouselView {
             mediaView.removeArrangedSubview(mediaCarouselView)
@@ -271,7 +275,7 @@ class CommentView: UIView {
             nameTextLabel.attributedText = attributedText
 
             if media.count == 1 && media[0].type == .audio {
-                voiceCommentRow.isHidden = false
+                vStack.insertArrangedSubview(voiceCommentRow, at: vStack.arrangedSubviews.count - 1)
 
                 voiceCommentTimeLabel.text = "0:00"
                 voiceCommentView.url = media[0].fileURL
