@@ -977,6 +977,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
 extension CommentsViewController: CommentViewDelegate {
     func commentView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
+        commentToScrollTo = feedPostCommentID
         let canSavePost = false
         guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID) else { return }
         let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
@@ -989,7 +990,11 @@ extension CommentsViewController: MediaCarouselViewDelegate {
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
         guard let media = MainAppContext.shared.feedData.media(postID: feedPostId) else { return }
-        
+        // By default we scroll to the last comment. On dismissing the medi explorer for the post media, we want to stay on top of the comments list.
+        if let firstComment = sortedComments.first {
+            commentToScrollTo = firstComment.id
+        }
+
         var canSavePost = false
         
         if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
