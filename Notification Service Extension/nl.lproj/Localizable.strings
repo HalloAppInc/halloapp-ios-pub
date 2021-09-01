@@ -62,7 +62,7 @@
 "Delete" = "Verwijderen";
 
 /* Text shown in notification when the user is added to a new group */
-"groups.add.notification" = "Je bent aan een nieuwe groep toegevoegd";
+"groups.add.notification" = "Je bent toegevoegd aan een nieuwe groep";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Zoeken";

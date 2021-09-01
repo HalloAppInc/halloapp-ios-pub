@@ -998,7 +998,7 @@
 "safety.number.not.verified" = "Sicherheitsnummer für %@ kann nicht verifiziert werden";
 
 /* Title for button that will open QR code scanner used to verify a contact's safety number */
-"safety.number.scan" = "Tippe auf scannen";
+"safety.number.scan" = "Zum Scannen hier tippen";
 
 /* Title for screen that allows users to verify a contact's safety number */
 "safety.number.title" = "Verifiziere die Sicherheitsnummer";

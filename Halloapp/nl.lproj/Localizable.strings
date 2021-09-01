@@ -176,7 +176,7 @@
 "chat.group.event.member.left.you" = "Je hebt de groep verlaten";
 
 /* Action label for adding members to a group */
-"chat.group.info.add.members" = "Deelnemers toevoegen";
+"chat.group.info.add.members" = "Deelnemers Toevoegen";
 
 /* Label shown in the members list when member is an admin */
 "chat.group.info.admin.label" = "Beheerder";
@@ -605,7 +605,7 @@
 "group.preview.join.error.title" = "Niet mogelijk om aan groep deel te nemen";
 
 /* Label for joining group action */
-"group.preview.join.group" = "GROEP DEELNEMEN";
+"group.preview.join.group" = "DEELNEMEN";
 
 /* Label for the number of members in the group */
 "group.preview.members" = "Deelnemers";
@@ -839,7 +839,7 @@
 "nux.chat.list" = "Hier vind je de berichten van je vrienden & familie. Je ziet hier ook als iemand nieuw zich heeft aangemeld voor HalloApp.";
 
 /* Shown on groups in common when there are no groups to display */
-"nux.groups.common.list.empty" = "Je hebt geen gemeenschappelijke groep";
+"nux.groups.common.list.empty" = "Jullie hebben geen gemeenschappelijke groepen";
 
 /* Shown on groups list when there are no groups to display */
 "nux.groups.list.empty" = "Je groepen verschijnen hier";
@@ -908,7 +908,7 @@
 "profile.groups.in.common" = "Gemeenschappelijke Groepen";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
-"profile.header.message.user" = "Stuur bericht";
+"profile.header.message.user" = "Stuur Bericht";
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Deblokkeren";
@@ -1031,7 +1031,7 @@
 "safety.number.scan" = "Tik om te Scannen";
 
 /* Title for screen that allows users to verify a contact's safety number */
-"safety.number.title" = "Veiligheidsnummer verifiëren";
+"safety.number.title" = "Veiligheidsnummer Verifiëren";
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "Veiligheidsnummer voor %@ succesvol geverifieerd!";
@@ -1043,7 +1043,7 @@
 "server.new.contact" = "%@ gebruikt nu HalloApp";
 
 /* fallback text in notification when user is added to a new group */
-"server.new.group" = "Je bent aan een nieuwe groep toegevoegd";
+"server.new.group" = "Je bent toegevoegd aan een nieuwe groep";
 
 /* fallback text in notification for a new group chat message */
 "server.new.group.message" = "Nieuw Groepsbericht";
@@ -1146,6 +1146,9 @@
 
 /* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
 "settings.notifications.comments" = "Reacties";
+
+/* Instructions for enabling notifications permissions */
+"settings.notifications.disabled.instructions" = "Zet meldingen aan in Instellingen.";
 
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Posts";
