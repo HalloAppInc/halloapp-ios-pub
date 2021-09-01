@@ -894,7 +894,10 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
                 contactName = MainAppContext.shared.contactStore.fullName(for: context.userId)
                 commentsInputView.addReplyMentionIfPossible(for: context.userId, name: contactName!)
             }
-            commentsInputView.showReplyPanel(with: contactName)
+            // Dispatch to fix case when replyPanel was not sized correctly on first load of CommentInputView
+            DispatchQueue.main.async { [weak self] in
+                self?.commentsInputView.showReplyPanel(with: contactName)
+            }
         } else {
             commentsInputView.removeReplyMentionIfPossible()
             commentsInputView.removeReplyPanel()
