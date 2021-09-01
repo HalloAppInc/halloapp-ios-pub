@@ -178,9 +178,8 @@ class MediaEdit : ObservableObject {
             let startTime = CMTimeMultiplyByFloat64(duration, multiplier: Float64(start))
             let endTime = CMTimeMultiplyByFloat64(duration, multiplier: Float64(end))
 
-            VideoUtils.trim(start: startTime, end: endTime, url: originalVideoURL, mute: muted) {[weak self] result in
-                guard let self = self else { return }
-
+            // Keeps reference to self, otherwise cropping might not happen
+            VideoUtils.trim(start: startTime, end: endTime, url: originalVideoURL, mute: muted) { result in
                 switch(result) {
                 case .success(let url):
                     self.media.fileURL = url
