@@ -419,13 +419,20 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     private func scroll(toComment commentId: FeedPostCommentID, animated: Bool, highlightAfterScroll: FeedPostCommentID?) {
-
         guard let indexPath = indexPath(forCommentId: commentId) else {
             return
         }
 
+        let cellRect = tableView.rectForRow(at: indexPath)
+        let isCellCompletelyVisible = tableView.bounds.contains(cellRect)
+
         DDLogDebug("CommentsView/scroll/animated/\(animated)/comment/\(indexPath)")
-        tableView.scrollToRow(at: indexPath, at: .middle, animated: animated)
+        if isCellCompletelyVisible {
+            tableView.scrollToRow(at: indexPath, at: .middle, animated: animated)
+        } else {
+            // scroll to the bottom of the cell if the cell's content is too tall
+            tableView.scrollToRow(at: indexPath, at: .bottom, animated: animated)
+        }
 
         if let commentToHighlight = highlightAfterScroll {
             if tableView.hasScrollAnimation {
