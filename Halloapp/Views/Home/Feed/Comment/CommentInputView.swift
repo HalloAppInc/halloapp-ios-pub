@@ -159,12 +159,26 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
         voiceNoteTime.centerYAnchor.constraint(equalTo: textViewContainer.centerYAnchor).isActive = true
 
-        let stack = UIStackView(arrangedSubviews: [textViewContainer, pickMediaButton, recordVoiceNoteControl, postButton])
+        let buttonStack = UIStackView(arrangedSubviews: [pickMediaButton, recordVoiceNoteControl, postButton])
+        buttonStack.translatesAutoresizingMaskIntoConstraints = false
+        buttonStack.axis = .horizontal
+        buttonStack.spacing = 10
+
+        // as the user keeps typing, we want the text field to exand while
+        // the media/post buttons stick to the bottom,
+        let spacer = UIView()
+        let vButtonStack = UIStackView(arrangedSubviews: [ spacer, buttonStack])
+        vButtonStack.translatesAutoresizingMaskIntoConstraints = false
+        vButtonStack.axis = .vertical
+
+        let stack = UIStackView(arrangedSubviews: [textViewContainer, vButtonStack])
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .horizontal
-        stack.spacing = 14
+        stack.spacing = 8
 
         stack.addSubview(cancelRecordingButton)
+        stack.heightAnchor.constraint(greaterThanOrEqualToConstant: 38).isActive = true
+        buttonStack.bottomAnchor.constraint(equalTo: stack.bottomAnchor, constant: -8).isActive = true
         cancelRecordingButton.centerXAnchor.constraint(equalTo: stack.centerXAnchor).isActive = true
         cancelRecordingButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
 
@@ -186,10 +200,12 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         button.isEnabled = true
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.tintColor = UIColor.primaryBlue
+        button.accessibilityLabel = Localizations.fabAccessibilityPhotoLibrary
 
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        button.widthAnchor.constraint(equalToConstant: 24).isActive = true
 
         return button
     }()
@@ -197,15 +213,17 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     private lazy var postButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(named: "Send"), for: .normal)
+        button.accessibilityLabel = Localizations.buttonSend
         button.isEnabled = false
         button.tintColor = .systemBlue
+        button.backgroundColor = UIColor.clear
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 0)
         button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
 
-        button.widthAnchor.constraint(equalTo: button.heightAnchor).isActive = true
-
+        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        button.widthAnchor.constraint(equalToConstant: 19).isActive = true
         return button
     }()
 
