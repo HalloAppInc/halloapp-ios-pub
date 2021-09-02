@@ -39,6 +39,7 @@ class MainAppContext: AppContext {
     let didTapIntent = CurrentValueSubject<INIntent?, Never>(nil)
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
     let groupFeedFromGroupTabPresentRequest = CurrentValueSubject<GroupID?, Never>(nil)
+    let mediaDidStartPlaying = PassthroughSubject<URL?, Never>()
 
     let didPrivacySettingChange = PassthroughSubject<UserID, Never>()
 

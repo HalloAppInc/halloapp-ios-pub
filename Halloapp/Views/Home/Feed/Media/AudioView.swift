@@ -7,6 +7,7 @@
 
 import AVFoundation
 import CocoaLumberjackSwift
+import Combine
 import Foundation
 
 protocol AudioViewDelegate: AnyObject {
@@ -29,6 +30,7 @@ class AudioView : UIStackView {
 
     private var rateObservation: NSKeyValueObservation?
     private var timeObservation: Any?
+    private var mediaPlaybackCancellable: AnyCancellable?
 
     private var player: AVPlayer? {
         didSet {
@@ -117,6 +119,12 @@ class AudioView : UIStackView {
 
         addArrangedSubview(playButton)
         addArrangedSubview(slider)
+
+        mediaPlaybackCancellable = MainAppContext.shared.mediaDidStartPlaying.sink { [weak self] playingUrl in
+            guard let self = self else { return }
+            guard self.url != playingUrl else { return }
+            self.pause()
+        }
     }
 
     convenience init(url: URL) {
@@ -142,6 +150,7 @@ class AudioView : UIStackView {
             player.seek(to: .zero)
         }
 
+        MainAppContext.shared.mediaDidStartPlaying.send(url)
         player.play()
     }
 

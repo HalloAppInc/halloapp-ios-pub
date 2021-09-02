@@ -105,7 +105,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     }
 
     class func stopAllPlayback() {
-        MediaCarouselVideoCollectionViewCell.videoDidStartPlaying.send(nil)
+        MainAppContext.shared.mediaDidStartPlaying.send(nil)
     }
 
     class func preferredHeight(for media: [FeedMedia], width: CGFloat) -> CGFloat {
@@ -709,7 +709,6 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         }
     }
 
-    public static let videoDidStartPlaying = PassthroughSubject<URL?, Never>()
     private static var videoURLToAutoplay: URL? = nil
 
     override func prepareForReuse() {
@@ -812,7 +811,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         // Monitor when this cell's video starts playing and send out broadcast when it does.
         avPlayerRateObservation = avPlayer.observe(\.rate, options: [ ], changeHandler: { [weak self] (player, change) in
             if player.rate == 1 {
-                Self.videoDidStartPlaying.send(videoURL)
+                MainAppContext.shared.mediaDidStartPlaying.send(videoURL)
             }
             guard let self = self else { return }
             if player.rate == 0 && self.showsVideoPlaybackControls {
@@ -852,7 +851,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         })
 
         // Cancel playback when other video starts playing.
-        videoPlaybackCancellable = Self.videoDidStartPlaying.sink { [weak self] (videoURL) in
+        videoPlaybackCancellable = MainAppContext.shared.mediaDidStartPlaying.sink { [weak self] (videoURL) in
             guard let self = self else { return }
             if self.videoURL != videoURL {
                 self.stopPlayback()
