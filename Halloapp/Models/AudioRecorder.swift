@@ -57,7 +57,9 @@ class AudioRecorder {
             guard let self = self else { return }
 
             if granted {
-                AudioServicesPlaySystemSound(1110)
+                self.respectSilenceMode {
+                    AudioServicesPlayAlertSound(1110)
+                }
 
                 // 300ms to avoid recording the start sound
                 let task = DispatchWorkItem { self.record() }
@@ -144,10 +146,38 @@ class AudioRecorder {
                 recorder.deleteRecording()
             }
 
-            AudioServicesPlaySystemSound(1111)
+            respectSilenceMode {
+                AudioServicesPlayAlertSound(1111)
+            }
         }
 
         delegate?.audioRecorderStopped(self)
+    }
+
+    private func respectSilenceMode(callback: () -> ()) {
+        let category = AVAudioSession.sharedInstance().category
+        let mode = AVAudioSession.sharedInstance().mode
+        let options = AVAudioSession.sharedInstance().categoryOptions
+
+        let session = AVAudioSession.sharedInstance()
+
+        // Respect silence mode
+        do {
+            try session.setCategory(.ambient)
+            try session.setActive(true)
+        } catch {
+            return DDLogError("AudioRecorder/respectSilenceMode/default: \(error)")
+        }
+
+        callback()
+
+        // Restore
+        do {
+            try session.setCategory(category, mode: mode, options: options)
+            try session.setActive(true)
+        } catch {
+            return DDLogError("AudioRecorder/respectSilenceMode/restore: \(error)")
+        }
     }
 
     @objc func handleInterruption(notification: Notification) {
