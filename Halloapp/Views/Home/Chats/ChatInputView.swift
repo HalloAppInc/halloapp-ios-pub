@@ -154,18 +154,12 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
         voiceNoteTime.centerYAnchor.constraint(equalTo: textViewContainer.centerYAnchor).isActive = true
 
+        textInputRow.heightAnchor.constraint(greaterThanOrEqualToConstant: 38).isActive = true
+
         cancelRecordingButton.centerXAnchor.constraint(equalTo: textInputRow.centerXAnchor).isActive = true
         cancelRecordingButton.centerYAnchor.constraint(equalTo: textInputRow.centerYAnchor).isActive = true
         
-        textViewContainer.leadingAnchor.constraint(equalTo: textInputRow.leadingAnchor).isActive = true
-        textViewContainer.topAnchor.constraint(equalTo: textInputRow.topAnchor).isActive = true
-        
-        textViewContainer.trailingAnchor.constraint(equalTo: postButtonsContainer.leadingAnchor).isActive = true
-        textViewContainer.bottomAnchor.constraint(equalTo: textInputRow.bottomAnchor).isActive = true
-        
         textViewContainerHeightConstraint = textViewContainer.heightAnchor.constraint(equalToConstant: 115)
-        
-        postButtonsContainer.trailingAnchor.constraint(equalTo: textInputRow.trailingAnchor).isActive = true
         
         contentView.addSubview(vStack)
 
@@ -200,7 +194,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         recordVoiceNoteControl.isHidden = true
         postButton.isHidden = true
 
-        if !textView.text.isEmpty {
+        if !text.isEmpty {
             postMediaButton.isHidden = false
             postButton.isHidden = false
         } else if voiceNoteRecorder.isRecording {
@@ -407,10 +401,11 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     private var textViewContainerHeightConstraint: NSLayoutConstraint?
     
     private lazy var textInputRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [textViewContainer, postButtonsContainer])
+        let view = UIStackView(arrangedSubviews: [textViewContainer, postMediaButton, recordVoiceNoteControl, postButton])
+        view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .horizontal
         view.alignment = .center
-        view.spacing = 0
+        view.spacing = 16
 
         view.addSubview(cancelRecordingButton)
         
@@ -424,8 +419,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.isScrollEnabled = false
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = UIColor.messageFooterBackground
-        view.textContainerInset.left = 8
-        view.textContainerInset.right = 8
+        view.textContainerInset.left = -5
         view.font = UIFont.preferredFont(forTextStyle: .subheadline)
         view.tintColor = .systemBlue
         view.textColor = .label
@@ -456,6 +450,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         
         view.translatesAutoresizingMaskIntoConstraints = false
         view.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        view.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+
         return view
     }()
 
@@ -493,6 +489,12 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         controlView.translatesAutoresizingMaskIntoConstraints = false
         controlView.layer.zPosition = 1
 
+        controlView.widthAnchor.constraint(equalToConstant: 38).isActive = true
+        controlView.heightAnchor.constraint(equalToConstant: 24).isActive = true
+
+        controlView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        controlView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+
         return controlView
     }()
     
@@ -507,6 +509,9 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+
+        button.widthAnchor.constraint(equalToConstant: 24).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 24).isActive = true
 
         return button
     }()
@@ -525,21 +530,10 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
 
-        button.widthAnchor.constraint(equalTo: button.heightAnchor).isActive = true
+        button.widthAnchor.constraint(equalToConstant: 38).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 38).isActive = true
    
         return button
-    }()
-    
-    private lazy var postButtonsContainer: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [postMediaButton, recordVoiceNoteControl, postButton])
-        view.axis = .horizontal
-        view.spacing = 10
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        view.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        view.heightAnchor.constraint(equalToConstant: 38).isActive = true
-
-        return view
     }()
     
     private func resignFirstResponderOnDisappear(in viewController: UIViewController) {
@@ -966,10 +960,7 @@ extension ChatInputView: InputTextViewDelegate {
     }
     
     func inputTextViewShouldBeginEditing(_ inputTextView: InputTextView) -> Bool {
-        guard !voiceNoteRecorder.isRecording else { return false }
-
-        placeholder.isHidden = true
-        return true
+        return !voiceNoteRecorder.isRecording
     }
     
     func inputTextViewDidBeginEditing(_ inputTextView: InputTextView) {
@@ -980,11 +971,13 @@ extension ChatInputView: InputTextViewDelegate {
     }
     
     func inputTextViewDidEndEditing(_ inputTextView: InputTextView) {
+        inputTextView.text = inputTextView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         placeholder.isHidden = !inputTextView.text.isEmpty
     }
     
     func inputTextViewDidChange(_ inputTextView: InputTextView) {
-        
+
+        placeholder.isHidden = !inputTextView.text.isEmpty
         textIsUneditedReplyMention = false
         updateMentionPickerContent()
         

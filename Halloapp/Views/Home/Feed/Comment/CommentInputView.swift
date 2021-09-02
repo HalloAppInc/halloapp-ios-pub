@@ -446,7 +446,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         recordVoiceNoteControl.isHidden = true
         postButton.isHidden = true
 
-        if !textView.text.isEmpty || mediaPanel.superview != nil {
+        if !textView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || mediaPanel.superview != nil {
             if ServerProperties.isMediaCommentsEnabled {
                 pickMediaButton.isHidden = false
             }
@@ -769,7 +769,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }
 
     func inputTextViewDidEndEditing(_ inputTextView: InputTextView) {
-
+        inputTextView.text = inputTextView.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        placeholder.isHidden = !inputTextView.text.isEmpty
     }
 
     func inputTextView(_ inputTextView: InputTextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
