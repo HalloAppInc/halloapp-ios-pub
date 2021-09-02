@@ -362,8 +362,9 @@ final class FeedItemHeaderView: UIView {
 
     private let avatarButtonWidth: CGFloat = 36
     private let avatarButtonSpacing: CGFloat = 8
+    private let moreButtonPadding: CGFloat = 20 // padding used to increase the tapping area of button
     private let moreButtonWidth: CGFloat = 18
-    private let moreButtonSpacing: CGFloat = 4
+    private let moreButtonSpacing: CGFloat = 2
 
     private lazy var avatarViewButton: AvatarViewButton = {
         let avatarViewButton = AvatarViewButton(type: .custom)
@@ -465,7 +466,7 @@ final class FeedItemHeaderView: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
+
     private lazy var moreButton: UIView = {
         let image = UIImage(systemName: "ellipsis")
         let button = UIButton()
@@ -473,23 +474,27 @@ final class FeedItemHeaderView: UIView {
         button.tintColor = .label
         button.addTarget(self, action: #selector(showMoreTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
-        
+
         if let image = image {
-            button.widthAnchor.constraint(equalToConstant: image.size.width).isActive = true
+            button.widthAnchor.constraint(equalToConstant: image.size.width + moreButtonPadding).isActive = true
         }
-        
+
         let wrapperView = UIView()
         wrapperView.addSubview(button)
         wrapperView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         button.topAnchor.constraint(equalTo: wrapperView.topAnchor).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 18).isActive = true
-        
-        wrapperView.widthAnchor.constraint(equalToConstant: moreButtonWidth).isActive = true
-        
+        button.heightAnchor.constraint(equalToConstant: 18 + moreButtonPadding).isActive = true
+
+        button.contentHorizontalAlignment = .trailing
+        button.contentVerticalAlignment = .top
+        button.imageEdgeInsets = UIEdgeInsets(top: 3, left: 0, bottom: 0, right: 0)
+
+        wrapperView.widthAnchor.constraint(equalToConstant: moreButtonWidth + moreButtonPadding).isActive = true
+
         return wrapperView
     }()
-    
+
     @objc private func showMoreTapped() {
         if let action = showMoreAction {
             action()
@@ -582,7 +587,7 @@ final class FeedItemHeaderView: UIView {
         let availableWidth = contentWidth - 2 * gutterWidth
 
         var requiredWidth = userAndGroupNameRow.systemLayoutSizeFitting(CGSize(width: contentWidth, height: 20)).width
-        requiredWidth += moreButton.isHidden ? 0 : (moreButtonWidth + moreButtonSpacing)
+        requiredWidth += moreButton.isHidden ? 0 : (moreButtonWidth + moreButtonPadding + moreButtonSpacing)
         requiredWidth += avatarButtonWidth + avatarButtonSpacing
 
         return requiredWidth > availableWidth
