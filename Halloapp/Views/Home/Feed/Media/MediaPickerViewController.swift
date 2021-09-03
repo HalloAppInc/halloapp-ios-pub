@@ -937,8 +937,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
 
     static private let durationFormatter: DateComponentsFormatter = {
         let formatter = DateComponentsFormatter()
-        formatter.unitsStyle = .positional
-        formatter.zeroFormattingBehavior = .dropTrailing
+        formatter.zeroFormattingBehavior = .pad
         formatter.allowedUnits = [.second, .minute]
 
         return formatter
@@ -1063,11 +1062,15 @@ fileprivate class AssetViewCell: UICollectionViewCell {
             image.transform = CGAffineTransform.identity
         }
 
-        if asset?.mediaType == .video, let interval = asset?.duration {
+        duration.isHidden = true
+        if asset?.mediaType == .video, let interval = asset?.duration, var formatted = Self.durationFormatter.string(from: interval) {
+            // Display 1:33 instead of 01:33, but keep 0:33
+            if formatted.hasPrefix("0") == true && formatted.count > 4 {
+                formatted = String(formatted.dropFirst())
+            }
+
             duration.isHidden = false
-            duration.text = Self.durationFormatter.string(from: interval)
-        } else {
-            duration.isHidden = true
+            duration.text = formatted
         }
 
         favorite.isHidden = asset?.isFavorite != true
