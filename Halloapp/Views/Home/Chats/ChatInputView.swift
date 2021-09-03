@@ -154,6 +154,9 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
         voiceNoteTime.centerYAnchor.constraint(equalTo: textViewContainer.centerYAnchor).isActive = true
 
+        postVoiceNoteButton.trailingAnchor.constraint(equalTo: textInputRow.trailingAnchor).isActive = true
+        postVoiceNoteButton.centerYAnchor.constraint(equalTo: textInputRow.centerYAnchor).isActive = true
+
         textInputRow.heightAnchor.constraint(greaterThanOrEqualToConstant: 38).isActive = true
 
         cancelRecordingButton.centerXAnchor.constraint(equalTo: textInputRow.centerXAnchor).isActive = true
@@ -198,9 +201,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
             postMediaButton.isHidden = false
             postButton.isHidden = false
         } else if voiceNoteRecorder.isRecording {
-            if isVoiceNoteRecordingLocked {
-                postButton.isHidden = false
-            } else {
+            if !isVoiceNoteRecordingLocked {
                 recordVoiceNoteControl.isHidden = false
             }
         } else {
@@ -401,13 +402,23 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     private var textViewContainerHeightConstraint: NSLayoutConstraint?
     
     private lazy var textInputRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [textViewContainer, postMediaButton, recordVoiceNoteControl, postButton])
+        // use a separate holder to keep the buttons at the bottom while textview is expanding
+        let buttonHolder = UIStackView(arrangedSubviews: [postMediaButton, recordVoiceNoteControl, postButton])
+        buttonHolder.translatesAutoresizingMaskIntoConstraints = false
+        buttonHolder.axis = .horizontal
+        buttonHolder.alignment = .center
+        buttonHolder.spacing = 16
+
+        buttonHolder.heightAnchor.constraint(equalToConstant: 38).isActive = true
+
+        let view = UIStackView(arrangedSubviews: [textViewContainer, buttonHolder])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .horizontal
-        view.alignment = .center
-        view.spacing = 16
+        view.alignment = .bottom
+        view.spacing = 0
 
         view.addSubview(cancelRecordingButton)
+        view.addSubview(postVoiceNoteButton)
         
         view.translatesAutoresizingMaskIntoConstraints = false
         view.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -471,17 +482,32 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 21)
-        label.textColor = .white
+        label.textColor = .lavaOrange
         label.textAlignment = .center
-        label.backgroundColor = .lavaOrange
-        label.layer.cornerRadius = 10
-        label.layer.masksToBounds = true
+        label.backgroundColor = .clear
         label.isHidden = true
 
         label.widthAnchor.constraint(equalToConstant: 80).isActive = true
         label.heightAnchor.constraint(equalToConstant: 33).isActive = true
 
+        label.addSubview(voiceNoteTimeDot)
+        voiceNoteTimeDot.leadingAnchor.constraint(equalTo: label.leadingAnchor).isActive = true
+        voiceNoteTimeDot.centerYAnchor.constraint(equalTo: label.centerYAnchor).isActive = true
+
         return label
+    }()
+
+    private lazy var voiceNoteTimeDot: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .lavaOrange
+        view.layer.cornerRadius = 5
+        view.layer.masksToBounds = true
+
+        view.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 10).isActive = true
+
+        return view
     }()
 
     private lazy var recordVoiceNoteControl: AudioRecorderControlView = {
@@ -533,6 +559,29 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         button.widthAnchor.constraint(equalToConstant: 38).isActive = true
         button.heightAnchor.constraint(equalToConstant: 38).isActive = true
    
+        return button
+    }()
+
+    private lazy var postVoiceNoteButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(named: "Send"), for: .normal)
+        button.accessibilityLabel = Localizations.buttonSend
+        button.addTarget(self, action: #selector(postButtonClicked), for: .touchUpInside)
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
+        button.tintColor = .white
+        button.backgroundColor = .primaryBlue
+        button.layer.cornerRadius = 19
+        button.layer.masksToBounds = true
+
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+
+        button.widthAnchor.constraint(equalToConstant: 38).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 38).isActive = true
+
+        button.isHidden = true
+
         return button
     }()
     
@@ -1028,10 +1077,7 @@ extension ChatInputView: AudioRecorderControlViewDelegate {
     func audioRecorderControlViewLocked(_ view: AudioRecorderControlView) {
         isVoiceNoteRecordingLocked = true
         cancelRecordingButton.isHidden = false
-        postButton.tintColor = .white
-        postButton.backgroundColor = .primaryBlue
-        postButton.layer.cornerRadius = 19
-        postButton.layer.masksToBounds = true
+        postVoiceNoteButton.isHidden = false
         updatePostButtons()
     }
 
@@ -1076,6 +1122,10 @@ extension ChatInputView: AudioRecorderDelegate {
             self.placeholder.isHidden = true
             self.textView.text = ""
             self.updatePostButtons()
+
+            UIView.animate(withDuration: 0.6, delay: 0, options: [.curveEaseInOut, .allowUserInteraction, .autoreverse, .repeat], animations: {
+                self.voiceNoteTimeDot.alpha = 0
+            }, completion: nil)
         }
     }
 
@@ -1085,11 +1135,8 @@ extension ChatInputView: AudioRecorderDelegate {
             self.isVoiceNoteRecordingLocked = false
             self.cancelRecordingButton.isHidden = true
             self.voiceNoteTime.isHidden = true
+            self.postVoiceNoteButton.isHidden = true
             self.placeholder.isHidden = false
-            self.postButton.tintColor = .primaryBlue
-            self.postButton.backgroundColor = .none
-            self.postButton.layer.cornerRadius = 0
-            self.postButton.layer.masksToBounds = false
             self.hideKeyboard()
             self.updatePostButtons()
         }

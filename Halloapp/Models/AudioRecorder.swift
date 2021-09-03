@@ -62,7 +62,10 @@ class AudioRecorder {
                 }
 
                 // 300ms to avoid recording the start sound
-                let task = DispatchWorkItem { self.record() }
+                let task = DispatchWorkItem {
+                    self.task = nil
+                    self.record()
+                }
                 DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300), execute: task)
                 self.task = task
             } else {
@@ -136,8 +139,15 @@ class AudioRecorder {
     }
 
     func stop(cancel: Bool) {
-        task?.cancel()
+        var notifyDelegate = false
+
         timer?.invalidate()
+
+        if let task = task {
+            task.cancel()
+            self.task = nil
+            notifyDelegate = true
+        }
 
         if let recorder = self.recorder, recorder.isRecording {
             recorder.stop()
@@ -149,9 +159,13 @@ class AudioRecorder {
             respectSilenceMode {
                 AudioServicesPlayAlertSound(1111)
             }
+
+            notifyDelegate = true
         }
 
-        delegate?.audioRecorderStopped(self)
+        if notifyDelegate {
+            delegate?.audioRecorderStopped(self)
+        }
     }
 
     private func respectSilenceMode(callback: () -> ()) {
