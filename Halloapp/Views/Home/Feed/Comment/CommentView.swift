@@ -220,10 +220,10 @@ class CommentView: UIView {
         bottomRow.spacing = 8
 
         vStack = UIStackView(arrangedSubviews: [ nameTextLabel, bottomRow ])
-        vStack.spacing = 8
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         addSubview(vStack)
+        vStack.setCustomSpacing(4, after: nameTextLabel)
         
         profilePictureWidth = profilePictureButton.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeNormal)
         profilePictureButton.heightAnchor.constraint(equalTo: profilePictureButton.widthAnchor).isActive = true
@@ -495,13 +495,13 @@ class CommentsTableHeaderView: UIView {
         vStack.addArrangedSubview(timestampLabel)
         self.addSubview(vStack)
 
-        profilePictureButton.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeSmall).isActive = true
+        profilePictureButton.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeNormal).isActive = true
         profilePictureButton.heightAnchor.constraint(equalTo: profilePictureButton.widthAnchor).isActive = true
         profilePictureButton.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
         profilePictureButton.topAnchor.constraint(equalTo: self.topAnchor, constant: 8).isActive = true // using layout margins yields incorrect layout
         profilePictureButton.bottomAnchor.constraint(lessThanOrEqualTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        vStack.leadingAnchor.constraint(equalTo: profilePictureButton.trailingAnchor, constant: LayoutConstants.profilePictureTrailingSpaceSmall).isActive = true
+        vStack.leadingAnchor.constraint(equalTo: profilePictureButton.trailingAnchor, constant: LayoutConstants.profilePictureTrailingSpaceNormal).isActive = true
         vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
         vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 8).isActive = true // using layout margins yields incorrect layout
         vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true

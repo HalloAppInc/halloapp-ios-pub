@@ -81,7 +81,7 @@ fileprivate enum TransitionState {
 
 typealias MediaPickerViewControllerCallback = (MediaPickerViewController, [PendingMedia], Bool) -> Void
 
-class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PHPhotoLibraryChangeObserver, PickerViewCellDelegate {
+class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PHPhotoLibraryChangeObserver, PickerViewCellDelegate, UIAdaptivePresentationControllerDelegate {
 
     private struct UserDefaultsKey {
         static let MediaPickerMode = "MediaPickerMode"
@@ -143,11 +143,16 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
 
         limitedAccessBubble = makeLimitedAccessBubble()
 
+        self.navigationController?.presentationController?.delegate = self
         setupZoom()
         setupPreviews()
 
         PHPhotoLibrary.shared().register(self)
         fetchAssets()
+    }
+
+    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        cancelAction()
     }
 
     deinit {

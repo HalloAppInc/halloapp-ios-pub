@@ -624,8 +624,10 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             needsScrollToTargetAfterTableUpdates = true
 
         case .move:
-            // Delete and Move should not happen at this time.
-            assert(false, "Unexpected FRC operation.")
+            // We receive .move when the timestamp of a comment is updated with server timestamp which causes changes in the relative
+            // ordering of comments. For now we will not move comment rows live.
+            DDLogInfo("CommentsView/frc/move for comment id : \(comment.id)")
+
 
         case .delete:
             guard let commentIndex = sortedComments.firstIndex(where: { $0 == comment }) else { return }
