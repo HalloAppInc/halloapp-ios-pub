@@ -248,7 +248,7 @@
 "chat.message.waiting" = "Auf Nachrichteneingang wird gewartet. Dies kann eine Weile dauern.";
 
 /* Alert message when missing microphone access */
-"chat.mic.access.denied.message" = "Für die Audioaufnahme bitte in den Einstellungen das Mikrofon aktivieren";
+"chat.mic.access.denied.message" = "Für die Audioaufnahme bitte auf Einstellungen tippen, um das Mikrofon zu aktivieren";
 
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "Auf das Mikrofon kann nicht zugegriffen werden";
@@ -276,6 +276,12 @@
 
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Kommentar wird gelöscht";
+
+/* Alert message when missing microphone access */
+"comment.mic.access.denied.message" = "Für die Audioaufnahme bitte auf Einstellungen tippen, um das Mikrofon zu aktivieren";
+
+/* Alert title when missing microphone access */
+"comment.mic.access.denied.title" = "Kein Zugriff auf das Mikrofon";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Beitrag wird gepostet...";
@@ -680,13 +686,13 @@
 "media.button.reset" = "Zurücksetzen";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
-"media.camera.access.request" = "HalloApp hat keinen Zugriff auf deine Kamera. Um den Zugriff zu erlauben, gehe zu deinen Einstellungen und aktiviere die Kamera";
+"media.camera.access.request" = "HalloApp hat keinen Zugriff auf deine Kamera. Um den Zugriff zu erlauben, tippe auf Einstellungen und aktiviere die Kamera";
 
 /* Confirmation prompt in media composer. */
 "media.discard.confirmation" = "Möchtest du deine Änderungen verwerfen?";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
-"media.mic.access.request.body" = "Um Videos mit Ton aufzunehmen, benötigt HalloApp den Zugriff auf das Mikrofon. Um den Zugriff zu erlauben, gehe zu deinen Einstellungen und aktiviere das Mikrofon.";
+"media.mic.access.request.body" = "Um Videos mit Ton aufzunehmen, benötigt HalloApp den Zugriff auf das Mikrofon. Um den Zugriff zu erlauben, tippe auf Einstellungen und aktiviere das Mikrofon.";
 
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
 "media.mic.access.request.title" = "Möchtest du Videos mit Ton aufnehmen?";
@@ -833,7 +839,7 @@
 "picker.access.denied.settings" = "Einstellungen";
 
 /* Alert title in media picker when access is denied. */
-"picker.access.denied.title" = "Zugriff auf Fotos nicht erlaubt";
+"picker.access.denied.title" = "Zugriff auf Fotos verweigert";
 
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Du hast HalloApp den Zugriff auf eine bestimmte Anzahl von Fotos und Videos gewährt.";
@@ -1116,6 +1122,9 @@
 
 /* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
 "settings.notifications.comments" = "Kommentare";
+
+/* Instructions for enabling notifications permissions */
+"settings.notifications.disabled.instructions" = "Bitte die Benachrichtigungen in den Einstellungen aktivieren.";
 
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Beiträge";

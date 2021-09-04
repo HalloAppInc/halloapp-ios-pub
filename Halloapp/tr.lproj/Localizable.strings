@@ -23,7 +23,7 @@
 "about.title" = "Hakkında";
 
 /* Longer title for the button that confirms marking all items in the activity center as read. */
-"activity.center.button.mark.all.read" = "Hepsini okundu olarak işaretle";
+"activity.center.button.mark.all.read" = "Tümünü okundu işaretle";
 
 /* Short title for the button in activity center. */
 "activity.center.button.read.all" = "Hepsini oku";
@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "HalloApp'e hoş geldin!";
 
+/* Text label for action button to add the contact to the address book */
+"add.to.contact.book" = "Kişilerime ekle";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "İnternet Bağlantısı Yok";
 
@@ -49,11 +52,23 @@
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Ayarlar";
 
+/* Placeholder text for when the archive is empty */
+"archive.empty.placeholder" = "Arşivlenmiş gönderilerin burada görünecek";
+
+/* Archive navigation label */
+"archive.title.label" = "Arşiv";
+
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "İnternet bağlantısı yok";
 
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "ekle";
+
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "İptal et";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "İPTAL";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Devam et";
@@ -136,6 +151,9 @@
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
 "chat.add.to.contacts.book.label" = "%@ kişisinin gönderilerini görmek için, numarasını kişi defterine ekle. Eklemek için dokun.";
 
+/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+"chat.blocked.contact.label" = "Bu kişi engelli, engeli kaldırmak için dokun";
+
 /* Label for creating a new group */
 "chat.create.new.group" = "Yeni grup oluştur";
 
@@ -208,6 +226,9 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Arkadaşlarını davet et";
 
+/* Message text shown in a message that have audio media but no text */
+"chat.message.audio" = "Sesli mesaj";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Bu mesaj silindi";
 
@@ -225,6 +246,15 @@
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
 "chat.message.waiting" = "Mesaj bekleniyor. Bu biraz zaman alabilir.";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Ses kaydını etkinleştirmek için lütfen Ayarlar'a git ve Mikrofon'u aç.";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Mikrofon kullanılamıyor.";
+
+/* Text below the contact's name when the contact is online in the Chat Screen */
+"chat.online.label" = "çevrimiçi";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "yazıyor...";
@@ -246,6 +276,12 @@
 
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Yorum siliniyor";
+
+/* Alert message when missing microphone access */
+"comment.mic.access.denied.message" = "Ses kaydını etkinleştirmek için lütfen Ayarlar'a git ve Mikrofon'u aç.";
+
+/* Alert title when missing microphone access */
+"comment.mic.access.denied.title" = "Mikrofon kullanılamıyor.";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Paylaşılıyor...";
@@ -319,11 +355,26 @@
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Ailen ve arkadaşlarınla bağlantı kurmana yardımcı olmak için HalloApp'in kişilerine erişmesine izin ver.";
 
+/* Title for modal view when showing how to change contact permissions. */
+"contacts.permission.explanation.title" = "Kişiler";
+
 /* Title for tutorial explaining how user can enable contacts permission */
 "contacts.permission.tutorial.title" = "Kişiler";
 
+/* Text label for group description text box */
+"create.group.description.label" = "Grup açıklaması";
+
+/* Placeholder text shown inside the group description input box when it's empty */
+"create.group.description.placeholder" = "Bir açıklama ekleyin (isteğe bağlı)";
+
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Grup oluşturulurken bir hata oluştu, lütfen daha sonra tekrar dene.";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"create.group.name.placeholder" = "Grubuna ad ver";
+
+/* Title of group creation screen */
+"create.group.title" = "Grup bilgisi";
 
 /* Title for generic delete button. */
 "Delete" = "Sil";
@@ -421,11 +472,23 @@
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Yanıtla";
 
+/* Placeholder text shown in group description input box when there's no description */
+"group.add.description" = "Grup açıklaması ekle";
+
+/* Label shown above background selection row */
+"group.background.label" = "Arka plan";
+
 /* Label for choosing a color at the group background preview screen */
 "group.bg.pick.a.color.label" = "BİR RENK SEÇ";
 
 /* Title of group background screen */
 "group.bg.title" = "Arka plan";
+
+/* Label shown above group description input box */
+"group.description.label" = "Grup açıklaması";
+
+/* Title of group description edit screen */
+"group.edit.desc.title" = "Düzenle";
 
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@, %2$@ kişisini ekledi";
@@ -444,6 +507,12 @@
 
 /* Message text shown when you change the background */
 "group.event.changed.background.you" = "Arka plan rengini değiştirdin";
+
+/* Message text shown with the user who changed the group description */
+"group.event.changed.description" = "%1@, grup açıklamasını değiştirdi";
+
+/* Message text shown when you change the group description */
+"group.event.changed.description.you" = "Grup açıklamasını değiştirdin";
 
 /* Message text shown with the user who changed the group name */
 "group.event.changed.name" = "%1$@, grubun adını \"%2$@\" olarak değiştirdi";
@@ -510,6 +579,9 @@
 
 /* Title of group invite screen */
 "group.invite.title" = "Grup davet ilişimi";
+
+/* Label shown above group members list */
+"group.members.label" = "Üyeler";
 
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "Bu grup ilişimi geçersiz";
@@ -589,6 +661,9 @@
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Davet et";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Ara";
+
 /* Link text to open invite flow */
 "link.invite.friend" = "Bir arkadaşını davet et.";
 
@@ -617,7 +692,7 @@
 "media.discard.confirmation" = "Düzenlemelerini iptal etmek istiyor musun?";
 
 /* Alert asking to enable Camera permission after attempting to use in-app camera. */
-"media.mic.access.request.body" = "Videoları sesli kaydedebilmek için HalloApp'in mikrofona erişmesi gerekir. Erişimi etkinleştirmek için Ayarlar'a dokun ve Mikrofon'u aç.";
+"media.mic.access.request.body" = "Videoları sesli kaydedebilmek için HalloApp'in mikrofona erişmesi gerekir. Erişimi etkinleştirmek için Ayarlar'a git ve Mikrofon'u aç.";
 
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
 "media.mic.access.request.title" = "Videoları sesli mi kaydetmek istiyorsun?";
@@ -648,6 +723,9 @@
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Çevir";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "Sessiz";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.rotate" = "Döndür";
@@ -694,6 +772,9 @@
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.davetiye kaldı";
 
+/* Displayed in place of deleted feed posts. */
+"n.posts.deleted" = "%@ gönderi silindi";
+
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Artık bu grupta değilsin";
 
@@ -705,6 +786,12 @@
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@, HalloApp'e katılma davetini kabul etti 🎉";
+
+/* Title for the new comment notification. */
+"notification.new.comment" = "Yeni yorum";
+
+/* Content for contact notification. */
+"notification.new.contact.content" = "%@, şimdi HalloApp'te";
 
 /* Content for friend notification. */
 "notification.new.friend.content" = "%@ artık HalloApp'te";
@@ -720,6 +807,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 Video";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤Sesli mesaj";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Hallo!";
@@ -795,6 +885,9 @@
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Mesaj";
+
+/* Text for unblocking user under profile header */
+"profile.header.unblock.user" = "Engeli kaldır";
 
 /* Item in Profile > Help screen. */
 "profile.help.faq" = "SSS";
@@ -873,6 +966,12 @@
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "%@'e katılmak için HalloApp'i yükle";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "Tüh!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Girdiğin telefon numarası geçersiz. Lütfen kontrol et.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Şu anda yalnızca davet sistemiyle çalışıyoruz. HalloApp kullanan bir aile üyen veya arkadaşın varsa, telefon numaranı kullanarak sana davet göndermelerini isteyebilirsin.";
@@ -1021,6 +1120,9 @@
 /* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
 "settings.notifications.comments" = "Yorumlar";
 
+/* Instructions for enabling notifications permissions */
+"settings.notifications.disabled.instructions" = "Lütfen Ayarlar'a git ve bildirimleri aç";
+
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Gönderiler";
 
@@ -1140,6 +1242,9 @@
 
 /* Option when user taps more on profile page */
 "user.option.block" = "HalloApp'te engelle";
+
+/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
+"user.option.copy.phone.number" = "Telefon numarasını kopyala";
 
 /* Option when user taps more on profile page */
 "user.option.unblock" = "HalloApp'teki engeli kaldır";

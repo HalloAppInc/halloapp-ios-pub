@@ -4,8 +4,14 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Lütfen internet bağlantını kontrol et ve yeniden dene.";
 
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "ekle";
+
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "İptal et";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "İPTAL";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Devam et";
@@ -67,6 +73,9 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Bu sürüm güncel değil";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Ara";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Daha fazlasını öğren";
 
@@ -111,6 +120,12 @@
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "%@'e katılmak için HalloApp'i yükle";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "Tüh!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Girdiğin telefon numarası geçersiz. Lütfen kontrol et.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Kaydolmak için bir Grup Davet İlişimini kullandıysanız, kaydı tamamlamak ve gruba katılmak için lütfen ilişime tekrar tıklayın.";

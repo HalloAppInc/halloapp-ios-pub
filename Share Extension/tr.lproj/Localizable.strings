@@ -4,8 +4,14 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Lütfen internet bağlantını kontrol et ve tekrar dene";
 
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Ekle";
+
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "İptal et";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "İPTAL";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Devam et";
@@ -55,6 +61,9 @@
 /* Title for generic delete button. */
 "Delete" = "Sil";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Ara";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Daha fazlasını öğren";
 
@@ -81,6 +90,9 @@
 
 /* Composer title when sharing to feed */
 "share.composer.title.feed" = "Yeni gönderi";
+
+/* Alert dialog message shown when uploading fails. */
+"share.composer.uploading.fail.message" = "Lütfen daha sonra tekrar dene.";
 
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Yükleme başarısız";

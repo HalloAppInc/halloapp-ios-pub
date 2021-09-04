@@ -277,6 +277,12 @@
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Reactie wordt verwijderd";
 
+/* Alert message when missing microphone access */
+"comment.mic.access.denied.message" = "Om audio op te nemen, tik op Instellingen en zet Microfoon aan";
+
+/* Alert title when missing microphone access */
+"comment.mic.access.denied.title" = "Kan geen toegang krijgen tot microfoon";
+
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Wordt geplaatst...";
 
