@@ -265,7 +265,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         bubble.addSubview(button)
 
         NSLayoutConstraint.activate([
-            bubble.heightAnchor.constraint(equalToConstant: 104),
             bubble.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 20),
             bubble.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -20),
             bubble.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20),
@@ -276,7 +275,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             msg.topAnchor.constraint(equalTo: close.bottomAnchor, constant: 4),
             msg.leftAnchor.constraint(equalTo: bubble.leftAnchor, constant: 20),
             msg.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -20),
-            button.topAnchor.constraint(equalTo: msg.bottomAnchor, constant: -15),
+            button.topAnchor.constraint(equalTo: msg.bottomAnchor),
+            button.bottomAnchor.constraint(equalTo: bubble.bottomAnchor, constant: -8),
             button.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -20),
         ])
 
