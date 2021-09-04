@@ -81,6 +81,7 @@ public final class DefaultRegistrationManager: RegistrationManager {
             noiseKeys: noiseKeys,
             groupInviteToken: userData.groupInviteToken,
             pushOS: pushOS,
+            pushToken: UserDefaults.standard.string(forKey: "apnsPushToken"),
             whisperKeys: userKeys.whisperKeys) { result in
             switch result {
             case .success(let credentials):

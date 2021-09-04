@@ -30,7 +30,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         initAppContext(MainAppContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStoreMain.self, appTarget: AppTarget.mainApp)
 
-        DDLogInfo("application/didFinishLaunching")
+        DDLogInfo("application/didFinishLaunching [\(AppContext.userAgent)] [\(UIDevice.current.getModelName()) (iOS \(UIDevice.current.systemVersion))]")
 
         BGTaskScheduler.shared.register(forTaskWithIdentifier: BackgroundFeedRefreshTaskIdentifier, using: DispatchQueue.main) { (task) in
             guard let refreshTask = task as? BGAppRefreshTask else {

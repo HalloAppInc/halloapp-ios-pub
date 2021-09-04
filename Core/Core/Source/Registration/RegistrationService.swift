@@ -12,7 +12,7 @@ import Sodium
 
 public protocol RegistrationService {
     func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
-    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, pushOS: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
+    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, pushOS: String?, pushToken: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
     func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void)
 }
 
@@ -116,7 +116,7 @@ public final class DefaultRegistrationService: RegistrationService {
         task.resume()
     }
 
-    public func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, pushOS: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void) {
+    public func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, pushOS: String?, pushToken: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void) {
 
         guard let phraseData = "HALLO".data(using: .utf8),
               let signedPhrase = noiseKeys.sign(phraseData) else
@@ -147,7 +147,7 @@ public final class DefaultRegistrationService: RegistrationService {
         if groupInviteToken != nil {
             json["group_invite_token"] = groupInviteToken
         }
-        if let pushToken = UserDefaults.standard.string(forKey: "apnsPushToken") {
+        if let pushToken = pushToken {
             json["push_token"] = pushToken
         }
         if pushOS != nil {
@@ -291,7 +291,7 @@ public final class DefaultRegistrationService: RegistrationService {
 }
 
 public enum VerificationCodeRequestError: String, Error, RawRepresentable {
-    case invalid_phone_number = "invalid_phone_number"      // phone number provided is invalid
+    case invalidPhoneNumber = "invalid_phone_number"        // phone number provided is invalid
     case notInvited = "not_invited"
     case smsFailure = "sms_fail"
     case invalidClientVersion = "invalid_client_version"    // client version has expired.
@@ -305,7 +305,7 @@ public enum GetGroupNameError: String, Error, RawRepresentable {
 }
 
 public enum VerificationCodeValidationError: String, Error, RawRepresentable {
-    case invalid_phone_number = "invalid_phone_number"      // phone number provided is invalid
+    case invalidPhoneNumber = "invalid_phone_number"        // phone number provided is invalid
     case incorrectCode = "wrong_sms_code"                   // The sms code provided does not match
     case missingPhone = "missing_phone"                     // Request is missing phone field
     case missingCode = "missing_code"                       // Request is missing code field

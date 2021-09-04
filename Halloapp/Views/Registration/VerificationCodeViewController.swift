@@ -263,7 +263,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
                         }))
                         self.present(alert, animated: true)
 
-                    case .invalid_phone_number:
+                    case .invalidPhoneNumber:
                         let alert = UIAlertController(
                             title: Localizations.registrationInvalidPhoneTitle,
                             message: Localizations.registrationInvalidPhoneText,
@@ -304,6 +304,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
                 self.state = .validatedCode
                 self.delegate?.verificationCodeViewControllerDidFinish(self)
             case .failure(let error):
+                // todo: handle errors better (e.g., request timeout)
                 if .invalidClientVersion == error as? VerificationCodeValidationError {
                     let alert = self.getAppUpdateAlertController()
                     self.present(alert, animated: true)

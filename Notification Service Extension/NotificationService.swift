@@ -40,7 +40,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
     }
 
     private func processDidReceive(request: UNNotificationRequest, contentHandler: @escaping (UNNotificationContent) -> Void) {
-        DDLogInfo("didReceiveRequest/begin \(request)")
+        DDLogInfo("didReceiveRequest/begin \(request) [\(AppContext.userAgent)]")
         initAppContext(AppExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self, appTarget: AppTarget.notificationExtension)
         service = AppExtensionContext.shared.coreService
         service?.startConnectingIfNecessary()

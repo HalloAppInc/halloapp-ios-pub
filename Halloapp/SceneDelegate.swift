@@ -33,7 +33,8 @@ class SceneDelegate: UIResponder {
             return InitializingViewController()
 
         case .registration:
-            return VerificationViewController()
+            let registrationManager = DefaultRegistrationManager(registrationService: NoiseRegistrationService())
+            return VerificationViewController(registrationManager: registrationManager)
 
         case .mainInterface:
             return HomeViewController()

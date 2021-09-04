@@ -89,11 +89,8 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         switch userData?.credentials {
         case .v2(let userID, let noiseKeys):
             let noise = NoiseStream(
-                            userAgent: AppContext.userAgent,
-                            userID: userID,
                             noiseKeys: noiseKeys,
                             serverStaticKey: Keychain.loadServerStaticKey(for: userID),
-                            passiveMode: isPassiveMode,
                             delegate: self)
             stream = .noise(noise)
         case .none:
@@ -350,17 +347,41 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 }
 
 extension ProtoServiceCore: NoiseDelegate {
-    public func receivedPacket(_ packet: Server_Packet) {
+    public func receivedPacketData(_ packetData: Data) {
+        guard let packet = try? Server_Packet(serializedData: packetData) else {
+            DDLogError("proto/received/error could not deserialize packet [\(packetData.base64EncodedString())]")
+            return
+        }
         didReceive(packet: packet)
     }
 
-    public func receivedAuthResult(_ authResult: Server_AuthResult) {
+    public func connectionPayload() -> Data? {
+        var clientConfig = Server_AuthRequest()
+        clientConfig.clientMode.mode = isPassiveMode ? .passive : .active
+        clientConfig.clientVersion.version = AppContext.userAgent
+        clientConfig.resource = "iphone"
+        if let uid = Int64(userData.userId) {
+            clientConfig.uid = uid
+        } else {
+            DDLogError("ProtoServiceCore/connectionPayload/error invalid userID [\(userData.userId)]")
+        }
+        DDLogInfo("ProtoServiceCore/connectionPayload [passiveMode: \(isPassiveMode)]")
+        return try? clientConfig.serializedData()
+    }
+
+    public func receivedConnectionResponse(_ responseData: Data) -> Bool {
+        guard let authResult = try? Server_AuthResult(serializedData: responseData) else {
+            return false
+        }
+
         switch authResult.result {
         case .success:
             authenticationSucceeded(with: authResult)
+            return true
         case .failure, .unknown, .UNRECOGNIZED:
             // Consider any non-success result a failure (user won't necessarily be logged out)
             authenticationFailed(with: authResult)
+            return false
         }
     }
 
@@ -368,8 +389,8 @@ extension ProtoServiceCore: NoiseDelegate {
         self.connectionState = connectionState
     }
 
-    public func receivedServerStaticKey(_ key: Data, for userID: UserID) {
-        Keychain.saveServerStaticKey(key, for: userID)
+    public func receivedServerStaticKey(_ key: Data) {
+        Keychain.saveServerStaticKey(key, for: userData.userId)
     }
 }
 

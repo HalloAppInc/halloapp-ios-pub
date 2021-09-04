@@ -21,10 +21,11 @@ private enum NoiseState {
 }
 
 public protocol NoiseDelegate: AnyObject {
-    func receivedPacket(_ packet: Server_Packet)
-    func receivedAuthResult(_ authResult: Server_AuthResult)
+    func receivedPacketData(_ packetData: Data)
+    func connectionPayload() -> Data?
+    func receivedConnectionResponse(_ responseData: Data) -> Bool
     func updateConnectionState(_ connectionState: ConnectionState)
-    func receivedServerStaticKey(_ key: Data, for userID: UserID)
+    func receivedServerStaticKey(_ key: Data)
 }
 
 public enum NoiseStreamError: Error {
@@ -34,16 +35,10 @@ public enum NoiseStreamError: Error {
 public final class NoiseStream: NSObject {
 
     public init(
-        userAgent: String,
-        userID: UserID,
         noiseKeys: NoiseKeys,
         serverStaticKey: Data?,
-        passiveMode: Bool,
         delegate: NoiseDelegate)
     {
-        self.userAgent = userAgent
-        self.userID = userID
-        self.passiveMode = passiveMode
         self.noiseKeys = noiseKeys
         self.serverStaticKey = serverStaticKey
         self.socket = GCDAsyncSocket()
@@ -61,7 +56,7 @@ public final class NoiseStream: NSObject {
             return
         }
         do {
-            DDLogInfo("noise/connect [passiveMode: \(passiveMode), \(userAgent), \(UIDevice.current.getModelName()) (iOS \(UIDevice.current.systemVersion))]")
+            DDLogInfo("noise/connect [\(host):\(port)]")
             try socket.connect(toHost: host, onPort: port)
             state = .connecting
         } catch {
@@ -200,8 +195,7 @@ public final class NoiseStream: NSObject {
             do {
                 let keypair = noiseKeys.makeX25519KeyPair()
                 let handshake = try HandshakeState(pattern: .IK, initiator: true, prologue: Data(), s: keypair, e: ephemeralKeyPair, rs: serverStaticKey)
-                let serializedConfig = try makeClientConfig().serializedData()
-                let msgA = try handshake.writeMessage(payload: serializedConfig)
+                let msgA = try handshake.writeMessage(payload: delegate?.connectionPayload() ?? Data())
 
                 sendNoiseMessage(msgA, type: .ikA, header: handshakeSignature)
                 state = .handshake(handshake)
@@ -289,10 +283,9 @@ public final class NoiseStream: NSObject {
                 return
             }
             serverStaticKey = staticKey
-            delegate?.receivedServerStaticKey(staticKey, for: userID)
+            delegate?.receivedServerStaticKey(staticKey)
             do {
-                let serializedConfig = try makeClientConfig().serializedData()
-                let msgB = try handshake.writeMessage(payload: serializedConfig)
+                let msgB = try handshake.writeMessage(payload: delegate?.connectionPayload() ?? Data())
                 sendNoiseMessage(msgB, type: .xxFallbackB)
                 // server is the initiator and client is the responder, so key-split = (receive, send)
                 let (receive, send) = try handshake.split()
@@ -327,11 +320,10 @@ public final class NoiseStream: NSObject {
             }
 
             serverStaticKey = staticKey
-            delegate?.receivedServerStaticKey(staticKey, for: userID)
+            delegate?.receivedServerStaticKey(staticKey)
 
             do {
-                let serializedConfig = try makeClientConfig().serializedData()
-                let msgC = try handshake.writeMessage(payload: serializedConfig)
+                let msgC = try handshake.writeMessage(payload: delegate?.connectionPayload() ?? Data())
                 sendNoiseMessage(msgC, type: .xxC)
                 let (send, receive) = try handshake.split()
                 state = .authorizing(send, receive)
@@ -396,19 +388,6 @@ public final class NoiseStream: NSObject {
         }
     }
 
-    private func makeClientConfig() -> Server_AuthRequest {
-        var clientConfig = Server_AuthRequest()
-        clientConfig.clientMode.mode = passiveMode ? .passive : .active
-        clientConfig.clientVersion.version = userAgent as String
-        clientConfig.resource = "iphone"
-        if let uid = Int64(userID) {
-            clientConfig.uid = uid
-        } else {
-            DDLogError("noise/makeClientConfig/error invalid userID [\(userID)]")
-        }
-        return clientConfig
-    }
-
     private func receive(_ data: Data) {
 
         let buffer: Data = {
@@ -444,29 +423,30 @@ public final class NoiseStream: NSObject {
                 }
                 handshakeTimeoutTask?.cancel()
                 continueHandshake(noiseMessage)
-            case .authorizing(_, let recv):
+            case .authorizing(let send, let recv):
                 guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: packetData) else {
                     DDLogError("noise/receive/error could not decrypt auth result [\(packetData.base64EncodedString())]")
                     disconnectWithError(.packetDecryptionFailure)
                     break
                 }
-                guard let authResult = try? Server_AuthResult(serializedData: decryptedData) else {
-                    DDLogError("noise/receive/error could not deserialize auth result [\(decryptedData.base64EncodedString())]")
-                    break
-                }
                 handshakeTimeoutTask?.cancel()
-                handleAuthResult(authResult)
+                if let delegate = delegate {
+                    if delegate.receivedConnectionResponse(decryptedData) {
+                        state = .connected(send, recv)
+                    } else {
+                        state = .disconnected
+                    }
+                } else {
+                    // no delegate!
+                    state = .disconnected
+                }
             case .connected(_, let recv):
                 guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: packetData) else {
                     DDLogError("noise/receive/error could not decrypt packet [\(packetData.base64EncodedString())]")
                     disconnectWithError(.packetDecryptionFailure)
                     break
                 }
-                guard let packet = try? Server_Packet(serializedData: decryptedData) else {
-                    DDLogError("noise/receive/error could not deserialize packet [\(decryptedData.base64EncodedString())]")
-                    break
-                }
-                delegate?.receivedPacket(packet)
+                delegate?.receivedPacketData(decryptedData)
             }
 
             offset = packetEnd
@@ -474,26 +454,6 @@ public final class NoiseStream: NSObject {
 
         socketBuffer = offset < buffer.count ? buffer.subdata(in: offset..<buffer.count) : nil
     }
-
-    /// Handle the authentication result.
-    private func handleAuthResult(_ authResult: Server_AuthResult) {
-        guard case .authorizing(let send, let recv) = state else {
-            DDLogError("noise/auth/error received auth result in state \(state)")
-            return
-        }
-        switch authResult.result {
-        case .success:
-            state = .connected(send, recv)
-        case .failure, .unknown, .UNRECOGNIZED:
-            state = .disconnected
-        }
-
-        self.delegate?.receivedAuthResult(authResult)
-    }
-
-    private let userAgent: String
-    private let userID: UserID
-    private let passiveMode: Bool
 
     private let socket: GCDAsyncSocket
     private let socketQueue = DispatchQueue(label: "hallo.noise", qos: .userInitiated)
