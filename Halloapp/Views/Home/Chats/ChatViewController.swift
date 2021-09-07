@@ -158,21 +158,21 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                         cell.addDateRow(timestamp: chatMessage.timestamp)
                     }
 
+                    cell.msgViewCellDelegate = self
                     cell.delegate = self
-                    
                     return cell
                 }
             } else {
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.inboundMsgViewCellReuseIdentifier, for: indexPath) as? InboundMsgViewCell {
                     cell.indexPath = indexPath
                     cell.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
-                    
+
                     if isNextMsgDifferentDay {
                         cell.addDateRow(timestamp: chatMessage.timestamp)
                     }
-                    
+
+                    cell.msgViewCellDelegate = self
                     cell.delegate = self
-                    
                     return cell
                 }
             }
@@ -1105,34 +1105,6 @@ extension ChatViewController {
     func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
         return UITableViewCell.EditingStyle.none
     }
-
-    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        guard let chatMessage = self.fetchedResultsController?.object(at: indexPath) else {
-            return UISwipeActionsConfiguration(actions: [])
-        }
-        guard chatMessage.incomingStatus != .retracted else { return nil }
-        guard ![.retracting, .retracted].contains(chatMessage.outgoingStatus) else { return nil }
-        
-        let action = UIContextualAction(style: .normal, title: Localizations.messageReply) { [weak self] (action, view, completionHandler) in
-            
-            if chatMessage.fromUserId == MainAppContext.shared.userData.userId {
-                guard let cell = tableView.cellForRow(at: indexPath) as? OutboundMsgViewCell else { return }
-                self?.handleQuotedReply(msg: chatMessage, mediaIndex: cell.mediaIndex)
-            } else {
-                guard let cell = tableView.cellForRow(at: indexPath) as? InboundMsgViewCell else { return }
-                self?.handleQuotedReply(msg: chatMessage, mediaIndex: cell.mediaIndex)
-            }
-            
-            completionHandler(true)
-        }
-        
-        action.backgroundColor = .systemBlue
-        action.image = UIImage(systemName: "arrowshape.turn.up.left.fill")
-        
-        let configuration = UISwipeActionsConfiguration(actions: [action])
-
-        return configuration
-    }
     
     private func handleQuotedReply(msg chatMessage: ChatMessage, mediaIndex: Int) {
         chatReplyMessageID = chatMessage.id
@@ -1284,6 +1256,27 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
         
         self.present(actionSheet, animated: true)
     }
+    
+}
+
+extension ChatViewController: MsgViewCellDelegate {
+
+    func msgViewCell(_ msgViewCell: MsgViewCell, replyTo msgId: String) {
+        guard let indexPath = msgViewCell.indexPath else { return }
+        guard let chatMessage = fetchedResultsController?.object(at: indexPath) else { return }
+
+        guard chatMessage.incomingStatus != .retracted else { return }
+        guard ![.retracting, .retracted].contains(chatMessage.outgoingStatus) else { return }
+
+        if chatMessage.fromUserId == MainAppContext.shared.userData.userId {
+            guard let cell = tableView.cellForRow(at: indexPath) as? OutboundMsgViewCell else { return }
+            handleQuotedReply(msg: chatMessage, mediaIndex: cell.mediaIndex)
+        } else {
+            guard let cell = tableView.cellForRow(at: indexPath) as? InboundMsgViewCell else { return }
+            handleQuotedReply(msg: chatMessage, mediaIndex: cell.mediaIndex)
+        }
+    }
+
 }
 
 // MARK: ChatInputView Delegates

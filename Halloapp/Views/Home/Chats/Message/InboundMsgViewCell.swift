@@ -22,17 +22,14 @@ protocol InboundMsgViewCellDelegate: AnyObject {
 }
 
 class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
-    
     weak var delegate: InboundMsgViewCellDelegate?
-    public var messageID: String? = nil
-    public var indexPath: IndexPath? = nil
-    
+
     public var mediaIndex: Int {
         get {
             return mediaImageView.currentPage
         }
     }
-    
+
     var currentPage: Int = 0
 
     func chatMediaSlider(_ view: ChatMediaSlider, currentPage: Int) {
@@ -79,23 +76,25 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
         return view
     }()
-    
+
     private lazy var bubbleRow: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
-        
+
         let view = UIStackView(arrangedSubviews: [ bubbleWrapper, spacer ])
         view.axis = .horizontal
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
-        
         bubbleWrapper.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        
         bubbleWrapper.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(MaxWidthOfMsgBubble).rounded()).isActive = true
-        
+
+        let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(panGestureCellAction))
+        panGestureRecognizer.delegate = self
+        view.addGestureRecognizer(panGestureRecognizer)
+
         return view
     }()
-    
+
     private lazy var bubbleWrapper: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ quotedRow, nameRow, mediaRow, textRow ])
         view.axis = .vertical
@@ -727,5 +726,17 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 extension InboundMsgViewCell: AudioViewDelegate {
     func audioView(_ view: AudioView, at time: String) {
         voiceNoteTimeLabel.text = time
+    }
+}
+
+// MARK: UIGestureRecognizer Delegates
+extension InboundMsgViewCell {
+
+    // used for swiping to reply
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard let panGestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer else { return false }
+        let velocity: CGPoint = panGestureRecognizer.velocity(in: bubbleRow)
+        if velocity.x < 0 { return false }
+        return abs(Float(velocity.x)) > abs(Float(velocity.y))
     }
 }

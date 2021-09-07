@@ -23,17 +23,14 @@ protocol OutboundMsgViewCellDelegate: AnyObject {
 }
 
 class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
-
     weak var delegate: OutboundMsgViewCellDelegate?
-    public var messageID: String? = nil
-    public var indexPath: IndexPath? = nil
-    
+
     public var mediaIndex: Int {
         get {
             return mediaImageView.currentPage
         }
     }
-    
+
     private var cancellableSet: Set<AnyCancellable> = []
  
     // MARK: Lifecycle
@@ -66,14 +63,14 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         mainViewBottomConstraint.priority = UILayoutPriority(rawValue: 999)
         mainViewBottomConstraint.isActive = true
     }
-    
+
     private lazy var mainView: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ dateColumn, bubbleRow ])
         view.axis = .vertical
         view.spacing = 0
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
-    
+
         return view
     }()
     
@@ -85,14 +82,16 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.axis = .horizontal
         
         view.translatesAutoresizingMaskIntoConstraints = false
-        
         bubbleWrapper.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        
         bubbleWrapper.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(MaxWidthOfMsgBubble).rounded()).isActive = true
-        
+
+        let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(panGestureCellAction))
+        panGestureRecognizer.delegate = self
+        view.addGestureRecognizer(panGestureRecognizer)
+
         return view
     }()
-    
+
     private lazy var bubbleWrapper: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ quotedRow, mediaRow, textRow ])
         view.axis = .vertical
@@ -748,3 +747,14 @@ extension OutboundMsgViewCell: AudioViewDelegate {
     }
 }
 
+// MARK: UIGestureRecognizer Delegates
+extension OutboundMsgViewCell {
+
+    // used for swiping to reply
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard let panGestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer else { return false }
+        let velocity: CGPoint = panGestureRecognizer.velocity(in: bubbleRow)
+        if velocity.x < 0 { return false }
+        return abs(Float(velocity.x)) > abs(Float(velocity.y))
+    }
+}
