@@ -6,6 +6,10 @@ on:
     branches: [ master ] # On push/commit to master (whenever `origin/master` receives a new commit)
   workflow_dispatch: # Manual trigger (run via Actions -> CI Workflow (lefthand side) -> Run workflow)
 
+# Environment
+env:
+  DEVELOPER_DIR: /Applications/Xcode_12.5.app/Contents/Developer
+        
 # Jobs to run. Each job is a seperate container and may/may not have dependency jobs (like finishing building before testing)
 jobs:
   # Compile the project. This job sets up the repository and subsequently builds the project.
