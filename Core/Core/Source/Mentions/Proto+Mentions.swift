@@ -47,6 +47,20 @@ public extension Clients_Text {
     var mentionText: MentionText {
         MentionText(collapsedText: text, mentions: mentionDictionary(from: mentions))
     }
+
+    init(mentionText: MentionText) {
+        self.init()
+        text = mentionText.collapsedText
+        mentions = mentionText.mentions
+            .map { (i, user) in
+                var clientMention = Clients_Mention()
+                clientMention.userID = user.userID
+                clientMention.name = user.pushName ?? ""
+                clientMention.index = Int32(i)
+                return clientMention
+            }
+            .sorted { $0.index < $1.index }
+    }
 }
 
 func mentionDictionary(from mentions: [Clients_Mention]) -> [Int: MentionedUser] {

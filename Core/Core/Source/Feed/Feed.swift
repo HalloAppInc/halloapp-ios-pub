@@ -359,11 +359,28 @@ public enum FeedRetract {
 public extension PostData {
 
     var clientContainer: Clients_Container? {
-        guard let postLegacy = clientPostLegacy else {
-            return nil
-        }
         var container = Clients_Container()
-        container.post = postLegacy
+        container.postContainer = clientPostContainer
+        if let postLegacy = clientPostLegacy {
+            container.post = postLegacy
+        }
+        return container
+    }
+
+    var clientPostContainer: Clients_PostContainer {
+        var container = Clients_PostContainer()
+        switch content {
+        case .text(let mentionText):
+            let text = Clients_Text(mentionText: mentionText)
+            container.post = .text(text)
+        case .album(let mentionText, let media):
+            var album = Clients_Album()
+            album.media = media.compactMap { $0.albumMedia }
+            album.text = Clients_Text(mentionText: mentionText)
+            container.post = .album(album)
+        case .retracted, .unsupported:
+            break
+        }
         return container
     }
 
@@ -418,17 +435,11 @@ public extension CommentData {
         var commentContainer = Clients_CommentContainer()
         switch content {
         case .text(let mentionText):
-            var clientText = Clients_Text()
-            clientText.text = mentionText.collapsedText
-            clientText.mentions = orderedMentions.map { $0.protoMention }
-            commentContainer.text = clientText
+            commentContainer.text = Clients_Text(mentionText: mentionText)
         case .album(let mentionText, let media):
             var album = Clients_Album()
             album.media = media.compactMap { $0.albumMedia }
-            var clientText = Clients_Text()
-            clientText.text = mentionText.collapsedText
-            clientText.mentions = orderedMentions.map { $0.protoMention }
-            album.text = clientText
+            album.text = Clients_Text(mentionText: mentionText)
             commentContainer.album = album
         case .voiceNote(let media):
             guard let protoResource = media.protoResource else { break }
