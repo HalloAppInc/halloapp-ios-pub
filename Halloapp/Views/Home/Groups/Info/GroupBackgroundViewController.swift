@@ -37,11 +37,11 @@ class GroupBackgroundViewController: UIViewController {
         DDLogInfo("EditGroupViewController/viewDidLoad")
 
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonSave, style: .done, target: self, action: #selector(updateAction))
-        navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
+        navigationItem.rightBarButtonItem?.tintColor = UIColor.primaryBlue
         
         navigationItem.title = Localizations.groupBgTitle
         navigationItem.standardAppearance = .transparentAppearance
-        navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
+        navigationItem.standardAppearance?.backgroundColor = UIColor.primaryBg
         
         view.addSubview(mainView)
         view.backgroundColor = UIColor.primaryBg

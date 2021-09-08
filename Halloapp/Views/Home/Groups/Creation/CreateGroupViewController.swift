@@ -195,7 +195,7 @@ class CreateGroupViewController: UIViewController {
         label.textAlignment = .left
         label.textColor = .secondaryLabel
         label.font = UIFont.preferredFont(forTextStyle: .caption1)
-        label.text = Localizations.chatGroupNameLabel
+        label.text = Localizations.chatGroupNameLabel.uppercased()
         label.translatesAutoresizingMaskIntoConstraints = false
         
         return label

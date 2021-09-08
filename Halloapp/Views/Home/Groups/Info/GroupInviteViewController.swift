@@ -146,7 +146,7 @@ class GroupInviteViewController: UIViewController {
         label.textAlignment = .left
         label.textColor = .secondaryLabel
         label.font = .systemFont(ofSize: 12)
-        label.text = Localizations.chatGroupNameLabel
+        label.text = Localizations.chatGroupNameLabel.uppercased()
         label.translatesAutoresizingMaskIntoConstraints = false
 
         return label

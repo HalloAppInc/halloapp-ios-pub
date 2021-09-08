@@ -14,8 +14,8 @@ import Foundation
 import UIKit
 
 fileprivate struct Constants {
-    static let MaxNameLength = 25
-    static let AvatarSize: CGFloat = UIScreen.main.bounds.height * 0.25
+    static let MaxLength = 25
+    static let NearMaxLength = 5
 }
 
 protocol EditGroupViewControllerDelegate: AnyObject {
@@ -44,7 +44,7 @@ class EditGroupViewController: UIViewController {
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
         
-        navigationItem.title = Localizations.chatEditGroupTitle
+        navigationItem.title = Localizations.chatGroupNameLabel
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         
@@ -62,81 +62,62 @@ class EditGroupViewController: UIViewController {
     func setupView() {
         view.addSubview(mainView)
         view.backgroundColor = UIColor.feedBackground
-        
+
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
-        
+
         mainView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
         mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-        
+
         textView.becomeFirstResponder()
-        
+
         updateCount()
     }
-    
+
     private lazy var mainView: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
-        
-        let view = UIStackView(arrangedSubviews: [ groupNameLabelRow, textView, spacer ])
-        
+
+        let view = UIStackView(arrangedSubviews: [ textView, countRow, spacer ])
+
         view.axis = .vertical
         view.spacing = 0
 
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
         view.isLayoutMarginsRelativeArrangement = true
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
-        
+
         return view
     }()
-    
-    private lazy var groupNameLabelRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [groupNameLabel])
-        view.axis = .horizontal
-        
-        view.layoutMargins = UIEdgeInsets(top: 50, left: 20, bottom: 5, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        return view
-    }()
-    
-    private lazy var groupNameLabel: UILabel = {
-        let label = UILabel()
-        label.textAlignment = .left
-        label.textColor = .secondaryLabel
-        label.font = .systemFont(ofSize: 12)
-        label.text = Localizations.chatGroupNameLabel
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        return label
-    }()
-    
+
     private lazy var textView: UITextView = {
         let view = UITextView()
         view.isScrollEnabled = false
         view.delegate = self
-        
+
         view.textAlignment = .left
         view.backgroundColor = .secondarySystemGroupedBackground
         view.font = UIFont.preferredFont(forTextStyle: .body)
         view.tintColor = .systemBlue
-        
+        view.layer.cornerRadius = 10
+
         view.textContainerInset = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
-        
+
         return view
     }()
-    
+
     private lazy var countRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [characterCounter])
         view.axis = .horizontal
-        
+
         view.layoutMargins = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
         view.isLayoutMarginsRelativeArrangement = true
-        
+
+        view.isHidden = true
         return view
     }()
     
@@ -145,10 +126,9 @@ class EditGroupViewController: UIViewController {
         label.textAlignment = .right
         label.textColor = .secondaryLabel
         label.font = UIFont.preferredFont(forTextStyle: .footnote)
-        
-        
+
         label.translatesAutoresizingMaskIntoConstraints = false
-        
+
         return label
     }()
     
@@ -178,27 +158,34 @@ class EditGroupViewController: UIViewController {
             }
         }
     }
-    
+
     // MARK: Helpers
     private func updateCount() {
-        textView.text = String(textView.text.prefix(Constants.MaxNameLength))
-        let label = String(textView.text.count)
-        characterCounter.text = "\(label)/\(Constants.MaxNameLength)"
+        let count = textView.text.count
+        if count >= Constants.MaxLength - Constants.NearMaxLength {
+            let countStr = String(count)
+            characterCounter.text = "\(countStr)/\(Constants.MaxLength)"
+            countRow.isHidden = false
+        } else {
+            countRow.isHidden = true
+        }
     }
-    
+
 }
 
 extension EditGroupViewController: UITextViewDelegate {
+
     func textViewDidChange(_ textView: UITextView) {
         updateCount()
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
     }
-}
 
-private extension Localizations {
-
-    static var chatEditGroupTitle: String {
-        NSLocalizedString("chat.edit.group.title", value: "Edit", comment: "Title of group name edit screen")
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        // disable newlines
+        guard text.rangeOfCharacter(from: CharacterSet.newlines) == nil else { return false }
+        let isTextTooLong = textView.text.count + (text.count - range.length) > Constants.MaxLength
+        return isTextTooLong ? false : true
     }
-    
+
 }
+

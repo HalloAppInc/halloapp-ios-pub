@@ -63,7 +63,7 @@ extension Localizations {
     }
     
     static var chatGroupNameLabel: String {
-        NSLocalizedString("chat.group.name.label", value: "GROUP NAME", comment: "Label shown above group name input box")
+        NSLocalizedString("chat.group.name.label", value: "Group Name", comment: "Label shown above group name input box")
     }
     
     static var groupDescriptionLabel: String {

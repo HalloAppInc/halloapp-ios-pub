@@ -15,6 +15,7 @@ import UIKit
 
 fileprivate struct Constants {
     static let MaxLength = 500
+    static let NearMaxLength = 100
 }
 
 protocol EditGroupDescViewControllerDelegate: AnyObject {
@@ -40,12 +41,12 @@ class EditGroupDescViewController: UIViewController {
         DDLogInfo("EditGroupViewController/viewDidLoad")
 
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonSave, style: .plain, target: self, action: #selector(updateAction))
-        navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
+        navigationItem.rightBarButtonItem?.tintColor = UIColor.primaryBlue
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
         
-        navigationItem.title = Localizations.groupEditDescTitle
+        navigationItem.title = Localizations.groupDescriptionLabel
         navigationItem.standardAppearance = .transparentAppearance
-        navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
+        navigationItem.standardAppearance?.backgroundColor = UIColor.primaryBg
         
         setupView()
     }
@@ -78,64 +79,45 @@ class EditGroupDescViewController: UIViewController {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ groupDescLabelRow, textView, spacer ])
+        let view = UIStackView(arrangedSubviews: [textView, countRow, spacer])
         
         view.axis = .vertical
         view.spacing = 0
 
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
         
         return view
     }()
-    
-    private lazy var groupDescLabelRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [groupDescLabel])
-        view.axis = .horizontal
-        
-        view.layoutMargins = UIEdgeInsets(top: 50, left: 20, bottom: 5, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        return view
-    }()
-    
-    private lazy var groupDescLabel: UILabel = {
-        let label = UILabel()
-        label.textAlignment = .left
-        label.textColor = .secondaryLabel
-        label.font = .systemFont(ofSize: 12)
-        label.text = Localizations.groupDescriptionLabel.uppercased()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        return label
-    }()
-    
+
     private lazy var textView: UITextView = {
         let view = UITextView()
         view.isScrollEnabled = false
         view.delegate = self
-        
+
         view.textAlignment = .left
         view.backgroundColor = .secondarySystemGroupedBackground
         view.font = UIFont.preferredFont(forTextStyle: .body)
         view.tintColor = .systemBlue
-        
+        view.layer.cornerRadius = 10
+
         view.textContainerInset = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
-        
+
         return view
     }()
     
     private lazy var countRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [characterCounter])
         view.axis = .horizontal
-        
+
         view.layoutMargins = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
         view.isLayoutMarginsRelativeArrangement = true
-        
+
+        view.isHidden = true
         return view
     }()
     
@@ -175,28 +157,31 @@ class EditGroupDescViewController: UIViewController {
             }
         }
     }
-    
+
     // MARK: Helpers
     private func updateCount() {
-        textView.text = String(textView.text.prefix(Constants.MaxLength))
-        let label = String(textView.text.count)
-        characterCounter.text = "\(label)/\(Constants.MaxLength)"
+        let count = textView.text.count
+        if count >= Constants.MaxLength - Constants.NearMaxLength {
+            let countStr = String(count)
+            characterCounter.text = "\(countStr)/\(Constants.MaxLength)"
+            countRow.isHidden = false
+        } else {
+            countRow.isHidden = true
+        }
     }
 
 }
 
 extension EditGroupDescViewController: UITextViewDelegate {
+
     func textViewDidChange(_ textView: UITextView) {
         updateCount()
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
     }
-}
 
-private extension Localizations {
-
-    static var groupEditDescTitle: String {
-        NSLocalizedString("group.edit.desc.title", value: "Edit", comment: "Title of group description edit screen")
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        let isTextTooLong = textView.text.count + (text.count - range.length) > Constants.MaxLength
+        return isTextTooLong ? false : true
     }
-
 }
 
