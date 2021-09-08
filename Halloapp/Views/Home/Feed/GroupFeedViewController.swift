@@ -101,7 +101,7 @@ class GroupFeedViewController: FeedCollectionViewController {
     }
 
     override func viewWillAppear(_ animated: Bool) {
-        DDLogInfo("GroupViewController/viewWillAppear")
+        DDLogInfo("GroupFeedViewController/viewWillAppear")
         super.viewWillAppear(animated)
         titleView.update(with: groupId)
 
@@ -116,7 +116,7 @@ class GroupFeedViewController: FeedCollectionViewController {
     }
 
     override func viewWillDisappear(_ animated: Bool) {
-        DDLogInfo("GroupViewController/viewWillDisappear")
+        DDLogInfo("GroupFeedViewController/viewWillDisappear")
         super.viewWillDisappear(animated)
 
         navigationController?.navigationBar.tintColor = .label
