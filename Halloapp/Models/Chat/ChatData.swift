@@ -1069,7 +1069,7 @@ class ChatData: ObservableObject {
                     do {
                         let sourceUrl = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
                         let encryptedFileUrl = chatMedia.outgoingStatus == .error ? sourceUrl.appendingPathExtension("enc") : nil
-                        DDLogInfo("ChatData/mergeSharedData/media/\(messageId)/sourceUrl: \(sourceUrl), encryptedFileUrl: \(encryptedFileUrl), \(media.status)")
+                        DDLogInfo("ChatData/mergeSharedData/media/\(messageId)/sourceUrl: \(sourceUrl), encryptedFileUrl: \(encryptedFileUrl?.absoluteString ?? "[nil]"), \(media.status)")
                         try copyFiles(toChatMedia: chatMedia, fileUrl: sourceUrl, encryptedFileUrl: encryptedFileUrl)
                     } catch {
                         DDLogError("ChatData/mergeSharedData/media/copy-media/error [\(error)]")

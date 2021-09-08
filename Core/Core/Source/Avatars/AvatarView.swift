@@ -123,7 +123,7 @@ public class AvatarView: UIView {
         avatarUpdatingCancellable?.cancel()
         avatarUpdatingCancellable = userAvatar.imageDidChange.sink { [weak self] image in
             guard let self = self else { return }
-            DDLogInfo("ImageDidChange received, size: \(image?.size)")
+            DDLogInfo("ImageDidChange received, size: \(image?.size ?? .zero)")
             self.hasImage = image != nil
             if let image = image {
                 self.avatar.image = image

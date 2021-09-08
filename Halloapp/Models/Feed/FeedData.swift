@@ -2343,7 +2343,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         var numberOfFailedUploads = 0
         var totalUploadSize = 0
         let totalUploads = 1
-        let startTime = Date()
         DDLogInfo("FeedData/upload-media/commentID/\(feedComment.id)/starting [\(totalUploads)]")
 
         let uploadGroup = DispatchGroup()
