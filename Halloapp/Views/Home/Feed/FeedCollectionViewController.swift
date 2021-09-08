@@ -165,6 +165,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     }
 
     override func viewWillAppear(_ animated: Bool) {
+        DDLogInfo("FeedCollectionViewController/viewWillAppear")
         super.viewWillAppear(animated)
 
         isVisible = true
@@ -179,6 +180,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     }
 
     override func viewWillDisappear(_ animated: Bool) {
+        DDLogInfo("FeedCollectionViewController/viewWillDisappear")
         super.viewWillDisappear(animated)
 
         stopAllVideoPlayback()

@@ -107,7 +107,7 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         tableView.register(GroupsInCommonHeaderView.self, forHeaderFooterViewReuseIdentifier: "sectionHeader2")
         tableView.register(ThreadListCell.self, forCellReuseIdentifier: GroupsInCommonViewController.cellReuseIdentifier)
         tableView.delegate = self
-        tableView.dataSource = self
+//        tableView.dataSource = self
         
         tableView.backgroundView = UIView() // fixes issue where bg color was off when pulled down from top
         tableView.backgroundColor = .primaryBg

@@ -3631,9 +3631,8 @@ extension ChatData {
 
     private func processGroupChangeDescriptionAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("ChatData/group/processGroupChangeDescriptionAction")
-        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
-        // bug: server is not sending description for the change_description event yet
-//        group.desc = xmppGroup.description
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        group.desc = xmppGroup.description
         save(managedObjectContext)
         recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
         getAndSyncGroup(groupId: xmppGroup.groupId)
