@@ -19,7 +19,7 @@ public enum PostContent {
     case unsupported(Data)
 }
 
-public struct PostData: FeedPostProtocol {
+public struct PostData {
 
     // MARK: FeedItem
     public let id: FeedPostID
@@ -69,6 +69,13 @@ public struct PostData: FeedPostProtocol {
             .sorted { $0.index < $1.index }
     }
 
+    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), isShared: Bool = false) {
+        self.id = id
+        self.userId = userId
+        self.content = content
+        self.timestamp = timestamp
+        self.isShared = isShared
+    }
 
     public init?(_ serverPost: Server_Post, isShared: Bool = false) {
         self.init(id: serverPost.id,
@@ -79,14 +86,10 @@ public struct PostData: FeedPostProtocol {
     }
 
     public init?(id: String, userId: UserID, timestamp: Date, payload: Data, isShared: Bool = false) {
-        self.id = id
-        self.userId = userId
-        self.timestamp = timestamp
-        self.isShared = isShared
         guard let processedContent = PostData.extractContent(postId: id, payload: payload) else {
             return nil
         }
-        self.content = processedContent
+        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, isShared: isShared)
     }
 
     public static func extractContent(postId: String, payload: Data) -> PostContent? {
@@ -156,6 +159,16 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.size = size
         self.key = key
         self.sha256 = sha256
+    }
+
+    public init(from media: FeedMediaProtocol) {
+        self.init(
+            id: media.id,
+            url: media.url,
+            type: media.type,
+            size: media.size,
+            key: media.key,
+            sha256: media.sha256)
     }
 
     public let id: String

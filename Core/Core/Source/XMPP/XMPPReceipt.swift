@@ -37,19 +37,6 @@ public struct XMPPReceipt: Equatable {
         self.thread = thread
     }
 
-    private init(feedItem: FeedItemProtocol) {
-        self.itemId = feedItem.id
-        self.userId = feedItem.userId
-        self.type = .read
-        self.thread = .feed
-        // Server timestamps outgoing receipts.
-        self.timestamp = nil
-    }
-
-    public static func seenReceipt(for feedItem: FeedItemProtocol) -> XMPPReceipt {
-        return XMPPReceipt(feedItem: feedItem)
-    }
-
     public static func == (lhs: XMPPReceipt, rhs: XMPPReceipt) -> Bool {
         if lhs.type != rhs.type { return false }
         if lhs.itemId != rhs.itemId { return false }

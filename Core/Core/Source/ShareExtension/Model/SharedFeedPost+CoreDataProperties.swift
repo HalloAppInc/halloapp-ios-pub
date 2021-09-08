@@ -73,7 +73,32 @@ extension SharedFeedPost {
 
 }
 
-extension SharedFeedPost: FeedPostProtocol {
+extension SharedFeedPost {
+
+    private var postContent: PostContent {
+        let mentionText = MentionText(
+            collapsedText: text ?? "",
+            mentionArray: Array(mentions ?? []))
+
+        if let media = media, !media.isEmpty {
+            let mediaData: [FeedMediaData] = media
+                .sorted { $0.order < $1.order }
+                .map { FeedMediaData(from: $0) }
+
+            return .album(mentionText, mediaData)
+        } else {
+            return .text(mentionText)
+        }
+    }
+
+    public var postData: PostData {
+        return PostData(
+            id: id,
+            userId: userId,
+            content: postContent,
+            timestamp: timestamp)
+    }
+
     public var orderedMentions: [FeedMentionProtocol] {
         guard let mentions = mentions else { return [] }
         return mentions.sorted { $0.index < $1.index }

@@ -11,7 +11,7 @@ import Foundation
 
 public final class ProtoPublishPostRequest: ProtoRequest<Date> {
 
-    public init?(post: FeedPostProtocol, feed: Feed, completion: @escaping Completion) {
+    public init?(post: PostData, feed: Feed, completion: @escaping Completion) {
         var isGroupFeedRequest: Bool
         let payload: Server_Iq.OneOf_Payload
         switch feed {
@@ -42,7 +42,7 @@ public final class ProtoPublishPostRequest: ProtoRequest<Date> {
             completion: completion)
     }
 
-    private static func pbGroupFeedItem(post: FeedPostProtocol, groupId: GroupID) -> Server_GroupFeedItem? {
+    private static func pbGroupFeedItem(post: PostData, groupId: GroupID) -> Server_GroupFeedItem? {
         guard let serverPost = post.serverPost else {
             return nil
         }
@@ -53,7 +53,7 @@ public final class ProtoPublishPostRequest: ProtoRequest<Date> {
         return pbGroupFeedItem
     }
 
-    private static func pbFeedItem(post: FeedPostProtocol, audience: FeedAudience) -> Server_FeedItem? {
+    private static func pbFeedItem(post: PostData, audience: FeedAudience) -> Server_FeedItem? {
         guard var serverPost = post.serverPost else {
             return nil
         }

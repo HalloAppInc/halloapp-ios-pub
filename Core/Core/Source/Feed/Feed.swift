@@ -30,18 +30,6 @@ public enum FeedMediaType: Int {
     case audio = 2
 }
 
-
-// MARK: Feed Item Protocol
-
-public protocol FeedItemProtocol {
-
-    var id: String { get }
-
-    var userId: String { get }
-
-    var timestamp: Date { get }
-}
-
 // MARK: Feed Mention
 
 public protocol FeedMentionProtocol {
@@ -53,6 +41,19 @@ public protocol FeedMentionProtocol {
     var name: String { get }
 }
 
+public extension MentionText {
+    init(collapsedText: String, mentionArray: [FeedMentionProtocol]) {
+        self.init(
+            collapsedText: collapsedText,
+            mentions: Self.mentionDictionary(from: mentionArray))
+    }
+
+    private static func mentionDictionary(from mentions: [FeedMentionProtocol]) -> [Int: MentionedUser] {
+        Dictionary(uniqueKeysWithValues: mentions.map {
+            (Int($0.index), MentionedUser(userID: $0.userID, pushName: $0.name))
+        })
+    }
+}
 
 public extension FeedMentionProtocol {
     var protoMention: Clients_Mention {
@@ -355,16 +356,7 @@ public enum FeedRetract {
 
 // MARK: Feed Post
 
-public protocol FeedPostProtocol: FeedItemProtocol {
-
-    var text: String? { get }
-
-    var orderedMentions: [FeedMentionProtocol] { get }
-
-    var orderedMedia: [FeedMediaProtocol] { get }
-}
-
-public extension FeedPostProtocol {
+public extension PostData {
 
     var clientContainer: Clients_Container? {
         guard let postLegacy = clientPostLegacy else {
@@ -384,7 +376,7 @@ public extension FeedPostProtocol {
         post.mentions = orderedMentions.map { $0.protoMention }
         post.media = orderedMedia.compactMap { $0.protoMessage }
         if post.media.count < orderedMedia.count {
-            DDLogError("FeedPostProtocol/\(id)/error [media not ready]")
+            DDLogError("PostData/clientPostLegacy/\(id)/error [media not ready]")
             return nil
         }
         return post
@@ -401,7 +393,7 @@ public extension FeedPostProtocol {
         if let payload = try? clientContainer?.serializedData() {
             post.payload = payload
         } else {
-            DDLogError("FeedPostProtocol/serverPost/\(id)/error [could not create payload]")
+            DDLogError("PostData/serverPost/\(id)/error [could not create payload]")
             return nil
         }
         return post

@@ -73,7 +73,36 @@ extension FeedPost {
     }
 }
 
-extension FeedPost: FeedPostProtocol {
+extension FeedPost {
+
+    private var postContent: PostContent {
+        guard !isPostRetracted else {
+            return .retracted
+        }
+
+        let mentionText = MentionText(
+            collapsedText: text ?? "",
+            mentionArray: Array(mentions ?? []))
+
+        if let media = media, !media.isEmpty {
+            let mediaData: [FeedMediaData] = media
+                .sorted { $0.order < $1.order }
+                .map { FeedMediaData(from: $0) }
+
+            return .album(mentionText, mediaData)
+        } else {
+            return .text(mentionText)
+        }
+    }
+
+    public var postData: PostData {
+        return PostData(
+            id: id,
+            userId: userId,
+            content: postContent,
+            timestamp: timestamp)
+    }
+
     public var orderedMentions: [FeedMentionProtocol] {
         get {
             guard let mentions = self.mentions else { return [] }

@@ -406,7 +406,7 @@ extension ProtoServiceCore: CoreService {
         enqueue(request: ProtoWhisperGetBundleRequest(targetUserId: userID, completion: completion))
     }
 
-    public func publishPost(_ post: FeedPostProtocol, feed: Feed, completion: @escaping ServiceRequestCompletion<Date>) {
+    public func publishPost(_ post: PostData, feed: Feed, completion: @escaping ServiceRequestCompletion<Date>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {

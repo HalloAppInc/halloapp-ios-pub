@@ -44,13 +44,7 @@ public class FeedDownloadManager {
         public init(media: FeedMediaProtocol, feedElementType: FeedElementType) {
             self.id = Self.taskId(for: media)
             self.feedElementType = feedElementType
-            self.mediaData = FeedMediaData(
-                id: media.id,
-                url: media.url,
-                type: media.type,
-                size: media.size,
-                key: media.key,
-                sha256: media.sha256)
+            self.mediaData = FeedMediaData(from: media)
         }
 
         public static func == (lhs: Task, rhs: Task) -> Bool {

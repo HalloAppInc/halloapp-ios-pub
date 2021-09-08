@@ -997,18 +997,10 @@ class ContactStoreMain: ContactStore {
     func textWithMentions(_ collapsedText: String?, mentions: [FeedMentionProtocol]) -> NSAttributedString? {
         guard let collapsedText = collapsedText else { return nil }
 
-        let mentionText = MentionText(
-            collapsedText: collapsedText,
-            mentions: mentionDictionary(from: mentions))
+        let mentionText = MentionText(collapsedText: collapsedText, mentionArray: mentions)
 
         return mentionText.expandedText { userID in
             self.mentionName(for: userID, pushName: mentions.first(where: { userID == $0.userID })?.name)
         }
     }
-}
-
-private func mentionDictionary(from mentions: [FeedMentionProtocol]) -> [Int: MentionedUser] {
-    Dictionary(uniqueKeysWithValues: mentions.map {
-        (Int($0.index), MentionedUser(userID: $0.userID, pushName: $0.name))
-    })
 }

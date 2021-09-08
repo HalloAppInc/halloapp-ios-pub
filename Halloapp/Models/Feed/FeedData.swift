@@ -1240,7 +1240,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         dispatchGroup.notify(queue: .main) {
             feedPosts.filter({ !postIdsToFilterOut.contains($0.id) }).forEach { (feedPost) in
-                guard let protoContainer = feedPost.clientContainer else { return }
+                guard let protoContainer = feedPost.postData.clientContainer else { return }
                 let protobufData = try? protoContainer.serializedData()
                 let metadataContentType: NotificationContentType = feedPost.groupId == nil ? .feedPost : .groupFeedPost
                 let metadata = NotificationMetadata(contentId: feedPost.id,
@@ -1388,7 +1388,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             save(viewContext)
 
             // Request to retract.
-            service.retractPost(feedPost) { result in
+            service.retractPost(feedPost.id) { result in
                 switch result {
                 case .success:
                     DDLogInfo("FeedData/retract/postId \(feedPost.id), retract request was successful")
@@ -2176,7 +2176,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         let postId = post.id
-        service.publishPost(post, feed: feed) { result in
+        service.publishPost(post.postData, feed: feed) { result in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPost(with: postId) { (feedPost) in

@@ -54,7 +54,7 @@ public protocol CoreService {
 
     // MARK: Feed
     func requestMediaUploadURL(size: Int, downloadURL: URL?, completion: @escaping ServiceRequestCompletion<MediaURLInfo?>)
-    func publishPost(_ post: FeedPostProtocol, feed: Feed, completion: @escaping ServiceRequestCompletion<Date>)
+    func publishPost(_ post: PostData, feed: Feed, completion: @escaping ServiceRequestCompletion<Date>)
     func publishComment(_ comment: CommentData, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date>)
 
     // MARK: Keys

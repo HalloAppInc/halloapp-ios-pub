@@ -894,8 +894,8 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoRetractCommentRequest(id: id, postID: postID, completion: completion))
     }
 
-    func retractPost(_ post: FeedPostProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoRetractPostRequest(id: post.id, completion: completion))
+    func retractPost(_ id: FeedPostID, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoRetractPostRequest(id: id, completion: completion))
     }
 
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {

@@ -111,18 +111,9 @@ extension FeedPostComment {
         guard !text.isEmpty else {
             return nil
         }
-        guard let mentions = mentions, !mentions.isEmpty else {
-            return MentionText(collapsedText: text, mentions: [:])
-        }
         return MentionText(
             collapsedText: text,
-            mentions: mentionDictionary(from: Array(mentions)))
-    }
-
-    private func mentionDictionary(from mentions: [FeedMentionProtocol]) -> [Int: MentionedUser] {
-        Dictionary(uniqueKeysWithValues: mentions.map {
-            (Int($0.index), MentionedUser(userID: $0.userID, pushName: $0.name))
-        })
+            mentionArray: Array(mentions ?? []))
     }
 }
 
