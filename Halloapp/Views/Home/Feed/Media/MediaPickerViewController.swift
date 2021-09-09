@@ -547,7 +547,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
     
     private func makeDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, PHAsset> {
-        let source = UICollectionViewDiffableDataSource<Int, PHAsset>(collectionView: collectionView) { collectionView, indexPath, asset in
+        let source = UICollectionViewDiffableDataSource<Int, PHAsset>(collectionView: collectionView) { [weak self] collectionView, indexPath, asset in
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AssetViewCell.reuseIdentifier, for: indexPath) as? AssetViewCell else {
                 return nil
             }
