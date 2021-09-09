@@ -30,9 +30,20 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
         self.media.computeSize()
     }
 
-    private func computeSize(containerSize: CGSize, contentSize: CGSize) -> CGSize {
-        // .scaleAspectFit
-        let scale = min(containerSize.width / contentSize.width, containerSize.height / contentSize.height)
+    private func shouldScaleToFit() -> Bool {
+        return delegate?.shouldTransitionScaleToFit() ?? true
+    }
+
+    private func computeSize(scaleToFit: Bool = true, containerSize: CGSize, contentSize: CGSize) -> CGSize {
+        var scale: CGFloat
+
+        if scaleToFit {
+            // .scaleAspectFit
+            scale = min(containerSize.width / contentSize.width, containerSize.height / contentSize.height)
+        } else {
+            // .scaleAspectFill
+            scale = max(containerSize.width / contentSize.width, containerSize.height / contentSize.height)
+        }
 
         let width = min(containerSize.width, contentSize.width * scale)
         let height = min(containerSize.height, contentSize.height * scale)
@@ -40,44 +51,26 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
         return CGSize(width: width, height: height)
     }
 
-    private func computeScaleAspectFit(containerSize: CGSize, contentSize: CGSize, transitionSize: CGSize) -> CGFloat {
-        guard contentSize.width != 0 && contentSize.height != 0 && transitionSize.width != 0 && transitionSize.height != 0 else {
-            return 0
-        }
-
-        let contentFitScale = min(containerSize.width / contentSize.width, containerSize.height / contentSize.height)
-        let transitionFitScale = min(contentSize.width / transitionSize.width, contentSize.height / transitionSize.height)
-
-        return contentFitScale * transitionFitScale
-    }
-
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         return 0.4
     }
 
     func getTransitionView() -> UIView? {
-        if media.type == .image {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+
+        switch media.type {
+        case .image:
             guard let image = media.image else { return nil }
-
-            let imageView = UIImageView(image: image)
-            imageView.contentMode = .scaleAspectFit
-
-            return imageView
-        } else if media.type == .video {
+            imageView.image = image
+        case .video:
             guard let url = media.url else { return nil }
-
-            let videoView = VideoTransitionView()
-            videoView.player = AVPlayer(url: url)
-            videoView.playerLayer.videoGravity = .resizeAspect
-
-            if presenting, let index = originIndex, let time = delegate?.currentTimeForVideo(atPostion: index) {
-                videoView.player?.seek(to: time)
-            }
-
-            return videoView
+            guard let image = VideoUtils.videoPreviewImage(url: url) else { return nil }
+            imageView.image = image
         }
 
-        return nil
+        return imageView
     }
 
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -111,51 +104,45 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
         let fromView = transitionContext.view(forKey: .from)
         let fromViewStartFrame = transitionContext.initialFrame(for: fromController)
         let toViewFinalFrame = transitionContext.finalFrame(for: toController)
-        let originMediaSize = computeSize(containerSize: originFrame.size, contentSize: media.size)
+        let originMediaSize = computeSize(scaleToFit: shouldScaleToFit(), containerSize: originFrame.size, contentSize: media.size)
 
-        var transitionViewFinalCenter = CGPoint.zero
-        var transitionViewFinalTransform = CGAffineTransform.identity
+        var transitionViewFinalCenter: CGPoint
+        var transitionViewFinalSize: CGSize
 
         if presenting {
-            let scale = computeScaleAspectFit(containerSize: toViewFinalFrame.size, contentSize: media.size, transitionSize: originMediaSize)
-            transitionViewFinalTransform = CGAffineTransform(scaleX: scale, y: scale)
-
             transitionView.frame.size = originMediaSize
             transitionView.center = CGPoint(x: originFrame.midX, y: originFrame.midY)
             toView?.alpha = 0.0
             transitionViewFinalCenter = CGPoint(x: toViewFinalFrame.midX, y: toViewFinalFrame.midY)
+            transitionViewFinalSize = computeSize(containerSize: toViewFinalFrame.size, contentSize: media.size)
         } else {
             if let interactiveTransitionView = interactiveTransitionView {
-                let scale = computeScaleAspectFit(containerSize: interactiveTransitionView.frame.size, contentSize: media.size, transitionSize: originMediaSize)
-                transitionViewFinalTransform = scale == 0 ? .identity : CGAffineTransform(scaleX: 1 / scale, y: 1 / scale)
-
-                transitionView.frame.size = originMediaSize.applying(CGAffineTransform(scaleX: scale, y: scale))
+                transitionView.frame.size = computeSize(containerSize: interactiveTransitionView.frame.size, contentSize: media.size)
                 transitionView.center = interactiveTransitionView.center
                 interactiveTransitionView.removeFromSuperview()
             } else {
-                let scale = computeScaleAspectFit(containerSize: fromViewStartFrame.size, contentSize: media.size, transitionSize: originMediaSize)
-                transitionViewFinalTransform = scale == 0 ? .identity : CGAffineTransform(scaleX: 1 / scale, y: 1 / scale)
-
-                transitionView.frame.size = originMediaSize.applying(CGAffineTransform(scaleX: scale, y: scale))
+                transitionView.frame.size = computeSize(containerSize: fromViewStartFrame.size, contentSize: media.size)
                 transitionView.center = CGPoint(x: fromViewStartFrame.midX, y: fromViewStartFrame.midY)
             }
 
+            transitionViewFinalSize = originMediaSize
             transitionViewFinalCenter = CGPoint(x: originFrame.midX, y: originFrame.midY)
         }
 
         transitionContext.containerView.addSubview(transitionView)
         explorer.hideCollectionView()
 
+        transitionContext.containerView.setNeedsLayout()
+
         UIView.animate(withDuration: transitionDuration(using: nil), animations: { [weak self] in
             guard let self = self else { return }
 
+            transitionView.frame.size = transitionViewFinalSize
+            transitionView.center = transitionViewFinalCenter
+
             if self.presenting {
-                transitionView.center = transitionViewFinalCenter
-                transitionView.transform = transitionViewFinalTransform
                 toView?.alpha = 1.0
             } else {
-                transitionView.center = transitionViewFinalCenter
-                transitionView.transform = transitionViewFinalTransform
                 fromView?.alpha = 0.0
             }
         }) { [weak self] _ in
@@ -259,24 +246,5 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
         guard let context = context, interactiveTransitionView != nil else { return }
         context.finishInteractiveTransition()
         runTransition(using: context)
-    }
-}
-
-fileprivate class VideoTransitionView: UIView {
-    var player: AVPlayer? {
-        get {
-            return playerLayer.player
-        }
-        set {
-            playerLayer.player = newValue
-        }
-    }
-
-    var playerLayer: AVPlayerLayer {
-        return layer as! AVPlayerLayer
-    }
-
-    override static var layerClass: AnyClass {
-        return AVPlayerLayer.self
     }
 }

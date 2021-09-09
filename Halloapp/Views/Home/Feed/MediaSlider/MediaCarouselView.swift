@@ -451,6 +451,10 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
         return nil
     }
+
+    func shouldTransitionScaleToFit() -> Bool {
+        return configuration.alwaysScaleToFitContent
+    }
 }
 
 fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {

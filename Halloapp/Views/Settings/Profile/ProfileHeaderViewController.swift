@@ -510,6 +510,10 @@ extension ProfileHeaderViewController: MediaExplorerTransitionDelegate {
     func currentTimeForVideo(atPostion index: Int) -> CMTime? {
         return nil
     }
+
+    func shouldTransitionScaleToFit() -> Bool {
+        return true
+    }
 }
 
 extension Localizations {

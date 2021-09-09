@@ -273,6 +273,10 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
     func currentTimeForVideo(atPostion index: Int) -> CMTime? {
         return nil
     }
+
+    func shouldTransitionScaleToFit() -> Bool {
+        return true
+    }
 }
 
 struct SliderMedia {

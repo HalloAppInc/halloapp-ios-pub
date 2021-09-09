@@ -18,6 +18,7 @@ protocol MediaExplorerTransitionDelegate: AnyObject {
     func getTransitionView(atPostion index: Int) -> UIView?
     func scrollMediaToVisible(atPostion index: Int)
     func currentTimeForVideo(atPostion index: Int) -> CMTime?
+    func shouldTransitionScaleToFit() -> Bool
 }
 
 class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UIScrollViewDelegate, UIGestureRecognizerDelegate, UIViewControllerTransitioningDelegate {
@@ -747,6 +748,10 @@ extension MediaExplorerController: MediaExplorerTransitionDelegate {
     func showCollectionView() {
         collectionView.isHidden = false
     }
+
+    func shouldTransitionScaleToFit() -> Bool {
+        return true
+    }
 }
 
 // MARK: NSFetchedResultsControllerDelegate
@@ -833,6 +838,10 @@ extension UIImageView: MediaExplorerTransitionDelegate {
 
     func currentTimeForVideo(atPostion index: Int) -> CMTime? {
         return nil
+    }
+
+    func shouldTransitionScaleToFit() -> Bool {
+        return contentMode == .scaleAspectFit
     }
 }
 
