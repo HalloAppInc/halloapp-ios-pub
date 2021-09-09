@@ -208,7 +208,9 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             let options = PHFetchOptions()
             options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
 
-            if let album = album {
+            let recent = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil).firstObject
+
+            if let album = album ?? recent {
                 // Unable to filter album assets by type, will filter them in snapshot manager
                 self.snapshotManager.reset(with: PHAsset.fetchAssets(in: album, options: options))
             } else {
@@ -225,6 +227,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             let snapshot = self.snapshotManager.next()
             
             DispatchQueue.main.async {
+                self.setupNavigationBar(title: (album ?? recent)?.localizedTitle)
                 self.dataSource.apply(snapshot)
                 self.showLimitedAccessBubbleIfNecessary()
             }
@@ -763,7 +766,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             
             if !cancel {
                 self.collectionView.scrollToItem(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
-                self.setupNavigationBar(title: album?.localizedTitle)
                 self.fetchAssets(album: album)
             }
         }
