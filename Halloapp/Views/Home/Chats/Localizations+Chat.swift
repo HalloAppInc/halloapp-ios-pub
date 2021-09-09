@@ -37,7 +37,7 @@ extension Localizations {
     }
 
     static var chatMessageAudio: String {
-        NSLocalizedString("chat.message.audio", value: "Voice note", comment: "Message text shown in a message that have audio media but no text")
+        NSLocalizedString("chat.message.audio", value: "Voice message", comment: "Message text shown in a message that have audio media but no text")
     }
     
     static func threadListPreviewAlreadyUserDefault(name: String) -> String {

@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import AVFoundation
 import Combine
 import Core
 import UIKit
@@ -24,6 +25,14 @@ protocol OutboundMsgViewCellDelegate: AnyObject {
 
 class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     weak var delegate: OutboundMsgViewCellDelegate?
+
+    static private let voiceNoteDurationFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.zeroFormattingBehavior = .pad
+        formatter.allowedUnits = [.second, .minute]
+
+        return formatter
+    }()
 
     public var mediaIndex: Int {
         get {
@@ -470,6 +479,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             if let media = quoted.media, let item = media.first(where: { $0.order == mediaIndex }) {
                 let fileURL = item.mediaUrl
 
+                quotedImageView.isUserInteractionEnabled = FileManager.default.fileExists(atPath: fileURL.path)
+                quotedImageView.isHidden = false
+
                 if let thumbnailData = item.previewData, item.type != .audio {
                     quotedImageView.image = UIImage(data: thumbnailData)
                 } else {
@@ -489,17 +501,32 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                             DDLogError("OutgoingMsgView/quoted/no-video-preview/fileURL \(fileURL)")
                         }
                     case .audio:
-                        quotedImageView.contentMode = .scaleAspectFit
-                        quotedImageView.image = UIImage(systemName: "mic.fill")
+                        quotedImageView.image = nil
+                        quotedImageView.isHidden = true
 
-                        if quotedTextView.text.isEmpty {
-                            quotedTextView.text = Localizations.chatMessageAudio
+                        let text = NSMutableAttributedString()
+
+                        if let icon = UIImage(named: "Microphone")?.withTintColor(.systemGray) {
+                            let attachment = NSTextAttachment(image: icon)
+                            attachment.bounds = CGRect(x: 0, y: -2, width: 13, height: 13)
+
+                            text.append(NSAttributedString(attachment: attachment))
                         }
+
+                        text.append(NSAttributedString(string: Localizations.chatMessageAudio))
+
+                        if FileManager.default.fileExists(atPath: fileURL.path) {
+                            let duration = Self.voiceNoteDurationFormatter.string(from: AVURLAsset(url: fileURL).duration.seconds) ?? ""
+                            text.append(NSAttributedString(string: " (" + duration + ")"))
+                        }
+
+                        quotedTextView.attributedText = text.with(
+                            font: UIFont.preferredFont(forTextStyle: .footnote),
+                            color: UIColor.systemGray)
                     }
                 }
 
-                quotedImageView.isUserInteractionEnabled = FileManager.default.fileExists(atPath: fileURL.path)
-                quotedImageView.isHidden = false
+
             }
             
             quotedRow.isHidden = false

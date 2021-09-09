@@ -36,6 +36,14 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     weak var delegate: ChatInputViewDelegate?
     weak var mentionsDelegate: ChatInputViewMentionsDelegate?
 
+    static private let voiceNoteDurationFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.zeroFormattingBehavior = .pad
+        formatter.allowedUnits = [.second, .minute]
+
+        return formatter
+    }()
+
     private var previousHeight: CGFloat = 0
     
     private var isVisible: Bool = false
@@ -710,6 +718,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
 
         if let type = mediaType, let url = mediaUrl {
+            quoteFeedPanelImage.isHidden = false
+
             switch type {
             case .image:
                 if let image = UIImage(contentsOfFile: url.path) {
@@ -722,15 +732,28 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                     quoteFeedPanelImage.image = image
                 }
             case .audio:
-                quoteFeedPanelImage.contentMode = .scaleAspectFit
-                quoteFeedPanelImage.image = UIImage(systemName: "mic.fill")
+                quoteFeedPanelImage.isHidden = true
 
-                if quoteFeedPanelTextLabel.text?.isEmpty != false {
-                    quoteFeedPanelTextLabel.text = Localizations.chatMessageAudio
+                let text = NSMutableAttributedString()
+
+                if let icon = UIImage(named: "Microphone")?.withTintColor(.systemGray) {
+                    let attachment = NSTextAttachment(image: icon)
+                    attachment.bounds = CGRect(x: 0, y: -3, width: 16, height: 16)
+
+                    text.append(NSAttributedString(attachment: attachment))
                 }
-            }
 
-            quoteFeedPanelImage.isHidden = false
+                text.append(NSAttributedString(string: Localizations.chatMessageAudio))
+
+                if FileManager.default.fileExists(atPath: url.path) {
+                    let duration = Self.voiceNoteDurationFormatter.string(from: AVURLAsset(url: url).duration.seconds) ?? ""
+                    text.append(NSAttributedString(string: " (" + duration + ")"))
+                }
+
+                quoteFeedPanelTextLabel.attributedText = text.with(
+                    font: UIFont.preferredFont(forTextStyle: .subheadline),
+                    color: UIColor.secondaryLabel)
+            }
         } else {
             quoteFeedPanelImage.isHidden = true
         }
