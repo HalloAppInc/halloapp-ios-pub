@@ -89,25 +89,22 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         tableView.constrain(to: view)
 
         installEmptyView()
-  
+
         tableView.register(GroupsListHeaderView.self, forHeaderFooterViewReuseIdentifier: "sectionHeader")
         tableView.register(ThreadListCell.self, forCellReuseIdentifier: GroupsListViewController.cellReuseIdentifier)
         tableView.delegate = self
         tableView.dataSource = self
-        
+
         tableView.backgroundView = UIView() // fixes issue where bg color was off when pulled down from top
         tableView.backgroundColor = .primaryBg
         tableView.separatorStyle = .none
         tableView.contentInset = UIEdgeInsets(top: -10, left: 0, bottom: 0, right: 0) // -10 to hide top padding on searchBar
-                
-        tableView.tableHeaderView = searchController.searchBar
-        tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
-        
+
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60 // set a number close to default to prevent cells overlapping issue, can't be auto
-        
+
         setupFetchedResultsController()
-                
+
         // When the user was on this view
         cancellableSet.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
@@ -147,6 +144,11 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("GroupsListViewController/viewWillAppear")
         super.viewWillAppear(animated)
+    }
+    
+    override func viewDidLayoutSubviews() {
+        tableView.tableHeaderView = searchController.searchBar
+        tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -500,7 +502,7 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
 
         cell.configureAvatarSize(Constants.AvatarSize)
         cell.configureForGroupsList(with: chatThread, squareSize: Constants.AvatarSize)
-  
+
         if isFiltering {
             let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
             let searchItems = strippedString.components(separatedBy: " ")
@@ -573,11 +575,11 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
 // MARK: UISearchController SearchBar Delegates
 extension GroupsListViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        DispatchQueue.main.async {
-            self.scrollToTop(animated: false)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.scrollToTop(animated: false)
         }
     }
-    
+
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
         searchBar.setShowsCancelButton(false, animated: true)
     }

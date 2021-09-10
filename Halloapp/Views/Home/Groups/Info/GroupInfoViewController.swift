@@ -234,7 +234,12 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     }
 
     private func reloadData(animated: Bool = true) {
+        DispatchQueue.main.async { [weak self] in
+            self?.reloadDataInMainQueue(animated: animated)
+        }
+    }
 
+    private func reloadDataInMainQueue(animated: Bool = true) {
         /* description section */
         var descriptionRows = [Row]()
         let description = chatGroup?.desc ?? ""
@@ -306,9 +311,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         snapshot.appendItems(contactRows, toSection: .contacts(numContacts: numContacts))
 
         dataSource?.defaultRowAnimation = .fade
-        DispatchQueue.main.async { [weak self] in
-            self?.dataSource?.apply(snapshot, animatingDifferences: animated)
-        }
+        dataSource?.apply(snapshot, animatingDifferences: animated)
     }
 
     // MARK: Actions

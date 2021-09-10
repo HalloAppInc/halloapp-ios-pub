@@ -18,17 +18,14 @@ fileprivate struct Constants {
     static let AvatarSize: CGFloat = 56
 }
 
-fileprivate enum ChatListViewSection {
-    case main
-}
-
 class ChatListViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
+    private let tableView = UITableView(frame: CGRect.zero, style: .grouped)
     private static let cellReuseIdentifier = "ThreadListCell"
     private static let inviteFriendsReuseIdentifier = "ChatListInviteFriendsCell"
-    private let tableView = UITableView(frame: CGRect.zero, style: .grouped)
     
     private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
+    private var dataSource: ChatsListDataSource?
     
     private var isVisible: Bool = false
     private var cancellableSet: Set<AnyCancellable> = []
@@ -49,7 +46,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 
     // MARK: Lifecycle
-    
+
     init(title: String) {
         super.init(nibName: nil, bundle: nil)
         self.title = title
@@ -90,20 +87,45 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         tableView.register(ThreadListCell.self, forCellReuseIdentifier: ChatListViewController.cellReuseIdentifier)
         tableView.register(ChatListInviteFriendsTableViewCell.self, forCellReuseIdentifier: ChatListViewController.inviteFriendsReuseIdentifier)
         tableView.delegate = self
-        tableView.dataSource = self
         
         tableView.backgroundView = UIView() // fixes issue where bg color was off when pulled down from top
         tableView.backgroundColor = .primaryBg
         tableView.separatorStyle = .none
         tableView.contentInset = UIEdgeInsets(top: -10, left: 0, bottom: 0, right: 0) // -10 to hide top padding on searchBar
-
-        tableView.tableHeaderView = searchController.searchBar
-        tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
         
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60 // set a number close to default to prevent cells overlapping issue, can't be auto
 
+        dataSource = ChatsListDataSource(tableView: tableView) { [weak self] (tableView, indexPath, row) in
+            guard let self = self else { return UITableViewCell() }
+            if indexPath.section == 0 {
+                switch row {
+                case .chat:
+                    guard let chatThread = self.chatThread(at: indexPath) else {
+                        let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.inviteFriendsReuseIdentifier, for: indexPath)
+                        return cell
+                    }
+                    let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
+
+                    cell.configureAvatarSize(Constants.AvatarSize)
+                    cell.configureForChatsList(with: chatThread, squareSize: Constants.AvatarSize)
+                    self.updateCellWithChatState(cell: cell, chatThread: chatThread)
+
+                    if self.isFiltering {
+                        let searchStr = self.searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
+                        cell.highlightTitle([searchStr])
+                    }
+                    return cell
+                case .inviteFriendsAndFamily:
+                    let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.inviteFriendsReuseIdentifier, for: indexPath)
+                    return cell
+                }
+            }
+            return UITableViewCell()
+        }
+
         setupFetchedResultsController()
+        reloadData(animated: false)
 
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] in
@@ -113,7 +135,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 }
             }
         )
-        
+
         // When the user was on this view
         cancellableSet.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
@@ -121,7 +143,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 self.processNotification(metadata: metadata)
             }
         )
-        
+
         cancellableSet.insert(
             MainAppContext.shared.didTapIntent.sink(receiveValue: { [weak self] intent in
                 guard let intent = intent as? INSendMessageIntent else { return }
@@ -141,14 +163,19 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             processNotification(metadata: metadata)
         }
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("ChatListViewController/viewWillAppear")
         super.viewWillAppear(animated)
         populateWithAllContacts()
-        tableView.reloadData()
+        reloadData(animated: false)
     }
-    
+
+    override func viewDidLayoutSubviews() {
+        tableView.tableHeaderView = searchController.searchBar
+        tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         isVisible = true
@@ -252,10 +279,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         return fetchRequest
     }
 
-    private var trackPerRowFRCChanges = false
-
-    private var reloadTableViewInDidChangeContent = false
-
     private func setupFetchedResultsController() {
         fetchedResultsController = createFetchedResultsController()
         do {
@@ -276,80 +299,56 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         return fetchedResultsController
     }
 
-    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        reloadTableViewInDidChangeContent = false
-        trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
-        
-        DDLogDebug("ChatListView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
-        
-        if trackPerRowFRCChanges {
-            tableView.beginUpdates()
-        }
-
-        updateEmptyView()
-    }
-
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        switch type {
-        case .insert:
-            guard let indexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
-            DDLogDebug("ChatListView/frc/insert [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
-            if trackPerRowFRCChanges && !isFiltering {
-                tableView.insertRows(at: [ indexPath ], with: .automatic)
-            } else {
-                reloadTableViewInDidChangeContent = true
-            }
-
-        case .delete:
-            guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { break }
-            DDLogDebug("ChatListView/frc/delete [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
-      
-            if trackPerRowFRCChanges && !isFiltering {
-                tableView.deleteRows(at: [ indexPath ], with: .left)
-            } else {
-                reloadTableViewInDidChangeContent = true
-            }
-            
-        case .move:
-            guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
-            DDLogDebug("ChatListView/frc/move [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] from [\(fromIndexPath)] to [\(toIndexPath)]")
-            if trackPerRowFRCChanges && !isFiltering {
-                tableView.moveRow(at: fromIndexPath, to: toIndexPath)
-            } else {
-                reloadTableViewInDidChangeContent = true
-            }
-        case .update:
-            guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { return }
-            DDLogDebug("ChatListView/frc/update [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
-            
-            if trackPerRowFRCChanges && !isFiltering {
-                tableView.reloadRows(at: [indexPath], with: .automatic)
-            } else {
-                reloadTableViewInDidChangeContent = true
-            }
-        default:
-            break
-        }
-
-        updateEmptyView()
-    }
-
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("ChatListView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
-        if trackPerRowFRCChanges {
-            tableView.endUpdates()
+        DDLogDebug("ChatListView/controllerDidChangeContent")
+        reloadData()
+        updateEmptyView()
+    }
+
+    private func reloadData(animated: Bool = true) {
+        DispatchQueue.main.async { [weak self] in
+            self?.reloadDataInMainQueue(animated: animated)
         }
-        if reloadTableViewInDidChangeContent || isFiltering {
-            tableView.reloadData()
+    }
+
+    private func reloadDataInMainQueue(animated: Bool = false) {
+        var chatThreads: [ChatThread] = []
+
+        if isFiltering {
+            chatThreads.append(contentsOf: filteredChats.map {$0} )
+        } else if let objects = fetchedResultsController?.fetchedObjects {
+            chatThreads.append(contentsOf: objects.map {$0} )
         }
 
-        updateEmptyView()
+        var chatRows = [Row]()
+        chatRows.append(contentsOf: chatThreads.map {
+            var chatThreadData = ChatThreadData(chatWithUserID: $0.chatWithUserId ?? "", lastMsgID: $0.lastMsgId ?? "", lastMsgStatus: $0.lastMsgStatus, isNew: $0.isNew)
+            if isFiltering {
+                let searchStr = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
+                chatThreadData.searchStr = searchStr
+            }
+            return Row.chat(chatThreadData)
+        })
+
+        if !isFiltering {
+            chatRows.append(Row.inviteFriendsAndFamily)
+        }
+
+        /* apply snapshot */
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
+      
+        snapshot.appendSections([ .chats ])
+        snapshot.appendItems(chatRows, toSection: .chats)
+
+        dataSource?.defaultRowAnimation = .fade
+
+        dataSource?.apply(snapshot, animatingDifferences: animated)
     }
 
     private var lastCheckedForNewContacts: Date?
-        
+
     // MARK: Actions
-    
+
     @objc private func openComposeChatAction() {
         showComposeChat()
     }
@@ -438,10 +437,9 @@ extension ChatListViewController: ChatListHeaderViewDelegate {
 }
 
 // MARK: UITableView Delegates
-extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
-        
+extension ChatListViewController: UITableViewDelegate {
+
     func chatThread(at indexPath: IndexPath) -> ChatThread? {
-        
         if isFiltering {
             return filteredChats[indexPath.row]
         }
@@ -457,48 +455,9 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
         view.delegate = self
         return view
     }
-    
+
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return 25
-    }
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
-        
-        if isFiltering {
-            return 1
-        }
-        
-        return fetchedResultsController?.sections?.count ?? 0
-    }
-
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
-        if isFiltering {
-            return filteredChats.count
-        }
-        
-        guard let sections = fetchedResultsController?.sections else { return 0 }
-        return sections[section].numberOfObjects + 1
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let chatThread = chatThread(at: indexPath) else {
-            let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.inviteFriendsReuseIdentifier, for: indexPath)
-            return cell
-        }
-        let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
-
-        cell.configureAvatarSize(Constants.AvatarSize)
-        cell.configureForChatsList(with: chatThread, squareSize: Constants.AvatarSize)
-        updateCellWithChatState(cell: cell, chatThread: chatThread)
-  
-        if isFiltering {
-            let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
-            let searchItems = strippedString.components(separatedBy: " ")
-            cell.highlightTitle(searchItems)
-        }
-
-        return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -549,43 +508,32 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
 
 // MARK: UISearchController Updating Delegates
 extension ChatListViewController: UISearchResultsUpdating {
-    
+
     func updateSearchResults(for searchController: UISearchController) {
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
         guard let searchBarText = searchController.searchBar.text else { return }
-    
-        let strippedString = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces)
-        
-        let searchItems = strippedString.components(separatedBy: " ")
-        
-        filteredChats = allChats.filter {
-            var titleText: String? = nil
-            if $0.type == .group {
-                titleText = $0.title
-            } else {
-                titleText = MainAppContext.shared.contactStore.fullName(for: $0.chatWithUserId ?? "")
-            }
 
-            guard let title = titleText else { return false }
-        
-            for item in searchItems {
-                if title.lowercased().contains(item.lowercased()) {
-                    return true
-                }
+        let searchStr = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces)
+
+        filteredChats = allChats.filter {
+            guard let chatWithUserID = $0.chatWithUserId else { return false }
+            let title = MainAppContext.shared.contactStore.fullName(for: chatWithUserID)
+            if title.lowercased().contains(searchStr.lowercased()) {
+                return true
             }
             return false
         }
         DDLogDebug("ChatListViewController/updateSearchResults/filteredChats count \(filteredChats.count) for: \(searchBarText)")
-        
-        tableView.reloadData()
+
+        reloadData(animated: false)
     }
 }
 
 // MARK: UISearchController SearchBar Delegates
 extension ChatListViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        DispatchQueue.main.async {
-            self.scrollToTop(animated: false)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.scrollToTop(animated: false)
         }
     }
     
@@ -675,6 +623,58 @@ class ChatListHeaderView: UITableViewHeaderFooterView {
 
     @objc func openInviteView (_ sender: UITapGestureRecognizer) {
         self.delegate?.chatListHeaderView(self)
+    }
+}
+
+fileprivate class ChatsListDataSource: UITableViewDiffableDataSource<Section, Row> {
+
+    // when using UITableViewDiffableDataSource, canEditRowAt needs to be set to enable swipe to delete
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+}
+
+fileprivate struct ChatThreadData {
+    let chatWithUserID: UserID
+    let lastMsgID: String
+    let lastMsgStatus: ChatThread.LastMsgStatus
+    let isNew: Bool
+    var searchStr: String? = nil
+}
+
+extension ChatThreadData : Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(chatWithUserID)
+        hasher.combine(lastMsgID)
+        hasher.combine(lastMsgStatus)
+        hasher.combine(isNew)
+        hasher.combine(searchStr)
+    }
+}
+
+extension ChatThreadData : Equatable {
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        return  lhs.chatWithUserID == rhs.chatWithUserID &&
+                lhs.lastMsgID == rhs.lastMsgID &&
+                lhs.lastMsgStatus == rhs.lastMsgStatus &&
+                lhs.isNew == rhs.isNew &&
+                lhs.searchStr == rhs.searchStr
+    }
+}
+
+fileprivate enum Section: Hashable {
+    case chats
+}
+
+fileprivate enum Row: Hashable, Equatable {
+    case chat(ChatThreadData)
+    case inviteFriendsAndFamily
+
+    var chat: ChatThreadData? {
+        switch self {
+        case .chat(let chatThreadData): return chatThreadData
+        case .inviteFriendsAndFamily: return nil
+        }
     }
 }
 
