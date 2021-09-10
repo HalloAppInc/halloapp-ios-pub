@@ -1570,7 +1570,7 @@ class ChatHeaderView: UIView {
         view.spacing = 20
         view.setCustomSpacing(20, after: encryptionBubble)
 
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 40, bottom: 0, right: 40)
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 20, bottom: 0, right: 20)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
