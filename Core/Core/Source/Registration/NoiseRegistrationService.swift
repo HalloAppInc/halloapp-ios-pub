@@ -18,11 +18,14 @@ enum NoiseRegistrationError: Error {
 }
 
 public final class NoiseRegistrationService: RegistrationService {
-    public init(userAgent: String = AppContext.userAgent,
-         hostName: String = "s.halloapp.net",
-         port: UInt16 = 5208,
-         httpHostName: String = "api.halloapp.net")
+    public init(
+        noiseKeys: NoiseKeys,
+        userAgent: String = AppContext.userAgent,
+        hostName: String = "s.halloapp.net",
+        port: UInt16 = 5208,
+        httpHostName: String = "api.halloapp.net")
     {
+        self.noiseKeys = noiseKeys
         self.userAgent = userAgent
         self.hostName = hostName
         self.port = port
@@ -229,6 +232,7 @@ public final class NoiseRegistrationService: RegistrationService {
     // MARK: Private
 
     private let userAgent: String
+    private let noiseKeys: NoiseKeys
     private let hostName: String
     private let port: UInt16
     private let httpHostName: String
@@ -262,7 +266,7 @@ public final class NoiseRegistrationService: RegistrationService {
             break
         case .disconnecting, .notConnected:
             // Leave request in queue, it will be included with handshake
-            noiseStream?.connect(host: hostName, port: port)
+            noiseStream.connect(host: hostName, port: port)
         }
     }
 
@@ -274,11 +278,11 @@ public final class NoiseRegistrationService: RegistrationService {
         }
 
         activeResponseHandler = completion
-        noiseStream?.send(requestData)
+        noiseStream.send(requestData)
         let timeoutHandler = DispatchWorkItem { [weak self] in
             self?.activeResponseHandler?(.failure(NoiseRegistrationError.timeout))
             self?.activeResponseHandler = nil
-            self?.noiseStream?.disconnect()
+            self?.noiseStream.disconnect()
             self?.sendNextRequestWhenReady()
         }
 
@@ -287,8 +291,7 @@ public final class NoiseRegistrationService: RegistrationService {
         timeoutHandlerTask = timeoutHandler
     }
 
-    private lazy var noiseStream: NoiseStream? = {
-        guard let noiseKeys = NoiseKeys() else { return nil }
+    private lazy var noiseStream: NoiseStream = {
         return NoiseStream(
             noiseKeys: noiseKeys,
             serverStaticKey: nil,

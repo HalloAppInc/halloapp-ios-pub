@@ -21,6 +21,10 @@ public enum Credentials {
     }
 }
 
+private struct UserDefaultsKey {
+    static let loggedOutNoiseKeys = "LoggedOutNoiseKeys"
+}
+
 public final class UserData: ObservableObject {
     
     private var isAppClip: Bool
@@ -160,8 +164,15 @@ public final class UserData: ObservableObject {
 
     // MARK: Noise
 
-    public func generateNoiseKeysForRegistration() -> NoiseKeys? {
-        return NoiseKeys()
+    public var loggedOutNoiseKeys: NoiseKeys? {
+        let savedKeys = try? UserDefaults.shared.codable(forKey: UserDefaultsKey.loggedOutNoiseKeys) as NoiseKeys?
+        if let savedKeys = savedKeys {
+            return savedKeys
+        } else {
+            guard let newKeys = NoiseKeys() else { return nil }
+            try? UserDefaults.shared.setCodable(newKeys, forKey: UserDefaultsKey.loggedOutNoiseKeys)
+            return newKeys
+        }
     }
 
     // MARK: CoreData Stack

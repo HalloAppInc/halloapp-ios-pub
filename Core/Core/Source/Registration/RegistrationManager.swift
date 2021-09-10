@@ -67,7 +67,7 @@ public final class DefaultRegistrationManager: RegistrationManager {
         let userData = AppContext.shared.userData
         let keyData = AppContext.shared.keyData
 
-        guard let noiseKeys = userData.generateNoiseKeysForRegistration(),
+        guard let noiseKeys = NoiseKeys(),
               let userKeys = keyData?.generateUserKeys() else
         {
             completion(.failure(VerificationCodeValidationError.keyGenerationError))
