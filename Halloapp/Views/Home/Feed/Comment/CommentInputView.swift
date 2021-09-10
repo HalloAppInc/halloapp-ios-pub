@@ -265,6 +265,24 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         return mediaView
     }()
 
+    lazy var duration: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .right
+        label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+        label.textColor = .white
+
+        return label
+    }()
+
+    static private let durationFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.zeroFormattingBehavior = .pad
+        formatter.allowedUnits = [.second, .minute]
+
+        return formatter
+    }()
+
     private lazy var mediaCloseButton: UIButton = {
         let closeButton = UIButton(type: .custom)
         closeButton.bounds.size = CGSize(width: closeButtonDiameter, height: closeButtonDiameter)
@@ -630,6 +648,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         uploadMedia = media
         // Prepare cell for reuse
         if vStack.arrangedSubviews.contains(mediaPanel) {
+            duration.removeFromSuperview()
             mediaView.image = nil
             mediaView.removeFromSuperview()
             mediaCloseButton.removeFromSuperview()
@@ -638,13 +657,24 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         }
         if media.type == .image {
             mediaView.image = media.image
+            mediaPanel.addSubview(mediaView)
         } else if media.type == .video {
             guard let url = media.fileURL else { return }
             mediaView.image = VideoUtils.videoPreviewImage(url: url)
+            let videoAsset = AVURLAsset(url: url)
+            let interval = TimeInterval(CMTimeGetSeconds(videoAsset.duration))
+            if var formatted = Self.durationFormatter.string(from: interval) {
+                // Display 1:33 instead of 01:33, but keep 0:33
+                if formatted.hasPrefix("0") == true && formatted.count > 4 {
+                    formatted = String(formatted.dropFirst())
+                }
+                duration.text = formatted
+            }
+            mediaPanel.addSubview(mediaView)
+            mediaPanel.addSubview(duration)
         } else {
-         return
+            return
         }
-        mediaPanel.addSubview(mediaView)
 
         let closeButtonRadius = closeButtonDiameter / 2
         mediaView.topAnchor.constraint(equalTo: mediaPanel.layoutMarginsGuide.topAnchor, constant: closeButtonRadius).isActive = true
@@ -660,6 +690,15 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             mediaCloseButton.leadingAnchor.constraint(equalTo: mediaView.trailingAnchor, constant: -x).isActive = true
             let y = imageRect.origin.y > 0 ? (imageRect.origin.y + closeButtonRadius) : closeButtonRadius
             mediaCloseButton.bottomAnchor.constraint(equalTo: mediaView.topAnchor, constant: y).isActive = true
+
+            // Display video duration label inside the image
+            if media.type == .video {
+                let timeLabelInset = CGFloat(6)
+                let x = imageRect.origin.x > 0 ? (imageRect.origin.x + timeLabelInset) : timeLabelInset
+                duration.rightAnchor.constraint(equalTo: mediaView.rightAnchor, constant: -x).isActive = true
+                let y = imageRect.origin.y > 0 ? (imageRect.origin.y + timeLabelInset) : timeLabelInset
+                duration.bottomAnchor.constraint(equalTo: mediaView.bottomAnchor, constant: -y).isActive = true
+            }
         }
 
         // Add tap gesture to the media view

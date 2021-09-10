@@ -892,9 +892,9 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     func commentInputViewDidTapSelectedMedia(_ inputView: CommentInputView, mediaToEdit: PendingMedia) {
-        let editController = MediaEditViewController(mediaToEdit: [mediaToEdit], selected: nil) { controller, media, selected, cancel in
+        let editController = MediaEditViewController(mediaToEdit: [mediaToEdit], selected: nil) { [weak self] controller, media, selected, cancel in
             controller.dismiss(animated: true)
-            self.commentsInputView.showMediaPanel(with: media[selected])
+            self?.commentsInputView.showMediaPanel(with: media[selected])
         }.withNavigationController()
         present(editController, animated: true)
     }
