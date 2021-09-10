@@ -62,8 +62,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     static private let cellReuseIdentifier = "CommentCell"
     static private let cellHighlightAnimationDuration = 0.15
     static private let sectionMain = 0
-    
-    private var uploadMedia: PendingMedia?
+
     private var mediaPickerController: MediaPickerViewController?
     private var cancellableSet: Set<AnyCancellable> = []
 
@@ -850,7 +849,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText, andMedia media: PendingMedia?) {
-        postComment(text: text, media: media ?? self.uploadMedia)
+        postComment(text: text, media: media)
     }
 
     func postComment(text: MentionText, media: PendingMedia?) {
@@ -865,7 +864,6 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         }
 
         replyContext = nil
-        uploadMedia = nil
         commentsInputView.clear()
 
         preventAdjustContentOffsetOnChatBarBottomInsetChangeCounter += 1
@@ -879,7 +877,6 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     func commentInputViewResetInputMedia(_ inputView: CommentInputView) {
-        self.uploadMedia = nil
         commentsInputView.removeMediaPanel()
     }
 
@@ -892,6 +889,14 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         }))
 
         present(alert, animated: true)
+    }
+
+    func commentInputViewDidTapSelectedMedia(_ inputView: CommentInputView, mediaToEdit: PendingMedia) {
+        let editController = MediaEditViewController(mediaToEdit: [mediaToEdit], selected: nil) { controller, media, selected, cancel in
+            controller.dismiss(animated: true)
+            self.commentsInputView.showMediaPanel(with: media[selected])
+        }.withNavigationController()
+        present(editController, animated: true)
     }
 
     private func refreshCommentInputViewReplyPanel() {
@@ -950,7 +955,6 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
                 self.dismissMediaPicker(animated: true)
                 return
             }
-            self.uploadMedia = media
             if media.ready.value {
                 self.commentsInputView.showMediaPanel(with: media)
             } else {

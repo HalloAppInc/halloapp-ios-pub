@@ -314,6 +314,7 @@ class CommentView: UIView {
                 textCommentLabel.attributedText = textWithMentions?.with(font: font, color: .label).applyingFontForMentions(boldFont)
 
                 vStack.insertArrangedSubview(textCommentLabel, at: vStack.arrangedSubviews.count - 1)
+                vStack.setCustomSpacing(4, after: mediaView)
             }
         } else {
             // No media, set name and append text to name label

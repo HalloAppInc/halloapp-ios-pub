@@ -24,6 +24,7 @@ protocol CommentInputViewDelegate: AnyObject {
     func commentInputViewResetReplyContext(_ inputView: CommentInputView)
     func commentInputViewResetInputMedia(_ inputView: CommentInputView)
     func commentInputViewMicrophoneAccessDenied(_ inputView: CommentInputView)
+    func commentInputViewDidTapSelectedMedia(_ inputView: CommentInputView, mediaToEdit: PendingMedia)
 }
 
 class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
@@ -43,6 +44,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private var voiceNoteRecorder = AudioRecorder()
     private var isVoiceNoteRecordingLocked = false
+
+    private var uploadMedia: PendingMedia?
 
     private var isPostButtonEnabled: Bool {
         get {
@@ -287,7 +290,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         backgroundView.topAnchor.constraint(equalTo: mediaPanel.topAnchor).isActive = true
         backgroundView.trailingAnchor.constraint(equalTo: mediaPanel.trailingAnchor).isActive = true
         backgroundView.bottomAnchor.constraint(equalTo: mediaPanel.bottomAnchor).isActive = true
-
         return mediaPanel
     }()
 
@@ -398,6 +400,13 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         picker.isHidden = true // Hide until content is set
         picker.didSelectItem = { [weak self] item in self?.acceptMentionPickerItem(item) }
         return picker
+    }()
+    
+    private lazy var tapRecognizer: UITapGestureRecognizer = {
+        let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapMediaAction))
+        tapRecognizer.numberOfTouchesRequired = 1
+        tapRecognizer.numberOfTapsRequired = 1
+        return tapRecognizer
     }()
 
     override init(frame: CGRect) {
@@ -612,7 +621,13 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.delegate?.commentInputViewResetInputMedia(self)
     }
 
+    @objc private func tapMediaAction(sender: UITapGestureRecognizer) {
+        guard let pendingMedia = uploadMedia else { return }
+        delegate?.commentInputViewDidTapSelectedMedia(self, mediaToEdit: pendingMedia)
+    }
+
     func showMediaPanel(with media : PendingMedia) {
+        uploadMedia = media
         // Prepare cell for reuse
         if vStack.arrangedSubviews.contains(mediaPanel) {
             mediaView.image = nil
@@ -646,12 +661,16 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             let y = imageRect.origin.y > 0 ? (imageRect.origin.y + closeButtonRadius) : closeButtonRadius
             mediaCloseButton.bottomAnchor.constraint(equalTo: mediaView.topAnchor, constant: y).isActive = true
         }
+
+        // Add tap gesture to the media view
+        mediaPanel.addGestureRecognizer(tapRecognizer)
         postButton.isEnabled = isPostButtonEnabled
         updatePostButtons()
     }
 
     func removeMediaPanel() {
         // remove media panel from stack
+        uploadMedia = nil
         mediaCloseButton.removeFromSuperview()
         mediaView.image = nil
         vStack.removeArrangedSubview(mediaPanel)
@@ -665,6 +684,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     // MARK: Text view
 
     func clear() {
+        uploadMedia = nil
         textView.text = ""
         textView.resetMentions()
         removeMediaPanel()
@@ -703,7 +723,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             delegate?.commentInputView(self, wantsToSend: text, andMedia: media)
         } else {
             acceptAutoCorrection()
-            delegate?.commentInputView(self, wantsToSend: mentionText.trimmed(), andMedia: nil)
+            delegate?.commentInputView(self, wantsToSend: mentionText.trimmed(), andMedia: uploadMedia)
         }
     }
     
