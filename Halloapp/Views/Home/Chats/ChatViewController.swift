@@ -382,7 +382,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         
         draftsArray.append(draft)
         
-        try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: "chats.drafts")
+        try? AppContext.shared.userDefaults.setCodable(draftsArray, forKey: "chats.drafts")
     }
     
     private func encodeReplyData() -> ReplyContext? {
@@ -470,7 +470,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             existingDraft.chatID == fromUserId
         }
         
-        try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: "chats.drafts")
+        try? AppContext.shared.userDefaults.setCodable(draftsArray, forKey: "chats.drafts")
     }
     
     // MARK:

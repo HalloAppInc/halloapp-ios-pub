@@ -229,7 +229,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         draftsArray.append(draft)
         
 
-        try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: Self.postCommentDraftKey)
+        try? AppContext.shared.userDefaults.setCodable(draftsArray, forKey: Self.postCommentDraftKey)
     }
   
     private func loadCommentsDraft() {
@@ -259,7 +259,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             existingDraft.postID == feedPostId
         }
         
-        try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: "posts.comments.drafts")
+        try? AppContext.shared.userDefaults.setCodable(draftsArray, forKey: "posts.comments.drafts")
     }
     
     override func viewDidLayoutSubviews() {

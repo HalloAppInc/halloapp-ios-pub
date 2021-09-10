@@ -2867,7 +2867,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         
         draftsArray.removeAll(where: condition)
         
-        try? AppContext.shared.userDefaults.setValue(value: draftsArray, forKey: CommentsViewController.postCommentDraftKey)
+        try? AppContext.shared.userDefaults.setCodable(draftsArray, forKey: CommentsViewController.postCommentDraftKey)
     }
     
     // MARK: Merge Data

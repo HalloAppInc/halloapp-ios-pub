@@ -20,7 +20,7 @@ extension UserDefaults {
         return decodedData
     }
     
-    public func setValue<T: Codable>(value: T, forKey key: String) throws {
+    public func setCodable<T: Codable>(_ value: T, forKey key: String) throws {
         let data = try PropertyListEncoder().encode(value)
         return setValue(data, forKey: key)
     }
