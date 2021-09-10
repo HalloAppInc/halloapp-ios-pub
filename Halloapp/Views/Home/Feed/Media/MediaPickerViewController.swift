@@ -143,12 +143,25 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
 
         limitedAccessBubble = makeLimitedAccessBubble()
 
-        self.navigationController?.presentationController?.delegate = self
         setupZoom()
         setupPreviews()
 
         PHPhotoLibrary.shared().register(self)
         fetchAssets()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        guard let navigationController = navigationController else { return }
+
+        // iOS will leak this view controller if we access a full screen
+        // navigation controller's presentation controller: http://www.openradar.me/FB7621238
+
+        let isFullscreen = navigationController.view.bounds == UIScreen.main.bounds
+        if !isFullscreen {
+            navigationController.presentationController?.delegate = self
+        }
     }
 
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {

@@ -974,7 +974,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     func dismissMediaPicker(animated: Bool) {
-        if mediaPickerController != nil {
+        if mediaPickerController != nil && presentedViewController != nil {
             dismiss(animated: true)
         }
         mediaPickerController = nil
