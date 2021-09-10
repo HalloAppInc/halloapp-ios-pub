@@ -983,6 +983,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
 extension CommentsViewController: CommentViewDelegate {
     func commentView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
+        self.commentsInputView.hideKeyboard()
         commentToScrollTo = feedPostCommentID
         let canSavePost = false
         guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID) else { return }
