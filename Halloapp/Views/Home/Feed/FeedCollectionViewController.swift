@@ -332,11 +332,16 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         noConnectionBanner.translatesAutoresizingMaskIntoConstraints = false
         noConnectionBanner.isHidden = true
         view.addSubview(noConnectionBanner)
-        noConnectionBanner.constrain([.leading, .trailing, .top], to: view.safeAreaLayoutGuide)
+        noConnectionBanner.constrainMargin(anchor: .leading, to: view, constant: -4)
+        noConnectionBanner.constrainMargin(anchor: .bottom, to: view, constant: -12)
+
+        // TODO: Avoid hardcoding this size
+        let spaceForFloatingMenu: CGFloat = 80
+        noConnectionBanner.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -spaceForFloatingMenu).isActive = true
     }
 
     /// Hides banner immediately if connected, otherwise waits for timeout to decide whether to show banner
-    private func updateNoConnectionBanner(animated: Bool, timeout: TimeInterval = 10) {
+    private func updateNoConnectionBanner(animated: Bool, timeout: TimeInterval = 2) {
         guard UIApplication.shared.applicationState == .active else {
             return
         }
@@ -356,10 +361,12 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     private func showNoConnectionBanner(animated: Bool) {
         guard noConnectionBanner.isHidden else { return }
         noConnectionBanner.isHidden = false
-        noConnectionBanner.transform = .init(translationX: 0, y: -self.noConnectionBanner.frame.height)
+        noConnectionBanner.alpha = 0
+        noConnectionBanner.transform = .init(translationX: 0, y: self.noConnectionBanner.frame.height)
         UIView.animate(withDuration: animated ? 0.3: 0) {
-                self.noConnectionBanner.superview?.bringSubviewToFront(self.noConnectionBanner)
-                self.noConnectionBanner.transform = .identity
+            self.noConnectionBanner.superview?.bringSubviewToFront(self.noConnectionBanner)
+            self.noConnectionBanner.transform = .identity
+            self.noConnectionBanner.alpha = 1
         }
     }
 
@@ -367,7 +374,10 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         guard !noConnectionBanner.isHidden else { return }
         UIView.animate(
             withDuration: animated ? 0.3: 0,
-            animations: { self.noConnectionBanner.transform = .init(translationX: 0, y: -self.noConnectionBanner.frame.height) },
+            animations: {
+                self.noConnectionBanner.transform = .init(translationX: 0, y: self.noConnectionBanner.frame.height)
+                self.noConnectionBanner.alpha = 0
+            },
             completion: { _ in self.noConnectionBanner.isHidden = true })
     }
 
