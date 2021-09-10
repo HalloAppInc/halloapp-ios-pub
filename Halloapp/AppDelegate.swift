@@ -12,9 +12,9 @@ import Combine
 import Contacts
 import Core
 import CoreData
+import FirebaseCrashlytics
 import Reachability
 import UIKit
-import FirebaseCrashlytics
 
 fileprivate let BackgroundFeedRefreshTaskIdentifier = "com.halloapp.hallo.feed.refresh"
 

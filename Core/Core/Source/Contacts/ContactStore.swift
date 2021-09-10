@@ -93,14 +93,18 @@ open class ContactStore {
     public var viewContext: NSManagedObjectContext
     private var bgContext: NSManagedObjectContext? = nil
 
-    public private(set) var pushNames: [UserID: String]
-    private var pushNumbersData: [UserID: PushNumberData]
+    public private(set) var pushNames: [UserID: String] = [:]
+    private var pushNumbersData: [UserID: PushNumberData] = [:]
 
     required public init(userData: UserData) {
         self.userData = userData
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
         viewContext = persistentContainer.viewContext
 
+        loadPushNamesAndNumbers()
+    }
+
+    public func loadPushNamesAndNumbers() {
         pushNames = ContactStore.fetchAllPushNames(using: viewContext)
         pushNumbersData = ContactStore.fetchAllPushNumbersData(using: viewContext)
     }

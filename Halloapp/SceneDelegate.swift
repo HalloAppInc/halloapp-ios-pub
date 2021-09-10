@@ -9,8 +9,8 @@
 import CocoaLumberjackSwift
 import Combine
 import Core
-import UIKit
 import Intents
+import UIKit
 
 class SceneDelegate: UIResponder {
 
@@ -156,6 +156,11 @@ extension SceneDelegate: UIWindowSceneDelegate {
         // Set to -1 instead of 0
         // If set to 0 from X, iOS will delete all local notifications including feed, comments, messages, etc.
         MainAppContext.shared.applicationIconBadgeNumber = -1
+
+        // Load pushnames and pushnumbers from core data when app comes into the foreground,
+        // needed in the case when app is in the background and notification share extension (NSE) adds a new pushname/number,
+        // could be made more efficient by only loading when we know there are new additions from NSE
+        MainAppContext.shared.contactStore.loadPushNamesAndNumbers()
 
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
