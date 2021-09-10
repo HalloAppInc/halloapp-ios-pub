@@ -242,19 +242,15 @@ class PostFocusView {
     private func handleDeletePostTapped(postId: FeedPostID) {
         let actionSheet = UIAlertController(title: nil, message: Localizations.deletePostConfirmationPrompt, preferredStyle: .actionSheet)
         actionSheet.addAction(UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { _ in
-            self.reallyRetractPost(postId: postId)
+            self.deletePost(postID: postId)
         })
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         actionSheet.view.tintColor = .systemBlue
         navigationController?.present(actionSheet, animated: true)
     }
 
-    private func reallyRetractPost(postId: FeedPostID) {
-        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postId, archived: true) else {
-            return
-        }
-        
-        MainAppContext.shared.feedData.retract(post: feedPost)
+    private func deletePost(postID: FeedPostID) {
+        MainAppContext.shared.feedData.deletePosts(with: [postID])
         self.removePostView()
     }
 }

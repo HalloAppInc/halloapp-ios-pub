@@ -2722,6 +2722,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    public func deletePosts(with postIDs: [FeedPostID]) {
+        performSeriallyOnBackgroundContext { context in
+            self.deletePosts(with: postIDs, in: context)
+            self.save(context)
+        }
+    }
+
     private func deletePosts(with postIDs: [FeedPostID], in managedObjectContext: NSManagedObjectContext) {
         let fetchRequest = NSFetchRequest<FeedPost>(entityName: FeedPost.entity().name!)
         
