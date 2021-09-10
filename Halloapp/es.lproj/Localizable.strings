@@ -8,7 +8,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \n\nHemos hecho que las aplicaciones sociales vuelvan a lo esencial, y agregamos un nivel de seguridad y privacidad al que creemos que todo el mundo debe tener acceso.\n\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nAl contrario, con el tiempo esperamos poder añadir nuevas funciones a un pequeño costo.";
+"about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \n\nHemos hecho que las aplicaciones sociales vuelvan a lo esencial, agregando un nivel de seguridad y privacidad al que creemos que todo el mundo debe tener acceso.\n\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nEn vez de esto, con el tiempo esperamos poder añadir nuevas funciones por un pequeño importe.";
 
 /* About screen: body text. */
 "about.body.2" = "Gracias por usar y compartir HalloApp con tus amigos y familia. Cada semana la optimizamos más.";
@@ -52,6 +52,12 @@
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Configuración";
 
+/* Placeholder text for when the archive is empty */
+"archive.empty.placeholder" = "Tus publicaciones archivadas aparecerán aquí";
+
+/* Archive navigation label */
+"archive.title.label" = "Archivo";
+
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "No hay conexión de Internet";
 
@@ -60,6 +66,9 @@
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Cancelar";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "CANCELAR";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Continuar";
@@ -122,19 +131,19 @@
 "camera.init.error.3" = "No se puede iniciar el micrófono";
 
 /* No comment provided by engineer. */
-"camera.init.error.4" = "No hay acceso a la cámara posterior";
+"camera.init.error.4" = "Sin acceso a la cámara trasera";
 
 /* No comment provided by engineer. */
-"camera.init.error.5" = "No hay acceso a la cámara frontal";
+"camera.init.error.5" = "Sin acceso a la cámara frontal";
 
 /* No comment provided by engineer. */
-"camera.init.error.6" = "No se pudo acceder al audio";
+"camera.init.error.6" = "Sin acceso al audio";
 
 /* No comment provided by engineer. */
 "camera.init.error.7" = "No se puede tomar fotos";
 
 /* No comment provided by engineer. */
-"camera.init.error.8" = "No puede grabar videos";
+"camera.init.error.8" = "No se puede grabar videos";
 
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Error al inicializar";
@@ -142,11 +151,11 @@
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
 "chat.add.to.contacts.book.label" = "Para ver publicaiones de %@, añade su número de teléfono a tu agenda. Toca para agregar";
 
+/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+"chat.blocked.contact.label" = "El contacto está bloqueado, toca para desbloquear";
+
 /* Label for creating a new group */
 "chat.create.new.group" = "Crear un grupo nuevo";
-
-/* Title of group name edit screen */
-"chat.edit.group.title" = "Editar";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Las conversaciones están encriptadas de extremo a extremo y HalloApp no tiene acceso a ellas. Toca para saber más.";
@@ -224,7 +233,7 @@
 "chat.message.photo" = "Foto";
 
 /* Text shown when chat input box is empty */
-"chat.message.placeholder" = "Escribir un mensaje";
+"chat.message.placeholder" = "Escribe un mensaje";
 
 /* Text shown in place of a received message we are not able to process yet. */
 "chat.message.unsupported" = "Tu versión de HalloApp no admite este tipo de mensajes.";
@@ -240,6 +249,9 @@
 
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "No pudo accederse al micrófono";
+
+/* Text below the contact's name when the contact is online in the Chat Screen */
+"chat.online.label" = "en línea";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "escribiendo...";
@@ -261,6 +273,12 @@
 
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Eliminar comentario";
+
+/* Alert message when missing microphone access */
+"comment.mic.access.denied.message" = "Para capacitar el grabado de audio, por favor ve a Configuración y activa el micrófono";
+
+/* Alert title when missing microphone access */
+"comment.mic.access.denied.title" = " No se puede acceder al micrófono";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Publicando...";
@@ -337,11 +355,26 @@
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Para ayudarte a conectar con tus amigos y familiares, permite a HalloApp acceder a tus contactos.";
 
+/* Title for modal view when showing how to change contact permissions. */
+"contacts.permission.explanation.title" = "Contactos";
+
 /* Title for tutorial explaining how user can enable contacts permission */
-"contacts.permission.tutorial.title" = "Contactos";
+"contacts.permission.tutorial.title" = "Cómo activar los permisos de los contactos";
+
+/* Text label for group description text box */
+"create.group.description.label" = "Descripción";
+
+/* Placeholder text shown inside the group description input box when it's empty */
+"create.group.description.placeholder" = "Añade una descripción (opcional)";
 
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Se ha producido un error al crear el grupo, inténtalo de nuevo";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"create.group.name.placeholder" = "Da un nombre a tu grupo";
+
+/* Title of group creation screen */
+"create.group.title" = "Información del grupo";
 
 /* Title for generic delete button. */
 "Delete" = "Eliminar";
@@ -407,7 +440,7 @@
 "feed.post.failed" = "No se pudo publicar.";
 
 /* Shown when receiving a new (unsupported) type of post. */
-"feed.post.unsupported" = "Tu versión de HalloApp no admite este tipo de mensaje.";
+"feed.post.unsupported" = "Tu versión de HalloApp no admite este tipo de publicación.";
 
 /* Shown while content is being posted to feed */
 "feed.posting" = "Publicando...";
@@ -425,7 +458,7 @@
 "feed.privacy.list.all" = "Mis contactos de teléfono";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
-"feed.privacy.list.except" = "Mis contactos excepto";
+"feed.privacy.list.except" = "Mis contactos excepto ...";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Solo compartir con...";
@@ -449,13 +482,22 @@
 "feedpost.button.comment" = "Comentar";
 
 /* Button under someoneelse's post. Verb. */
-"feedpost.button.reply" = "Responder";
+"feedpost.button.reply" = "Responder en privado";
+
+/* Placeholder text shown in group description input box when there's no description */
+"group.add.description" = "Añadir descripción del grupo";
+
+/* Label shown above background selection row */
+"group.background.label" = "Fondo de pamtalla";
 
 /* Label for choosing a color at the group background preview screen */
 "group.bg.pick.a.color.label" = "ESCOGE UN COLOR";
 
 /* Title of group background screen */
 "group.bg.title" = "Fondo de pantalla";
+
+/* Label shown above group description input box */
+"group.description.label" = "Descripción del grupo";
 
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ agregó a %2$@";
@@ -464,7 +506,7 @@
 "group.event.added.member.you" = "Has añadido a %1@";
 
 /* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar" = "%@ cambió el ícono del grupo";
+"group.event.changed.avatar" = "%@ cambió el icono del grupo";
 
 /* Message text shown with the user who changed the group avatar */
 "group.event.changed.avatar.you" = "Has cambiado el icono del grupo";
@@ -474,6 +516,12 @@
 
 /* Message text shown when you change the background */
 "group.event.changed.background.you" = "Has cambiado el color de fondo del pantalla";
+
+/* Message text shown with the user who changed the group description */
+"group.event.changed.description" = "%1@ cambió la descripción del grupo";
+
+/* Message text shown when you change the group description */
+"group.event.changed.description.you" = "Tú cambiaste la descripción del grupo";
 
 /* Message text shown with the user who changed the group name */
 "group.event.changed.name" = "%1$@ cambió el nombre del grupo a \"%2$@\"";
@@ -540,6 +588,9 @@
 
 /* Title of group invite screen */
 "group.invite.title" = "Enlace de invitación al grupo";
+
+/* Label shown above group members list */
+"group.members.label" = "Participantes";
 
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "El enlace de invitación al grupo no es válido";
@@ -614,10 +665,13 @@
 "invite.text" = "Acompáñame en HalloApp, una forma privada, simple y segura de seguir en contacto con tus amigos y familia. Obténla en https://halloapp.com/dl";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Hola %1$@, tengo una invitación para que te unas a mí en HalloApp (una aplicación social simple para compartir los momentos cotidianos). Usa %2$@ para registrarte. Obténla en https://halloapp.com/dl";
+"invite.text.specific" = "Hola %1$@, tengo una invitación para que te unas a mí en HalloApp (una red social de relaciones reales para aquellos más cercanos a mí). Usa %2$@ para registrarte. Obténla en https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Invitar";
+
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Búsqueda";
 
 /* Link text to open invite flow */
 "link.invite.friend" = "Invita a un amigo";
@@ -674,7 +728,7 @@
 "media.save.not.saved" = "La foto no se pudo guardar";
 
 /* Label indicating that media was successfully saved to the camera roll */
-"media.save.saved" = "Guardado";
+"media.save.saved" = "Guardado en rollo de cámara";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Cerrar";
@@ -730,6 +784,9 @@
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.invites.remaining";
 
+/* Displayed in place of deleted feed posts. */
+"n.posts.deleted" = "%@ publicaciones borradas";
+
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Ya no formas parte de este grupo";
 
@@ -747,6 +804,12 @@
 
 /* New post notification text when post is multiple videos without caption. */
 "notification.n.videos" = "notification.n.videos";
+
+/* Title for the new comment notification. */
+"notification.new.comment" = "Nuevo comentario";
+
+/* Content for contact notification. */
+"notification.new.contact.content" = "%@ está ahora en HalloApp";
 
 /* Content for friend notification. */
 "notification.new.friend.content" = "%@ ahora está en HalloApp";
@@ -881,7 +944,7 @@
 "profile.row.help" = "Ayuda";
 
 /* Row in Profile screen. */
-"profile.row.invite" = "Invitar amigos";
+"profile.row.invite" = "Invitar amigos a HalloApp";
 
 /* Row in Settings screen */
 "profile.row.my.posts" = "Mis publicaciones";
@@ -938,13 +1001,13 @@
 "registration.invalidphone.only" = "El número de teléfono que has marcado no es válido. Por favor, revísalo.";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Por el momento Hallo App solo se puede usar con invitación. Si tienes un amigo o un familiar que use HalloApp, diles que te inviten usando tu número de teléfono.";
+"registration.invite.only" = "Si pinchaste en un enlace de invitación de un grupo para registrarte, por favor clica en el enlace de nuevo para finalizar el registro y unirte al grupo.\n";
 
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "Tu nombre";
 
 /* Placeholder text for phone entry */
-"registration.phoneEntry.placeholder" = "Número de teléfono";
+"registration.phoneEntry.placeholder" = "Tu número de teléfono";
 
 /* Text for modal describing how we use contacts data */
 "registration.privacy.content" = "HalloApp solo usa el número de teléfono para conectarte con tus amigos en HalloApp, y no captura ninguna otra información adicional de tu libreta de contactos.";
@@ -1084,6 +1147,9 @@
 /* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
 "settings.notifications.comments" = "Comentarios";
 
+/* Instructions for enabling notifications permissions */
+"settings.notifications.disabled.instructions" = "Por favor, activa las notificaciones en Configuración.";
+
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Publicaciones";
 
@@ -1094,7 +1160,7 @@
 "settings.privacy.posts" = "Publicaciones";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Únete a mí en HalloApp, baja la la aplicación gratis en halloapp.com/dl";
+"settings.share.text" = "Únete a mí en mi red social de relaciones reales, HalloApp. Baja la la aplicación gratis en halloapp.com/dl";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Añadir a la lista de lectura";
@@ -1136,7 +1202,7 @@
 "timestamp.last.seen.yesterday.at" = "Visto por última vez ayer a las %@ ";
 
 /* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "Ahora";
+"timestamp.now.capitalized" = "Justo ahora";
 
 /* Lowercase translation of `Now` to be used as timestamp. */
 "timestamp.now.lowercase" = "ahora";

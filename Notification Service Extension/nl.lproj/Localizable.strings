@@ -71,7 +71,7 @@
 "link.learnMore" = "Meer informatie";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Je app updaten.";
+"link.update.your.app" = "Mijn app bijwerken.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ik";

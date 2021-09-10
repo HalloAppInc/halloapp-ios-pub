@@ -157,9 +157,6 @@
 /* Label for creating a new group */
 "chat.create.new.group" = "Yeni grup oluştur";
 
-/* Title of group name edit screen */
-"chat.edit.group.title" = "Düzenle";
-
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Sohbetler uçtan uca şifrelenir ve HalloApp'in bunlara erişimi yoktur. Daha fazlasını öğrenmek için dokun.";
 
@@ -486,9 +483,6 @@
 
 /* Label shown above group description input box */
 "group.description.label" = "Grup açıklaması";
-
-/* Title of group description edit screen */
-"group.edit.desc.title" = "Düzenle";
 
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@, %2$@ kişisini ekledi";
@@ -903,6 +897,9 @@
 
 /* Item in Profile > Help screen. */
 "profile.help.tos" = "Kullanım Şartları";
+
+/* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
+"profile.name.length" = "%1$d/%2$d";
 
 /* Row in Profile screen. */
 "profile.row.about" = "HalloApp hakkında";

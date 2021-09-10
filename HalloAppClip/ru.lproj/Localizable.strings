@@ -4,8 +4,14 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Проверьте, есть ли у вас интернет-подключение, и повторите попытку.";
 
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Добавить";
+
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Отмена";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "ОТМЕНА";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Продолжить";
@@ -67,6 +73,9 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Эта версия устарела";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Поиск";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Подробнее";
 
@@ -111,6 +120,12 @@
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Установите HalloApp, чтобы открыть %@";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "Незадача!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Вы ввели неправильный номер телефона. Пожалуйста, перепроверьте его.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Если вы перешли по ссылке группового приглашения для регистрации, пожалуйста, нажмите на ссылку еще раз, чтобы завершить регистрацию и присоединиться к группе.";

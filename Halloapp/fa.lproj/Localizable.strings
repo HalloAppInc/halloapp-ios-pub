@@ -157,9 +157,6 @@
 /* Label for creating a new group */
 "chat.create.new.group" = "ایجاد گروه جدید";
 
-/* Title of group name edit screen */
-"chat.edit.group.title" = "ویرایش";
-
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "گفتگوها رمزگذاری سرتاسری شده‌اند و هالواپ به آن‌ها دسترسی ندارد. برای اطلاعات بیشتر کلیک کنید.";
 
@@ -501,9 +498,6 @@
 
 /* Label shown above group description input box */
 "group.description.label" = "توضیحات";
-
-/* Title of group description edit screen */
-"group.edit.desc.title" = "ویرایش";
 
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ %2$@ را دعوت کرد";

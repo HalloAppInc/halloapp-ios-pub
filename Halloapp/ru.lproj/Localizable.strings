@@ -8,7 +8,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "HalloApp уже здесь! И мы создаем его для вас и ваших близких.\nМы упростили социальное приложение, при этом подарив ему новый уровень безопасности и конфиденциальности, к которому, как мы думаем, должен иметь доступ каждый в мире.\nHalloApp никогда не будет использовать вашу личную информацию или показывать вам рекламу.\nВместо этого мы планируем через некоторое время ввести дополнительные функции за небольшую плату.";
+"about.body.1" = "Приложение HalloApp уже доступно! И мы разрабатываем его для вас и ваших близких. Мы вернулись к самым основам социальных приложений, добавив дополнительный слой безопасности и конфиденциальности, который, как мы считаем, должен быть доступен каждому. HalloApp никогда не будет использовать вашу личную информацию или показывать рекламу. Вместо этого мы планируем предложить дополнительные функции за небольшую плату  в будущем.";
 
 /* About screen: body text. */
 "about.body.2" = "Спасибо за то, что пользуетесь HalloApp и делитесь им со своими друзьями и семьей. Мы улучшаем его каждую неделю.";
@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "Добро пожаловать в HalloApp!";
 
+/* Text label for action button to add the contact to the address book */
+"add.to.contact.book" = "Добавить в Книгу контактов";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Подключение к Интернету отсутствует";
 
@@ -49,11 +52,23 @@
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Настройки";
 
+/* Placeholder text for when the archive is empty */
+"archive.empty.placeholder" = "Здесь будут отображаться ваши архивные сообщения";
+
+/* Archive navigation label */
+"archive.title.label" = "Архив";
+
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Нет подключения к Интернету";
 
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Добавить";
+
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Отмена";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "ОТМЕНА";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Продолжить";
@@ -136,11 +151,11 @@
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
 "chat.add.to.contacts.book.label" = "Чтобы увидеть сообщения от %@, добавьте номер в свою контактную книгу. Нажмите, чтобы добавить";
 
+/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+"chat.blocked.contact.label" = "Контакт заблокирован, коснитесь, чтобы разблокировать";
+
 /* Label for creating a new group */
 "chat.create.new.group" = "Создать новую группу";
-
-/* Title of group name edit screen */
-"chat.edit.group.title" = "Редактировать";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Чаты зашифрованы сквозным шифрованием, и HalloApp не имеет к ним доступа. Нажмите, чтобы узнать больше.";
@@ -208,6 +223,9 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Пригласить друзей";
 
+/* Message text shown in a message that have audio media but no text */
+"chat.message.audio" = "Голосовая заметка";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Это сообщение было удалено.";
 
@@ -225,6 +243,15 @@
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
 "chat.message.waiting" = "Ожидается данное сообщение. Это может занять некоторое время.";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Чтобы включить запись звука, нажмите Настройки и включите Микрофон";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Не удалось получить доступ к микрофону";
+
+/* Text below the contact's name when the contact is online in the Chat Screen */
+"chat.online.label" = "онлайн";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "печатает...";
@@ -246,6 +273,12 @@
 
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Удаляем комментарий";
+
+/* Alert message when missing microphone access */
+"comment.mic.access.denied.message" = "Чтобы включить запись звука, нажмите Настройки и включите Микрофон";
+
+/* Alert title when missing microphone access */
+"comment.mic.access.denied.title" = "Не удалось получить доступ к микрофону";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Публикуем...";
@@ -322,11 +355,26 @@
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Чтобы HalloApp помогло тебе связаться с друзьями и семьей, предоставь доступ к своим контактам.";
 
+/* Title for modal view when showing how to change contact permissions. */
+"contacts.permission.explanation.title" = "Контакты";
+
 /* Title for tutorial explaining how user can enable contacts permission */
-"contacts.permission.tutorial.title" = "Контакты";
+"contacts.permission.tutorial.title" = "Как разрешить “Контакты”";
+
+/* Text label for group description text box */
+"create.group.description.label" = "Описание";
+
+/* Placeholder text shown inside the group description input box when it's empty */
+"create.group.description.placeholder" = "Введите описание (необязательно)";
 
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Возникла ошибка при создании группы, попробуй еще раз";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"create.group.name.placeholder" = "Дайте своей группе имя";
+
+/* Title of group creation screen */
+"create.group.title" = "Информация о группе";
 
 /* Title for generic delete button. */
 "Delete" = "Удалить";
@@ -434,13 +482,22 @@
 "feedpost.button.comment" = "Комментировать";
 
 /* Button under someoneelse's post. Verb. */
-"feedpost.button.reply" = "Ответить";
+"feedpost.button.reply" = "Ответить лично";
+
+/* Placeholder text shown in group description input box when there's no description */
+"group.add.description" = "Добавьте описание группы";
+
+/* Label shown above background selection row */
+"group.background.label" = "Фон";
 
 /* Label for choosing a color at the group background preview screen */
 "group.bg.pick.a.color.label" = "ВЫБЕРИ ЦВЕТ";
 
 /* Title of group background screen */
 "group.bg.title" = "Фон";
+
+/* Label shown above group description input box */
+"group.description.label" = "Описание группы";
 
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ добавил(-а) %2$@";
@@ -459,6 +516,12 @@
 
 /* Message text shown when you change the background */
 "group.event.changed.background.you" = "Ты изменил(-а) цвет фона";
+
+/* Message text shown with the user who changed the group description */
+"group.event.changed.description" = "%1@ изменил(а) описание группы";
+
+/* Message text shown when you change the group description */
+"group.event.changed.description.you" = "Вы изменили описание группы";
 
 /* Message text shown with the user who changed the group name */
 "group.event.changed.name" = "%1$@ сменил(-а) название группы на \"%2$@\"";
@@ -525,6 +588,9 @@
 
 /* Title of group invite screen */
 "group.invite.title" = "Групповое приглашение";
+
+/* Label shown above group members list */
+"group.members.label" = "Участники";
 
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "Эта ссылка приглашения в группу недействительна";
@@ -604,6 +670,9 @@
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Приглашение";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Поиск";
+
 /* Link text to open invite flow */
 "link.invite.friend" = "Пригласи друга";
 
@@ -659,13 +728,16 @@
 "media.save.not.saved" = "Фото не удалось сохранить";
 
 /* Label indicating that media was successfully saved to the camera roll */
-"media.save.saved" = "Сохранено";
+"media.save.saved" = "Сохранено в Фотопленке";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Закрыть";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.flip" = "Отразить зеркально";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "Отключить звук";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.rotate" = "Вращать";
@@ -712,6 +784,9 @@
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.invites.remaining";
 
+/* Displayed in place of deleted feed posts. */
+"n.posts.deleted" = "Сообщения %@ удалены";
+
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Вы больше не входите в эту группу";
 
@@ -730,6 +805,12 @@
 /* New post notification text when post is multiple videos without caption. */
 "notification.n.videos" = "notification.n.videos";
 
+/* Title for the new comment notification. */
+"notification.new.comment" = "Новый комментарий";
+
+/* Content for contact notification. */
+"notification.new.contact.content" = "%@ теперь в HalloApp";
+
 /* Content for friend notification. */
 "notification.new.friend.content" = "%@ теперь пользуется HalloApp";
 
@@ -744,6 +825,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 видео";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Голосовая заметка";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Привет!";
@@ -803,7 +887,7 @@
 "picker.media.n.limit" = "picker.media.n.limit";
 
 /* Displayed in place of a deleted feed post. */
-"post.has.been.deleted" = "Этот пост был удален";
+"post.has.been.deleted" = "Это сообщение было удалено";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted.by.author" = "%@ удалил(а) свой пост";
@@ -824,7 +908,10 @@
 "profile.groups.in.common" = "Общие группы";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
-"profile.header.message.user" = "Сообщение";
+"profile.header.message.user" = "Отправить сообщение";
+
+/* Text for unblocking user under profile header */
+"profile.header.unblock.user" = "Разблокировать";
 
 /* Item in Profile > Help screen. */
 "profile.help.faq" = "Часто задаваемые вопросы";
@@ -907,6 +994,12 @@
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Установите HalloApp, чтобы открыть %@";
 
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "Незадача!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Вы ввели неправильный номер телефона. Пожалуйста, перепроверьте его.";
+
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Если вы перешли по ссылке-приглашению в группу для регистрации, перейдите по ссылке снова, чтобы завершить регистрацию и присоединиться к группе.";
 
@@ -932,16 +1025,16 @@
 "safety.number.instructions" = "Чтобы проверить безопасность твоего соединения с  %@, убедись, что цифры выше соответствуют тем, которые отображаются на его или ее устройстве, или сканируй QR-код  его или ее телефоном.";
 
 /* Message to show when safety number cannot be succesfully verified */
-"safety.number.not.verified" = "Невозможно проверить код безопасности для %@";
+"safety.number.not.verified" = "Не удалось проверить код безопасности для %@";
 
 /* Title for button that will open QR code scanner used to verify a contact's safety number */
 "safety.number.scan" = "Нажми для сканирования";
 
 /* Title for screen that allows users to verify a contact's safety number */
-"safety.number.title" = "Проверить код безопасности";
+"safety.number.title" = "Проверка кода безопасности";
 
 /* Message to show when safety number is succesfully verified */
-"safety.number.verified" = "Код безопасности %@ успешно проверен!";
+"safety.number.verified" = "Код безопасности для %@ проверен успешно!";
 
 /* fallback text in notification for a new comment */
 "server.new.comment" = "Новый комментарий";
@@ -1054,6 +1147,9 @@
 /* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
 "settings.notifications.comments" = "Комментарии";
 
+/* Instructions for enabling notifications permissions */
+"settings.notifications.disabled.instructions" = "Пожалуйста, включите уведомления в настройках.";
+
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Посты";
 
@@ -1064,7 +1160,7 @@
 "settings.privacy.posts" = "Посты";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Присоединяйтесь ко мне в приложении HalloApp, загрузив его бесплатно на halloapp.com/dl";
+"settings.share.text" = "Присоединяйтесь к моей сети знакомых из реальной жизни в HalloApp. Приложение можно скачать бесплатно по адресу halloapp.com/dl";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Добавить в список для чтения";
@@ -1173,6 +1269,9 @@
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Блокировать в HalloApp";
+
+/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
+"user.option.copy.phone.number" = "Копировать номер телефона";
 
 /* Option when user taps more on profile page */
 "user.option.unblock" = "Разблокировать в HalloApp";

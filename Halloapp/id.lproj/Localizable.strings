@@ -139,9 +139,6 @@
 /* Label for creating a new group */
 "chat.create.new.group" = "Membuat Grup Baru";
 
-/* Title of group name edit screen */
-"chat.edit.group.title" = "Edit";
-
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Obrolan dienkripsi dari ujung ke ujung dan HalloApp tidak dapat mengaksesnya. Ketuk untuk mempelajari selengkapnya.";
 

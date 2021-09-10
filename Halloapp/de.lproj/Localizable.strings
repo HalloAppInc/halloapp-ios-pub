@@ -8,7 +8,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "\nHalloApp ist da! Und wir entwickeln diese App für dich und deine Liebsten. HalloApp ist eine Social-App, die sich wieder auf das Wesentliche besinnt und dabei gleichzeitig ein hohes Sicherheits- und Datenschutzniveau bietet, zu dem, wie wir meinen, jeder weltweit Zugriff haben sollte.\nHalloApp wird niemals deine persönlichen Daten verwenden oder dir Werbung anzeigen. Wir planen vielmehr, unseren Nutzern in Zukunft zusätzliche Funktionen zu einem günstigen Preis anzubieten.";
+"about.body.1" = "HalloApp ist da! Und wir entwickeln diese App für dich und deine Liebsten. HalloApp ist eine Social-App, die sich wieder auf das Wesentliche besinnt und dabei gleichzeitig ein hohes Sicherheits- und Datenschutzniveau bietet, zu dem, wie wir meinen, jeder weltweit Zugriff haben sollte.\nHalloApp wird niemals deine persönlichen Daten verwenden oder dir Werbung anzeigen. Wir planen vielmehr, unseren Nutzern in Zukunft zusätzliche Funktionen zu einem günstigen Preis anzubieten.";
 
 /* About screen: body text. */
 "about.body.2" = "Danke, dass du HalloApp nutzt und mit deinen Freunden und deiner Familie teilst. Wir verbessern diese App wöchentlich.";
@@ -157,9 +157,6 @@
 /* Label for creating a new group */
 "chat.create.new.group" = "Neue Gruppe erstellen";
 
-/* Title of group name edit screen */
-"chat.edit.group.title" = "Gruppennamen bearbeiten";
-
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Die Chats sind Ende-zu-Ende verschlüsselt und HalloApp hat keinen Zugriff darauf. Tippe hier, um mehr zu erfahren.";
 
@@ -215,7 +212,7 @@
 "chat.group.leave.group.confirmation" = "“%@” verlassen?";
 
 /* Label shown above group name input box */
-"chat.group.name.label" = "GRUPPENNAME";
+"chat.group.name.label" = "Gruppenname";
 
 /* Title for group photo actions */
 "chat.group.photo.label" = "Gruppenfoto";
@@ -487,9 +484,6 @@
 /* Label shown above group description input box */
 "group.description.label" = "GRUPPENBESCHREIBUNG";
 
-/* Title of group description edit screen */
-"group.edit.desc.title" = "Bearbeiten";
-
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ hat %2$@ hinzugefügt";
 
@@ -596,7 +590,7 @@
 "group.preview.join.error.title" = "Beitritt zur Gruppe nicht möglich";
 
 /* Label for joining group action */
-"group.preview.join.group" = "GRUPPE BEITRETEN";
+"group.preview.join.group" = "BEITRETEN";
 
 /* Label for the number of members in the group */
 "group.preview.members" = "Mitglieder";

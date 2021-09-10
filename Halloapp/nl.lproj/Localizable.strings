@@ -8,10 +8,10 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "Hier is HalloApp! En we maken het voor jou en iedereen die je dierbaar is. We brengen sociale apps terug naar de basis, met een focus op veiligheid en privacy waarvan we vinden dat iedereen in de wereld toegang toe zou moeten hebben.\n\nHalloApp zal nooit je persoonlijke gegevens gebruiken of advertenties laten zien.\nIn plaats daarvan zijn we van plan om in de toekomst extra functies tegen een kleine betaling aan te bieden.";
+"about.body.1" = "Hier is HalloApp! En we maken het voor jou en iedereen die je dierbaar is. We hebben sociale apps teruggebracht naar de basis, met een focus op veiligheid en privacy waarvan we vinden dat iedereen in de wereld toegang toe zou moeten hebben.\n\nHalloApp zal nooit je persoonlijke informatie gebruiken of advertenties laten zien.\nIn plaats daarvan zijn we van plan om in de toekomst extra functies tegen een kleine betaling aan te bieden.";
 
 /* About screen: body text. */
-"about.body.2" = "Bedankt voor het gebruiken en delen van HalloApp met je vrienden en familie. We maken het iedere week beter!";
+"about.body.2" = "Bedankt voor het gebruiken en delen van HalloApp met je vrienden en familie. We verbeteren de app iedere week!";
 
 /* About screen: footer text. Parameter is support email address. */
 "about.footer" = "Heb je vragen of wil je feedback geven? E-mail ons dan op %@";
@@ -156,9 +156,6 @@
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Nieuwe Groep Aanmaken";
-
-/* Title of group name edit screen */
-"chat.edit.group.title" = "Bewerken";
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Chats zijn end-to-end versleuteld en HalloApp heeft hiertoe geen toegang. Tik voor meer informatie.";
@@ -404,7 +401,7 @@
 "feed.notification..other.comment.no.text" = "<$author$> heeft ook gereageerd";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.comment.grouped" = "<$numberOthers$> anderen hebben geantwoord op <$author$>'s post";
+"feed.notification.comment.grouped" = "<$numberOthers$> anderen hebben geantwoord op de post van <$author$>";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.commented.no.text" = "<$author$> heeft op je post gereageerd";
@@ -501,9 +498,6 @@
 
 /* Label shown above group description input box */
 "group.description.label" = "Groepsomschrijving";
-
-/* Title of group description edit screen */
-"group.edit.desc.title" = "Bewerken";
 
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ heeft %2$@ toegevoegd";
@@ -638,7 +632,7 @@
 "home.update.notice.button.exit" = "Afsluiten";
 
 /* Text shown to users who have old versions of the app */
-"home.update.notice.text" = "Update naar de nieuwste versie van HalloApp alsjeblieft";
+"home.update.notice.text" = "Download de nieuwste versie van HalloApp alsjeblieft";
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Deze versie is verouderd";
@@ -686,7 +680,7 @@
 "link.learnMore" = "Meer informatie";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Je app updaten.";
+"link.update.your.app" = "Mijn app bijwerken.";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ik";
