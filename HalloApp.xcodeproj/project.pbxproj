@@ -3078,7 +3078,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Share Extension/Info.plist";
@@ -3088,7 +3088,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Share-Extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3134,7 +3134,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3154,7 +3154,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Share-Extension";
@@ -3205,7 +3205,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3225,7 +3225,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Share-Extension";
@@ -3248,7 +3248,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = HalloAppClip/Info.plist;
@@ -3257,7 +3257,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Clip;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -3305,7 +3305,7 @@
 				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3324,7 +3324,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Clip;
@@ -3377,7 +3377,7 @@
 				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3396,7 +3396,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Clip;
@@ -3802,7 +3802,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -3811,7 +3811,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo;
 				PRODUCT_NAME = HalloApp;
 				SWIFT_VERSION = 5.0;
@@ -3868,7 +3868,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Notification Service Extension/Info.plist";
@@ -3878,7 +3878,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Service-Extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3924,7 +3924,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3944,7 +3944,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Service-Extension";
@@ -3995,7 +3995,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4015,7 +4015,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Service-Extension";
@@ -4034,7 +4034,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Intents Extension/Info.plist";
@@ -4044,7 +4044,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Intents-Extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -4089,7 +4089,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4109,7 +4109,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Intents-Extension";
@@ -4159,7 +4159,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4179,7 +4179,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Intents-Extension";
@@ -4325,7 +4325,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -4334,7 +4334,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo;
 				PRODUCT_NAME = HalloApp;
 				SWIFT_VERSION = 5.0;
@@ -4350,7 +4350,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 157;
+				CURRENT_PROJECT_VERSION = 158;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -4359,7 +4359,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 1.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo;
 				PRODUCT_NAME = HalloApp;
 				SWIFT_VERSION = 5.0;
