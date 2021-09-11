@@ -749,14 +749,15 @@ class ChatData: ObservableObject {
         }
     }
 
-    // used for synchronous calls from non-main threads
+    // NB: Can be called only from a non-main thread, of the caller's choice
     public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        backgroundProcessingQueue.sync { [weak self] in
-            guard let self = self else { return }
-            self.initBgContext()
-            guard let bgContext = self.bgContext else { return }
-            bgContext.performAndWait { block(bgContext) }
+        guard !Thread.current.isMainThread else {
+            DDLogDebug("ChatData/performOnBackgroundContextAndWait/exit, being called from main thread")
+            return
         }
+        let managedObjectContext = persistentContainer.newBackgroundContext()
+        managedObjectContext.automaticallyMergesChangesFromParent = true
+        managedObjectContext.performAndWait { block(managedObjectContext) }
     }
 
     private func initBgContext() {
