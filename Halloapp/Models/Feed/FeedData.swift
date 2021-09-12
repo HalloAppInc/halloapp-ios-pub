@@ -635,6 +635,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         markNotificationsAsRead(for: feedPostId)
     }
 
+    func markCommentAsPlayed(commentId: FeedPostCommentID) {
+        updateFeedPostComment(with: commentId) { comment in
+            guard comment.userId != MainAppContext.shared.userData.userId else { return }
+            guard comment.status != .played else { return }
+            comment.status = .played
+        }
+    }
+
     // MARK: Process Incoming Feed Data
 
     let didReceiveFeedPost = PassthroughSubject<FeedPost, Never>()  // feed post that is not a duplicate but can be shared (old)
@@ -816,7 +824,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     case .unsupported:
                         DDLogDebug("FeedData/process-comments/updating [\(xmppComment.id)]")
                         comment = existingComment
-                    case .incoming, .none, .retracted, .retracting, .sent, .sending, .sendError:
+                    case .incoming, .none, .retracted, .retracting, .sent, .sending, .sendError, .played:
                         duplicateCount += 1
                         DDLogError("FeedData/process-comments/duplicate [\(xmppComment.id)]")
                         continue

@@ -441,7 +441,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 return .rerequesting
             case .unsupported:
                 return .unsupported
-            case .error, .haveSeen, .none, .sentSeenReceipt:
+            case .error, .haveSeen, .none, .sentSeenReceipt, .played, .sentPlayedReceipt:
                 return .normal(chatMessage.text ?? "", orderedMentions: [])
             }
         }()
@@ -450,6 +450,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
+                   isPlayed: [.played, .sentPlayedReceipt].contains(chatMessage.incomingStatus),
                    displayText: displayText,
                    media: chatMessage.media,
                    timestamp: chatMessage.timestamp)
@@ -539,7 +540,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }
     
     
-    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, displayText: DisplayText, media: Set<ChatMedia>?, timestamp: Date?) {
+    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, isPlayed: Bool, displayText: DisplayText, media: Set<ChatMedia>?, timestamp: Date?) {
 
         if isNextMsgSameSender {
             contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 3, right: 18)
@@ -555,6 +556,8 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(item.relativeFilePath ?? "", isDirectory: false)
 
             voiceNoteView.delegate = self
+            voiceNoteView.state = isPlayed ? .played : .normal
+
             voiceNoteView.url = url
 
             if let userId = item.message?.userId {
@@ -753,6 +756,12 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 extension InboundMsgViewCell: AudioViewDelegate {
     func audioView(_ view: AudioView, at time: String) {
         voiceNoteTimeLabel.text = time
+    }
+
+    func audioViewDidStartPlaying(_ view: AudioView) {
+        guard let messageID = messageID else { return }
+        voiceNoteView.state = .played
+        MainAppContext.shared.chatData.markPlayedMessage(for: messageID)
     }
 }
 

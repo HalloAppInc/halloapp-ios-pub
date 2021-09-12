@@ -172,6 +172,11 @@ final class ProtoService: ProtoServiceCore {
                 seenReceipt.id = receipt.itemId
                 seenReceipt.threadID = threadID
                 return .seenReceipt(seenReceipt)
+            case .played:
+                var playedReceipt = Server_PlayedReceipt()
+                playedReceipt.id = receipt.itemId
+                playedReceipt.threadID = threadID
+                return .playedReceipt(playedReceipt)
             }
         }()
 
@@ -578,8 +583,9 @@ final class ProtoService: ProtoServiceCore {
         case .deliveryReceipt(let pbReceipt):
             handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id, ack: ack)
             hasAckBeenDelegated = true
-        case .playedReceipt(_):
-            DDLogInfo("proto/didReceive/\(msg.id)/playedReceipt")
+        case .playedReceipt(let pbReceipt):
+            handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id, ack: ack)
+            hasAckBeenDelegated = true
         case .chatStanza(let serverChat):
             if !serverChat.senderName.isEmpty {
                 MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverChat.senderName ])
@@ -1258,6 +1264,10 @@ extension Server_DeliveryReceipt: ReceivedReceipt {
 
 extension Server_SeenReceipt: ReceivedReceipt {
     var receiptType: HalloReceipt.`Type` { .read }
+}
+
+extension Server_PlayedReceipt: ReceivedReceipt {
+    var receiptType: HalloReceipt.`Type` { .played }
 }
 
 extension PresenceType {

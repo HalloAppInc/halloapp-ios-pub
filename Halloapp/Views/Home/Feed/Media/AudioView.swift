@@ -12,14 +12,27 @@ import Foundation
 
 protocol AudioViewDelegate: AnyObject {
     func audioView(_ view: AudioView, at time: String)
+    func audioViewDidStartPlaying(_ view: AudioView)
+}
+
+enum AudioViewState {
+    case normal, played
 }
 
 class AudioView : UIStackView {
 
     weak var delegate: AudioViewDelegate?
 
+    var state: AudioViewState = .normal {
+        didSet {
+            update()
+        }
+    }
+
     var url: URL? {
         didSet {
+            pause()
+
             if let url = self.url {
                 player = AVPlayer(url: url)
             } else {
@@ -65,19 +78,21 @@ class AudioView : UIStackView {
         return formatter
     }()
 
-    private lazy var playIcon: UIImage = {
+    private var playIcon: UIImage {
         let config = UIImage.SymbolConfiguration(pointSize: 24)
-        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(.primaryBlackWhite, renderingMode: .alwaysOriginal)
+        let iconColor: UIColor = state == .played ? .audioViewControlsPlayed : .primaryBlue
+        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
 
         return icon
-    } ()
+    }
 
-    private lazy var pauseIcon: UIImage = {
+    private var pauseIcon: UIImage {
         let config = UIImage.SymbolConfiguration(pointSize: 20)
-        let icon = UIImage(systemName: "pause.fill", withConfiguration: config)!.withTintColor(.primaryBlackWhite, renderingMode: .alwaysOriginal)
+        let iconColor: UIColor = state == .played ? .audioViewControlsPlayed : .primaryBlue
+        let icon = UIImage(systemName: "pause.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
 
         return icon
-    } ()
+    }
 
     // The play button is small. This one has bigger hit area to make it easier for tapping.
     private class PlayButton: UIButton {
@@ -152,6 +167,7 @@ class AudioView : UIStackView {
 
         MainAppContext.shared.mediaDidStartPlaying.send(url)
         player.play()
+        delegate?.audioViewDidStartPlaying(self)
     }
 
     func pause() {
@@ -173,7 +189,9 @@ class AudioView : UIStackView {
         guard let duration = player.currentItem?.asset.duration else { return }
         guard duration.isNumeric else { return }
 
+        let thumbColor: UIColor = state == .played ? .audioViewControlsPlayed : .primaryBlue
         let current = player.currentTime().seconds / duration.seconds
+        slider.setThumbImage(thumb(color: thumbColor, radius: 16), for: .normal)
         slider.setValue(Float(current), animated: false)
         playButton.setImage(player.rate > 0 ? pauseIcon : playIcon, for: .normal)
 

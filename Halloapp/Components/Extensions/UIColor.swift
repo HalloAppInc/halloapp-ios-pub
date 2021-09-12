@@ -92,6 +92,10 @@ extension UIColor {
         UIColor(named: "AvatarDefaultBg")!
     }
 
+    class var audioViewControlsPlayed: UIColor {
+        UIColor(named: "AudioViewControlsPlayed")!
+    }
+
     // MARK: Feed
 
     class var feedBackground: UIColor {

@@ -440,6 +440,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
+                   isPlayed: chatMessage.outgoingStatus == .played,
                    text: text,
                    orderedMentions: [],
                    media: chatMessage.media,
@@ -535,7 +536,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         return isQuotedMessage
     }
     
-    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, orderedMentions: [ChatMention], media: Set<ChatMedia>?, timestamp: Date?, statusIcon: UIImage?) {
+    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, isPlayed: Bool, text: String?, orderedMentions: [ChatMention], media: Set<ChatMedia>?, timestamp: Date?, statusIcon: UIImage?) {
 
         if isNextMsgSameSender {
             contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 3, right: 18)
@@ -611,6 +612,26 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         // time and status
         if let timestamp = timestamp {
             let result = NSMutableAttributedString(string: timestamp.chatTimestamp())
+
+            let playedIcon: UIImage? = {
+                if isVoiceNote {
+                    if isPlayed {
+                        return UIImage(named: "Microphone")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
+                    } else {
+                        return UIImage(named: "Microphone")?.withTintColor(.systemGray)
+                    }
+                }
+
+                return nil
+            } ()
+
+            if let icon = playedIcon {
+                let iconAttachment = NSTextAttachment(image: icon)
+                iconAttachment.bounds = CGRect(x: 0, y: -2, width: 12, height: 12)
+
+                result.append(NSAttributedString(string: "  "))
+                result.append(NSAttributedString(attachment: iconAttachment))
+            }
     
             if let icon = statusIcon {
                 let imageSize = icon.size
@@ -682,7 +703,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         case .pending: return UIImage(named: "CheckmarkSingle")?.withTintColor(.clear)
         case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray)
         case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray)
-        case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
+        case .seen, .played: return UIImage(named: "CheckmarkDouble")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
 //        case .error: return UIImage(systemName: "arrow.counterclockwise.circle")?.withTintColor(.systemRed)
         default: return nil }
     }
@@ -771,6 +792,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 extension OutboundMsgViewCell: AudioViewDelegate {
     func audioView(_ view: AudioView, at time: String) {
         voiceNoteTimeLabel.text = time
+    }
+
+    func audioViewDidStartPlaying(_ view: AudioView) {
     }
 }
 

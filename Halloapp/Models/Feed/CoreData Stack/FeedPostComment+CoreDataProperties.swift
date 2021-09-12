@@ -22,6 +22,7 @@ extension FeedPostComment {
         case retracted = 5
         case retracting = 6
         case unsupported = 7
+        case played = 8
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPostComment> {

@@ -289,6 +289,7 @@ class ChatData: ObservableObject {
                 self.processPendingChatMsgs()
                 self.processRetractingChatMsgs()
                 self.processPendingSeenReceipts()
+                self.processPendingPlayedReceipts()
 
                 if (UIApplication.shared.applicationState == .active) {
                     DDLogDebug("ChatData/didConnect/currentlyDownloading/num/\(self.currentlyDownloading.count)/removeAll")
@@ -918,6 +919,16 @@ class ChatData: ObservableObject {
             toUserID: chatMessage.fromUserId)
     }
 
+    func sendPlayedReceipt(for chatMessage: ChatMessage) {
+        DDLogInfo("ChatData/sendPlayedReceipt \(chatMessage.id)")
+        service.sendReceipt(
+            itemID: chatMessage.id,
+            thread: .none,
+            type: .played,
+            fromUserID: userData.userId,
+            toUserID: chatMessage.fromUserId)
+    }
+
     // MARK: Share Extension Merge Data
     
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping (() -> ())) {
@@ -1267,6 +1278,21 @@ extension ChatData {
 
         if managedObjectContext.hasChanges {
             save(managedObjectContext)
+        }
+    }
+
+    func markPlayedMessage(for id: String) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            guard let message = self.chatMessage(with: id, in: managedObjectContext) else { return }
+            guard ![.played, .sentPlayedReceipt].contains(message.incomingStatus) else { return }
+
+            self.sendPlayedReceipt(for: message)
+            message.incomingStatus = .played
+
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
         }
     }
     
@@ -2089,6 +2115,13 @@ extension ChatData {
         ]
         return chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && incomingStatusValue = %d", userData.userId, ChatMessage.IncomingStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
+
+    func pendingOutgoingPlayedReceipts(in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
+        ]
+        return chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && incomingStatusValue = %d", userData.userId, ChatMessage.IncomingStatus.played.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
     
     func pendingIncomingChatMessagesMedia(in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
         let sortDescriptors = [
@@ -2326,7 +2359,7 @@ extension ChatData {
             case .unsupported, .rerequesting:
                 DDLogInfo("ChatData/process/already-exists/updating [\(existingChatMessage.incomingStatus)] [\(xmppChatMessage.id)]")
                 break
-            case .error, .haveSeen, .none, .retracted, .sentSeenReceipt:
+            case .error, .haveSeen, .none, .retracted, .sentSeenReceipt, .played, .sentPlayedReceipt:
                 DDLogError("ChatData/process/already-exists/error [\(existingChatMessage.incomingStatus)] [\(xmppChatMessage.id)]")
                 return
             }
@@ -2502,23 +2535,27 @@ extension ChatData {
         
         updateChatMessage(with: messageId) { [weak self] (chatMessage) in
             guard let self = self else { return }
-            guard ![.seen, .retracting, .retracted].contains(chatMessage.outgoingStatus) else { return }
-            
-            if receiptType == .delivery {
+            guard ![.played, .seen, .retracting, .retracted].contains(chatMessage.outgoingStatus) || receiptType == .played else { return }
+
+            switch receiptType {
+            case .delivery:
                 chatMessage.outgoingStatus = .delivered
-                
-                self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
-                    chatThread.lastMsgStatus = .delivered
-                }
-                
-            } else if receiptType == .read {
+            case .read:
                 chatMessage.outgoingStatus = .seen
-                
-                self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
+            case .played:
+                chatMessage.outgoingStatus = .played
+            }
+
+            self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
+                switch receiptType {
+                case .delivery:
+                    chatThread.lastMsgStatus = .delivered
+                case .read:
                     chatThread.lastMsgStatus = .seen
+                case .played:
+                    break
                 }
             }
-            
         }
     }
     
@@ -2633,6 +2670,19 @@ extension ChatData {
             pendingOutgoingSeenReceipts.forEach {
                 DDLogInfo("ChatData/processPendingSeenReceipts/seenReceipts \($0.id)")
                 self.sendSeenReceipt(for: $0)
+            }
+        }
+    }
+
+    private func processPendingPlayedReceipts() {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let pendingOutgoingPlayedReceipts = self.pendingOutgoingPlayedReceipts(in: managedObjectContext)
+            DDLogInfo("ChatData/pendingOutgoingPlayedReceipts/num: \(pendingOutgoingPlayedReceipts.count)")
+
+            pendingOutgoingPlayedReceipts.forEach {
+                DDLogInfo("ChatData/pendingOutgoingPlayedReceipts/seenReceipts \($0.id)")
+                self.sendPlayedReceipt(for: $0)
             }
         }
     }
@@ -3866,8 +3916,17 @@ extension ChatData: HalloChatDelegate {
 
         updateChatMessage(with: receipt.itemId) { (chatMessage) in
             DDLogDebug("ChatData/oneToOne/didSendMessageReceipt [\(receipt.itemId)]")
-            guard chatMessage.incomingStatus == .haveSeen else { return }
-            chatMessage.incomingStatus = .sentSeenReceipt
+
+            switch receipt.type {
+            case .read:
+                guard chatMessage.incomingStatus == .haveSeen else { return }
+                chatMessage.incomingStatus = .sentSeenReceipt
+            case .played:
+                guard chatMessage.incomingStatus == .played else { return }
+                chatMessage.incomingStatus = .sentPlayedReceipt
+            case .delivery:
+                break
+            }
         }
     }
 

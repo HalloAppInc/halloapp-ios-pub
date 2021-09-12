@@ -15,6 +15,7 @@ public struct XMPPReceipt: Equatable {
     public enum `Type` {
         case delivery
         case read
+        case played
     }
 
     public enum Thread: Equatable {

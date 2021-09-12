@@ -21,6 +21,8 @@ extension ChatMessage {
         case retracted = 4
         case rerequesting = 5
         case unsupported = 6
+        case played = 7
+        case sentPlayedReceipt = 8
     }
     
     enum OutgoingStatus: Int16 {
@@ -32,6 +34,7 @@ extension ChatMessage {
         case error = 5
         case retracting = 6     // marked for deletion but no server ack yet
         case retracted = 7      // deleted messages
+        case played = 8         // other user have played the message, only for voice notes
     }
     
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatMessage> {

@@ -277,8 +277,13 @@ class CommentView: UIView {
             if media.count == 1 && media[0].type == .audio {
                 vStack.insertArrangedSubview(voiceCommentRow, at: vStack.arrangedSubviews.count - 1)
 
-                voiceCommentTimeLabel.text = "0:00"
-                voiceCommentView.url = media[0].fileURL
+                if voiceCommentView.url != media[0].fileURL {
+                    voiceCommentTimeLabel.text = "0:00"
+                    voiceCommentView.url = media[0].fileURL
+                }
+
+                let isOwn = feedPostComment.userId == MainAppContext.shared.userData.userId
+                voiceCommentView.state = feedPostComment.status == .played || isOwn ? .played : .normal
 
                 if media[0].fileURL == nil {
                     mediaStatusCancellable = media[0].mediaStatusDidChange.sink { [weak self] mediaItem in
@@ -375,7 +380,7 @@ class CommentView: UIView {
             deletedCommentTextLabel.attributedText = attributedText.with(
                 font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable,
                 color: .secondaryLabel)
-        case .incoming, .sendError, .sending, .sent, .none:
+        case .incoming, .sendError, .sending, .sent, .none, .played:
             hideDeletedView()
         }
         
@@ -574,5 +579,10 @@ class CommentsTableHeaderView: UIView {
 extension CommentView: AudioViewDelegate {
     func audioView(_ view: AudioView, at time: String) {
         voiceCommentTimeLabel.text = time
+    }
+
+    func audioViewDidStartPlaying(_ view: AudioView) {
+        guard let commentId = feedPostCommentID else { return }
+        MainAppContext.shared.feedData.markCommentAsPlayed(commentId: commentId)
     }
 }
