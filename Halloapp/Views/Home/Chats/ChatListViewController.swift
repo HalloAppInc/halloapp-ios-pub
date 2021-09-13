@@ -301,7 +301,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("ChatListView/controllerDidChangeContent")
-        reloadData()
+        reloadData(animated: false)
         updateEmptyView()
     }
 
