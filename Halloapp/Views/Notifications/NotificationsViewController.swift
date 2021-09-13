@@ -354,11 +354,9 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
 
         unreadBadge.isHidden = notification.read
         notificationTextLabel.attributedText = notification.text
-        
-        if let previewImage = notification.image {
-            mediaPreview.image = previewImage
-            mediaPreviewWidthAnchor?.constant = 44
-        }
+
+        mediaPreview.image = notification.image
+        mediaPreviewWidthAnchor?.constant = notification.image == nil ? 0 : 44
         
         if let userId = notification.userID {
             contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
