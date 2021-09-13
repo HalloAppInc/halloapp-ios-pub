@@ -126,6 +126,17 @@ jobs:
       steps:
         - name: Checkout
           uses: actions/checkout@master
+          
+          # Set up SSH to fetch private HalloApp repositories
+        - name: Set up ssh-agent
+          uses: webfactory/ssh-agent@v0.5.3
+          with:
+            ssh-private-key: ${{ secrets.CI_PRIVATE_KEY }}
+          
+        - name: Set up Git to use SSH
+          run: |
+            for ip in $(dig @8.8.8.8 github.com +short); do ssh-keyscan github.com,$ip; ssh-keyscan $ip; done 2>/dev/null >> ~/.ssh/known_hosts
+            git config --global url."git@github.com:".insteadOf "https://github.com/"
 
           # Load cached CocoaPods if the Podfile matches. Also creates end-of-script step to save the CocoaPods if the Podfile didn't match or wasn't cached
         - name: Cache Pods
