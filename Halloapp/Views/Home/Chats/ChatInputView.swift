@@ -47,6 +47,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     private var previousHeight: CGFloat = 0
     
     private var isVisible: Bool = false
+    private var makeTextViewFirstResponderWhenReady: Bool = false
     
     // only send a typing indicator once in 10 seconds
     private let typingThrottleInterval: TimeInterval = 10
@@ -80,13 +81,20 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         // dispatch to fix issue prior to iOS 14.4 where manual swipe back gets keyboard
         // floating in the air when it's opened
         // should revisit/refactor keyboard logic eventually
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             viewController.becomeFirstResponder()
+
+            if self.makeTextViewFirstResponderWhenReady {
+                self.textView.becomeFirstResponder()
+                self.makeTextViewFirstResponderWhenReady = false
+            }
         }
     }
 
     func willDisappear(in viewController: UIViewController) {
         isVisible = false
+        makeTextViewFirstResponderWhenReady = false
         guard isKeyboardVisible || !viewController.isFirstResponder else { return }
 
         var deferResigns = false
@@ -107,14 +115,14 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         } else {
             resignFirstResponderOnDisappear(in: viewController)
         }
-        
+
         resetTypingTimers()
     }
-    
+
     // Only one of these should be active at a time
     private var mentionPickerTopConstraint: NSLayoutConstraint?
     private var vStackTopConstraint: NSLayoutConstraint?
-    
+
     private func setup() {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidShow), name: UIResponder.keyboardDidShowNotification, object: nil)
@@ -125,17 +133,16 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
         layer.borderWidth = 1
         layer.borderColor = UIColor.chatTextFieldStroke.cgColor
-        
+
         addSubview(containerView)
-//        containerView.backgroundColor = UIColor.systemBackground
         containerView.backgroundColor = UIColor.messageFooterBackground
         containerView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
         containerView.topAnchor.constraint(equalTo: topAnchor).isActive = true
         containerView.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
         containerView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
-                
+
         containerView.addSubview(contentView)
-        
+
         contentView.leadingAnchor.constraint(equalTo: containerView.layoutMarginsGuide.leadingAnchor).isActive = true
         contentView.topAnchor.constraint(equalTo: containerView.layoutMarginsGuide.topAnchor).isActive = true
         contentView.trailingAnchor.constraint(equalTo: containerView.layoutMarginsGuide.trailingAnchor).isActive = true
@@ -150,7 +157,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         bottomBackgroundView.topAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
         bottomBackgroundView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor).isActive = true
         bottomBackgroundView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor).isActive = true
-        
+
         textView.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
         textView.topAnchor.constraint(equalTo: textViewContainer.topAnchor).isActive = true
         textView.trailingAnchor.constraint(equalTo: textViewContainer.trailingAnchor).isActive = true
@@ -169,9 +176,9 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
         cancelRecordingButton.centerXAnchor.constraint(equalTo: textInputRow.centerXAnchor).isActive = true
         cancelRecordingButton.centerYAnchor.constraint(equalTo: textInputRow.centerYAnchor).isActive = true
-        
+
         textViewContainerHeightConstraint = textViewContainer.heightAnchor.constraint(equalToConstant: 115)
-        
+
         contentView.addSubview(vStack)
 
         vStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor).isActive = true
@@ -707,15 +714,14 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     func showQuoteFeedPanel(with userId: String, text: String, mediaType: ChatMessageMediaType?, mediaUrl: URL?, groupID: GroupID? = nil, from viewController: UIViewController) {
         quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
         quoteFeedPanelTextLabel.text = text
-        
+
         if userId == MainAppContext.shared.userData.userId {
             quoteFeedPanelNameLabel.textColor = .chatOwnMsg
         } else {
             quoteFeedPanelNameLabel.textColor = .label
         }
-        
-        quoteFeedPanel.subviews[0].backgroundColor = quoteFeedPanelNameLabel.textColor.withAlphaComponent(0.1)
 
+        quoteFeedPanel.subviews[0].backgroundColor = quoteFeedPanelNameLabel.textColor.withAlphaComponent(0.1)
 
         if let type = mediaType, let url = mediaUrl {
             quoteFeedPanelImage.isHidden = false
@@ -757,15 +763,15 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         } else {
             quoteFeedPanelImage.isHidden = true
         }
-    
+
         quoteFeedPanel.isHidden = false
-        
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.9) {
-            guard self.isVisible else { return }
-            self.textView.becomeFirstResponder()
+
+        if !isVisible {
+            makeTextViewFirstResponderWhenReady = true
+        } else {
+            textView.becomeFirstResponder()
         }
     }
-
 
     @objc func closeQuoteFeedPanel() {
         quoteFeedPanel.isHidden = true
