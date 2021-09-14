@@ -20,14 +20,13 @@ class MainAppContext: AppContext {
     private static let feedDatabaseFilename = "feed.sqlite"
     private static let chatDatabaseFilename = "chat.sqlite"
     private static let cryptoStatsDatabaseFilenameLegacy = "cryptoStats.sqlite"
-    private static let uploadDatabaseFilename = "upload.sqlite"
+    private static let uploadDatabaseFilenameLegacy = "upload.sqlite"
     private static let userDefaultsAppVersion = "com.halloapp.app.version"
 
     // MARK: Global objects
     private(set) var avatarStore: AvatarStore!
     private(set) var feedData: FeedData!
     private(set) var chatData: ChatData!
-    private(set) var uploadData: UploadData!
     private(set) var syncManager: SyncManager!
     private(set) var privacySettingsImpl: PrivacySettings!
     private(set) var shareExtensionDataStore: ShareExtensionDataStore!
@@ -100,8 +99,8 @@ class MainAppContext: AppContext {
         documentsDirectoryURL.appendingPathComponent(cryptoStatsDatabaseFilenameLegacy)
     }()
 
-    static let uploadStoreURL = {
-        documentsDirectoryURL.appendingPathComponent(uploadDatabaseFilename)
+    static let uploadStoreURLLegacy = {
+        documentsDirectoryURL.appendingPathComponent(uploadDatabaseFilenameLegacy)
     }()
     
     func deleteDocumentsDirectory() {
@@ -137,7 +136,6 @@ class MainAppContext: AppContext {
 
         feedData = FeedData(service: service, contactStore: contactStore, userData: userData)
         chatData = ChatData(service: service, contactStore: contactStore, userData: userData)
-        uploadData = UploadData()
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         avatarStore = AvatarStore()
         coreService.avatarDelegate = avatarStore
@@ -146,6 +144,7 @@ class MainAppContext: AppContext {
         notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()
 
         performAppUpdateMigrationIfNecessary()
+        migrateUploadDataIfNecessary()
 
         // Add observer to notify us when persistentStore records changes.
         // These notifications are triggered for all cross process writes to the store.
@@ -182,6 +181,19 @@ class MainAppContext: AppContext {
             feedData.migrate(from: oldAppVersion)
             chatData.migrate(from: oldAppVersion)
             userDefaults?.setValue(Self.appVersionForService, forKey: Self.userDefaultsAppVersion)
+        }
+    }
+
+    private func migrateUploadDataIfNecessary() {
+        guard FileManager.default.fileExists(atPath: Self.uploadStoreURLLegacy.path) else {
+            DDLogInfo("MainAppContext/migrateUploadData/skipping [not found]")
+            return
+        }
+        DDLogInfo("MainAppContext/migrateUploadData/starting")
+        let legacyUploadData = UploadData(persistentStoreURL: Self.uploadStoreURLLegacy)
+        legacyUploadData.integrateEarlierResults(into: mediaHashStore) {
+            DDLogInfo("MainAppContext/migrateLegacyUploadData/complete [destroying old store]")
+            legacyUploadData.destroyStore()
         }
     }
 

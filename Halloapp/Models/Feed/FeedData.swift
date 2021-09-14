@@ -1870,7 +1870,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // TODO Nandini : check this for comment media
             if let path = feedPostMedia.relativeFilePath, let downloadUrl = feedPostMedia.url {
                 let fileUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(path, isDirectory: false)
-                MainAppContext.shared.uploadData.update(upload: fileUrl, key: feedPostMedia.key, sha256: feedPostMedia.sha256, downloadURL: downloadUrl)
+                MainAppContext.shared.mediaHashStore.update(url: fileUrl, key: feedPostMedia.key, sha256: feedPostMedia.sha256, downloadURL: downloadUrl)
             }
         }
     }
@@ -2435,7 +2435,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         let processed = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
-        MainAppContext.shared.uploadData.fetch(upload: processed) { [weak self] upload in
+        MainAppContext.shared.mediaHashStore.fetch(url: processed) { [weak self] upload in
             guard let self = self else { return }
 
             // Lookup object from coredata again instead of passing around the object across threads.
@@ -2493,7 +2493,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                 media.sha256 = sha256
                             }
 
-                            MainAppContext.shared.uploadData.update(upload: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
+                            MainAppContext.shared.mediaHashStore.update(url: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
                         case .failure(_):
                             media.status = .uploadError
                         }
@@ -2518,7 +2518,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         let processed = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
-        MainAppContext.shared.uploadData.fetch(upload: processed) { [weak self] upload in
+        MainAppContext.shared.mediaHashStore.fetch(url: processed) { [weak self] upload in
             guard let self = self else { return }
 
             // Lookup object from coredata again instead of passing around the object across threads.
@@ -2575,7 +2575,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                 media.sha256 = sha256
                             }
 
-                            MainAppContext.shared.uploadData.update(upload: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
+                            MainAppContext.shared.mediaHashStore.update(url: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
                         case .failure(_):
                             media.status = .uploadError
                         }

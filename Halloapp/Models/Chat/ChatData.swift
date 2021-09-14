@@ -671,7 +671,7 @@ class ChatData: ObservableObject {
                         return
                     }
 
-                    MainAppContext.shared.uploadData.update(upload: decryptedData, key: key, sha256: sha, downloadURL: url)
+                    MainAppContext.shared.mediaHashStore.update(data: decryptedData, key: key, sha256: sha, downloadURL: url)
 
                     let fileExtension: String = {
                         switch type {
@@ -1878,7 +1878,7 @@ extension ChatData {
         }
         let processed = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
-        MainAppContext.shared.uploadData.fetch(upload: processed) { [weak self] upload in
+        MainAppContext.shared.mediaHashStore.fetch(url: processed) { [weak self] upload in
             guard let self = self else { return }
 
             // Lookup object from coredata again instead of passing around the object across threads.
@@ -1935,7 +1935,7 @@ extension ChatData {
                             media.sha256 = sha256
                         }
 
-                        MainAppContext.shared.uploadData.update(upload: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
+                        MainAppContext.shared.mediaHashStore.update(url: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
                     case .failure(_):
                         media.outgoingStatus = .error
                         media.numTries += 1

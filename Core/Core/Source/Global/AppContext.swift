@@ -29,6 +29,7 @@ open class AppContext {
     private static let contactsDatabaseFilename = "contacts.sqlite"
     private static let keysDatabaseFilename = "keys.sqlite"
     private static let cryptoStatsDatabaseFilename = "cryptoStats.sqlite"
+    private static let mediaHashDatabaseFilename = "mediaHash.sqlite"
 
     // MARK: Global App Properties
     public static let appVersionForDisplay: String = {
@@ -77,6 +78,7 @@ open class AppContext {
     public let userDefaults: UserDefaults! = AppContext.userDefaultsForAppGroup
     public let keyStore: KeyStore
     public var keyData: KeyData!
+    public let mediaHashStore: MediaHashStore
     public lazy var cryptoData: CryptoData = { CryptoData(persistentStoreURL: AppContext.cryptoStatsStoreURL) }()
     public let messageCrypter: MessageCrypter
     public let fileLogger: DDFileLogger
@@ -184,6 +186,10 @@ open class AppContext {
     static let cryptoStatsStoreURL = {
         sharedDirectoryURL.appendingPathComponent(AppContext.cryptoStatsDatabaseFilename)
     }()
+
+    static let mediaHashStoreURL = {
+            sharedDirectoryURL.appendingPathComponent(AppContext.mediaHashDatabaseFilename)
+        }()
     
     public func deleteSharedDirectory() {
         do {
@@ -243,6 +249,7 @@ open class AppContext {
         keyData = KeyData(service: coreService, userData: userData, keyStore: keyStore)
         messageCrypter = MessageCrypter(service: coreService, keyStore: keyStore)
         keyStore.delegate = messageCrypter
+        mediaHashStore = MediaHashStore(persistentStoreURL: AppContext.mediaHashStoreURL)
 
         FirebaseApp.configure()
         let logger = CrashlyticsLogger()

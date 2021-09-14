@@ -21,14 +21,13 @@ class UploadData {
 
     // MARK: CoreData stack
 
-    private class var persistentStoreURL: URL {
-        get {
-            return MainAppContext.uploadStoreURL
-        }
+    private let persistentStoreURL: URL
+    public init(persistentStoreURL: URL) {
+        self.persistentStoreURL = persistentStoreURL
     }
 
     private lazy var persistentContainer: NSPersistentContainer = {
-        let description = NSPersistentStoreDescription(url: UploadData.persistentStoreURL)
+        let description = NSPersistentStoreDescription(url: persistentStoreURL)
         description.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         description.setOption(NSNumber(booleanLiteral: false), forKey: NSInferMappingModelAutomaticallyOption)
         description.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
@@ -39,9 +38,9 @@ class UploadData {
         container.loadPersistentStores { (description, error) in
             if let error = error {
                 DDLogError("Failed to load persistent store: \(error)")
-                DDLogError("Deleting persistent store at [\(UploadData.persistentStoreURL.absoluteString)]")
+                DDLogError("Deleting persistent store at [\(self.persistentStoreURL.absoluteString)]")
 
-                try? FileManager.default.removeItem(at: UploadData.persistentStoreURL)
+                try? FileManager.default.removeItem(at: self.persistentStoreURL)
 
                 DDLogError("Unable to load persistent store: \(error)")
             } else {
@@ -148,6 +147,61 @@ class UploadData {
             upload.url = downloadURL
 
             self.save(context)
+        }
+    }
+
+    public func destroyStore() {
+        let coordinator = self.persistentContainer.persistentStoreCoordinator
+        do {
+            let stores = coordinator.persistentStores
+            stores.forEach { (store) in
+                do {
+                    try coordinator.remove(store)
+                    DDLogError("UploadData/destroy/remove-store/finished [\(store)]")
+                }
+                catch {
+                    DDLogError("UploadData/destroy/remove-store/error [\(error)]")
+                }
+            }
+            try coordinator.destroyPersistentStore(at: persistentStoreURL, ofType: NSSQLiteStoreType, options: nil)
+            try FileManager.default.removeItem(at: persistentStoreURL)
+            DDLogInfo("UploadData/destroy/delete-store/complete")
+        }
+        catch {
+            DDLogError("UploadData/destroy/delete-store/error [\(error)]")
+        }
+    }
+
+    private func fetchAllData(in context: NSManagedObjectContext) -> [Upload] {
+        let request: NSFetchRequest<Upload> = Upload.fetchRequest()
+        request.returnsObjectsAsFaults = false
+
+        do {
+            return try context.fetch(request)
+        }
+        catch {
+            DDLogError("UploadData/fetchAll/error \(error)")
+            return []
+        }
+    }
+
+    // Copy all old database entries from main app storage into shared container.
+    public func integrateEarlierResults(into mediaHashStore: MediaHashStore, completion: (() -> Void)? = nil) {
+        performSeriallyOnBackgroundContext { [self] context in
+            let oldUploadData = fetchAllData(in: viewContext)
+            var mediaHashList: [(String, String, String, URL)] = []
+            for oldUpload in oldUploadData {
+                guard let dataHash = oldUpload.dataHash, let sha256 = oldUpload.sha256,
+                      let key = oldUpload.key, let url = oldUpload.url else {
+                    continue
+                }
+                mediaHashList.append((dataHash, sha256, key, url))
+                DDLogInfo("UploadData/integrateEarlierResults/\(dataHash)/updating")
+            }
+            mediaHashStore.updateAll(mediaHashItemList: mediaHashList)
+            DispatchQueue.main.async {
+                completion?()
+            }
         }
     }
 }
