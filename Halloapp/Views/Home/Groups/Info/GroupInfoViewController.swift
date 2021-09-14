@@ -771,7 +771,7 @@ class GroupInfoHeaderView: UIView {
         view.spacing = 0
         view.setCustomSpacing(20, after: avatarRow)
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 17, bottom: 0, right: 17)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -874,7 +874,7 @@ class GroupInfoHeaderView: UIView {
 
         let view = UIStackView(arrangedSubviews: [ groupNameText ])
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -943,7 +943,7 @@ class GroupInfoFooterView: UIView {
         let view = UIStackView(arrangedSubviews: [ fixedSpacerRow, leaveGroupRow, spacer ])
         view.axis = .vertical
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 17, bottom: 0, right: 17)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -968,7 +968,7 @@ class GroupInfoFooterView: UIView {
         let view = UIStackView(arrangedSubviews: [ leaveGroupLabel, notAMemberLabel ])
         view.axis = .vertical
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -1001,7 +1001,7 @@ class GroupInfoFooterView: UIView {
 
     private lazy var notAMemberLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.font = .systemFont(forTextStyle: .body, maximumPointSize: 17)
         label.textColor = .secondaryLabel
         label.textAlignment = .left
         label.text = Localizations.chatGroupInfoNotAMemberLabel
