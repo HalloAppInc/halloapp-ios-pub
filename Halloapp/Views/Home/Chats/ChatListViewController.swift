@@ -543,7 +543,7 @@ extension ChatListViewController: UISearchBarDelegate {
 
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         searchBar.setShowsCancelButton(true, animated: true)
-        searchBar.setCancelButtonTitleIfExist()
+        searchBar.setCancelButtonTitleIfNeeded()
     }    
 }
 

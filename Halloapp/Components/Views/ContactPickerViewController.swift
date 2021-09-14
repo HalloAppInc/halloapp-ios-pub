@@ -209,7 +209,7 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
 
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         searchBar.setShowsCancelButton(true, animated: true)
-        searchBar.setCancelButtonTitleIfExist()
+        searchBar.setCancelButtonTitleIfNeeded()
     }
 }
 
