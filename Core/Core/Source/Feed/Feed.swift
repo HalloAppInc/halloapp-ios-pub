@@ -398,23 +398,6 @@ public extension PostData {
         }
         return post
     }
-
-    var serverPost: Server_Post? {
-        var post = Server_Post()
-
-        if let uid = Int64(userId) {
-            post.publisherUid = uid
-        }
-        post.id = id
-        post.timestamp = Int64(timestamp.timeIntervalSince1970)
-        if let payload = try? clientContainer?.serializedData() {
-            post.payload = payload
-        } else {
-            DDLogError("PostData/serverPost/\(id)/error [could not create payload]")
-            return nil
-        }
-        return post
-    }
 }
 
 // MARK: Feed Comment

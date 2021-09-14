@@ -410,10 +410,61 @@ extension ProtoServiceCore: CoreService {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
-            guard let request = ProtoPublishPostRequest(post: post, feed: feed, completion: completion) else {
+            guard let payloadData = try? post.clientContainer?.serializedData() else {
                 completion(.failure(.malformedRequest))
                 return
             }
+            var serverPost = Server_Post()
+            serverPost.payload = payloadData
+            serverPost.id = post.id
+            serverPost.publisherUid = Int64(post.userId) ?? 0
+            serverPost.timestamp = Int64(post.timestamp.timeIntervalSince1970)
+
+            let iqPayload: Server_Iq.OneOf_Payload
+            switch feed {
+            case .group(let groupID):
+                var item = Server_GroupFeedItem()
+                item.action = .publish
+                item.item = .post(serverPost)
+                item.gid = groupID
+
+                iqPayload = .groupFeedItem(item)
+            case .personal(let audience):
+                var serverAudience = Server_Audience()
+                serverAudience.uids = audience.userIds.compactMap { Int64($0) }
+                serverAudience.type = {
+                    switch audience.audienceType {
+                    case .all: return .all
+                    case .blacklist: return .except
+                    case .whitelist: return .only
+                    case .group:
+                        DDLogError("proto/publishPost/error unsupported personal audience type [\(audience.audienceType)]")
+                        return .only
+                    }
+                }()
+                serverPost.audience = serverAudience
+
+                var item = Server_FeedItem()
+                item.action = .publish
+                item.item = .post(serverPost)
+
+                iqPayload = .feedItem(item)
+            }
+
+            let request = ProtoRequest<Date>(
+                iqPacket: .iqPacket(type: .set, payload: iqPayload),
+                transform: { (iq) in
+                    let serverPost: Server_Post = {
+                        switch feed {
+                        case .group: return iq.groupFeedItem.post
+                        case .personal: return iq.feedItem.post
+                        }
+                    }()
+                    let timestamp = Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp))
+                    return .success(timestamp)
+                },
+                completion: completion)
+
             self.enqueue(request: request)
         }
     }
