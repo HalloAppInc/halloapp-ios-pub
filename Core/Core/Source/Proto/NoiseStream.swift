@@ -106,7 +106,6 @@ public final class NoiseStream: NSObject {
         // Shut down socket immediately without transitioning to `disconnecting` state.
         // This will prompt service to treat it as any other socket error and reconnect.
         socket.disconnect()
-        socketBuffer?.removeAll()
     }
 
     private func reconnect() {
@@ -491,7 +490,7 @@ public final class NoiseStream: NSObject {
 extension NoiseStream: GCDAsyncSocketDelegate {
     public func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) {
         DDLogInfo("noise/socket-did-connect")
-        
+
         self.socket.perform {
             // adapted from https://groups.google.com/g/cocoaasyncsocket/c/DtkL7zd68wE/m/MAxYy994gdgJ
             var flag: Int = 1
@@ -502,7 +501,8 @@ extension NoiseStream: GCDAsyncSocketDelegate {
                 DDLogInfo("noise/socket TCP_NODELAY flag is set (nagle is disabled)")
             }
         }
-        
+
+        socketBuffer = nil
         startHandshake()
     }
 
