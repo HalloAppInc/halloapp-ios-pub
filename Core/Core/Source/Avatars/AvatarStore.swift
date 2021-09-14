@@ -121,37 +121,7 @@ public class AvatarStore: ServiceAvatarDelegate {
     }
     
     @discardableResult private func save(avatarId: AvatarID, forUserId userId: UserID, using managedObjectContext: NSManagedObjectContext, isContactSync: Bool = false) -> Avatar {
-        var currentAvatar = avatar(forUserId: userId, using: managedObjectContext)
-        
-        if currentAvatar == nil {
-            currentAvatar = NSEntityDescription.insertNewObject(forEntityName: Avatar.entity().name!, into: managedObjectContext) as? Avatar
-            
-            currentAvatar!.userId = userId
-        } else {
-            guard currentAvatar!.avatarId != avatarId else {
-                // For ContactSync, most avatarIds remain the same
-                if !isContactSync {
-                    DDLogError("AvatarStore/save/error avatar \(avatarId) for user \(userId) is same")
-                }
-                return currentAvatar!
-            }
-            
-            if let relativeFilePath = currentAvatar!.relativeFilePath {
-                let filePath = AvatarStore.fileURL(forRelativeFilePath: relativeFilePath)
-                
-                if FileManager.default.fileExists(atPath: filePath.path) {
-                    do {
-                        try FileManager.default.removeItem(at: filePath)
-                    } catch let error as NSError {
-                        DDLogError("AvatarStore/save/failed to remove old file [\(error)]")
-                    }
-                }
-                currentAvatar!.relativeFilePath = nil
-            }
-        }
-        
-        currentAvatar!.avatarId = avatarId
-        
+        let currentAvatar = insertAvatar(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
         do {
             try managedObjectContext.save()
         } catch let error as NSError {
@@ -173,20 +143,16 @@ public class AvatarStore: ServiceAvatarDelegate {
             }
         }
         
-        return currentAvatar!
+        return currentAvatar
     }
     
     public func save(image: UIImage, forUserId userId: UserID, avatarId: AvatarID) {
         let managedObjectContext = bgContext
-    
-        // TODO: it is not great that we remove the current image data and set a new one here in separate steps.
-        // setting image to nil will update the avatarView to refresh to show blank image which results in a flicker when updating profile picture.
-        let currentAvatar = save(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
-        
+
+        let currentAvatar = insertAvatar(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
+        removeAvatarFile(avatar: currentAvatar)
         let data = image.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
-        
         let fileURL = AvatarStore.fileURL(forRelativeFilePath: "\(avatarId).jpeg")
-        
         do {
             try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
             try data.write(to: fileURL)
@@ -195,9 +161,8 @@ public class AvatarStore: ServiceAvatarDelegate {
             
             return
         }
-        
         currentAvatar.relativeFilePath = "\(avatarId).jpeg"
-        
+
         do {
             try managedObjectContext.save()
         } catch let error as NSError {
@@ -205,12 +170,40 @@ public class AvatarStore: ServiceAvatarDelegate {
         }
         
         DDLogInfo("AvatarStore/save avatar for user \(userId) has been saved to \(currentAvatar.relativeFilePath!)")
-        
         if let userAvatar = userAvatars.object(forKey: userId as NSString) {
             DDLogInfo("updating userAvatar for userId: \(userId) - avatarId: \(avatarId)")
             userAvatar.image = image
             userAvatar.data = data
         }
+    }
+
+    private func insertAvatar(avatarId: AvatarID, forUserId userId: UserID, using managedObjectContext: NSManagedObjectContext) -> Avatar {
+        var currentAvatar: Avatar
+        if let avatar = avatar(forUserId: userId, using: managedObjectContext) {
+            currentAvatar = avatar
+            if currentAvatar.avatarId != avatarId {
+                removeAvatarFile(avatar: currentAvatar)
+            }
+        } else {
+            currentAvatar = NSEntityDescription.insertNewObject(forEntityName: Avatar.entity().name!, into: managedObjectContext) as! Avatar
+            currentAvatar.userId = userId
+        }
+        currentAvatar.avatarId = avatarId
+        return currentAvatar
+    }
+
+    private func removeAvatarFile(avatar: Avatar) {
+        if let relativeFilePath = avatar.relativeFilePath {
+            let filePath = AvatarStore.fileURL(forRelativeFilePath: relativeFilePath)
+            if FileManager.default.fileExists(atPath: filePath.path) {
+                do {
+                    try FileManager.default.removeItem(at: filePath)
+                } catch let error as NSError {
+                    DDLogError("AvatarStore/save/failed to remove old file [\(error)]")
+                }
+            }
+        }
+        avatar.relativeFilePath = nil
     }
     
     /*
@@ -268,7 +261,12 @@ public class AvatarStore: ServiceAvatarDelegate {
     public func processContactSync(_ avatarDict: [UserID: AvatarID]) {
         performOnBackgroundContextAndWait { [weak self] (managedObjectContext) in
             for (userId, avatarId) in avatarDict {
-                self?.save(avatarId: avatarId, forUserId: userId, using: managedObjectContext, isContactSync: true)
+                _ = self?.insertAvatar(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
+            }
+            do {
+                try managedObjectContext.save()
+            } catch let error as NSError {
+                DDLogError("AvatarStore/processContactSync/error [\(error)]")
             }
         }
     }
