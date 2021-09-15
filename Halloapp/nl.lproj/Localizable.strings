@@ -59,7 +59,7 @@
 "archive.title.label" = "Archief";
 
 /* Text to show on banner when no connection is available */
-"banner.no.connection" = "Geen internetverbinding";
+"banner.no.connection" = "Geen Verbinding";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Toevoegen";
@@ -791,7 +791,7 @@
 "not.in.group.banner.text" = "Je bent geen deelnemer meer van deze groep";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
-"notification.commented.with.text" = "Gereageerd: %@";
+"notification.commented.with.text" = "Heeft gereageerd: %@";
 
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Eén van je contacten gebruikt nu HalloApp";
@@ -1241,13 +1241,13 @@
 "title.select.group.members.create.group" = "Nieuwe Groep Aanmaken";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.title" = "Nieuwe Deelnemers Toevoegen";
+"title.select.group.members.title" = "Deelnemers Toevoegen";
 
 /* Fourth tab in the main app interface */
 "title.settings" = "Instellingen";
 
 /* Title for the screen with information about who saw your post. */
-"title.your.post" = "Gezien door";
+"title.your.post" = "Gezien Door";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "Zet “Contacten” aan";

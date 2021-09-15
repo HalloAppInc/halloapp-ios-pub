@@ -119,7 +119,7 @@
 "registration.install.app.to.continue" = "Devam etmek için HalloApp'i yükle";
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
-"registration.install.app.to.join.group" = "%@'e katılmak için HalloApp'i yükle";
+"registration.install.app.to.join.group" = "%@ grubuna katılmak için HalloApp'i yükle";
 
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "Tüh!";

@@ -77,7 +77,7 @@
 "meCapitalized" = "Ik";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
-"notification.commented.with.text" = "Gereageerd: %@";
+"notification.commented.with.text" = "Heeft gereageerd: %@";
 
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Eén van je contacten gebruikt nu HalloApp";

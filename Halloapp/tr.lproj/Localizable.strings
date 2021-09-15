@@ -8,7 +8,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "HalloApp burada! Bunu, sen ve sevdiklerin için kuruyoruz. Sosyal medya uygulamalarını aslına geri döndürürken dünyadaki herkesin erişmesi gerektiğini düşündüğümüz bir güvenlik ve gizlilik katmanı ekledik. HalloApp kişisel bilgilerini asla kullanmayacak ve sana asla reklam göstermeyecek. Bunun yerine, küçük bir maliyetle ek özellikler sunmayı planlıyoruz.";
+"about.body.1" = "HalloApp burada! Bu uygulamayı, sevdiklerin ve senin için kuruyoruz. Sosyal medya uygulamalarını temel özelliklerine döndürürken dünyadaki herkesin erişmesi gerektiğine inandığımız bir güvenlik ve gizlilik katmanı ekledik. HalloApp kişisel bilgilerini asla kullanmayacak ve sana asla reklam göstermeyecek. Bunun yerine, küçük bir maliyetle ek özellikler sunmayı planlıyoruz.";
 
 /* About screen: body text. */
 "about.body.2" = "HalloApp kullandığın ve bunu ailen ve arkadaşlarınla paylaştığın için teşekkürler. Uygulamayı geliştirmeye devam ediyoruz.";
@@ -212,7 +212,7 @@
 "chat.group.leave.group.confirmation" = "“%@” grubundan ayrılmak mı istiyorsun?";
 
 /* Label shown above group name input box */
-"chat.group.name.label" = "GRUP ADI";
+"chat.group.name.label" = "Grup adı";
 
 /* Title for group photo actions */
 "chat.group.photo.label" = "Grup fotoğrafı";
@@ -356,7 +356,7 @@
 "contacts.permission.explanation.title" = "Kişiler";
 
 /* Title for tutorial explaining how user can enable contacts permission */
-"contacts.permission.tutorial.title" = "Kişiler";
+"contacts.permission.tutorial.title" = "Kişiler nasıl açılır";
 
 /* Text label for group description text box */
 "create.group.description.label" = "Grup açıklaması";
@@ -467,7 +467,7 @@
 "feedpost.button.comment" = "Yorum yap";
 
 /* Button under someoneelse's post. Verb. */
-"feedpost.button.reply" = "Yanıtla";
+"feedpost.button.reply" = "Özelden yanıtla";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Grup açıklaması ekle";
@@ -572,7 +572,7 @@
 "group.invite.share.link.message" = "HalloApp grubuma katılmak için bu ilişime tıklayın:";
 
 /* Title of group invite screen */
-"group.invite.title" = "Grup davet ilişimi";
+"group.invite.title" = "Grup daveti";
 
 /* Label shown above group members list */
 "group.members.label" = "Üyeler";
@@ -650,7 +650,7 @@
 "invite.text" = "HalloApp'te bana katıl — ailen ve arkadaşlarınla iletişimde kalmanın kolay, özel ve güvenli bir yolu. https://halloapp.com/dl adresinden indir.";
 
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
-"invite.text.specific" = "Merhaba %1$@, seni, günün her anını kolayca paylaşabileceğin bir sosyal medya uygulaması olan HalloApp'te bana katılmaya davet ediyorum. Kaydolmak için %2$@ numarasını kullanabilir ya da https://halloapp.com/dl adresinden uygulamayı indirebilirsin.";
+"invite.text.specific" = "Merhaba %1$s! Seni, sevdiklerimizle gerçek bağlantılar kurabildiğimiz bir uygulama olan HalloApp'e davet ediyorum. Kaydolmak için %2$s numarasını kullan. halloapp.com/dl adresinden uygulamayı \nindir.";
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Davet et";
@@ -710,7 +710,7 @@
 "media.save.not.saved" = "Fotoğraf kaydedilemiyor";
 
 /* Label indicating that media was successfully saved to the camera roll */
-"media.save.saved" = "Kaydedildi";
+"media.save.saved" = "Galeriye kaydedildi";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Kapat";
@@ -902,7 +902,7 @@
 "profile.name.length" = "%1$d/%2$d";
 
 /* Row in Profile screen. */
-"profile.row.about" = "HalloApp hakkında";
+"profile.row.about" = "Hakkında";
 
 /* Row in Profile Screen */
 "profile.row.account" = "Hesap";
@@ -914,7 +914,7 @@
 "profile.row.help" = "Yardım";
 
 /* Row in Profile screen. */
-"profile.row.invite" = "Arkadaşlarını davet et";
+"profile.row.invite" = "HalloApp'e davet et";
 
 /* Row in Settings screen */
 "profile.row.my.posts" = "Gönderilerim";
@@ -962,7 +962,7 @@
 "registration.install.app.to.continue" = "Devam etmek için HalloApp'i yükle";
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
-"registration.install.app.to.join.group" = "%@'e katılmak için HalloApp'i yükle";
+"registration.install.app.to.join.group" = "%@ grubuna katılmak için HalloApp'i yükle";
 
 /* Title for popup that appears when user tries to register invalid number */
 "registration.invalidphone" = "Tüh!";
@@ -971,7 +971,7 @@
 "registration.invalidphone.only" = "Girdiğin telefon numarası geçersiz. Lütfen kontrol et.";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Şu anda yalnızca davet sistemiyle çalışıyoruz. HalloApp kullanan bir aile üyen veya arkadaşın varsa, telefon numaranı kullanarak sana davet göndermelerini isteyebilirsin.";
+"registration.invite.only" = "Kaydolmak için bir Grup Davet İlişimiyle yönlendirildiysen lütfen kaydını tamamlamak için ilişime tekrar tıkla ve gruba katıl. ";
 
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "Adın";
@@ -1130,7 +1130,7 @@
 "settings.privacy.posts" = "Gönderiler";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "HalloApp'te bana katıl; halloapp.com/dl adresinden ücretsiz indir";
+"settings.share.text" = "HalloApp'teki gerçek ilişki ağıma katıl. halloapp.com/dl adresinden ücretsiz indir.";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Okuma listesine ekle";
@@ -1217,7 +1217,7 @@
 "title.settings" = "Ayarlar";
 
 /* Title for the screen with information about who saw your post. */
-"title.your.post" = "Gönderini ... gördü";
+"title.your.post" = "... tarafından görüldü ";
 
 /* Indicates which switch a user needs to turn on to enable contacts permissions. */
 "turn.on.contacts" = "\"Kişilerim\"i aç";
