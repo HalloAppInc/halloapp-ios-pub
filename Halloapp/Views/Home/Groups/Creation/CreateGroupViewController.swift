@@ -14,6 +14,7 @@ fileprivate struct Constants {
     static let AvatarSize: CGFloat = 100
     static let PhotoIconSize: CGFloat = 40
     static let MaxNameLength = 25
+    static let NearMaxNameLength = 5
     static let MaxDescriptionLength = 500
 }
 
@@ -23,21 +24,22 @@ protocol CreateGroupViewControllerDelegate: AnyObject {
 
 class CreateGroupViewController: UIViewController {
     weak var delegate: CreateGroupViewControllerDelegate?
-    
+
     private var selectedMembers: [UserID] = []
     private var groupNamePlaceholderText = Localizations.createGroupNamePlaceholder
     private var groupDescriptionPlaceholderText = Localizations.createGroupDescriptionPlaceholder
     private var cancellableSet: Set<AnyCancellable> = []
-    
+
     private var avatarData: Data? = nil
-    
+
     init(selectedMembers: [UserID]) {
-        self.selectedMembers = selectedMembers
+        self.selectedMembers.append(MainAppContext.shared.userData.userId)
+        self.selectedMembers.append(contentsOf: selectedMembers)
         super.init(nibName: nil, bundle: nil)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-    
+
     override func viewDidLoad() {
         DDLogInfo("CreateGroupViewController/viewDidLoad")
 
@@ -57,7 +59,6 @@ class CreateGroupViewController: UIViewController {
     }
 
     var canCreate: Bool {
-//        return !textView.text.isEmpty && selectedMembers.count > 0
         return !groupNameTextView.text.isEmpty
     }
 
@@ -85,12 +86,12 @@ class CreateGroupViewController: UIViewController {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextView, membersRow, tableView ])
+        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextView, countRow, membersRow, tableView ])
 
         view.axis = .vertical
         view.spacing = 20
         view.setCustomSpacing(0, after: groupNameLabelRow)
-        view.setCustomSpacing(0, after: groupDescriptionLabelRow)
+        view.setCustomSpacing(0, after: groupNameTextView)
         view.setCustomSpacing(0, after: membersRow)
         
         view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
@@ -144,7 +145,7 @@ class CreateGroupViewController: UIViewController {
         
         return view
     }()
-    
+
     private lazy var avatarView: UIImageView = {
         let view = UIImageView()
         view.image = AvatarView.defaultGroupImage
@@ -156,11 +157,11 @@ class CreateGroupViewController: UIViewController {
         view.layer.masksToBounds = false
         view.layer.cornerRadius = Constants.AvatarSize*radiusRatio
         view.clipsToBounds = true
-     
+
         view.translatesAutoresizingMaskIntoConstraints = false
         view.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
         view.heightAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
-        
+
         return view
     }()
     
@@ -168,7 +169,7 @@ class CreateGroupViewController: UIViewController {
         let icon = UIImageView()
         let image = UIImage(named: "ProfileHeaderCamera")
         icon.image = image?.imageResized(to: CGSize(width: 20, height: 20)).withRenderingMode(.alwaysTemplate)
-        
+
         icon.contentMode = .center
         icon.tintColor = UIColor.secondarySystemGroupedBackground
         icon.backgroundColor = UIColor.systemBlue
@@ -176,20 +177,20 @@ class CreateGroupViewController: UIViewController {
         icon.layer.cornerRadius = Constants.PhotoIconSize/2
         icon.clipsToBounds = true
         icon.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
-        
+
         return icon
     }()
-    
+
     private lazy var groupNameLabelRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [groupNameLabel])
         view.axis = .horizontal
-        
+
         view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 5, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
-        
+
         return view
     }()
-    
+
     private lazy var groupNameLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .left
@@ -197,7 +198,7 @@ class CreateGroupViewController: UIViewController {
         label.font = UIFont.preferredFont(forTextStyle: .caption1)
         label.text = Localizations.chatGroupNameLabel.uppercased()
         label.translatesAutoresizingMaskIntoConstraints = false
-        
+
         return label
     }()
     
@@ -205,23 +206,21 @@ class CreateGroupViewController: UIViewController {
         let view = UITextView()
         view.isScrollEnabled = false
         view.delegate = self
-        
-        view.backgroundColor = .secondarySystemGroupedBackground
-        
-        view.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
 
+        view.backgroundColor = .secondarySystemGroupedBackground
+        view.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         view.font = UIFont.preferredFont(forTextStyle: .body)
         view.tintColor = .systemBlue
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
-        
+
         return view
     }()
     
     private lazy var countRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [characterCounter])
         view.axis = .horizontal
-        
+
         view.layoutMargins = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 5)
         view.isLayoutMarginsRelativeArrangement = true
         
@@ -233,19 +232,19 @@ class CreateGroupViewController: UIViewController {
         label.textAlignment = .right
         label.textColor = .secondaryLabel
         label.font = UIFont.preferredFont(forTextStyle: .footnote)
-        
+
         label.translatesAutoresizingMaskIntoConstraints = false
-        
+
         return label
     }()
     
     private lazy var groupDescriptionLabelRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [groupDescriptionLabel])
         view.axis = .horizontal
-        
+
         view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 5, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
-        
+
         return view
     }()
     
@@ -256,7 +255,7 @@ class CreateGroupViewController: UIViewController {
         label.font = UIFont.preferredFont(forTextStyle: .caption1)
         label.text = Localizations.createGroupDescriptionLabel.uppercased()
         label.translatesAutoresizingMaskIntoConstraints = false
-        
+
         return label
     }()
     
@@ -269,13 +268,12 @@ class CreateGroupViewController: UIViewController {
         view.backgroundColor = .secondarySystemGroupedBackground
         view.font = UIFont.preferredFont(forTextStyle: .body)
         view.tintColor = .systemBlue
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
 
         return view
     }()
-    
-    
+
     private lazy var membersRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ membersLabel ])
         view.axis = .horizontal
@@ -305,16 +303,16 @@ class CreateGroupViewController: UIViewController {
     private let cellReuseIdentifier = "TableViewCell"
     private lazy var tableView: UITableView = {
         let view = UITableView()
-        
-        view.backgroundColor = .feedBackground
+
+        view.backgroundColor = .primaryBg
         view.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         view.delegate = self
         view.dataSource = self
-        
+
         view.tableFooterView = UIView()
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
-        
+
         return view
     }()
 
@@ -365,14 +363,18 @@ class CreateGroupViewController: UIViewController {
     // MARK: Helpers
 
     private func updateCounts() {
-        groupNameTextView.text = String(groupNameTextView.text.prefix(Constants.MaxNameLength))
-        var label = "0"
-        if groupNameTextView.textColor != .placeholderText {
-            label = String(groupNameTextView.text.count)
+        guard groupNameTextView.textColor != .placeholderText else {
+            characterCounter.text = ""
+            return
         }
-        characterCounter.text = "\(label)/\(Constants.MaxNameLength)"
-
-        groupDescriptionTextView.text = String(groupDescriptionTextView.text.prefix(Constants.MaxDescriptionLength))
+        
+        let count = groupNameTextView.text.count
+        if count >= Constants.MaxNameLength - Constants.NearMaxNameLength {
+            let countStr = String(count)
+            characterCounter.text = "\(countStr)/\(Constants.MaxNameLength)"
+        } else {
+            characterCounter.text = ""
+        }
     }
 
     private func presentPhotoLibraryPicker() {
@@ -407,7 +409,7 @@ class CreateGroupViewController: UIViewController {
                 controller.present(edit, animated: true)
             }
         }
-        
+
         self.present(UINavigationController(rootViewController: pickerController), animated: true)
     }
 
@@ -419,14 +421,18 @@ class CreateGroupViewController: UIViewController {
 
         let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
 
-        self.avatarView.image =  UIImage(data: data)
-        self.avatarData = data
+        avatarView.image =  UIImage(data: data)
+        avatarData = data
     }
 }
 
 extension CreateGroupViewController: UITextViewDelegate {
-    
+
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        guard text.rangeOfCharacter(from: CharacterSet.newlines) == nil else { return false }
+        let isTextTooLong = textView.text.count + (text.count - range.length) > Constants.MaxNameLength
+        guard !isTextTooLong else { return false }
+        
         let currentText:String = textView.text
         let updatedText = (currentText as NSString).replacingCharacters(in: range, with: text)
         let isGroupNameTextView = textView == groupNameTextView
@@ -454,7 +460,7 @@ extension CreateGroupViewController: UITextViewDelegate {
         updateCounts()
         return false
     }
-    
+
     func textViewDidChangeSelection(_ textView: UITextView) {
         if view.window != nil {
             if textView.textColor == .placeholderText {
@@ -469,7 +475,7 @@ extension CreateGroupViewController: UITextViewDelegate {
             navigationItem.rightBarButtonItem?.isEnabled = canCreate
         }
     }
-    
+
 }
 
 extension CreateGroupViewController: UITableViewDelegate, UITableViewDataSource {
@@ -488,31 +494,32 @@ extension CreateGroupViewController: UITableViewDelegate, UITableViewDataSource 
         }
         let index = indexPath.row
         guard selectedMembers.count > index else { return cell }
-        let abContacts = MainAppContext.shared.contactStore.contacts(withUserIds: [selectedMembers[index]])
-        guard let contact = abContacts.first else { return cell }
-        cell.configure(with: contact)
+        cell.configure(with: selectedMembers[index])
         cell.isUserInteractionEnabled = false
         return cell
     }
-    
+
     // resign keyboard so the entire tableview can be seen
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         groupNameTextView.resignFirstResponder()
     }
-    
+
 }
 
 private extension ContactTableViewCell {
 
-    func configure(with abContact: ABContact) {
+    func configure(with userID: UserID) {
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
 
-        nameLabel.text = abContact.fullName
-        subtitleLabel.text = abContact.phoneNumber
-
-        if let userId = abContact.userId {
-            contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
+        if userID == MainAppContext.shared.userData.userId {
+            subtitleLabel.text = MainAppContext.shared.userData.formattedPhoneNumber
+        } else {
+            let abContacts = MainAppContext.shared.contactStore.contacts(withUserIds: [userID])
+            if let contact = abContacts.first {
+                subtitleLabel.text = contact.phoneNumber
+            }
         }
-
+        contactImage.configure(with: userID, using: MainAppContext.shared.avatarStore)
     }
 }
 

@@ -16,7 +16,7 @@ protocol NewGroupMembersViewControllerDelegate: AnyObject {
 }
 
 class NewGroupMembersViewController: UIViewController, NSFetchedResultsControllerDelegate {
-    
+
     weak var delegate: NewGroupMembersViewControllerDelegate?
     
     let cellReuseIdentifier = "NewGroupMembersViewCell"
@@ -34,7 +34,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     private var filteredContacts: [ABContact] = []
     
     private var trackedContacts: [String:TrackedContact] = [:]
-    
+
     private var selectedMembers: [UserID] = [] {
         didSet {
             if selectedMembers.count == 0 {
@@ -44,16 +44,16 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
             }
         }
     }
-    
+
     private var alreadyHaveMembers: Bool = false
     private var currentMembers: [UserID] = []
-    
+
     init(currentMembers: [UserID] = []) {
         self.currentMembers = currentMembers
         self.alreadyHaveMembers = self.currentMembers.count > 0 ? true : false
         super.init(nibName: nil, bundle: nil)
     }
-        
+
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func viewDidLoad() {
@@ -69,22 +69,21 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         }
 
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
-        navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
-        
+
         tableView.backgroundColor = .primaryBg
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
-        
+
         searchController = UISearchController(searchResultsController: nil)
         searchController.delegate = self
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.definesPresentationContext = true
         searchController.hidesNavigationBarDuringPresentation = false
-        
+
         searchController.searchBar.showsCancelButton = false
         searchController.searchBar.autocapitalizationType = .none
         searchController.searchBar.searchTextField.placeholder = Localizations.labelSearch
-        
+
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
 
@@ -93,104 +92,25 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         view.addSubview(mainView)
         view.backgroundColor = UIColor.primaryBg
         isModalInPresentation = true
-        
+
         mainView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
         mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        
+
         let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first
 
         let safeAreaInsetBottom = (keyWindow?.safeAreaInsets.bottom ?? 0) + 10
         mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: safeAreaInsetBottom).isActive = true
-        
+
         setupFetchedResultsController()
-        
+
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 
-    @objc private func keyboardWillShow(notification: Notification) {
-        animateWithKeyboard(notification: notification) { (keyboardFrame) in
-            self.mainView.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: keyboardFrame.height, right: 0)
-        }
-    }
-    
-    @objc private func keyboardWillHide(notification: Notification) {
-        animateWithKeyboard(notification: notification) { (keyboardFrame) in
-            self.mainView.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
-        }
-    }
-    
-    private lazy var mainView: UIStackView = {
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-        
-        let view = UIStackView(arrangedSubviews: [ tableView, memberAvatarsRow ])
-        view.axis = .vertical
-  
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        return view
-    }()
-    
-    private lazy var memberAvatarsRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ groupMemberAvatars ])
-        view.axis = .horizontal
-
-        view.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 10, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.heightAnchor.constraint(equalToConstant: 120).isActive = true
-        
-        let subView = UIView(frame: view.bounds)
-        subView.layer.masksToBounds = true
-        subView.clipsToBounds = true
-        subView.backgroundColor = UIColor.feedBackground
-        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.insertSubview(subView, at: 0)
-        
-        let topBorder = UIView(frame: view.bounds)
-        topBorder.frame.size.height = 1
-        topBorder.backgroundColor = UIColor.secondarySystemGroupedBackground
-        topBorder.autoresizingMask = [.flexibleWidth]
-        view.insertSubview(topBorder, at: 1)
-        
-        view.isHidden = true
-        
-        return view
-    }()
-    
-    private lazy var groupMemberAvatars: GroupMemberAvatars = {
-        let view = GroupMemberAvatars()
-        view.delegate = self
-        return view
-    }()
-    
-    private lazy var tableView: UITableView = {
-        let view = UITableView()
-        
-        view.backgroundColor = .feedBackground
-        view.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
-        view.delegate = self
-        view.dataSource = self
-        
-        view.tableFooterView = UIView()
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        return view
-    }()
-    
-    // MARK: Appearance
-
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("NewGroupMembersViewController/viewWillAppear")
         super.viewWillAppear(animated)
-//        self.tableView.reloadData()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -202,13 +122,84 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         DDLogDebug("NewGroupMembersViewController/deinit ")
     }
 
+    @objc private func keyboardWillShow(notification: Notification) {
+        animateWithKeyboard(notification: notification) { (keyboardFrame) in
+            self.mainView.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: keyboardFrame.height, right: 0)
+        }
+    }
+
+    @objc private func keyboardWillHide(notification: Notification) {
+        animateWithKeyboard(notification: notification) { (keyboardFrame) in
+            self.mainView.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+        }
+    }
+
+    private lazy var mainView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ tableView, memberAvatarsRow ])
+        view.axis = .vertical
+
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        return view
+    }()
+
+    private lazy var memberAvatarsRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ groupMemberAvatars ])
+        view.axis = .horizontal
+
+        view.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 10, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.heightAnchor.constraint(equalToConstant: 120).isActive = true
+
+        let subView = UIView(frame: view.bounds)
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        subView.backgroundColor = UIColor.primaryBg
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(subView, at: 0)
+
+        let topBorder = UIView(frame: view.bounds)
+        topBorder.frame.size.height = 1
+        topBorder.backgroundColor = UIColor.secondarySystemGroupedBackground
+        topBorder.autoresizingMask = [.flexibleWidth]
+        view.insertSubview(topBorder, at: 1)
+
+        view.isHidden = true
+        return view
+    }()
+
+    private lazy var groupMemberAvatars: GroupMemberAvatars = {
+        let view = GroupMemberAvatars()
+        view.delegate = self
+        return view
+    }()
+
+    private lazy var tableView: UITableView = {
+        let view = UITableView()
+        view.backgroundColor = .primaryBg
+        view.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
+        view.delegate = self
+        view.dataSource = self
+
+        view.tableFooterView = UIView()
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        return view
+    }()
+
     // MARK: Top Nav Button Actions
 
     @objc private func cancelAction() {
         searchController.isActive = false
         dismiss(animated: true)
     }
-    
+
     @objc private func nextAction() {
         let controller = CreateGroupViewController(selectedMembers: selectedMembers)
         controller.isModalInPresentation = true
@@ -220,7 +211,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         navigationController?.popViewController(animated: true)
         delegate?.newGroupMembersViewController(self, selected: selectedMembers)
     }
-    
+
     // MARK: Customization
 
     public var fetchRequest: NSFetchRequest<ABContact> {
@@ -419,21 +410,18 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         if let contact = contact, self.isDuplicate(contact) {
             cell.isHidden = true
         }
-        
+
         guard let userId = contact?.userId else { return }
         if currentMembers.contains(userId) {
-            if let cell2 = cell as? ContactTableViewCell {
-                cell2.setContact(selected: true, animated: true)
-                cell2.isUserInteractionEnabled = false
+            if let contactCell = cell as? ContactTableViewCell {
+                contactCell.setContact(selected: true, animated: true)
+                contactCell.isUserInteractionEnabled = false
             }
-            
         }
     }
 
-    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let cell = tableView.cellForRow(at: indexPath) as? ContactTableViewCell else { return }
-//        guard let contact = fetchedResultsController?.object(at: indexPath) else { return }
         let abContact: ABContact?
         if isFiltering {
             abContact = filteredContacts[indexPath.row]
@@ -446,14 +434,16 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         var isSelected = false
         guard let userId = contact.userId else { return }
         if !selectedMembers.contains(userId) {
-
-            guard selectedMembers.count + currentMembers.count < ServerProperties.maxGroupSize else {
-                let alert = UIAlertController(title: "", message: "The max group size is \(ServerProperties.maxGroupSize)", preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+            var totalMembers = currentMembers.count + selectedMembers.count
+            if !alreadyHaveMembers {
+                totalMembers += 1 // count yourself also if this is a new creation flow
+            }
+            guard totalMembers < ServerProperties.maxGroupSize else {
+                let alert = UIAlertController(title: "", message: Localizations.newGroupMembersMaxSizeAlert(ServerProperties.maxGroupSize), preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: nil))
                 self.present(alert, animated: true)
                 return
             }
-
             selectedMembers.append(userId)
             groupMemberAvatars.insert(with: [userId])
             isSelected = true
@@ -463,8 +453,7 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         }
         cell.setContact(selected: isSelected, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
-        navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
-        
+
         searchController.searchBar.text = ""
     }
 
@@ -509,7 +498,6 @@ extension NewGroupMembersViewController: GroupMemberAvatarsDelegate {
     
     func groupMemberAvatarsDelegate(_ view: GroupMemberAvatars, selectedUser: String) {
         selectedMembers.removeAll(where: { $0 == selectedUser })
-        navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
         tableView.reloadData()
     }
 }
@@ -541,7 +529,16 @@ private extension ContactTableViewCell {
         if let userId = abContact.userId {
             contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
         }
-
     }
 }
 
+extension Localizations {
+
+    static func newGroupMembersMaxSizeAlert(_ maxGroupSize: Int) -> String {
+        return String(
+            format: NSLocalizedString("new.group.members.max.size.alert",
+            value: "The max group size is %d",
+            comment: "Alert text shown when max group size is reached when selecting/adding group members"),
+            maxGroupSize)
+    }
+}

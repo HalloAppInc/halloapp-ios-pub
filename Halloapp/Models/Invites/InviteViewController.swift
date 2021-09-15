@@ -48,12 +48,7 @@ final class InviteViewController: UIViewController {
             // ... then work around the weird extra background layer Apple adds (see https://stackoverflow.com/questions/61364175/uisearchbar-with-a-white-background-is-impossible)
             searchController.searchBar.setSearchFieldBackgroundImage(UIImage(), for: .normal)
             searchController.searchBar.searchTextField.layer.cornerRadius = 10
-            
-//            searchController.searchBar.setShowsCancelButton(true, animated: false)
-//            searchController.searchBar.setCancelButtonTitleIfExist()
-//            searchController.searchBar.setShowsCancelButton(false, animated: false)
-            
-            
+
             return searchController
         }()
 
