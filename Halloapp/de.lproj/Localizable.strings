@@ -59,7 +59,7 @@
 "archive.title.label" = "Archiv";
 
 /* Text to show on banner when no connection is available */
-"banner.no.connection" = "Keine Internetverbindung";
+"banner.no.connection" = "Keine Verbindung";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Hinzufügen";
@@ -1001,7 +1001,7 @@
 "safety.number.scan" = "Zum Scannen hier tippen";
 
 /* Title for screen that allows users to verify a contact's safety number */
-"safety.number.title" = "Verifiziere die Sicherheitsnummer";
+"safety.number.title" = "Sicherheitsnummer verifizieren";
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "Die Sicherheitsnummer für %@ wurde erfolgreich verifiziert!";
@@ -1052,7 +1052,7 @@
 "settings.account.delete.deleted" = "Account wurde gelöscht";
 
 /* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
-"settings.account.delete.error" = "Beim Löschen deines Accounts ist ein Fehler aufgetreten. Bitte achte darauf, dass deine Handynummer korrekt ist.";
+"settings.account.delete.error" = "Beim Löschen deines Accounts ist ein Fehler aufgetreten. Bitte deine Handynummer überprüfen.";
 
 /* Label above list of things that will happen if they delete their account */
 "settings.account.delete.header" = "Das Löschen deines Accounts hat zur Folge, dass:";
@@ -1067,7 +1067,7 @@
 "settings.account.delete.spinner.replacement" = "Auf Serverantwort wird gewartet";
 
 /* Message for alert telling the user that they need to restart the application before trying to log in again since they deleted their account */
-"settings.account.deleted.message" = "Du kannst dich erst anmelden, wenn du die Anwendung neu startest";
+"settings.account.deleted.message" = "Du kannst dich erst wieder anmelden, wenn du die Anwendung neu startest";
 
 /* Alert title telling the user that their account was successfully deleted */
 "settings.account.deleted.title" = "Der Account wurde erfolgreich gelöscht";
