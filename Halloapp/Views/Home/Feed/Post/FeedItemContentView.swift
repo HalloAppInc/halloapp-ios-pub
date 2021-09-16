@@ -546,7 +546,7 @@ final class FeedItemHeaderView: UIView {
         timestampLabel.text = post.timestamp.feedTimestamp()
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
         
-        moreButton.isHidden = !post.canSaveMedia && post.userId != MainAppContext.shared.userData.userId
+        moreButton.isHidden = !(post.hasPostMedia && post.canSaveMedia) && post.userId != MainAppContext.shared.userData.userId
     }
 
     func configureGroupLabel(with groupID: String?, contentWidth: CGFloat, gutterWidth: CGFloat) {

@@ -108,7 +108,7 @@ class PostFocusView {
             
             let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
             
-            if post.canSaveMedia {
+            if post.hasPostMedia && post.canSaveMedia {
                 let saveMediaTitle = post.media?.count ?? 0 > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
                 alert.addAction(UIAlertAction(title: saveMediaTitle, style: .default, handler:  { [weak self] _ in
                     PHPhotoLibrary.requestAuthorization { status in

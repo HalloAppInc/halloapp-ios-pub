@@ -979,7 +979,10 @@ extension CommentsViewController: CommentViewDelegate {
     func commentView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
         self.commentsInputView.hideKeyboard()
         commentToScrollTo = feedPostCommentID
-        let canSavePost = false
+        var canSavePost = false
+        if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            canSavePost = post.canSaveMedia
+        }
         guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID) else { return }
         let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
         controller.delegate = view

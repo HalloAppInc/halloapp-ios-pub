@@ -67,8 +67,11 @@ extension FeedPost {
         return FeedAudience(audienceType: audienceType, userIds: Set(receipts.keys))
     }
     
+    var hasPostMedia: Bool {
+        return media?.count ?? 0 > 0
+    }
+
     var canSaveMedia: Bool {
-        guard media?.count ?? 0 > 0 else { return false }
         return groupId != nil || userId == MainAppContext.shared.userData.userId
     }
 }
