@@ -8,6 +8,7 @@
 
 import AVKit
 import CocoaLumberjackSwift
+import Combine
 import Core
 import UIKit
 
@@ -29,6 +30,7 @@ protocol CommentInputViewDelegate: AnyObject {
 
 class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
+    private var cancellableSet: Set<AnyCancellable> = []
     weak var delegate: CommentInputViewDelegate?
 
     // Only one of these should be active at a time
@@ -126,6 +128,25 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         textView.textContainerInset.left = -5
         textView.translatesAutoresizingMaskIntoConstraints = false
         textView.showsVerticalScrollIndicator = false
+
+        textView.onPasteImage = { [weak self] in
+            if let image = UIPasteboard.general.image {
+                let media = PendingMedia(type: .image)
+                media.image = image
+                if media.ready.value {
+                    self?.showMediaPanel(with: media)
+                } else {
+                    self?.cancellableSet.insert(
+                        media.ready.sink { [weak self] ready in
+                            guard let self = self else { return }
+                            guard ready else { return }
+                            self.showMediaPanel(with: media)
+                        }
+                    )
+                }
+            }
+        }
+
         return textView
     }()
 

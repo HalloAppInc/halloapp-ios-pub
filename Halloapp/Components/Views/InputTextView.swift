@@ -68,6 +68,27 @@ class InputTextView: UITextView, UITextViewDelegate {
         mentions.removeAll()
     }
 
+    // MARK: Image Paste support
+
+    var onPasteImage: (() -> Void)?
+
+    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        if action == #selector(paste(_:)) && UIPasteboard.general.image != nil && onPasteImage != nil {
+            return true
+        } else {
+            return super.canPerformAction(action, withSender: sender)
+        }
+    }
+
+    override func paste(_ sender: Any?) {
+        // If image only paste the image, not the filepath text
+        if let onPasteImage = onPasteImage, UIPasteboard.general.image != nil {
+            onPasteImage()
+        } else {
+            super.paste(sender)
+        }
+    }
+
     // MARK: Size Calculations
 
     override func sizeThatFits(_ size: CGSize) -> CGSize {
