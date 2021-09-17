@@ -308,11 +308,21 @@ public final class WhisperSession {
                     return EncryptedData(data: data, identityKey: newKeyBundle.outboundIdentityPublicEdKey, oneTimeKeyId: Int(newKeyBundle.outboundOneTimePreKeyId))
                 }
             }()
-            self.state = .ready(newKeyBundle, messageKeys)
-            completion(.success(output))
+            state = .ready(newKeyBundle, messageKeys)
+            let logInfo: EncryptionLogInfo = [
+                "MIK": keyStore.keyBundle()?.identityPublicEdKey.base64EncodedString() ?? "[???]",
+                "PIK": keyBundle.inboundIdentityPublicEdKey.base64EncodedString(),
+                "MICKH": obfuscate(keyBundle.inboundChainKey),
+                "MOCKH": obfuscate(keyBundle.outboundChainKey),
+            ]
+            completion(.success((output, logInfo)))
         case .failure(let error):
             completion(.failure(error))
         }
+    }
+
+    private func obfuscate(_ secret: Data) -> String {
+        return "\(secret.sha256().toHexString().prefix(4)):\(secret.count)"
     }
 
     private func setupOutbound() {

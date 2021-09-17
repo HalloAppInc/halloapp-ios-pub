@@ -8,8 +8,8 @@
 
 import Foundation
 
-
-public typealias EncryptionCompletion = (Result<EncryptedData, EncryptionError>) -> Void
+public typealias EncryptionLogInfo = [String: String]
+public typealias EncryptionCompletion = (Result<(EncryptedData, EncryptionLogInfo), EncryptionError>) -> Void
 public typealias DecryptionCompletion = (Result<Data, DecryptionFailure>) -> Void
 
 public final class MessageCrypter: KeyStoreDelegate {

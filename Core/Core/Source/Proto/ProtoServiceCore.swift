@@ -490,9 +490,11 @@ extension ProtoServiceCore: CoreService {
 
         AppContext.shared.messageCrypter.encrypt(messageData, for: message.toUserId) { result in
             switch result {
-            case .success(let encryptedData):
+            case .success((let encryptedData, var logInfo)):
+                logInfo["TS"] = self.dateTimeFormatterMonthDayTime.string(from: Date())
+
                 var chat = Server_ChatStanza()
-                chat.senderLogInfo = self.dateTimeFormatterMonthDayTime.string(from: Date())
+                chat.senderLogInfo = logInfo.map { "\($0.key): \($0.value)" }.sorted().joined(separator: "; ")
                 chat.encPayload = encryptedData.data
                 chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
                 if let publicKey = encryptedData.identityKey {
