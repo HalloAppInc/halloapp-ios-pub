@@ -581,7 +581,7 @@
 "group.preview.get.info.error.invalid.link" = "Der Einladungslink zur Gruppe ist ungültig";
 
 /* Text for alert box when the user can't join the group via group link when the group is full */
-"group.preview.join.error.group.full" = "Die Gruppe hat die maximale Mitgliederanzahl erreicht";
+"group.preview.join.error.group.full" = "Die Gruppe ist voll";
 
 /* Text for alert box when the user can't join the group via group link when link is invalid */
 "group.preview.join.error.invalid.link" = "Der Link ist ungültig";
@@ -765,6 +765,9 @@
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ gelöschte Beiträge";
+
+/* Alert text shown when max group size is reached when selecting/adding group members */
+"new.group.members.max.size.alert" = "Die maximale Mitgliederanzahl ist %d";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Du bist kein Mitglied dieser Gruppe mehr";

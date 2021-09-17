@@ -787,6 +787,9 @@
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ پست حذف شدند";
 
+/* Alert text shown when max group size is reached when selecting/adding group members */
+"new.group.members.max.size.alert" = "حداکثر اعضای گروه d%";
+
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "شما دیگر در این گروه نیستید";
 
