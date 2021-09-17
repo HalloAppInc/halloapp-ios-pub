@@ -7,6 +7,7 @@
 
 import AVKit
 import CocoaLumberjackSwift
+import Combine
 import Core
 import UIKit
 
@@ -23,6 +24,7 @@ protocol ChatInputViewDelegate: AnyObject {
     func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve)
     func chatInputView(_ inputView: ChatInputView, mentionText: MentionText, media: [PendingMedia])
     func chatInputView(_ inputView: ChatInputView, isTyping: Bool)
+    func chatInputViewDidPasteImage(_ inputView: ChatInputView, media: PendingMedia)
     func chatInputViewDidSelectMediaPicker(_ inputView: ChatInputView)
     func chatInputViewMicrophoneAccessDenied(_ inputView: ChatInputView)
     func chatInputViewCloseQuotePanel(_ inputView: ChatInputView)
@@ -33,6 +35,7 @@ protocol ChatInputViewMentionsDelegate: AnyObject {
 }
 
 class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIProtocol {
+    private var cancellableSet: Set<AnyCancellable> = []
     weak var delegate: ChatInputViewDelegate?
     weak var mentionsDelegate: ChatInputViewMentionsDelegate?
 
@@ -451,6 +454,23 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.textColor = .label
         
         view.inputTextViewDelegate = self
+        view.onPasteImage = { [weak self] in
+            if let image = UIPasteboard.general.image {
+                let media = PendingMedia(type: .image)
+                media.image = image
+                if let self = self, media.ready.value {
+                    self.delegate?.chatInputViewDidPasteImage(self,media: media)
+                } else {
+                    self?.cancellableSet.insert(
+                        media.ready.sink { [weak self] ready in
+                            guard let self = self else { return }
+                            guard ready else { return }
+                            self.delegate?.chatInputViewDidPasteImage(self, media: media)
+                        }
+                    )
+                }
+            }
+        }
 
         return view
     }()

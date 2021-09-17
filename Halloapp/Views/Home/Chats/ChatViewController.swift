@@ -1325,6 +1325,16 @@ extension ChatViewController: ChatInputViewDelegate {
     func chatInputViewDidSelectMediaPicker(_ inputView: ChatInputView) {
         presentMediaPicker()
     }
+    
+    func chatInputViewDidPasteImage(_ inputView: ChatInputView, media: PendingMedia) {
+        let composerController = PostComposerViewController(
+            mediaToPost: [media],
+            initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
+            recipientName: fromUserId != nil ? MainAppContext.shared.contactStore.fullName(for: fromUserId!) : nil,
+            configuration: .message,
+            delegate: self)
+        present(UINavigationController(rootViewController: composerController), animated: false)
+    }
 
     func chatInputViewMicrophoneAccessDenied(_ inputView: ChatInputView) {
         let alert = UIAlertController(title: Localizations.micAccessDeniedTitle, message: Localizations.micAccessDeniedMessage, preferredStyle: .alert)
