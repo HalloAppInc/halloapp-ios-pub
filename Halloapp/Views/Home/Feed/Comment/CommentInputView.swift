@@ -152,13 +152,12 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private lazy var textFieldPanel: UIView = {
         let textFieldPanel = UIView()
-        textFieldPanel.backgroundColor = .systemBackground
         textFieldPanel.translatesAutoresizingMaskIntoConstraints = false
         textFieldPanel.preservesSuperviewLayoutMargins = true
 
         textFieldPanel.addSubview(textFieldPanelContent)
         textFieldPanelContent.leadingAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.leadingAnchor).isActive = true
-        textFieldPanelContent.topAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.topAnchor).isActive = true
+        textFieldPanelContent.topAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.topAnchor, constant: -3).isActive = true
         textFieldPanelContent.trailingAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.trailingAnchor).isActive = true
         textFieldPanelContent.bottomAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.bottomAnchor).isActive = true
 
@@ -180,13 +179,15 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         placeholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
 
         textViewContainer.addSubview(voiceNoteTime)
-        voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
+        voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor, constant: 14).isActive = true
         voiceNoteTime.centerYAnchor.constraint(equalTo: textViewContainer.centerYAnchor).isActive = true
 
         let buttonStack = UIStackView(arrangedSubviews: [pickMediaButton, recordVoiceNoteControl, postButton])
         buttonStack.translatesAutoresizingMaskIntoConstraints = false
         buttonStack.axis = .horizontal
-        buttonStack.spacing = 10
+        buttonStack.alignment = .center
+        buttonStack.spacing = 16
+        buttonStack.heightAnchor.constraint(equalToConstant: 38).isActive = true
 
         // as the user keeps typing, we want the text field to exand while
         // the media/post buttons stick to the bottom,
@@ -202,8 +203,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
         stack.addSubview(cancelRecordingButton)
         stack.addSubview(postVoiceNoteButton)
-        stack.heightAnchor.constraint(greaterThanOrEqualToConstant: 38).isActive = true
-        buttonStack.bottomAnchor.constraint(equalTo: stack.bottomAnchor, constant: -8).isActive = true
+
         cancelRecordingButton.centerXAnchor.constraint(equalTo: stack.centerXAnchor).isActive = true
         cancelRecordingButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
         postVoiceNoteButton.trailingAnchor.constraint(equalTo: stack.trailingAnchor).isActive = true
@@ -250,7 +250,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        button.widthAnchor.constraint(equalToConstant: 19).isActive = true
+        button.widthAnchor.constraint(equalToConstant: 38).isActive = true
         return button
     }()
 
@@ -264,6 +264,9 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         button.backgroundColor = .primaryBlue
         button.layer.cornerRadius = 19
         button.layer.masksToBounds = true
+
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 0)
+        button.imageView?.layer.transform = CATransform3DMakeScale(1.1, 1.1, 1.1)
 
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -319,11 +322,9 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         var mediaPanel = UIView()
         mediaPanel.translatesAutoresizingMaskIntoConstraints = false
         mediaPanel.preservesSuperviewLayoutMargins = true
-        mediaPanel.backgroundColor = .systemBackground
 
         let backgroundView = UIView()
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
-        backgroundView.backgroundColor = .systemBackground
         mediaPanel.addSubview(backgroundView)
         backgroundView.leadingAnchor.constraint(equalTo: mediaPanel.leadingAnchor).isActive = true
         backgroundView.topAnchor.constraint(equalTo: mediaPanel.topAnchor).isActive = true
@@ -344,35 +345,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         return button
     }()
 
-    private lazy var voiceNoteTime: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 21)
-        label.textColor = .lavaOrange
-        label.textAlignment = .center
-        label.backgroundColor = .clear
-        label.isHidden = true
-
-        label.widthAnchor.constraint(equalToConstant: 80).isActive = true
-        label.heightAnchor.constraint(equalToConstant: 33).isActive = true
-
-        label.addSubview(voiceNoteTimeDot)
-        voiceNoteTimeDot.leadingAnchor.constraint(equalTo: label.leadingAnchor).isActive = true
-        voiceNoteTimeDot.centerYAnchor.constraint(equalTo: label.centerYAnchor).isActive = true
-
-        return label
-    }()
-
-    private lazy var voiceNoteTimeDot: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .lavaOrange
-        view.layer.cornerRadius = 5
-        view.layer.masksToBounds = true
-
-        view.widthAnchor.constraint(equalToConstant: 10).isActive = true
-        view.heightAnchor.constraint(equalToConstant: 10).isActive = true
-
+    private lazy var voiceNoteTime: AudioRecorderTimeView = {
+        let view = AudioRecorderTimeView()
         return view
     }()
 
@@ -380,6 +354,12 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         let controlView = AudioRecorderControlView()
         controlView.translatesAutoresizingMaskIntoConstraints = false
         controlView.layer.zPosition = 1
+
+        controlView.widthAnchor.constraint(equalToConstant: 38).isActive = true
+        controlView.heightAnchor.constraint(equalToConstant: 24).isActive = true
+
+        controlView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        controlView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
 
         return controlView
     }()
@@ -404,7 +384,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         let panel = UIView()
         panel.translatesAutoresizingMaskIntoConstraints = false
         panel.preservesSuperviewLayoutMargins = true
-        panel.backgroundColor = .systemBackground
 
         let backgroundView = UIView()
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
@@ -469,6 +448,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
         // Container view - needs for correct size calculations.
         self.addSubview(self.containerView)
+        self.containerView.backgroundColor = UIColor.messageFooterBackground
         self.containerView.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         self.containerView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         self.containerView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
@@ -481,15 +461,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.contentView.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor).isActive = true
         self.contentView.bottomAnchor.constraint(equalTo: self.containerView.safeAreaLayoutGuide.bottomAnchor).isActive = true
 
-        // Bottom Safe Area background
-        let bottomBackgroundView = UIView()
-        bottomBackgroundView.backgroundColor = .systemBackground
-        bottomBackgroundView.translatesAutoresizingMaskIntoConstraints = false
-        self.containerView.addSubview(bottomBackgroundView)
-        bottomBackgroundView.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor).isActive = true
-        bottomBackgroundView.topAnchor.constraint(equalTo: self.contentView.bottomAnchor).isActive = true
-        bottomBackgroundView.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor).isActive = true
-        bottomBackgroundView.bottomAnchor.constraint(equalTo: self.containerView.bottomAnchor).isActive = true
 
         // Input field wrapper
         self.textView.inputTextViewDelegate = self
@@ -535,7 +506,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         recordVoiceNoteControl.isHidden = true
         postButton.isHidden = true
 
-        if !textView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || mediaPanel.superview != nil {
+        if !mentionText.isNonMentionTextEmpty() || mediaPanel.superview != nil {
             if ServerProperties.isMediaCommentsEnabled {
                 pickMediaButton.isHidden = false
             }
@@ -1185,10 +1156,6 @@ extension CommentInputView: AudioRecorderDelegate {
             self.placeholder.isHidden = true
             self.textView.isHidden = true
             self.updatePostButtons()
-
-            UIView.animate(withDuration: 0.6, delay: 0, options: [.curveEaseInOut, .allowUserInteraction, .autoreverse, .repeat], animations: {
-                self.voiceNoteTimeDot.alpha = 0
-            }, completion: nil)
         }
     }
 

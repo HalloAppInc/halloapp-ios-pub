@@ -32,7 +32,9 @@ class AudioRecorder {
         return formatter
     }()
     private var timer: Timer?
-    private var task: DispatchWorkItem?
+    private var savedSessionCategory: AVAudioSession.Category?
+    private var savedSessionMode: AVAudioSession.Mode?
+    private var savedSessionOptions: AVAudioSession.CategoryOptions?
 
     init() {
         let nc = NotificationCenter.default
@@ -61,13 +63,11 @@ class AudioRecorder {
                     AudioServicesPlayAlertSound(1110)
                 }
 
-                // 300ms to avoid recording the start sound
-                let task = DispatchWorkItem {
-                    self.task = nil
-                    self.record()
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300), execute: task)
-                self.task = task
+                // stop any audio or video currently playing
+                MainAppContext.shared.mediaDidStartPlaying.send(nil)
+
+                self.saveAudioSession()
+                self.record()
             } else {
                 self.delegate?.audioRecorderMicrphoneAccessDenied(self)
             }
@@ -94,7 +94,7 @@ class AudioRecorder {
         }
 
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .default, options: [ .defaultToSpeaker])
+            try AVAudioSession.sharedInstance().setCategory(.playAndRecord)
         } catch {
             return DDLogError("AudioRecorder/start: audio session [\(error)]")
         }
@@ -118,6 +118,7 @@ class AudioRecorder {
             return DDLogError("AudioRecorder/start: recorder failed init [\(error)]")
         }
 
+        UIApplication.shared.isIdleTimerDisabled = true
         startTimer()
         delegate?.audioRecorderStarted(self)
     }
@@ -139,18 +140,15 @@ class AudioRecorder {
     }
 
     func stop(cancel: Bool) {
+        UIApplication.shared.isIdleTimerDisabled = false
+
         var notifyDelegate = false
 
         timer?.invalidate()
 
-        if let task = task {
-            task.cancel()
-            self.task = nil
-            notifyDelegate = true
-        }
-
         if let recorder = self.recorder, recorder.isRecording {
             recorder.stop()
+            restoreAudioSession()
 
             if cancel {
                 recorder.deleteRecording()
@@ -168,10 +166,35 @@ class AudioRecorder {
         }
     }
 
+    private func saveAudioSession() {
+        let session = AVAudioSession.sharedInstance()
+
+        savedSessionCategory = session.category
+        savedSessionMode = session.mode
+        savedSessionOptions = session.categoryOptions
+    }
+
+    private func restoreAudioSession() {
+        guard let category = savedSessionCategory else { return }
+        guard let mode = savedSessionMode else { return }
+        guard let options = savedSessionOptions else { return }
+
+        savedSessionCategory = nil
+        savedSessionMode = nil
+        savedSessionOptions = nil
+
+        let session = AVAudioSession.sharedInstance()
+
+        do {
+            try session.setCategory(category, mode: mode, options: options)
+            try session.setActive(true)
+        } catch {
+            return DDLogError("AudioRecorder/restoreAudioSession: \(error)")
+        }
+    }
+
     private func respectSilenceMode(callback: () -> ()) {
-        let category = AVAudioSession.sharedInstance().category
-        let mode = AVAudioSession.sharedInstance().mode
-        let options = AVAudioSession.sharedInstance().categoryOptions
+        saveAudioSession()
 
         let session = AVAudioSession.sharedInstance()
 
@@ -185,13 +208,7 @@ class AudioRecorder {
 
         callback()
 
-        // Restore
-        do {
-            try session.setCategory(category, mode: mode, options: options)
-            try session.setActive(true)
-        } catch {
-            return DDLogError("AudioRecorder/respectSilenceMode/restore: \(error)")
-        }
+        restoreAudioSession()
     }
 
     @objc func handleInterruption(notification: Notification) {

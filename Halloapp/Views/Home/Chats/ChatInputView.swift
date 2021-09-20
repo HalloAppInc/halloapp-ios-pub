@@ -151,25 +151,15 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         contentView.trailingAnchor.constraint(equalTo: containerView.layoutMarginsGuide.trailingAnchor).isActive = true
         contentView.bottomAnchor.constraint(equalTo: containerView.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        // Bottom Safe Area background
-        let bottomBackgroundView = UIView()
-        bottomBackgroundView.backgroundColor = UIColor.messageFooterBackground
-        bottomBackgroundView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.addSubview(bottomBackgroundView)
-        bottomBackgroundView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor).isActive = true
-        bottomBackgroundView.topAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
-        bottomBackgroundView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor).isActive = true
-        bottomBackgroundView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor).isActive = true
-
         textView.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
         textView.topAnchor.constraint(equalTo: textViewContainer.topAnchor).isActive = true
         textView.trailingAnchor.constraint(equalTo: textViewContainer.trailingAnchor).isActive = true
         textView.bottomAnchor.constraint(equalTo: textViewContainer.bottomAnchor).isActive = true
 
-        placeholder.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
+        placeholder.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor, constant: 5).isActive = true
         placeholder.topAnchor.constraint(equalTo: textViewContainer.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
 
-        voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
+        voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor, constant: 14).isActive = true
         voiceNoteTime.centerYAnchor.constraint(equalTo: textViewContainer.centerYAnchor).isActive = true
 
         postVoiceNoteButton.trailingAnchor.constraint(equalTo: textInputRow.trailingAnchor).isActive = true
@@ -215,7 +205,9 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         recordVoiceNoteControl.isHidden = true
         postButton.isHidden = true
 
-        if !text.isEmpty {
+        let mentionText = MentionText(expandedText: textView.text, mentionRanges: textView.mentions)
+
+        if !mentionText.isNonMentionTextEmpty() {
             postMediaButton.isHidden = false
             postButton.isHidden = false
         } else if voiceNoteRecorder.isRecording {
@@ -290,6 +282,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         let view = UIStackView(arrangedSubviews: [quoteFeedPanel, textInputRow])
         view.axis = .vertical
         view.alignment = .trailing
+        view.spacing = 4
     
         let subView = UIView(frame: view.bounds)
         subView.backgroundColor = UIColor.messageFooterBackground
@@ -437,8 +430,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
         view.addSubview(cancelRecordingButton)
         view.addSubview(postVoiceNoteButton)
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
+
         view.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return view
     }()
@@ -448,7 +440,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.isScrollEnabled = false
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = UIColor.messageFooterBackground
-        view.textContainerInset.left = -5
         view.font = UIFont.preferredFont(forTextStyle: .subheadline)
         view.tintColor = .systemBlue
         view.textColor = .label
@@ -513,35 +504,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         return button
     }()
 
-    private lazy var voiceNoteTime: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 21)
-        label.textColor = .lavaOrange
-        label.textAlignment = .center
-        label.backgroundColor = .clear
-        label.isHidden = true
-
-        label.widthAnchor.constraint(equalToConstant: 80).isActive = true
-        label.heightAnchor.constraint(equalToConstant: 33).isActive = true
-
-        label.addSubview(voiceNoteTimeDot)
-        voiceNoteTimeDot.leadingAnchor.constraint(equalTo: label.leadingAnchor).isActive = true
-        voiceNoteTimeDot.centerYAnchor.constraint(equalTo: label.centerYAnchor).isActive = true
-
-        return label
-    }()
-
-    private lazy var voiceNoteTimeDot: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .lavaOrange
-        view.layer.cornerRadius = 5
-        view.layer.masksToBounds = true
-
-        view.widthAnchor.constraint(equalToConstant: 10).isActive = true
-        view.heightAnchor.constraint(equalToConstant: 10).isActive = true
-
+    private lazy var voiceNoteTime: AudioRecorderTimeView = {
+        let view = AudioRecorderTimeView()
         return view
     }()
 
@@ -607,6 +571,9 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         button.backgroundColor = .primaryBlue
         button.layer.cornerRadius = 19
         button.layer.masksToBounds = true
+
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 0)
+        button.imageView?.layer.transform = CATransform3DMakeScale(1.1, 1.1, 1.1)
 
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -1171,10 +1138,6 @@ extension ChatInputView: AudioRecorderDelegate {
             self.placeholder.isHidden = true
             self.textView.text = ""
             self.updatePostButtons()
-
-            UIView.animate(withDuration: 0.6, delay: 0, options: [.curveEaseInOut, .allowUserInteraction, .autoreverse, .repeat], animations: {
-                self.voiceNoteTimeDot.alpha = 0
-            }, completion: nil)
         }
     }
 

@@ -346,6 +346,7 @@
 		F8E60547266F931E00DDEB2A /* ImageEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */; };
 		F8E6054A2671F6A700DDEB2A /* MediaEdit.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E605492671F6A700DDEB2A /* MediaEdit.swift */; };
 		F8FAA14526CCF5B5008282EF /* AudioRecorderControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FAA14426CCF5B5008282EF /* AudioRecorderControlView.swift */; };
+		F8FDA7AC26F84F0700D8B839 /* AudioRecorderTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FDA7AB26F84F0700D8B839 /* AudioRecorderTimeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -932,6 +933,7 @@
 		F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageEditViewController.swift; sourceTree = "<group>"; };
 		F8E605492671F6A700DDEB2A /* MediaEdit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaEdit.swift; sourceTree = "<group>"; };
 		F8FAA14426CCF5B5008282EF /* AudioRecorderControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderControlView.swift; sourceTree = "<group>"; };
+		F8FDA7AB26F84F0700D8B839 /* AudioRecorderTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderTimeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1736,6 +1738,7 @@
 				EA27792825BA3FEA009CA884 /* Groups */,
 				EA38843523A15D2C00E8BF92 /* Chats */,
 				F8FAA14426CCF5B5008282EF /* AudioRecorderControlView.swift */,
+				F8FDA7AB26F84F0700D8B839 /* AudioRecorderTimeView.swift */,
 				685B76CB24E4A37600BF666A /* FloatingMenu.swift */,
 				762EDBDC244E5A7800986617 /* HomeViewController.swift */,
 				680FB660250C45C000CA5D40 /* OverlayView.swift */,
@@ -2637,6 +2640,7 @@
 				761905A32459EB07008FC600 /* InputTextView.swift in Sources */,
 				F8606DD1257E7340006CD1A6 /* MediaExplorerVideoCell.swift in Sources */,
 				EAA4906625311CD1003348B5 /* OutboundMsgViewCell.swift in Sources */,
+				F8FDA7AC26F84F0700D8B839 /* AudioRecorderTimeView.swift in Sources */,
 				EA79AEF5260E5D5200F8184F /* GroupInviteViewController.swift in Sources */,
 				EA1CEF5E2617964C00BC0C79 /* GroupInvitePreviewViewController.swift in Sources */,
 				EA0B9919249C205E00B05094 /* String.swift in Sources */,

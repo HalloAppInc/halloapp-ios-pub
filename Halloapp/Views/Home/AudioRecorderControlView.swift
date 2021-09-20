@@ -5,8 +5,15 @@
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
+import Core
 import Foundation
 import UIKit
+
+private extension Localizations {
+    static var audioCancelMessage: String {
+        NSLocalizedString("audio.control.cancel", value: "slide to cancel", comment: "Label shown on the cancel action")
+    }
+}
 
 protocol AudioRecorderControlViewDelegate: AnyObject {
     func audioRecorderControlViewStarted(_ view: AudioRecorderControlView)
@@ -65,12 +72,12 @@ class AudioRecorderControlView: UIView {
     private lazy var cancelButton: UIView = {
         let button = UILabel()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.font = .systemFont(ofSize: 15, weight: .light)
-        button.textColor = .black.withAlphaComponent(0.5)
+        button.font = .systemFont(ofSize: 15)
+        button.textColor = .primaryBlackWhite.withAlphaComponent(0.5)
         button.textAlignment = .center
-        button.text = "slide to cancel"
+        button.text = Localizations.audioCancelMessage
 
-        button.widthAnchor.constraint(equalToConstant: 98).isActive = true
+        button.widthAnchor.constraint(equalToConstant: 108).isActive = true
         button.heightAnchor.constraint(equalToConstant: 16).isActive = true
 
         return button
@@ -151,8 +158,8 @@ class AudioRecorderControlView: UIView {
     private let expandMaxSize: CGFloat = 230
     private let actionOffset: CGFloat = -8
     private let actionInProgressThreshold: CGFloat = 20
-    private let actionActivationThreshold: CGFloat = 115
-    private let actionDoneThreshold: CGFloat = 135
+    private let actionActivationThreshold: CGFloat = 90
+    private let actionDoneThreshold: CGFloat = 105
 
     init() {
         super.init(frame: .zero)

@@ -100,4 +100,19 @@ public struct MentionText: Codable {
         
         return (mutableString, mentionsMap)
     }
+
+    // after removing the mentions is the rest of the text empty
+    public func isNonMentionTextEmpty() -> Bool {
+        var count = 0
+        let cleared = String(collapsedText.map { (ch) -> Character in
+            if ch == "@" && count < mentions.count {
+                count += 1
+                return Character(" ")
+            }
+
+            return ch
+        })
+
+        return cleared.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty
+    }
 }
