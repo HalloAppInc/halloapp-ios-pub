@@ -319,14 +319,21 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         }
 
         var chatRows = [Row]()
-        chatRows.append(contentsOf: chatThreads.map {
-            var chatThreadData = ChatThreadData(chatWithUserID: $0.chatWithUserId ?? "", lastMsgID: $0.lastMsgId ?? "", lastMsgStatus: $0.lastMsgStatus, isNew: $0.isNew)
-            if isFiltering {
-                let searchStr = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
-                chatThreadData.searchStr = searchStr
+
+        chatThreads.forEach { thread in
+            guard let chatWithUserID = thread.chatWithUserId else {
+                // all chat threads should have a chatWithUserID, logging to attempt to catch the time when it does not
+                DDLogDebug("ChatListView/reloadDataInMainQueue/empty chatWithUserID: \(thread)")
+                return
             }
-            return Row.chat(chatThreadData)
-        })
+            var chatThreadData = ChatThreadData(chatWithUserID: chatWithUserID, lastMsgID: thread.lastMsgId ?? "", lastMsgStatus: thread.lastMsgStatus, isNew: thread.isNew)
+            if isFiltering {
+                if let searchStr = searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces) {
+                    chatThreadData.searchStr = searchStr
+                }
+            }
+            chatRows.append(Row.chat(chatThreadData))
+        }
 
         if !isFiltering {
             chatRows.append(Row.inviteFriendsAndFamily)
