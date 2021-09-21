@@ -5,6 +5,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Combine
 import CocoaLumberjackSwift
 import Core
 import CoreData
@@ -47,6 +48,8 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
     private var alreadyHaveMembers: Bool = false
     private var currentMembers: [UserID] = []
+    
+    private var cancellableSet: Set<AnyCancellable> = []
 
     init(currentMembers: [UserID] = []) {
         self.currentMembers = currentMembers
@@ -106,6 +109,15 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+
+        cancellableSet.insert(
+            MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] _ in
+                guard let self = self else { return }
+                guard self.isFiltering else { return }
+                DDLogInfo("NewGroupMembersViewController/didDiscoverNewUsers")
+                self.searchController.isActive = true  // edge case: refresh search if user is searching and then add contact in address book
+            }
+        )
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -250,10 +262,10 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         reloadTableViewInDidChangeContent = false
-        trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
+        trackPerRowFRCChanges = view.window != nil && UIApplication.shared.applicationState == .active
         DDLogDebug("NewGroupMembersView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
         if trackPerRowFRCChanges {
-            self.tableView.beginUpdates()
+            tableView.beginUpdates()
         }
     }
 
@@ -262,8 +274,8 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         case .insert:
             guard let indexPath = newIndexPath, let abContact = anObject as? ABContact else { break }
             DDLogDebug("NewGroupMembersView/frc/insert [\(abContact)] at [\(indexPath)]")
-            if trackPerRowFRCChanges {
-                self.tableView.insertRows(at: [ indexPath ], with: .automatic)
+            if trackPerRowFRCChanges && !isFiltering {
+                tableView.insertRows(at: [ indexPath ], with: .automatic)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -271,8 +283,8 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         case .delete:
             guard let indexPath = indexPath, let abContact = anObject as? ABContact else { break }
             DDLogDebug("NewGroupMembersView/frc/delete [\(abContact)] at [\(indexPath)]")
-            if trackPerRowFRCChanges {
-                self.tableView.deleteRows(at: [ indexPath ], with: .automatic)
+            if trackPerRowFRCChanges && !isFiltering {
+                tableView.deleteRows(at: [ indexPath ], with: .automatic)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -280,8 +292,8 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let abContact = anObject as? ABContact else { break }
             DDLogDebug("NewGroupMembersView/frc/move [\(abContact)] from [\(fromIndexPath)] to [\(toIndexPath)]")
-            if trackPerRowFRCChanges {
-                self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
+            if trackPerRowFRCChanges && !isFiltering {
+                tableView.moveRow(at: fromIndexPath, to: toIndexPath)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -289,8 +301,8 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         case .update:
             guard let indexPath = indexPath, let abContact = anObject as? ABContact else { return }
             DDLogDebug("NewGroupMembersView/frc/update [\(abContact)] at [\(indexPath)]")
-            if trackPerRowFRCChanges {
-                self.tableView.reloadRows(at: [ indexPath ], with: .automatic)
+            if trackPerRowFRCChanges && !isFiltering {
+                tableView.reloadRows(at: [ indexPath ], with: .automatic)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -303,12 +315,13 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("NewGroupMembersView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
         if trackPerRowFRCChanges {
-            self.tableView.endUpdates()
-        } else if reloadTableViewInDidChangeContent {
-            self.tableView.reloadData()
+            tableView.endUpdates()
+        }
+        if reloadTableViewInDidChangeContent || isFiltering {
+            tableView.reloadData()
         }
     }
-        
+
     func isDuplicate(_ abContact: ABContact) -> Bool {
         guard let identifier = abContact.identifier else { return false }
         guard let phoneNumber = abContact.phoneNumber else { return false }
