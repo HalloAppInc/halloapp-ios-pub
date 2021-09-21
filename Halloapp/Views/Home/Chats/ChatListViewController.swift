@@ -77,6 +77,9 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
         searchController.searchBar.searchTextField.placeholder = Localizations.labelSearch
 
+        tableView.tableHeaderView = searchController.searchBar
+        tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
+
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.constrain(to: view)
@@ -169,11 +172,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         super.viewWillAppear(animated)
         populateWithAllContacts()
         reloadData(animated: false)
-    }
-
-    override func viewDidLayoutSubviews() {
-        tableView.tableHeaderView = searchController.searchBar
-        tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
     }
 
     override func viewDidAppear(_ animated: Bool) {

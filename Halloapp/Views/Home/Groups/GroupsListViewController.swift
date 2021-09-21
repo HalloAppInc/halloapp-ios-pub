@@ -84,6 +84,9 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
         searchController.searchBar.searchTextField.placeholder = Localizations.labelSearch
 
+        tableView.tableHeaderView = searchController.searchBar
+        tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
+
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.constrain(to: view)
@@ -145,12 +148,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         DDLogInfo("GroupsListViewController/viewWillAppear")
         super.viewWillAppear(animated)
     }
-    
-    override func viewDidLayoutSubviews() {
-        tableView.tableHeaderView = searchController.searchBar
-        tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
-    }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         isVisible = true
