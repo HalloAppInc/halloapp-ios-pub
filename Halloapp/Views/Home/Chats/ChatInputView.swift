@@ -126,6 +126,43 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     private var mentionPickerTopConstraint: NSLayoutConstraint?
     private var vStackTopConstraint: NSLayoutConstraint?
 
+    private var borderMaskLayer: CAShapeLayer?
+    private var borderFrameLayer: CAShapeLayer?
+
+    func setBorder(radius: CGFloat = 0) {
+        borderMaskLayer?.removeFromSuperlayer()
+        borderFrameLayer?.removeFromSuperlayer()
+        borderMaskLayer = nil
+        borderFrameLayer = nil
+
+        var frame = bounds
+        frame.size.height += 1024
+
+        let corners: UIRectCorner = [UIRectCorner.topLeft, UIRectCorner.topRight]
+        let cornerRadii = CGSize(width: radius, height: radius)
+
+        if radius > 0 {
+            let maskPath = UIBezierPath(roundedRect: frame.insetBy(dx: -2, dy: 0), byRoundingCorners: corners, cornerRadii: cornerRadii)
+            let maskLayer = CAShapeLayer()
+            maskLayer.frame = frame
+            maskLayer.path = maskPath.cgPath
+
+            layer.mask = maskLayer
+            borderMaskLayer = maskLayer
+        }
+
+        let borderPath = UIBezierPath(roundedRect: frame.insetBy(dx: -1, dy: 0), byRoundingCorners: corners, cornerRadii: cornerRadii)
+        let borderLayer = CAShapeLayer()
+        borderLayer.frame = frame
+        borderLayer.path = borderPath.cgPath
+        borderLayer.strokeColor = UIColor.chatTextFieldStroke.cgColor
+        borderLayer.lineWidth = 1
+        borderLayer.fillColor = UIColor.clear.cgColor
+
+        layer.addSublayer(borderLayer)
+        borderFrameLayer = borderLayer
+    }
+
     private func setup() {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidShow), name: UIResponder.keyboardDidShowNotification, object: nil)
@@ -133,12 +170,9 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidHide), name: UIResponder.keyboardDidHideNotification, object: nil)
 
         autoresizingMask = .flexibleHeight
-
-        layer.borderWidth = 1
-        layer.borderColor = UIColor.chatTextFieldStroke.cgColor
+        backgroundColor = UIColor.messageFooterBackground
 
         addSubview(containerView)
-        containerView.backgroundColor = UIColor.messageFooterBackground
         containerView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
         containerView.topAnchor.constraint(equalTo: topAnchor).isActive = true
         containerView.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
@@ -198,6 +232,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
         voiceNoteRecorder.delegate = self
         recordVoiceNoteControl.delegate = self
+
+        setBorder()
     }
 
     private func updatePostButtons() {
@@ -285,7 +321,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.spacing = 4
     
         let subView = UIView(frame: view.bounds)
-        subView.backgroundColor = UIColor.messageFooterBackground
+        subView.backgroundColor = .clear
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.insertSubview(subView, at: 0)
         
@@ -439,7 +475,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         let view = InputTextView(frame: .zero)
         view.isScrollEnabled = false
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor.messageFooterBackground
+        view.backgroundColor = .clear
         view.font = UIFont.preferredFont(forTextStyle: .subheadline)
         view.tintColor = .systemBlue
         view.textColor = .label
@@ -480,7 +516,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     
     private lazy var textViewContainer: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor.systemBackground
+        view.backgroundColor = UIColor.clear
         view.addSubview(textView)
         view.addSubview(placeholder)
         view.addSubview(voiceNoteTime)
@@ -597,6 +633,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     func setInputViewWidth(_ width: CGFloat) {
         guard bounds.size.width != width else { return }
         bounds = CGRect(origin: .zero, size: CGSize(width: width, height: containerView.preferredHeight(for: width)))
+        setBorder()
     }
 
     func containerView(_ containerView: ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat {
@@ -758,11 +795,16 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         } else {
             textView.becomeFirstResponder()
         }
+
+        vStack.layoutMargins.top = 16
+        setBorder(radius: 20)
     }
 
     @objc func closeQuoteFeedPanel() {
         quoteFeedPanel.isHidden = true
         delegate?.chatInputViewCloseQuotePanel(self)
+        vStack.layoutMargins.top = 5
+        setBorder()
     }
     
     private func resetTypingTimers() {

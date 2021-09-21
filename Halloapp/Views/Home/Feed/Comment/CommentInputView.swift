@@ -427,6 +427,9 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         return tapRecognizer
     }()
 
+    private var borderMaskLayer: CAShapeLayer?
+    private var borderFrameLayer: CAShapeLayer?
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         previousHeight = frame.size.height
@@ -438,6 +441,40 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         setupView()
     }
 
+    func setBorder(radius: CGFloat = 0) {
+        borderMaskLayer?.removeFromSuperlayer()
+        borderFrameLayer?.removeFromSuperlayer()
+        borderMaskLayer = nil
+        borderFrameLayer = nil
+
+        var frame = bounds
+        frame.size.height += 1024
+
+        let corners: UIRectCorner = [UIRectCorner.topLeft, UIRectCorner.topRight]
+        let cornerRadii = CGSize(width: radius, height: radius)
+
+        if radius > 0 {
+            let maskPath = UIBezierPath(roundedRect: frame.insetBy(dx: -2, dy: 0), byRoundingCorners: corners, cornerRadii: cornerRadii)
+            let maskLayer = CAShapeLayer()
+            maskLayer.frame = frame
+            maskLayer.path = maskPath.cgPath
+
+            layer.mask = maskLayer
+            borderMaskLayer = maskLayer
+        }
+
+        let borderPath = UIBezierPath(roundedRect: frame.insetBy(dx: -1, dy: 0), byRoundingCorners: corners, cornerRadii: cornerRadii)
+        let borderLayer = CAShapeLayer()
+        borderLayer.frame = frame
+        borderLayer.path = borderPath.cgPath
+        borderLayer.strokeColor = UIColor.chatTextFieldStroke.cgColor
+        borderLayer.lineWidth = 1
+        borderLayer.fillColor = UIColor.clear.cgColor
+
+        layer.addSublayer(borderLayer)
+        borderFrameLayer = borderLayer
+    }
+
     private func setupView() {
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardDidShow), name: UIResponder.keyboardDidShowNotification, object: nil)
@@ -445,10 +482,10 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardDidHide), name: UIResponder.keyboardDidHideNotification, object: nil)
 
         self.autoresizingMask = .flexibleHeight
+        backgroundColor = UIColor.messageFooterBackground
 
         // Container view - needs for correct size calculations.
         self.addSubview(self.containerView)
-        self.containerView.backgroundColor = UIColor.messageFooterBackground
         self.containerView.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         self.containerView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         self.containerView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
@@ -499,6 +536,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         recordVoiceNoteControl.delegate = self
 
         updatePostButtons()
+
+        setBorder()
     }
 
     private func updatePostButtons() {
@@ -697,6 +736,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         mediaPanel.addGestureRecognizer(tapRecognizer)
         postButton.isEnabled = isPostButtonEnabled
         updatePostButtons()
+        setBorder(radius: 20)
     }
 
     func removeMediaPanel() {
@@ -708,7 +748,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         mediaPanel.removeFromSuperview()
         postButton.isEnabled = isPostButtonEnabled
         updatePostButtons()
-        self.setNeedsUpdateHeight()
+        setNeedsUpdateHeight()
+        setBorder()
     }
 
 
@@ -1000,6 +1041,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             }
         }
         self.bounds = CGRect(origin: .zero, size: CGSize(width: width, height: height + bottomSafeAreaInset))
+
+        setBorder()
     }
 
     func containerView(_ containerView: ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat {
