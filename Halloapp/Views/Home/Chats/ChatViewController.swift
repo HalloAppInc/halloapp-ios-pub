@@ -276,7 +276,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 DDLogInfo("ChatViewController/didPrivacySettingChange/update header")
                 guard let self = self else { return }
                 guard userID == self.fromUserId else { return }
-                self.setupOrRefreshHeaderAndFooter()
+                DispatchQueue.main.async { [weak self] in
+                    self?.setupOrRefreshHeaderAndFooter()
+                }
             }
         )
 
