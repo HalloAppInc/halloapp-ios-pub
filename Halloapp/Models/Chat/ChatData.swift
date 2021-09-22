@@ -3389,8 +3389,13 @@ extension ChatData {
 extension ChatData {
 
     private func updateThreadWithGroupFeed(_ id: FeedPostID, isInbound: Bool, using managedObjectContext: NSManagedObjectContext) {
-
-        guard let groupFeedPost = MainAppContext.shared.feedData.feedPost(with: id) else { return }
+        var feedPost: FeedPost? = nil
+        MainAppContext.shared.feedData.performOnBackgroundContextAndWait { managedObjectContext in
+            if let post = MainAppContext.shared.feedData.feedPost(with: id, in: managedObjectContext) {
+                feedPost = post
+            }
+        }
+        guard let groupFeedPost = feedPost else { return }
         guard let groupID = groupFeedPost.groupId else { return }
 
         var groupExist = true

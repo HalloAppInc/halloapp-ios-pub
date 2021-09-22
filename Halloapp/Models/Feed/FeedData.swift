@@ -150,6 +150,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    // NB: Can be called only from a non-main thread, of the caller's choice
+    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
+        guard !Thread.current.isMainThread else {
+            DDLogDebug("FeedData/performOnBackgroundContextAndWait/exit, being called from main thread")
+            return
+        }
+        let managedObjectContext = persistentContainer.newBackgroundContext()
+        managedObjectContext.automaticallyMergesChangesFromParent = true
+        managedObjectContext.performAndWait { block(managedObjectContext) }
+    }
+
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         self.backgroundProcessingQueue.async {
             let managedObjectContext = self.persistentContainer.newBackgroundContext()
