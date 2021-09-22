@@ -234,35 +234,39 @@ class ChatData: ObservableObject {
             self.cancellableSet.insert(
                 MainAppContext.shared.feedData.groupFeedStates.sink{ [weak self] (statesList) in
                     guard let self = self else { return }
-                    
-                    var groupThreadIDs = self.groupThreads().compactMap({ $0.groupId })
-                    
-                    statesList.forEach({ (groupID, state) in
-                        switch state {
-                        case .noPosts:
-                            break
-                        case .newPosts(let numNew, _):
-                            self.setThreadUnreadFeedCount(type: .group, for: groupID, num: Int32(numNew))
-                        case .seenPosts(_):
-                            self.updateChatThread(type: .group, for: groupID, block: { thread in
+
+                    self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                        guard let self = self else { return }
+
+                        var groupThreadIDs = self.groupThreads(in: managedObjectContext).compactMap({ $0.groupId })
+
+                        statesList.forEach({ (groupID, state) in
+                            switch state {
+                            case .noPosts:
+                                break
+                            case .newPosts(let numNew, _):
+                                self.setThreadUnreadFeedCount(type: .group, for: groupID, num: Int32(numNew))
+                            case .seenPosts(_):
+                                self.updateChatThread(type: .group, for: groupID, block: { thread in
+                                    guard thread.unreadFeedCount > 0 else { return }
+                                    thread.unreadFeedCount = 0
+                                    self.updateUnreadThreadGroupsCount()
+                                })
+                            }
+
+                            groupThreadIDs.removeAll(where: { $0 == groupID })
+                        })
+
+                        // leftover groupThreadIDs not found in groupFeedStates mean those groups do not have
+                        // any posts in feed and should reset its unread counter to 0
+                        groupThreadIDs.forEach({
+                            self.updateChatThread(type: .group, for: $0, block: { thread in
                                 guard thread.unreadFeedCount > 0 else { return }
                                 thread.unreadFeedCount = 0
                                 self.updateUnreadThreadGroupsCount()
                             })
-                        }
-                        
-                        groupThreadIDs.removeAll(where: { $0 == groupID })
-                    })
-                    
-                    // leftover groupThreadIDs not found in groupFeedStates mean those groups do not have
-                    // any posts in feed and should reset its unread counter to 0
-                    groupThreadIDs.forEach({
-                        self.updateChatThread(type: .group, for: $0, block: { thread in
-                            guard thread.unreadFeedCount > 0 else { return }
-                            thread.unreadFeedCount = 0
-                            self.updateUnreadThreadGroupsCount()
                         })
-                    })
+                    }
                 }
             )
         }
@@ -1385,7 +1389,7 @@ extension ChatData {
         return chatThreads(predicate: NSPredicate(format: "groupId != nil && lastFeedId IN %@", expiredPostIDs), in: managedObjectContext)
     }
 
-    func groupThreads(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
+    func groupThreads(in managedObjectContext: NSManagedObjectContext) -> [ChatThread] {
         return chatThreads(predicate: NSPredicate(format: "groupId != nil"), in: managedObjectContext)
     }
 
