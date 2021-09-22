@@ -205,9 +205,6 @@ class FeedViewController: FeedCollectionViewController {
     private func installEmptyView() {
         view.addSubview(emptyView)
 
-        // Put empty view behind collection view in case it contains NUX header
-        view.sendSubviewToBack(emptyView)
-
         emptyView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.6).isActive = true
         emptyView.constrain([.centerX, .centerY], to: view)
     }
