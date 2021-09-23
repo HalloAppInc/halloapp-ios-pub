@@ -3394,88 +3394,82 @@ extension ChatData {
 extension ChatData {
 
     private func updateThreadWithGroupFeed(_ id: FeedPostID, isInbound: Bool, using managedObjectContext: NSManagedObjectContext) {
-        var feedPost: FeedPost? = nil
-        MainAppContext.shared.feedData.performOnBackgroundContextAndWait { managedObjectContext in
-            if let post = MainAppContext.shared.feedData.feedPost(with: id, in: managedObjectContext) {
-                feedPost = post
-            }
-        }
-        guard let groupFeedPost = feedPost else { return }
-        guard let groupID = groupFeedPost.groupId else { return }
+        MainAppContext.shared.feedData.performOnBackgroundContextAndWait { feedDataContext in
+            guard let groupFeedPost = MainAppContext.shared.feedData.feedPost(with: id, in: feedDataContext) else { return }
+            guard let groupID = groupFeedPost.groupId else { return }
 
-        var groupExist = true
+            var groupExist = true
 
-        if isInbound {
-            // if group doesn't exist yet, create
-            if chatGroup(groupId: groupID, in: managedObjectContext) == nil {
-                DDLogDebug("ChatData/group/updateThreadWithGroupFeed/group not exist yet [\(groupID)]")
-                groupExist = false
-                let chatGroup = ChatGroup(context: managedObjectContext)
-                chatGroup.groupId = groupID
-            }
-        }
-
-        var lastFeedMediaType: ChatThread.LastMediaType = .none // going with the first media found
-
-        // Process chat media
-        if groupFeedPost.orderedMedia.count > 0 {
-            if let firstMedia = groupFeedPost.orderedMedia.first {
-                switch firstMedia.type {
-                case .image:
-                    lastFeedMediaType = .image
-                case .video:
-                    lastFeedMediaType = .video
-                case .audio:
-                    lastFeedMediaType = .audio
+            if isInbound {
+                // if group doesn't exist yet, create
+                if chatGroup(groupId: groupID, in: managedObjectContext) == nil {
+                    DDLogDebug("ChatData/group/updateThreadWithGroupFeed/group not exist yet [\(groupID)]")
+                    groupExist = false
+                    let chatGroup = ChatGroup(context: managedObjectContext)
+                    chatGroup.groupId = groupID
                 }
             }
-        }
 
-        save(managedObjectContext) // extra save
+            var lastFeedMediaType: ChatThread.LastMediaType = .none // going with the first media found
 
-        // Update Chat Thread
-        let mentionText = contactStore.textWithMentions(groupFeedPost.text, mentions: groupFeedPost.orderedMentions)
-        if let chatThread = chatThread(type: .group, id: groupID, in: managedObjectContext) {
-            // extra save for fetchedcontroller to notice re-ordering changes mixed in with other changes
-            chatThread.lastFeedTimestamp = groupFeedPost.timestamp
+            // Process chat media
+            if groupFeedPost.orderedMedia.count > 0 {
+                if let firstMedia = groupFeedPost.orderedMedia.first {
+                    switch firstMedia.type {
+                    case .image:
+                        lastFeedMediaType = .image
+                    case .video:
+                        lastFeedMediaType = .video
+                    case .audio:
+                        lastFeedMediaType = .audio
+                    }
+                }
+            }
+
+            save(managedObjectContext) // extra save
+
+            // Update Chat Thread
+            let mentionText = contactStore.textWithMentions(groupFeedPost.text, mentions: groupFeedPost.orderedMentions)
+            if let chatThread = chatThread(type: .group, id: groupID, in: managedObjectContext) {
+                // extra save for fetchedcontroller to notice re-ordering changes mixed in with other changes
+                chatThread.lastFeedTimestamp = groupFeedPost.timestamp
+                save(managedObjectContext)
+
+                chatThread.lastFeedId = groupFeedPost.id
+                chatThread.lastFeedUserID = groupFeedPost.userId
+                chatThread.lastFeedText = mentionText?.string ?? ""
+                chatThread.lastFeedMediaType = lastFeedMediaType
+                chatThread.lastFeedStatus = .none
+                chatThread.lastFeedTimestamp = groupFeedPost.timestamp
+                if isInbound {
+                    chatThread.unreadFeedCount = chatThread.unreadFeedCount + 1
+                }
+            } else {
+                let chatThread = ChatThread(context: managedObjectContext)
+                chatThread.type = ChatType.group
+                chatThread.groupId = groupID
+                chatThread.lastFeedId = groupFeedPost.id
+                chatThread.lastFeedUserID = groupFeedPost.userId
+                chatThread.lastFeedText = mentionText?.string ?? ""
+                chatThread.lastFeedMediaType = lastFeedMediaType
+                chatThread.lastFeedStatus = .none
+                chatThread.lastFeedTimestamp = groupFeedPost.timestamp
+                if isInbound {
+                    chatThread.unreadFeedCount = 1
+                }
+            }
+
             save(managedObjectContext)
-        
-            chatThread.lastFeedId = groupFeedPost.id
-            chatThread.lastFeedUserID = groupFeedPost.userId
-            chatThread.lastFeedText = mentionText?.string ?? ""
-            chatThread.lastFeedMediaType = lastFeedMediaType
-            chatThread.lastFeedStatus = .none
-            chatThread.lastFeedTimestamp = groupFeedPost.timestamp
+
             if isInbound {
-                chatThread.unreadFeedCount = chatThread.unreadFeedCount + 1
-            }
-        } else {
-            let chatThread = ChatThread(context: managedObjectContext)
-            chatThread.type = ChatType.group
-            chatThread.groupId = groupID
-            chatThread.lastFeedId = groupFeedPost.id
-            chatThread.lastFeedUserID = groupFeedPost.userId
-            chatThread.lastFeedText = mentionText?.string ?? ""
-            chatThread.lastFeedMediaType = lastFeedMediaType
-            chatThread.lastFeedStatus = .none
-            chatThread.lastFeedTimestamp = groupFeedPost.timestamp
-            if isInbound {
-                chatThread.unreadFeedCount = 1
+                if !groupExist {
+                    getAndSyncGroup(groupId: groupID)
+                }
+                updateUnreadThreadGroupsCount()
             }
         }
-        
-        save(managedObjectContext)
-        
-        if isInbound {
-            if !groupExist {
-                getAndSyncGroup(groupId: groupID)
-            }
-            
-            updateUnreadThreadGroupsCount()
-        }
-        
     }
-    
+
     private func updateThreadWithGroupFeedRetract(_ id: FeedPostID, using managedObjectContext: NSManagedObjectContext) {
         
         guard let groupFeedPost = MainAppContext.shared.feedData.feedPost(with: id) else { return }
