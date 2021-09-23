@@ -768,6 +768,10 @@ final class ProtoService: ProtoServiceCore {
                 // TODO: Is this necessary? Should we clear push name if name is empty?
                 MainAppContext.shared.contactStore.addPushNames([ UserID(pbName.uid): pbName.name ])
             }
+        case .requestLogs(_):
+            DDLogInfo("proto/didReceive/\(msg.id)/request logs")
+        case .wakeup(_):
+            DDLogInfo("proto/didReceive/\(msg.id)/wakeup")
         case .endOfQueue:
             DDLogInfo("proto/didReceive/\(msg.id)/endOfQueue")
         case .errorStanza(let error):

@@ -685,9 +685,20 @@ public struct Clients_Text {
 
   public var mentions: [Clients_Mention] = []
 
+  public var link: Clients_Link {
+    get {return _link ?? Clients_Link()}
+    set {_link = newValue}
+  }
+  /// Returns true if `link` has been explicitly set.
+  public var hasLink: Bool {return self._link != nil}
+  /// Clears the value of `link`. Subsequent reads from it will return its default value.
+  public mutating func clearLink() {self._link = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+
+  fileprivate var _link: Clients_Link? = nil
 }
 
 public struct Clients_ContactCard {
@@ -972,6 +983,24 @@ public struct Clients_VoiceNote {
   public init() {}
 
   fileprivate var _audio: Clients_EncryptedResource? = nil
+}
+
+public struct Clients_Link {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var url: String = String()
+
+  public var title: String = String()
+
+  public var description_p: String = String()
+
+  public var preview: [Clients_Image] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
 }
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -2017,6 +2046,7 @@ extension Clients_Text: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "text"),
     2: .same(proto: "mentions"),
+    3: .same(proto: "link"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2027,6 +2057,7 @@ extension Clients_Text: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.text) }()
       case 2: try { try decoder.decodeRepeatedMessageField(value: &self.mentions) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._link) }()
       default: break
       }
     }
@@ -2039,12 +2070,16 @@ extension Clients_Text: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     if !self.mentions.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.mentions, fieldNumber: 2)
     }
+    if let v = self._link {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Clients_Text, rhs: Clients_Text) -> Bool {
     if lhs.text != rhs.text {return false}
     if lhs.mentions != rhs.mentions {return false}
+    if lhs._link != rhs._link {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2495,6 +2530,56 @@ extension Clients_VoiceNote: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
 
   public static func ==(lhs: Clients_VoiceNote, rhs: Clients_VoiceNote) -> Bool {
     if lhs._audio != rhs._audio {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_Link: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Link"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "url"),
+    2: .same(proto: "title"),
+    3: .same(proto: "description"),
+    4: .same(proto: "preview"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.url) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.title) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.description_p) }()
+      case 4: try { try decoder.decodeRepeatedMessageField(value: &self.preview) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.url.isEmpty {
+      try visitor.visitSingularStringField(value: self.url, fieldNumber: 1)
+    }
+    if !self.title.isEmpty {
+      try visitor.visitSingularStringField(value: self.title, fieldNumber: 2)
+    }
+    if !self.description_p.isEmpty {
+      try visitor.visitSingularStringField(value: self.description_p, fieldNumber: 3)
+    }
+    if !self.preview.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.preview, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_Link, rhs: Clients_Link) -> Bool {
+    if lhs.url != rhs.url {return false}
+    if lhs.title != rhs.title {return false}
+    if lhs.description_p != rhs.description_p {return false}
+    if lhs.preview != rhs.preview {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
