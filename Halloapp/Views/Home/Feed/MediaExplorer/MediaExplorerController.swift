@@ -30,7 +30,6 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     private var media: [MediaExplorerMedia]
     private var collectionView: UICollectionView!
-    private var pageControl: UIPageControl?
     private var tapRecorgnizer: UITapGestureRecognizer!
     private var doubleTapRecorgnizer: UITapGestureRecognizer!
     private var swipeExitRecognizer: UIPanGestureRecognizer!
@@ -46,7 +45,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var currentIndex: Int {
         didSet {
             if oldValue != currentIndex {
-                pageControl?.currentPage = currentIndex
+                if pageControlContainer.superview != nil {
+                    pageControl.currentPage = currentIndex
+                }
 
                 let oldCell = collectionView.cellForItem(at: IndexPath(item: oldValue, section: 0))
                 let currentCell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0))
@@ -86,34 +87,80 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         }
     }
 
-    private lazy var backBtn: UIButton = {
+    private lazy var backBtn: UIView = {
         let backBtn = LargeHitButton(type: .custom)
-        backBtn.contentEdgeInsets = UIEdgeInsets(top: 10, left: -8, bottom: 10, right: 10)
+        backBtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
         backBtn.addTarget(self, action: #selector(backAction), for: [.touchUpInside, .touchUpOutside])
         backBtn.setImage(UIImage(named: "NavbarBack")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        backBtn.layer.masksToBounds = false
-        backBtn.layer.shadowColor = UIColor.black.cgColor
-        backBtn.layer.shadowOpacity = 1
-        backBtn.layer.shadowOffset = .zero
-        backBtn.layer.shadowRadius = 0.3
         backBtn.translatesAutoresizingMaskIntoConstraints = false
 
-        return backBtn
+        let container = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
+        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5)
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.layer.masksToBounds = true
+        container.layer.cornerRadius = 18
+
+        container.widthAnchor.constraint(equalToConstant: 36).isActive = true
+        container.heightAnchor.constraint(equalToConstant: 36).isActive = true
+
+        container.contentView.addSubview(backBtn)
+        backBtn.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
+        backBtn.trailingAnchor.constraint(equalTo: container.trailingAnchor).isActive = true
+        backBtn.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
+        backBtn.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
+
+        return container
     }()
 
-    private lazy var shareBtn: UIButton = {
-        let icon = UIImage(systemName: "square.and.arrow.up", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))?.withTintColor(.white, renderingMode: .alwaysOriginal)
-
+    private lazy var shareBtn: UIView = {
         let shareBtn = LargeHitButton(type: .custom)
         shareBtn.addTarget(self, action: #selector(shareButtonPressed), for: [.touchUpInside, .touchUpOutside])
-        shareBtn.setImage(icon, for: .normal)
-        shareBtn.layer.masksToBounds = false
-        shareBtn.layer.shadowColor = UIColor.black.cgColor
-        shareBtn.layer.shadowOpacity = 1
-        shareBtn.layer.shadowOffset = .zero
-        shareBtn.layer.shadowRadius = 0.3
+        shareBtn.setImage(UIImage(named: "Download")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         shareBtn.translatesAutoresizingMaskIntoConstraints = false
-        return shareBtn
+
+        let container = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
+        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5)
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.layer.masksToBounds = true
+        container.layer.cornerRadius = 18
+
+        container.widthAnchor.constraint(equalToConstant: 36).isActive = true
+        container.heightAnchor.constraint(equalToConstant: 36).isActive = true
+
+        container.contentView.addSubview(shareBtn)
+        shareBtn.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
+        shareBtn.trailingAnchor.constraint(equalTo: container.trailingAnchor).isActive = true
+        shareBtn.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
+        shareBtn.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
+
+        return container
+    }()
+
+    private lazy var pageControl: UIPageControl = {
+        let pageControl = UIPageControl()
+        pageControl.currentPageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.7)
+        pageControl.pageIndicatorTintColor = .white
+        pageControl.translatesAutoresizingMaskIntoConstraints = false
+        pageControl.numberOfPages = media.count
+        pageControl.addTarget(self, action: #selector(pageChangeAction), for: .valueChanged)
+
+        return pageControl
+    }()
+
+    private lazy var pageControlContainer: UIView = {
+        let container = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
+        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5)
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.layer.masksToBounds = true
+        container.layer.cornerRadius = 14
+
+        container.contentView.addSubview(pageControl)
+        pageControl.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: -24).isActive = true
+        pageControl.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: 24).isActive = true
+        pageControl.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
+        pageControl.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
+
+        return container
     }()
 
     init(media: [FeedMedia], index: Int, canSaveMedia: Bool) {
@@ -209,15 +256,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         ])
 
         if media.count > 1 && fetchedResultsController == nil {
-            let pageControl = makePageControl()
-            self.view.addSubview(pageControl)
-
-            NSLayoutConstraint.activate([
-                pageControl.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
-                pageControl.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            ])
-
-            self.pageControl = pageControl
+            view.addSubview(pageControlContainer)
+            pageControlContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+            pageControlContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         }
     }
     
@@ -246,8 +287,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 self?.saveMedia()
             }
         }))
-        
-        saveMediaConfirmationAlert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil))
+
+        let cancelAction = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
+        cancelAction.setValue(UIColor.lavaOrange, forKey: "titleTextColor")
+        saveMediaConfirmationAlert.addAction(cancelAction)
         
         saveMediaConfirmationAlert.view.tintColor = .systemBlue
         
@@ -301,6 +344,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
         let imageAttachment = NSTextAttachment()
         imageAttachment.image = UIImage(named: "CheckmarkLong")?.withTintColor(.white)
+        imageAttachment.bounds = CGRect(x: -8, y: 1, width: 15, height: 11.45)
 
         let fullString = NSMutableAttributedString()
         fullString.append(NSAttributedString(attachment: imageAttachment))
@@ -322,10 +366,22 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         container.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -22.5).isActive = true
         container.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -75).isActive = true
         background.constrain(to: container)
-        savedLabel.constrain(to: container)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            container.removeFromSuperview()
+        savedLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
+        savedLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor).isActive = true
+        savedLabel.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
+        savedLabel.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -1).isActive = true
+
+        container.alpha = 0.0
+        UIView.animate(withDuration: 0.3, animations: {
+            container.alpha = 1.0
+        }) { _ in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                UIView.animate(withDuration: 0.3, animations: {
+                    container.alpha = 0.0
+                }) { _ in
+                    container.removeFromSuperview()
+                }
+            }
         }
     }
     
@@ -348,7 +404,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
         let x = collectionView.frame.width * CGFloat(currentIndex)
         if abs(collectionView.contentOffset.x - x) > 0.01 {
-            pageControl?.currentPage = currentIndex
+            if pageControlContainer.superview != nil {
+                pageControl.currentPage = currentIndex
+            }
+
             collectionView.setContentOffset(CGPoint(x: x, y: collectionView.contentOffset.y), animated: false)
         }
     }
@@ -428,21 +487,6 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         collectionView.addGestureRecognizer(swipeExitRecognizer)
 
         return collectionView
-    }
-
-    private func makePageControl() -> UIPageControl {
-        let pageControl = UIPageControl()
-        pageControl.currentPageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.7)
-        pageControl.pageIndicatorTintColor = .white
-        pageControl.translatesAutoresizingMaskIntoConstraints = false
-        pageControl.numberOfPages = media.count
-        pageControl.layer.shadowColor = UIColor.black.cgColor
-        pageControl.layer.shadowOpacity = 1
-        pageControl.layer.shadowOffset = .zero
-        pageControl.layer.shadowRadius = 0.3
-        pageControl.addTarget(self, action: #selector(pageChangeAction), for: .valueChanged)
-
-        return pageControl
     }
 
     private func makeFetchedResultsController(_ media: ChatMedia) -> NSFetchedResultsController<ChatMedia> {
@@ -595,8 +639,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             UIView.animate(withDuration: 0.3, animations: {
                 self.navigationController?.navigationBar.alpha = 0.0
 
-                if let pageControl = self.pageControl, !pageControl.isHidden {
-                    pageControl.alpha = 0.0
+                if self.pageControlContainer.superview != nil {
+                    self.pageControlContainer.alpha = 0.0
                 }
             }, completion: { _ in
                 self.navigationController?.setNavigationBarHidden(true, animated: true)
@@ -608,8 +652,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             UIView.animate(withDuration: 0.3, delay: Double(UINavigationController.hideShowBarDuration), options: [], animations: {
                 self.navigationController?.navigationBar.alpha = 1.0
 
-                if let pageControl = self.pageControl, !pageControl.isHidden {
-                    pageControl.alpha = 1.0
+                if self.pageControlContainer.superview != nil {
+                    self.pageControlContainer.alpha = 1.0
                 }
             }, completion: nil)
         }
@@ -633,7 +677,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 
     @objc private func pageChangeAction() {
-        if let pageControl = pageControl, currentIndex != pageControl.currentPage {
+        if pageControlContainer.superview != nil, currentIndex != pageControl.currentPage {
             let x = collectionView.frame.width * CGFloat(pageControl.currentPage)
             collectionView.setContentOffset(CGPoint(x: x, y: collectionView.contentOffset.y), animated: true)
         }
