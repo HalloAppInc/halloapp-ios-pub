@@ -2339,15 +2339,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.updateFeedPost(with: postId) { (feedPost) in
                     feedPost.status = .sendError
                 }
-            } else if let feedPost = self.feedPost(with: postId) {
-                self.send(post: feedPost)
-                AppContext.shared.eventMonitor.observe(
-                    .mediaUpload(
-                        postID: postId,
-                        duration: Date().timeIntervalSince(startTime),
-                        numPhotos: mediaItemsToUpload.filter { $0.type == .image }.count,
-                        numVideos: mediaItemsToUpload.filter { $0.type == .video }.count,
-                        totalSize: totalUploadSize))
+            } else {
+                // TODO(murali@): one way to avoid looking up the object from the database is to keep an updated in-memory version of the post.
+                self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+                    guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else {
+                        DDLogError("FeedData/missing-post [\(postId)]")
+                        return
+                    }
+                    self.send(post: feedPost)
+                    AppContext.shared.eventMonitor.observe(
+                        .mediaUpload(
+                            postID: postId,
+                            duration: Date().timeIntervalSince(startTime),
+                            numPhotos: mediaItemsToUpload.filter { $0.type == .image }.count,
+                            numVideos: mediaItemsToUpload.filter { $0.type == .video }.count,
+                            totalSize: totalUploadSize))
+                }
             }
         }
     }
@@ -2426,16 +2433,23 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.updateFeedPost(with: feedComment.post.id) { (feedPost) in
                     feedPost.status = .sendError
                 }
-            } else if let feedComment = self.feedComment(with: feedComment.id) {
-                self.send(comment: feedComment)
-                // TODO dini update this with commentid
-//                AppContext.shared.eventMonitor.observe(
-//                    .mediaUpload(
-//                        postID: feedComment.post.id,
-//                        duration: Date().timeIntervalSince(startTime),
-//                        numPhotos: mediaItemsToUpload.filter { $0.type == .image }.count,
-//                        numVideos: mediaItemsToUpload.filter { $0.type == .video }.count,
-//                        totalSize: totalUploadSize))
+            } else {
+                // TODO(murali@): one way to avoid looking up the object from the database is to keep an updated in-memory version of the comment.
+                self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+                    guard let feedComment = self.feedComment(with: feedComment.id, in: managedObjectContext) else {
+                        DDLogError("FeedData/missing-comment [\(feedComment.id)]")
+                        return
+                    }
+                    self.send(comment: feedComment)
+                    // TODO dini update this with commentid
+    //                AppContext.shared.eventMonitor.observe(
+    //                    .mediaUpload(
+    //                        postID: feedComment.post.id,
+    //                        duration: Date().timeIntervalSince(startTime),
+    //                        numPhotos: mediaItemsToUpload.filter { $0.type == .image }.count,
+    //                        numVideos: mediaItemsToUpload.filter { $0.type == .video }.count,
+    //                        totalSize: totalUploadSize))
+                }
             }
         }
     }
@@ -2490,6 +2504,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                         case .patch(let patchURL):
                             media.uploadUrl = patchURL
+                            media.url = nil
 
                         case .download(let downloadURL):
                             media.url = downloadURL
@@ -2572,6 +2587,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                         case .patch(let patchURL):
                             media.uploadUrl = patchURL
+                            media.url = nil
 
                         case .download(let downloadURL):
                             media.url = downloadURL

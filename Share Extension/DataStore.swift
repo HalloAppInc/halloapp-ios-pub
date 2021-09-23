@@ -56,6 +56,7 @@ class DataStore: ShareExtensionDataStore {
 
                 case .patch(let patchURL):
                     mediaItem.uploadUrl = patchURL
+                    mediaItem.url = nil
 
                 // this will be revisited when we refactor share extension.
                 case .download(let downloadURL):

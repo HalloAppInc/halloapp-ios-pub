@@ -1944,6 +1944,7 @@ extension ChatData {
                         media.uploadUrl = putURL
                     case .patch(let patchURL):
                         media.uploadUrl = patchURL
+                        media.url = nil
                     case .download(let downloadURL):
                         media.url = downloadURL
                     }
