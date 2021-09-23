@@ -29,7 +29,9 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
     }
     private var service: CoreService? = nil
     private func recordPushEvent(requestID: String, messageID: String?) {
-        AppContext.shared.observeAndSave(event: .pushReceived(id: messageID ?? requestID, timestamp: Date()))
+        let timestamp = Date()
+        DDLogInfo("NotificationService/recordPushEvent/requestId: \(requestID), timestamp: \(timestamp)")
+        AppContext.shared.observeAndSave(event: .pushReceived(id: messageID ?? requestID, timestamp: timestamp))
     }
 
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
@@ -361,9 +363,9 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
     override func serviceExtensionTimeWillExpire() {
         // Called just before the extension will be terminated by the system.
         // Use this as an opportunity to deliver your "best attempt" at modified content, otherwise the original push payload will be used.
+        DDLogWarn("timeWillExpire")
         service?.disconnectImmediately()
         if let contentHandler = contentHandler, let bestAttemptContent =  bestAttemptContent {
-            DDLogWarn("timeWillExpire")
             DDLogInfo("Invoking completion handler now")
             contentHandler(bestAttemptContent)
         }
