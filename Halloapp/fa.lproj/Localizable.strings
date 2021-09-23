@@ -58,6 +58,9 @@
 /* Archive navigation label */
 "archive.title.label" = "بایگانی";
 
+/* Label shown on the cancel action */
+"audio.control.cancel" = "برای لغو بکشید";
+
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "بدون اینترنت";
 

@@ -58,6 +58,9 @@
 /* Archive navigation label */
 "archive.title.label" = "Archiv";
 
+/* Label shown on the cancel action */
+"audio.control.cancel" = "wischen, um die Aufnahme abzubrechen";
+
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Keine Verbindung";
 

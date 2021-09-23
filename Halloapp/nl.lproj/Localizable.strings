@@ -58,6 +58,9 @@
 /* Archive navigation label */
 "archive.title.label" = "Archief";
 
+/* Label shown on the cancel action */
+"audio.control.cancel" = "veeg om te annuleren";
+
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Geen Verbinding";
 
@@ -149,7 +152,7 @@
 "camera.init.error.title" = "Initialisatiefout";
 
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
-"chat.add.to.contacts.book.label" = "Om posts te zien van %@, moet je het telefoonnummer opslaan in je contacten. Tik om toe te voegen";
+"chat.add.to.contacts.book.label" = "Om posts te zien van %@, moet je het telefoonnummer toevoegen aan je contactenlijst. Tik om toe te voegen";
 
 /* Text shown at the top of the chat screen informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Contact is geblokkeerd, tik om te deblokkeren";
@@ -980,7 +983,7 @@
 "registration.code.resend.by.voice" = "Bel mij";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Om je te kunnen verbinden met je vrienden en familie hebben we je toestemming nodig voor toegang tot je contacten.";
+"registration.contacts.content" = "Om je te kunnen verbinden met je vrienden en familie hebben we toestemming nodig voor toegang tot je contacten.";
 
 /* Title for text explaining why we need contact permissions */
 "registration.contacts.title" = "Nog één ding";

@@ -58,6 +58,9 @@
 /* Archive navigation label */
 "archive.title.label" = "Archivo";
 
+/* Label shown on the cancel action */
+"audio.control.cancel" = "desliza para cancelar";
+
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "No hay conexión de Internet";
 

@@ -104,7 +104,7 @@
 "registration.code.resend.by.voice" = "Bel mij";
 
 /* Text explaining why we need contact permissions */
-"registration.contacts.content" = "Om je te kunnen verbinden met je vrienden en familie hebben we je toestemming nodig voor toegang tot je contacten.";
+"registration.contacts.content" = "Om je te kunnen verbinden met je vrienden en familie hebben we toestemming nodig voor toegang tot je contacten.";
 
 /* Title for text explaining why we need contact permissions */
 "registration.contacts.title" = "Nog één ding";
