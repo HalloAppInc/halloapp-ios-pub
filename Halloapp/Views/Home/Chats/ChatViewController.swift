@@ -56,6 +56,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     private var cancellableSet: Set<AnyCancellable> = []
 
     private var firstActionHappened: Bool = false
+    
+    private var scrollToBottomDebounceTimer: Timer? = nil
 
     // MARK: Lifecycle
 
@@ -101,6 +103,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
         tableView.backgroundColor = UIColor.primaryBg
+
+        tableView.rowHeight = UITableView.automaticDimension
 
         setupOrRefreshHeaderAndFooter()
 
@@ -192,7 +196,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         fetchedResultsController?.delegate = self
         do {
             try fetchedResultsController!.performFetch()
-            updateData(animatingDifferences: false)
+            updateDataInMainQueue(animatingDifferences: false)
 
         } catch {
             return
@@ -651,8 +655,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     // MARK: Data
 
-    private var shouldScrollToBottom = true
-    private var skipDataUpdate = false
+    private var shouldScrollToBottom = false
+    private var shouldUpdate = false
     
     private func isCellHeightUpdate(for chatMessage: ChatMessage) -> Bool {
         guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return false }
@@ -712,68 +716,79 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         switch type {
         case .update:
             DDLogDebug("ChatViewController/frc/update")
-            self.skipDataUpdate = true
+            shouldUpdate = false
             guard let chatMessage = anObject as? ChatMessage else { break }
+            guard let indexPath = indexPath else { break }
 
             if isRetractStatusUpdate(for: chatMessage) {
                 DDLogDebug("ChatViewController/frc/update/inboundMessageStatusChange")
-                self.skipDataUpdate = false
-            }
-
-            if isOutgoingMessageStatusUpdate(for: chatMessage) {
+                shouldUpdate = true
+            } else if isOutgoingMessageStatusUpdate(for: chatMessage) {
                 DDLogDebug("ChatViewController/frc/update/outgoingMessageStatusChange")
-                self.skipDataUpdate = false
+                shouldUpdate = true
+            } else if isRerequestStatusUpdate(for: chatMessage) {
+                DDLogDebug("ChatViewController/frc/update/rerequestStatusUpdate")
+                shouldUpdate = true
             }
 
-            if isRerequestStatusUpdate(for: chatMessage) {
-                DDLogDebug("ChatViewController/frc/update/rerequestStatusUpdate")
-                self.skipDataUpdate = false
-            }
-            
             // inbound message media changes, update directly
             if let updatedChatMedia = findUpdatedMedia(for: chatMessage) {
-                guard let cell = self.tableView.cellForRow(at: indexPath!) as? InboundMsgViewCell else { break }
+                guard let cell = self.tableView.cellForRow(at: indexPath) as? InboundMsgViewCell else { break }
                 DDLogDebug("ChatViewController/frc/update-cell-directly/updatedMedia")
                 cell.updateMedia(updatedChatMedia)
+            }
+
+            // iOS 15.0 datasource.apply either can't detect changes like status or will not apply changes
+            // so we do a manual reconfigure of those cells
+            // future task could be to revisit and refactor using a diffable struct instead of managed objects
+            if #available(iOS 15.0, *) {
+                guard shouldUpdate else {
+                    DDLogDebug("ChatViewController/frc/update/iOS15.0/reconfigureItems/skipping")
+                    break
+                }
+                guard let item = dataSource?.itemIdentifier(for: indexPath) else { break }
+                guard var newSnapshot = dataSource?.snapshot() else { break }
+                newSnapshot.reconfigureItems([item])
+                dataSource?.apply(newSnapshot, animatingDifferences: false)
             }
         case .insert:
             DDLogDebug("ChatViewController/frc/insert")
             guard let chatMsg = anObject as? ChatMessage else { break }
+            shouldUpdate = true
             shouldScrollToBottom = checkIfShouldScrollToBottom(chatMsg)
-        case .move:
-            DDLogDebug("ChatViewController/frc/move")
-        case .delete:
-            DDLogDebug("ChatViewController/frc/delete")
         default:
             break
         }
     }
-    
+
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        
-        if skipDataUpdate {
-            DDLogDebug("ChatViewController/frc/update/skipDataUpdate")
-            skipDataUpdate = false
+        guard shouldUpdate else {
+            DDLogDebug("ChatViewController/frc/update/skipping")
             return
         }
-        
+
         updateData(animatingDifferences: false)
-        
-        if shouldScrollToBottom {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self.scrollToBottom(true)
-            }
-            shouldScrollToBottom = false
+    }
+
+    private func updateData(animatingDifferences: Bool) {
+        DispatchQueue.main.async {
+            self.updateDataInMainQueue(animatingDifferences: animatingDifferences)
         }
     }
 
-    func updateData(animatingDifferences: Bool = true) {
+    private func updateDataInMainQueue(animatingDifferences: Bool = true) {
         guard let chatMessages = self.fetchedResultsController?.fetchedObjects else { return}
 
         var diffableDataSourceSnapshot = NSDiffableDataSourceSnapshot<Int, ChatMessage>()
         diffableDataSourceSnapshot.appendSections([ ChatViewController.sectionMain ])
         diffableDataSourceSnapshot.appendItems(chatMessages)
-        self.dataSource?.apply(diffableDataSourceSnapshot, animatingDifferences: animatingDifferences)
+
+        dataSource?.apply(diffableDataSourceSnapshot, animatingDifferences: animatingDifferences) { [weak self] in
+            guard let self = self else { return }
+            guard self.shouldScrollToBottom else { return }
+            self.scrollToBottom(true)
+            self.shouldScrollToBottom = false
+        }
     }
 
     // MARK: Helpers
@@ -805,12 +820,19 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         
         return result
     }
-    
+
     private func scrollToBottom(_ animated: Bool = true) {
-        if let dataSnapshot = self.dataSource?.snapshot() {
+        scrollToBottomDebounceTimer?.invalidate()
+        scrollToBottomDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { [weak self] _ in
+            guard let self = self else { return }
+            guard let dataSnapshot = self.dataSource?.snapshot() else { return }
             let numberOfRows = dataSnapshot.numberOfItems(inSection: ChatViewController.sectionMain)
             let indexPath = IndexPath(row: numberOfRows - 1, section: ChatViewController.sectionMain)
-            self.tableView.scrollToRow(at: indexPath, at: .none, animated: animated)
+
+            // use our own animation because for some reason tableView's animation gets interrupted intermittently
+            UIView.animate(withDuration: 0.2, animations: {
+                self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
+            })
         }
     }
 
@@ -1065,7 +1087,7 @@ extension ChatViewController: UITableViewDelegate {
             MainAppContext.shared.chatData.updateChatMessageCellHeight(for: chatMessage.id, with: height)
         }
     }
-    
+
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
         guard let chatMessage = self.fetchedResultsController?.object(at: indexPath) else { return 50 }
 

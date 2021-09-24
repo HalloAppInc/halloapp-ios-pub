@@ -537,11 +537,10 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }
     
     func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, isPlayed: Bool, text: String?, orderedMentions: [ChatMention], media: Set<ChatMedia>?, timestamp: Date?, statusIcon: UIImage?) {
-
-        if isNextMsgSameSender {
-            contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 3, right: 18)
+        if isPreviousMsgSameSender {
+            contentView.layoutMargins = UIEdgeInsets(top: 3, left: 18, bottom: 0, right: 18)
         } else {
-            contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 12, right: 18)
+            contentView.layoutMargins = UIEdgeInsets(top: 12, left: 18, bottom: 0, right: 18)
         }
 
         let isVoiceNote = media?.count == 1 && media?.first?.type == .audio
@@ -728,8 +727,8 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         messageID = nil
         indexPath = nil
         
-        contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 3, right: 18)
-        contentView.backgroundColor = .feedBackground // need to reset since animation of highlighting can be ongoing when jumping
+        contentView.layoutMargins = UIEdgeInsets(top: 3, left: 18, bottom: 0, right: 18)
+        contentView.backgroundColor = UIColor.primaryBg // need to reset since animation of highlighting can be ongoing when jumping
         
         quotedRow.subviews[1].backgroundColor = .secondarySystemGroupedBackground
         quotedRow.isHidden = true
