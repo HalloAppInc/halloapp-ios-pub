@@ -440,13 +440,15 @@ private class UnreadBadgeView: UIView {
 
 private extension NSMutableAttributedString {
     func firstLineWithEllipsisIfNecessary() -> NSAttributedString {
-        if let newLine = string.firstIndex(of: "\n") {
-            replaceCharacters(in: NSRange(location: string.distance(from: string.startIndex, to: newLine), length: 1), with: "...\n")
-            
-            guard let newLine = string.firstIndex(of: "\n") else { return self }
-            return attributedSubstring(from: NSRange(location: 0, length: string.distance(from: string.startIndex, to: newLine)))
-        }
-        
-        return self
+        guard let firstNewLineIndex = string.firstIndex(of: "\n") else { return self }
+        let endFirstNewLineIndex = string.index(firstNewLineIndex, offsetBy: 1)
+        let firstNewLineRange = firstNewLineIndex..<endFirstNewLineIndex
+        let firstNewLineNSRange = NSRange(firstNewLineRange, in: string)
+        replaceCharacters(in: firstNewLineNSRange, with: "...\n")
+
+        guard let replacedNewLineIndex = string.firstIndex(of: "\n") else { return self }
+        let subStrRange = string.startIndex..<replacedNewLineIndex
+        let subStrNSRange = NSRange(subStrRange, in: string)
+        return attributedSubstring(from: subStrNSRange)
     }
 }
