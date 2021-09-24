@@ -50,7 +50,7 @@ extension Localizations {
 class ShareViewController: UINavigationController {
 
     private let serviceBuilder: ServiceBuilder = {
-        return ProtoServiceCore(userData: $0, passiveMode: true, automaticallyReconnect: false)
+        return ProtoServiceCore(userData: $0, passiveMode: true, automaticallyReconnect: true)
     }
     // TODO: We should automatically reconnect here in-case of connection loss.
     // Otherwise, user could end up in a state where the share extension does not have an active connection.
