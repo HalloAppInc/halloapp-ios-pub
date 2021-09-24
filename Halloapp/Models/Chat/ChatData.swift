@@ -964,6 +964,14 @@ class ChatData: ObservableObject {
                     continue
                 }
             }
+
+            // Dont merge messages with invalid status - these messages were interrupted in between by the user.
+            // So, we will discard them completeley and let the user retry it.
+            guard message.status != .none else {
+                DDLogError("ChatData/mergeSharedData/ignore failed message [\(messageId)], status: \(message.status)")
+                continue
+            }
+
             DDLogInfo("ChatData/mergeSharedData/merging message/\(messageId)")
 
             let chatContent: ChatContent?
