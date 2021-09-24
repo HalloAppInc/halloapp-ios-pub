@@ -557,7 +557,10 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             voiceNoteView.delegate = self
             voiceNoteView.state = isPlayed ? .played : .normal
 
-            voiceNoteView.url = url
+            if voiceNoteView.url != url {
+                voiceNoteTimeLabel.text = "0:00"
+                voiceNoteView.url = url
+            }
 
             if let userId = item.message?.userId {
                 voiceNoteAvatarView.configure(with: userId, using: MainAppContext.shared.avatarStore)

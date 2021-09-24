@@ -25,7 +25,7 @@ class AudioView : UIStackView {
 
     var state: AudioViewState = .normal {
         didSet {
-            update()
+            updateControls()
         }
     }
 
@@ -51,21 +51,23 @@ class AudioView : UIStackView {
             timeObservation = nil
 
             guard let player = player else { return }
+            player.seek(to: .zero)
 
             rateObservation = player.observe(\.rate) { [weak self] (player, change) in
                 guard let self = self else { return }
-                self.update()
+                self.updateControls()
+                self.updateProgress()
             }
 
-            let interval = CMTime(seconds: 0.1, preferredTimescale: 10)
-            timeObservation = player.addPeriodicTimeObserver(forInterval: interval, queue: DispatchQueue.main) { [weak self] x in
+            let interval = CMTime(value: 1, timescale: 60)
+            timeObservation = player.addPeriodicTimeObserver(forInterval: interval, queue: DispatchQueue.main) { [weak self] time in
                 guard let self = self else { return }
                 guard player.rate > 0 else { return }
-
-                self.update()
+                self.updateProgress()
             }
 
-            update()
+            updateControls()
+            updateProgress()
         }
     }
 
@@ -94,6 +96,18 @@ class AudioView : UIStackView {
         return icon
     }
 
+    private var thumbIcon: UIImage {
+        let iconColor: UIColor = state == .played ? .audioViewControlsPlayed : .primaryBlue
+        let radius: CGFloat = 16
+        let thumb = UIView(frame: CGRect(x: 0, y: radius / 2, width: radius, height: radius))
+        thumb.backgroundColor = iconColor
+        thumb.layer.borderWidth = 0.4
+        thumb.layer.borderColor = UIColor.darkGray.cgColor
+        thumb.layer.cornerRadius = radius / 2
+
+        return UIGraphicsImageRenderer(bounds: thumb.bounds).image { thumb.layer.render(in: $0.cgContext) }
+    }
+
     // The play button is small. This one has bigger hit area to make it easier for tapping.
     private class PlayButton: UIButton {
         override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
@@ -116,13 +130,25 @@ class AudioView : UIStackView {
         let slider = UISlider()
         slider.translatesAutoresizingMaskIntoConstraints = false
         slider.minimumTrackTintColor = .white
-        slider.setThumbImage(thumb(radius: 16), for: .normal)
+        slider.setThumbImage(thumbIcon, for: .normal)
         slider.addTarget(self, action: #selector(onSliderValueUpdate), for: .valueChanged)
         slider.setContentHuggingPriority(.defaultLow, for: .horizontal)
         slider.minimumTrackTintColor = .primaryBlackWhite
 
         return slider
     } ()
+
+    private var isPlayerAtTheEnd: Bool {
+        guard let player = player else { return false }
+        guard let duration = player.currentItem?.asset.duration else { return false }
+        guard duration.isNumeric else { return false }
+
+        // When a voice note ends 'player.currentTime()' should be equal to the duration
+        // but sometimes it is a little bit less and sometimes a little bit more.
+        // By observation it is usually within 30 milliseconds.
+        let playerEndThreshold = 0.03
+        return duration.seconds - player.currentTime().seconds < playerEndThreshold
+    }
 
     init() {
         super.init(frame: .zero)
@@ -161,7 +187,7 @@ class AudioView : UIStackView {
         guard let duration = player.currentItem?.duration else { return }
         guard duration.isNumeric else { return }
 
-        if player.currentTime() == duration {
+        if isPlayerAtTheEnd {
             player.seek(to: .zero)
         }
 
@@ -174,28 +200,21 @@ class AudioView : UIStackView {
         player?.pause()
     }
 
-    private func thumb(color: UIColor = .white, radius: CGFloat) -> UIImage {
-        let thumb = UIView(frame: CGRect(x: 0, y: radius / 2, width: radius, height: radius))
-        thumb.backgroundColor = color
-        thumb.layer.borderWidth = 0.4
-        thumb.layer.borderColor = UIColor.darkGray.cgColor
-        thumb.layer.cornerRadius = radius / 2
-
-        return UIGraphicsImageRenderer(bounds: thumb.bounds).image { thumb.layer.render(in: $0.cgContext) }
+    private func updateControls() {
+        guard let player = player else { return }
+        playButton.setImage(player.rate > 0 ? pauseIcon : playIcon, for: .normal)
+        slider.setThumbImage(thumbIcon, for: .normal)
     }
 
-    private func update() {
+    private func updateProgress() {
         guard let player = player else { return }
         guard let duration = player.currentItem?.asset.duration else { return }
         guard duration.isNumeric else { return }
 
-        let thumbColor: UIColor = state == .played ? .audioViewControlsPlayed : .primaryBlue
-        let current = player.currentTime().seconds / duration.seconds
-        slider.setThumbImage(thumb(color: thumbColor, radius: 16), for: .normal)
-        slider.setValue(Float(current), animated: false)
-        playButton.setImage(player.rate > 0 ? pauseIcon : playIcon, for: .normal)
+        let current = player.currentTime()
+        slider.setValue(isPlayerAtTheEnd ? 0 : Float(current.seconds / duration.seconds), animated: false)
 
-        if let time = timeFormatter.string(from: player.rate > 0 ? (duration.seconds * current) : duration.seconds) {
+        if let time = timeFormatter.string(from: player.rate > 0 ? current.seconds : duration.seconds) {
             delegate?.audioView(self, at: time)
         }
     }
@@ -209,8 +228,7 @@ class AudioView : UIStackView {
             player.pause()
         }
 
-        let time = CMTimeMultiplyByFloat64(duration, multiplier: Double(slider.value))
-        player.seek(to: time)
+        player.seek(to: CMTime(seconds: duration.seconds * Double(slider.value), preferredTimescale: duration.timescale))
     }
 
     @objc private func onPlayButtonTap() {

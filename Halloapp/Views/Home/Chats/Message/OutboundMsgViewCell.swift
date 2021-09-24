@@ -549,7 +549,12 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(item.relativeFilePath ?? "", isDirectory: false)
 
             voiceNoteView.delegate = self
-            voiceNoteView.url = url
+            voiceNoteView.state = .played
+
+            if voiceNoteView.url != url {
+                voiceNoteTimeLabel.text = "0:00"
+                voiceNoteView.url = url
+            }
 
             if let userId = item.message?.userId {
                 voiceNoteAvatarView.configure(with: userId, using: MainAppContext.shared.avatarStore)

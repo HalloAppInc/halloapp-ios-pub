@@ -67,7 +67,7 @@ extension FeedPostComment {
 
     var isPosted: Bool {
         get {
-            return status == .sent || status == .incoming
+            return status == .sent || status == .incoming || status == .played
         }
     }
 }
