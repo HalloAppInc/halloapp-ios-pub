@@ -45,41 +45,15 @@ class DataStore: ShareExtensionDataStore {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
 
-            let onDidGetURLs: (MediaURLInfo) -> () = { (mediaURLs) in
-                DDLogInfo("SharedDataStore/upload-media/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
-
-                // Save URLs acquired during upload to the database.
-                switch mediaURLs {
-                case .getPut(let getURL, let putURL):
-                    mediaItem.uploadUrl = putURL
-                    mediaItem.url = getURL
-
-                case .patch(let patchURL):
-                    mediaItem.uploadUrl = patchURL
-                    mediaItem.url = nil
-
-                // this will be revisited when we refactor share extension.
-                case .download(let downloadURL):
-                    mediaItem.url = downloadURL
-                }
-                self.save(managedObjectContext)
-            }
-
             let onUploadCompletion: MediaUploader.Completion = { (uploadResult) in
                     DDLogInfo("SharedDataStore/upload-media/\(mediaIndex)/finished result=[\(uploadResult)]")
-
-                    // Save URLs acquired during upload to the database.
+                    // URLs acquired are already saved to the database by the time this block is executed.
                     switch uploadResult {
-                    case .success(let details):
-                        mediaItem.url = details.downloadURL
-                        mediaItem.status = .uploaded
-
                     case .failure(_):
                         numberOfFailedUploads += 1
-                        mediaItem.status = .error
+                    default:
+                        break
                     }
-                    self.save(managedObjectContext)
-
                     uploadGroup.leave()
             }
 
@@ -98,8 +72,7 @@ class DataStore: ShareExtensionDataStore {
                         mediaItem.sha256 = result.sha256
                         mediaItem.relativeFilePath = path
                         self.save(managedObjectContext)
-
-                        self.mediaUploader.upload(media: mediaItem, groupId: postOrMessageId, didGetURLs: onDidGetURLs, completion: onUploadCompletion)
+                        self.uploadMedia(mediaItem: mediaItem, postOrMessageId: postOrMessageId, in: managedObjectContext, completion: onUploadCompletion)
                     case .failure(_):
                         numberOfFailedUploads += 1
 
@@ -110,7 +83,7 @@ class DataStore: ShareExtensionDataStore {
                     }
                 }
             } else {
-                mediaUploader.upload(media: mediaItem, groupId: postOrMessageId, didGetURLs: onDidGetURLs, completion: onUploadCompletion)
+                self.uploadMedia(mediaItem: mediaItem, postOrMessageId: postOrMessageId, in: managedObjectContext, completion: onUploadCompletion)
             }
         }
 
@@ -121,6 +94,69 @@ class DataStore: ShareExtensionDataStore {
             }
             DDLogInfo("SharedDataStore/upload-media/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
             completion(numberOfFailedUploads == 0)
+        }
+    }
+
+    private func uploadMedia(mediaItem: SharedMedia, postOrMessageId: String, in managedObjectContext: NSManagedObjectContext, completion: @escaping MediaUploader.Completion) {
+        let mediaIndex = mediaItem.order
+        let onDidGetURLs: (MediaURLInfo) -> () = { (mediaURLs) in
+            DDLogInfo("SharedDataStore/uploadMedia/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
+
+            // Save URLs acquired during upload to the database.
+            switch mediaURLs {
+            case .getPut(let getURL, let putURL):
+                mediaItem.uploadUrl = putURL
+                mediaItem.url = getURL
+
+            case .patch(let patchURL):
+                mediaItem.uploadUrl = patchURL
+                mediaItem.url = nil
+
+            // this will be revisited when we refactor share extension.
+            case .download(let downloadURL):
+                mediaItem.url = downloadURL
+            }
+            self.save(managedObjectContext)
+        }
+
+        guard let relativeFilePath = mediaItem.relativeFilePath else {
+            DDLogError("SharedDataStore/uploadMedia/\(postOrMessageId)/\(mediaIndex) missing file path")
+            return completion(.failure(MediaUploadError.unknownError))
+        }
+        let processed = fileURL(forRelativeFilePath: relativeFilePath)
+        AppContext.shared.mediaHashStore.fetch(url: processed) { [weak self] upload in
+            guard let self = self else { return }
+            if let url = upload?.url {
+                DDLogInfo("Media \(processed) has been uploaded before at \(url).")
+                if let uploadUrl = mediaItem.uploadUrl {
+                    DDLogInfo("SharedDataStore/uploadMedia/upload url is supposed to be nil here/\(postOrMessageId)/\(mediaIndex), uploadUrl: \(uploadUrl)")
+                    // we set it to be nil here explicitly.
+                    mediaItem.uploadUrl = nil
+                }
+                mediaItem.url = url
+            } else {
+                DDLogInfo("SharedDataStore/uploadMedia/uploading media now/\(postOrMessageId)/\(mediaItem.order), index:\(mediaIndex)")
+            }
+
+            self.mediaUploader.upload(media: mediaItem, groupId: postOrMessageId, didGetURLs: onDidGetURLs) { (uploadResult) in
+                switch uploadResult {
+                case .success(let details):
+                    mediaItem.url = details.downloadURL
+                    mediaItem.status = .uploaded
+
+                    // If the download url was successfully refreshed - then use the old key and old hash.
+                    if mediaItem.url == upload?.url, let key = upload?.key, let sha256 = upload?.sha256 {
+                        mediaItem.key = key
+                        mediaItem.sha256 = sha256
+                    }
+                    AppExtensionContext.shared.mediaHashStore.update(url: processed, key: mediaItem.key, sha256: mediaItem.sha256, downloadURL: mediaItem.url!)
+                case .failure(let error):
+                    DDLogError("SharedDataStore/uploadMedia/failed to upload media, error: \(error)")
+                    mediaItem.status = .error
+                }
+                self.save(managedObjectContext)
+                completion(uploadResult)
+            }
         }
     }
 
@@ -357,13 +393,18 @@ extension SharedMedia: MediaUploadable {
     }
 
     var urlInfo: MediaURLInfo? {
-        guard let uploadUrl = uploadUrl else {
-            return nil
-        }
-        if let downloadUrl = url {
-            return .getPut(downloadUrl, uploadUrl)
+        if let uploadUrl = uploadUrl {
+            if let downloadUrl = url {
+                return .getPut(downloadUrl, uploadUrl)
+            } else {
+                return .patch(uploadUrl)
+            }
         } else {
-            return .patch(uploadUrl)
+            if let downloadUrl = url {
+                return .download(downloadUrl)
+            } else {
+                return nil
+            }
         }
     }
 }
