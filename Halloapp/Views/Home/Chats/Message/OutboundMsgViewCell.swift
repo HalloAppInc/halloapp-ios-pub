@@ -21,6 +21,7 @@ protocol OutboundMsgViewCellDelegate: AnyObject {
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewQuotedMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, didLongPressOn msgId: String)
+    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, didCompleteVoiceNote msgId: String)
 }
 
 class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
@@ -396,7 +397,11 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         return avatar
     }()
 
-    func stopPlayback() {
+    func playVoiceNote() {
+        voiceNoteView.play()
+    }
+
+    func pauseVoiceNote() {
         voiceNoteView.pause()
     }
     
@@ -799,6 +804,12 @@ extension OutboundMsgViewCell: AudioViewDelegate {
     }
 
     func audioViewDidStartPlaying(_ view: AudioView) {
+    }
+
+    func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
+        guard completed else { return }
+        guard let messageID = messageID else { return }
+        delegate?.outboundMsgViewCell(self, didCompleteVoiceNote: messageID)
     }
 }
 

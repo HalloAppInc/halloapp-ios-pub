@@ -585,4 +585,7 @@ extension CommentView: AudioViewDelegate {
         guard let commentId = feedPostCommentID else { return }
         MainAppContext.shared.feedData.markCommentAsPlayed(commentId: commentId)
     }
+
+    func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
+    }
 }

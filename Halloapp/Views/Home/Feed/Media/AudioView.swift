@@ -13,6 +13,7 @@ import Foundation
 protocol AudioViewDelegate: AnyObject {
     func audioView(_ view: AudioView, at time: String)
     func audioViewDidStartPlaying(_ view: AudioView)
+    func audioViewDidEndPlaying(_ view: AudioView, completed: Bool)
 }
 
 enum AudioViewState {
@@ -53,10 +54,14 @@ class AudioView : UIStackView {
             guard let player = player else { return }
             player.seek(to: .zero)
 
-            rateObservation = player.observe(\.rate) { [weak self] (player, change) in
+            rateObservation = player.observe(\.rate, options: [.old, .new]) { [weak self] (player, change) in
                 guard let self = self else { return }
                 self.updateControls()
                 self.updateProgress()
+
+                if change.oldValue == 1 && change.newValue == 0 {
+                    self.delegate?.audioViewDidEndPlaying(self, completed: self.isPlayerAtTheEnd)
+                }
             }
 
             let interval = CMTime(value: 1, timescale: 60)

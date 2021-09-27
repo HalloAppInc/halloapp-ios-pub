@@ -20,6 +20,7 @@ protocol InboundMsgViewCellDelegate: AnyObject {
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewQuotedMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didLongPressOn msgId: String)
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didCompleteVoiceNote msgId: String)
 }
 
 class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
@@ -392,7 +393,11 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         return avatar
     }()
 
-    func stopPlayback() {
+    func playVoiceNote() {
+        voiceNoteView.play()
+    }
+
+    func pauseVoiceNote() {
         voiceNoteView.pause()
     }
 
@@ -764,6 +769,12 @@ extension InboundMsgViewCell: AudioViewDelegate {
         guard let messageID = messageID else { return }
         voiceNoteView.state = .played
         MainAppContext.shared.chatData.markPlayedMessage(for: messageID)
+    }
+
+    func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
+        guard completed else { return }
+        guard let messageID = messageID else { return }
+        delegate?.inboundMsgViewCell(self, didCompleteVoiceNote: messageID)
     }
 }
 

@@ -50,6 +50,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     static private let inboundMsgViewCellReuseIdentifier = "InboundMsgViewCell"
     static private let outboundMsgViewCellReuseIdentifier = "OutboundMsgViewCell"
 
+    private let waitForCellTimeout: TimeInterval = 0.25
+
     private var currentUnseenChatThreadsList: [UserID: Int] = [:]
     private var currentUnseenGroupChatThreadsList: [GroupID: Int] = [:]
 
@@ -289,7 +291,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { [weak self] (_) in
                 guard let self = self else { return }
-                self.stopPlayback()
+                self.pauseVoiceNotes()
         })
 
         configureTitleViewWithTypingIndicator()
@@ -340,7 +342,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         if let id = fromUserId {
             saveChatDraft(id: id)
         }
-        stopPlayback()
+        pauseVoiceNotes()
         MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
         chatInputView.willDisappear(in: self)
         
@@ -353,12 +355,34 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         DDLogDebug("ChatViewController/deinit/\(fromUserId ?? "")")
     }
 
-    private func stopPlayback() {
+    private func pauseVoiceNotes() {
         for cell in tableView.visibleCells {
             if let cell = cell as? OutboundMsgViewCell {
-                cell.stopPlayback()
+                cell.pauseVoiceNote()
             } else if let cell = cell as? InboundMsgViewCell {
-                cell.stopPlayback()
+                cell.pauseVoiceNote()
+            }
+        }
+    }
+
+    private func playVoiceNote(after indexPath: IndexPath) {
+        var nextIndexPath = indexPath
+        nextIndexPath.row += 1
+
+        guard let numberOfObjects = fetchedResultsController?.sections?[nextIndexPath.section].numberOfObjects else { return }
+        guard nextIndexPath.row < numberOfObjects else { return }
+        guard let nextChatMessage = fetchedResultsController?.object(at: nextIndexPath) else { return }
+        guard nextChatMessage.media?.first?.type == .audio else { return }
+
+        tableView.scrollToRow(at: nextIndexPath, at: .middle, animated: true)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + waitForCellTimeout) {
+            guard let cell = self.tableView.cellForRow(at: nextIndexPath) else { return }
+
+            if let cell = cell as? OutboundMsgViewCell {
+                cell.playVoiceNote()
+            } else if let cell = cell as? InboundMsgViewCell {
+                cell.playVoiceNote()
             }
         }
     }
@@ -884,7 +908,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         tableView.scrollToRow(at: toIndexPath, at: .middle, animated: true)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + waitForCellTimeout) {
             if replyMessage.fromUserId == MainAppContext.shared.userData.userId {
                 guard let cell = self.tableView.cellForRow(at: toIndexPath) as? OutboundMsgViewCell else { return }
                 cell.highlight()
@@ -1120,9 +1144,9 @@ extension ChatViewController: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if let cell = cell as? OutboundMsgViewCell {
-            cell.stopPlayback()
+            cell.pauseVoiceNote()
         } else if let cell = cell as? InboundMsgViewCell {
-            cell.stopPlayback()
+            cell.pauseVoiceNote()
         }
     }
     
@@ -1226,6 +1250,11 @@ extension ChatViewController: InboundMsgViewCellDelegate {
         
         self.present(actionSheet, animated: true)
     }
+
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didCompleteVoiceNote msgId: String) {
+        guard let indexPath = inboundMsgViewCell.indexPath else { return }
+        playVoiceNote(after: indexPath)
+    }
     
 }
 
@@ -1287,6 +1316,11 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         
         self.present(actionSheet, animated: true)
+    }
+
+    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, didCompleteVoiceNote msgId: String) {
+        guard let indexPath = outboundMsgViewCell.indexPath else { return }
+        playVoiceNote(after: indexPath)
     }
     
 }
