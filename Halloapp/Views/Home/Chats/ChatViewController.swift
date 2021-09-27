@@ -305,11 +305,15 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        self.tableView.tableFooterView = nil
-        let scrollPoint = CGPoint(x: 0, y: self.tableView.contentSize.height + 1000)
-        self.tableView.setContentOffset(scrollPoint, animated: false)
+        tableView.tableFooterView = nil
+        let scrollPoint = CGPoint(x: 0, y: tableView.contentSize.height)
+        tableView.setContentOffset(scrollPoint, animated: false)
+
+        // scroll again after setting contentOffset cause for some reason it would
+        // not scroll to the very bottom sometimes (by a few points)
+        scrollToBottom(false)
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
@@ -829,10 +833,14 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             let numberOfRows = dataSnapshot.numberOfItems(inSection: ChatViewController.sectionMain)
             let indexPath = IndexPath(row: numberOfRows - 1, section: ChatViewController.sectionMain)
 
-            // use our own animation because for some reason tableView's animation gets interrupted intermittently
-            UIView.animate(withDuration: 0.2, animations: {
+            if animated {
+                // use our own animation because for some reason tableView's animation gets interrupted intermittently
+                UIView.animate(withDuration: 0.2, animations: {
+                    self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
+                })
+            } else {
                 self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
-            })
+            }
         }
     }
 
