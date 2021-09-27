@@ -1266,7 +1266,7 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
             }
         }
         
-        if [.sentOut, .delivered, .seen].contains(chatMessage.outgoingStatus) {
+        if [.sentOut, .delivered, .seen, .played].contains(chatMessage.outgoingStatus) {
             actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
                 guard let self = self else { return }
                 guard let toUserID = self.fromUserId else { return }
