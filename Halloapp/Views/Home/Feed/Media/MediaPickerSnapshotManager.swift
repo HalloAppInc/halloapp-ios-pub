@@ -48,10 +48,14 @@ class MediaPickerSnapshotManager {
 
         let limit = min(limit ?? (nextIndex + pageSize), assets.count)
         for i in nextIndex..<limit {
-            guard assets[i].creationDate != nil else { continue }
-            guard filter != .image || assets[i].mediaType == .image else { continue }
-            guard filter != .video || assets[i].mediaType == .video else { continue }
-            snapshot.appendItems([assets[i]])
+            // Photos displays media from bottom to top where as HalloApp from top to bottom,
+            // as a result to keep the same order we have to take the reverse index
+            let idx = assets.count - 1 - i
+
+            guard assets[idx].creationDate != nil else { continue }
+            guard filter != .image || assets[idx].mediaType == .image else { continue }
+            guard filter != .video || assets[idx].mediaType == .video else { continue }
+            snapshot.appendItems([assets[idx]])
         }
         
         nextIndex = limit

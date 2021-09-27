@@ -204,23 +204,19 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
-            // Default options to begin with.
-            let options = PHFetchOptions()
-            options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-
             let recent = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil).firstObject
 
             if let album = album ?? recent {
                 // Unable to filter album assets by type, will filter them in snapshot manager
-                self.snapshotManager.reset(with: PHAsset.fetchAssets(in: album, options: options))
+                self.snapshotManager.reset(with: PHAsset.fetchAssets(in: album, options: nil))
             } else {
                 switch self.filter {
                 case .all:
-                    self.snapshotManager.reset(with: PHAsset.fetchAssets(with: options))
+                    self.snapshotManager.reset(with: PHAsset.fetchAssets(with: nil))
                 case .image:
-                    self.snapshotManager.reset(with: PHAsset.fetchAssets(with: .image, options: options))
+                    self.snapshotManager.reset(with: PHAsset.fetchAssets(with: .image, options: nil))
                 case .video:
-                    self.snapshotManager.reset(with: PHAsset.fetchAssets(with: .video, options: options))
+                    self.snapshotManager.reset(with: PHAsset.fetchAssets(with: .video, options: nil))
                 }
             }
             
