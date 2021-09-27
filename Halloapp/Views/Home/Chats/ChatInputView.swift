@@ -1179,6 +1179,7 @@ extension ChatInputView: AudioRecorderDelegate {
             self.voiceNoteTime.isHidden = false
             self.placeholder.isHidden = true
             self.textView.text = ""
+            self.textView.isHidden = true
             self.updatePostButtons()
         }
     }
@@ -1191,6 +1192,7 @@ extension ChatInputView: AudioRecorderDelegate {
             self.voiceNoteTime.isHidden = true
             self.postVoiceNoteButton.isHidden = true
             self.placeholder.isHidden = false
+            self.textView.isHidden = false
             self.hideKeyboard()
             self.updatePostButtons()
         }
