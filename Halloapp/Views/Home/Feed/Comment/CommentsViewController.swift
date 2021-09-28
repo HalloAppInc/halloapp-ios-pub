@@ -638,10 +638,17 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             guard let commentIndex = sortedComments.firstIndex(where: { $0 == comment }) else { return }
 
             DDLogDebug("CommentsView/frc/update Position: [\(commentIndex)]  Comment: [\(comment)] ")
-            
+            // Update cell directly if there are animations attached to the UITableView.
+            // This is done to prevent multiple animation from overlapping and breaking
+            // smooth animation on new comment send.
+
             let tableViewIndexPath = IndexPath(row: commentIndex, section: Self.sectionMain)
-            if let cell = tableView.cellForRow(at: tableViewIndexPath) as? CommentsTableViewCell {
-                cell.update(with: comment)
+            if tableView.hasScrollAnimation || comment.media?.first?.type == .audio {
+                if let cell = tableView.cellForRow(at: tableViewIndexPath) as? CommentsTableViewCell {
+                    cell.update(with: comment)
+                }
+            } else {
+                tableView.reloadRows(at: [ tableViewIndexPath ], with: .none)
             }
 
         default:
