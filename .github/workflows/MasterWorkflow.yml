@@ -43,7 +43,7 @@ jobs:
             
         # If the pods couldn't be loaded, then run `pod install` to fetch and build the `CocoaPods`
       - name: Install CocoaPods
-        if: steps.cache-pods.outputs.cache-hit != 'true'
+        #if: steps.cache-pods.outputs.cache-hit != 'true'
         run: pod install
         
       - name: Cache Swift Packages
