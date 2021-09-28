@@ -116,7 +116,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
                         guard let cell = tableView.dequeueReusableCell(withIdentifier: self.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell else { break }
                         guard let image = UIImage(named: "GroupsAddMembers")?.withRenderingMode(.alwaysTemplate) else { break }
                         cell.color = .primaryBlue
-                        cell.configure(icon: image, label: Localizations.chatGroupInfoAddMembers.localizedCapitalized)
+                        cell.configure(icon: image, label: Localizations.chatGroupInfoAddMembers)
                         return cell
                     case .inviteToGroup:
                         guard let cell = tableView.dequeueReusableCell(withIdentifier: self.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell else { break }
