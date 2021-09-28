@@ -187,7 +187,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         buttonStack.axis = .horizontal
         buttonStack.alignment = .center
         buttonStack.spacing = 16
-        buttonStack.heightAnchor.constraint(equalToConstant: 38).isActive = true
 
         // as the user keeps typing, we want the text field to exand while
         // the media/post buttons stick to the bottom,

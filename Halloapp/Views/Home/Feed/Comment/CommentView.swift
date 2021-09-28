@@ -223,7 +223,6 @@ class CommentView: UIView {
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         addSubview(vStack)
-        vStack.setCustomSpacing(4, after: nameTextLabel)
         
         profilePictureWidth = profilePictureButton.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeNormal)
         profilePictureButton.heightAnchor.constraint(equalTo: profilePictureButton.widthAnchor).isActive = true
@@ -304,6 +303,7 @@ class CommentView: UIView {
                 mediaCarouselView.delegate = self
                 mediaView.insertArrangedSubview(mediaCarouselView, at: mediaView.arrangedSubviews.count - 1)
                 vStack.insertArrangedSubview(mediaView, at: vStack.arrangedSubviews.count - 1)
+                mediaView.topAnchor.constraint(equalTo: vStack.topAnchor, constant: 20).isActive = true
                 self.mediaCarouselView = mediaCarouselView
             }
 
@@ -317,7 +317,7 @@ class CommentView: UIView {
                 let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
                 let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
                 textCommentLabel.attributedText = textWithMentions?.with(font: font, color: .label).applyingFontForMentions(boldFont)
-
+                textCommentLabel.delegate = self
                 vStack.insertArrangedSubview(textCommentLabel, at: vStack.arrangedSubviews.count - 1)
                 vStack.setCustomSpacing(4, after: mediaView)
             }
