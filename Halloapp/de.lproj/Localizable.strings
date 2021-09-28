@@ -398,7 +398,7 @@
 "feed.new.posts.indicator" = "Neue Beiträge";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification..other.comment.no.text" = "<$author$> hat auch kommentiert";
+"feed.notification..other.comment.no.text" = "<$author$> kommentierte";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.comment.grouped" = "<$numberOthers$> andere Personen haben auf <$author$>'s Beitrag geantwortet";
@@ -428,7 +428,7 @@
 "feed.notification.mention.post.w.text" = "<$author$>hat dich in einem Beitrag erwähnt: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.other.comment.w.text" = "<$author$> hat auch folgendes kommentiert: <$text$>";
+"feed.notification.other.comment.w.text" = "<$author$> kommentierte: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.replied.no.text" = "<$author$> hat auf deinen Kommentar geantwortet";

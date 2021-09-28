@@ -371,7 +371,7 @@
 "create.group.description.placeholder" = "Omschrijving toevoegen (optioneel)";
 
 /* Alert message telling the user to try creating the group again after an error */
-"create.group.error" = "Aanmaken van de groep mislukt, probeer later opnieuw";
+"create.group.error" = "Er is een fout opgetreden bij het aanmaken van de groep, probeer opnieuw";
 
 /* Placeholder text shown inside the group name input box when it's empty */
 "create.group.name.placeholder" = "Groepsnaam invoeren";
@@ -440,7 +440,7 @@
 "feed.notification.replied.w.text" = "<$author$> heeft geantwoord: <$text$>";
 
 /* Shown when post fails or is canceled. */
-"feed.post.failed" = "Plaatsen mislukt.";
+"feed.post.failed" = "Plaatsen is mislukt.";
 
 /* Shown when receiving a new (unsupported) type of post. */
 "feed.post.unsupported" = "Je versie van HalloApp ondersteunt dit type post niet.";
