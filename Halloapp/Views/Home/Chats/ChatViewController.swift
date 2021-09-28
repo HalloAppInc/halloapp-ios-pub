@@ -855,6 +855,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             guard let self = self else { return }
             guard let dataSnapshot = self.dataSource?.snapshot() else { return }
             let numberOfRows = dataSnapshot.numberOfItems(inSection: ChatViewController.sectionMain)
+            guard numberOfRows > 0 else { return }
             let indexPath = IndexPath(row: numberOfRows - 1, section: ChatViewController.sectionMain)
 
             if animated {
