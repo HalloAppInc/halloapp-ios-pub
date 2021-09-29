@@ -1186,6 +1186,7 @@ extension CommentInputView: AudioRecorderDelegate {
     func audioRecorderMicrphoneAccessDenied(_ recorder: AudioRecorder) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+            self.recordVoiceNoteControl.hide()
             self.delegate?.commentInputViewMicrophoneAccessDenied(self)
         }
     }
@@ -1204,6 +1205,7 @@ extension CommentInputView: AudioRecorderDelegate {
     func audioRecorderStopped(_ recorder: AudioRecorder) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+            self.recordVoiceNoteControl.hide()
             self.isVoiceNoteRecordingLocked = false
             self.cancelRecordingButton.isHidden = true
             self.voiceNoteTime.isHidden = true

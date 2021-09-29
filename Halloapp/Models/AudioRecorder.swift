@@ -81,7 +81,8 @@ class AudioRecorder {
         case .denied, .restricted:
             action(false)
         case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .audio) { action($0) }
+            delegate?.audioRecorderStopped(self)
+            AVCaptureDevice.requestAccess(for: .audio, completionHandler: { _ in })
         default:
             DDLogError("AudioRecorder/authorize unknown AVAuthorizationStatus")
             action(false)

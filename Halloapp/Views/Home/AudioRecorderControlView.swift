@@ -347,7 +347,7 @@ class AudioRecorderControlView: UIView {
         }
     }
 
-    private func hide() {
+    func hide() {
         expandingContainer.isHidden = true
         isActive = false
         isLockInProgress = false
