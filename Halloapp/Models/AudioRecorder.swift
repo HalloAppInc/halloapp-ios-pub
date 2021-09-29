@@ -118,7 +118,10 @@ class AudioRecorder {
             return DDLogError("AudioRecorder/start: recorder failed init [\(error)]")
         }
 
-        UIApplication.shared.isIdleTimerDisabled = true
+        DispatchQueue.main.async {
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
+
         startTimer()
         delegate?.audioRecorderStarted(self)
     }
@@ -140,7 +143,9 @@ class AudioRecorder {
     }
 
     func stop(cancel: Bool) {
-        UIApplication.shared.isIdleTimerDisabled = false
+        DispatchQueue.main.async {
+            UIApplication.shared.isIdleTimerDisabled = false
+        }
 
         var notifyDelegate = false
 
