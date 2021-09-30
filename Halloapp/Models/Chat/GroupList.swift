@@ -12,8 +12,11 @@ import Foundation
 public class GroupList: NSObject, NSFetchedResultsControllerDelegate {
 
     private var fetchedResultsController: NSFetchedResultsController<ChatGroup>?
+    private var userId: UserID?
 
-    public func listenForChanges(using context: NSManagedObjectContext) {
+    public func listenForChanges(using context: NSManagedObjectContext, userId: UserID) {
+        self.userId = userId
+
         fetchedResultsController = makeFetchedResultsController(using: context)
         fetchedResultsController?.delegate = self
         try? fetchedResultsController?.performFetch()
@@ -35,11 +38,15 @@ public class GroupList: NSObject, NSFetchedResultsControllerDelegate {
     }
 
     private func sync() {
-        if let groups = fetchedResultsController?.fetchedObjects {
-            return GroupListItem.save(groups.map {
-                let users = $0.members?.map { $0.userId } ?? [UserID]()
-                return GroupListItem(id: $0.groupId, name: $0.name, users: users)
-            })
+        guard let userId = userId else { return }
+
+        let groups = (fetchedResultsController?.fetchedObjects ?? []).filter {
+            $0.members?.first { $0.userId == userId } != nil
         }
+
+        return GroupListItem.save(groups.map {
+            let users = $0.members?.map { $0.userId } ?? [UserID]()
+            return GroupListItem(id: $0.groupId, name: $0.name, users: users)
+        })
     }
 }

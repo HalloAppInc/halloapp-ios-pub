@@ -417,7 +417,8 @@ class ChatData: ObservableObject {
         )
 
         performSeriallyOnBackgroundContext { [weak self] (context) in
-            self?.groupList.listenForChanges(using: context)
+            guard let self = self else { return }
+            self.groupList.listenForChanges(using: context, userId: self.userData.userId)
         }
     }
 
