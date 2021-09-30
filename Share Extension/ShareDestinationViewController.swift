@@ -30,23 +30,96 @@ private extension Localizations {
     }
 }
 
-class ShareDestinationViewController: UITableViewController {
+class ShareDestinationViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     private let contacts: [ABContact]
     private let groups: [GroupListItem]
     private var filteredContacts: [ABContact] = []
     private var filteredGroups: [GroupListItem] = []
     private var searchController: UISearchController!
     private var selected: [ShareDestination] = []
+    private var cancellableSet: Set<AnyCancellable> = []
 
     private var isFiltering: Bool {
         return searchController.isActive && !(searchController.searchBar.text?.isEmpty ?? true)
     }
+
+    private lazy var tableView: UITableView = {
+        let tableView = UITableView(frame: .zero, style: .insetGrouped)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.allowsMultipleSelection = true
+        tableView.register(DestinationCell.self, forCellReuseIdentifier: DestinationCell.reuseIdentifier)
+        tableView.delegate = self
+        tableView.dataSource = self
+
+        return tableView
+    } ()
+
+    private lazy var selectionRow: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        layout.itemSize = CGSize(width: 100, height: 100)
+
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.backgroundColor = .primaryBg
+
+        collectionView.register(SelectionViewCell.self, forCellWithReuseIdentifier: SelectionViewCell.reuseIdentifier)
+
+        let borderFrame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 0)
+        let borderPath = UIBezierPath(rect: borderFrame.insetBy(dx: -500, dy: 0))
+        let borderLayer = CAShapeLayer()
+        borderLayer.frame = borderFrame
+        borderLayer.path = borderPath.cgPath
+        borderLayer.strokeColor = UIColor.secondarySystemGroupedBackground.cgColor
+        borderLayer.lineWidth = 1
+        borderLayer.fillColor = UIColor.clear.cgColor
+        collectionView.layer.addSublayer(borderLayer)
+
+        return collectionView
+    } ()
+
+    private lazy var selectionDataSource: UICollectionViewDiffableDataSource<Int, ShareDestination> = {
+        UICollectionViewDiffableDataSource<Int, ShareDestination>(collectionView: selectionRow) { [weak self] collectionView, indexPath, destination in
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SelectionViewCell.reuseIdentifier, for: indexPath) as? SelectionViewCell else {
+                return nil
+            }
+
+            switch destination {
+            case .feed:
+                cell.configure("Home")
+            case .group(let group):
+                cell.configure(group)
+            case .contact(let contact):
+                cell.configure(contact)
+            }
+
+            cell.removeAction = { [weak self] in
+                guard let self = self else { return }
+                guard let idx = self.selected.firstIndex(where: { $0 == destination }) else { return }
+
+                self.selected.remove(at: idx)
+                self.updateNextBtn()
+                self.updateSelectionRow()
+            }
+
+            return cell
+        }
+    } ()
+
+    private lazy var selectionRowHeightConstraint: NSLayoutConstraint = {
+        selectionRow.heightAnchor.constraint(equalToConstant: 0)
+    } ()
+
+    private lazy var bottomConstraint: NSLayoutConstraint = {
+        selectionRow.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+    } ()
     
     init() {
         contacts = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: true)
         groups = GroupListItem.load()
-        
-        super.init(style: .insetGrouped)
+
+        super.init(nibName: nil, bundle: nil)
 
         DDLogInfo("ShareDestinationViewController/init loaded \(groups.count) groups and \(contacts.count) contacts")
     }
@@ -61,10 +134,20 @@ class ShareDestinationViewController: UITableViewController {
         navigationItem.title = Localizations.title
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAciton))
 
-        tableView.allowsMultipleSelection = true
-        tableView.register(DestinationCell.self, forCellReuseIdentifier: DestinationCell.reuseIdentifier)
-
         setupSearch()
+
+        view.backgroundColor = .systemBackground
+        view.addSubview(tableView)
+        view.addSubview(selectionRow)
+
+        tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        tableView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        tableView.bottomAnchor.constraint(equalTo: selectionRow.topAnchor).isActive = true
+        selectionRow.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        selectionRow.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        selectionRowHeightConstraint.isActive = true
+        bottomConstraint.isActive = true
         
         if let intent = extensionContext?.intent as? INSendMessageIntent {
             guard let rawConversationID = intent.conversationIdentifier else { return }
@@ -90,6 +173,43 @@ class ShareDestinationViewController: UITableViewController {
                 navigationController?.pushViewController(ShareComposerViewController(destinations: [destination]), animated: false)
             }
         }
+
+        handleKeyboardUpdates()
+    }
+
+    private func handleKeyboardUpdates() {
+        cancellableSet.insert(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification).sink { [weak self] notification in
+            guard let self = self else { return }
+            self.animateWithKeyboard(notification: notification) {
+                self.bottomConstraint.constant = -$0
+            }
+        })
+
+        cancellableSet.insert(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification).sink { [weak self] notification in
+            guard let self = self else { return }
+            self.animateWithKeyboard(notification: notification) { _ in
+                self.bottomConstraint.constant = 0
+            }
+        })
+    }
+
+    private func animateWithKeyboard(notification: Notification, animations: @escaping (CGFloat) -> Void) {
+        let durationKey = UIResponder.keyboardAnimationDurationUserInfoKey
+        guard let duration = notification.userInfo?[durationKey] as? Double else { return }
+
+        let frameKey = UIResponder.keyboardFrameEndUserInfoKey
+        guard let keyboardFrameValue = notification.userInfo?[frameKey] as? NSValue else { return }
+
+        let curveKey = UIResponder.keyboardAnimationCurveUserInfoKey
+        guard let curveValue = notification.userInfo?[curveKey] as? Int else { return }
+        guard let curve = UIView.AnimationCurve(rawValue: curveValue) else { return }
+
+        let animator = UIViewPropertyAnimator(duration: duration, curve: curve) {
+            animations(keyboardFrameValue.cgRectValue.height)
+            self.view?.layoutIfNeeded()
+        }
+
+        animator.startAnimation()
     }
 
     private func updateNextBtn() {
@@ -97,6 +217,30 @@ class ShareDestinationViewController: UITableViewController {
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonNext, style: .done, target: self, action: #selector(nextAction))
         } else {
             navigationItem.rightBarButtonItem = nil
+        }
+    }
+
+    private func updateSelectionRow() {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, ShareDestination>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(selected)
+
+        if self.selected.count > 0 && selectionRowHeightConstraint.constant == 0 {
+            UIView.animate(withDuration: 0.3, animations: {
+                self.selectionRowHeightConstraint.constant = 100
+                self.selectionRow.layoutIfNeeded()
+            }) { _ in
+                self.selectionDataSource.apply(snapshot, animatingDifferences: false)
+            }
+        } else if self.selected.count == 0 && selectionRowHeightConstraint.constant > 0 {
+            selectionDataSource.apply(snapshot, animatingDifferences: true) {
+                self.selectionRowHeightConstraint.constant = 0
+                self.selectionRow.layoutIfNeeded()
+            }
+        } else {
+            self.selectionDataSource.apply(snapshot, animatingDifferences: true) {
+                self.selectionRow.scrollToItem(at: IndexPath(row: self.selected.count - 1, section: 0), at: .right, animated: true)
+            }
         }
     }
 
@@ -159,7 +303,7 @@ class ShareDestinationViewController: UITableViewController {
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.definesPresentationContext = true
-        searchController.hidesNavigationBarDuringPresentation = true
+        searchController.hidesNavigationBarDuringPresentation = false
         searchController.searchBar.autocapitalizationType = .none
         searchController.searchBar.delegate = self
 
@@ -169,11 +313,11 @@ class ShareDestinationViewController: UITableViewController {
 
     // MARK: Data Source
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return 3
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0:
             return 1
@@ -186,7 +330,7 @@ class ShareDestinationViewController: UITableViewController {
         }
     }
     
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
         case 1:
             return Localizations.groups
@@ -197,7 +341,7 @@ class ShareDestinationViewController: UITableViewController {
         }
     }
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: DestinationCell.reuseIdentifier, for: indexPath) as! DestinationCell
 
         switch indexPath.section {
@@ -215,20 +359,26 @@ class ShareDestinationViewController: UITableViewController {
 
         return cell
     }
+
+    // MARK: UITableViewDelegate
     
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let destination = destinationForRow(at: indexPath) else { return }
 
         selected.append(destination)
         updateNextBtn()
+        updateSelectionRow()
+
+        searchController.searchBar.text = ""
     }
 
-    override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         guard let destination = destinationForRow(at: indexPath) else { return }
         guard let idx = selected.firstIndex(where: { $0 == destination }) else { return }
 
         selected.remove(at: idx)
         updateNextBtn()
+        updateSelectionRow()
     }
 }
 
@@ -384,6 +534,147 @@ fileprivate class DestinationCell: UITableViewCell {
             loadAvatar(user: id)
         } else {
             avatar.isHidden = true
+        }
+    }
+
+    private func loadAvatar(group id: GroupID) {
+        cancellable?.cancel()
+
+        let avatarData = ShareExtensionContext.shared.avatarStore.groupAvatarData(for: id)
+
+        if let image = avatarData.image {
+            avatar.image = image
+        } else {
+            avatar.image = AvatarView.defaultGroupImage
+
+            if !avatarData.isEmpty {
+                avatarData.loadImage(using: ShareExtensionContext.shared.avatarStore)
+            }
+        }
+
+        cancellable = avatarData.imageDidChange.sink { [weak self] image in
+            guard let self = self else { return }
+
+            if let image = image {
+                self.avatar.image = image
+            } else {
+                self.avatar.image = AvatarView.defaultGroupImage
+            }
+        }
+    }
+
+    private func loadAvatar(user id: UserID) {
+        cancellable?.cancel()
+
+        let userAvatar = ShareExtensionContext.shared.avatarStore.userAvatar(forUserId: id)
+
+        if let image = userAvatar.image {
+            avatar.image = image
+        } else {
+            avatar.image = AvatarView.defaultGroupImage
+
+            if !userAvatar.isEmpty {
+                userAvatar.loadImage(using: ShareExtensionContext.shared.avatarStore)
+            }
+        }
+
+        cancellable = userAvatar.imageDidChange.sink { [weak self] image in
+            guard let self = self else { return }
+
+            if let image = image {
+                self.avatar.image = image
+            } else {
+                self.avatar.image = AvatarView.defaultGroupImage
+            }
+        }
+    }
+}
+
+fileprivate class SelectionViewCell: UICollectionViewCell {
+    static var reuseIdentifier: String {
+        return String(describing: SelectionViewCell.self)
+    }
+
+    public var removeAction: (() -> ())?
+    private var cancellable: AnyCancellable?
+
+    private var avatar: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.layer.cornerRadius = 24
+        imageView.clipsToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+
+        imageView.widthAnchor.constraint(equalToConstant: 48).isActive = true
+        imageView.heightAnchor.constraint(equalToConstant: 48).isActive = true
+
+        return imageView
+    }()
+
+    private lazy var title: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = .preferredFont(forTextStyle: .caption1)
+        label.textColor = .label
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+
+        return label
+    }()
+
+    private lazy var removeButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(UIImage(systemName: "xmark.circle.fill")?.withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
+        button.addTarget(self, action: #selector(removeButtonPressed), for: [.touchUpInside, .touchUpOutside])
+
+        button.widthAnchor.constraint(equalToConstant: 32).isActive = true
+
+        return button
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        contentView.addSubview(avatar)
+        contentView.addSubview(title)
+        contentView.addSubview(removeButton)
+
+        avatar.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
+        avatar.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8).isActive = true
+        title.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
+        title.topAnchor.constraint(equalTo: avatar.bottomAnchor, constant: 8).isActive = true
+        removeButton.topAnchor.constraint(equalTo: avatar.topAnchor, constant: -8).isActive = true
+        removeButton.trailingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: 8).isActive = true
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    @objc func removeButtonPressed() {
+        if let removeAction = removeAction {
+            removeAction()
+        }
+    }
+
+    public func configure(_ text: String) {
+        cancellable?.cancel()
+        title.text = text
+    }
+
+    public func configure(_ group: GroupListItem) {
+        title.text = group.name
+        avatar.isHidden = false
+
+        loadAvatar(group: group.id)
+    }
+
+    public func configure(_ contact: ABContact) {
+        title.text = contact.fullName
+
+        if let id = contact.userId {
+            loadAvatar(user: id)
         }
     }
 

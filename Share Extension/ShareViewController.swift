@@ -17,7 +17,7 @@ enum ShareError: Error {
     case mediaUploadFailed
 }
 
-enum ShareDestination: Equatable {
+enum ShareDestination: Equatable, Hashable {
     case feed
     case group(GroupListItem)
     case contact(ABContact)
@@ -32,6 +32,17 @@ enum ShareDestination: Equatable {
             return lc == rc
         default:
             return false
+        }
+    }
+
+    func hash(into hasher: inout Hasher) {
+        switch(self) {
+        case .feed:
+            hasher.combine("feed")
+        case .group(let group):
+            hasher.combine(group.id)
+        case .contact(let contact):
+            hasher.combine(contact)
         }
     }
 }

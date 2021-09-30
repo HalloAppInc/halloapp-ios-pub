@@ -287,20 +287,18 @@ class ShareComposerViewController: UIViewController {
     }
 
     private func handleKeyboardUpdates() {
-        cancellableSet.insert(Publishers.Merge(
-            NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
-                .compactMap { $0.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect }
-                .map { $0.height },
-            NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
-                .map { _ in 0 }
-        )
-        .removeDuplicates()
-        .sink { [weak self] in
+        cancellableSet.insert(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification).sink { [weak self] notification in
             guard let self = self else { return }
+            self.animateWithKeyboard(notification: notification) {
+                self.bottomConstraint.constant = -$0
+            }
+        })
 
-            self.bottomConstraint.constant = -$0
+        cancellableSet.insert(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification).sink { [weak self] notification in
+            guard let self = self else { return }
+            self.animateWithKeyboard(notification: notification) { _ in
+                self.bottomConstraint.constant = 0
 
-            if $0 == 0 {
                 // Share Extension is displayed modally and when that modal view is scrolled
                 // the keyboard is hidden without really resigning the text view
                 DispatchQueue.main.async {
@@ -308,6 +306,25 @@ class ShareComposerViewController: UIViewController {
                 }
             }
         })
+    }
+
+    private func animateWithKeyboard(notification: Notification, animations: @escaping (CGFloat) -> Void) {
+        let durationKey = UIResponder.keyboardAnimationDurationUserInfoKey
+        guard let duration = notification.userInfo?[durationKey] as? Double else { return }
+
+        let frameKey = UIResponder.keyboardFrameEndUserInfoKey
+        guard let keyboardFrameValue = notification.userInfo?[frameKey] as? NSValue else { return }
+
+        let curveKey = UIResponder.keyboardAnimationCurveUserInfoKey
+        guard let curveValue = notification.userInfo?[curveKey] as? Int else { return }
+        guard let curve = UIView.AnimationCurve(rawValue: curveValue) else { return }
+
+        let animator = UIViewPropertyAnimator(duration: duration, curve: curve) {
+            animations(keyboardFrameValue.cgRectValue.height)
+            self.view?.layoutIfNeeded()
+        }
+
+        animator.startAnimation()
     }
 
     private func computeCardViewHeight() -> CGFloat {
