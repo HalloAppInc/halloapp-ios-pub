@@ -95,7 +95,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         backBtn.translatesAutoresizingMaskIntoConstraints = false
 
         let container = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
-        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5)
+        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
         container.translatesAutoresizingMaskIntoConstraints = false
         container.layer.masksToBounds = true
         container.layer.cornerRadius = 18
@@ -109,7 +109,15 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         backBtn.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
         backBtn.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
 
-        return container
+        let wrapper = UIView()
+        wrapper.widthAnchor.constraint(equalToConstant: 36).isActive = true
+        wrapper.heightAnchor.constraint(equalToConstant: 36).isActive = true
+
+        wrapper.addSubview(container)
+        container.centerYAnchor.constraint(equalTo: wrapper.centerYAnchor).isActive = true
+        container.centerXAnchor.constraint(equalTo: wrapper.centerXAnchor, constant: -15).isActive = true
+
+        return wrapper
     }()
 
     private lazy var shareBtn: UIView = {
@@ -119,7 +127,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         shareBtn.translatesAutoresizingMaskIntoConstraints = false
 
         let container = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
-        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5)
+        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
         container.translatesAutoresizingMaskIntoConstraints = false
         container.layer.masksToBounds = true
         container.layer.cornerRadius = 18
@@ -133,7 +141,15 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         shareBtn.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
         shareBtn.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
 
-        return container
+        let wrapper = UIView()
+        wrapper.widthAnchor.constraint(equalToConstant: 36).isActive = true
+        wrapper.heightAnchor.constraint(equalToConstant: 36).isActive = true
+
+        wrapper.addSubview(container)
+        container.centerYAnchor.constraint(equalTo: wrapper.centerYAnchor).isActive = true
+        container.centerXAnchor.constraint(equalTo: wrapper.centerXAnchor, constant: 12).isActive = true
+
+        return wrapper
     }()
 
     private lazy var pageControl: UIPageControl = {
@@ -149,7 +165,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     private lazy var pageControlContainer: UIView = {
         let container = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
-        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5)
+        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
         container.translatesAutoresizingMaskIntoConstraints = false
         container.layer.masksToBounds = true
         container.layer.cornerRadius = 14
