@@ -2566,7 +2566,7 @@ extension ChatData {
                 case .read:
                     chatThread.lastMsgStatus = .seen
                 case .played:
-                    break
+                    chatThread.lastMsgStatus = .played
                 }
             }
         }

@@ -84,7 +84,7 @@ class ThreadListCell: UITableViewCell {
                 return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray)
             case .delivered:
                 return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray)
-            case .seen:
+            case .seen, .played:
                 return UIImage(named: "CheckmarkDouble")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
             default:
                 return nil
@@ -106,7 +106,8 @@ class ThreadListCell: UITableViewCell {
             }
 
         case .audio:
-            mediaIcon = UIImage(systemName: "mic.fill")
+            mediaIcon = UIImage(systemName: "mic.fill")?.withTintColor(chatThread.lastMsgStatus == .played ? .primaryBlue : .systemGray)
+
             if messageText.isEmpty {
                 messageText = Localizations.chatMessageAudio
             }

@@ -22,6 +22,7 @@ extension ChatThread {
         case error = 5
         case retracting = 6
         case retracted = 7
+        case played = 8
     }
     
     enum LastMediaType: Int16 {
