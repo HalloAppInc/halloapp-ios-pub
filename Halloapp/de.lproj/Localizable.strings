@@ -59,7 +59,7 @@
 "archive.title.label" = "Archiv";
 
 /* Label shown on the cancel action */
-"audio.control.cancel" = "wischen, um die Aufnahme abzubrechen";
+"audio.control.cancel" = "wischen zum abbrechen";
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Keine Verbindung";
@@ -770,7 +770,7 @@
 "n.posts.deleted" = "%@ gelöschte Beiträge";
 
 /* Alert text shown when max group size is reached when selecting/adding group members */
-"new.group.members.max.size.alert" = "Die maximale Mitgliederanzahl ist %d";
+"new.group.members.max.size.alert" = "Die max. Gruppengröße ist %d";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Du bist kein Mitglied dieser Gruppe mehr";

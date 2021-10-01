@@ -4,8 +4,14 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Harap pastikan kamu punya konektivitas internet, lalu cobalah kembali.";
 
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Tambah";
+
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Batal";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "BATAL";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Lanjut";
@@ -67,6 +73,9 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Versi ini sudah usang";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Cari";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Pelajari lebih lanjut";
 
@@ -111,6 +120,12 @@
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Instal HalloApp untuk membuka %@";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "Aduh!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Nomor telepon yang kamu masukkan tidak valid. Periksa kembali.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Jika kamu mengikuti Tautan Undangan Grup untuk mendaftar, silakan klik kembali tautan untuk menyelesaikan pendaftaran dan bergabung ke grup.";

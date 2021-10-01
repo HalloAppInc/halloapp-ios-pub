@@ -497,6 +497,7 @@
 		2762FD6E15286945AA56FCC7 /* Pods-HalloAppClip.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppClip.debug.xcconfig"; path = "Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip.debug.xcconfig"; sourceTree = "<group>"; };
 		323E88D626CC175900202655 /* Feed4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed4.xcdatamodel; sourceTree = "<group>"; };
 		323E88DA26CC430600202655 /* Feed3ToFeed4.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed3ToFeed4.xcmappingmodel; sourceTree = "<group>"; };
+		32769A002707B0F00034193C /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		329E03F8268247BC00C2D250 /* HalloAppClip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloAppClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		329E03FA268247BD00C2D250 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		329E03FC268247BD00C2D250 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -2909,6 +2910,7 @@
 				68EA2E5F26CEEDB20056FC55 /* nl */,
 				6AF7594C26F2BB110087078A /* es */,
 				6A38E09426F2BB6800103F30 /* ru */,
+				32769A002707B0F00034193C /* id */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";

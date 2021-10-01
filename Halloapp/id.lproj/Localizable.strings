@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "Selamat datang di HalloApp!";
 
+/* Text label for action button to add the contact to the address book */
+"add.to.contact.book" = "Tambah ke Daftar Kontak";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Tidak Ada Koneksi Internet";
 
@@ -49,11 +52,26 @@
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Pengaturan";
 
+/* Placeholder text for when the archive is empty */
+"archive.empty.placeholder" = "Arsip posting akan masuk ke sini";
+
+/* Archive navigation label */
+"archive.title.label" = "Arsipkan";
+
+/* Label shown on the cancel action */
+"audio.control.cancel" = "geser untuk membatalkan";
+
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Tidak ada koneksi internet";
 
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Tambah";
+
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Batal";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "BATAL";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Lanjut";
@@ -135,6 +153,9 @@
 
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
 "chat.add.to.contacts.book.label" = "Untuk melihat postingan dari %@, tambahkan nomornya ke buku kontak Anda. Ketuk untuk menambahkan";
+
+/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+"chat.blocked.contact.label" = "Kontak diblokir, ketuk untuk buka blokir";
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Membuat Grup Baru";
@@ -232,6 +253,9 @@
 /* Alert title when missing microphone access */
 "chat.mic.access.denied.title" = "Tidak dapat mengakses mikrofon";
 
+/* Text below the contact's name when the contact is online in the Chat Screen */
+"chat.online.label" = "daring";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "sedang mengetik...";
 
@@ -252,6 +276,12 @@
 
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Menghapus komentar";
+
+/* Alert message when missing microphone access */
+"comment.mic.access.denied.message" = "Untuk mengaktifkan rekaman audio, silakan ketuk Pengaturan dan kemudian nyalakan Mikrofon";
+
+/* Alert title when missing microphone access */
+"comment.mic.access.denied.title" = "Tidak dapat mengakses mikrofon";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Mengirimkan...";
@@ -328,11 +358,26 @@
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Untuk membantumu terhubung dengan teman dan keluarga izinkan HalloApp mengakses kontakmu.";
 
+/* Title for modal view when showing how to change contact permissions. */
+"contacts.permission.explanation.title" = "Kontak";
+
 /* Title for tutorial explaining how user can enable contacts permission */
 "contacts.permission.tutorial.title" = "Kontak";
 
+/* Text label for group description text box */
+"create.group.description.label" = "Deskripsi";
+
+/* Placeholder text shown inside the group description input box when it's empty */
+"create.group.description.placeholder" = "Tambahkan deskripsi (opsional)";
+
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Terjadi eror saat membuat grup, harap coba kembali";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"create.group.name.placeholder" = "Beri nama grup kamu";
+
+/* Title of group creation screen */
+"create.group.title" = "Informasi Grup";
 
 /* Title for generic delete button. */
 "Delete" = "Hapus";
@@ -442,11 +487,20 @@
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Balas";
 
+/* Placeholder text shown in group description input box when there's no description */
+"group.add.description" = "Tambah deskripsi grup";
+
+/* Label shown above background selection row */
+"group.background.label" = "Latar belakang";
+
 /* Label for choosing a color at the group background preview screen */
 "group.bg.pick.a.color.label" = "PILIH SATU WARNA";
 
 /* Title of group background screen */
 "group.bg.title" = "Latar Belakang";
+
+/* Label shown above group description input box */
+"group.description.label" = "Deskripsi Grup";
 
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ menambahkan %2$@";
@@ -465,6 +519,12 @@
 
 /* Message text shown when you change the background */
 "group.event.changed.background.you" = "Kamu mengganti warna latar";
+
+/* Message text shown with the user who changed the group description */
+"group.event.changed.description" = "%1@ mengubah deskripsi grup";
+
+/* Message text shown when you change the group description */
+"group.event.changed.description.you" = "Kamu mengubah deskripsi grup";
 
 /* Message text shown with the user who changed the group name */
 "group.event.changed.name" = "%1$@ mengganti nama grup menjadi \"%2$@\"";
@@ -531,6 +591,9 @@
 
 /* Title of group invite screen */
 "group.invite.title" = "Undang Grup";
+
+/* Label shown above group members list */
+"group.members.label" = "Anggota";
 
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "Tautan undangan grup tidak sah";
@@ -610,6 +673,9 @@
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Undang";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Cari";
+
 /* Link text to open invite flow */
 "link.invite.friend" = "Undang teman";
 
@@ -674,6 +740,9 @@
 "media.voiceover.button.flip" = "Balik";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "Senyapkan";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.rotate" = "Putar";
 
 /* Message action. Verb. */
@@ -718,6 +787,12 @@
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.invites.remaining";
 
+/* Displayed in place of deleted feed posts. */
+"n.posts.deleted" = "%@ posting dihapus";
+
+/* Alert text shown when max group size is reached when selecting/adding group members */
+"new.group.members.max.size.alert" = "Maks. besar grup adalah %d";
+
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Kamu tak lagi ada di grup ini";
 
@@ -735,6 +810,12 @@
 
 /* New post notification text when post is multiple videos without caption. */
 "notification.n.videos" = "notification.n.videos";
+
+/* Title for the new comment notification. */
+"notification.new.comment" = "Komentar Baru";
+
+/* Content for contact notification. */
+"notification.new.contact.content" = "%@ sekarang di HalloApp";
 
 /* Content for friend notification. */
 "notification.new.friend.content" = "%@ kini ada di HalloApp";
@@ -835,6 +916,9 @@
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Pesan";
 
+/* Text for unblocking user under profile header */
+"profile.header.unblock.user" = "Buka blokir";
+
 /* Item in Profile > Help screen. */
 "profile.help.faq" = "Pertanyaan Populer";
 
@@ -915,6 +999,12 @@
 
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Instal HalloApp untuk membuka %@";
+
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "Aduh!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Nomor telepon yang kamu masukkan tidak valid. Periksa kembali.";
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Jika kamu menggunakan Tautan Undangan Grup untuk mendaftar, silakan klik lagi tautannya untuk menyelesaikan pendaftaran dan bergabung ke grup.";
@@ -1062,6 +1152,9 @@
 
 /* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
 "settings.notifications.comments" = "Komentar";
+
+/* Instructions for enabling notifications permissions */
+"settings.notifications.disabled.instructions" = "Harap aktifkan notifikasi di Pengaturan.";
 
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Unggahan";
