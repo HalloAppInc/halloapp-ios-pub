@@ -54,7 +54,12 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     let buttonRetryCodeByVoiceRequest = UIButton()
     var retryAvailableDate = Date.distantFuture
 
-    let activityIndicatorView = UIActivityIndicatorView(style: .large)
+    let progressBar = UIProgressView(progressViewStyle: .bar)
+    var progressTimer = Timer()
+    var sMSTimer = Timer()
+
+    var retryDelayInSeconds = 0
+    var progressCounter = 0.0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -78,10 +83,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
             labelTitle.text = Localizations.registrationCodeInstructions(formattedNumber: formattedNumberNonBreakingLines)
         }
 
-        activityIndicatorView.setContentHuggingPriority(.required, for: .horizontal)
-        activityIndicatorView.startAnimating()
-
-        let phoneRow = UIStackView(arrangedSubviews: [labelTitle, activityIndicatorView])
+        let phoneRow = UIStackView(arrangedSubviews: [labelTitle])
         phoneRow.translatesAutoresizingMaskIntoConstraints = false
         phoneRow.axis = .horizontal
         phoneRow.distribution = .fill
@@ -99,9 +101,9 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         stackView.axis = .vertical
         stackView.alignment = .fill
         stackView.spacing = 30
-        stackView.setCustomSpacing(10, after: codeEntryField)
+        stackView.setCustomSpacing(25, after: codeEntryField)
         stackView.setCustomSpacing(10, after: errorLabel)
-        stackView.setCustomSpacing(15, after: resendSMSRow)
+        stackView.setCustomSpacing(10, after: resendSMSRow)
 
         errorLabel.textColor = .red
         errorLabel.textAlignment = .center
@@ -124,11 +126,19 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         buttonRetryCodeByVoiceRequest.setContentCompressionResistancePriority(.required, for: .vertical)
         buttonRetryCodeByVoiceRequest.contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
 
+        // Progress indicator
+        progressBar.progressTintColor = .systemBlue
+        progressBar.trackTintColor = .secondaryLabel
+        progressBar.progress = 0
+        progressBar.translatesAutoresizingMaskIntoConstraints = false
+        progressBar.isHidden = true
+
         // View hierarchy
 
         scrollView.addSubview(logo)
         scrollView.addSubview(stackView)
 
+        scrollView.addSubview(progressBar)
         view.addSubview(scrollView)
 
         // Constraints
@@ -137,6 +147,10 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
 
         logo.constrain(anchor: .top, to: scrollView.contentLayoutGuide, constant: 10)
         logo.constrainMargin(anchor: .leading, to: scrollView)
+
+        progressBar.constrain(anchor: .bottom, to: scrollView.contentLayoutGuide, constant: 5)
+        progressBar.constrainMargin(anchor: .leading, to: scrollView)
+        progressBar.constrainMargin(anchor: .trailing, to: scrollView)
 
         stackView.constrainMargins([.leading, .trailing], to: view)
         stackView.topAnchor.constraint(greaterThanOrEqualTo: logo.bottomAnchor, constant: 32).isActive = true
@@ -152,6 +166,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     }
 
     private lazy var resendSMSRow: UIStackView = {
+        sMSTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateResendCodeTimer), userInfo: nil, repeats: true)
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         let view = UIStackView(arrangedSubviews: [ buttonRetryCodeRequest, spacer ])
@@ -172,6 +187,32 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     }()
 
     @objc
+    private func updateResendCodeTimer() {
+        if (retryDelayInSeconds > 0) {
+            let seconds: Int = retryDelayInSeconds % 60
+            let minutes: Int = (retryDelayInSeconds / 60) % 60
+            buttonRetryCodeRequest.setTitle(Localizations.registrationCodeResend + " \(String(format: "%02d:%02d", minutes, seconds))", for: .normal)
+            buttonRetryCodeRequest.isEnabled = false
+            buttonRetryCodeRequest.setTitleColor(.secondaryLabel, for: .normal)
+            // Voice Row
+            buttonRetryCodeByVoiceRequest.setTitle(Localizations.registrationCodeResendByVoice + " \(String(format: "%02d:%02d", minutes, seconds))", for: .normal)
+            buttonRetryCodeByVoiceRequest.isEnabled = false
+            buttonRetryCodeByVoiceRequest.setTitleColor(.secondaryLabel, for: .normal)
+            retryDelayInSeconds -= 1
+        }
+        if (retryDelayInSeconds <= 0) {
+            sMSTimer.invalidate()
+            buttonRetryCodeRequest.setTitle(Localizations.registrationCodeResend, for: .normal)
+            buttonRetryCodeRequest.isEnabled = true
+            buttonRetryCodeRequest.setTitleColor(.systemBlue, for: .normal)
+            // Voice Row
+            buttonRetryCodeByVoiceRequest.setTitle(Localizations.registrationCodeResendByVoice, for: .normal)
+            buttonRetryCodeByVoiceRequest.isEnabled = true
+            buttonRetryCodeByVoiceRequest.setTitleColor(.systemBlue, for: .normal)
+        }
+    }
+
+    @objc
     func textFieldCodeEditingChanged(_ sender: Any) {
         state = .enteringCode
         if verificationCode.count == 6 {
@@ -190,25 +231,43 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func updateUI() {
-        let isWaiting = state == .requestingCode || state == .validatingCode
-        let shouldHideInput = state == .requestingCode
+        if (state == .invalidCode) {
+            errorLabel.text =  Localizations.registrationCodeIncorrect
+            errorLabel.alpha = 1
+        } else {
+            errorLabel.alpha = 0
+        }
+
         let canEnterText = state == .enteringCode || state == .invalidCode || state == .requestError
-        let canRequestNewCode = (state == .enteringCode && Date() > retryAvailableDate) || state == .invalidCode || state == .requestError
-        let shouldShowError = state == .invalidCode || state == .requestError
-        let errorText = state == .invalidCode ? Localizations.registrationCodeIncorrect : Localizations.registrationCodeRequestError
-
-        activityIndicatorView.alpha = isWaiting ? 1 : 0
-        labelTitle.isHidden = shouldHideInput
-        codeEntryField.isHidden = shouldHideInput
-        resendSMSRow.isHidden = !canRequestNewCode
-        callMeRow.isHidden = !canRequestNewCode
-
         textFieldCode.isEnabled = canEnterText
         if (canEnterText) {
             self.textFieldCode.becomeFirstResponder()
         }
-        errorLabel.text = errorText
-        errorLabel.alpha = shouldShowError ? 1 : 0
+
+        let canRequestNewCodeByVoice = (state == .enteringCode && Date() > retryAvailableDate) || state == .invalidCode || state == .requestError
+        buttonRetryCodeByVoiceRequest.isEnabled = canRequestNewCodeByVoice
+
+        let isWaiting = state == .requestingCode || state == .validatingCode
+        if (isWaiting) {
+            progressTimer = Timer.scheduledTimer(timeInterval: 0.001, target: self, selector: #selector(setWaitingProgress), userInfo: nil, repeats: true)
+            progressBar.isHidden = false
+        } else {
+            progressTimer.invalidate()
+            progressBar.isHidden = true
+        }
+    }
+
+    @objc
+    func setWaitingProgress() {
+        progressCounter += 0.01
+        progressBar.setProgress(Float(progressCounter) / 100, animated: true)
+        if progressCounter >= 100 {
+            progressCounter = 0.01
+            progressBar.progress = 0
+            let color = self.progressBar.progressTintColor
+            self.progressBar.progressTintColor = progressBar.trackTintColor
+            self.progressBar.trackTintColor = color
+        }
     }
 
     @objc
@@ -245,8 +304,8 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
             case .success(let retryDelay):
                 self.state = .enteringCode
                 self.textFieldCode.becomeFirstResponder()
-                self.retryAvailableDate = Date().addingTimeInterval(retryDelay)
-                DispatchQueue.main.asyncAfter(deadline: .now() + retryDelay + 1) {
+                self.setRetryTimers(retryDelay: retryDelay)
+                DispatchQueue.main.async() {
                     self.updateUI()
                 }
 
@@ -282,7 +341,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
                         }
                         
                         if let retryDelay = errorResponse.retryDelay {
-                            // TODO set timers
+                            self.setRetryTimers(retryDelay: retryDelay)
                         }
                     default:
                         DispatchQueue.main.async {
@@ -291,6 +350,11 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
                     }
             }
         }
+    }
+
+    private func setRetryTimers(retryDelay: TimeInterval) {
+        self.retryAvailableDate = Date().addingTimeInterval(retryDelay)
+        self.retryDelayInSeconds = Int(retryDelay)
     }
 
     // MARK: Code Validation
