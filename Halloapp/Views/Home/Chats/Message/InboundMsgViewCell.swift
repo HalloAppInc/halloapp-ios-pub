@@ -345,7 +345,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.addSubview(voiceNoteView)
         view.addSubview(voiceNoteTimeLabel)
 
-        view.heightAnchor.constraint(equalToConstant: 20).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 28).isActive = true
         voiceNoteAvatarView.topAnchor.constraint(equalTo: view.topAnchor, constant: 10).isActive = true
         voiceNoteAvatarView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10).isActive = true
         voiceNoteAvatarView.trailingAnchor.constraint(equalTo: voiceNoteView.leadingAnchor, constant: -10).isActive = true
@@ -574,6 +574,10 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             if voiceNoteRow.superview == nil {
                 bubbleWrapper.insertArrangedSubview(voiceNoteRow, at: bubbleWrapper.arrangedSubviews.count - 1)
             }
+
+            textRow.layoutMargins.top = 2
+        } else {
+            textRow.layoutMargins.top = 10
         }
                 
         // text
@@ -769,11 +773,12 @@ extension InboundMsgViewCell: AudioViewDelegate {
 
     func audioViewDidStartPlaying(_ view: AudioView) {
         guard let messageID = messageID else { return }
-        voiceNoteView.state = .played
         MainAppContext.shared.chatData.markPlayedMessage(for: messageID)
     }
 
     func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
+        voiceNoteView.state = .played
+
         guard completed else { return }
         guard let messageID = messageID else { return }
         delegate?.inboundMsgViewCell(self, didCompleteVoiceNote: messageID)

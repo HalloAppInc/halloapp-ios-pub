@@ -9,6 +9,7 @@ import AVFoundation
 import CocoaLumberjackSwift
 import Combine
 import Foundation
+import UIKit
 
 protocol AudioViewDelegate: AnyObject {
     func audioView(_ view: AudioView, at time: String)
@@ -40,6 +41,11 @@ class AudioView : UIStackView {
                 player = nil
             }
         }
+    }
+
+    var isPlaying: Bool {
+        guard let rate = player?.rate else { return false }
+        return rate > 0
     }
 
     private var rateObservation: NSKeyValueObservation?
@@ -116,15 +122,20 @@ class AudioView : UIStackView {
     // The play button is small. This one has bigger hit area to make it easier for tapping.
     private class PlayButton: UIButton {
         override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-            return bounds.insetBy(dx: -16, dy: -16).contains(point)
+            return bounds.insetBy(dx: -24, dy: -24).contains(point)
         }
+    }
+
+    // improves hit rate
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        return bounds.insetBy(dx: -24, dy: -24).contains(point)
     }
 
     private lazy var playButton: UIButton = {
         let btn = PlayButton(type: .system)
         btn.translatesAutoresizingMaskIntoConstraints = false
         btn.setImage(playIcon, for: .normal)
-        btn.addTarget(self, action: #selector(onPlayButtonTap), for: .touchUpInside)
+        btn.addTarget(self, action: #selector(onPlayButtonTap), for: [.touchUpInside, .touchUpOutside])
         btn.widthAnchor.constraint(equalToConstant: 20).isActive = true
         btn.heightAnchor.constraint(equalToConstant: 20).isActive = true
 
@@ -134,11 +145,10 @@ class AudioView : UIStackView {
     private lazy var slider: UISlider = {
         let slider = UISlider()
         slider.translatesAutoresizingMaskIntoConstraints = false
-        slider.minimumTrackTintColor = .white
         slider.setThumbImage(thumbIcon, for: .normal)
         slider.addTarget(self, action: #selector(onSliderValueUpdate), for: .valueChanged)
         slider.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        slider.minimumTrackTintColor = .primaryBlackWhite
+        slider.minimumTrackTintColor = .audioViewControlsPlayed
 
         return slider
     } ()
@@ -209,6 +219,7 @@ class AudioView : UIStackView {
         guard let player = player else { return }
         playButton.setImage(player.rate > 0 ? pauseIcon : playIcon, for: .normal)
         slider.setThumbImage(thumbIcon, for: .normal)
+        slider.minimumTrackTintColor = state == .played ? .audioViewControlsPlayed : .primaryBlue
     }
 
     private func updateProgress() {

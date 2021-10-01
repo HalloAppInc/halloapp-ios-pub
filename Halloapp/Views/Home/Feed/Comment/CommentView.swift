@@ -281,8 +281,10 @@ class CommentView: UIView {
                     voiceCommentView.url = media[0].fileURL
                 }
 
-                let isOwn = feedPostComment.userId == MainAppContext.shared.userData.userId
-                voiceCommentView.state = feedPostComment.status == .played || isOwn ? .played : .normal
+                if !voiceCommentView.isPlaying {
+                    let isOwn = feedPostComment.userId == MainAppContext.shared.userData.userId
+                    voiceCommentView.state = feedPostComment.status == .played || isOwn ? .played : .normal
+                }
 
                 if media[0].fileURL == nil {
                     mediaStatusCancellable = media[0].mediaStatusDidChange.sink { [weak self] mediaItem in
@@ -587,5 +589,6 @@ extension CommentView: AudioViewDelegate {
     }
 
     func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
+        voiceCommentView.state = .played
     }
 }

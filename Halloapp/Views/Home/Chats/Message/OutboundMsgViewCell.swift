@@ -349,7 +349,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.addSubview(voiceNoteView)
         view.addSubview(voiceNoteTimeLabel)
 
-        view.heightAnchor.constraint(equalToConstant: 20).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 28).isActive = true
         voiceNoteAvatarView.topAnchor.constraint(equalTo: view.topAnchor, constant: 10).isActive = true
         voiceNoteAvatarView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10).isActive = true
         voiceNoteAvatarView.trailingAnchor.constraint(equalTo: voiceNoteView.leadingAnchor, constant: -10).isActive = true
@@ -568,6 +568,10 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             if voiceNoteView.superview == nil {
                 bubbleWrapper.insertArrangedSubview(voiceNoteRow, at: bubbleWrapper.arrangedSubviews.count - 1)
             }
+
+            textRow.layoutMargins.top = 2
+        } else {
+            textRow.layoutMargins.top = 10
         }
 
         // media
