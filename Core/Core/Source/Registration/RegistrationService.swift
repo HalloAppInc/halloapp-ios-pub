@@ -11,7 +11,7 @@ import CryptoKit
 import Sodium
 
 public protocol RegistrationService {
-    func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
+    func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, RegistrationErrorResponse>) -> Void)
     func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, pushOS: String?, pushToken: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
     func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void)
 }
@@ -19,6 +19,11 @@ public protocol RegistrationService {
 public struct RegistrationResponse {
     var normalizedPhoneNumber: String
     var retryDelay: TimeInterval
+}
+
+public struct RegistrationErrorResponse: Error {
+    public var error: VerificationCodeRequestError
+    public var retryDelay: TimeInterval?
 }
 
 public final class DefaultRegistrationService: RegistrationService {
@@ -32,7 +37,7 @@ public final class DefaultRegistrationService: RegistrationService {
 
     // MARK: Verification code requests
 
-    public func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String? = nil, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void) {
+    public func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String? = nil, locale: Locale, completion: @escaping (Result<RegistrationResponse, RegistrationErrorResponse>) -> Void) {
 
         var json: [String : String] = [
             "phone": phoneNumber,
@@ -48,7 +53,7 @@ public final class DefaultRegistrationService: RegistrationService {
         guard let url = URL(string: "https://\(hostName)/api/registration/request_otp"),
               let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else
         {
-            completion(.failure(VerificationCodeRequestError.requestCreationError))
+            completion(.failure(RegistrationErrorResponse(error: VerificationCodeRequestError.requestCreationError)))
             return
         }
 
@@ -60,27 +65,27 @@ public final class DefaultRegistrationService: RegistrationService {
         let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
             if let error = error {
                 DDLogError("reg/request-sms/error [\(error)]")
-                DispatchQueue.main.async { completion(.failure(error)) }
+                DispatchQueue.main.async { completion(.failure(RegistrationErrorResponse(error: error as! VerificationCodeRequestError))) }
                 return
             }
             guard let data = data else {
                 DDLogError("reg/request-sms/error Data is empty.")
                 DispatchQueue.main.async {
-                    completion(.failure(VerificationCodeRequestError.malformedResponse))
+                    completion(.failure(RegistrationErrorResponse(error: VerificationCodeRequestError.malformedResponse)))
                 }
                 return
             }
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
                 DDLogError("reg/request-sms/error Invalid response. [\(String(describing: urlResponse))]")
                 DispatchQueue.main.async {
-                    completion(.failure(VerificationCodeRequestError.malformedResponse))
+                    completion(.failure(RegistrationErrorResponse(error: VerificationCodeRequestError.malformedResponse)))
                 }
                 return
             }
             guard let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
                 DDLogError("reg/request-sms/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
                 DispatchQueue.main.async {
-                    completion(.failure(VerificationCodeRequestError.malformedResponse))
+                    completion(.failure(RegistrationErrorResponse(error: VerificationCodeRequestError.malformedResponse)))
                 }
                 return
             }
@@ -89,22 +94,26 @@ public final class DefaultRegistrationService: RegistrationService {
 
             if let errorString = response["error"] as? String {
                 let error = VerificationCodeRequestError(rawValue: errorString) ?? .malformedResponse
-                DispatchQueue.main.async {
-                    completion(.failure(error))
+                if let retryDelay = response["retried_too_soon"] as? TimeInterval {
+                    completion(.failure(RegistrationErrorResponse(error: VerificationCodeRequestError.retriedTooSoon, retryDelay: retryDelay)))
+                } else {
+                    DispatchQueue.main.async {
+                        completion(.failure(RegistrationErrorResponse(error: error)))
+                    }
                 }
                 return
             }
 
             guard let normalizedPhoneNumber = response["phone"] as? String else {
                 DispatchQueue.main.async {
-                    completion(.failure(VerificationCodeRequestError.malformedResponse))
+                    completion(.failure(RegistrationErrorResponse(error: VerificationCodeRequestError.malformedResponse)))
                 }
                 return
             }
 
             guard let retryDelay = response["retry_after_secs"] as? TimeInterval else {
                 DispatchQueue.main.async {
-                    completion(.failure(VerificationCodeRequestError.malformedResponse))
+                    completion(.failure(RegistrationErrorResponse(error: VerificationCodeRequestError.malformedResponse)))
                 }
                 return
             }
@@ -296,6 +305,7 @@ public enum VerificationCodeRequestError: String, Error, RawRepresentable {
     case smsFailure = "sms_fail"
     case invalidClientVersion = "invalid_client_version"    // client version has expired.
     case requestCreationError
+    case retriedTooSoon = "retried_too_soon"
     case malformedResponse // everything else
 }
 

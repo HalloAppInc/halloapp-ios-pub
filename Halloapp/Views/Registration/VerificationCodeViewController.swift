@@ -16,7 +16,7 @@ fileprivate struct Constants {
 
 protocol VerificationCodeViewControllerDelegate: AnyObject {
     var formattedPhoneNumber: String? { get }
-    func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void)
+    func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, RegistrationErrorResponse>) -> Void)
     func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void)
     func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController)
 }
@@ -250,9 +250,8 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
                     self.updateUI()
                 }
 
-            case .failure(let error):
-                if let codeRequestError = error as? VerificationCodeRequestError {
-                    switch codeRequestError {
+            case .failure(let errorResponse):
+                switch errorResponse.error {
                     case .notInvited:
                         let alert = UIAlertController(
                             title: Localizations.registrationInviteOnlyTitle,
@@ -276,12 +275,20 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
                     case .invalidClientVersion:
                         let alert = self.getAppUpdateAlertController()
                         self.present(alert, animated: true)
+
+                    case .retriedTooSoon:
+                        DispatchQueue.main.async {
+                            self.state = .requestError
+                        }
+                        
+                        if let retryDelay = errorResponse.retryDelay {
+                            // TODO set timers
+                        }
                     default:
-                        self.state = .requestError
+                        DispatchQueue.main.async {
+                            self.state = .requestError
+                        }
                     }
-                } else {
-                    self.state = .requestError
-                }
             }
         }
     }

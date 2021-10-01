@@ -14,7 +14,7 @@ public protocol RegistrationManager: AnyObject {
     var contactsAccessStatus: CNAuthorizationStatus { get }
     var formattedPhoneNumber: String? { get }
     func set(countryCode: String, nationalNumber: String, userName: String)
-    func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void)
+    func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, RegistrationErrorResponse>) -> Void)
     func confirmVerificationCode(_ verificationCode: String, pushOS: String?, completion: @escaping (Result<Void, Error>) -> Void)
     func didCompleteRegistrationFlow()
     func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void)
@@ -46,7 +46,7 @@ public final class DefaultRegistrationManager: RegistrationManager {
     }
 
     /// Completion block includes retry delay
-    public func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void) {
+    public func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, RegistrationErrorResponse>) -> Void) {
         let userData = AppContext.shared.userData
         let phoneNumber = userData.countryCode.appending(userData.phoneInput)
         let groupInviteToken = userData.groupInviteToken
@@ -57,8 +57,8 @@ public final class DefaultRegistrationManager: RegistrationManager {
                 userData.normalizedPhoneNumber = response.normalizedPhoneNumber
                 userData.save()
                 completion(.success(response.retryDelay))
-            case .failure(let error):
-                completion(.failure(error))
+            case .failure(let errorResponse):
+                completion(.failure(errorResponse))
             }
         }
     }

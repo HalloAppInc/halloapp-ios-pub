@@ -32,7 +32,7 @@ public final class NoiseRegistrationService: RegistrationService {
         self.httpHostName = httpHostName
     }
 
-    public func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
+    public func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, RegistrationErrorResponse>) -> Void)
     {
         var otpRequest = Server_OtpRequest()
         otpRequest.phone = phoneNumber
@@ -63,18 +63,24 @@ public final class NoiseRegistrationService: RegistrationService {
                         }
                     case .failure, .unknownResult, .UNRECOGNIZED:
                         let error = VerificationCodeRequestError.error(with: otpResponse.reason)
-                        DispatchQueue.main.async {
-                            completion(.failure(error))
+
+                        if otpResponse.retryAfterSecs > 0 {
+                            let retryDelay = TimeInterval(otpResponse.retryAfterSecs)
+                            completion(.failure(RegistrationErrorResponse(error: VerificationCodeRequestError.retriedTooSoon, retryDelay: retryDelay)))
+                        } else {
+                            DispatchQueue.main.async {
+                                completion(.failure(RegistrationErrorResponse(error: error)))
+                            }
                         }
                     }
                 case .verifyResponse, .none:
                     DispatchQueue.main.async {
-                        completion(.failure(VerificationCodeRequestError.malformedResponse))
+                        completion(.failure(RegistrationErrorResponse(error: VerificationCodeRequestError.malformedResponse)))
                     }
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
-                    completion(.failure(error))
+                    completion(.failure(RegistrationErrorResponse(error: error as! VerificationCodeRequestError)))
                 }
             }
         }
@@ -358,7 +364,9 @@ private extension VerificationCodeRequestError {
             return .smsFailure
         case .notInvited:
             return .notInvited
-        case .invalidGroupInviteToken, .retriedTooSoon, .badRequest, .badMethod:
+        case .retriedTooSoon:
+            return .retriedTooSoon
+        case .invalidGroupInviteToken, .badRequest, .badMethod:
             return .requestCreationError
         case .internalServerError, .unknownReason, .UNRECOGNIZED:
             return .malformedResponse

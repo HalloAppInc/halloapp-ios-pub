@@ -91,7 +91,7 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
         registrationManager?.formattedPhoneNumber
     }
 
-    func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, Error>) -> Void) {
+    func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, RegistrationErrorResponse>) -> Void) {
         registrationManager?.requestVerificationCode(byVoice: byVoice, completion: completion)
     }
 
