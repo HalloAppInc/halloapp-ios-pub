@@ -565,9 +565,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 voiceNoteAvatarView.configure(with: userId, using: MainAppContext.shared.avatarStore)
             }
 
-            if voiceNoteView.superview == nil {
-                bubbleWrapper.insertArrangedSubview(voiceNoteRow, at: bubbleWrapper.arrangedSubviews.count - 1)
-            }
+            bubbleWrapper.insertArrangedSubview(voiceNoteRow, at: bubbleWrapper.arrangedSubviews.count - 1)
 
             textRow.layoutMargins.top = 2
         } else {
