@@ -343,6 +343,9 @@
 /* Feed Privacy indicator in post composer. */
 "composer.privacy.value.my.contacts" = "Kişilerimle paylaşılıyor";
 
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
+
 /* No comment provided by engineer. */
 "CONNECTION" = "BAĞLANTI";
 
@@ -462,6 +465,18 @@
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Rehberimdeki kişiler";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.excluded" = "feed.privacy.value.n.contacts.excluded";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.selected" = "feed.privacy.value.n.contacts.selected";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.excluded" = "feed.privacy.value.n.excluded";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Yorum yap";
@@ -691,6 +706,9 @@
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
 "media.mic.access.request.title" = "Videoları sesli mi kaydetmek istiyorsun?";
 
+/* Error text displayed in post composer when some of the media selected couldn't be sent. */
+"media.prepare.failed.n.count" = "media.prepare.failed.n.count";
+
 /* Button that, when pressed, saves all the post's media to the user's camera roll */
 "media.save.all" = "Hepsini galeriye kaydet";
 
@@ -781,6 +799,12 @@
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@, HalloApp'e katılma davetini kabul etti 🎉";
 
+/* New post notification text when post is multiple photos without caption. */
+"notification.n.photos" = "notification.n.photos";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "notification.n.videos";
+
 /* Title for the new comment notification. */
 "notification.new.comment" = "Yeni yorum";
 
@@ -859,6 +883,9 @@
 /* An option to update limited access. */
 "picker.media.limit.updateSelection" = "Görüntü ve video seçimini güncelle";
 
+/* Message in media picker when selecting over limit. */
+"picker.media.n.limit" = "picker.media.n.limit";
+
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Bu gönderi silindi";
 
@@ -870,6 +897,9 @@
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Engellendi";
+
+/* Generic setting value telling how many contacts are blocked or muted. */
+"privacy.n.contacts" = "privacy.n.contacts";
 
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Fotoğrafı sil";

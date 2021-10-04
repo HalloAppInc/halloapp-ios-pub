@@ -346,6 +346,9 @@
 /* Feed Privacy indicator in post composer. */
 "composer.privacy.value.my.contacts" = "Mit meinen Kontakten teilen";
 
+/* Feed Privacy indicator in post composer. */
+"composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
+
 /* No comment provided by engineer. */
 "CONNECTION" = "VERBINDUNG";
 
@@ -465,6 +468,18 @@
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Meine Kontakte";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.excluded" = "feed.privacy.value.n.contacts.excluded";
+
+/* Possible Feed Privacy setting value. Can be longer. */
+"feed.privacy.value.n.contacts.selected" = "feed.privacy.value.n.contacts.selected";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.excluded" = "feed.privacy.value.n.excluded";
+
+/* Possible Feed Privacy setting value. Keep short. */
+"feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Kommentieren";
@@ -766,6 +781,12 @@
 /* Your Post screen: label for the row that opens the privacy screen */
 "mypost.row.manage.privacy" = "Privatsphäre verwalten";
 
+/* Indicates how many invites are remaining */
+"n.invites.count" = "n.invites.count";
+
+/* Indicates how many invites are remaining */
+"n.invites.remaining" = "n.invites.remaining";
+
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ gelöschte Beiträge";
 
@@ -786,6 +807,9 @@
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "Benachrichtigung.n.Fotos";
+
+/* New post notification text when post is multiple videos without caption. */
+"notification.n.videos" = "notification.n.videos";
 
 /* Title for the new comment notification. */
 "notification.new.comment" = "Neuer Kommentar";
@@ -865,6 +889,9 @@
 /* An option to update limited access. */
 "picker.media.limit.updateSelection" = "Bild- & Videoauswahl aktualisieren";
 
+/* Message in media picker when selecting over limit. */
+"picker.media.n.limit" = "picker.media.n.limit";
+
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Dieser Beitrag wurde gelöscht";
 
@@ -876,6 +903,9 @@
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Blockierte Kontakte";
+
+/* Generic setting value telling how many contacts are blocked or muted. */
+"privacy.n.contacts" = "privacy.n.contacts";
 
 /* Title for the button allowing to delete current profile photo. */
 "profile.delete.photo" = "Foto löschen";
