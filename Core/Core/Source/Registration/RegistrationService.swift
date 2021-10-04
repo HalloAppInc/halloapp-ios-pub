@@ -94,7 +94,7 @@ public final class DefaultRegistrationService: RegistrationService {
 
             if let errorString = response["error"] as? String {
                 let error = VerificationCodeRequestError(rawValue: errorString) ?? .malformedResponse
-                if let retryDelay = response["retried_too_soon"] as? TimeInterval {
+                if let retryDelay = response["retry_after_secs"] as? TimeInterval {
                     completion(.failure(RegistrationErrorResponse(error: VerificationCodeRequestError.retriedTooSoon, retryDelay: retryDelay)))
                 } else {
                     DispatchQueue.main.async {
