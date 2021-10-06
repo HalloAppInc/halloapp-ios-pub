@@ -727,7 +727,23 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Process link preview if present
             xmppPost.linkPreviewData.forEach { linkPreviewData in
                 DDLogDebug("FeedData/process-posts/new/add-link-preview [\(linkPreviewData.url)]")
-                // TODO populate data model with linkPreviewData
+                let linkPreview = NSEntityDescription.insertNewObject(forEntityName: FeedLinkPreview.entity().name!, into: managedObjectContext) as! FeedLinkPreview
+                linkPreview.id = PacketID.generate()
+                linkPreview.url = linkPreviewData.url
+                linkPreview.title = linkPreviewData.title
+                linkPreview.desc = linkPreviewData.description
+                // Set preview image if present
+                linkPreviewData.previewImages.forEach { previewMedia in
+                    let media = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                    media.type = previewMedia.type
+                    media.status = .none
+                    media.url = previewMedia.url
+                    media.size = previewMedia.size
+                    media.key = previewMedia.key
+                    media.sha256 = previewMedia.sha256
+                    media.linkPreview = linkPreview
+                }
+                linkPreview.post = feedPost
             }
             // Process post media
             for (index, xmppMedia) in xmppPost.orderedMedia.enumerated() {
@@ -872,7 +888,23 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     // Process link preview if present
                     linkPreviewData.forEach { linkPreviewData in
                         DDLogDebug("FeedData/process-comments/new/add-link-preview [\(linkPreviewData.url)]")
-                        // TODO populate data model with linkPreviewData
+                        let linkPreview = NSEntityDescription.insertNewObject(forEntityName: FeedLinkPreview.entity().name!, into: managedObjectContext) as! FeedLinkPreview
+                        linkPreview.id = PacketID.generate()
+                        linkPreview.url = linkPreviewData.url
+                        linkPreview.title = linkPreviewData.title
+                        linkPreview.desc = linkPreviewData.description
+                        // Set preview image if present
+                        linkPreviewData.previewImages.forEach { previewMedia in
+                            let media = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                            media.type = previewMedia.type
+                            media.status = .none
+                            media.url = previewMedia.url
+                            media.size = previewMedia.size
+                            media.key = previewMedia.key
+                            media.sha256 = previewMedia.sha256
+                            media.linkPreview = linkPreview
+                        }
+                        linkPreview.comment = comment
                     }
                 case .album(let mentionText, let media):
                     comment.status = .incoming
@@ -3004,6 +3036,28 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
                 feedPost.info = feedPostInfo
             }
+            
+            // Process link preview if present
+            post.linkPreviews?.forEach { linkPreviewData in
+                DDLogDebug("FeedData/merge-data/post/\(postId)/add-link-preview [\(String(describing: linkPreviewData.url))]")
+                let linkPreview = NSEntityDescription.insertNewObject(forEntityName: FeedLinkPreview.entity().name!, into: managedObjectContext) as! FeedLinkPreview
+                linkPreview.id = PacketID.generate()
+                linkPreview.url = linkPreviewData.url
+                linkPreview.title = linkPreviewData.title
+                linkPreview.desc = linkPreviewData.desc
+                // Set preview image if present
+                linkPreviewData.media?.forEach { previewMedia in
+                    let media = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                    media.type = previewMedia.type
+                    media.status = .none
+                    media.url = previewMedia.url
+                    media.size = previewMedia.size
+                    media.key = previewMedia.key
+                    media.sha256 = previewMedia.sha256
+                    media.linkPreview = linkPreview
+                }
+                linkPreview.post = feedPost
+            }
 
             // Media
             post.media?.forEach { (media) in
@@ -3107,6 +3161,30 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
             mentionSet.insert(feedMention)
         })
+        
+        // Process link preview if present
+        var linkPreviews = Set<FeedLinkPreview>()
+        sharedComment.linkPreviews?.forEach { sharedLinkPreviewData in
+            DDLogDebug("FeedData/process-comments/new/add-link-preview [\(String(describing: sharedLinkPreviewData.url))]")
+
+            let linkPreview = NSEntityDescription.insertNewObject(forEntityName: FeedLinkPreview.entity().name!, into: managedObjectContext) as! FeedLinkPreview
+            linkPreview.id = PacketID.generate()
+            linkPreview.url = sharedLinkPreviewData.url
+            linkPreview.title = sharedLinkPreviewData.title
+            linkPreview.desc = sharedLinkPreviewData.desc
+            // Set preview image if present
+            sharedLinkPreviewData.media?.forEach { sharedPreviewMedia in
+                let media = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                media.type = sharedPreviewMedia.type
+                media.status = .none
+                media.url = sharedPreviewMedia.url
+                media.size = sharedPreviewMedia.size
+                media.key = sharedPreviewMedia.key
+                media.sha256 = sharedPreviewMedia.sha256
+                media.linkPreview = linkPreview
+            }
+            linkPreviews.insert(linkPreview)
+        }
 
         // Add media
         var mediaItems = Set<FeedPostMedia>()
@@ -3139,6 +3217,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedComment.text = sharedComment.text
         feedComment.mentions = mentionSet
         feedComment.media = mediaItems
+        feedComment.linkPreviews = linkPreviews
         feedComment.parent = parentComment
         feedComment.post = feedPost
         feedComment.status = {

@@ -43,6 +43,7 @@ extension FeedPostMedia {
     @NSManaged public var uploadUrl: URL?
     @NSManaged var post: FeedPost?
     @NSManaged var comment: FeedPostComment?
+    @NSManaged var linkPreview: FeedLinkPreview?
     @NSManaged private var statusValue: Int16
     var status: Status {
         get {

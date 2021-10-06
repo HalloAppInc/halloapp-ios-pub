@@ -23,6 +23,7 @@ public enum FeedPostDestination {
 }
 
 public typealias FeedPostCommentID = String
+public typealias FeedLinkPreviewID = String
 
 public enum FeedMediaType: Int {
     case image = 0

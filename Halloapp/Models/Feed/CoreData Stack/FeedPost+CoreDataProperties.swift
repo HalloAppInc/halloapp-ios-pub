@@ -38,6 +38,7 @@ extension FeedPost {
     @NSManaged var comments: Set<FeedPostComment>?
     @NSManaged var media: Set<FeedPostMedia>?
     @NSManaged public var mentions: Set<FeedMention>?
+    @NSManaged public var linkPreviews: Set<FeedLinkPreview>?
     @NSManaged var unreadCount: Int32
     @NSManaged var info: FeedPostInfo?
     @NSManaged var rawData: Data?
@@ -94,8 +95,18 @@ extension FeedPost {
 
             return .album(mentionText, mediaData)
         } else {
-            // TODO process linkPreviewData
             var linkPreviewData = [LinkPreviewData]()
+            linkPreviews?.forEach { linkPreview in
+                // Check for link preview media
+                var mediaData = [FeedMediaData]()
+                if let linkPreviewMedia = linkPreview.media, linkPreviewMedia.isEmpty {
+                    mediaData = linkPreviewMedia
+                        .map { FeedMediaData(from: $0) }
+                }
+                if let linkPreview = LinkPreviewData(id: linkPreview.id, url: linkPreview.url, title: linkPreview.title ?? "", description: linkPreview.desc ?? "", previewImages: mediaData) {
+                    linkPreviewData.append(linkPreview)
+                }
+            }
             return .text(mentionText, linkPreviewData)
         }
     }

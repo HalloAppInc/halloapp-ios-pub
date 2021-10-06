@@ -70,6 +70,7 @@ extension SharedMedia {
     @NSManaged public var post: SharedFeedPost?
     @NSManaged public var message: SharedChatMessage?
     @NSManaged public var comment: SharedFeedComment?
+    @NSManaged public var linkPreview: SharedFeedLinkPreview?
 }
 
 extension SharedMedia: FeedMediaProtocol {

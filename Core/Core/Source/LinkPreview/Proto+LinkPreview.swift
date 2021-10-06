@@ -19,7 +19,8 @@ public extension Clients_Text {
                         previewImages.append(previewImage)
                     }
                 }
-                if let linkPreview = LinkPreviewData(url: link.url, title: link.title, description: link.description_p, previewImages: previewImages) { linkPreviewData.append(linkPreview) }
+
+                if let linkPreview = LinkPreviewData(id : nil, url: link.url, title: link.title, description: link.description_p, previewImages: previewImages) { linkPreviewData.append(linkPreview) }
             }
             return linkPreviewData
         }
