@@ -94,7 +94,9 @@ extension FeedPost {
 
             return .album(mentionText, mediaData)
         } else {
-            return .text(mentionText)
+            // TODO process linkPreviewData
+            var linkPreviewData = [LinkPreviewData]()
+            return .text(mentionText, linkPreviewData)
         }
     }
 

@@ -19,6 +19,8 @@
 		24AA69D924DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D724DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift */; };
 		24AA69DA24DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */; };
 		24D743C724AEA821001111BF /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D743C624AEA821001111BF /* AvatarView.swift */; };
+		321A700B2704E527005603B8 /* LinkPreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A700A2704E527005603B8 /* LinkPreviewData.swift */; };
+		321A700D2704E562005603B8 /* Proto+LinkPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A700C2704E562005603B8 /* Proto+LinkPreview.swift */; };
 		327334EC26729E5A006E31E5 /* KeyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327334EB26729E5A006E31E5 /* KeyData.swift */; };
 		327334F02672A2EA006E31E5 /* RegistrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327334EE2672A2EA006E31E5 /* RegistrationService.swift */; };
 		327334F12672A2EA006E31E5 /* RegistrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327334EF2672A2EA006E31E5 /* RegistrationManager.swift */; };
@@ -134,6 +136,8 @@
 		24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedChatMessage+CoreDataClass.swift"; sourceTree = "<group>"; };
 		24D743C624AEA821001111BF /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		321A700A2704E527005603B8 /* LinkPreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreviewData.swift; sourceTree = "<group>"; };
+		321A700C2704E562005603B8 /* Proto+LinkPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Proto+LinkPreview.swift"; sourceTree = "<group>"; };
 		327334EB26729E5A006E31E5 /* KeyData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyData.swift; sourceTree = "<group>"; };
 		327334EE2672A2EA006E31E5 /* RegistrationService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegistrationService.swift; sourceTree = "<group>"; };
 		327334EF2672A2EA006E31E5 /* RegistrationManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegistrationManager.swift; sourceTree = "<group>"; };
@@ -297,6 +301,15 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
+		321A70092704E511005603B8 /* LinkPreview */ = {
+			isa = PBXGroup;
+			children = (
+				321A700A2704E527005603B8 /* LinkPreviewData.swift */,
+				321A700C2704E562005603B8 /* Proto+LinkPreview.swift */,
+			);
+			path = LinkPreview;
+			sourceTree = "<group>";
+		};
 		327334ED2672A2AA006E31E5 /* Registration */ = {
 			isa = PBXGroup;
 			children = (
@@ -405,6 +418,7 @@
 		768123CF2485DA8B008C5216 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				321A70092704E511005603B8 /* LinkPreview */,
 				6AB4BBB726EFD7A0006D66AD /* MediaHash */,
 				246A8B7824902A2200CE0429 /* Avatars */,
 				76608ECB24EC2B2100DD61C3 /* Chat */,
@@ -703,6 +717,7 @@
 				EAAE7B4924DD2C3000946B77 /* UserKeyBundle+CoreDataClass.swift in Sources */,
 				6AB4BBBE26EFDBF7006D66AD /* MediaHashStore.swift in Sources */,
 				768124132486193E008C5216 /* Feed.swift in Sources */,
+				321A700D2704E562005603B8 /* Proto+LinkPreview.swift in Sources */,
 				686814AE252BA91E003C8784 /* clients.pb.swift in Sources */,
 				6880F33C257EF5A700D1F585 /* NoiseStream.swift in Sources */,
 				246A8B7B24902A3E00CE0429 /* Avatars.xcdatamodeld in Sources */,
@@ -771,6 +786,7 @@
 				F86919E226397F0C00B01306 /* UIImageView.swift in Sources */,
 				68D4BBB6266150DE009D2266 /* PacketID.swift in Sources */,
 				688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */,
+				321A700B2704E527005603B8 /* LinkPreviewData.swift in Sources */,
 				EAAE7B3C24DD039900946B77 /* XMPPWhisperRequests.swift in Sources */,
 				68101F2C25CDE7CA005CD704 /* Keys.swift in Sources */,
 				68D64BFC25EEE220000AB07C /* Whisper.swift in Sources */,

@@ -370,8 +370,9 @@ public extension PostData {
     var clientPostContainer: Clients_PostContainer {
         var container = Clients_PostContainer()
         switch content {
-        case .text(let mentionText):
-            let text = Clients_Text(mentionText: mentionText)
+        case .text(let mentionText, let linkPreviewData):
+            var text = Clients_Text(mentionText: mentionText)
+            text.linkPreviewData = linkPreviewData
             container.post = .text(text)
         case .album(let mentionText, let media):
             var album = Clients_Album()
@@ -417,8 +418,10 @@ public extension CommentData {
     var clientCommentContainer: Clients_CommentContainer {
         var commentContainer = Clients_CommentContainer()
         switch content {
-        case .text(let mentionText):
-            commentContainer.text = Clients_Text(mentionText: mentionText)
+        case .text(let mentionText, let linkPreviewData):
+            var text = Clients_Text(mentionText: mentionText)
+            text.linkPreviewData = linkPreviewData
+            commentContainer.text = text
         case .album(let mentionText, let media):
             var album = Clients_Album()
             album.media = media.compactMap { $0.albumMedia }
@@ -443,7 +446,7 @@ public extension CommentData {
     var clientCommentLegacy: Clients_Comment? {
         var comment = Clients_Comment()
         switch content {
-        case .text(let mentionText):
+        case .text(let mentionText, _):
             comment.text = mentionText.collapsedText
             comment.mentions = mentionText.mentions
                 .map { (i, user) in

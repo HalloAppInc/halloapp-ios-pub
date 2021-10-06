@@ -96,7 +96,9 @@ extension FeedPostComment {
                 content = .album(mentionText, mediaItems)
             }
         } else {
-            content = .text(mentionText)
+            // TODO procell linkPreviewData
+            var linkPreviewData = [LinkPreviewData]()
+            content = .text(mentionText, linkPreviewData)
         }
 
         return CommentData(

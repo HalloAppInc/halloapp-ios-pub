@@ -724,6 +724,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
             feedPost.mentions = mentions
 
+            // Process link preview if present
+            xmppPost.linkPreviewData.forEach { linkPreviewData in
+                DDLogDebug("FeedData/process-posts/new/add-link-preview [\(linkPreviewData.url)]")
+                // TODO populate data model with linkPreviewData
+            }
             // Process post media
             for (index, xmppMedia) in xmppPost.orderedMedia.enumerated() {
                 DDLogDebug("FeedData/process-posts/new/add-media [\(xmppMedia.url!)]")
@@ -852,7 +857,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 comment.post = feedPost
 
                 switch xmppComment.content {
-                case .text(let mentionText):
+                case .text(let mentionText, let linkPreviewData):
                     comment.status = .incoming
                     comment.text = mentionText.collapsedText
                     var mentions = Set<FeedMention>()
@@ -864,6 +869,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         mentions.insert(mention)
                     }
                     comment.mentions = mentions
+                    // Process link preview if present
+                    linkPreviewData.forEach { linkPreviewData in
+                        DDLogDebug("FeedData/process-comments/new/add-link-preview [\(linkPreviewData.url)]")
+                        // TODO populate data model with linkPreviewData
+                    }
                 case .album(let mentionText, let media):
                     comment.status = .incoming
                     comment.text = mentionText.collapsedText
@@ -974,7 +984,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             case .comment(let comment, let name):
                 comments.append(comment)
                 switch comment.content {
-                case .text(let mentionText):
+                case .text(let mentionText, _):
                     for (_, user) in mentionText.mentions {
                         guard let pushName = user.pushName, !pushName.isEmpty else { continue }
                         contactNames[user.userID] = pushName

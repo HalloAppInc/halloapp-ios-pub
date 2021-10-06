@@ -45,6 +45,11 @@ class DataStore: NotificationServiceExtensionDataStore {
                 mentions.insert(mention)
             }
             feedPost.mentions = mentions
+            
+            // Add link previews
+            for linkPreview in postData.linkPreviewData {
+                // TODO populate shared data model with linkPreviewData
+            }
 
             // Add media
             var postMedia: Set<SharedMedia> = []
@@ -96,11 +101,11 @@ class DataStore: NotificationServiceExtensionDataStore {
 
             // populate text with empty string as text is required, could be removed if this changes
             switch commentData.content {
-            case .text(let mentionText):
-                self.processText(feedComment: feedComment, mentionText: mentionText, managedObjectContext: managedObjectContext)
+            case .text(let mentionText, let linkPreviewData):
+                self.processText(feedComment: feedComment, mentionText: mentionText, linkPreviewData: linkPreviewData, managedObjectContext: managedObjectContext)
                 feedComment.rawData = nil
             case .album(let mentionText, let media):
-                self.processText(feedComment: feedComment, mentionText: mentionText, managedObjectContext: managedObjectContext)
+                self.processText(feedComment: feedComment, mentionText: mentionText, linkPreviewData: [], managedObjectContext: managedObjectContext)
                 // Process Comment Media
                 for (index, mediaItem) in media.enumerated() {
                     DDLogDebug("NotificationExtension/DataStore/add-comment-media [\(mediaItem.url!)]")
@@ -147,7 +152,7 @@ class DataStore: NotificationServiceExtensionDataStore {
         }
     }
 
-    func processText(feedComment: SharedFeedComment, mentionText: MentionText, managedObjectContext: NSManagedObjectContext) {
+    func processText(feedComment: SharedFeedComment, mentionText: MentionText, linkPreviewData: [LinkPreviewData], managedObjectContext: NSManagedObjectContext) {
         feedComment.text = mentionText.collapsedText
         var mentions = Set<SharedFeedMention>()
         for (i, mention) in mentionText.mentions {
@@ -161,6 +166,12 @@ class DataStore: NotificationServiceExtensionDataStore {
             mentions.insert(feedMention)
         }
         feedComment.mentions = mentions
+        
+        // Process url preview if present
+        linkPreviewData.forEach { linkPreviewData in
+            DDLogDebug("NotificationExtension/DataStore/new-comment/add-link-preview [\(linkPreviewData.url)]")
+            // TODO populate shared data model with linkPreviewData
+        }
     }
 
     func saveServerMsg(notificationMetadata: NotificationMetadata) {

@@ -472,7 +472,7 @@ class NotificationMetadata: Codable {
             let newPostString = NSLocalizedString("notification.new.post", value: "New Post", comment: "Title for the new feed post notification.")
 
             switch postData?.content {
-            case .text(let mentionText):
+            case .text(let mentionText, _):
                 subtitle = newPostString
                 body = mentionText.expandedText(nameProvider: mentionNameProvider).string
             case .album(let mentionText, let feedMediaData):
@@ -500,7 +500,7 @@ class NotificationMetadata: Codable {
             let newCommentString = NSLocalizedString("notification.new.comment", value: "New Comment", comment: "Title for the new comment notification.")
 
             switch commentData?.content {
-            case .text(let mentionText):
+            case .text(let mentionText, _):
                 let commentText = mentionText.expandedText(nameProvider: mentionNameProvider).string
                 body = String(format: NSLocalizedString("notification.commented.with.text", value: "Commented: %@", comment: "Push notification for a new comment. Parameter is the text of the comment"), commentText)
             case .album(let mentionText, let feedCommentMediaData):
