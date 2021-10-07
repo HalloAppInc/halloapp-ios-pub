@@ -45,6 +45,31 @@ class DataStore: NotificationServiceExtensionDataStore {
                 mentions.insert(mention)
             }
             feedPost.mentions = mentions
+            
+            // Add link previews
+            var linkPreviews: Set<SharedFeedLinkPreview> = []
+            postData.linkPreviewData.forEach { linkPreviewData in
+                DDLogDebug("NotificationExtension/DataStore/new-comment/add-link-preview [\(linkPreviewData.url)]")
+                let linkPreview = NSEntityDescription.insertNewObject(forEntityName: SharedFeedLinkPreview.entity().name!, into: managedObjectContext) as! SharedFeedLinkPreview
+                linkPreview.id = PacketID.generate()
+                linkPreview.url = linkPreviewData.url
+                linkPreview.title = linkPreviewData.title
+                linkPreview.desc = linkPreviewData.description
+//                linkPreview.post = feedPost
+                // Set preview image if present
+                linkPreviewData.previewImages.forEach { previewMedia in
+                    let media = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
+                    media.type = previewMedia.type
+                    media.status = .none
+                    media.url = previewMedia.url
+                    media.size = previewMedia.size
+                    media.key = previewMedia.key
+                    media.sha256 = previewMedia.sha256
+                    media.linkPreview = linkPreview
+                }
+                linkPreviews.insert(linkPreview)
+            }
+            feedPost.linkPreviews = linkPreviews
 
             // Add media
             var postMedia: Set<SharedMedia> = []
@@ -96,11 +121,11 @@ class DataStore: NotificationServiceExtensionDataStore {
 
             // populate text with empty string as text is required, could be removed if this changes
             switch commentData.content {
-            case .text(let mentionText):
-                self.processText(feedComment: feedComment, mentionText: mentionText, managedObjectContext: managedObjectContext)
+            case .text(let mentionText, let linkPreviewData):
+                self.processText(feedComment: feedComment, mentionText: mentionText, linkPreviewData: linkPreviewData, managedObjectContext: managedObjectContext)
                 feedComment.rawData = nil
             case .album(let mentionText, let media):
-                self.processText(feedComment: feedComment, mentionText: mentionText, managedObjectContext: managedObjectContext)
+                self.processText(feedComment: feedComment, mentionText: mentionText, linkPreviewData: [], managedObjectContext: managedObjectContext)
                 // Process Comment Media
                 for (index, mediaItem) in media.enumerated() {
                     DDLogDebug("NotificationExtension/DataStore/add-comment-media [\(mediaItem.url!)]")
@@ -147,7 +172,7 @@ class DataStore: NotificationServiceExtensionDataStore {
         }
     }
 
-    func processText(feedComment: SharedFeedComment, mentionText: MentionText, managedObjectContext: NSManagedObjectContext) {
+    func processText(feedComment: SharedFeedComment, mentionText: MentionText, linkPreviewData: [LinkPreviewData], managedObjectContext: NSManagedObjectContext) {
         feedComment.text = mentionText.collapsedText
         var mentions = Set<SharedFeedMention>()
         for (i, mention) in mentionText.mentions {
@@ -161,6 +186,31 @@ class DataStore: NotificationServiceExtensionDataStore {
             mentions.insert(feedMention)
         }
         feedComment.mentions = mentions
+        
+        // Process url preview if present
+        var linkPreviews: Set<SharedFeedLinkPreview> = []
+        linkPreviewData.forEach { linkPreviewData in
+            DDLogDebug("NotificationExtension/DataStore/new-comment/add-link-preview [\(linkPreviewData.url)]")
+            let linkPreview = NSEntityDescription.insertNewObject(forEntityName: SharedFeedLinkPreview.entity().name!, into: managedObjectContext) as! SharedFeedLinkPreview
+            linkPreview.id = PacketID.generate()
+            linkPreview.url = linkPreviewData.url
+            linkPreview.title = linkPreviewData.title
+            linkPreview.desc = linkPreviewData.description
+            linkPreview.comment = feedComment
+            // Set preview image if present
+            linkPreviewData.previewImages.forEach { previewMedia in
+                let media = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
+                media.type = previewMedia.type
+                media.status = .none
+                media.url = previewMedia.url
+                media.size = previewMedia.size
+                media.key = previewMedia.key
+                media.sha256 = previewMedia.sha256
+                media.linkPreview = linkPreview
+            }
+            linkPreviews.insert(linkPreview)
+        }
+        feedComment.linkPreviews = linkPreviews
     }
 
     func saveServerMsg(notificationMetadata: NotificationMetadata) {

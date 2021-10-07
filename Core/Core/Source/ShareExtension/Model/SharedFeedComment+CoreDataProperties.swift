@@ -29,6 +29,7 @@ extension SharedFeedComment {
     @NSManaged public var parentCommentId: String?
     @NSManaged public var mentions: Set<SharedFeedMention>?
     @NSManaged public var media: Set<SharedMedia>?
+    @NSManaged public var linkPreviews: Set<SharedFeedLinkPreview>?
     @NSManaged public var rawData: Data?
     public var status: Status {
         get {

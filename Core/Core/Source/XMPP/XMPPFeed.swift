@@ -13,7 +13,7 @@ import SwiftProtobuf
 // MARK: Concrete classes
 
 public enum PostContent {
-    case text(MentionText)
+    case text(MentionText, [LinkPreviewData])
     case album(MentionText, [FeedMediaData])
     case retracted
     case unsupported(Data)
@@ -35,7 +35,7 @@ public struct PostData {
         switch content {
         case .retracted, .unsupported:
             return nil
-        case .text(let mentionText):
+        case .text(let mentionText, _):
             return mentionText.collapsedText
         case .album(let mentionText, _):
             return mentionText.collapsedText
@@ -58,7 +58,7 @@ public struct PostData {
                 return [:]
             case .album(let mentionText, _):
                 return mentionText.mentions
-            case .text(let mentionText):
+            case .text(let mentionText, _):
                 return mentionText.mentions
             }
         }()
@@ -67,6 +67,15 @@ public struct PostData {
                 MentionData(index: i, userID: user.userID, name: user.pushName ?? "")
             }
             .sorted { $0.index < $1.index }
+    }
+    
+    public var linkPreviewData: [LinkPreviewProtocol] {
+        switch content {
+        case .retracted, .unsupported, .album:
+            return []
+        case .text(_, let linkPreviewData):
+            return linkPreviewData
+        }
     }
 
     public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), isShared: Bool = false) {
@@ -103,7 +112,7 @@ public struct PostData {
 
             switch post.post {
             case .text(let clientText):
-                return .text(clientText.mentionText)
+                return .text(clientText.mentionText, clientText.linkPreviewData)
             case .album(let album):
                 var media = [FeedMediaData]()
                 var foundUnsupportedMedia = false
@@ -132,7 +141,7 @@ public struct PostData {
             let mentionText = protoPost.mentionText
 
             if media.isEmpty {
-                return .text(mentionText)
+                return .text(mentionText, [])
             } else {
                 return .album(mentionText, media)
             }
@@ -264,7 +273,7 @@ public struct FeedMediaData: FeedMediaProtocol {
 }
 
 public enum CommentContent {
-    case text(MentionText)
+    case text(MentionText, [LinkPreviewData])
     case album(MentionText, [FeedMediaData])
     case voiceNote(FeedMediaData)
     case unsupported(Data)
@@ -300,7 +309,7 @@ public struct CommentData {
             switch content {
             case .retracted, .unsupported, .voiceNote:
                 return [:]
-            case .text(let mentionText):
+            case .text(let mentionText, _):
                 return mentionText.mentions
             case .album(let mentionText, _):
                 return mentionText.mentions
@@ -312,6 +321,15 @@ public struct CommentData {
                 MentionData(index: i, userID: user.userID, name: user.pushName ?? "")
             }
             .sorted { $0.index < $1.index }
+    }
+    
+    public var linkPreviewData: [LinkPreviewProtocol] {
+        switch content {
+        case .retracted, .unsupported, .album, .voiceNote:
+            return []
+        case .text(_, let linkPreviewData):
+            return linkPreviewData
+        }
     }
 
     public init(id: FeedPostCommentID, userId: UserID, timestamp: Date = Date(), feedPostId: FeedPostID, parentId: FeedPostCommentID?, content: CommentContent) {
@@ -355,7 +373,7 @@ public struct CommentData {
             let comment = protoContainer.commentContainer
             switch comment.comment {
             case .text(let clientText):
-                return .text(clientText.mentionText)
+                return .text(clientText.mentionText, clientText.linkPreviewData)
             case .album(let clientAlbum):
                 var media = [FeedMediaData]()
                 var foundUnsupportedMedia = false
@@ -386,7 +404,7 @@ public struct CommentData {
         } else if protoContainer.hasComment {
             // Legacy comment
             let protoComment = protoContainer.comment
-            return .text(protoComment.mentionText)
+            return .text(protoComment.mentionText, [])
         } else {
             DDLogError("Unrecognized comment (no comment or comment container set)")
             return nil
