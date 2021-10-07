@@ -98,10 +98,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
         container.translatesAutoresizingMaskIntoConstraints = false
         container.layer.masksToBounds = true
-        container.layer.cornerRadius = 18
+        container.layer.cornerRadius = 22
 
-        container.widthAnchor.constraint(equalToConstant: 36).isActive = true
-        container.heightAnchor.constraint(equalToConstant: 36).isActive = true
+        container.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        container.heightAnchor.constraint(equalToConstant: 44).isActive = true
 
         container.contentView.addSubview(backBtn)
         backBtn.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
@@ -110,12 +110,12 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         backBtn.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
 
         let wrapper = UIView()
-        wrapper.widthAnchor.constraint(equalToConstant: 36).isActive = true
-        wrapper.heightAnchor.constraint(equalToConstant: 36).isActive = true
+        wrapper.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        wrapper.heightAnchor.constraint(equalToConstant: 44).isActive = true
 
         wrapper.addSubview(container)
         container.centerYAnchor.constraint(equalTo: wrapper.centerYAnchor).isActive = true
-        container.centerXAnchor.constraint(equalTo: wrapper.centerXAnchor, constant: -15).isActive = true
+        container.centerXAnchor.constraint(equalTo: wrapper.centerXAnchor, constant: -18).isActive = true
 
         return wrapper
     }()
@@ -130,10 +130,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
         container.translatesAutoresizingMaskIntoConstraints = false
         container.layer.masksToBounds = true
-        container.layer.cornerRadius = 18
+        container.layer.cornerRadius = 22
 
-        container.widthAnchor.constraint(equalToConstant: 36).isActive = true
-        container.heightAnchor.constraint(equalToConstant: 36).isActive = true
+        container.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        container.heightAnchor.constraint(equalToConstant: 44).isActive = true
 
         container.contentView.addSubview(shareBtn)
         shareBtn.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
@@ -142,12 +142,12 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         shareBtn.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
 
         let wrapper = UIView()
-        wrapper.widthAnchor.constraint(equalToConstant: 36).isActive = true
-        wrapper.heightAnchor.constraint(equalToConstant: 36).isActive = true
+        wrapper.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        wrapper.heightAnchor.constraint(equalToConstant: 44).isActive = true
 
         wrapper.addSubview(container)
         container.centerYAnchor.constraint(equalTo: wrapper.centerYAnchor).isActive = true
-        container.centerXAnchor.constraint(equalTo: wrapper.centerXAnchor, constant: 12).isActive = true
+        container.centerXAnchor.constraint(equalTo: wrapper.centerXAnchor, constant: 15).isActive = true
 
         return wrapper
     }()
