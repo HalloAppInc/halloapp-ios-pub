@@ -765,7 +765,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
         textView.textColor = UIColor.chatOwnMsg
-        textView.text = ""
+        textView.attributedText = nil
 
         voiceNoteView.delegate = nil
         voiceNoteRow.removeFromSuperview()
