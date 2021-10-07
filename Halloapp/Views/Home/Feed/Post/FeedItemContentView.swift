@@ -199,7 +199,12 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
                 return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
             }()
             let mentionNameFont = UIFont(descriptor: postFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
-            textLabel.attributedText = postText?.with(font: postFont, color: .label).applyingFontForMentions(mentionNameFont)
+
+            if let attrText = postText?.with(font: postFont, color: .label) {
+                let ham = HAMarkdown(font: postFont, color: .label)
+                textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(mentionNameFont)
+            }
+
             textLabel.numberOfLines = isTextExpanded ? 0 : media.isEmpty ? 10 : 3
             // Adjust vertical margins around text.
             textContentView.layoutMargins.top = media.isEmpty ? 9 : 11

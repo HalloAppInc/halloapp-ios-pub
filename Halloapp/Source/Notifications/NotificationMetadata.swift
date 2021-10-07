@@ -474,7 +474,10 @@ class NotificationMetadata: Codable {
             switch postData?.content {
             case .text(let mentionText, _):
                 subtitle = newPostString
-                body = mentionText.expandedText(nameProvider: mentionNameProvider).string
+                let ham = HAMarkdown(font: .systemFont(ofSize: 17), color: .label)
+                let expandedText = mentionText.expandedText(nameProvider: mentionNameProvider).string
+                let bodyText = ham.parse(expandedText).string // strips out markdown symbols
+                body = bodyText
             case .album(let mentionText, let feedMediaData):
                 subtitle = newPostString
                 body = mentionText.expandedText(nameProvider: mentionNameProvider).string
@@ -559,7 +562,9 @@ class NotificationMetadata: Codable {
         guard let text = Self.bodyText(from: chatContent, contactStore: contactStore) else {
             return
         }
-        body = text
+        let ham = HAMarkdown(font: .systemFont(ofSize: 17), color: .label)
+        let bodyText = ham.parse(text).string // strips out markdown symbols
+        body = bodyText
     }
 
     static func bodyText(from chatContent: ChatContent, contactStore: ContactStore) -> String? {

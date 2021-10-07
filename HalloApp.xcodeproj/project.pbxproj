@@ -268,6 +268,7 @@
 		EA454B64234E769F002B960D /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* SettingsViewController.swift */; };
 		EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713223EB7DB3008C2E44 /* FeedMedia.swift */; };
 		EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */; };
+		EA50FBA426FE82D00097C451 /* HAMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA50FBA326FE82D00097C451 /* HAMarkdown.swift */; };
 		EA52EB18245A012700FB03F6 /* NewChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA52EB17245A012700FB03F6 /* NewChatViewController.swift */; };
 		EA5975DE252D3CF600810F48 /* GroupMemberAvatars.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5975DD252D3CF600810F48 /* GroupMemberAvatars.swift */; };
 		EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */; };
@@ -297,6 +298,8 @@
 		EAA4906625311CD1003348B5 /* OutboundMsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */; };
 		EAA85A0B25E5D510006D0BC9 /* NotInGroupBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */; };
 		EAAF43992603F7720037F83D /* BlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAF43982603F7720037F83D /* BlurView.swift */; };
+		EAAFC9F02708267C004EAE29 /* HAMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA50FBA326FE82D00097C451 /* HAMarkdown.swift */; };
+		EAAFC9F42708C052004EAE29 /* HAMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA50FBA326FE82D00097C451 /* HAMarkdown.swift */; };
 		EAB1FFEE2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB1FFEC2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift */; };
 		EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB1FFED2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift */; };
 		EAB533CA26265ED700943FDC /* GroupBackgroundViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB533C926265ED700943FDC /* GroupBackgroundViewController.swift */; };
@@ -857,6 +860,7 @@
 		EA454B63234E769F002B960D /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		EA45713223EB7DB3008C2E44 /* FeedMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMedia.swift; sourceTree = "<group>"; };
 		EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCarouselView.swift; sourceTree = "<group>"; };
+		EA50FBA326FE82D00097C451 /* HAMarkdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HAMarkdown.swift; sourceTree = "<group>"; };
 		EA52EB17245A012700FB03F6 /* NewChatViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatViewController.swift; sourceTree = "<group>"; };
 		EA5975DD252D3CF600810F48 /* GroupMemberAvatars.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupMemberAvatars.swift; sourceTree = "<group>"; };
 		EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPickerView.swift; sourceTree = "<group>"; };
@@ -1616,6 +1620,7 @@
 		EA38843523A15D2C00E8BF92 /* Chats */ = {
 			isa = PBXGroup;
 			children = (
+				EA7F50EF2706826A00EF79D4 /* Markdown */,
 				EAD476D124588DB600EF8591 /* MediaSlider */,
 				EA27793225BA4682009CA884 /* Message */,
 				EA52EB17245A012700FB03F6 /* NewChatViewController.swift */,
@@ -1727,6 +1732,14 @@
 				EA35856C2450BE2900E6E8AB /* Chat.xcdatamodeld */,
 			);
 			path = "CoreData Stack";
+			sourceTree = "<group>";
+		};
+		EA7F50EF2706826A00EF79D4 /* Markdown */ = {
+			isa = PBXGroup;
+			children = (
+				EA50FBA326FE82D00097C451 /* HAMarkdown.swift */,
+			);
+			path = Markdown;
 			sourceTree = "<group>";
 		};
 		EA880C3A2368EE3C008965CF /* Registration */ = {
@@ -2481,6 +2494,7 @@
 				76936FB824F03C37006DBC2D /* UIView.swift in Sources */,
 				68D2915125096F0700AF5061 /* MentionPickerView.swift in Sources */,
 				24009EBA24BE3FA200155DE2 /* ShareDestinationViewController.swift in Sources */,
+				EAAFC9F02708267C004EAE29 /* HAMarkdown.swift in Sources */,
 				2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */,
 				F86919E026395EB300B01306 /* UIFont.swift in Sources */,
 				E598D4C2265F0558001A436A /* ConversationID.swift in Sources */,
@@ -2544,6 +2558,7 @@
 				76B5B5302501EEBE0055E712 /* UNExtensions.swift in Sources */,
 				768123972485A240008C5216 /* NotificationService.swift in Sources */,
 				7681242D2486EAC2008C5216 /* AppExtensionContext.swift in Sources */,
+				EAAFC9F42708C052004EAE29 /* HAMarkdown.swift in Sources */,
 				76714DD9250AC3B800779C4E /* DataStore.swift in Sources */,
 				76B5B52D2501EE790055E712 /* NotificationMetadata.swift in Sources */,
 			);
@@ -2679,6 +2694,7 @@
 				764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */,
 				E5959702268E3F6500AA3BB9 /* DeleteAccountModel.swift in Sources */,
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
+				EA50FBA426FE82D00097C451 /* HAMarkdown.swift in Sources */,
 				68E4619625C9C93B008B5698 /* ExpiredVersionViewController.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,
 				EAA424F124EC71450025CBBE /* XMPPGroup.swift in Sources */,
@@ -2923,7 +2939,6 @@
 				68EA2E5F26CEEDB20056FC55 /* nl */,
 				6AF7594C26F2BB110087078A /* es */,
 				6A38E09426F2BB6800103F30 /* ru */,
-				32769A002707B0F00034193C /* id */,
 				32E2481C270BB66200E0D12D /* tr */,
 			);
 			name = InfoPlist.strings;

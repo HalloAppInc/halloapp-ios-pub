@@ -87,7 +87,10 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
                     cell.textLabel?.numberOfLines = 0
                     cell.textLabel?.font = UIFont.systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
                     if let desc = chatGroup.desc, !desc.isEmpty {
-                        cell.textLabel?.text = desc
+                        if let font = cell.textLabel?.font, let color = cell.textLabel?.textColor {
+                            let ham = HAMarkdown(font: font, color: color)
+                            cell.textLabel?.attributedText = ham.parse(desc)
+                        }
                     } else {
                         cell.textLabel?.textColor = .secondaryLabel
                         cell.textLabel?.text = Localizations.groupAddDescription
@@ -748,7 +751,8 @@ class GroupInfoHeaderView: UIView {
 
     public func configure(chatGroup: ChatGroup?) {
         guard let chatGroup = chatGroup else { return }
-        groupNameText.text = chatGroup.name
+        let ham = HAMarkdown(font: groupNameText.font, color: groupNameText.textColor)
+        groupNameText.attributedText = ham.parse(chatGroup.name)
         avatarView.configure(groupId: chatGroup.groupId, squareSize: Constants.AvatarSize, using: MainAppContext.shared.avatarStore)
     }
 

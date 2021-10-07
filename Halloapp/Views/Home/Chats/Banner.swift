@@ -86,7 +86,8 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
         }
         
         titleLabel.text = title
-        bodyLabel.text = body
+        let ham = HAMarkdown(font: bodyLabel.font, color: bodyLabel.textColor)
+        bodyLabel.attributedText = ham.parse(body)
     }
     
     private func setup() {

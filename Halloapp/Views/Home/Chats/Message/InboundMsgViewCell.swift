@@ -9,6 +9,7 @@
 import AVFoundation
 import CocoaLumberjackSwift
 import Core
+import MarkdownKit
 import UIKit
 
 fileprivate struct Constants {
@@ -475,10 +476,12 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             
             quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
 
-            let mentionText = MainAppContext.shared.contactStore.textWithMentions(
+            if let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.text,
-                mentions: quoted.orderedMentions)
-            quotedTextView.attributedText = mentionText?.with(font: quotedTextView.font, color: quotedTextView.textColor)
+                mentions: quoted.orderedMentions) {
+                let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .footnote), color: UIColor.systemGray)
+                quotedTextView.attributedText = ham.parse(mentionText)
+            }
 
             let text = quotedTextView.text ?? ""
             if text.count <= 3 && text.containsOnlyEmoji {
@@ -582,17 +585,22 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 
         // text
         switch displayText {
-        case .normal(let text, let orderedMentions):
+        case .normal(let text, _):
             showRightToLeft = text.isRightToLeftLanguage()
             if text.count <= 4 && text.containsOnlyEmoji {
                 textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
             }
-            if orderedMentions.count > 0 {
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(text, mentions: orderedMentions)
-                textView.attributedText = mentionText?.with(font: textView.font, color: textView.textColor)
-            } else {
-                textView.text = text
+            if let font = textView.font, let color = textView.textColor {
+                let ham = HAMarkdown(font: font, color: color)
+                textView.attributedText = ham.parse(text)
             }
+            
+            if let font = textView.font {
+                let markdownParser = MarkdownParser(font: font)
+                textView.attributedText = markdownParser.parse(text)
+            }
+            
+            
         case .rerequesting:
             textView.text = "🕓 " + Localizations.chatMessageWaiting
             textView.textColor = .chatTime
@@ -713,7 +721,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         quotedNameLabel.textColor = UIColor.label
         quotedNameLabel.text = ""
         quotedTextView.font = UIFont.preferredFont(forTextStyle: .footnote)
-        quotedTextView.text = ""
+        quotedTextView.attributedText = nil
         quotedImageView.isHidden = true
         
         mediaRow.isHidden = true

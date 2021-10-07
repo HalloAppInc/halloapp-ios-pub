@@ -565,6 +565,20 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         }
     }
 
+    private func updateWithMarkdown() {
+        guard textView.markedTextRange == nil else { return } // account for IME
+        let font = UIFont.preferredFont(forTextStyle: .subheadline)
+        let color = UIColor.label // do not use textView.textColor directly as that changes when attributedText changes color
+
+        let ham = HAMarkdown(font: font, color: color)
+        if let text = textView.text {
+            if let selectedRange = textView.selectedTextRange {
+                textView.attributedText = ham.parseInPlace(text)
+                textView.selectedTextRange = selectedRange
+            }
+        }
+    }
+
     func willAppear(in viewController: UIViewController) {
         self.setInputViewWidth(viewController.view.bounds.size.width)
     }
@@ -864,6 +878,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
         updateMentionPickerContent()
         updatePostButtons()
+        updateWithMarkdown()
     }
     
     func updateInputView() {

@@ -46,6 +46,8 @@ class ThreadListCell: UITableViewCell {
 
         timeLabel.text = nil
         lastMsgLabel.text = nil
+        lastMsgLabel.textColor = Constants.LastMsgColor
+        lastMsgLabel.attributedText = nil
         unreadCountView.isHidden = true
 
         avatarView.avatarView.prepareForReuse()
@@ -55,14 +57,6 @@ class ThreadListCell: UITableViewCell {
     }
 
     private func lastMessageText(for chatThread: ChatThread) -> NSMutableAttributedString {
-
-        var contactNamePart = ""
-        if chatThread.type == .group {
-            if let userId = chatThread.lastMsgUserId, userId != MainAppContext.shared.userData.userId {
-                contactNamePart = MainAppContext.shared.contactStore.fullName(for: userId) + ": "
-            }
-        }
-
         var defaultText = ""
         if chatThread.type == .oneToOne && chatThread.lastMsgMediaType == .none && chatThread.chatWithUserId != MainAppContext.shared.userData.userId {
             if chatThread.isNew {
@@ -129,23 +123,14 @@ class ThreadListCell: UITableViewCell {
             result.append(NSAttributedString(attachment: iconAttachment))
             result.append(NSAttributedString(string: " "))
         }
-        
-        result.append(NSAttributedString(string: contactNamePart))
-        
+
         if let mediaIcon = mediaIcon, chatThread.type == .oneToOne {
             result.append(NSAttributedString(attachment: NSTextAttachment(image: mediaIcon)))
             result.append(NSAttributedString(string: " "))
         }
 
-        result.append(NSAttributedString(string: messageText))
-
-        result.addAttributes([ .font: Constants.LastMsgFont, .foregroundColor: Constants.LastMsgColor ],
-                             range: NSRange(location: 0, length: result.length))
-//        if !contactNamePart.isEmpty {
-//            // Note that the assumption is that we are using system font for the rest of the text.
-//            let participantNameFont = UIFont.systemFont(ofSize: Constants.LastMsgFont.pointSize, weight: .medium)
-//            result.addAttribute(.font, value: participantNameFont, range: NSRange(location: 0, length: contactNamePart.count))
-//        }
+        let ham = HAMarkdown(font: Constants.LastMsgFont, color: Constants.LastMsgColor)
+        result.append(ham.parse(messageText))
 
         return result
     }
@@ -384,6 +369,7 @@ class ThreadListCell: UITableViewCell {
     private lazy var lastMsgLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
+        label.textColor = Constants.LastMsgColor
         label.adjustsFontForContentSizeCategory = true
         label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         return label

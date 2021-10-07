@@ -82,6 +82,7 @@ class CommentView: UIView {
     let textCommentLabel: TextLabel = {
         let label = TextLabel()
         label.numberOfLines = 0
+        label.textColor = UIColor.red
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -318,7 +319,11 @@ class CommentView: UIView {
                 let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
                 let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
                 let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
-                textCommentLabel.attributedText = textWithMentions?.with(font: font, color: .label).applyingFontForMentions(boldFont)
+                if let attrText = textWithMentions?.with(font: font, color: .label) {
+                    let ham = HAMarkdown(font: font, color: .label)
+                    textCommentLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
+                }
+
                 textCommentLabel.delegate = self
                 vStack.insertArrangedSubview(textCommentLabel, at: vStack.arrangedSubviews.count - 1)
                 vStack.setCustomSpacing(4, after: mediaView)
@@ -338,9 +343,11 @@ class CommentView: UIView {
             if let commentText = MainAppContext.shared.contactStore.textWithMentions(feedPostComment.text, mentions: Array(feedPostComment.mentions ?? Set())),
                 !feedPostComment.isRetracted
             {
-                attributedText.append(commentText.with(font: baseFont).applyingFontForMentions(nameFont))
+                let ham = HAMarkdown(font: baseFont, color: .label)
+                let attrStr = ham.parse(commentText.with(font: baseFont))
+                attributedText.append(attrStr.applyingFontForMentions(nameFont))
             }
-
+    
             attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
             nameTextLabel.attributedText = attributedText
         }
@@ -561,7 +568,11 @@ class CommentsTableHeaderView: UIView {
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
-            textLabel.attributedText = textWithMentions?.with(font: font, color: .label).applyingFontForMentions(boldFont)
+
+            if let attrText = textWithMentions?.with(font: font, color: .label) {
+                let ham = HAMarkdown(font: font, color: .label)
+                textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
+            }
 
             vStack.insertArrangedSubview(textLabel, at: vStack.arrangedSubviews.count - 1)
         } else {
