@@ -188,11 +188,11 @@ class AudioRecorderControlView: UIView {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard !isActive else { return }
         guard let touch = touches.first else { return }
         startLocation = touch.location(in: self)
         show()
         isActive = true
-        delegate?.audioRecorderControlViewStarted(self)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -336,14 +336,18 @@ class AudioRecorderControlView: UIView {
         blurredBackground.layer.cornerRadius = expandingContainerWidth.constant / 2
         layoutIfNeeded()
 
-        UIView.animate(withDuration: 0.3, animations: {
+        UIView.animate(withDuration: 0.3) {
             self.expandingContainerWidth.constant = self.expandMaxSize
             self.expandingContainerHeight.constant = self.expandMaxSize
             self.expandingContainer.layer.cornerRadius = self.expandingContainerWidth.constant / 2
             self.blurredBackground.layer.cornerRadius = self.expandingContainerWidth.constant / 2
             self.layoutIfNeeded()
-        }) { _ in
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + TimeInterval(0.3)) {
+            guard self.isActive else { return }
             self.levitateLockButton()
+            self.delegate?.audioRecorderControlViewStarted(self)
         }
     }
 
