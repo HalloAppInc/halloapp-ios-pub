@@ -67,7 +67,6 @@ struct XMPPGroup {
     private(set) var senderName: String? = nil
     private(set) var action: ChatGroupAction? = nil // getGroupInfo has no action
     private(set) var members: [XMPPGroupMember]? = nil
-    private(set) var audienceHash: Data? = nil
 
     init(id: GroupID, name: String, avatarID: String? = nil) {
         self.groupId = id
@@ -118,7 +117,6 @@ struct XMPPGroup {
         }()
         
         self.retryCount = retryCount
-        self.audienceHash = protoGroup.audienceHash.isEmpty ? nil : protoGroup.audienceHash
     }
 }
 
@@ -128,7 +126,6 @@ struct XMPPGroupMember {
     let type: ChatGroupMemberType?
     
     let action: ChatGroupMemberAction? // does not need to be recorded in db
-    let identityKey: Data?
 
     init?(protoMember: Server_GroupMember) {
         self.userId = String(protoMember.uid)
@@ -153,8 +150,6 @@ struct XMPPGroupMember {
             case .UNRECOGNIZED(_): return nil
             }
         }()
-
-        self.identityKey = protoMember.identityKey.isEmpty ? nil : protoMember.identityKey
     }
 }
 

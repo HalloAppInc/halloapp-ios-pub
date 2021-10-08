@@ -12,11 +12,11 @@ import CoreData
 
 class DataStore: NotificationServiceExtensionDataStore {
 
-    func save(postData: PostData?, status: SharedFeedPost.Status, notificationMetadata: NotificationMetadata, completion: @escaping (SharedFeedPost) -> ()) {
+    func save(postData: PostData, notificationMetadata: NotificationMetadata, completion: @escaping (SharedFeedPost) -> ()) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
 
-            let userId = notificationMetadata.fromId
-            let postId = notificationMetadata.contentId
+            let userId = postData.userId
+            let postId = postData.id
 
             DDLogInfo("DataStore/post/\(postId)/create")
 
@@ -24,12 +24,12 @@ class DataStore: NotificationServiceExtensionDataStore {
             feedPost.id = postId
             feedPost.userId = userId
             feedPost.groupId = notificationMetadata.groupId
-            feedPost.text = postData?.text
-            feedPost.status = status
+            feedPost.text = postData.text
+            feedPost.status = .received
             feedPost.timestamp = notificationMetadata.timestamp ?? Date()
 
-            switch postData?.content {
-            case .album, .text, .retracted, .none:
+            switch postData.content {
+            case .album, .text, .retracted:
                 feedPost.rawData = nil
             case .unsupported(let data):
                 feedPost.rawData = data
@@ -37,7 +37,7 @@ class DataStore: NotificationServiceExtensionDataStore {
 
             // Add mentions
             var mentions: Set<SharedFeedMention> = []
-            for protoMention in postData?.orderedMentions ?? [] {
+            for protoMention in postData.orderedMentions {
                 let mention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
                 mention.index = Int(protoMention.index)
                 mention.userID = protoMention.userID
@@ -48,7 +48,7 @@ class DataStore: NotificationServiceExtensionDataStore {
             
             // Add link previews
             var linkPreviews: Set<SharedFeedLinkPreview> = []
-            postData?.linkPreviewData.forEach { linkPreviewData in
+            postData.linkPreviewData.forEach { linkPreviewData in
                 DDLogDebug("NotificationExtension/DataStore/new-comment/add-link-preview [\(linkPreviewData.url)]")
                 let linkPreview = NSEntityDescription.insertNewObject(forEntityName: SharedFeedLinkPreview.entity().name!, into: managedObjectContext) as! SharedFeedLinkPreview
                 linkPreview.id = PacketID.generate()
@@ -73,7 +73,7 @@ class DataStore: NotificationServiceExtensionDataStore {
 
             // Add media
             var postMedia: Set<SharedMedia> = []
-            for (index, feedPostMedia) in postData?.orderedMedia.enumerated() ?? [].enumerated() {
+            for (index, feedPostMedia) in postData.orderedMedia.enumerated() {
                 guard let mediaType: FeedMediaType = {
                     switch feedPostMedia.type {
                     case .image: return .image
@@ -100,17 +100,14 @@ class DataStore: NotificationServiceExtensionDataStore {
         }
     }
     
-    func save(commentData: CommentData?, status: SharedFeedComment.Status, notificationMetadata: NotificationMetadata, completion: @escaping (SharedFeedComment) -> ()) {
+    func save(commentData: CommentData, notificationMetadata: NotificationMetadata, completion: @escaping (SharedFeedComment) -> ()) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
         
             // Extract info from parameters
-            let userId = notificationMetadata.fromId
-            let commentId = notificationMetadata.contentId
-            guard let postId = notificationMetadata.feedPostId else {
-                DDLogError("NotificationExtension/DataStore/new-comment/\(commentId) - invalid feedPostId")
-                return
-            }
-            let parentCommentId = notificationMetadata.parentId?.isEmpty ?? true ? nil : notificationMetadata.parentId
+            let userId = commentData.userId
+            let commentId = commentData.id
+            let postId = commentData.feedPostId
+            let parentCommentId = commentData.parentId?.isEmpty ?? true ? nil : commentData.parentId
 
             // Create comment
             DDLogInfo("NotificationExtension/DataStore/new-comment/create id=[\(commentId)]  postId=[\(postId)]")
@@ -119,11 +116,11 @@ class DataStore: NotificationServiceExtensionDataStore {
             feedComment.userId = userId
             feedComment.postId = postId
             feedComment.parentCommentId = parentCommentId
-            feedComment.status = status
+            feedComment.status = .received
             feedComment.timestamp = notificationMetadata.timestamp ?? Date()
 
             // populate text with empty string as text is required, could be removed if this changes
-            switch commentData?.content {
+            switch commentData.content {
             case .text(let mentionText, let linkPreviewData):
                 self.processText(feedComment: feedComment, mentionText: mentionText, linkPreviewData: linkPreviewData, managedObjectContext: managedObjectContext)
                 feedComment.rawData = nil
@@ -166,8 +163,6 @@ class DataStore: NotificationServiceExtensionDataStore {
                 feedComment.rawData = nil
             case .unsupported(let data):
                 feedComment.rawData = data
-            case .none:
-                feedComment.rawData = nil
             }
 
             managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy

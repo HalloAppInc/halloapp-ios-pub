@@ -295,8 +295,6 @@ extension KeyData: ServiceKeyDelegate {
         case .count(let otpKeyCountNum):
             self.uploadMoreOTPKeysIfNeeded(currentNum: otpKeyCountNum)
         }
-        // Nothing special to do for group e2e keys here.
-        // We wait for them to resend their own senderState and we then discard what we have.
     }
 
     public func service(_ service: CoreService, didReceiveRerequestWithRerequestCount rerequestCount: Int) {

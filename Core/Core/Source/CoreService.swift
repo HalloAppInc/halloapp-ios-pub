@@ -56,13 +56,8 @@ public protocol CoreService {
     func requestMediaUploadURL(size: Int, downloadURL: URL?, completion: @escaping ServiceRequestCompletion<MediaURLInfo?>)
     func publishPost(_ post: PostData, feed: Feed, completion: @escaping ServiceRequestCompletion<Date>)
     func publishComment(_ comment: CommentData, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date>)
-    func resendPost(_ post: PostData, feed: Feed, rerequestCount: Int32, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
-    func resendComment(_ comment: CommentData, groupId: GroupID?, rerequestCount: Int32, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
-    func decryptGroupFeedPayload(for item: Server_GroupFeedItem, completion: @escaping (FeedContent?, GroupDecryptionFailure?) -> Void)
-    func rerequestGroupFeedItem(contentId: String, groupID: String, authorUserID: UserID, rerequestType: Server_GroupFeedRerequest.RerequestType, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Keys
-    func getGroupMemberIdentityKeys(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupStanza>)
     func requestWhisperKeyBundle(userID: UserID, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>)
     func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>)
     func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>)

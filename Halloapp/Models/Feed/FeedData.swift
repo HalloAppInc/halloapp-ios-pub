@@ -261,7 +261,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     continue
                 }
                 // NB: Set isShared to true to avoid "New Post" banner
-                guard let postData = PostData(id: post.id, userId: post.userId, timestamp: post.timestamp, payload: rawData, status: post.feedItemStatus, isShared: true) else {
+                guard let postData = PostData(id: post.id, userId: post.userId, timestamp: post.timestamp, payload: rawData, isShared: true) else {
                     DDLogError("FeedData/processUnsupportedItems/posts/error [deserialization] [\(post.id)]")
                     continue
                 }
@@ -293,7 +293,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     DDLogError("FeedData/processUnsupportedItems/comments/error [missing data] [\(comment.id)]")
                     continue
                 }
-                guard let commentData = CommentData(id: comment.id, userId: comment.userId, feedPostId: comment.post.id, parentId: comment.parent?.id, timestamp: comment.timestamp, payload: rawData, status: comment.feedItemStatus) else {
+                guard let commentData = CommentData(id: comment.id, userId: comment.userId, feedPostId: comment.post.id, parentId: comment.parent?.id, timestamp: comment.timestamp, payload: rawData) else {
                     DDLogError("FeedData/processUnsupportedItems/comments/error [deserialization] [\(comment.id)]")
                     continue
                 }
@@ -496,21 +496,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return self.feedPosts(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext, archived: archived).first
     }
 
-    // Should always be called using the backgroundQueue.
-    func fetchResendAttempt(for contentID: String, userID: UserID, in managedObjectContext: NSManagedObjectContext) -> FeedItemResendAttempt {
-        let managedObjectContext = managedObjectContext
-        let fetchRequest: NSFetchRequest<FeedItemResendAttempt> = FeedItemResendAttempt.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "contentID == %@ AND userID == %@", contentID, userID)
-        fetchRequest.returnsObjectsAsFaults = false
-        do {
-            let result = try managedObjectContext.fetch(fetchRequest).first ?? FeedItemResendAttempt(context: managedObjectContext)
-            return result
-        } catch {
-            DDLogError("FeedData/fetchAndUpdateRetryCount/error  [\(error)]")
-            fatalError("Failed to fetchAndUpdateRetryCount.")
-        }
-    }
-
     private func feedPosts(with ids: Set<FeedPostID>, in managedObjectContext: NSManagedObjectContext? = nil, archived: Bool = false) -> [FeedPost] {
         return feedPosts(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext, archived: archived)
     }
@@ -688,20 +673,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         var sharedPosts: [FeedPostID] = []
 
         for xmppPost in xmppPosts {
-
-            // We only override status attribute if we encounter a successfully encrypted duplicate post.
-            // Since we already obtained content using the unencrypted part of the payload.
-            if let existingPost = existingPosts[xmppPost.id] {
-                if existingPost.status == .rerequesting,
-                   xmppPost.status == .received {
-                    DDLogError("FeedData/process-posts/existing [\(xmppPost.id)], override status")
-                    existingPost.status = .incoming
-                } else {
-                    DDLogError("FeedData/process-posts/existing [\(xmppPost.id)], ignoring")
-                }
-                continue
-            }
-
             if xmppPost.isShared {
                 sharedPosts.append(xmppPost.id)
             }
@@ -718,12 +689,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }()
 
             switch feedPost.status {
-                // TODO: murali@: verify the timestamp here.
-            case .none, .unsupported, .rerequesting:
-                DDLogInfo("FeedData/process-posts/updating [\(xmppPost.id)] current status: \(feedPost.status)")
+            case .none, .unsupported:
                 break
             case .incoming, .seen, .seenSending, .sendError, .sending, .sent, .retracted, .retracting:
-                DDLogError("FeedData/process-posts/skipping [duplicate] [\(xmppPost.id)] current status: \(feedPost.status)")
+                DDLogError("FeedData/process-posts/skipping [duplicate] [\(xmppPost.id)]")
                 continue
             }
 
@@ -736,16 +705,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             switch xmppPost.content {
             case .album, .text:
                 // Mark our own posts as seen in case server sends us old posts following re-registration
-                if feedPost.userId == userData.userId {
-                    feedPost.status = .seen
-                } else {
-                    // Set status to be rerequesting if necessary.
-                    if xmppPost.status == .rerequesting {
-                        feedPost.status = .rerequesting
-                    } else {
-                        feedPost.status = .incoming
-                    }
-                }
+                feedPost.status = feedPost.userId == userData.userId ? .seen : .incoming
             case .retracted:
                 DDLogError("FeedData/process-posts/incoming-retracted-post [\(xmppPost.id)]")
                 feedPost.status = .retracted
@@ -858,20 +818,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         var duplicateCount = 0, numRuns = 0
         while !xmppCommentsMutable.isEmpty && numRuns < 100 {
             for xmppComment in xmppCommentsMutable {
-
-                // We only override status attribute if we encounter a successfully encrypted duplicate comment.
-                // Since we already obtained content using the unencrypted part of the payload.
-                if let existingComment = comments[xmppComment.id] {
-                    if existingComment.status == .rerequesting,
-                       xmppComment.status == .received {
-                        DDLogError("FeedData/process-comments/existing [\(xmppComment.id)], override status")
-                        existingComment.status = .incoming
-                    } else {
-                        DDLogError("FeedData/process-comments/existing [\(xmppComment.id)], ignoring")
-                    }
-                    continue
-                }
-
                 // Find comment's post.
                 guard let feedPost = posts[xmppComment.feedPostId] else {
                     DDLogError("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]")
@@ -907,12 +853,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                 if let existingComment = comments[xmppComment.id] {
                     switch existingComment.status {
-                    case .unsupported, .rerequesting:
-                        DDLogInfo("FeedData/process-comments/updating [\(xmppComment.id)] current status: \(existingComment.status)")
+                    case .unsupported:
+                        DDLogDebug("FeedData/process-comments/updating [\(xmppComment.id)]")
                         comment = existingComment
                     case .incoming, .none, .retracted, .retracting, .sent, .sending, .sendError, .played:
                         duplicateCount += 1
-                        DDLogError("FeedData/process-comments/duplicate [\(xmppComment.id)] current status: \(existingComment.status)")
+                        DDLogError("FeedData/process-comments/duplicate [\(xmppComment.id)]")
                         continue
                     }
                 } else {
@@ -925,13 +871,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 comment.userId = xmppComment.userId
                 comment.parent = parentComment
                 comment.post = feedPost
-
-                // Set status to be rerequesting if necessary.
-                if xmppComment.status == .rerequesting {
-                    comment.status = .rerequesting
-                } else {
-                    comment.status = .incoming
-                }
 
                 switch xmppComment.content {
                 case .text(let mentionText, let linkPreviewData):
@@ -968,6 +907,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         linkPreview.comment = comment
                     }
                 case .album(let mentionText, let media):
+                    comment.status = .incoming
                     comment.text = mentionText.collapsedText
                     var mentions = Set<FeedMention>()
                     for (i, user) in mentionText.mentions {
@@ -999,6 +939,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         feedCommentMedia.comment = comment
                     }
                 case .voiceNote(let media):
+                    comment.status = .incoming
                     comment.text = ""
                     comment.mentions = Set<FeedMention>()
 
@@ -1496,7 +1437,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // these errors mean that server does not have a copy of the post.
         // so we need send retract request to the server - just delete the local copy.
-        // Think more on how sending status should be handled here??
         case .none, .sendError:
             DDLogInfo("FeedData/retract/postId \(feedPost.id), delete local copy.")
             processPostRetract(postId) {}
@@ -1568,27 +1508,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func internalSendSeenReceipt(for feedPost: FeedPost) {
         // Make sure the post is still in a valid state and wasn't retracted just now.
-        // We dont send seen receipts until decryption is successful?
-        // TODO: murali@: fix this up eventually and test properly!
-        guard feedPost.status == .incoming || feedPost.status == .seenSending || feedPost.status == .rerequesting else {
+        guard feedPost.status == .incoming || feedPost.status == .seenSending else {
             DDLogWarn("FeedData/seen-receipt/ignore Incorrect post status: \(feedPost.status)")
             return
         }
-        // Send seen receipts for now - but dont update status.
-        if !feedPost.isRerequested {
-            feedPost.status = .seenSending
-        }
+        feedPost.status = .seenSending
         service.sendReceipt(itemID: feedPost.id, thread: .feed, type: .read, fromUserID: userData.userId, toUserID: feedPost.userId)
     }
 
     func sendSeenReceiptIfNecessary(for feedPost: FeedPost) {
-        guard feedPost.status == .incoming || feedPost.status == .rerequesting else { return }
+        guard feedPost.status == .incoming else { return }
 
         let postId = feedPost.id
         updateFeedPost(with: postId) { [weak self] (post) in
             guard let self = self else { return }
             // Check status again in case one of these blocks was already queued
-            guard post.status == .incoming || feedPost.status == .rerequesting else { return }
+            guard post.status == .incoming else { return }
             self.internalSendSeenReceipt(for: post)
             self.checkForUnreadFeed()
         }
@@ -2238,7 +2173,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func retryPosting(postId: FeedPostID) {
-        DDLogInfo("FeedData/retryPosting/postId: \(postId)")
         let managedObjectContext = self.persistentContainer.viewContext
 
         guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else { return }
@@ -2251,7 +2185,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func resend(commentWithId commentId: FeedPostCommentID) {
-        DDLogInfo("FeedData/resend/commentWithId: \(commentId)")
         let managedObjectContext = self.persistentContainer.viewContext
 
         guard let comment = self.feedComment(with: commentId, in: managedObjectContext) else { return }
@@ -2262,81 +2195,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         save(managedObjectContext)
 
         send(comment: comment)
-    }
-
-    private func handleRerequest(for contentID: String, from userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
-
-            let resendAttempt = self.fetchResendAttempt(for: contentID, userID: userID, in: managedObjectContext)
-            resendAttempt.retryCount += 1
-            // retryCount indicates number of times content has been rerequested until now: increment and use it when sending.
-            let rerequestCount = resendAttempt.retryCount
-            DDLogInfo("FeedData/fetchResendAttempt/contentID: \(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount)")
-            guard rerequestCount <= 5 else {
-                DDLogError("FeedData/fetchResendAttempt/contentID: \(contentID)/userID: \(userID)/retryCount: \(rerequestCount) - aborting")
-                return
-            }
-
-            // Check if contentID is a post
-            guard let post = self.feedPost(with: contentID, in: managedObjectContext) else {
-
-                // Check if contentID is a comment
-                guard let comment = self.feedComment(with: contentID, in: managedObjectContext) else {
-                    DDLogError("FeedData/handleRerequest/\(contentID)/error could not find post/comment")
-                    completion(.failure(.aborted))
-                    return
-                }
-
-                DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) begin")
-                resendAttempt.comment = comment
-                comment.addToResendAttempts(resendAttempt)
-                self.save(managedObjectContext)
-
-                let groupId = comment.post.groupId
-                self.service.resendComment(comment.commentData, groupId: groupId, rerequestCount: rerequestCount, to: userID) { result in
-                    switch result {
-                    case .success():
-                        DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) success")
-                        // TODO: murali@: update rerequestCount only on success.
-                    case .failure(let error):
-                        DDLogError("FeedData/handleRerequest/commentID: \(comment.id) error \(error)")
-                    }
-                    completion(result)
-                }
-                return
-            }
-
-            // TODO: murali@: keep track of the number of resend attempts?
-            // what is the limit of resendAttempts? if any? we should accomodate all members rerequests with that?
-
-            DDLogInfo("FeedData/handleRerequest/postID: \(post.id) begin")
-            let feed: Feed
-            if let groupId = post.groupId {
-                feed = .group(groupId)
-            } else {
-                guard let postAudience = post.audience else {
-                    DDLogError("FeedData/handleRerequest/\(post.id) No audience set")
-                    return
-                }
-                feed = .personal(postAudience)
-            }
-
-            resendAttempt.post = post
-            post.addToResendAttempts(resendAttempt)
-            self.save(managedObjectContext)
-
-            self.service.resendPost(post.postData, feed: feed, rerequestCount: rerequestCount, to: userID) { result in
-                switch result {
-                case .success():
-                    DDLogInfo("FeedData/handleRerequest/postID: \(post.id) success")
-                    // TODO: murali@: update rerequestCount only on success.
-                case .failure(let error):
-                    DDLogError("FeedData/handleRerequest/postID: \(post.id) error \(error)")
-                }
-                completion(result)
-            }
-        }
     }
 
     private func send(comment: FeedPostComment) {
@@ -2359,13 +2217,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     self.updateFeedPostComment(with: commentId) { (feedComment) in
                         feedComment.status = .sendError
                     }
-                    // TODO: murali@: we might end up in a loop constantly retrying.
-//                    switch error {
-//                    case .audienceHashMismatch:
-//                        self.resend(commentWithId: commentId)
-//                    default:
-//                        break
-//                    }
                 }
             }
         }
@@ -2400,12 +2251,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     self.updateFeedPost(with: postId) { (feedPost) in
                         feedPost.status = .sendError
                     }
-//                    switch error {
-//                    case .audienceHashMismatch:
-//                        self.retryPosting(postId: postId)
-//                    default:
-//                        break
-//                    }
                 }
             }
         }
@@ -3132,16 +2977,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let existingPosts = feedPosts(with: postIds, in: managedObjectContext).reduce(into: [FeedPostID: FeedPost]()) { $0[$1.id] = $1 }
         var addedPostIDs = Set<FeedPostID>()
         var newMergedPosts: [FeedPostID] = []
-
+        
         for post in posts {
-            // Skip existing posts that have been decrypted successfully, else process these shared posts.
-            if let existingPost = existingPosts[post.id] {
-                if existingPost.status == .rerequesting && (post.status == .received || post.status == .acked) {
-                    DDLogInfo("FeedData/merge-data/already-exists [\(post.id)] override failed decryption.")
-                } else {
-                    DDLogError("FeedData/merge-data/duplicate (pre-existing) [\(post.id)]")
-                    continue
-                }
+            guard existingPosts[post.id] == nil else {
+                DDLogError("FeedData/merge-data/duplicate (pre-existing) [\(post.id)]")
+                continue
             }
             guard !addedPostIDs.contains(post.id) else {
                 DDLogError("FeedData/merge-data/duplicate (duplicate in batch) [\(post.id)")
@@ -3165,10 +3005,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.text = post.text
             feedPost.status = {
                 switch post.status {
-                case .received, .acked: return .incoming
+                case .received: return .incoming
                 case .sent: return .sent
                 case .none, .sendError: return .sendError
-                case .decryptionError, .rerequesting: return .rerequesting
                 }
             }()
             feedPost.timestamp = post.timestamp
@@ -3222,7 +3061,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             // Media
             post.media?.forEach { (media) in
-                DDLogDebug("FeedData/merge-data/post/\(postId)/add-media [\(media)] - [\(media.status)]")
+                DDLogDebug("FeedData/merge-data/post/\(postId)/add-media [\(media)]")
 
                 let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
                 feedMedia.type = media.type
@@ -3310,16 +3149,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
 
-        // Skip existing comments that have been decrypted successfully, else process these shared comments.
-        if let existingComment = feedComment(with: sharedComment.id, in: managedObjectContext) {
-            if existingComment.status == .rerequesting && (sharedComment.status == .received || sharedComment.status == .acked) {
-                DDLogInfo("FeedData/mergeComment/already-exists [\(sharedComment.id)] override failed decryption.")
-            } else {
-                DDLogError("FeedData/mergeComment/duplicate (pre-existing) [\(sharedComment.id)]")
-                return nil
-            }
-        }
-
         // Add mentions
         var mentionSet = Set<FeedMention>()
         sharedComment.mentions?.forEach({ mention in
@@ -3393,10 +3222,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedComment.post = feedPost
         feedComment.status = {
             switch sharedComment.status {
-            case .received, .acked: return .incoming
+            case .received: return .incoming
             case .sent: return .sent
             case .none, .sendError: return .sendError
-            case .decryptionError, .rerequesting: return .rerequesting
             }
         }()
         feedComment.timestamp = sharedComment.timestamp
@@ -3413,20 +3241,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 }
 
 extension FeedData: HalloFeedDelegate {
-
-    func halloService(_ halloService: HalloService, didRerequestGroupFeedItem contentID: String, from userID: UserID, ack: (() -> Void)?) {
-        DDLogDebug("FeedData/didRerequestContent [\(contentID)] from: \(userID)")
-
-        handleRerequest(for: contentID, from: userID) { result in
-            switch result {
-            case .failure(let error):
-                DDLogError("FeedData/didRerequestGroupFeedItem/\(contentID)/error: \(error)/from: \(userID)")
-            case .success:
-                DDLogInfo("FeedData/didRerequestGroupFeedItem/\(contentID)/success/from: \(userID)")
-            }
-        }
-        ack?()
-    }
 
     func halloService(_ halloService: HalloService, didReceiveFeedPayload payload: HalloServiceFeedPayload, ack: (() -> Void)?) {
         switch payload.content {
@@ -3469,7 +3283,7 @@ extension FeedData: HalloFeedDelegate {
 
     func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt) {
         updateFeedPost(with: receipt.itemId) { (feedPost) in
-            if !feedPost.isPostRetracted || !feedPost.isRerequested {
+            if !feedPost.isPostRetracted {
                 feedPost.status = .seen
             }
         }

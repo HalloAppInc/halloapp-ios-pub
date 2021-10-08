@@ -392,13 +392,13 @@ class FeedViewController: FeedCollectionViewController {
 
         switch metadata.contentType {
         case .feedComment, .groupFeedComment:
-            guard let commentData = metadata.commentData() else {
+            guard let commentData = metadata.commentData else {
                 DDLogError("FeedViewController/notification/could not get commentData - failed to scroll \(metadata.contentId)")
                 return
             }
             showCommentsView(for: commentData.feedPostId, highlighting: commentData.id)
         case .feedPost:
-            guard let postData = metadata.postData() else {
+            guard let postData = metadata.postData else {
                 DDLogError("FeedViewController/notification/could not get postData - failed to scroll \(metadata.contentId)")
                 return
             }

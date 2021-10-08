@@ -10,11 +10,6 @@ import CocoaLumberjackSwift
 import CoreData
 import Foundation
 
-public enum CryptoResult {
-    case success
-    case failure
-}
-
 public final class CryptoData {
     public init(persistentStoreURL: URL) {
         self.persistentStoreURL = persistentStoreURL
@@ -51,48 +46,6 @@ public final class CryptoData {
                     DDLogInfo("CryptoData/update/\(messageID)/saved [\(result)]")
                 } catch {
                     DDLogError("CryptoData/update/\(messageID)/save/error [\(error)]")
-                }
-            }
-        }
-    }
-
-    public func update(contentID: String, contentType: String, groupID: GroupID, timestamp: Date, error: String, rerequestCount: Int) {
-        queue.async { [weak self] in
-            guard let self = self else { return }
-
-            let isItemAlreadyDecrypted: Bool
-            if let itemResult = self.fetchGroupFeedItemDecryption(id: contentID, in: self.bgContext) {
-                isItemAlreadyDecrypted = itemResult.isSuccess()
-            } else {
-                isItemAlreadyDecrypted = false
-            }
-            guard let groupFeedItemDecryption = self.fetchGroupFeedItemDecryption(id: contentID, in: self.bgContext) ??
-                    self.createGroupFeedItemDecryption(id: contentID, contentType: contentType, groupID: groupID, timestamp: timestamp, in: self.bgContext) else
-            {
-                DDLogError("CryptoData/update/\(contentID)/group/\(groupID)/error could not find or create decryption report")
-                return
-            }
-            guard !groupFeedItemDecryption.hasBeenReported else {
-                DDLogInfo("CryptoData/update/\(contentID)/group/\(groupID)/skipping already reported")
-                return
-            }
-            guard !isItemAlreadyDecrypted else {
-                DDLogInfo("CryptoData/update/\(contentID)/group/\(groupID)/skipping already decrypted")
-                return
-            }
-            guard let timeReceived = groupFeedItemDecryption.timeReceived, timeReceived.timeIntervalSinceNow > -self.deadline else {
-                DDLogInfo("CryptoData/update/\(contentID)/group/\(groupID)/skipping past deadline")
-                return
-            }
-            groupFeedItemDecryption.rerequestCount = Int32(rerequestCount)
-            groupFeedItemDecryption.decryptionError = error
-            groupFeedItemDecryption.timeDecrypted = error == "" ? Date() : nil
-            if self.bgContext.hasChanges {
-                do {
-                    try self.bgContext.save()
-                    DDLogInfo("CryptoData/update/\(contentID)/group/\(groupID)/saved [\(error)]")
-                } catch {
-                    DDLogError("CryptoData/update/\(contentID)/group/\(groupID)/save/error [\(error)]")
                 }
             }
         }
@@ -145,14 +98,6 @@ public final class CryptoData {
     // TODO: we should make this result an enum.
     public func result(for messageID: String) -> String? {
         return fetchMessageDecryption(id: messageID, in: viewContext)?.decryptionResult
-    }
-
-    public func cryptoResult(for contentID: String) -> CryptoResult? {
-        if let error = fetchGroupFeedItemDecryption(id: contentID, in: viewContext)?.decryptionError {
-            return error.isEmpty ? .success : .failure
-        } else {
-            return nil
-        }
     }
 
     public func details(for messageID: String, dateFormatter: DateFormatter) -> String? {
@@ -286,16 +231,6 @@ public final class CryptoData {
         return container
     }()
 
-    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        guard !Thread.current.isMainThread else {
-            DDLogDebug("FeedData/performOnBackgroundContextAndWait/exit, being called from main thread")
-            return
-        }
-        let managedObjectContext = persistentContainer.newBackgroundContext()
-        managedObjectContext.automaticallyMergesChangesFromParent = true
-        managedObjectContext.performAndWait { block(managedObjectContext) }
-    }
-
     private func fetchMessageDecryption(id: String, in context: NSManagedObjectContext) -> MessageDecryption? {
         let fetchRequest: NSFetchRequest<MessageDecryption> = MessageDecryption.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "messageID == %@", id)
@@ -314,24 +249,6 @@ public final class CryptoData {
         }
     }
 
-    public func fetchGroupFeedItemDecryption(id: String, in context: NSManagedObjectContext) -> GroupFeedItemDecryption? {
-        let fetchRequest: NSFetchRequest<GroupFeedItemDecryption> = GroupFeedItemDecryption.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "contentID == %@", id)
-        fetchRequest.returnsObjectsAsFaults = false
-
-        do {
-            let results = try context.fetch(fetchRequest)
-            if results.count > 1 {
-                DDLogError("CryptoData/fetchGroupFeedItemDecryption/\(id)/error multiple-results [\(results.count) found]")
-            }
-            return results.first
-        }
-        catch {
-            DDLogError("CryptoData/fetchGroupFeedItemDecryption/\(id)/error \(error)")
-            return nil
-        }
-    }
-
     private func fetchAllMessageDecryptions(in context: NSManagedObjectContext) -> [MessageDecryption] {
         let fetchRequest: NSFetchRequest<MessageDecryption> = MessageDecryption.fetchRequest()
         fetchRequest.returnsObjectsAsFaults = false
@@ -343,21 +260,6 @@ public final class CryptoData {
             DDLogError("CryptoData/fetchAll/error \(error)")
             return []
         }
-    }
-
-    private func createGroupFeedItemDecryption(id: String, contentType: String, groupID: GroupID, timestamp: Date, in context: NSManagedObjectContext) -> GroupFeedItemDecryption? {
-        guard let name = GroupFeedItemDecryption.entity().name,
-              let decryption = NSEntityDescription.insertNewObject(forEntityName: name, into: context) as? GroupFeedItemDecryption else
-        {
-            DDLogError("CryptoData/create/error unable to create GroupFeedItemDecryption entity")
-            return nil
-        }
-        decryption.contentID = id
-        decryption.contentType = contentType
-        decryption.groupID = groupID
-        decryption.timeReceived = timestamp
-        decryption.userAgentReceiver = AppContext.userAgent
-        return decryption
     }
 
     private func createMessageDecryption(id: String, timestamp: Date, sender: UserAgent, in context: NSManagedObjectContext) -> MessageDecryption? {
@@ -431,49 +333,5 @@ extension MessageDecryption {
             rerequestCount: Int(rerequestCount),
             timeTaken: timeTaken,
             isSilent: isSilent)
-    }
-}
-
-extension GroupFeedItemDecryption {
-    func isReadyToBeReported(withDeadline deadline: TimeInterval) -> Bool {
-        guard let timeReceived = timeReceived else { return false }
-        return timeReceived.timeIntervalSinceNow < -deadline
-    }
-
-    func report(deadline: TimeInterval) -> DiscreteEvent? {
-        guard
-            let clientVersion = UserAgent(string: userAgentReceiver ?? "")?.version,
-            let timeReceived = timeReceived,
-            let contentID = contentID,
-            let contentType = contentType,
-            let groupID = groupID
-            else
-        {
-            return nil
-        }
-
-        guard isReadyToBeReported(withDeadline: deadline) else {
-            return nil
-        }
-
-        let timeTaken: TimeInterval = {
-            if let timeDecrypted = timeDecrypted {
-                return timeDecrypted.timeIntervalSince(timeReceived)
-            } else {
-                return deadline
-            }
-        }()
-
-        return .groupDecryptionReport(id: contentID,
-                                      gid: groupID,
-                                      contentType: contentType,
-                                      error: decryptionError ?? "",
-                                      clientVersion: clientVersion,
-                                      rerequestCount: Int(rerequestCount),
-                                      timeTaken: timeTaken)
-    }
-
-    public func isSuccess() -> Bool {
-        return (decryptionError ?? "").isEmpty
     }
 }

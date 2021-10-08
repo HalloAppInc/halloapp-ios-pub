@@ -1,18 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19206" systemVersion="20G165" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="GroupMessageKey" representedClassName="GroupMessageKey" syncable="YES">
-        <attribute name="chainIndex" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="messageKey" optional="YES" attributeType="Binary"/>
-        <relationship name="senderStateBundle" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SenderStateBundle" inverseName="messageKeys" inverseEntity="SenderStateBundle"/>
-    </entity>
-    <entity name="GroupSessionKeyBundle" representedClassName="GroupSessionKeyBundle" syncable="YES">
-        <attribute name="audienceHash" optional="YES" attributeType="Binary"/>
-        <attribute name="groupId" optional="YES" attributeType="String"/>
-        <attribute name="pendingUserIdsString" optional="YES" attributeType="String"/>
-        <attribute name="privateSignatureKey" optional="YES" attributeType="Binary"/>
-        <attribute name="stateValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <relationship name="senderStates" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="SenderStateBundle" inverseName="groupSessionKeyBundle" inverseEntity="SenderStateBundle"/>
-    </entity>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17511" systemVersion="19G73" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="MessageKey" representedClassName="MessageKey" syncable="YES">
         <attribute name="chainIndex" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="ephemeralKeyId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -46,14 +33,6 @@
         <attribute name="publicKey" optional="YES" attributeType="Binary"/>
         <relationship name="userKeyBundle" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserKeyBundle" inverseName="oneTimePreKeys" inverseEntity="UserKeyBundle"/>
     </entity>
-    <entity name="SenderStateBundle" representedClassName="SenderStateBundle" syncable="YES">
-        <attribute name="chainKey" optional="YES" attributeType="Binary"/>
-        <attribute name="currentChainIndex" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="publicSignatureKey" optional="YES" attributeType="Binary"/>
-        <attribute name="userId" optional="YES" attributeType="String"/>
-        <relationship name="groupSessionKeyBundle" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="GroupSessionKeyBundle" inverseName="senderStates" inverseEntity="GroupSessionKeyBundle"/>
-        <relationship name="messageKeys" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="GroupMessageKey" inverseName="senderStateBundle" inverseEntity="GroupMessageKey"/>
-    </entity>
     <entity name="SignedPreKey" representedClassName="SignedPreKey" syncable="YES">
         <attribute name="id" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="privateKey" optional="YES" attributeType="Binary"/>
@@ -70,12 +49,9 @@
         <relationship name="signedPreKeys" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SignedPreKey" inverseName="userKeyBundle" inverseEntity="SignedPreKey"/>
     </entity>
     <elements>
-        <element name="GroupMessageKey" positionX="-18" positionY="153" width="128" height="74"/>
-        <element name="GroupSessionKeyBundle" positionX="-9" positionY="162" width="128" height="119"/>
         <element name="MessageKey" positionX="-63" positionY="-18" width="128" height="103"/>
         <element name="MessageKeyBundle" positionX="0" positionY="45" width="128" height="328"/>
         <element name="OneTimePreKey" positionX="-54" positionY="-9" width="128" height="28"/>
-        <element name="SenderStateBundle" positionX="-27" positionY="144" width="128" height="119"/>
         <element name="SignedPreKey" positionX="-36" positionY="9" width="128" height="28"/>
         <element name="UserKeyBundle" positionX="-18" positionY="27" width="128" height="28"/>
     </elements>

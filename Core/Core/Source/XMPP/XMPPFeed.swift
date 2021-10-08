@@ -19,23 +19,13 @@ public enum PostContent {
     case unsupported(Data)
 }
 
-// It is a bit confusing to use this in some places and other status in some places.
-// TODO: murali@: we should somehow unify it everywhere.
-public enum FeedItemStatus: Int16 {
-    case none = 0
-    case sent = 1               // feedItem is sent and acked.
-    case received = 2           // feedItem is received fine - decrypted fine if we received encrypted payload.
-    case sendError = 3          // feedItem could not be sent.
-    case rerequesting = 4       // feedItem is being rerequested
-}
-
 public struct PostData {
 
     // MARK: FeedItem
     public let id: FeedPostID
     public let userId: UserID
     public var timestamp: Date = Date()
-    public var  status: FeedItemStatus
+
     public let isShared: Bool
 
     // MARK: FeedPost
@@ -88,29 +78,27 @@ public struct PostData {
         }
     }
 
-    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), status: FeedItemStatus, isShared: Bool = false) {
+    public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), isShared: Bool = false) {
         self.id = id
         self.userId = userId
         self.content = content
         self.timestamp = timestamp
-        self.status = status
         self.isShared = isShared
     }
 
-    public init?(_ serverPost: Server_Post, status: FeedItemStatus, isShared: Bool = false) {
+    public init?(_ serverPost: Server_Post, isShared: Bool = false) {
         self.init(id: serverPost.id,
                   userId: UserID(serverPost.publisherUid),
                   timestamp: Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp)),
                   payload: serverPost.payload,
-                  status: status,
                   isShared: isShared)
     }
 
-    public init?(id: String, userId: UserID, timestamp: Date, payload: Data, status: FeedItemStatus, isShared: Bool = false) {
+    public init?(id: String, userId: UserID, timestamp: Date, payload: Data, isShared: Bool = false) {
         guard let processedContent = PostData.extractContent(postId: id, payload: payload) else {
             return nil
         }
-        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, status: status, isShared: isShared)
+        self.init(id: id, userId: userId, content: processedContent, timestamp: timestamp, isShared: isShared)
     }
 
     public static func extractContent(postId: String, payload: Data) -> PostContent? {
@@ -298,7 +286,6 @@ public struct CommentData {
     public let id: FeedPostCommentID
     public let userId: UserID
     public var timestamp: Date = Date()
-    public var  status: FeedItemStatus
 
     // MARK: FeedComment
     public let feedPostId: FeedPostID
@@ -345,28 +332,26 @@ public struct CommentData {
         }
     }
 
-    public init(id: FeedPostCommentID, userId: UserID, timestamp: Date, feedPostId: FeedPostID, parentId: FeedPostCommentID?, content: CommentContent, status: FeedItemStatus) {
+    public init(id: FeedPostCommentID, userId: UserID, timestamp: Date = Date(), feedPostId: FeedPostID, parentId: FeedPostCommentID?, content: CommentContent) {
         self.id = id
         self.userId = userId
         self.timestamp = timestamp
         self.feedPostId = feedPostId
         self.parentId = parentId
         self.content = content
-        self.status = status
     }
 
-    public init?(_ serverComment: Server_Comment, status: FeedItemStatus) {
+    public init?(_ serverComment: Server_Comment) {
         // do we need fallback for some of these ids to the clients_container?
         self.init(id: serverComment.id,
                   userId: UserID(serverComment.publisherUid),
                   feedPostId: serverComment.postID,
                   parentId: serverComment.parentCommentID.isEmpty ? nil : serverComment.parentCommentID,
                   timestamp: Date(timeIntervalSince1970: TimeInterval(serverComment.timestamp)),
-                  payload: serverComment.payload,
-                  status: status)
+                  payload: serverComment.payload)
     }
 
-    public init?(id: String, userId: UserID, feedPostId: String, parentId: String?, timestamp: Date, payload: Data, status: FeedItemStatus) {
+    public init?(id: String, userId: UserID, feedPostId: String, parentId: String?, timestamp: Date, payload: Data) {
         self.id = id
         self.userId = userId
         self.timestamp = timestamp
@@ -376,7 +361,6 @@ public struct CommentData {
             return nil
         }
         self.content = processedContent
-        self.status = status
     }
     
     public static func extractContent(commentId: String, payload: Data) -> CommentContent? {
@@ -424,33 +408,6 @@ public struct CommentData {
         } else {
             DDLogError("Unrecognized comment (no comment or comment container set)")
             return nil
-        }
-    }
-}
-
-
-extension Server_GroupFeedItem {
-    var contentId: String? {
-        switch self.item {
-        case .post(let post): return post.id
-        case .comment(let comment): return comment.id
-        default: return nil
-        }
-    }
-
-    var publisherUid: UserID? {
-        switch self.item {
-        case .post(let post): return UserID(post.publisherUid)
-        case .comment(let comment): return UserID(comment.publisherUid)
-        default: return nil
-        }
-    }
-
-    var encryptedPayload: Data? {
-        switch self.item {
-        case .post(let post): return post.encPayload
-        case .comment(let comment): return comment.encPayload
-        default: return nil
         }
     }
 }

@@ -55,23 +55,6 @@ extension UNMutableNotificationContent {
         DDLogInfo("UNExtensions/populateChatBody updated title: \(title), subtitle: \(subtitle), body: \(body)")
     }
 
-    func populateFeedPostBody(from postData: PostData, using metadata: NotificationMetadata, contactStore: ContactStore) {
-        metadata.populateFeedPostBody(from: postData, contactStore: contactStore)
-        subtitle = metadata.subtitle
-        body = metadata.body
-        // encode and store metadata - this will be used to handle user response on the notification.
-        userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
-        DDLogInfo("UNExtensions/populateFeedPostBody updated title: \(title), subtitle: \(subtitle), body: \(body)")
-    }
-
-    func populateFeedCommentBody(from commentData: CommentData, using metadata: NotificationMetadata, contactStore: ContactStore) {
-        metadata.populateFeedCommentBody(from: commentData, contactStore: contactStore)
-        body = metadata.body
-        // encode and store metadata - this will be used to handle user response on the notification.
-        userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
-        DDLogInfo("UNExtensions/populateFeedCommentBody updated title: \(title), subtitle: \(subtitle), body: \(body)")
-    }
-
 }
 
 extension UNUserNotificationCenter {
@@ -175,41 +158,6 @@ extension Localizations {
             "groups.add.notification",
             value: "You were added to a new group",
             comment: "Text shown in notification when the user is added to a new group")
-    }
-
-    static var newPostNotificationBody: String {
-        NSLocalizedString(
-            "notification.new.post",
-            value: "New Post",
-            comment: "Title for the new feed post notification.")
-    }
-
-    static var newCommentNotificationBody: String {
-        NSLocalizedString(
-            "notification.new.comment",
-            value: "New Comment",
-            comment: "Title for the new comment notification.")
-    }
-
-    static var newCommentWithTextNotificationBody: String {
-        NSLocalizedString(
-            "notification.commented.with.text",
-            value: "Commented: %@",
-            comment: "Push notification for a new comment. Parameter is the text of the comment")
-    }
-
-    static var newMessageNotificationBody: String {
-        NSLocalizedString(
-            "notification.new.message",
-            value: "New Message",
-            comment: "Fallback text for new message notification.")
-    }
-
-    static var newAudioNoteNotificationBody: String {
-        NSLocalizedString(
-            "notification.voicenote",
-            value: "🎤 Voice note",
-            comment: "New post notification text when post is a voice note.")
     }
 
 }

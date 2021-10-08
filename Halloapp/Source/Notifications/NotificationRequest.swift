@@ -22,22 +22,9 @@ final class NotificationRequest {
         switch metadata.contentType {
         case .chatMessage:
             guard let clientChatContainer = metadata.protoContainer?.chatContainer else {
-                DDLogError("NotificationRequest/createAndShow/clientChatContainer is empty")
-                break
+                return
             }
             notificationContent.populateChatBody(from: clientChatContainer.chatContent, using: metadata, contactStore: MainAppContext.shared.contactStore)
-        case .groupFeedPost:
-            guard let postData = metadata.postData() else {
-                DDLogError("NotificationRequest/createAndShow/postData is empty")
-                break
-            }
-            notificationContent.populateFeedPostBody(from: postData, using: metadata, contactStore: MainAppContext.shared.contactStore)
-        case .groupFeedComment:
-            guard let commentData = metadata.commentData() else {
-                DDLogError("NotificationRequest/createAndShow/commentData is empty")
-                break
-            }
-            notificationContent.populateFeedCommentBody(from: commentData, using: metadata, contactStore: MainAppContext.shared.contactStore)
         default:
             break
         }

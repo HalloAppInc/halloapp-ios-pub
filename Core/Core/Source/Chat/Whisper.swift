@@ -12,55 +12,7 @@ import Foundation
 import Sodium
 
 final class Whisper {
-    static let audienceHashLength = 6 // audienceHash is 6 bytes.
 
-    /// Sign and encrypt data for group feed
-    static func signAndEncrypt(_ unencrypted: Data, session: GroupOutgoingSession) -> Result<(encryptedData: Data, chainKey: Data), EncryptionError> {
-
-        // TODO: (murali@): updates logs with first few bytes of the keys only?
-        DDLogInfo("Whisper/signAndEncrypt/currentChainIndex [\(session.currentChainIndex)]")
-        DDLogInfo("Whisper/signAndEncrypt/chainKey [\(session.senderKey.chainKey.bytes)...]")
-        DDLogInfo("Whisper/signAndEncrypt/privateSignKey [\(session.privateSigningKey.bytes)...]")
-
-        // Sign plainText
-        let sodium = Sodium()
-        guard let signature = sodium.sign.signature(message: unencrypted.bytes, secretKey: session.privateSigningKey.bytes) else {
-            DDLogError("Whisper/signAndEncrypt/signing plainText data failed")
-            return .failure(.signing)
-        }
-
-        DDLogInfo("Whisper/signAndEncrypt/lengths \(unencrypted.count) + \(signature.count)")
-        // Obtain signedPlainText
-        var signed = unencrypted.bytes
-        signed.append(contentsOf: signature)
-        guard let symmetricRatchet = symmetricRatchet(chainKey: session.senderKey.chainKey.bytes, style: .group),
-              let messageKey = MessageKeyContents(data: Data(symmetricRatchet.messageKey)) else {
-            DDLogError("Whisper/signAndEncrypt/ratchetFailure")
-            return .failure(.ratchetFailure)
-        }
-
-        // Encrypt signedPlainText
-        guard let encrypted = try? AES(key: messageKey.aesKey, blockMode: CBC(iv: messageKey.iv), padding: .pkcs7).encrypt(Array(signed)) else {
-            DDLogError("Whisper/signAndEncrypt/aesError")
-            return .failure(.aesError)
-        }
-
-        // Compute MAC for encryptedData
-        guard let HMAC = try? CryptoSwift.HMAC(key: messageKey.hmac, variant: .sha256).authenticate([UInt8](encrypted)) else {
-            DDLogError("Whisper/signAndEncrypt/hmacError")
-            return .failure(.hmacError)
-        }
-
-        var data = Int32(session.currentChainIndex).asBigEndianData
-        data += encrypted
-        data += HMAC
-
-        // TODO: (murali@): remove this eventually!
-        DDLogVerbose("Whisper/signAndEncrypt/success/data: \(data.bytes)")
-        return .success((encryptedData: data, chainKey: Data(symmetricRatchet.updatedChainKey)))
-    }
-
-    /// Encrypt 1-1 message
     static func encrypt(_ unencrypted: Data, keyBundle: KeyBundle) -> Result<(encryptedData: Data, chainKey: Data), EncryptionError> {
 
         DDLogInfo("Whisper/encrypt/outboundChainIndex [\(keyBundle.outboundChainIndex)]")
@@ -95,7 +47,6 @@ final class Whisper {
         return .success((encryptedData: data, chainKey: Data(symmetricRatchet.updatedChainKey)))
     }
 
-    /// Decrypt 1-1 message
     static func decrypt(_ payload: EncryptedPayload, keyBundle: KeyBundle, messageKeys: MessageKeyMap) -> Result<(data: Data, keyBundle: KeyBundle, messageKeys: MessageKeyMap), DecryptionFailure> {
 
         var updatedKeyBundle: KeyBundle
@@ -136,139 +87,6 @@ final class Whisper {
         } catch {
             return .failure(.init(.aesError, ephemeralKey: payload.ephemeralPublicKey))
         }
-    }
-
-    /// Decrypt data from group
-    static func decrypt(_ payload: EncryptedGroupPayload, senderState: GroupIncomingSenderState) -> Result<(data: Data, senderState: GroupIncomingSenderState), DecryptionError> {
-
-        // TODO: add logs with keys used for decryption?
-        var updatedSenderState: GroupIncomingSenderState
-
-        switch ratchetSenderState(senderState, to: payload.chainIndex) {
-        case .failure(let error):
-            DDLogError("Whisper/decryptGroup/ratchetSenderState/error \(error)")
-            return .failure(error)
-        case .success(let senderState):
-            DDLogInfo("Whisper/decryptGroup/ratchetSenderState/success")
-            updatedSenderState = senderState
-        }
-
-        guard let messageKeyData = updatedSenderState.unusedMessageKeys[payload.chainIndex],
-              let messageKey = MessageKeyContents(data: messageKeyData) else
-        {
-            DDLogError("Whisper/decryptGroup/error missingMessageKey")
-            return .failure(.missingMessageKey)
-        }
-        updatedSenderState.unusedMessageKeys[payload.chainIndex] = nil
-        let signatureKey = updatedSenderState.senderKey.publicSignatureKey
-
-        // TODO: (murali@): change these logs to only log prefix of these keys.
-        DDLogInfo("Whisper/decryptGroup/messageKey [\(messageKey.data.bytes)...]")
-        DDLogInfo("Whisper/decryptGroup/publicSignKey [\(signatureKey.bytes)...]")
-
-        let calculatedHMAC: Array<UInt8>
-        do {
-            // Calculate HMAC
-            calculatedHMAC = try CryptoSwift
-                .HMAC(key: messageKey.hmac, variant: .sha256)
-                .authenticate(payload.encryptedSignedMessage.bytes)
-        } catch {
-            DDLogError("Whisper/decryptGroup/error hmacMismatch")
-            return .failure(.hmacMismatch)
-        }
-
-        // Verify HMAC
-        guard payload.hmac.bytes == calculatedHMAC else {
-            DDLogError("Whisper/decryptGroup/error hmacMismatch")
-            return .failure(.hmacMismatch)
-        }
-
-        do {
-            // Decrypt data
-            let aes = try AES(key: messageKey.aesKey, blockMode: CBC(iv: messageKey.iv), padding: .pkcs7)
-            let decrypted = try aes.decrypt(payload.encryptedSignedMessage.bytes)
-
-            // Obtain signedPayload
-            guard let signedPayload = SignedPayload(data: Data(decrypted)) else {
-                DDLogError("Whisper/decryptGroup/error invalidPayload")
-                return .failure(.invalidPayload)
-            }
-
-            // Verify signature
-            let sodium = Sodium()
-            if sodium.sign.verify(message: signedPayload.payload.bytes, publicKey: signatureKey.bytes, signature: signedPayload.signature.bytes) {
-                let data = signedPayload.payload
-                DDLogInfo("Whisper/decryptGroup/success")
-                return .success((data: data, senderState: updatedSenderState))
-            } else {
-                DDLogError("Whisper/decryptGroup/error signatureMisMatch")
-                return .failure(.signatureMisMatch)
-            }
-
-        } catch {
-            DDLogError("Whisper/decryptGroup/error aesError")
-            return .failure(.aesError)
-        }
-    }
-
-    static func setupGroupOutgoingSession(for groupId: GroupID, memberKeys: [UserID : Data]) -> GroupOutgoingSession? {
-        DDLogInfo("Whisper/setupGroupOutgoingSession/groupId: \(groupId), memberCount: \(memberKeys.count)")
-
-        // Compute audienceHash
-        guard let audienceHash = computeAudienceHash(memberKeys: memberKeys) else {
-            DDLogError("Whisper/setupGroupOutgoingSession/groupId: \(groupId), audienceHash is nil")
-            return nil
-        }
-
-        // Generate signingKeyPair
-        let sodium = Sodium()
-        guard let signKeyPair = sodium.sign.keyPair() else {
-            DDLogError("Whisper/setupGroupOutgoingSession/keyPairGenerationFailed")
-            return nil
-        }
-
-        // Generate random bytes for chainKey
-        guard let chainKey = sodium.randomBytes.buf(length: 32) else {
-            DDLogError("Whisper/setupGroupOutgoingSession/randomBytesGenerationFailed")
-            return nil
-        }
-
-        // setup outgoingSession
-        let senderKey = GroupSenderKey(chainKey: Data(chainKey),
-                                       publicSignatureKey: Data(signKeyPair.publicKey))
-        let outgoingSession = GroupOutgoingSession(audienceHash: audienceHash,
-                                                   senderKey: senderKey,
-                                                   currentChainIndex: 0,
-                                                   privateSigningKey: Data(signKeyPair.secretKey))
-        DDLogInfo("Whisper/setupGroupOutgoingSession/success, audienceHash: \(audienceHash.toHexString())")
-        return outgoingSession
-    }
-
-    static func computeAudienceHash(memberKeys: [UserID : Data]) -> Data? {
-        if memberKeys.isEmpty {
-            DDLogError("Whisper/computeAudienceHash/memberKeys is empty")
-            return nil
-        }
-
-        // Start with empty data array.
-        // TODO: murali@: name this constant somewhere or compute it.
-        var xorOfKeys = Data(count: 32)
-        for (userID, memberKeySerialized) in memberKeys {
-            DDLogInfo("Whisper/computeAudienceHash/member - \(userID)")
-            do {
-                let memberIdentityKey = try Server_IdentityKey(serializedData: memberKeySerialized)
-                let memberKey = memberIdentityKey.publicKey
-                xorOfKeys = xorOfKeys ^ memberKey
-            } catch {
-                DDLogError("Whisper/computeAudienceHash/memberKeySerialized is invalid, userID: \(userID)")
-                return nil
-            }
-        }
-
-        // audienceHash is the first 6 bytes of sha256 value.
-        let audienceHash = Data(CryptoSwift.Hash.sha256(xorOfKeys.bytes)).prefix(audienceHashLength)
-        DDLogInfo("Whisper/computeAudienceHash/success, audienceHash: \(audienceHash.toHexString())")
-        return audienceHash
     }
 
     static func initiateSessionSetup(
@@ -461,31 +279,6 @@ final class Whisper {
         return .success(keyBundle)
     }
 
-    private static func ratchetSenderState(_ senderState: GroupIncomingSenderState, to chainIndex: Int32) -> Result<GroupIncomingSenderState, DecryptionError> {
-        var newSenderState = senderState
-        DDLogInfo("Whisper/ratchetSenderState/begin/startIndex: \(newSenderState.currentChainIndex), endIndex: \(chainIndex)")
-
-        let ratchetDiff = Int(chainIndex) + 1 - newSenderState.currentChainIndex
-        if ratchetDiff > 100 {
-            DDLogError("Whisper/ratchetSenderState/group/error/very large difference: \(ratchetDiff)")
-            return .failure(.ratchetFailure)
-        }
-
-        // ratchet one more than the chainIndex - so that we take the messageKey and store it inside the state.
-        while newSenderState.currentChainIndex < chainIndex + 1 {
-            guard let symmetricRatchet = Self.symmetricRatchet(chainKey: newSenderState.senderKey.chainKey.bytes, style: .group) else {
-                DDLogError("Whisper/ratchetSenderState/group/error - ratchet failure, chainkey: \(newSenderState.senderKey.chainKey.bytes)")
-                return .failure(.ratchetFailure)
-            }
-            newSenderState.unusedMessageKeys[Int32(newSenderState.currentChainIndex)] = Data(symmetricRatchet.messageKey)
-            newSenderState.senderKey.chainKey = Data(symmetricRatchet.updatedChainKey)
-            newSenderState.currentChainIndex += 1
-        }
-        DDLogInfo("Whisper/ratchetSenderState/end/finalIndex: \(newSenderState.currentChainIndex), unusedMessageKeysCount: \(newSenderState.unusedMessageKeys.count)")
-
-        return .success(newSenderState)
-    }
-
     private static func ratchetKeyBundle(_ keyBundle: KeyBundle, for payload: EncryptedPayload) -> Result<(KeyBundle, MessageKeyMap), DecryptionError> {
 
         guard keyBundle.phase == .keyAgreement ||
@@ -666,25 +459,11 @@ final class Whisper {
         return (rootKey, firstChainKey, secondChainKey)
     }
 
-    // MARK: Ratcheting
-
-    private enum RatchetStyle {
-        case oneToOne
-        case group
-    }
-
-    private static func symmetricRatchet(chainKey: [UInt8], style: RatchetStyle = .oneToOne) -> (messageKey: [UInt8], updatedChainKey: [UInt8])? {
-        let messageInfo, chainInfo: Array<UInt8>
-        switch style {
-        case .oneToOne:
-            messageInfo = [0x01]
-            chainInfo = [0x02]
-        case .group:
-            messageInfo = [0x03]
-            chainInfo = [0x04]
-        }
-        guard let messageKey = try? HKDF(password: chainKey, info: messageInfo, keyLength: 80, variant: .sha256).calculate() else { return nil }
-        guard let updatedChainKey = try? HKDF(password: chainKey, info: chainInfo, keyLength: 32, variant: .sha256).calculate() else { return nil }
+    private static func symmetricRatchet(chainKey: [UInt8]) -> (messageKey: [UInt8], updatedChainKey: [UInt8])? {
+        let infoOne: Array<UInt8> = [0x01]
+        let infoTwo: Array<UInt8> = [0x02]
+        guard let messageKey = try? HKDF(password: chainKey, info: infoOne, keyLength: 80, variant: .sha256).calculate() else { return nil }
+        guard let updatedChainKey = try? HKDF(password: chainKey, info: infoTwo, keyLength: 32, variant: .sha256).calculate() else { return nil }
         return (messageKey, updatedChainKey)
     }
 
@@ -723,46 +502,6 @@ struct MessageKeyContents {
         return Data(aesKey + hmac + iv)
     }
 }
-
-
-struct EncryptedGroupPayload {
-    var chainIndex: Int32
-    var hmac: Data
-    var encryptedSignedMessage: Data
-
-    init?(data: Data) {
-        // 4 byte chain index + 32 byte HMAC
-        guard data.count >= 36 else {
-            DDLogError("Whisper/encryptedGroupPayload/error too small [\(data.count)]")
-            return nil
-        }
-
-        self.chainIndex = Int32(bigEndian: data[0...4].withUnsafeBytes { $0.load(as: Int32.self) })
-
-        let encryptedPayloadWithoutHeader = data.dropFirst(4)
-        self.hmac = encryptedPayloadWithoutHeader.suffix(32)
-        self.encryptedSignedMessage = encryptedPayloadWithoutHeader.dropLast(32)
-    }
-}
-
-
-struct SignedPayload {
-    var payload: Data
-    var signature: Data
-
-    init?(data: Data) {
-        // payload + signatureLength
-        let signatureLength = 64 // 64 bytes signature
-        guard data.count > signatureLength else {
-            DDLogError("Whisper/SignedPayload/error too small [\(data.count)]")
-            return nil
-        }
-
-        self.signature = data.suffix(signatureLength)
-        self.payload = data.dropLast(signatureLength)
-    }
-}
-
 
 struct EncryptedPayload {
     var ephemeralPublicKey: Data
@@ -803,34 +542,5 @@ extension KeyBundle {
 private extension Int32 {
     var asBigEndianData: Data {
         withUnsafeBytes(of: bigEndian) { Data($0) }
-    }
-}
-
-
-extension Data {
-    // Extension to compute bitwise or of two data arrays.
-    // TODO: murali@: clean this up to return nil if arrays dont match.
-    static func ^ (left: Data, right: Data) -> Data {
-        var result: Data = Data()
-        var smaller: Data, bigger: Data
-        if left.count <= right.count {
-            smaller = left
-            bigger = right
-        } else {
-            smaller = right
-            bigger = left
-        }
-
-        let bs:[UInt8] = Array(smaller)
-        let bb:[UInt8] = Array (bigger)
-        var br = [UInt8] ()
-        for i in 0..<bs.count {
-            br.append(bs[i] ^ bb[i])
-        }
-        for j in bs.count..<bb.count {
-            br.append(bb[j])
-        }
-        result = Data(br)
-        return result
     }
 }

@@ -12,12 +12,9 @@ import CoreData
 extension SharedFeedComment {
     public enum Status: Int16 {
         case none = 0
-        case sent = 1               // comment is sent and acked.
-        case received = 2           // comment is received but we did not send an ack yet.
-        case sendError = 3          // comment could not be sent.
-        case acked = 4              // comment has been acked.
-        case decryptionError = 5    // comment could not be decrypted.
-        case rerequesting = 6       // we sent a rerequest and an ack for a comment that could not be decrypted.
+        case sent = 1
+        case received = 2
+        case sendError = 3
     }
     @nonobjc public class func fetchRequest() -> NSFetchRequest<SharedFeedComment> {
         return NSFetchRequest<SharedFeedComment>(entityName: "SharedFeedComment")

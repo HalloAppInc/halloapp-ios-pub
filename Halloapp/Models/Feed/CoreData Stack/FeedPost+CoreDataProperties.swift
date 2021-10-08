@@ -24,7 +24,6 @@ extension FeedPost {
         case seenSending = 7
         case seen = 8
         case unsupported = 9
-        case rerequesting = 10
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPost> {
@@ -43,7 +42,6 @@ extension FeedPost {
     @NSManaged var unreadCount: Int32
     @NSManaged var info: FeedPostInfo?
     @NSManaged var rawData: Data?
-    @NSManaged public var resendAttempts: Set<FeedItemResendAttempt>?
     @NSManaged private var statusValue: Int16
     var status: Status {
         get {
@@ -57,12 +55,6 @@ extension FeedPost {
     var isPostRetracted: Bool {
         get {
             return self.status == .retracted
-        }
-    }
-
-    var isRerequested: Bool {
-        get {
-            return self.status == .rerequesting
         }
     }
 
@@ -119,23 +111,12 @@ extension FeedPost {
         }
     }
 
-    public var feedItemStatus: FeedItemStatus {
-        switch status {
-        case .none, .unsupported: return .none
-        case .sending, .sent, .seenSending: return .sent
-        case .sendError: return .sendError
-        case .incoming, .seen, .retracted, .retracting: return .received
-        case .rerequesting: return .rerequesting
-        }
-    }
-
     public var postData: PostData {
         return PostData(
             id: id,
             userId: userId,
             content: postContent,
-            timestamp: timestamp,
-            status: feedItemStatus)
+            timestamp: timestamp)
     }
 
     public var orderedMentions: [FeedMentionProtocol] {
@@ -167,23 +148,6 @@ extension FeedPost {
 
     @objc(removeComments:)
     @NSManaged func removeFromComments(_ values: NSSet)
-
-}
-
-// MARK: Generated accessors for resendAttempts
-extension FeedPost {
-
-    @objc(addResendAttemptsObject:)
-    @NSManaged public func addToResendAttempts(_ value: FeedItemResendAttempt)
-
-    @objc(removeResendAttemptsObject:)
-    @NSManaged public func removeFromResendAttempts(_ value: FeedItemResendAttempt)
-
-    @objc(addResendAttempts:)
-    @NSManaged public func addToResendAttempts(_ values: NSSet)
-
-    @objc(removeResendAttempts:)
-    @NSManaged public func removeFromResendAttempts(_ values: NSSet)
 
 }
 
