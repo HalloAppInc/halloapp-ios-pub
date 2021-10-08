@@ -53,13 +53,13 @@
 "app.ios.settings" = "Einstellungen";
 
 /* Placeholder text for when the archive is empty */
-"archive.empty.placeholder" = "Deine archivierten Beiträge werden hier angezeigt";
+"archive.empty.placeholder" = "Archivierte Beiträge erscheinen hier";
 
 /* Archive navigation label */
 "archive.title.label" = "Archiv";
 
 /* Label shown on the cancel action */
-"audio.control.cancel" = "wischen zum abbrechen";
+"audio.control.cancel" = "wischen zum Abbrechen";
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Keine Verbindung";
@@ -839,7 +839,7 @@
 "nux.activity.center.icon" = "Hallo!";
 
 /* Shown on chats list when there are no contacts or messages to display */
-"nux.chat.empty" = "Deine Kontakte & Nachrichten erscheinen hier";
+"nux.chat.empty" = "Deine Kontakte und Nachrichten erscheinen hier";
 
 /* Text for new user popup pointing at chat list */
 "nux.chat.list" = "Hier findest du Nachrichten von deinen Freunden und deiner Familie. Du siehst hier auch wenn sich jemand neu bei HalloApp angemeldet hat.";
@@ -863,7 +863,7 @@
 "picker.access.denied.settings" = "Einstellungen";
 
 /* Alert title in media picker when access is denied. */
-"picker.access.denied.title" = "Zugriff auf Fotos verweigert";
+"picker.access.denied.title" = "Zugriff auf Fotos nicht möglich";
 
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Du hast HalloApp den Zugriff auf eine bestimmte Anzahl von Fotos und Videos gewährt.";
@@ -887,7 +887,7 @@
 "picker.media.limit.title" = "Maximale Anzahl ausgewählt";
 
 /* An option to update limited access. */
-"picker.media.limit.updateSelection" = "Bild- & Videoauswahl aktualisieren";
+"picker.media.limit.updateSelection" = "Bild- und Videoauswahl aktualisieren";
 
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "picker.media.n.limit";
@@ -923,7 +923,7 @@
 "profile.help.faq" = "FAQ";
 
 /* Item in Profile > Help screen. */
-"profile.help.feedback" = "Feedback & Logs teilen";
+"profile.help.feedback" = "Feedback und Logs teilen";
 
 /* Item in Profile > Help screen. */
 "profile.help.pp" = "Datenschutzrichtlinie";
