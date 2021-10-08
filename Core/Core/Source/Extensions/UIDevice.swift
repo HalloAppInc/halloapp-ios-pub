@@ -48,6 +48,10 @@ extension UIDevice {
         case "iPhone13,2":                              return "iPhone 12"
         case "iPhone13,3":                              return "iPhone 12 Pro"
         case "iPhone13,4":                              return "iPhone 12 Pro Max"
+        case "iPhone14,2":                              return "iPhone 13 Pro"
+        case "iPhone14,3":                              return "iPhone 13 Pro Max"
+        case "iPhone14,4":                              return "iPhone 13 Mini"
+        case "iPhone14,5":                              return "iPhone 13"
         default:                                        return identifierStr
         }
     }
