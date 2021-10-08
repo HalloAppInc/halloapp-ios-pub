@@ -793,6 +793,10 @@ private struct PendingMention {
     var range: NSRange
 }
 
+fileprivate struct Constants {
+    static let textViewTextColor = UIColor.label.withAlphaComponent(0.9)
+}
+
 fileprivate struct TextView: UIViewRepresentable {
     @Binding var mediaItems: [PendingMedia]
     @Binding var pendingMention: PendingMention?
@@ -818,7 +822,7 @@ fileprivate struct TextView: UIViewRepresentable {
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.font = PostComposerLayoutConstants.getFontSize(
             textSize: input.value.text.count, isPostWithMedia: mediaItems.count > 0)
-        textView.textColor = UIColor.label.withAlphaComponent(0.9)
+        textView.textColor = Constants.textViewTextColor
         textView.text = input.value.text
         textView.textContainerInset.bottom = PostComposerLayoutConstants.postTextVerticalPadding
         return textView
@@ -888,6 +892,20 @@ fileprivate struct TextView: UIViewRepresentable {
             mentionPicker.isHidden = mentionableUsers.isEmpty
         }
 
+        private func updateWithMarkdown(_ textView: UITextView) {
+            guard textView.markedTextRange == nil else { return } // account for IME
+            let font = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
+            let color = Constants.textViewTextColor
+
+            let ham = HAMarkdown(font: font, color: color)
+            if let text = textView.text {
+                if let selectedRange = textView.selectedTextRange {
+                    textView.attributedText = ham.parseInPlace(text)
+                    textView.selectedTextRange = selectedRange
+                }
+            }
+        }
+
         private func acceptMentionPickerItem(_ item: MentionableUser) {
             let input = parent.input.value
             guard let mentionCandidateRange = input.rangeOfMentionCandidateAtCurrentPosition() else {
@@ -913,7 +931,6 @@ fileprivate struct TextView: UIViewRepresentable {
                 Mentions.isPotentialMatch(fullName: $0.fullName, input: trimmedInput)
             }
         }
-
 
         // MARK: UITextViewDelegate
 
@@ -947,6 +964,7 @@ fileprivate struct TextView: UIViewRepresentable {
 
             TextView.recomputeTextViewSizes(textView, textSize: parent.input.value.text.count, isPostWithMedia: parent.mediaItems.count > 0, height: parent.textHeight)
             updateMentionPickerContent()
+            updateWithMarkdown(textView)
         }
 
         func textViewDidChangeSelection(_ textView: UITextView) {

@@ -3602,9 +3602,11 @@ extension ChatData {
         DDLogInfo("ChatData/group/processGroupJoinAction")
         let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
         
+        var membersAdded: [UserID] = []
         for xmppGroupMember in xmppGroup.members ?? [] {
             guard xmppGroupMember.action == .join else { continue }
 
+            membersAdded.append(xmppGroupMember.userId)
             // add pushname first before recording message since user could be new
             var contactNames = [UserID:String]()
             if let name = xmppGroupMember.name, !name.isEmpty {
@@ -3618,33 +3620,47 @@ extension ChatData {
             recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
         }
 
+        // Update group crypto state.
+        if !membersAdded.isEmpty {
+            AppContext.shared.messageCrypter.addMembers(userIds: membersAdded, in: xmppGroup.groupId)
+        }
         getAndSyncGroup(groupId: xmppGroup.groupId)
     }
 
     private func processGroupLeaveAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
         
         _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
-        
+
+        var membersRemoved: [UserID] = []
         for xmppGroupMember in xmppGroup.members ?? [] {
-            DDLogDebug("ChatData/group/process/new/add-member [\(xmppGroupMember.userId)]")
+            DDLogDebug("ChatData/group/process/new/leave-member [\(xmppGroupMember.userId)]")
             guard xmppGroupMember.action == .leave else { continue }
             deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
             
             recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
-            
+
+            membersRemoved.append(xmppGroupMember.userId)
             if xmppGroupMember.userId != MainAppContext.shared.userData.userId {
                 getAndSyncGroup(groupId: xmppGroup.groupId)
             }
         }
-    
+
+        // Update group crypto state.
+        if !membersRemoved.isEmpty {
+            AppContext.shared.messageCrypter.removeMembers(userIds: membersRemoved, in: xmppGroup.groupId)
+        }
+        // TODO: murali@: should we clear our crypto session here?
+        // but what if messages arrive out of order from the server.
     }
 
     private func processGroupModifyMembersAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
         DDLogDebug("ChatData/group/processGroupModifyMembersAction")
         let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
 
+        var membersAdded: [UserID] = []
+        var membersRemoved: [UserID] = []
         for xmppGroupMember in xmppGroup.members ?? [] {
-            DDLogDebug("ChatData/group/process/modifyMembers [\(xmppGroupMember.userId)]")
+            DDLogDebug("ChatData/group/process/modifyMembers [\(xmppGroupMember.userId)]/action: \(String(describing: xmppGroupMember.action))")
 
             // add pushname first before recording message since user could be new
             var contactNames = [UserID:String]()
@@ -3657,8 +3673,10 @@ extension ChatData {
 
             switch xmppGroupMember.action {
             case .add:
+                membersAdded.append(xmppGroupMember.userId)
                 processGroupAddMemberAction(chatGroup: group, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
             case .remove:
+                membersRemoved.append(xmppGroupMember.userId)
                 deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
             case .promote:
                 if let foundMember = group.members?.first(where: { $0.userId == xmppGroupMember.userId }) {
@@ -3679,6 +3697,14 @@ extension ChatData {
             }
         }
 
+        // Always add members to group crypto session first and then remove members.
+        // This ensures that we clear our outgoing state for sure!
+        if !membersAdded.isEmpty {
+            AppContext.shared.messageCrypter.addMembers(userIds: membersAdded, in: xmppGroup.groupId)
+        }
+        if !membersRemoved.isEmpty {
+            AppContext.shared.messageCrypter.removeMembers(userIds: membersRemoved, in: xmppGroup.groupId)
+        }
         getAndSyncGroup(groupId: xmppGroup.groupId)
     }
 

@@ -24,6 +24,7 @@ public struct ServerProperties {
         case contactSyncFrequency = "contact_sync_frequency"
         case isVoiceNotesEnabled = "voice_notes"
         case isMediaCommentsEnabled = "media_comments"
+        case sendClearTextGroupFeedContent = "cleartext_group_feed"
     }
 
     private struct UserDefaultsKey {
@@ -47,6 +48,7 @@ public struct ServerProperties {
         static let contactSyncFrequency: TimeInterval = 24 * 3600
         static let isVoiceNotesEnabled = false
         static let isMediaCommentsEnabled = false
+        static let sendClearTextGroupFeedContent = true
     }
 
     // MARK: Storage
@@ -212,5 +214,9 @@ public struct ServerProperties {
 
     public static var isMediaCommentsEnabled: Bool {
         ServerProperties.bool(forKey: .isMediaCommentsEnabled) ?? Defaults.isVoiceNotesEnabled
+    }
+
+    public static var sendClearTextGroupFeedContent: Bool {
+        ServerProperties.bool(forKey: .sendClearTextGroupFeedContent) ?? Defaults.sendClearTextGroupFeedContent
     }
 }

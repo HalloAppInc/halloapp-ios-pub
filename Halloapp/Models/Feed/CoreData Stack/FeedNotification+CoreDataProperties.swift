@@ -165,7 +165,10 @@ extension FeedNotification {
 
             let textRange = (result.string as NSString).range(of: "<$text$>")
             if textRange.location != NSNotFound {
-                result.replaceCharacters(in: textRange, with: textWithMentions?.string ?? "")
+                let ham = HAMarkdown(font: baseFont, color: UIColor.label)
+                let textWithMentions = textWithMentions?.string ?? ""
+                let parsedText = ham.parse(textWithMentions)
+                result.replaceCharacters(in: textRange, with: parsedText)
             }
             
             let strLen = 50

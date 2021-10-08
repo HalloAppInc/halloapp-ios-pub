@@ -100,6 +100,7 @@ class EditGroupViewController: UIViewController {
         view.textAlignment = .left
         view.backgroundColor = .secondarySystemGroupedBackground
         view.font = UIFont.preferredFont(forTextStyle: .body)
+        view.textColor = .label
         view.tintColor = .systemBlue
         view.layer.cornerRadius = 10
 
@@ -168,6 +169,20 @@ class EditGroupViewController: UIViewController {
             countRow.isHidden = false
         } else {
             countRow.isHidden = true
+        }
+    }
+
+    private func updateWithMarkdown() {
+        guard textView.markedTextRange == nil else { return } // account for IME
+        let font = UIFont.preferredFont(forTextStyle: .body)
+        let color = UIColor.label
+
+        let ham = HAMarkdown(font: font, color: color)
+        if let text = textView.text {
+            if let selectedRange = textView.selectedTextRange {
+                textView.attributedText = ham.parseInPlace(text)
+                textView.selectedTextRange = selectedRange
+            }
         }
     }
 

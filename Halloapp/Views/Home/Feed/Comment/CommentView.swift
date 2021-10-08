@@ -82,6 +82,7 @@ class CommentView: UIView {
     let textCommentLabel: TextLabel = {
         let label = TextLabel()
         label.numberOfLines = 0
+        label.textColor = UIColor.red
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -258,6 +259,9 @@ class CommentView: UIView {
             self.mediaCarouselView = nil
         }
 
+        let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: feedPostComment.id)
+        let feedPostCommentText = feedPostComment.text + cryptoResultString
+
         if let feedCommentMedia = feedPostComment.media,
            let media = MainAppContext.shared.feedData.media(commentID: feedPostComment.id),
            feedCommentMedia.count > 0 {
@@ -310,15 +314,19 @@ class CommentView: UIView {
             }
 
             // Text below media
-            if !feedPostComment.text.isEmpty {
+            if !feedPostCommentText.isEmpty {
                 let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                    feedPostComment.text,
+                    feedPostCommentText,
                     mentions: Array(feedPostComment.mentions ?? Set()))
 
                 let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
                 let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
                 let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
-                textCommentLabel.attributedText = textWithMentions?.with(font: font, color: .label).applyingFontForMentions(boldFont)
+                if let attrText = textWithMentions?.with(font: font, color: .label) {
+                    let ham = HAMarkdown(font: font, color: .label)
+                    textCommentLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
+                }
+
                 textCommentLabel.delegate = self
                 vStack.insertArrangedSubview(textCommentLabel, at: vStack.arrangedSubviews.count - 1)
                 vStack.setCustomSpacing(4, after: mediaView)
@@ -335,12 +343,14 @@ class CommentView: UIView {
 
             attributedText.append(NSAttributedString(string: " "))
 
-            if let commentText = MainAppContext.shared.contactStore.textWithMentions(feedPostComment.text, mentions: Array(feedPostComment.mentions ?? Set())),
+            if let commentText = MainAppContext.shared.contactStore.textWithMentions(feedPostCommentText, mentions: Array(feedPostComment.mentions ?? Set())),
                 !feedPostComment.isRetracted
             {
-                attributedText.append(commentText.with(font: baseFont).applyingFontForMentions(nameFont))
+                let ham = HAMarkdown(font: baseFont, color: .label)
+                let attrStr = ham.parse(commentText.with(font: baseFont))
+                attributedText.append(attrStr.applyingFontForMentions(nameFont))
             }
-
+    
             attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
             nameTextLabel.attributedText = attributedText
         }
@@ -372,7 +382,8 @@ class CommentView: UIView {
             deletedCommentTextLabel.text = Localizations.commentIsBeingDeleted
         case .unsupported:
             showDeletedView()
-            let attributedText = NSMutableAttributedString(string: "⚠️ " + Localizations.commentIsNotSupported)
+            let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: comment.id)
+            let attributedText = NSMutableAttributedString(string: "⚠️ " + Localizations.commentIsNotSupported + cryptoResultString)
             if let url = AppContext.appStoreURL {
                 let link = NSMutableAttributedString(string: Localizations.linkUpdateYourApp)
                 link.addAttribute(.link, value: url, range: link.utf16Extent)
@@ -383,6 +394,9 @@ class CommentView: UIView {
                 font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable,
                 color: .secondaryLabel)
         case .incoming, .sendError, .sending, .sent, .none, .played:
+            hideDeletedView()
+        case .rerequesting:
+            // TODO: murali@: need to fix the UI accordingly in the future.
             hideDeletedView()
         }
         
@@ -553,15 +567,21 @@ class CommentsTableHeaderView: UIView {
         }
 
         // Text
-        if let feedPostText = feedPost.text, !feedPostText.isEmpty {
+        let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: feedPost.id)
+        let postTextWithCryptoResult = (feedPost.text ?? "") + cryptoResultString
+        if !postTextWithCryptoResult.isEmpty {
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                feedPostText,
+                postTextWithCryptoResult,
                 mentions: feedPost.orderedMentions)
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
-            textLabel.attributedText = textWithMentions?.with(font: font, color: .label).applyingFontForMentions(boldFont)
+
+            if let attrText = textWithMentions?.with(font: font, color: .label) {
+                let ham = HAMarkdown(font: font, color: .label)
+                textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
+            }
 
             vStack.insertArrangedSubview(textLabel, at: vStack.arrangedSubviews.count - 1)
         } else {

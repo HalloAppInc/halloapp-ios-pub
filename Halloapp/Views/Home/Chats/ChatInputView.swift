@@ -9,6 +9,7 @@ import AVKit
 import CocoaLumberjackSwift
 import Combine
 import Core
+import MarkdownKit
 import UIKit
 
 fileprivate struct Constants {
@@ -258,7 +259,21 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
             }
         }
     }
-    
+
+    private func updateWithMarkdown() {
+        guard textView.markedTextRange == nil else { return } // account for IME
+        let font = textView.font ?? UIFont.preferredFont(forTextStyle: TextFontStyle)
+        let color = UIColor.label // do not use textView.textColor directly as that changes when attributedText changes color
+
+        let ham = HAMarkdown(font: font, color: color)
+        if let text = textView.text {
+            if let selectedRange = textView.selectedTextRange {
+                textView.attributedText = ham.parseInPlace(text)
+                textView.selectedTextRange = selectedRange // keeps cursor in original position
+            }
+        }
+    }
+
     class ContainerView: UIView {
         fileprivate weak var delegate: ContainerViewDelegate?
 
@@ -737,7 +752,9 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     
     func showQuoteFeedPanel(with userId: String, text: String, mediaType: ChatMessageMediaType?, mediaUrl: URL?, groupID: GroupID? = nil, from viewController: UIViewController) {
         quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
-        quoteFeedPanelTextLabel.text = text
+
+        let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .subheadline), color: UIColor.secondaryLabel)
+        quoteFeedPanelTextLabel.attributedText = ham.parse(text)
 
         if userId == MainAppContext.shared.userData.userId {
             quoteFeedPanelNameLabel.textColor = .chatOwnMsg
@@ -829,6 +846,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         textView.text = text
         placeholder.isHidden = true
         updatePostButtons()
+        updateWithMarkdown()
     }
     
     var text: String {
@@ -1080,10 +1098,10 @@ extension ChatInputView: InputTextViewDelegate {
     func inputTextViewDidEndEditing(_ inputTextView: InputTextView) {
         inputTextView.text = inputTextView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         placeholder.isHidden = !inputTextView.text.isEmpty
+        updateWithMarkdown()
     }
-    
-    func inputTextViewDidChange(_ inputTextView: InputTextView) {
 
+    func inputTextViewDidChange(_ inputTextView: InputTextView) {
         placeholder.isHidden = !inputTextView.text.isEmpty
         textIsUneditedReplyMention = false
         updateMentionPickerContent()
@@ -1119,15 +1137,16 @@ extension ChatInputView: InputTextViewDelegate {
         }
 
         updatePostButtons()
+        updateWithMarkdown()
     }
     
     func inputTextViewDidChangeSelection(_ inputTextView: InputTextView) {
     }
-    
+
     func inputTextView(_ inputTextView: InputTextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         return true
     }
-    
+
 }
 
 // MARK: AudioRecorderControlViewDelegate

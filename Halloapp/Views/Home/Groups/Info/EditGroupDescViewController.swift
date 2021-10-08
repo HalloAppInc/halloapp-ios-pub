@@ -73,6 +73,7 @@ class EditGroupDescViewController: UIViewController {
         textView.becomeFirstResponder()
         
         updateCount()
+        updateWithMarkdown()
     }
     
     private lazy var mainView: UIStackView = {
@@ -169,6 +170,20 @@ class EditGroupDescViewController: UIViewController {
             countRow.isHidden = true
         }
     }
+    
+    private func updateWithMarkdown() {
+        guard textView.markedTextRange == nil else { return } // account for IME
+        let font = UIFont.preferredFont(forTextStyle: .body)
+        let color = UIColor.label
+
+        let ham = HAMarkdown(font: font, color: color)
+        if let text = textView.text {
+            if let selectedRange = textView.selectedTextRange {
+                textView.attributedText = ham.parseInPlace(text)
+                textView.selectedTextRange = selectedRange
+            }
+        }
+    }
 
 }
 
@@ -176,6 +191,7 @@ extension EditGroupDescViewController: UITextViewDelegate {
 
     func textViewDidChange(_ textView: UITextView) {
         updateCount()
+        updateWithMarkdown()
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
     }
 

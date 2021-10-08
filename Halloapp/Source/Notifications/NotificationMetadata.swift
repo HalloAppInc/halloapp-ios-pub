@@ -102,11 +102,15 @@ class NotificationMetadata: Codable {
     var messageId: String?
     var pushName: String?
     var serverMsgPb: Data?
+    var rerequestCount: Int32 = 0
 
     // Chat specific fields
     var pushNumber: String?
     var serverChatStanzaPb: Data? = nil
     var senderClientVersion: String? = nil
+
+    // GroupFeedItem specific fields
+    var serverGroupFeedItemPb: Data? = nil
 
 
     // Fields to set in the actual UNMutableNotificationContent
@@ -239,6 +243,7 @@ class NotificationMetadata: Codable {
             return nil
         }
         messageId = msg.id
+        rerequestCount = msg.rerequestCount
         switch msg.payload {
 
         case .contactList(let contactList):
@@ -321,7 +326,7 @@ class NotificationMetadata: Codable {
                 }
                 fromId = UserID(post.publisherUid)
                 timestamp = Date(timeIntervalSince1970: TimeInterval(post.timestamp))
-                data = post.payload
+                data = post.payload.isEmpty ? nil : post.payload
                 pushName = post.publisherName
             case .comment(let comment):
                 contentId = comment.id
@@ -337,7 +342,7 @@ class NotificationMetadata: Codable {
                 }
                 fromId = UserID(comment.publisherUid)
                 timestamp = Date(timeIntervalSince1970: TimeInterval(comment.timestamp))
-                data = comment.payload
+                data = comment.payload.isEmpty ? nil : comment.payload
                 pushName = comment.publisherName
             default:
                 DDLogError("NotificationMetadata/init/groupFeedItem Invalid item, message: \(msg)")
@@ -345,6 +350,12 @@ class NotificationMetadata: Codable {
             }
             groupId = groupFeedItem.gid
             groupName = groupFeedItem.name
+            do {
+                serverGroupFeedItemPb = try groupFeedItem.serializedData()
+            } catch {
+                DDLogError("NotificationMetadata/init/groupFeedItem could not serialize payload: \(msg)")
+                return nil
+            }
         case .chatStanza(let chatMsg):
             contentId = msg.id
             contentType = .chatMessage
@@ -465,64 +476,23 @@ class NotificationMetadata: Codable {
 
         switch contentType {
 
-        // Post on user feed or group feed
-        case .feedPost, .groupFeedPost:
-            let mentions: [FeedMentionProtocol] = postData?.orderedMentions ?? []
-            let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: mentions)
-            let newPostString = NSLocalizedString("notification.new.post", value: "New Post", comment: "Title for the new feed post notification.")
+        // Post on user feed
+        case .feedPost:
+            populateFeedPostBody(from: postData(), contactStore: contactStore)
+        // Comment on user feed
+        case .feedComment:
+            populateFeedCommentBody(from: commentData(), contactStore: contactStore)
+        // Post on group feed
+        case .groupFeedPost:
+            body = String(format: Localizations.newPostNotificationBody)
+        // Comment on group feed
+        case .groupFeedComment:
+            body = String(format: Localizations.newCommentNotificationBody)
 
-            switch postData?.content {
-            case .text(let mentionText, _):
-                subtitle = newPostString
-                body = mentionText.expandedText(nameProvider: mentionNameProvider).string
-            case .album(let mentionText, let feedMediaData):
-                subtitle = newPostString
-                body = mentionText.expandedText(nameProvider: mentionNameProvider).string
-                let knownMediaTypes = feedMediaData.compactMap { NotificationMediaType(feedMediaType: $0.type) }
-                if !knownMediaTypes.isEmpty {
-                    // Display how many photos and videos post contains if there's no caption.
-                    if body.isEmpty {
-                        body = Self.notificationBody(forMedia: knownMediaTypes)
-                    } else if let firstMediaType = knownMediaTypes.first {
-                        let mediaIcon = Self.mediaIcon(firstMediaType)
-                        body = "\(mediaIcon) \(body)"
-                    }
-                }
-            case .none, .retracted, .unsupported(_):
-                subtitle = ""
-                body = newPostString
-            }
-
-        // Comment on user feed or group feed
-        case .feedComment, .groupFeedComment:
-            let mentions: [FeedMentionProtocol] = commentData?.orderedMentions ?? []
-            let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: mentions)
-            let newCommentString = NSLocalizedString("notification.new.comment", value: "New Comment", comment: "Title for the new comment notification.")
-
-            switch commentData?.content {
-            case .text(let mentionText, _):
-                let commentText = mentionText.expandedText(nameProvider: mentionNameProvider).string
-                body = String(format: NSLocalizedString("notification.commented.with.text", value: "Commented: %@", comment: "Push notification for a new comment. Parameter is the text of the comment"), commentText)
-            case .album(let mentionText, let feedCommentMediaData):
-                var commentText = mentionText.expandedText(nameProvider: mentionNameProvider).string
-                let knownMediaTypes = feedCommentMediaData.compactMap { NotificationMediaType(feedMediaType: $0.type) }
-                if !knownMediaTypes.isEmpty {
-                    // Display how many photos and videos comment contains if there's no caption.
-                    if commentText.isEmpty {
-                        commentText = Self.notificationBody(forMedia: knownMediaTypes)
-                    } else if let firstMediaType = knownMediaTypes.first {
-                        let mediaIcon = Self.mediaIcon(firstMediaType)
-                        commentText = "\(mediaIcon) \(commentText)"
-                    }
-                }
-                body = String(format: NSLocalizedString("notification.commented.with.text", value: "Commented: %@", comment: "Push notification for a new comment. Parameter is the text of the comment"), commentText)
-            case .none, .retracted, .unsupported, .voiceNote:
-                body = newCommentString
-            }
         // ChatMessage or GroupChatMessage
         case .chatMessage, .groupChatMessage:
             // Fallback text in case decryption fails.
-            body = String(format: NSLocalizedString("notification.new.message", value: "New Message", comment: "Fallback text for new message notification."))
+            body = String(format: Localizations.newMessageNotificationBody)
 
         // Contact notification for new friend or new invitee
         case .newFriend, .newInvitee, .newContact:
@@ -559,7 +529,68 @@ class NotificationMetadata: Codable {
         guard let text = Self.bodyText(from: chatContent, contactStore: contactStore) else {
             return
         }
-        body = text
+        let ham = HAMarkdown(font: .systemFont(ofSize: 17), color: .label)
+        let bodyText = ham.parse(text).string // strips out markdown symbols
+        body = bodyText
+    }
+
+    func populateFeedPostBody(from postData: PostData?, contactStore: ContactStore) {
+        let mentions: [FeedMentionProtocol] = postData?.orderedMentions ?? []
+        let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: mentions)
+        let newPostString = Localizations.newPostNotificationBody
+        switch postData?.content {
+        case .text(let mentionText, _):
+            subtitle = newPostString
+            let ham = HAMarkdown(font: .systemFont(ofSize: 17), color: .label)
+            let expandedText = mentionText.expandedText(nameProvider: mentionNameProvider).string
+            let bodyText = ham.parse(expandedText).string // strips out markdown symbols
+            body = bodyText
+        case .album(let mentionText, let feedMediaData):
+            subtitle = newPostString
+            body = mentionText.expandedText(nameProvider: mentionNameProvider).string
+            let knownMediaTypes = feedMediaData.compactMap { NotificationMediaType(feedMediaType: $0.type) }
+            if !knownMediaTypes.isEmpty {
+                // Display how many photos and videos post contains if there's no caption.
+                if body.isEmpty {
+                    body = Self.notificationBody(forMedia: knownMediaTypes)
+                } else if let firstMediaType = knownMediaTypes.first {
+                    let mediaIcon = Self.mediaIcon(firstMediaType)
+                    body = "\(mediaIcon) \(body)"
+                }
+            }
+        case .none, .retracted, .unsupported(_):
+            subtitle = ""
+            body = newPostString
+        }
+    }
+
+    func populateFeedCommentBody(from commentData: CommentData?, contactStore: ContactStore) {
+        let mentions: [FeedMentionProtocol] = commentData?.orderedMentions ?? []
+        let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: mentions)
+        let newCommentString = Localizations.newCommentNotificationBody
+
+        switch commentData?.content {
+        case .text(let mentionText, _):
+            let commentText = mentionText.expandedText(nameProvider: mentionNameProvider).string
+            body = String(format: Localizations.newCommentWithTextNotificationBody, commentText)
+        case .album(let mentionText, let feedCommentMediaData):
+            var commentText = mentionText.expandedText(nameProvider: mentionNameProvider).string
+            let knownMediaTypes = feedCommentMediaData.compactMap { NotificationMediaType(feedMediaType: $0.type) }
+            if !knownMediaTypes.isEmpty {
+                // Display how many photos and videos comment contains if there's no caption.
+                if commentText.isEmpty {
+                    commentText = Self.notificationBody(forMedia: knownMediaTypes)
+                } else if let firstMediaType = knownMediaTypes.first {
+                    let mediaIcon = Self.mediaIcon(firstMediaType)
+                    commentText = "\(mediaIcon) \(commentText)"
+                }
+            }
+            body = String(format: Localizations.newCommentWithTextNotificationBody, commentText)
+        case .voiceNote(_):
+            body = String(format: Localizations.newCommentWithTextNotificationBody, Localizations.newAudioNoteNotificationBody)
+        case .none, .retracted, .unsupported:
+            body = newCommentString
+        }
     }
 
     static func bodyText(from chatContent: ChatContent, contactStore: ContactStore) -> String? {
@@ -577,7 +608,7 @@ class NotificationMetadata: Codable {
             }()
             return [mediaIcon, text].compactMap { $0 }.joined(separator: " ")
         case .voiceNote(_):
-            return NSLocalizedString("notification.voicenote", value: "🎤 Voice note", comment: "New post notification text when post is a voice note.")
+            return Localizations.newAudioNoteNotificationBody
         case .unsupported:
             DDLogInfo("NotificationMetadata/bodyText/unsupported")
             return nil
@@ -677,14 +708,15 @@ extension NotificationMetadata {
         }
     }
 
-    var postData: PostData? {
+    func postData(status: FeedItemStatus = .received) -> PostData? {
         if contentType == .feedPost || contentType == .groupFeedPost {
             guard let data = data,
                   let timestamp = timestamp,
                   let postData = PostData(id: contentId,
                                           userId: fromId,
                                           timestamp: timestamp,
-                                          payload: data) else
+                                          payload: data,
+                                          status: status) else
             {
                 DDLogError("postData is null \(debugDescription)")
                 return nil
@@ -695,7 +727,7 @@ extension NotificationMetadata {
         }
     }
 
-    var commentData: CommentData? {
+    func commentData(status: FeedItemStatus = .received) -> CommentData? {
         if contentType == .feedComment || contentType == .groupFeedComment {
             guard let data = data,
                   let timestamp = timestamp,
@@ -705,7 +737,8 @@ extension NotificationMetadata {
                                                 feedPostId: postId,
                                                 parentId: parentId,
                                                 timestamp: timestamp,
-                                                payload: data) else
+                                                payload: data,
+                                                status: status) else
             {
                 DDLogError("CommentData is null \(debugDescription)")
                 return nil

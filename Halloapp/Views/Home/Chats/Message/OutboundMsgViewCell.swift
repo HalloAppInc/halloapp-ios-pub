@@ -9,6 +9,7 @@
 import AVFoundation
 import Combine
 import Core
+import MarkdownKit
 import UIKit
 import CocoaLumberjackSwift
 
@@ -472,10 +473,12 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             
             quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
 
-            let mentionText = MainAppContext.shared.contactStore.textWithMentions(
+            if let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.text,
-                mentions: quoted.orderedMentions)
-            quotedTextView.attributedText = mentionText?.with(font: quotedTextView.font, color: quotedTextView.textColor)
+                mentions: quoted.orderedMentions) {
+                let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .footnote), color: UIColor.systemGray)
+                quotedTextView.attributedText = ham.parse(mentionText)
+            }
 
             let text = quotedTextView.text ?? ""
             if text.count <= 3 && text.containsOnlyEmoji {
@@ -531,10 +534,8 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                             color: UIColor.systemGray)
                     }
                 }
-
-
             }
-            
+
             quotedRow.isHidden = false
         }
         
@@ -703,7 +704,11 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             attrText.append(NSMutableAttributedString(string: padStr, attributes: [.font: padTimeFont, .paragraphStyle: paragraph]))
         }
 
-        textView.attributedText = attrText
+        if let font = textView.font, let color = textView.textColor {
+            let ham = HAMarkdown(font: font, color: color)
+            textView.attributedText = ham.parse(attrText)
+        }
+
         if !showTextRTL {
             textView.makeTextWritingDirectionLeftToRight(nil)
         } else {
@@ -749,7 +754,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         quotedNameLabel.textColor = .label
         quotedNameLabel.text = ""
         quotedTextView.font = UIFont.preferredFont(forTextStyle: .footnote)
-        quotedTextView.text = ""
+        quotedTextView.attributedText = nil
         quotedImageView.isHidden = true
 
         mediaImageView.reset()
@@ -760,7 +765,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
         textView.textColor = UIColor.chatOwnMsg
-        textView.text = ""
+        textView.attributedText = nil
 
         voiceNoteView.delegate = nil
         voiceNoteRow.removeFromSuperview()
@@ -828,3 +833,4 @@ extension OutboundMsgViewCell {
         return abs(Float(velocity.x)) > abs(Float(velocity.y))
     }
 }
+

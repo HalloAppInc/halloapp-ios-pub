@@ -14,6 +14,10 @@ import Social
 import Intents
 import IntentsUI
 
+fileprivate struct Constants {
+    static let textViewTextColor = UIColor.label.withAlphaComponent(0.9)
+}
+
 private extension Localizations {
     static var titleDestinationFeed: String {
         NSLocalizedString("share.composer.title.feed", value: "New Post", comment: "Composer title when sharing to feed")
@@ -359,7 +363,7 @@ class ShareComposerViewController: UIViewController {
         let textView = UITextView()
         textView.translatesAutoresizingMaskIntoConstraints = false
         textView.font = .preferredFont(forTextStyle: .body)
-        textView.textColor = UIColor.label.withAlphaComponent(0.9)
+        textView.textColor = Constants.textViewTextColor
         textView.text = text
         textView.textContainerInset = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
         textView.delegate = self
@@ -708,6 +712,22 @@ class ShareComposerViewController: UIViewController {
         updateMentionPickerContent()
     }
 
+    // MARK: Markdown
+
+    private func updateWithMarkdown() {
+        guard textView.markedTextRange == nil else { return } // account for IME
+        let font = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
+        let color = Constants.textViewTextColor
+
+        let ham = HAMarkdown(font: font, color: color)
+        if let text = textView.text {
+            if let selectedRange = textView.selectedTextRange {
+                textView.attributedText = ham.parseInPlace(text)
+                textView.selectedTextRange = selectedRange
+            }
+        }
+    }
+
     // MARK: Actions
 
     @objc func shareAction() {
@@ -909,6 +929,7 @@ extension ShareComposerViewController: UITextViewDelegate {
         textViewHeightConstraint.constant = computeTextViewHeight()
 
         updateMentionPickerContent()
+        updateWithMarkdown()
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {

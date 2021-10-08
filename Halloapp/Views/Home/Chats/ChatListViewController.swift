@@ -537,6 +537,7 @@ extension ChatListViewController: UISearchResultsUpdating {
 // MARK: UISearchController SearchBar Delegates
 extension ChatListViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchController.isActive = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             self?.scrollToTop(animated: false)
         }

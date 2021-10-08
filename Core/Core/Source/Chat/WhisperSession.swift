@@ -13,6 +13,7 @@ private enum WhisperTask {
     case encryption(Data, EncryptionCompletion)
     case decryption(EncryptedData, DecryptionCompletion)
     case getSessionSetupInfoForRerequest(((Data, Int)?) -> Void)
+    case resetSession
 }
 
 public final class WhisperSession {
@@ -136,6 +137,23 @@ public final class WhisperSession {
         }
     }
 
+    public func resetWhisperSession() {
+        // reset 1-1 session completely
+        sessionQueue.async {
+            switch self.state {
+            case .ready:
+                // We should add this to the pendingTasks.
+                self.pendingTasks.append(.resetSession)
+            case .awaitingSetup:
+                // We should add this to the pendingTasks.
+                self.pendingTasks.append(.resetSession)
+            case .retrievingKeys:
+                // We are resetting our outboundSetup here already - so we can ignore this task.
+                break
+            }
+        }
+    }
+
     public func reloadKeysFromKeyStore() {
         sessionQueue.async {
             // Dont overwrite the state when current target is currently retrieving keys.
@@ -248,6 +266,10 @@ public final class WhisperSession {
                     executeDecryption(data, completion: completion)
                 case .getSessionSetupInfoForRerequest(let completion):
                     completion(nil)
+                case .resetSession:
+                    DDLogInfo("WhisperSession/\(userID)/execute/resetSession - (needs outbound setup)")
+                    self.teardown(nil)
+                    self.setupOutbound()
                 }
             case .ready(let keyBundle, let messageKeys):
                 switch task {
@@ -259,6 +281,10 @@ public final class WhisperSession {
                     executeDecryption(data, completion: completion)
                 case .getSessionSetupInfoForRerequest(let completion):
                     completion((keyBundle.outboundEphemeralPublicKey, Int(keyBundle.outboundOneTimePreKeyId)))
+                case .resetSession:
+                    DDLogInfo("WhisperSession/\(userID)/execute/resetSession - (needs outbound setup)")
+                    self.teardown(nil)
+                    self.setupOutbound()
                 }
             }
             pendingTasks.removeFirst()

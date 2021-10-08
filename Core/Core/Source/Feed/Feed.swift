@@ -340,6 +340,17 @@ public enum FeedElementType: Int {
     case comment = 1
 }
 
+extension FeedElementType {
+    public var rawString: String {
+        switch self {
+        case .post:
+            return "post"
+        case .comment:
+            return "comment"
+        }
+    }
+}
+
 public enum FeedElementID {
     case post(FeedPostID)
     case comment(FeedPostCommentID)
@@ -348,6 +359,11 @@ public enum FeedElementID {
 public enum FeedElement {
     case post(PostData)
     case comment(CommentData, publisherName: String?)
+}
+
+public enum FeedContent {
+    case newItems([FeedElement])
+    case retracts([FeedRetract])
 }
 
 public enum FeedRetract {
@@ -477,6 +493,7 @@ public extension CommentData {
             comment.parentCommentID = parentID
         }
         comment.postID = feedPostId
+        comment.publisherUid = Int64(userId) ?? 0
         comment.timestamp = Int64(timestamp.timeIntervalSince1970)
         if let payload = try? clientContainer.serializedData() {
             comment.payload = payload
