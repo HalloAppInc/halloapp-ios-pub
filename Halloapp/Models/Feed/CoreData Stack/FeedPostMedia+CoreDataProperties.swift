@@ -108,6 +108,8 @@ extension FeedPostMedia: FeedMediaProtocol {
                 return "\(feedPost.id)-\(order)"
             } else if let feedComment = comment {
                 return "\(feedComment.id)-\(order)"
+            } else if let feeLinkPreview = linkPreview {
+                return "\(feeLinkPreview.id)-\(order)"
             } else {
                 DDLogError("FeedPostMedia/FeedPostMedia not associated with post or comment")
                 return ""

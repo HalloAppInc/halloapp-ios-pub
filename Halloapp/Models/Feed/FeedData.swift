@@ -515,6 +515,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return feedPosts(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext, archived: archived)
     }
 
+    func feedLinkPreview(with id: FeedLinkPreviewID, in managedObjectContext: NSManagedObjectContext? = nil) -> FeedLinkPreview? {
+        let managedObjectContext = managedObjectContext ?? self.viewContext
+        let fetchRequest: NSFetchRequest<FeedLinkPreview> = FeedLinkPreview.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id)
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            let linkPreviews = try managedObjectContext.fetch(fetchRequest)
+            return linkPreviews.first
+        }
+        catch {
+            DDLogError("FeedData/fetch-link-preview/error  [\(error)]")
+            fatalError("Failed to fetch feed link preview.")
+        }
+    }
+
     func feedComment(with id: FeedPostCommentID, in managedObjectContext: NSManagedObjectContext? = nil) -> FeedPostComment? {
         let managedObjectContext = managedObjectContext ?? self.viewContext
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
@@ -1680,6 +1695,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    func media(feedLinkPreviewID: FeedLinkPreviewID) -> [FeedMedia]? {
+        if let cachedMedia = cachedMedia[feedLinkPreviewID] {
+            return cachedMedia
+        } else if let linkPreview = MainAppContext.shared.feedData.feedLinkPreview(with: feedLinkPreviewID) {
+            let media = (linkPreview.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
+            cachedMedia[feedLinkPreviewID] = media
+            return media
+        } else {
+            return nil
+        }
+    }
+
     func loadImages(postID: FeedPostID) {
         guard let media = media(postID: postID) else {
             return
@@ -1689,6 +1716,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     func loadImages(commentID: FeedPostCommentID) {
         guard let media = media(commentID: commentID) else {
+            return
+        }
+        media.forEach { $0.loadImage() }
+    }
+
+    func loadImages(feedLinkPreviewID: FeedLinkPreviewID) {
+        guard let media = media(feedLinkPreviewID: feedLinkPreviewID) else {
             return
         }
         media.forEach { $0.loadImage() }
@@ -1707,6 +1741,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             guard let feedComment = feedComment(with: commentId) else { return nil }
             guard let feedPostCommentMedia = feedComment.media?.first(where: { $0.order == mediaItem.order }) else { return nil }
             return downloadManager.currentTask(for: feedPostCommentMedia)
+        case .linkPreview(let linkPreviewId):
+            guard let feedLinkPreview = feedLinkPreview(with: linkPreviewId) else { return nil }
+            guard let feedLinkPreviewMedia = feedLinkPreview.media?.first(where: { $0.order == mediaItem.order }) else { return nil }
+            return downloadManager.currentTask(for: feedLinkPreviewMedia)
         case .none:
             return nil
         }
@@ -1797,6 +1835,39 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         downloadStarted = true
                         // Add the mediaItem to a list - so that we can reload and update their UI.
                         mediaItems.append((feedPost.id, Int(feedPostMedia.order)))
+                    }
+                }
+            }
+            feedPost.linkPreviews?.forEach { linkPreview in
+                linkPreview.media?.forEach { linkPreviewMedia in
+                    if linkPreviewMedia.url != nil && (linkPreviewMedia.status == .none || linkPreviewMedia.status == .downloading || linkPreviewMedia.status == .downloadError) {
+                        let (taskAdded, task) = downloadManager.downloadMedia(for: linkPreviewMedia, feedElementType: .linkPreview)
+                        if taskAdded {
+                            switch linkPreviewMedia.type {
+                            case .image: photosDownloaded += 1
+                            case .video: videosDownloaded += 1
+                            case .audio: audiosDownloaded += 1
+                            }
+                            if startTime == nil {
+                                startTime = Date()
+                                DDLogInfo("FeedData/downloadMedia/post/linkPreview/post: \(feedPost.id)/link: \(String(describing: linkPreview.url)) starting")
+                            }
+                            postDownloadGroup.enter()
+                            var isDownloadInProgress = true
+                            cancellableSet.insert(task.downloadProgress.sink() { progress in
+                                if isDownloadInProgress && progress == 1 {
+                                    totalDownloadSize += task.fileSize ?? 0
+                                    isDownloadInProgress = false
+                                    postDownloadGroup.leave()
+                                }
+                            })
+
+                            task.feedMediaObjectId = linkPreviewMedia.objectID
+                            linkPreviewMedia.status = .downloading
+                            downloadStarted = true
+                            // Add the mediaItem to a list - so that we can reload and update their UI.
+                            mediaItems.append((feedPost.id, Int(linkPreviewMedia.order)))
+                        }
                     }
                 }
             }
@@ -1901,6 +1972,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 }
             }
+            feedComment.linkPreviews?.forEach { linkPreview in
+                linkPreview.media?.forEach { linkPreviewMedia in
+                    if linkPreviewMedia.url != nil && (linkPreviewMedia.status == .none || linkPreviewMedia.status == .downloading || linkPreviewMedia.status == .downloadError) {
+                        let (taskAdded, task) = downloadManager.downloadMedia(for: linkPreviewMedia, feedElementType: .linkPreview)
+                        if taskAdded {
+                            task.feedMediaObjectId = linkPreviewMedia.objectID
+                            linkPreviewMedia.status = .downloading
+                            downloadStarted = true
+                        }
+                    }
+                }
+            }
         }
         // Use `downloadStarted` to prevent recursive saves when posting media.
         if managedObjectContext.hasChanges && downloadStarted {
@@ -1938,6 +2021,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return
         }
         DDLogInfo("FeedData/reloadMedia/commentId: \(feedCommentID) cache reload")
+        cachedMedia.reload(from: coreDataMedia)
+    }
+
+    func reloadMedia(feedLinkPreviewID: FeedLinkPreviewID, order: Int) {
+        DDLogInfo("FeedData/reloadMedia/feedLinkPreviewID:\(feedLinkPreviewID), order/\(order)")
+        guard let feedLinkPreview = feedLinkPreview(with: feedLinkPreviewID),
+              let coreDataMedia = feedLinkPreview.media?.first(where: { $0.order == order }),
+              let cachedMedia = media(feedLinkPreviewID: feedLinkPreviewID)?.first(where: { $0.order == order }) else
+        {
+            DDLogInfo("FeedData/reloadMedia/feedLinkPreviewID: \(feedLinkPreviewID) not reloading media cache")
+            return
+        }
+        DDLogInfo("FeedData/reloadMedia/feedLinkPreviewID: \(feedLinkPreviewID) cache reload")
         cachedMedia.reload(from: coreDataMedia)
     }
 
@@ -1989,6 +2085,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     let mediaOrder = Int(feedPostMedia.order)
                     DispatchQueue.main.async {
                         self.reloadMedia(feedCommentID: feedCommentId, order: mediaOrder)
+                    }
+                }
+            case .linkPreview:
+                if let feedLinkPreview = feedPostMedia.linkPreview {
+                    let feedLinkPreviewId = feedLinkPreview.id
+                    let mediaOrder = Int(feedPostMedia.order)
+                    DispatchQueue.main.async {
+                        self.reloadMedia(feedLinkPreviewID: feedLinkPreviewId, order: mediaOrder)
                     }
                 }
             }
@@ -2907,6 +3011,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
             feedPost.managedObjectContext?.delete(media)
         }
+        feedPost.linkPreviews?.forEach {
+            // Delete link previews if any
+            self.deleteMedia(feedLinkPreview: $0)
+            feedPost.managedObjectContext?.delete($0)
+        }
     }
     
     private func deleteMedia(feedPostComment: FeedPostComment) {
@@ -2940,6 +3049,46 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
             feedPostComment.managedObjectContext?.delete(media)
+        }
+
+        feedPostComment.linkPreviews?.forEach {
+            // Delete link previews if any
+            self.deleteMedia(feedLinkPreview: $0)
+            feedPostComment.managedObjectContext?.delete($0)
+        }
+    }
+
+    private func deleteMedia(feedLinkPreview: FeedLinkPreview) {
+        feedLinkPreview.media?.forEach { (media) in
+            // cancel any pending tasks for this media
+            DDLogInfo("FeedData/deleteMedia/feedLinkPreview-id \(feedLinkPreview.id), media-id: \(media.id)")
+            if let currentTask = downloadManager.currentTask(for: media) {
+                DDLogInfo("FeedData/deleteMedia/cancelTask/task: \(currentTask.id)")
+                currentTask.downloadRequest?.cancel(producingResumeData : false)
+            }
+            if let encryptedFilePath = media.encryptedFilePath {
+                let encryptedURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
+                do {
+                    if FileManager.default.fileExists(atPath: encryptedURL.path) {
+                        try FileManager.default.removeItem(at: encryptedURL)
+                        DDLogInfo("FeedData/delete-feedLinkPreview-media-encrypted/deleting [\(encryptedURL)]")
+                    }
+                }
+                catch {
+                    DDLogError("FeedData/delete-feedLinkPreview-media-encrypted/error [\(error)]")
+                }
+            }
+            if let relativeFilePath = media.relativeFilePath {
+                let fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+                do {
+                    try FileManager.default.removeItem(at: fileURL)
+                    DDLogInfo("FeedData/delete-feedLinkPreview-media/deleting [\(fileURL)]")
+                }
+                catch {
+                    DDLogError("FeedData/delete-feedLinkPreview-media/error [\(error)]")
+                }
+            }
+            feedLinkPreview.managedObjectContext?.delete(media)
         }
     }
     

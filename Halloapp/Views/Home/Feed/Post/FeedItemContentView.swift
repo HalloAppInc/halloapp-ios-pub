@@ -111,6 +111,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     }
 
     private var mediaView: MediaCarouselView?
+    private var postLinkPreviewView: PostLinkPreviewView?
     private var mediaViewHeightConstraint: NSLayoutConstraint?
 
     var didChangeMediaIndex: ((Int) -> Void)?
@@ -144,6 +145,16 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             }
         }
 
+        if let postLinkPreviewView = postLinkPreviewView {
+            if postId != post.id {
+                vStack.removeArrangedSubview(postLinkPreviewView)
+                postLinkPreviewView.removeFromSuperview()
+                self.postLinkPreviewView = nil
+            } else {
+                DDLogInfo("FeedItemContentView/reuse-link-preview-view post=[\(post.id)]")
+            }
+        }
+
         let media = MainAppContext.shared.feedData.media(for: post)
         if !media.isEmpty {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: media, width: contentWidth)
@@ -165,6 +176,16 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             } else {
                 // Update height on existing media view
                 mediaViewHeightConstraint?.constant = mediaViewHeight
+            }
+        } else {
+            if let feedLinkPreview = post.linkPreviews?.first {
+                if postLinkPreviewView == nil {
+                    MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
+                    let postLinkPreviewView = PostLinkPreviewView()
+                    postLinkPreviewView.configure(feedLinkPreview: feedLinkPreview)
+                    vStack.insertArrangedSubview(postLinkPreviewView, at: 1)
+                    self.postLinkPreviewView = postLinkPreviewView
+                }
             }
         }
 

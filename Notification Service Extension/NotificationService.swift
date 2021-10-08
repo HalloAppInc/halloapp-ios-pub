@@ -233,6 +233,8 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                     self.processPostDataAndInvokeHandler(postData: metadata.postData(status: .rerequesting), status: .decryptionError, metadata: metadata)
                 case .comment:
                     self.processCommentDataAndInvokeHandler(commentData: metadata.commentData(status: .rerequesting), status: .decryptionError, metadata: metadata)
+                case .linkPreview:
+                    DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/received link preview")
                 }
             }
             self.reportGroupDecryptionResult(

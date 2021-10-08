@@ -123,6 +123,10 @@ class FeedMedia: Identifiable, Hashable {
             feedElementId = .comment(feedComment.id)
             id = "\(feedComment.id)-\(order)"
         }
+        if let feedLinkPreview = feedPostMedia.linkPreview {
+            feedElementId = .linkPreview(feedLinkPreview.id)
+            id = "\(feedLinkPreview.id)-\(order)"
+        }
         type = feedPostMedia.type
         size = feedPostMedia.size
         if let relativePath = feedPostMedia.relativeFilePath {
@@ -144,6 +148,10 @@ class FeedMedia: Identifiable, Hashable {
         case .comment(let commentId):
             if let feedComment = feedPostMedia.comment {
                 assert(feedComment.id == commentId)
+            }
+        case .linkPreview(let linkPreviewId):
+            if let linkPreview = feedPostMedia.linkPreview {
+                assert(linkPreview.id == linkPreviewId)
             }
         case .none:
             DDLogError("FeedMedia/reload/feedElement of type none")
