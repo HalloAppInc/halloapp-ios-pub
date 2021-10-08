@@ -3626,7 +3626,7 @@ extension ChatData {
         _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
         
         for xmppGroupMember in xmppGroup.members ?? [] {
-            DDLogDebug("ChatData/group/process/new/add-member [\(xmppGroupMember.userId)]")
+            DDLogDebug("ChatData/group/process/new/leave-member [\(xmppGroupMember.userId)]")
             guard xmppGroupMember.action == .leave else { continue }
             deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
             
