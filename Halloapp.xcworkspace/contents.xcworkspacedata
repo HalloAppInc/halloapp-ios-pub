@@ -2,6 +2,18 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:Core/Core/Source/Chat/GroupFeedItemDecryption+CoreDataClass.swift">
+   </FileRef>
+   <FileRef
+      location = "group:Core/Core/Source/Chat/GroupFeedItemDecryption+CoreDataProperties.swift">
+   </FileRef>
+   <FileRef
+      location = "group:Core/Core/Source/MediaHash/MediaHash+CoreDataClass.swift">
+   </FileRef>
+   <FileRef
+      location = "group:Core/Core/Source/MediaHash/MediaHash+CoreDataProperties.swift">
+   </FileRef>
+   <FileRef
       location = "group:HalloApp.xcodeproj">
    </FileRef>
    <FileRef

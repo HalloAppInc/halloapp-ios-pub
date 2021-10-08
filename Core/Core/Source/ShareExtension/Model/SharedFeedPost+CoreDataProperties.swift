@@ -11,9 +11,12 @@ import CoreData
 extension SharedFeedPost {
     public enum Status: Int16 {
         case none = 0
-        case sent = 1
-        case received = 2
-        case sendError = 3
+        case sent = 1               // post is sent and acked.
+        case received = 2           // post is received but we did not send an ack yet.
+        case sendError = 3          // post could not be sent.
+        case acked = 4              // post has been acked.
+        case decryptionError = 5    // post could not be decrypted.
+        case rerequesting = 6       // we sent a rerequest and an ack for a post that could not be decrypted.
     }
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<SharedFeedPost> {
@@ -104,12 +107,23 @@ extension SharedFeedPost {
         }
     }
 
+    private var feedItemStatus: FeedItemStatus {
+        switch status {
+        case .none: return .none
+        case .sent: return .sent
+        case .sendError: return .sendError
+        case .received, .acked: return .received
+        case .decryptionError, .rerequesting: return .rerequesting
+        }
+    }
+
     public var postData: PostData {
         return PostData(
             id: id,
             userId: userId,
             content: postContent,
-            timestamp: timestamp)
+            timestamp: timestamp,
+            status: feedItemStatus)
     }
 
     public var orderedMentions: [FeedMentionProtocol] {

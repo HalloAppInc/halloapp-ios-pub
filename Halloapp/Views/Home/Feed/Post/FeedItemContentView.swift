@@ -168,9 +168,11 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             }
         }
 
-        let postContainsText = !(post.text ?? "").isEmpty
+        let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: post.id)
+        let postTextWithCryptoResult = (post.text ?? "") + cryptoResultString
+        let postContainsText = !(postTextWithCryptoResult).isEmpty
         if post.isPostUnsupported  {
-            let text = NSMutableAttributedString(string: "⚠️ " + Localizations.feedPostUnsupported)
+            let text = NSMutableAttributedString(string: "⚠️ " + Localizations.feedPostUnsupported + cryptoResultString)
 
             if let url = AppContext.appStoreURL {
                 let link = NSMutableAttributedString(string: Localizations.linkUpdateYourApp)
@@ -189,7 +191,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             let isTextExpanded = displayData?.isTextExpanded ?? false
 
             let postText = MainAppContext.shared.contactStore.textWithMentions(
-                post.text,
+                postTextWithCryptoResult,
                 mentions: post.orderedMentions)
             // With media or > 180 chars long: System 16 pt (Body - 1)
             // Text-only under 180 chars long: System 20 pt (Body + 3)
@@ -218,6 +220,23 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         postId = post.id
     }
 
+    public static func obtainCryptoResultString(for contentID: String) -> String {
+        let cryptoResultString: String
+        if ServerProperties.isInternalUser {
+            switch AppContext.shared.cryptoData.cryptoResult(for: contentID) {
+            case .success:
+                cryptoResultString = " ✅"
+            case .failure:
+                cryptoResultString = " ❌"
+            case .none:
+                cryptoResultString = ""
+            }
+        } else {
+            cryptoResultString = ""
+        }
+        return cryptoResultString
+    }
+
     private static var textContentViewForSizing = { TextContentView() }()
 
     // TODO: Optimize the `configure` function so we can just measure a view instead of duplicating all the layout logic.
@@ -229,10 +248,12 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             contentHeight += MediaCarouselView.preferredHeight(for: media, width: contentWidth)
         }
 
+        let cryptoResultString: String = obtainCryptoResultString(for: post.id)
+        let postTextWithCryptoResult = (post.text ?? "") + cryptoResultString
         let textContentView: TextContentView? = {
-            let postContainsText = !(post.text ?? "").isEmpty
+            let postContainsText = !(postTextWithCryptoResult).isEmpty
             if post.isPostUnsupported  {
-                let text = NSMutableAttributedString(string: "⚠️ " + Localizations.feedPostUnsupported)
+                let text = NSMutableAttributedString(string: "⚠️ " + Localizations.feedPostUnsupported + cryptoResultString)
 
                 if let url = AppContext.appStoreURL {
                     let link = NSMutableAttributedString(string: Localizations.linkUpdateYourApp)
@@ -252,7 +273,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             } else if postContainsText {
                 let isTextExpanded = displayData?.isTextExpanded ?? false
                 let postText = MainAppContext.shared.contactStore.textWithMentions(
-                    post.text,
+                    postTextWithCryptoResult,
                     mentions: post.orderedMentions)
                 let postFont: UIFont = {
                     let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)

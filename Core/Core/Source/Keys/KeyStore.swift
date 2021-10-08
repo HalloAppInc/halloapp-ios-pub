@@ -187,6 +187,31 @@ open class KeyStore {
         }
         return bundles.first
     }
+
+    public func groupSessionKeyBundle(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> GroupSessionKeyBundle? {
+        let managedObjectContext = managedObjectContext ?? self.viewContext
+        let fetchRequest: NSFetchRequest<GroupSessionKeyBundle> = GroupSessionKeyBundle.fetchRequest()
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let keyBundles = try managedObjectContext.fetch(fetchRequest)
+            if keyBundles.count > 1 {
+                DDLogError("KeyStore/groupKeyBundle/error multiple-bundles-for-group [\(keyBundles.count)]")
+                keyBundles[1...].forEach { managedObjectContext.delete($0) }
+            }
+            return keyBundles.first
+        }
+        catch {
+            DDLogError("KeyStore/fetch-groupKeyBundles/error  [\(error)]")
+            fatalError("Failed to fetch key bundle")
+        }
+    }
+
+    public func groupSessionKeyBundle(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext? = nil) -> GroupSessionKeyBundle? {
+        return groupSessionKeyBundle(predicate: NSPredicate(format: "groupId == %@", groupID), in: managedObjectContext)
+    }
     
     // MARK: Deleting
    
@@ -397,6 +422,72 @@ extension KeyStore {
             messageKeyBundle.outboundOneTimePreKeyId = keyBundle.outboundOneTimePreKeyId
 
             messageKeyBundle.teardownKey = keyBundle.teardownKey
+
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+}
+
+extension KeyStore {
+
+    // MARK: GroupKeys Saving
+
+    public func saveGroupSessionKeyBundle(groupID: GroupID, state: GroupSessionState, groupKeyBundle: GroupKeyBundle) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+
+            let groupSessionKeyBundle: GroupSessionKeyBundle = self.groupSessionKeyBundle(for: groupID, in: managedObjectContext) ?? NSEntityDescription.insertNewObject(forEntityName: GroupSessionKeyBundle.entity().name!, into: managedObjectContext) as! GroupSessionKeyBundle
+
+            // It is not great and feels dangerous that we delete everything and re-add them everytime.
+            // TODO: murali@: there must be a better way for sure.
+            groupSessionKeyBundle.senderStates?.forEach{ senderState in
+                senderState.messageKeys?.forEach{ messageKey in managedObjectContext.delete(messageKey) }
+                managedObjectContext.delete(senderState)
+            }
+
+            let outgoingSession = groupKeyBundle.outgoingSession
+            var senderStates = Set<SenderStateBundle>()
+            for (userID, senderState) in groupKeyBundle.incomingSession?.senderStates ?? [:] {
+                let memberSenderState = NSEntityDescription.insertNewObject(forEntityName: SenderStateBundle.entity().name!, into: managedObjectContext) as! SenderStateBundle
+                memberSenderState.userId = userID
+                memberSenderState.chainKey = senderState.senderKey.chainKey
+                memberSenderState.publicSignatureKey = senderState.senderKey.publicSignatureKey
+                memberSenderState.currentChainIndex = Int32(senderState.currentChainIndex)
+                var messageKeys = Set<GroupMessageKey>()
+                for (chainIndex, messageKey) in senderState.unusedMessageKeys {
+                    let groupMessageKey = NSEntityDescription.insertNewObject(forEntityName: GroupMessageKey.entity().name!, into: managedObjectContext) as! GroupMessageKey
+                    groupMessageKey.messageKey = messageKey
+                    groupMessageKey.chainIndex = chainIndex
+                    groupMessageKey.senderStateBundle = memberSenderState
+                    messageKeys.insert(groupMessageKey)
+                }
+                memberSenderState.messageKeys = messageKeys.isEmpty ? nil : messageKeys
+                memberSenderState.groupSessionKeyBundle = groupSessionKeyBundle
+                senderStates.insert(memberSenderState)
+            }
+
+            // Try and insert own senderState if available.
+            if outgoingSession != nil,
+               let chainKey = outgoingSession?.senderKey.chainKey,
+               let signKey = outgoingSession?.senderKey.publicSignatureKey,
+               let chainIndex = outgoingSession?.currentChainIndex {
+                let memberSenderState = NSEntityDescription.insertNewObject(forEntityName: SenderStateBundle.entity().name!, into: managedObjectContext) as! SenderStateBundle
+                memberSenderState.userId = AppContext.shared.userData.userId
+                memberSenderState.chainKey = chainKey
+                memberSenderState.publicSignatureKey = signKey
+                memberSenderState.currentChainIndex = Int32(chainIndex)
+                memberSenderState.messageKeys = nil
+                memberSenderState.groupSessionKeyBundle = groupSessionKeyBundle
+                senderStates.insert(memberSenderState)
+            }
+
+            groupSessionKeyBundle.groupId = groupID
+            groupSessionKeyBundle.state = state
+            groupSessionKeyBundle.pendingUserIds = groupKeyBundle.pendingUids
+            groupSessionKeyBundle.audienceHash = outgoingSession?.audienceHash
+            groupSessionKeyBundle.privateSignatureKey = outgoingSession?.privateSigningKey
+            groupSessionKeyBundle.senderStates = senderStates.isEmpty ? nil : senderStates
 
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)

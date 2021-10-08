@@ -20,4 +20,30 @@ public extension CountableEvent {
         let result = error?.rawValue ?? "success"
         return CountableEvent(namespace: "crypto", metric: "encryption", extraDimensions: ["result": result])
     }
+
+    static func groupDecryption(error: DecryptionError?, itemType: FeedElementType) -> CountableEvent {
+        var extraDimensions = ["result": error == nil ? "ok" : "fail"]
+        if let error = error {
+            extraDimensions["failure_reason"] = error.rawValue
+        }
+        extraDimensions["version"] = AppContext.appVersionForService
+        extraDimensions["item_type"] = itemType.rawString
+        return CountableEvent(namespace: "crypto", metric: "group_decryption", extraDimensions: extraDimensions)
+    }
+
+    static func groupEncryption(error: EncryptionError?, itemType: FeedElementType) -> CountableEvent {
+        var extraDimensions = ["result": error == nil ? "ok" : "fail"]
+        if let error = error {
+            extraDimensions["failure_reason"] = error.rawValue
+        }
+        extraDimensions["version"] = AppContext.appVersionForService
+        extraDimensions["item_type"] = itemType.rawString
+        return CountableEvent(namespace: "crypto", metric: "group_encryption", extraDimensions: extraDimensions)
+    }
+
+    static func sessionReset(_ reset: Bool) -> CountableEvent {
+        var extraDimensions = ["reset": reset ? "true" : "false"]
+        extraDimensions["version"] = AppContext.appVersionForService
+        return CountableEvent(namespace: "crypto", metric: "e2e_session", extraDimensions: extraDimensions)
+    }
 }

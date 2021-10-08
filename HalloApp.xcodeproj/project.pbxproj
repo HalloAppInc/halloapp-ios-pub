@@ -108,7 +108,11 @@
 		68F935C5252CD00800FA6E75 /* ChatMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */; };
 		68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */; };
 		6A1BFD30260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */; };
+		6A6D50D9270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6A6D50D8270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel */; };
 		6A91069D262D02170081E337 /* NotificationRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A91069C262D02170081E337 /* NotificationRequest.swift */; };
+		6A911F3C270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6A911F3B270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel */; };
+		6A911F3F270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A911F3D270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataClass.swift */; };
+		6A911F40270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A911F3E270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataProperties.swift */; };
 		6ABBD2502601DE890041B9ED /* FeedMigration.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6ABBD24F2601DE890041B9ED /* FeedMigration.xcmappingmodel */; };
 		6ABBD25F2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABBD25E2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift */; };
 		6AC68EF726399BAE0073CBE9 /* ServerStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC68EF626399BAE0073CBE9 /* ServerStrings.swift */; };
@@ -697,7 +701,12 @@
 		68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostCommentToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
 		6A38E09426F2BB6800103F30 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		6A6D50D8270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed4ToFeed6.xcmappingmodel; sourceTree = "<group>"; };
 		6A91069C262D02170081E337 /* NotificationRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationRequest.swift; sourceTree = "<group>"; };
+		6A911F31270EAD8F003DCB7A /* Feed6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed6.xcdatamodel; sourceTree = "<group>"; };
+		6A911F3B270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed5ToFeed6.xcmappingmodel; sourceTree = "<group>"; };
+		6A911F3D270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedItemResendAttempt+CoreDataClass.swift"; sourceTree = "<group>"; };
+		6A911F3E270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedItemResendAttempt+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6ABBD24A2601DD990041B9ED /* Feed2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed2.xcdatamodel; sourceTree = "<group>"; };
 		6ABBD24F2601DE890041B9ED /* FeedMigration.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = FeedMigration.xcmappingmodel; sourceTree = "<group>"; };
 		6ABBD25E2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
@@ -1388,6 +1397,8 @@
 		76DF9FEA24122E9400F49CA4 /* CoreData Stack */ = {
 			isa = PBXGroup;
 			children = (
+				6A911F3D270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataClass.swift */,
+				6A911F3E270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataProperties.swift */,
 				76538089243D4B32000AD9A1 /* FeedNotification+CoreDataClass.swift */,
 				7653808C243D4B32000AD9A1 /* FeedNotification+CoreDataProperties.swift */,
 				76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */,
@@ -1399,6 +1410,8 @@
 				7653808D243D4B32000AD9A1 /* FeedPostMedia+CoreDataClass.swift */,
 				7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */,
 				76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */,
+				6A6D50D8270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel */,
+				6A911F3B270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel */,
 				6ABBD24F2601DE890041B9ED /* FeedMigration.xcmappingmodel */,
 				6ABBD25E2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift */,
 				6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */,
@@ -2668,7 +2681,9 @@
 				EAA4906625311CD1003348B5 /* OutboundMsgViewCell.swift in Sources */,
 				F8FDA7AC26F84F0700D8B839 /* AudioRecorderTimeView.swift in Sources */,
 				EA79AEF5260E5D5200F8184F /* GroupInviteViewController.swift in Sources */,
+				6A911F40270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataProperties.swift in Sources */,
 				EA1CEF5E2617964C00BC0C79 /* GroupInvitePreviewViewController.swift in Sources */,
+				6A911F3F270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataClass.swift in Sources */,
 				EA0B9919249C205E00B05094 /* String.swift in Sources */,
 				76407DFC245CBAD40031F96A /* PhoneInputViewController.swift in Sources */,
 				F8FAA14526CCF5B5008282EF /* AudioRecorderControlView.swift in Sources */,
@@ -2713,6 +2728,7 @@
 				321A70112704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
+				6A6D50D9270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
 				76B5B5322501F1700055E712 /* NotificationSettings.swift in Sources */,
 				68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */,
@@ -2745,6 +2761,7 @@
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
 				EAA0798625AEAC9200B384AB /* GroupsListViewController.swift in Sources */,
 				329DFD56270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel in Sources */,
+				6A911F3C270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel in Sources */,
 				E5CE660226B354EC0093944A /* SettingsArchiveViewController.swift in Sources */,
 				76B5B52C2501EE790055E712 /* NotificationMetadata.swift in Sources */,
 				76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */,
@@ -4651,13 +4668,14 @@
 		76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				6A911F31270EAD8F003DCB7A /* Feed6.xcdatamodel */,
 				321A700E2704FD3A005603B8 /* Feed5.xcdatamodel */,
 				323E88D626CC175900202655 /* Feed4.xcdatamodel */,
 				68184003264B1CAF00408D31 /* Feed3.xcdatamodel */,
 				6ABBD24A2601DD990041B9ED /* Feed2.xcdatamodel */,
 				76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */,
 			);
-			currentVersion = 321A700E2704FD3A005603B8 /* Feed5.xcdatamodel */;
+			currentVersion = 6A911F31270EAD8F003DCB7A /* Feed6.xcdatamodel */;
 			path = Feed.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

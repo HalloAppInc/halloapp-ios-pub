@@ -223,7 +223,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool, displayData: FeedPostDisplayData?) {
-        DDLogVerbose("FeedPostCollectionViewCell/configure [\(post.id)]")
+        DDLogVerbose("FeedPostCollectionViewCell/configure [\(post.id)] - [\(post.media?.count ?? 0)]")
 
         postId = post.id
 

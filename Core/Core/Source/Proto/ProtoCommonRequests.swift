@@ -115,6 +115,21 @@ public final class ProtoMessageRerequest: ProtoRequest<Void> {
     }
 }
 
+public final class ProtoGroupFeedRerequest: ProtoRequest<Void> {
+
+    public init(groupID: String, contentId: String, fromUserID: UserID, toUserID: UserID, rerequestType: GroupFeedRerequestType, completion: @escaping Completion) {
+        var rerequest = Server_GroupFeedRerequest()
+        rerequest.gid = groupID
+        rerequest.id = contentId
+        rerequest.rerequestType = rerequestType
+
+        super.init(
+            iqPacket: .msgPacket(from: fromUserID, to: toUserID, type: .groupchat, payload: .groupFeedRerequest(rerequest)),
+            transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
+
 public final class ProtoLoggingRequest: ProtoRequest<Void> {
 
     public init(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping Completion) {
@@ -150,6 +165,20 @@ public final class ProtoSendNameRequest: ProtoRequest<Void> {
         super.init(
             iqPacket: .iqPacket(type: .set, payload: .name(serverName)),
             transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
+
+final class ProtoGroupMemberKeysRequest: ProtoRequest<Server_GroupStanza> {
+
+    init(groupID: GroupID, completion: @escaping Completion) {
+        var group = Server_GroupStanza()
+        group.gid = groupID
+        group.action = .getMemberIdentityKeys
+
+        super.init(
+            iqPacket: .iqPacket(type: .get, payload: .groupStanza(group)),
+            transform: { (iq) in return .success(iq.groupStanza) },
             completion: completion)
     }
 }
@@ -235,6 +264,27 @@ private extension DiscreteEvent {
             report.timeTakenS = UInt32(timeTaken)
             report.isSilent = isSilent
             return .decryptionReport(report)
+
+        case .groupDecryptionReport(let id, let gid, let contentType, let error, let clientVersion, let rerequestCount, let timeTaken):
+            var report = Server_GroupDecryptionReport()
+            // This is contentID
+            report.msgID = id
+            report.gid = gid
+            if contentType == "post" {
+                report.itemType = .post
+            } else {
+                report.itemType = .comment
+            }
+            if error.isEmpty {
+                report.result = .ok
+            } else {
+                report.result = .fail
+                report.reason = error
+            }
+            report.originalVersion = clientVersion
+            report.rerequestCount = UInt32(rerequestCount)
+            report.timeTakenS = UInt32(timeTaken)
+            return .groupDecryptionReport(report)
 
         }
     }

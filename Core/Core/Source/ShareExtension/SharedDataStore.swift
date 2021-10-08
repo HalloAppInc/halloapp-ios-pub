@@ -143,6 +143,32 @@ open class SharedDataStore {
         }
     }
 
+    public final func sharedFeedPost(for contentID: String) -> SharedFeedPost? {
+        let managedObjectContext = persistentContainer.viewContext
+        let fetchRequest: NSFetchRequest<SharedFeedPost> = SharedFeedPost.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", contentID)
+        do {
+            let feedPosts = try managedObjectContext.fetch(fetchRequest)
+            return feedPosts.first
+        } catch {
+            DDLogError("SharedDataStore/feedPosts/error  [\(error)]")
+            fatalError("Failed to fetch shared feedPosts.")
+        }
+    }
+
+    public final func sharedFeedComment(for contentID: String) -> SharedFeedComment? {
+        let managedObjectContext = persistentContainer.viewContext
+        let fetchRequest: NSFetchRequest<SharedFeedComment> = SharedFeedComment.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", contentID)
+        do {
+            let feedComments = try managedObjectContext.fetch(fetchRequest)
+            return feedComments.first
+        } catch {
+            DDLogError("SharedDataStore/feedComments/error  [\(error)]")
+            fatalError("Failed to fetch shared feedComments.")
+        }
+    }
+
     public final func serverMessages() -> [SharedServerMessage] {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedServerMessage> = SharedServerMessage.fetchRequest()
