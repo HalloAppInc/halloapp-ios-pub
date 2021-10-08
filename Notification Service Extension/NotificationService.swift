@@ -70,8 +70,8 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
 
         var invokeHandler = true
         switch metadata.contentType {
-        case .feedPost, .groupFeedPost:
-            guard let postData = metadata.postData else {
+        case .feedPost:
+            guard let postData = metadata.postData() else {
                 DDLogError("didReceiveRequest/error Invalid fields in metadata.")
                 invokeCompletionHandler()
                 return
@@ -83,23 +83,56 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 invokeCompletionHandler()
                 return
             }
-            dataStore.save(postData: postData, notificationMetadata: metadata) { sharedFeedPost in
-                if let firstMediaItem = sharedFeedPost.orderedMedia.first as? SharedMedia {
-                    let downloadTask = self.startDownloading(media: firstMediaItem)
-                    downloadTask?.feedMediaObjectId = firstMediaItem.objectID
-                } else {
-                    self.invokeCompletionHandler()
-                }
-            }
+            self.processPostDataAndInvokeHandler(postData: postData, status: .received, metadata: metadata)
             invokeHandler = false
-        case .feedComment, .groupFeedComment:
-            guard let commentData = metadata.commentData else {
+        case .feedComment:
+            guard let commentData = metadata.commentData() else {
                 DDLogError("didReceiveRequest/error Invalid fields in metadata.")
                 invokeCompletionHandler()
                 return
             }
-            dataStore.save(commentData: commentData, notificationMetadata: metadata) {_ in }
+            self.processCommentDataAndInvokeHandler(commentData: commentData, status: .received, metadata: metadata)
             invokeHandler = true
+
+        // Separate out groupFeedItems: we need to decrypt them, process and populate content accordingly.
+        case .groupFeedPost, .groupFeedComment:
+            guard metadata.messageId != nil, !metadata.contentId.isEmpty else {
+                DDLogError("didReceiveRequest/error missing messageId [\(String(describing: metadata))]")
+                dismissNotification()
+                return
+            }
+            let contentType: FeedElementType
+            if metadata.contentType == .groupFeedPost {
+                contentType = .post
+            } else {
+                contentType = .comment
+            }
+
+            if let sharedPost = dataStore.sharedFeedPost(for: metadata.contentId), sharedPost.status == .received {
+                DDLogError("didReceiveRequest/error duplicate groupFeedPost [\(metadata.contentId)]")
+                dismissNotification()
+                return
+            } else if let sharedComment = dataStore.sharedFeedComment(for: metadata.contentId), sharedComment.status == .received {
+                DDLogError("didReceiveRequest/error duplicate groupFeedComment [\(metadata.contentId)]")
+                dismissNotification()
+                return
+            }
+
+            // Decrypt and process the payload now
+            do {
+                guard let serverGroupFeedItemPb = metadata.serverGroupFeedItemPb else {
+                    DDLogError("MetadataError/could not find serverGroupFeedItem stanza, contentId: \(metadata.contentId), contentType: \(metadata.contentType)")
+                    invokeCompletionHandler()
+                    return
+                }
+                let serverGroupFeedItem = try Server_GroupFeedItem(serializedData: serverGroupFeedItemPb)
+                DDLogInfo("NotificationExtension/requesting decryptGroupFeedItem \(metadata.contentId)")
+                decryptAndProcessGroupFeedItem(contentID: metadata.contentId, contentType: contentType, item: serverGroupFeedItem, metadata: metadata)
+                invokeHandler = false
+            } catch {
+                DDLogError("NotificationExtension/ChatMessage/Failed serverChatStanzaStr: \(String(describing: metadata.serverChatStanzaPb)), error: \(error)")
+            }
+
         case .chatMessage:
             // TODO: add id as the constraint to the db and then remove this check.
             guard let messageId = metadata.messageId else {
@@ -170,6 +203,91 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             DDLogInfo("Invoking completion handler now")
             contentHandler(UNNotificationContent())
         }
+    }
+
+    // Decrypt, save and process chats!
+    private func decryptAndProcessGroupFeedItem(contentID: String, contentType: FeedElementType, item: Server_GroupFeedItem, metadata: NotificationMetadata) {
+        service?.decryptGroupFeedPayload(for: item) { content, groupDecryptionFailure in
+            if let content = content, groupDecryptionFailure == nil {
+                DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/success")
+                switch content {
+                case .newItems(let newItems):
+                    guard let newItem = newItems.first, newItems.count == 1 else {
+                        DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/too many items - invalid decrypted payload.")
+                        return
+                    }
+                    switch newItem {
+                    case .post(let postData):
+                        self.processPostDataAndInvokeHandler(postData: postData, status: .received, metadata: metadata)
+                    case .comment(let commentData, _):
+                        self.processCommentDataAndInvokeHandler(commentData: commentData, status: .received, metadata: metadata)
+                    }
+                case .retracts(_):
+                    // This is not possible - since these are never encrypted in the first place as of now.
+                    return
+                }
+            } else {
+                DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/failure \(groupDecryptionFailure.debugDescription)")
+                switch contentType {
+                case .post:
+                    self.processPostDataAndInvokeHandler(postData: metadata.postData(status: .rerequesting), status: .decryptionError, metadata: metadata)
+                case .comment:
+                    self.processCommentDataAndInvokeHandler(commentData: metadata.commentData(status: .rerequesting), status: .decryptionError, metadata: metadata)
+                }
+            }
+            self.reportGroupDecryptionResult(
+                error: groupDecryptionFailure?.error,
+                contentID: contentID,
+                itemType: contentType,
+                groupID: item.gid,
+                timestamp: Date(),
+                rerequestCount: Int(metadata.rerequestCount))
+        }
+    }
+
+    private func processPostDataAndInvokeHandler(postData: PostData?, status: SharedFeedPost.Status, metadata: NotificationMetadata) {
+        dataStore.save(postData: postData, status: status, notificationMetadata: metadata) { sharedFeedPost in
+            // If we failed to get postData successfully - then just return!
+            guard let postData = postData else {
+                DDLogError("NotificationExtension/processPostDataAndInvokeHandler/failed to get postData, contentId: \(metadata.contentId)")
+                self.invokeCompletionHandler()
+                return
+            }
+            self.bestAttemptContent.populateFeedPostBody(from: postData, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
+            if let firstMediaItem = sharedFeedPost.orderedMedia.first as? SharedMedia {
+                let downloadTask = self.startDownloading(media: firstMediaItem)
+                downloadTask?.feedMediaObjectId = firstMediaItem.objectID
+            } else {
+                self.invokeCompletionHandler()
+            }
+            // TODO: murali@: send acks and rerequests here as necessary.
+        }
+    }
+
+    private func processCommentDataAndInvokeHandler(commentData: CommentData?, status: SharedFeedComment.Status, metadata: NotificationMetadata) {
+        dataStore.save(commentData: commentData, status: status, notificationMetadata: metadata) { sharedFeedComment in
+            // If we failed to get commentData successfully - then just return!
+            guard let commentData = commentData else {
+                DDLogError("NotificationExtension/processCommentDataAndInvokeHandler/failed to get postData, contentId: \(metadata.contentId)")
+                self.invokeCompletionHandler()
+                return
+            }
+            self.bestAttemptContent.populateFeedCommentBody(from: commentData, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
+            self.invokeCompletionHandler()
+            // TODO: murali@: send acks and rerequests here as necessary.
+        }
+    }
+
+    private func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, itemType: FeedElementType, groupID: GroupID, timestamp: Date, rerequestCount: Int) {
+        let errorString = error?.rawValue ?? ""
+        DDLogInfo("NotificationExtension/reportGroupDecryptionResult/\(contentID)/\(itemType)/\(groupID)/error value: \(errorString)")
+        AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemType: itemType))
+        AppContext.shared.cryptoData.update(contentID: contentID,
+                                            contentType: itemType.rawString,
+                                            groupID: groupID,
+                                            timestamp: timestamp,
+                                            error: errorString,
+                                            rerequestCount: rerequestCount)
     }
 
     // Decrypt, save and process chats!

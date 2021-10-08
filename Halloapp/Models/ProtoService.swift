@@ -300,7 +300,7 @@ final class ProtoService: ProtoServiceCore {
 
     // MARK: Feed
 
-    private func handleFeedItems(_ items: [Server_FeedItem], isEligibleForNotification: Bool, ack: @escaping () -> Void) {
+    private func handleHomeFeedItems(_ items: [Server_FeedItem], isEligibleForNotification: Bool, ack: @escaping () -> Void) {
         guard let delegate = feedDelegate else {
             ack()
             return
@@ -312,27 +312,27 @@ final class ProtoService: ProtoServiceCore {
             case .post(let serverPost):
                 switch pbFeedItem.action {
                 case .publish, .share:
-                    if let post = PostData(serverPost, isShared: pbFeedItem.action == .share) {
+                    if let post = PostData(serverPost, status: .received, isShared: pbFeedItem.action == .share) {
                         elements.append(.post(post))
                     }
                 case .retract:
                     retracts.append(.post(serverPost.id))
                 case .UNRECOGNIZED(let action):
-                    DDLogError("ProtoService/handleFeedItems/error unrecognized post action \(action)")
+                    DDLogError("ProtoService/handleHomeFeedItems/error unrecognized post action \(action)")
                 }
             case .comment(let serverComment):
                 switch pbFeedItem.action {
                 case .publish, .share:
-                    if let comment = CommentData(serverComment) {
+                    if let comment = CommentData(serverComment, status: .received) {
                         elements.append(.comment(comment, publisherName: serverComment.publisherName))
                     }
                 case .retract:
                     retracts.append(.comment(serverComment.id))
                 case .UNRECOGNIZED(let action):
-                    DDLogError("ProtoService/handleFeedItems/error unrecognized comment action \(action)")
+                    DDLogError("ProtoService/handleHomeFeedItems/error unrecognized comment action \(action)")
                 }
             case .none:
-                DDLogError("ProtoService/handleFeedItems/error missing item")
+                DDLogError("ProtoService/handleHomeFeedItems/error missing item")
             }
         }
         if !elements.isEmpty {
@@ -348,7 +348,8 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    private func payloadContents(for items: [Server_GroupFeedItem]) -> [HalloServiceFeedPayload.Content] {
+    // TODO: murali@: it is a bit confusing to pass status for all feed items here - should improve this.
+    private func payloadContents(for items: [Server_GroupFeedItem], status: FeedItemStatus) -> [FeedContent] {
 
         // NB: This function should not assume group fields are populated! [gid, name, avatarID]
         // They aren't included on each child when server sends a `Server_GroupFeedItems` stanza.
@@ -361,7 +362,7 @@ final class ProtoService: ProtoServiceCore {
             case .post(let serverPost):
                 switch item.action {
                 case .publish, .share:
-                    guard let post = PostData(serverPost, isShared: item.action == .share) else {
+                    guard let post = PostData(serverPost, status: status, isShared: item.action == .share) else {
                         DDLogError("proto/payloadContents/\(serverPost.id)/error could not make post object")
                         continue
                     }
@@ -374,7 +375,7 @@ final class ProtoService: ProtoServiceCore {
             case .comment(let serverComment):
                 switch item.action {
                 case .publish, .share:
-                    guard let comment = CommentData(serverComment) else {
+                    guard let comment = CommentData(serverComment, status: status) else {
                         DDLogError("proto/payloadContents/\(serverComment.id)/error could not make comment object")
                         continue
                     }
@@ -385,7 +386,7 @@ final class ProtoService: ProtoServiceCore {
                     DDLogError("proto/payloadContents/\(serverComment.id)/error unrecognized comment action \(action)")
                 }
             case .none:
-                DDLogError("ProtoService/handleFeedItems/error missing item")
+                DDLogError("ProtoService/payloadContents/error missing item")
             }
         }
 
@@ -422,6 +423,46 @@ final class ProtoService: ProtoServiceCore {
         }
         DDLogInfo("ProtoService/isMessageDecryptedAndSaved/msgId \(msgId) - message is missing.")
         return false
+    }
+
+    // Checks if the groupFeedItem is decrypted and saved in the stats dataStore.
+    private func isGroupFeedItemDecryptedAndSaved(contentID: String) -> Bool {
+        var isGroupFeedItemDecrypted = false
+        MainAppContext.shared.cryptoData.performOnBackgroundContextAndWait { managedObjectContext in
+            guard let result = MainAppContext.shared.cryptoData.fetchGroupFeedItemDecryption(id: contentID, in: managedObjectContext) else {
+                isGroupFeedItemDecrypted = false
+                return
+            }
+            isGroupFeedItemDecrypted = result.isSuccess()
+        }
+        if isGroupFeedItemDecrypted {
+            DDLogInfo("ProtoService/isGroupFeedItemDecryptedAndSaved/contentID \(contentID) success")
+            return true
+        }
+        DDLogInfo("ProtoService/isGroupFeedItemDecryptedAndSaved/contentID \(contentID) - content is missing.")
+        return false
+
+        // Lets try using only the stats store this time and see how it works out.
+    }
+
+    private func rerequestGroupFeedItemIfNecessary(message: Server_Msg, groupID: GroupID, failure: GroupDecryptionFailure) {
+        guard let contentID = failure.contentId else {
+            DDLogError("proto/rerequestGroupFeedItemIfNecessary/\(message.id)/decrypt/contentId missing")
+            return
+        }
+        guard let authorUserID = failure.fromUserId else {
+            DDLogError("proto/rerequestGroupFeedItemIfNecessary/\(message.id)/decrypt/authorUserID missing")
+            return
+        }
+
+        // Dont rerequest messages that were already decrypted and saved.
+        if !isGroupFeedItemDecryptedAndSaved(contentID: contentID) {
+            self.updateMessageStatus(id: message.id, status: .rerequested)
+            self.rerequestGroupFeedItem(contentId: contentID,
+                                        groupID: groupID,
+                                        authorUserID: authorUserID,
+                                        rerequestType: failure.rerequestType) { _ in }
+        }
     }
 
     private func rerequestMessageIfNecessary(_ message: Server_Msg, failedEphemeralKey: Data?) {
@@ -712,27 +753,103 @@ final class ProtoService: ProtoServiceCore {
                 ))
             }
         case .feedItem(let pbFeedItem):
-            handleFeedItems([pbFeedItem], isEligibleForNotification: isEligibleForNotification, ack: ack)
+            handleHomeFeedItems([pbFeedItem], isEligibleForNotification: isEligibleForNotification, ack: ack)
             hasAckBeenDelegated = true
         case .feedItems(let pbFeedItems):
-            handleFeedItems(pbFeedItems.items, isEligibleForNotification: isEligibleForNotification, ack: ack)
+            handleHomeFeedItems(pbFeedItems.items, isEligibleForNotification: isEligibleForNotification, ack: ack)
             hasAckBeenDelegated = true
         case .groupFeedItem(let item):
             guard let delegate = feedDelegate else {
+                DDLogError("proto/handleGroupFeedItem/delegate missing")
                 break
             }
-            let group = HalloGroup(id: item.gid, name: item.name, avatarID: item.avatarID)
-            for content in payloadContents(for: [item]) {
-                let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
-                delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
-                hasAckBeenDelegated = true
+
+            let itemType: FeedElementType
+            let contentID: String
+            switch item.item {
+            case .post(let serverPost):
+                itemType = .post
+                contentID = serverPost.id
+            case .comment(let serverComment):
+                itemType = .comment
+                contentID = serverComment.id
+            default:
+                DDLogError("proto/handleGroupFeedItem/\(msg.id)/decrypt/invalid content")
+                return
             }
+
+            // Dont process groupFeedItems that were already decrypted and saved.
+            if isGroupFeedItemDecryptedAndSaved(contentID: contentID) {
+                return
+            }
+
+            let group = HalloGroup(id: item.gid, name: item.name, avatarID: item.avatarID)
+            hasAckBeenDelegated = true
+            decryptGroupFeedPayload(for: item) { content, groupDecryptionFailure in
+                let receiptTimestamp = Date()
+                if let content = content {
+                    DDLogInfo("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/successfully decrypted content")
+                    let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
+
+                    delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
+                } else {
+                    DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/failed to decrypt/using unencrypted content")
+                    // fallback to existing logic of using unencrypted payload
+                    let contents = self.payloadContents(for: [item], status: .rerequesting)
+                    if contents.isEmpty {
+                        ack()
+                    } else {
+                        // TODO(murali@): why are we sending multiple acks if at all here?
+                        for content in contents  {
+                            let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
+                            delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
+                        }
+                    }
+                }
+                if let failure = groupDecryptionFailure {
+                    DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/error \(failure.error)")
+                    self.rerequestGroupFeedItemIfNecessary(message: msg, groupID: item.gid, failure: failure)
+                } else {
+                    DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/success")
+                }
+                self.reportGroupDecryptionResult(
+                    error: groupDecryptionFailure?.error,
+                    contentID: contentID,
+                    itemType: itemType,
+                    groupID: item.gid,
+                    timestamp: receiptTimestamp,
+                    rerequestCount: Int(msg.rerequestCount))
+            }
+        case .groupFeedRerequest(let rerequest):
+            guard let delegate = feedDelegate else {
+                DDLogError("proto/handleGroupFeedRerequest/delegate missing")
+                break
+            }
+            let userID = UserID(msg.fromUid)
+
+            // Check key integrity -- do we need this?
+            // MainAppContext.shared.keyData.service(self, didReceiveRerequestWithRerequestCount: Int(msg.rerequestCount))
+
+            switch rerequest.rerequestType {
+            case .payload:
+                delegate.halloService(self, didRerequestGroupFeedItem: rerequest.id, from: userID, ack: ack)
+                hasAckBeenDelegated = true
+            case .senderState:
+                hasAckBeenDelegated = true
+                AppContext.shared.messageCrypter.resetWhisperSession(for: userID)
+                AppContext.shared.eventMonitor.count(.sessionReset(true))
+                // we are acking the message here - what if we fail to reset the session properly
+                delegate.halloService(self, didRerequestGroupFeedItem: rerequest.id, from: userID, ack: ack)
+            case .UNRECOGNIZED(_):
+                return
+            }
+
         case .groupFeedItems(let items):
             guard let delegate = feedDelegate else {
                 break
             }
             let group = HalloGroup(id: items.gid, name: items.name, avatarID: items.avatarID)
-            for content in payloadContents(for: items.items) {
+            for content in payloadContents(for: items.items, status: .received) {
                 // TODO: Wait until all payloads have been processed before acking.
                 let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
                 delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
@@ -776,7 +893,9 @@ final class ProtoService: ProtoServiceCore {
             DDLogInfo("proto/didReceive/\(msg.id)/endOfQueue")
         case .errorStanza(let error):
             DDLogError("proto/didReceive/\(msg.id) received message with error \(error)")
-        case .inviteeNotice, .groupFeedRerequest, .historyResend:
+        case .inviteeNotice:
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .historyResend:
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
@@ -843,6 +962,18 @@ final class ProtoService: ProtoServiceCore {
         } else {
             DDLogError("proto/didReceive/\(messageID)/decrypt/stats/error missing sender user agent")
         }
+    }
+
+    private func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, itemType: FeedElementType, groupID: GroupID, timestamp: Date, rerequestCount: Int) {
+        let errorString = error?.rawValue ?? ""
+        DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(itemType)/\(groupID)/error value: \(errorString)")
+        AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemType: itemType))
+        MainAppContext.shared.cryptoData.update(contentID: contentID,
+                                                contentType: itemType.rawString,
+                                                groupID: groupID,
+                                                timestamp: timestamp,
+                                                error: errorString,
+                                                rerequestCount: rerequestCount)
     }
 
     // i dont think this is the right place to generate local notifications.
