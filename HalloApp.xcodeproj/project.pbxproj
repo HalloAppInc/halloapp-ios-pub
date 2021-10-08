@@ -40,7 +40,6 @@
 		329E040A268247BD00C2D250 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 329E0408268247BD00C2D250 /* LaunchScreen.storyboard */; };
 		329E0416268247BE00C2D250 /* HalloAppClipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E0415268247BE00C2D250 /* HalloAppClipTests.swift */; };
 		329E0421268247BE00C2D250 /* HalloAppClipUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E0420268247BE00C2D250 /* HalloAppClipUITests.swift */; };
-		329E0425268247BE00C2D250 /* HalloAppClip.app in Embed App Clips */ = {isa = PBXBuildFile; fileRef = 329E03F8268247BC00C2D250 /* HalloAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		329E0434268247D400C2D250 /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
 		329E0435268247D400C2D250 /* Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		329E04372682481500C2D250 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */; };
@@ -428,17 +427,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		329E0426268247BE00C2D250 /* Embed App Clips */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(CONTENTS_FOLDER_PATH)/AppClips";
-			dstSubfolderSpec = 16;
-			files = (
-				329E0425268247BE00C2D250 /* HalloAppClip.app in Embed App Clips */,
-			);
-			name = "Embed App Clips";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		329E0436268247D400C2D250 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2089,7 +2077,6 @@
 				D51A16EB7C89AD8DAF43C14C /* [CP] Embed Pods Frameworks */,
 				768123A02485A240008C5216 /* Embed App Extensions */,
 				768123CB2485D9F5008C5216 /* Embed Frameworks */,
-				329E0426268247BE00C2D250 /* Embed App Clips */,
 			);
 			buildRules = (
 			);
