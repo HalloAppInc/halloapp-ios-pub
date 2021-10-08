@@ -58,6 +58,7 @@ class CommentView: UIView {
     private var profilePictureTrailingSpace: NSLayoutConstraint!
     weak var delegate: CommentViewDelegate?
     private(set) var mediaCarouselView: MediaCarouselView?
+    private(set) var commentLinkPreviewView: CommentLinkPreviewView?
     private var mediaStatusCancellable: AnyCancellable?
   
     var isReplyButtonVisible: Bool = true {
@@ -259,6 +260,15 @@ class CommentView: UIView {
             self.mediaCarouselView = nil
         }
 
+
+        if let commentLinkPreviewView = commentLinkPreviewView {
+            vStack.removeArrangedSubview(commentLinkPreviewView)
+            commentLinkPreviewView.removeFromSuperview()
+            vStack.removeArrangedSubview(textCommentLabel)
+            textCommentLabel.removeFromSuperview()
+            self.commentLinkPreviewView = nil
+        }
+ 
         let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: feedPostComment.id)
         let feedPostCommentText = feedPostComment.text + cryptoResultString
 
@@ -331,6 +341,13 @@ class CommentView: UIView {
                 vStack.insertArrangedSubview(textCommentLabel, at: vStack.arrangedSubviews.count - 1)
                 vStack.setCustomSpacing(4, after: mediaView)
             }
+        } else if let feedLinkPreviews = feedPostComment.linkPreviews, let feedLinkPreview = feedLinkPreviews.first  {
+            // Add name
+            configureNameLabel(feedPostComment: feedPostComment)
+            // Comment contains link previews
+            configureLinkPreviewView(feedLinkPreview: feedLinkPreview)
+            // Add text below link preview
+            configureTextCommentLabel(feedPostComment: feedPostComment)
         } else {
             // No media, set name and append text to name label
             let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
@@ -353,6 +370,42 @@ class CommentView: UIView {
     
             attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
             nameTextLabel.attributedText = attributedText
+        }
+    }
+
+    func configureLinkPreviewView(feedLinkPreview: FeedLinkPreview) {
+        // Set Name
+        MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
+        let commentLinkPreviewView = CommentLinkPreviewView(feedLinkPreview: feedLinkPreview)
+        vStack.insertArrangedSubview(commentLinkPreviewView, at: vStack.arrangedSubviews.count - 1)
+        commentLinkPreviewView.topAnchor.constraint(equalTo: vStack.topAnchor, constant: 20).isActive = true
+        vStack.setCustomSpacing(4, after: commentLinkPreviewView)
+        self.commentLinkPreviewView = commentLinkPreviewView
+    }
+
+    func configureNameLabel(feedPostComment: FeedPostComment) {
+        let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
+        let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
+        let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId)
+        let attributedText = NSMutableAttributedString(string: contactName,
+                                                       attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
+                                                                    NSAttributedString.Key.font: nameFont])
+        attributedText.append(NSAttributedString(string: " "))
+        attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
+        nameTextLabel.attributedText = attributedText
+    }
+
+    func configureTextCommentLabel(feedPostComment: FeedPostComment) {
+        if !feedPostComment.text.isEmpty {
+            let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
+                feedPostComment.text,
+                mentions: Array(feedPostComment.mentions ?? Set()))
+
+            let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
+            let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
+            textCommentLabel.attributedText = textWithMentions?.with(font: baseFont).applyingFontForMentions(nameFont)
+            textCommentLabel.delegate = self
+            vStack.insertArrangedSubview(textCommentLabel, at: vStack.arrangedSubviews.count - 1)
         }
     }
 

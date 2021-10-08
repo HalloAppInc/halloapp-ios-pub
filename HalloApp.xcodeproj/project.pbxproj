@@ -30,6 +30,8 @@
 		321A70132704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70122704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift */; };
 		323E88DB26CC430600202655 /* Feed3ToFeed4.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 323E88DA26CC430600202655 /* Feed3ToFeed4.xcmappingmodel */; };
 		329DFD56270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD55270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel */; };
+		329DFD61270F691F00B85CFF /* CommentLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD60270F691F00B85CFF /* CommentLinkPreviewView.swift */; };
+		329DFD65270FB01E00B85CFF /* PostLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD64270FB01E00B85CFF /* PostLinkPreviewView.swift */; };
 		329E03FB268247BD00C2D250 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E03FA268247BD00C2D250 /* AppDelegate.swift */; };
 		329E03FD268247BD00C2D250 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E03FC268247BD00C2D250 /* SceneDelegate.swift */; };
 		329E0402268247BD00C2D250 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 329E0400268247BD00C2D250 /* Main.storyboard */; };
@@ -511,6 +513,8 @@
 		323E88D626CC175900202655 /* Feed4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed4.xcdatamodel; sourceTree = "<group>"; };
 		323E88DA26CC430600202655 /* Feed3ToFeed4.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed3ToFeed4.xcmappingmodel; sourceTree = "<group>"; };
 		329DFD55270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed4ToFeed5.xcmappingmodel; sourceTree = "<group>"; };
+		329DFD60270F691F00B85CFF /* CommentLinkPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentLinkPreviewView.swift; sourceTree = "<group>"; };
+		329DFD64270FB01E00B85CFF /* PostLinkPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostLinkPreviewView.swift; sourceTree = "<group>"; };
 		329E03F8268247BC00C2D250 /* HalloAppClip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloAppClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		329E03FA268247BD00C2D250 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		329E03FC268247BD00C2D250 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -1271,6 +1275,7 @@
 				76271383252D24AD00389FBC /* FeedItemContentView.swift */,
 				764F7750246226120063645A /* PostDashboardViewController.swift */,
 				E5AFB4C626BC5C74002CE127 /* FeedPostView.swift */,
+				329DFD64270FB01E00B85CFF /* PostLinkPreviewView.swift */,
 			);
 			path = Post;
 			sourceTree = "<group>";
@@ -1688,6 +1693,7 @@
 				76B95CD62429331D007435AC /* CommentsViewController.swift */,
 				76B95CE3242A7A3F007435AC /* CommentInputView.swift */,
 				EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */,
+				329DFD60270F691F00B85CFF /* CommentLinkPreviewView.swift */,
 			);
 			path = Comment;
 			sourceTree = "<group>";
@@ -2613,6 +2619,7 @@
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
 				6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */,
 				76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */,
+				329DFD65270FB01E00B85CFF /* PostLinkPreviewView.swift in Sources */,
 				F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */,
 				EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */,
 				EA796B9C2469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift in Sources */,
@@ -2800,6 +2807,7 @@
 				7633307F254A331D00A1ED68 /* HelpViewController.swift in Sources */,
 				764AB42124A7188600D4E354 /* FeedPrivacyView.swift in Sources */,
 				76451C6625479FF800B9E268 /* SharedStrings.swift in Sources */,
+				329DFD61270F691F00B85CFF /* CommentLinkPreviewView.swift in Sources */,
 				F881ED69261780360013599F /* UploadData.swift in Sources */,
 				6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */,
 				76649227245119F2009BC368 /* FeedNotifications.swift in Sources */,
