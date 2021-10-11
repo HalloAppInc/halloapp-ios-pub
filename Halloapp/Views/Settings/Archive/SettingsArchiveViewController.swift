@@ -13,20 +13,59 @@ import Combine
 class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
     var feedDataSource = FeedDataSource(fetchRequest: FeedDataSource.archiveFeedRequest())
-    
     var feedItems: [FeedPost] = []
-    
-    var collectionView: UICollectionView!
-    
     var postFocusView = PostFocusView()
-    
-    private lazy var mosaicLayout: UICollectionViewFlowLayout = {
+
+    private lazy var collectionView: UICollectionView = {
+        let cellWidth = (UIScreen.main.bounds.width - 4) / 3.0
+
         let layout = UICollectionViewFlowLayout()
         layout.minimumLineSpacing = 2
         layout.minimumInteritemSpacing = 2
-        let cellWidth = (UIScreen.main.bounds.width - 4) / 3.0
         layout.itemSize = CGSize(width: cellWidth, height: cellWidth)
-        return layout
+
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.backgroundColor = .primaryBg
+        collectionView.isHidden = true
+        collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        collectionView.alwaysBounceVertical = true
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.register(PostCollectionViewCell.self, forCellWithReuseIdentifier: PostCollectionViewCell.identifer)
+
+        return collectionView
+    }()
+
+    private lazy var emptyPlaceholderView: UIView = {
+        let containerView = UIView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.isHidden = true
+
+        let imageView = UIImageView(image: UIImage(named: "archivePlaceholder")!)
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.tintColor = .tertiarySystemFill
+
+        let textLabel = UILabel()
+        textLabel.text = Localizations.emptyStatePlaceholder
+        textLabel.textAlignment = .center
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+        textLabel.textColor = .tertiaryLabel
+
+        containerView.addSubview(imageView)
+        containerView.addSubview(textLabel)
+
+        imageView.widthAnchor.constraint(equalToConstant: 55).isActive = true
+        imageView.heightAnchor.constraint(equalToConstant: 55).isActive = true
+        imageView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor).isActive = true
+        imageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor).isActive = true
+
+        textLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 16).isActive = true
+        textLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor).isActive = true
+        textLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor).isActive = true
+
+        return containerView
     }()
     
     override func viewDidLoad() {
@@ -36,7 +75,7 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
         
         title = Localizations.archiveNavigationTitle
         
-        self.feedDataSource.itemsDidChange = { [weak self] items in
+        feedDataSource.itemsDidChange = { [weak self] items in
             DispatchQueue.main.async {
                 self?.update(with: items.compactMap({ $0.post }))
             }
@@ -45,22 +84,14 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
         postFocusView.navigationController = navigationController
         
         view.addSubview(emptyPlaceholderView)
-        emptyPlaceholderView.translatesAutoresizingMaskIntoConstraints = false
         emptyPlaceholderView.constrain(to: view)
-        emptyPlaceholderView.isHidden = true
-        
-        collectionView = UICollectionView(frame: view.frame, collectionViewLayout: mosaicLayout)
+
         view.addSubview(collectionView)
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.constrain(to: view)
-        collectionView.backgroundColor = .primaryBg
-        collectionView.isHidden = true
-        collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        collectionView.alwaysBounceVertical = true
-        collectionView.delegate = self
-        collectionView.dataSource = self
-        collectionView.register(PostCollectionViewCell.self, forCellWithReuseIdentifier: PostCollectionViewCell.identifer)
-        
+        collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
+        collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+
         update(with: feedDataSource.displayItems.compactMap({ $0.post }))
     }
     
@@ -87,37 +118,7 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
         }
     }
     
-    private lazy var emptyPlaceholderView: UIView = {
-        let containerView = UIView()
-        
-        let imageView = UIImageView(image: UIImage(named: "archivePlaceholder")!)
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.tintColor = .tertiarySystemFill
-        
-        let textLabel = UILabel()
-        textLabel.text = NSLocalizedString("archive.empty.placeholder", value: "Your archived posts will appear here", comment: "Placeholder text for when the archive is empty")
-        textLabel.textAlignment = .center
-        textLabel.translatesAutoresizingMaskIntoConstraints = false
-        textLabel.textColor = .tertiaryLabel
-        
-        containerView.addSubview(imageView)
-        containerView.addSubview(textLabel)
-        
-        imageView.widthAnchor.constraint(equalToConstant: 55).isActive = true
-        imageView.heightAnchor.constraint(equalToConstant: 55).isActive = true
-        imageView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor).isActive = true
-        imageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor).isActive = true
-        
-        textLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 16).isActive = true
-        textLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor).isActive = true
-        textLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor).isActive = true
-        
-        return containerView
-    }()
-    
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PostCollectionViewCell.identifer, for: indexPath) as? PostCollectionViewCell
             else { preconditionFailure("Failed to load collection view cell") }
         
@@ -135,7 +136,6 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
         collectionView.deselectItem(at: indexPath, animated: false)
         
         guard let cell = collectionView.cellForItem(at: indexPath) as? PostCollectionViewCell else { return }
-        
         guard let post = cell.feedPost else { return }
         
         postFocusView.removePostView()
@@ -147,33 +147,49 @@ private class PostCollectionViewCell: UICollectionViewCell {
     static let mediaLoadingQueue = DispatchQueue(label: "archive.media.loading")
     static let identifer = "PostCollectionViewCell"
 
-    var imageView = UIImageView()
-    var labelView = UILabel()
     var feedPost: FeedPost?
+    private var imageView = UIImageView()
+    private var labelView = UILabel()
+    private lazy var multipleMediaIcon: UIImageView = {
+        let config = UIImage.SymbolConfiguration(pointSize: 16)
+        let image = UIImage(systemName: "square.fill.on.square.fill", withConfiguration: config)?.withTintColor(.white, renderingMode: .alwaysOriginal)
+
+        let icon = UIImageView(image: image)
+        icon.translatesAutoresizingMaskIntoConstraints = false
+        icon.transform = CGAffineTransform(rotationAngle: .pi)
+        icon.layer.shadowColor = UIColor.black.cgColor
+        icon.layer.shadowOpacity = 0.3
+
+        return icon
+    }()
     
     private var mediaLoadingCancellable: AnyCancellable?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.clipsToBounds = true
-        self.autoresizesSubviews = true
+        clipsToBounds = true
         
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        addSubview(imageView)
-        imageView.constrain(to: self)
+        contentView.addSubview(imageView)
+        imageView.constrain(to: contentView)
         
         labelView.translatesAutoresizingMaskIntoConstraints = false
         labelView.clipsToBounds = true
         labelView.font = .systemFont(ofSize: 10)
         labelView.numberOfLines = 0
-        addSubview(labelView)
+        contentView.addSubview(labelView)
         layoutMargins = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
-        labelView.constrain(to: self.layoutMarginsGuide)
+        labelView.constrain(to: contentView.layoutMarginsGuide)
+
+        contentView.addSubview(multipleMediaIcon)
+        multipleMediaIcon.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5).isActive = true
+        multipleMediaIcon.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -5).isActive = true
         
         imageView.isHidden = true
         labelView.isHidden = true
+        multipleMediaIcon.isHidden = true
         
         backgroundColor = .archiveCellBackgroundPlaceholder
     }
@@ -184,11 +200,13 @@ private class PostCollectionViewCell: UICollectionViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
+
         imageView.image = nil
         labelView.text = nil
         
         imageView.isHidden = true
         labelView.isHidden = true
+        multipleMediaIcon.isHidden = true
         
         feedPost = nil
         mediaLoadingCancellable?.cancel()
@@ -197,6 +215,9 @@ private class PostCollectionViewCell: UICollectionViewCell {
     func updateCell() {
         if let feedPost = feedPost {
             let media = MainAppContext.shared.feedData.media(for: feedPost)
+
+            multipleMediaIcon.isHidden = media.count < 2
+
             if let mediaToDisplay = media.first {
                 if mediaToDisplay.isMediaAvailable, let imagePath = mediaToDisplay.fileURL {
                     if mediaToDisplay.type == .image {
@@ -233,5 +254,9 @@ private class PostCollectionViewCell: UICollectionViewCell {
 private extension Localizations {
     static var archiveNavigationTitle: String {
         NSLocalizedString("archive.title.label", value: "Archive", comment: "Archive navigation label")
+    }
+
+    static var emptyStatePlaceholder: String {
+        NSLocalizedString("archive.empty.placeholder", value: "Your posts will be archived here after 30 days", comment: "Placeholder text for when the archive is empty")
     }
 }
