@@ -87,11 +87,17 @@ class FeedPostView: UIView {
         self.constrain(to: self)
 
         // Background
+        let solidBackgroundPanelView = FeedItemBackgroundPanelView()
+        solidBackgroundPanelView.translatesAutoresizingMaskIntoConstraints = false
+        solidBackgroundPanelView.backgroundColor = .feedBackground
+        solidBackgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
         backgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
         backgroundView = UIView()
         backgroundView?.translatesAutoresizingMaskIntoConstraints = false
         backgroundView?.preservesSuperviewLayoutMargins = true
+        backgroundView?.addSubview(solidBackgroundPanelView)
         backgroundView?.addSubview(backgroundPanelView)
+        solidBackgroundPanelView.constrain(to: backgroundPanelView)
         if let backgroundView = backgroundView {
             addSubview(backgroundView)
         }
@@ -164,9 +170,9 @@ class FeedPostView: UIView {
         if let backgroundView = backgroundView {
             let panelInsets = UIEdgeInsets(
                 top: LayoutConstants.interCardSpacing / 2,
-                left: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.left,
+                left: 0,
                 bottom: LayoutConstants.interCardSpacing / 2,
-                right: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.right)
+                right: 0)
             backgroundPanelView.frame = backgroundView.bounds.inset(by: panelInsets)
         }
     }

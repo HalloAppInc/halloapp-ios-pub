@@ -18,20 +18,20 @@ class PostFocusView {
         let postView = FeedPostView()
         
         let contentWidth = UIScreen.main.bounds.width - 16
-        postView.configure(with: post, contentWidth: contentWidth, gutterWidth: 8, showGroupName: false, displayData: nil)
+        postView.configure(with: post, contentWidth: contentWidth, gutterWidth: 8, showGroupName: true, displayData: nil)
         
         postView.translatesAutoresizingMaskIntoConstraints = false
         postView.delegate = self
         scrollView.addSubview(postView)
         scrollView.touchesShouldCancel(in: scrollView)
         scrollView.canCancelContentTouches = true
-        
+
         postView.topAnchor.constraint(equalTo: scrollView.topAnchor).isActive = true
         postView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor).isActive = true
         postView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 8).isActive = true
         postView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -8).isActive = true
         postView.widthAnchor.constraint(equalToConstant: UIScreen.main.bounds.width - 16).isActive = true
-        
+
         postView.setHeaderHeight(forPost: post, contentWidth: contentWidth)
         
         postView.isShowingFooter = false
@@ -43,7 +43,14 @@ class PostFocusView {
         shadowBox.isHidden = false
     }
     
-    @objc func removePostView() {
+    @objc func removePostViewAction(sender: UITapGestureRecognizer) {
+        let location = sender.location(in: postView)
+        guard postView?.point(inside: location, with: nil) == false else { return }
+
+        removePostView()
+    }
+
+    func removePostView() {
         postView?.removeFromSuperview()
         shadowBox.isHidden = true
     }
@@ -65,8 +72,8 @@ class PostFocusView {
 
         shadowBoxView.addSubview(backgroundView)
         backgroundView.constrain(to: shadowBoxView)
-        
-        scrollView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(PostFocusView.removePostView)))
+
+        scrollView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(PostFocusView.removePostViewAction)))
         
         shadowBoxView.addSubview(scrollView)
         scrollView.leadingAnchor.constraint(equalTo: shadowBoxView.leadingAnchor).isActive = true
