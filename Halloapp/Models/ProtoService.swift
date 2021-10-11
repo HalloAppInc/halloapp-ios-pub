@@ -965,6 +965,10 @@ final class ProtoService: ProtoServiceCore {
     }
 
     private func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, itemType: FeedElementType, groupID: GroupID, timestamp: Date, rerequestCount: Int) {
+        if (error == .missingPayload) {
+            DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(itemType)/\(groupID)/payload is missing - not error.")
+            return
+        }
         let errorString = error?.rawValue ?? ""
         DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(itemType)/\(groupID)/error value: \(errorString)")
         AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemType: itemType))

@@ -240,6 +240,7 @@ public enum DecryptionError: String, Error {
     case teardownKeyMatch
     case missingSenderState
     case signatureMisMatch
+    case missingPayload
 }
 
 // Add new error cases at the end (the index is used as the error code)

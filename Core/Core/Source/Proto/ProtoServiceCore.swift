@@ -999,7 +999,7 @@ extension ProtoServiceCore: CoreService {
         guard let contentId = item.contentId,
               let publisherUid = item.publisherUid,
               let encryptedPayload = item.encryptedPayload else {
-            completion(nil, GroupDecryptionFailure(nil, nil, .invalidPayload, .payload))
+            completion(nil, GroupDecryptionFailure(nil, nil, .missingPayload, .payload))
             return
         }
 
@@ -1040,7 +1040,7 @@ extension ProtoServiceCore: CoreService {
         guard let contentId = item.contentId,
               let publisherUid = item.publisherUid,
               item.encryptedPayload != nil else {
-            completion(nil, GroupDecryptionFailure(nil, nil, .invalidPayload, .payload))
+                  completion(nil, GroupDecryptionFailure(nil, nil, .missingPayload, .payload))
             return
         }
 
@@ -1101,7 +1101,7 @@ extension ProtoServiceCore: CoreService {
         guard let contentId = item.contentId,
               let publisherUid = item.publisherUid,
               item.encryptedPayload != nil else {
-            completion(nil, GroupDecryptionFailure(nil, nil, .invalidPayload, .payload))
+            completion(nil, GroupDecryptionFailure(nil, nil, .missingPayload, .payload))
             return
         }
 
