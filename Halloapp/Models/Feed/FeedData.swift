@@ -178,6 +178,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func save(_ managedObjectContext: NSManagedObjectContext) {
         DDLogVerbose("FeedData/will-save")
         do {
+            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             try managedObjectContext.save()
             DDLogVerbose("FeedData/did-save")
         } catch {
