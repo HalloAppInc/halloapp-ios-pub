@@ -163,11 +163,24 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         self.backgroundProcessingQueue.async {
-            let managedObjectContext = self.persistentContainer.newBackgroundContext()
-            managedObjectContext.performAndWait { block(managedObjectContext) }
+            self.initBgContext()
+            guard let bgContext = self.bgContext else {
+                let managedObjectContext = self.persistentContainer.newBackgroundContext()
+                managedObjectContext.performAndWait { block(managedObjectContext) }
+                return
+            }
+            bgContext.performAndWait { block(bgContext) }
         }
     }
 
+    private func initBgContext() {
+        if bgContext == nil {
+            bgContext = persistentContainer.newBackgroundContext()
+            bgContext?.automaticallyMergesChangesFromParent = true
+        }
+    }
+
+    private var bgContext: NSManagedObjectContext? = nil    // binded to the background queue, should access only from background queue
     var viewContext: NSManagedObjectContext {
         get {
             self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
