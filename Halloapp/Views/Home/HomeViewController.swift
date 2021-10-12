@@ -280,7 +280,7 @@ class HomeViewController: UITabBarController {
             // we need to show the chatscreen when the notification tapped is chat/friend/inviter notification.
             selectedIndex = 2
         }
-
+        DDLogDebug("HomeViewController/processNotification/selectedIndex: \(selectedIndex)")
     }
 
     private func presentGroupPreviewIfNeeded() {
