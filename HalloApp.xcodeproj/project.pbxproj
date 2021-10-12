@@ -244,7 +244,6 @@
 		E552E8E3268249F600C7774D /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AD2435A74E00FF0E82 /* Date.swift */; };
 		E552E8E426824C0E00C7774D /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B991A249C228700B05094 /* DateFormatter.swift */; };
 		E55B6099268B80C800A322DC /* ExportDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E55B6098268B80C800A322DC /* ExportDataModel.swift */; };
-		E567FBBE26BDA38A00FE2842 /* PostFocusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E567FBBD26BDA38A00FE2842 /* PostFocusView.swift */; };
 		E5959700268E3F3800AA3BB9 /* DeleteAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59596FF268E3F3800AA3BB9 /* DeleteAccountView.swift */; };
 		E5959702268E3F6500AA3BB9 /* DeleteAccountModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5959701268E3F6500AA3BB9 /* DeleteAccountModel.swift */; };
 		E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */; };
@@ -349,6 +348,7 @@
 		F881ED70261B0FDE0013599F /* Upload.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F881ED6E261B0FDE0013599F /* Upload.xcdatamodeld */; };
 		F881ED76261B1F6F0013599F /* Upload+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = F881ED74261B1F6F0013599F /* Upload+CoreDataClass.swift */; };
 		F881ED77261B1F6F0013599F /* Upload+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = F881ED75261B1F6F0013599F /* Upload+CoreDataProperties.swift */; };
+		F88A5CD927145F0800DFA205 /* PostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88A5CD827145F0800DFA205 /* PostViewController.swift */; };
 		F893C86F25E5213000068F00 /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893C86E25E5213000068F00 /* VideoView.swift */; };
 		F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */; };
 		F8DA6F38252370BE007833A7 /* MediaExplorerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */; };
@@ -834,7 +834,6 @@
 		E537A1B626792AEF0008B286 /* ChatDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatDraft.swift; sourceTree = "<group>"; };
 		E552E8E0268249EB00C7774D /* DateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTests.swift; sourceTree = "<group>"; };
 		E55B6098268B80C800A322DC /* ExportDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataModel.swift; sourceTree = "<group>"; };
-		E567FBBD26BDA38A00FE2842 /* PostFocusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostFocusView.swift; sourceTree = "<group>"; };
 		E59596FF268E3F3800AA3BB9 /* DeleteAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountView.swift; sourceTree = "<group>"; };
 		E5959701268E3F6500AA3BB9 /* DeleteAccountModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountModel.swift; sourceTree = "<group>"; };
 		E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPermissionExplanationAlert.swift; sourceTree = "<group>"; };
@@ -939,6 +938,7 @@
 		F881ED6F261B0FDE0013599F /* Uploads.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Uploads.xcdatamodel; sourceTree = "<group>"; };
 		F881ED74261B1F6F0013599F /* Upload+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Upload+CoreDataClass.swift"; sourceTree = "<group>"; };
 		F881ED75261B1F6F0013599F /* Upload+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Upload+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		F88A5CD827145F0800DFA205 /* PostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostViewController.swift; sourceTree = "<group>"; };
 		F893C86E25E5213000068F00 /* VideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
 		F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaEditViewController.swift; sourceTree = "<group>"; };
 		F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerController.swift; sourceTree = "<group>"; };
@@ -1485,7 +1485,7 @@
 			isa = PBXGroup;
 			children = (
 				E5CE660126B354EC0093944A /* SettingsArchiveViewController.swift */,
-				E567FBBD26BDA38A00FE2842 /* PostFocusView.swift */,
+				F88A5CD827145F0800DFA205 /* PostViewController.swift */,
 			);
 			path = Archive;
 			sourceTree = "<group>";
@@ -2723,6 +2723,7 @@
 				321A70112704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
+				F88A5CD927145F0800DFA205 /* PostViewController.swift in Sources */,
 				6A6D50D9270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
 				76B5B5322501F1700055E712 /* NotificationSettings.swift in Sources */,
@@ -2805,7 +2806,6 @@
 				EA35857A2450BE3300E6E8AB /* ChatInputView.swift in Sources */,
 				EA0B9917249C1FFB00B05094 /* Character.swift in Sources */,
 				764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */,
-				E567FBBE26BDA38A00FE2842 /* PostFocusView.swift in Sources */,
 				76A92449244EBCB600794859 /* ShapeView.swift in Sources */,
 				68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */,
 				68CCB16726964851007015FA /* InitializingViewController.swift in Sources */,
