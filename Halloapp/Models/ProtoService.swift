@@ -897,6 +897,8 @@ final class ProtoService: ProtoServiceCore {
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .historyResend:
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .homeFeedRerequest(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
 

@@ -268,7 +268,7 @@ private extension DiscreteEvent {
         case .groupDecryptionReport(let id, let gid, let contentType, let error, let clientVersion, let rerequestCount, let timeTaken):
             var report = Server_GroupDecryptionReport()
             // This is contentID
-            report.msgID = id
+            report.contentID = id
             report.gid = gid
             if contentType == "post" {
                 report.itemType = .post

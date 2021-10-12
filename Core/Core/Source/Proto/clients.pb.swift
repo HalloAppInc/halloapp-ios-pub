@@ -935,11 +935,20 @@ public struct Clients_EncryptedPayload {
     set {payload = .oneToOneEncryptedPayload(newValue)}
   }
 
+  public var commentKeyEncryptedPayload: Data {
+    get {
+      if case .commentKeyEncryptedPayload(let v)? = payload {return v}
+      return Data()
+    }
+    set {payload = .commentKeyEncryptedPayload(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
     case senderStateEncryptedPayload(Data)
     case oneToOneEncryptedPayload(Data)
+    case commentKeyEncryptedPayload(Data)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Clients_EncryptedPayload.OneOf_Payload, rhs: Clients_EncryptedPayload.OneOf_Payload) -> Bool {
@@ -953,6 +962,10 @@ public struct Clients_EncryptedPayload {
       }()
       case (.oneToOneEncryptedPayload, .oneToOneEncryptedPayload): return {
         guard case .oneToOneEncryptedPayload(let l) = lhs, case .oneToOneEncryptedPayload(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.commentKeyEncryptedPayload, .commentKeyEncryptedPayload): return {
+        guard case .commentKeyEncryptedPayload(let l) = lhs, case .commentKeyEncryptedPayload(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -1589,55 +1602,39 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
       case 1: try { try decoder.decodeSingularMessageField(value: &self._context) }()
       case 2: try {
         var v: Clients_Text?
-        var hadOneofValue = false
         if let current = self.message {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .text(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.message = .text(v)
-        }
+        if let v = v {self.message = .text(v)}
       }()
       case 3: try {
         var v: Clients_Album?
-        var hadOneofValue = false
         if let current = self.message {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .album(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.message = .album(v)
-        }
+        if let v = v {self.message = .album(v)}
       }()
       case 4: try {
         var v: Clients_ContactCard?
-        var hadOneofValue = false
         if let current = self.message {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .contactCard(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.message = .contactCard(v)
-        }
+        if let v = v {self.message = .contactCard(v)}
       }()
       case 5: try {
         var v: Clients_VoiceNote?
-        var hadOneofValue = false
         if let current = self.message {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .voiceNote(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.message = .voiceNote(v)
-        }
+        if let v = v {self.message = .voiceNote(v)}
       }()
       default: break
       }
@@ -1752,29 +1749,21 @@ extension Clients_PostContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
       switch fieldNumber {
       case 1: try {
         var v: Clients_Text?
-        var hadOneofValue = false
         if let current = self.post {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .text(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.post = .text(v)
-        }
+        if let v = v {self.post = .text(v)}
       }()
       case 2: try {
         var v: Clients_Album?
-        var hadOneofValue = false
         if let current = self.post {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .album(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.post = .album(v)
-        }
+        if let v = v {self.post = .album(v)}
       }()
       default: break
       }
@@ -1824,42 +1813,30 @@ extension Clients_CommentContainer: SwiftProtobuf.Message, SwiftProtobuf._Messag
       case 1: try { try decoder.decodeSingularMessageField(value: &self._context) }()
       case 2: try {
         var v: Clients_Text?
-        var hadOneofValue = false
         if let current = self.comment {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .text(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.comment = .text(v)
-        }
+        if let v = v {self.comment = .text(v)}
       }()
       case 3: try {
         var v: Clients_Album?
-        var hadOneofValue = false
         if let current = self.comment {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .album(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.comment = .album(v)
-        }
+        if let v = v {self.comment = .album(v)}
       }()
       case 4: try {
         var v: Clients_VoiceNote?
-        var hadOneofValue = false
         if let current = self.comment {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .voiceNote(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.comment = .voiceNote(v)
-        }
+        if let v = v {self.comment = .voiceNote(v)}
       }()
       default: break
       }
@@ -2276,29 +2253,21 @@ extension Clients_AlbumMedia: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       switch fieldNumber {
       case 1: try {
         var v: Clients_Image?
-        var hadOneofValue = false
         if let current = self.media {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .image(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.media = .image(v)
-        }
+        if let v = v {self.media = .image(v)}
       }()
       case 2: try {
         var v: Clients_Video?
-        var hadOneofValue = false
         if let current = self.media {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .video(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.media = .video(v)
-        }
+        if let v = v {self.media = .video(v)}
       }()
       default: break
       }
@@ -2449,6 +2418,7 @@ extension Clients_EncryptedPayload: SwiftProtobuf.Message, SwiftProtobuf._Messag
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "sender_state_encrypted_payload"),
     2: .standard(proto: "one_to_one_encrypted_payload"),
+    3: .standard(proto: "comment_key_encrypted_payload"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2458,20 +2428,22 @@ extension Clients_EncryptedPayload: SwiftProtobuf.Message, SwiftProtobuf._Messag
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try {
+        if self.payload != nil {try decoder.handleConflictingOneOf()}
         var v: Data?
         try decoder.decodeSingularBytesField(value: &v)
-        if let v = v {
-          if self.payload != nil {try decoder.handleConflictingOneOf()}
-          self.payload = .senderStateEncryptedPayload(v)
-        }
+        if let v = v {self.payload = .senderStateEncryptedPayload(v)}
       }()
       case 2: try {
+        if self.payload != nil {try decoder.handleConflictingOneOf()}
         var v: Data?
         try decoder.decodeSingularBytesField(value: &v)
-        if let v = v {
-          if self.payload != nil {try decoder.handleConflictingOneOf()}
-          self.payload = .oneToOneEncryptedPayload(v)
-        }
+        if let v = v {self.payload = .oneToOneEncryptedPayload(v)}
+      }()
+      case 3: try {
+        if self.payload != nil {try decoder.handleConflictingOneOf()}
+        var v: Data?
+        try decoder.decodeSingularBytesField(value: &v)
+        if let v = v {self.payload = .commentKeyEncryptedPayload(v)}
       }()
       default: break
       }
@@ -2490,6 +2462,10 @@ extension Clients_EncryptedPayload: SwiftProtobuf.Message, SwiftProtobuf._Messag
     case .oneToOneEncryptedPayload?: try {
       guard case .oneToOneEncryptedPayload(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularBytesField(value: v, fieldNumber: 2)
+    }()
+    case .commentKeyEncryptedPayload?: try {
+      guard case .commentKeyEncryptedPayload(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularBytesField(value: v, fieldNumber: 3)
     }()
     case nil: break
     }

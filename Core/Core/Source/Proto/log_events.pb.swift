@@ -825,7 +825,7 @@ public struct Server_GroupDecryptionReport {
 
   public var reason: String = String()
 
-  public var msgID: String = String()
+  public var contentID: String = String()
 
   public var gid: String = String()
 
@@ -1091,107 +1091,75 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
         case 5: try { try decoder.decodeSingularStringField(value: &_storage._cc) }()
         case 10: try {
           var v: Server_MediaUpload?
-          var hadOneofValue = false
           if let current = _storage._edata {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .mediaUpload(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._edata = .mediaUpload(v)
-          }
+          if let v = v {_storage._edata = .mediaUpload(v)}
         }()
         case 11: try {
           var v: Server_MediaDownload?
-          var hadOneofValue = false
           if let current = _storage._edata {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .mediaDownload(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._edata = .mediaDownload(v)
-          }
+          if let v = v {_storage._edata = .mediaDownload(v)}
         }()
         case 12: try {
           var v: Server_MediaComposeLoad?
-          var hadOneofValue = false
           if let current = _storage._edata {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .mediaComposeLoad(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._edata = .mediaComposeLoad(v)
-          }
+          if let v = v {_storage._edata = .mediaComposeLoad(v)}
         }()
         case 13: try {
           var v: Server_PushReceived?
-          var hadOneofValue = false
           if let current = _storage._edata {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .pushReceived(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._edata = .pushReceived(v)
-          }
+          if let v = v {_storage._edata = .pushReceived(v)}
         }()
         case 14: try {
           var v: Server_DecryptionReport?
-          var hadOneofValue = false
           if let current = _storage._edata {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .decryptionReport(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._edata = .decryptionReport(v)
-          }
+          if let v = v {_storage._edata = .decryptionReport(v)}
         }()
         case 15: try {
           var v: Server_Permissions?
-          var hadOneofValue = false
           if let current = _storage._edata {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .permissions(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._edata = .permissions(v)
-          }
+          if let v = v {_storage._edata = .permissions(v)}
         }()
         case 16: try {
           var v: Server_MediaObjectDownload?
-          var hadOneofValue = false
           if let current = _storage._edata {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .mediaObjectDownload(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._edata = .mediaObjectDownload(v)
-          }
+          if let v = v {_storage._edata = .mediaObjectDownload(v)}
         }()
         case 17: try {
           var v: Server_GroupDecryptionReport?
-          var hadOneofValue = false
           if let current = _storage._edata {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .groupDecryptionReport(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._edata = .groupDecryptionReport(v)
-          }
+          if let v = v {_storage._edata = .groupDecryptionReport(v)}
         }()
         default: break
         }
@@ -1780,7 +1748,7 @@ extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Me
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "result"),
     2: .same(proto: "reason"),
-    3: .standard(proto: "msg_id"),
+    3: .standard(proto: "content_id"),
     4: .same(proto: "gid"),
     5: .standard(proto: "item_type"),
     6: .standard(proto: "original_version"),
@@ -1796,7 +1764,7 @@ extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Me
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularEnumField(value: &self.result) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.reason) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self.msgID) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.contentID) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self.gid) }()
       case 5: try { try decoder.decodeSingularEnumField(value: &self.itemType) }()
       case 6: try { try decoder.decodeSingularStringField(value: &self.originalVersion) }()
@@ -1814,8 +1782,8 @@ extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Me
     if !self.reason.isEmpty {
       try visitor.visitSingularStringField(value: self.reason, fieldNumber: 2)
     }
-    if !self.msgID.isEmpty {
-      try visitor.visitSingularStringField(value: self.msgID, fieldNumber: 3)
+    if !self.contentID.isEmpty {
+      try visitor.visitSingularStringField(value: self.contentID, fieldNumber: 3)
     }
     if !self.gid.isEmpty {
       try visitor.visitSingularStringField(value: self.gid, fieldNumber: 4)
@@ -1838,7 +1806,7 @@ extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Me
   public static func ==(lhs: Server_GroupDecryptionReport, rhs: Server_GroupDecryptionReport) -> Bool {
     if lhs.result != rhs.result {return false}
     if lhs.reason != rhs.reason {return false}
-    if lhs.msgID != rhs.msgID {return false}
+    if lhs.contentID != rhs.contentID {return false}
     if lhs.gid != rhs.gid {return false}
     if lhs.itemType != rhs.itemType {return false}
     if lhs.originalVersion != rhs.originalVersion {return false}

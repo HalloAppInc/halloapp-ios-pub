@@ -540,6 +540,19 @@ public struct Server_FeedItem {
 
   public var shareStanzas: [Server_ShareStanza] = []
 
+  /// Sent by the publisher.
+  public var senderStateBundles: [Server_SenderStateBundle] = []
+
+  /// Meant for the receiver, computed by the server using `sender_state_bundles`.
+  public var senderState: Server_SenderStateWithKeyInfo {
+    get {return _senderState ?? Server_SenderStateWithKeyInfo()}
+    set {_senderState = newValue}
+  }
+  /// Returns true if `senderState` has been explicitly set.
+  public var hasSenderState: Bool {return self._senderState != nil}
+  /// Clears the value of `senderState`. Subsequent reads from it will return its default value.
+  public mutating func clearSenderState() {self._senderState = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Item: Equatable {
@@ -598,6 +611,8 @@ public struct Server_FeedItem {
   }
 
   public init() {}
+
+  fileprivate var _senderState: Server_SenderStateWithKeyInfo? = nil
 }
 
 #if swift(>=4.2)
@@ -1928,6 +1943,14 @@ public struct Server_Iq {
     set {_uniqueStorage()._payload = .clientOtpResponse(newValue)}
   }
 
+  public var whisperKeysCollection: Server_WhisperKeysCollection {
+    get {
+      if case .whisperKeysCollection(let v)? = _storage._payload {return v}
+      return Server_WhisperKeysCollection()
+    }
+    set {_uniqueStorage()._payload = .whisperKeysCollection(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -1964,6 +1987,7 @@ public struct Server_Iq {
     case clientOtpRequest(Server_ClientOtpRequest)
     /// only for sms_app gateway use
     case clientOtpResponse(Server_ClientOtpResponse)
+    case whisperKeysCollection(Server_WhisperKeysCollection)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Iq.OneOf_Payload, rhs: Server_Iq.OneOf_Payload) -> Bool {
@@ -2095,6 +2119,10 @@ public struct Server_Iq {
         guard case .clientOtpResponse(let l) = lhs, case .clientOtpResponse(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
+      case (.whisperKeysCollection, .whisperKeysCollection): return {
+        guard case .whisperKeysCollection(let l) = lhs, case .whisperKeysCollection(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
       default: return false
       }
     }
@@ -2159,228 +2187,257 @@ public struct Server_Msg {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var id: String = String()
+  public var id: String {
+    get {return _storage._id}
+    set {_uniqueStorage()._id = newValue}
+  }
 
-  public var type: Server_Msg.TypeEnum = .normal
+  public var type: Server_Msg.TypeEnum {
+    get {return _storage._type}
+    set {_uniqueStorage()._type = newValue}
+  }
 
-  public var toUid: Int64 = 0
+  public var toUid: Int64 {
+    get {return _storage._toUid}
+    set {_uniqueStorage()._toUid = newValue}
+  }
 
-  public var fromUid: Int64 = 0
+  public var fromUid: Int64 {
+    get {return _storage._fromUid}
+    set {_uniqueStorage()._fromUid = newValue}
+  }
 
-  public var payload: Server_Msg.OneOf_Payload? = nil
+  public var payload: OneOf_Payload? {
+    get {return _storage._payload}
+    set {_uniqueStorage()._payload = newValue}
+  }
 
   public var contactList: Server_ContactList {
     get {
-      if case .contactList(let v)? = payload {return v}
+      if case .contactList(let v)? = _storage._payload {return v}
       return Server_ContactList()
     }
-    set {payload = .contactList(newValue)}
+    set {_uniqueStorage()._payload = .contactList(newValue)}
   }
 
   public var avatar: Server_Avatar {
     get {
-      if case .avatar(let v)? = payload {return v}
+      if case .avatar(let v)? = _storage._payload {return v}
       return Server_Avatar()
     }
-    set {payload = .avatar(newValue)}
+    set {_uniqueStorage()._payload = .avatar(newValue)}
   }
 
   public var whisperKeys: Server_WhisperKeys {
     get {
-      if case .whisperKeys(let v)? = payload {return v}
+      if case .whisperKeys(let v)? = _storage._payload {return v}
       return Server_WhisperKeys()
     }
-    set {payload = .whisperKeys(newValue)}
+    set {_uniqueStorage()._payload = .whisperKeys(newValue)}
   }
 
   public var seenReceipt: Server_SeenReceipt {
     get {
-      if case .seenReceipt(let v)? = payload {return v}
+      if case .seenReceipt(let v)? = _storage._payload {return v}
       return Server_SeenReceipt()
     }
-    set {payload = .seenReceipt(newValue)}
+    set {_uniqueStorage()._payload = .seenReceipt(newValue)}
   }
 
   public var deliveryReceipt: Server_DeliveryReceipt {
     get {
-      if case .deliveryReceipt(let v)? = payload {return v}
+      if case .deliveryReceipt(let v)? = _storage._payload {return v}
       return Server_DeliveryReceipt()
     }
-    set {payload = .deliveryReceipt(newValue)}
+    set {_uniqueStorage()._payload = .deliveryReceipt(newValue)}
   }
 
   public var chatStanza: Server_ChatStanza {
     get {
-      if case .chatStanza(let v)? = payload {return v}
+      if case .chatStanza(let v)? = _storage._payload {return v}
       return Server_ChatStanza()
     }
-    set {payload = .chatStanza(newValue)}
+    set {_uniqueStorage()._payload = .chatStanza(newValue)}
   }
 
   public var feedItem: Server_FeedItem {
     get {
-      if case .feedItem(let v)? = payload {return v}
+      if case .feedItem(let v)? = _storage._payload {return v}
       return Server_FeedItem()
     }
-    set {payload = .feedItem(newValue)}
+    set {_uniqueStorage()._payload = .feedItem(newValue)}
   }
 
   public var feedItems: Server_FeedItems {
     get {
-      if case .feedItems(let v)? = payload {return v}
+      if case .feedItems(let v)? = _storage._payload {return v}
       return Server_FeedItems()
     }
-    set {payload = .feedItems(newValue)}
+    set {_uniqueStorage()._payload = .feedItems(newValue)}
   }
 
   public var contactHash: Server_ContactHash {
     get {
-      if case .contactHash(let v)? = payload {return v}
+      if case .contactHash(let v)? = _storage._payload {return v}
       return Server_ContactHash()
     }
-    set {payload = .contactHash(newValue)}
+    set {_uniqueStorage()._payload = .contactHash(newValue)}
   }
 
   public var groupStanza: Server_GroupStanza {
     get {
-      if case .groupStanza(let v)? = payload {return v}
+      if case .groupStanza(let v)? = _storage._payload {return v}
       return Server_GroupStanza()
     }
-    set {payload = .groupStanza(newValue)}
+    set {_uniqueStorage()._payload = .groupStanza(newValue)}
   }
 
   public var groupChat: Server_GroupChat {
     get {
-      if case .groupChat(let v)? = payload {return v}
+      if case .groupChat(let v)? = _storage._payload {return v}
       return Server_GroupChat()
     }
-    set {payload = .groupChat(newValue)}
+    set {_uniqueStorage()._payload = .groupChat(newValue)}
   }
 
   public var name: Server_Name {
     get {
-      if case .name(let v)? = payload {return v}
+      if case .name(let v)? = _storage._payload {return v}
       return Server_Name()
     }
-    set {payload = .name(newValue)}
+    set {_uniqueStorage()._payload = .name(newValue)}
   }
 
   public var errorStanza: Server_ErrorStanza {
     get {
-      if case .errorStanza(let v)? = payload {return v}
+      if case .errorStanza(let v)? = _storage._payload {return v}
       return Server_ErrorStanza()
     }
-    set {payload = .errorStanza(newValue)}
+    set {_uniqueStorage()._payload = .errorStanza(newValue)}
   }
 
   public var groupchatRetract: Server_GroupChatRetract {
     get {
-      if case .groupchatRetract(let v)? = payload {return v}
+      if case .groupchatRetract(let v)? = _storage._payload {return v}
       return Server_GroupChatRetract()
     }
-    set {payload = .groupchatRetract(newValue)}
+    set {_uniqueStorage()._payload = .groupchatRetract(newValue)}
   }
 
   public var chatRetract: Server_ChatRetract {
     get {
-      if case .chatRetract(let v)? = payload {return v}
+      if case .chatRetract(let v)? = _storage._payload {return v}
       return Server_ChatRetract()
     }
-    set {payload = .chatRetract(newValue)}
+    set {_uniqueStorage()._payload = .chatRetract(newValue)}
   }
 
   public var groupFeedItem: Server_GroupFeedItem {
     get {
-      if case .groupFeedItem(let v)? = payload {return v}
+      if case .groupFeedItem(let v)? = _storage._payload {return v}
       return Server_GroupFeedItem()
     }
-    set {payload = .groupFeedItem(newValue)}
+    set {_uniqueStorage()._payload = .groupFeedItem(newValue)}
   }
 
   public var rerequest: Server_Rerequest {
     get {
-      if case .rerequest(let v)? = payload {return v}
+      if case .rerequest(let v)? = _storage._payload {return v}
       return Server_Rerequest()
     }
-    set {payload = .rerequest(newValue)}
+    set {_uniqueStorage()._payload = .rerequest(newValue)}
   }
 
   public var silentChatStanza: Server_SilentChatStanza {
     get {
-      if case .silentChatStanza(let v)? = payload {return v}
+      if case .silentChatStanza(let v)? = _storage._payload {return v}
       return Server_SilentChatStanza()
     }
-    set {payload = .silentChatStanza(newValue)}
+    set {_uniqueStorage()._payload = .silentChatStanza(newValue)}
   }
 
   public var groupFeedItems: Server_GroupFeedItems {
     get {
-      if case .groupFeedItems(let v)? = payload {return v}
+      if case .groupFeedItems(let v)? = _storage._payload {return v}
       return Server_GroupFeedItems()
     }
-    set {payload = .groupFeedItems(newValue)}
+    set {_uniqueStorage()._payload = .groupFeedItems(newValue)}
   }
 
   public var endOfQueue: Server_EndOfQueue {
     get {
-      if case .endOfQueue(let v)? = payload {return v}
+      if case .endOfQueue(let v)? = _storage._payload {return v}
       return Server_EndOfQueue()
     }
-    set {payload = .endOfQueue(newValue)}
+    set {_uniqueStorage()._payload = .endOfQueue(newValue)}
   }
 
   public var inviteeNotice: Server_InviteeNotice {
     get {
-      if case .inviteeNotice(let v)? = payload {return v}
+      if case .inviteeNotice(let v)? = _storage._payload {return v}
       return Server_InviteeNotice()
     }
-    set {payload = .inviteeNotice(newValue)}
+    set {_uniqueStorage()._payload = .inviteeNotice(newValue)}
   }
 
   public var groupFeedRerequest: Server_GroupFeedRerequest {
     get {
-      if case .groupFeedRerequest(let v)? = payload {return v}
+      if case .groupFeedRerequest(let v)? = _storage._payload {return v}
       return Server_GroupFeedRerequest()
     }
-    set {payload = .groupFeedRerequest(newValue)}
+    set {_uniqueStorage()._payload = .groupFeedRerequest(newValue)}
   }
 
   public var historyResend: Server_HistoryResend {
     get {
-      if case .historyResend(let v)? = payload {return v}
+      if case .historyResend(let v)? = _storage._payload {return v}
       return Server_HistoryResend()
     }
-    set {payload = .historyResend(newValue)}
+    set {_uniqueStorage()._payload = .historyResend(newValue)}
   }
 
   public var playedReceipt: Server_PlayedReceipt {
     get {
-      if case .playedReceipt(let v)? = payload {return v}
+      if case .playedReceipt(let v)? = _storage._payload {return v}
       return Server_PlayedReceipt()
     }
-    set {payload = .playedReceipt(newValue)}
+    set {_uniqueStorage()._payload = .playedReceipt(newValue)}
   }
 
   public var requestLogs: Server_RequestLogs {
     get {
-      if case .requestLogs(let v)? = payload {return v}
+      if case .requestLogs(let v)? = _storage._payload {return v}
       return Server_RequestLogs()
     }
-    set {payload = .requestLogs(newValue)}
+    set {_uniqueStorage()._payload = .requestLogs(newValue)}
   }
 
   /// only for use with SMSApp clients
   public var wakeup: Server_WakeUp {
     get {
-      if case .wakeup(let v)? = payload {return v}
+      if case .wakeup(let v)? = _storage._payload {return v}
       return Server_WakeUp()
     }
-    set {payload = .wakeup(newValue)}
+    set {_uniqueStorage()._payload = .wakeup(newValue)}
   }
 
-  public var retryCount: Int32 = 0
+  public var homeFeedRerequest: Server_HomeFeedRerequest {
+    get {
+      if case .homeFeedRerequest(let v)? = _storage._payload {return v}
+      return Server_HomeFeedRerequest()
+    }
+    set {_uniqueStorage()._payload = .homeFeedRerequest(newValue)}
+  }
 
-  public var rerequestCount: Int32 = 0
+  public var retryCount: Int32 {
+    get {return _storage._retryCount}
+    set {_uniqueStorage()._retryCount = newValue}
+  }
+
+  public var rerequestCount: Int32 {
+    get {return _storage._rerequestCount}
+    set {_uniqueStorage()._rerequestCount = newValue}
+  }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -2412,6 +2469,7 @@ public struct Server_Msg {
     case requestLogs(Server_RequestLogs)
     /// only for use with SMSApp clients
     case wakeup(Server_WakeUp)
+    case homeFeedRerequest(Server_HomeFeedRerequest)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -2523,6 +2581,10 @@ public struct Server_Msg {
         guard case .wakeup(let l) = lhs, case .wakeup(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
+      case (.homeFeedRerequest, .homeFeedRerequest): return {
+        guard case .homeFeedRerequest(let l) = lhs, case .homeFeedRerequest(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
       default: return false
       }
     }
@@ -2569,6 +2631,8 @@ public struct Server_Msg {
   }
 
   public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 #if swift(>=4.2)
@@ -3358,6 +3422,70 @@ extension Server_GroupFeedRerequest.RerequestType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_HomeFeedRerequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Post id or Comment id.
+  public var id: String = String()
+
+  public var rerequestType: Server_HomeFeedRerequest.RerequestType = .unknownType
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  /// To capture the type of decryption failure.
+  public enum RerequestType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownType // = 0
+
+    /// Unable to decrypt post/comment's payload
+    case payload // = 1
+
+    /// Unable to decrypt sender state.
+    case senderState // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownType
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownType
+      case 1: self = .payload
+      case 2: self = .senderState
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownType: return 0
+      case .payload: return 1
+      case .senderState: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_HomeFeedRerequest.RerequestType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_HomeFeedRerequest.RerequestType] = [
+    .unknownType,
+    .payload,
+    .senderState,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 public struct Server_SeenReceipt {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3538,6 +3666,19 @@ extension Server_WhisperKeys.Action: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_WhisperKeysCollection {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Action is always get.
+  public var collection: [Server_WhisperKeys] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Server_NoiseMessage {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3637,10 +3778,50 @@ public struct Server_DeleteAccount {
 
   public var phone: String = String()
 
+  public var reason: Server_DeleteAccount.Reason = .unknownDeleteReason
+
+  public var feedback: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Reason: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownDeleteReason // = 0
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownDeleteReason
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownDeleteReason
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownDeleteReason: return 0
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
 
   public init() {}
 }
+
+#if swift(>=4.2)
+
+extension Server_DeleteAccount.Reason: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_DeleteAccount.Reason] = [
+    .unknownDeleteReason,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 public struct Server_ExportData {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -5332,6 +5513,8 @@ extension Server_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     2: .same(proto: "post"),
     3: .same(proto: "comment"),
     4: .standard(proto: "share_stanzas"),
+    5: .standard(proto: "sender_state_bundles"),
+    6: .standard(proto: "sender_state"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -5343,31 +5526,25 @@ extension Server_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       case 1: try { try decoder.decodeSingularEnumField(value: &self.action) }()
       case 2: try {
         var v: Server_Post?
-        var hadOneofValue = false
         if let current = self.item {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .post(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.item = .post(v)
-        }
+        if let v = v {self.item = .post(v)}
       }()
       case 3: try {
         var v: Server_Comment?
-        var hadOneofValue = false
         if let current = self.item {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .comment(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.item = .comment(v)
-        }
+        if let v = v {self.item = .comment(v)}
       }()
       case 4: try { try decoder.decodeRepeatedMessageField(value: &self.shareStanzas) }()
+      case 5: try { try decoder.decodeRepeatedMessageField(value: &self.senderStateBundles) }()
+      case 6: try { try decoder.decodeSingularMessageField(value: &self._senderState) }()
       default: break
       }
     }
@@ -5394,6 +5571,12 @@ extension Server_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if !self.shareStanzas.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.shareStanzas, fieldNumber: 4)
     }
+    if !self.senderStateBundles.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.senderStateBundles, fieldNumber: 5)
+    }
+    if let v = self._senderState {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -5401,6 +5584,8 @@ extension Server_FeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if lhs.action != rhs.action {return false}
     if lhs.item != rhs.item {return false}
     if lhs.shareStanzas != rhs.shareStanzas {return false}
+    if lhs.senderStateBundles != rhs.senderStateBundles {return false}
+    if lhs._senderState != rhs._senderState {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -5595,29 +5780,21 @@ extension Server_GroupFeedItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
         case 4: try { try decoder.decodeSingularStringField(value: &_storage._avatarID) }()
         case 5: try {
           var v: Server_Post?
-          var hadOneofValue = false
           if let current = _storage._item {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .post(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._item = .post(v)
-          }
+          if let v = v {_storage._item = .post(v)}
         }()
         case 6: try {
           var v: Server_Comment?
-          var hadOneofValue = false
           if let current = _storage._item {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .comment(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._item = .comment(v)
-          }
+          if let v = v {_storage._item = .comment(v)}
         }()
         case 7: try { try decoder.decodeRepeatedMessageField(value: &_storage._senderStateBundles) }()
         case 8: try { try decoder.decodeSingularMessageField(value: &_storage._senderState) }()
@@ -6822,6 +6999,7 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     34: .standard(proto: "contact_sync_error"),
     35: .standard(proto: "client_otp_request"),
     36: .standard(proto: "client_otp_response"),
+    37: .standard(proto: "whisper_keys_collection"),
   ]
 
   fileprivate class _StorageClass {
@@ -6859,406 +7037,291 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
         case 2: try { try decoder.decodeSingularEnumField(value: &_storage._type) }()
         case 3: try {
           var v: Server_UploadMedia?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .uploadMedia(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .uploadMedia(v)
-          }
+          if let v = v {_storage._payload = .uploadMedia(v)}
         }()
         case 4: try {
           var v: Server_ContactList?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .contactList(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .contactList(v)
-          }
+          if let v = v {_storage._payload = .contactList(v)}
         }()
         case 5: try {
           var v: Server_UploadAvatar?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .uploadAvatar(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .uploadAvatar(v)
-          }
+          if let v = v {_storage._payload = .uploadAvatar(v)}
         }()
         case 6: try {
           var v: Server_Avatar?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .avatar(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .avatar(v)
-          }
+          if let v = v {_storage._payload = .avatar(v)}
         }()
         case 7: try {
           var v: Server_Avatars?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .avatars(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .avatars(v)
-          }
+          if let v = v {_storage._payload = .avatars(v)}
         }()
         case 8: try {
           var v: Server_ClientMode?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .clientMode(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .clientMode(v)
-          }
+          if let v = v {_storage._payload = .clientMode(v)}
         }()
         case 9: try {
           var v: Server_ClientVersion?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .clientVersion(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .clientVersion(v)
-          }
+          if let v = v {_storage._payload = .clientVersion(v)}
         }()
         case 10: try {
           var v: Server_PushRegister?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .pushRegister(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .pushRegister(v)
-          }
+          if let v = v {_storage._payload = .pushRegister(v)}
         }()
         case 11: try {
           var v: Server_WhisperKeys?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .whisperKeys(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .whisperKeys(v)
-          }
+          if let v = v {_storage._payload = .whisperKeys(v)}
         }()
         case 12: try {
           var v: Server_Ping?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .ping(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .ping(v)
-          }
+          if let v = v {_storage._payload = .ping(v)}
         }()
         case 13: try {
           var v: Server_FeedItem?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .feedItem(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .feedItem(v)
-          }
+          if let v = v {_storage._payload = .feedItem(v)}
         }()
         case 14: try {
           var v: Server_PrivacyList?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .privacyList(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .privacyList(v)
-          }
+          if let v = v {_storage._payload = .privacyList(v)}
         }()
         case 16: try {
           var v: Server_PrivacyLists?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .privacyLists(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .privacyLists(v)
-          }
+          if let v = v {_storage._payload = .privacyLists(v)}
         }()
         case 17: try {
           var v: Server_GroupStanza?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .groupStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .groupStanza(v)
-          }
+          if let v = v {_storage._payload = .groupStanza(v)}
         }()
         case 18: try {
           var v: Server_GroupsStanza?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .groupsStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .groupsStanza(v)
-          }
+          if let v = v {_storage._payload = .groupsStanza(v)}
         }()
         case 19: try {
           var v: Server_ClientLog?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .clientLog(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .clientLog(v)
-          }
+          if let v = v {_storage._payload = .clientLog(v)}
         }()
         case 20: try {
           var v: Server_Name?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .name(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .name(v)
-          }
+          if let v = v {_storage._payload = .name(v)}
         }()
         case 21: try {
           var v: Server_ErrorStanza?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .errorStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .errorStanza(v)
-          }
+          if let v = v {_storage._payload = .errorStanza(v)}
         }()
         case 22: try {
           var v: Server_Props?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .props(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .props(v)
-          }
+          if let v = v {_storage._payload = .props(v)}
         }()
         case 23: try {
           var v: Server_InvitesRequest?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .invitesRequest(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .invitesRequest(v)
-          }
+          if let v = v {_storage._payload = .invitesRequest(v)}
         }()
         case 24: try {
           var v: Server_InvitesResponse?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .invitesResponse(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .invitesResponse(v)
-          }
+          if let v = v {_storage._payload = .invitesResponse(v)}
         }()
         case 25: try {
           var v: Server_NotificationPrefs?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .notificationPrefs(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .notificationPrefs(v)
-          }
+          if let v = v {_storage._payload = .notificationPrefs(v)}
         }()
         case 26: try {
           var v: Server_GroupFeedItem?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .groupFeedItem(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .groupFeedItem(v)
-          }
+          if let v = v {_storage._payload = .groupFeedItem(v)}
         }()
         case 27: try {
           var v: Server_UploadGroupAvatar?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .groupAvatar(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .groupAvatar(v)
-          }
+          if let v = v {_storage._payload = .groupAvatar(v)}
         }()
         case 28: try {
           var v: Server_DeleteAccount?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .deleteAccount(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .deleteAccount(v)
-          }
+          if let v = v {_storage._payload = .deleteAccount(v)}
         }()
         case 31: try {
           var v: Server_GroupInviteLink?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .groupInviteLink(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .groupInviteLink(v)
-          }
+          if let v = v {_storage._payload = .groupInviteLink(v)}
         }()
         case 32: try {
           var v: Server_HistoryResend?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .historyResend(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .historyResend(v)
-          }
+          if let v = v {_storage._payload = .historyResend(v)}
         }()
         case 33: try {
           var v: Server_ExportData?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .exportData(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .exportData(v)
-          }
+          if let v = v {_storage._payload = .exportData(v)}
         }()
         case 34: try {
           var v: Server_ContactSyncError?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .contactSyncError(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .contactSyncError(v)
-          }
+          if let v = v {_storage._payload = .contactSyncError(v)}
         }()
         case 35: try {
           var v: Server_ClientOtpRequest?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .clientOtpRequest(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .clientOtpRequest(v)
-          }
+          if let v = v {_storage._payload = .clientOtpRequest(v)}
         }()
         case 36: try {
           var v: Server_ClientOtpResponse?
-          var hadOneofValue = false
           if let current = _storage._payload {
-            hadOneofValue = true
+            try decoder.handleConflictingOneOf()
             if case .clientOtpResponse(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {
-            if hadOneofValue {try decoder.handleConflictingOneOf()}
-            _storage._payload = .clientOtpResponse(v)
+          if let v = v {_storage._payload = .clientOtpResponse(v)}
+        }()
+        case 37: try {
+          var v: Server_WhisperKeysCollection?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .whisperKeysCollection(let m) = current {v = m}
           }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .whisperKeysCollection(v)}
         }()
         default: break
         }
@@ -7402,6 +7465,10 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
         guard case .clientOtpResponse(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 36)
       }()
+      case .whisperKeysCollection?: try {
+        guard case .whisperKeysCollection(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 37)
+      }()
       case nil: break
       }
     }
@@ -7467,517 +7534,471 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     30: .standard(proto: "played_receipt"),
     31: .standard(proto: "request_logs"),
     32: .same(proto: "wakeup"),
+    33: .standard(proto: "home_feed_rerequest"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
 
+  fileprivate class _StorageClass {
+    var _id: String = String()
+    var _type: Server_Msg.TypeEnum = .normal
+    var _toUid: Int64 = 0
+    var _fromUid: Int64 = 0
+    var _payload: Server_Msg.OneOf_Payload?
+    var _retryCount: Int32 = 0
+    var _rerequestCount: Int32 = 0
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _id = source._id
+      _type = source._type
+      _toUid = source._toUid
+      _fromUid = source._fromUid
+      _payload = source._payload
+      _retryCount = source._retryCount
+      _rerequestCount = source._rerequestCount
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      case 2: try { try decoder.decodeSingularEnumField(value: &self.type) }()
-      case 3: try { try decoder.decodeSingularInt64Field(value: &self.toUid) }()
-      case 4: try { try decoder.decodeSingularInt64Field(value: &self.fromUid) }()
-      case 5: try {
-        var v: Server_ContactList?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .contactList(let m) = current {v = m}
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._id) }()
+        case 2: try { try decoder.decodeSingularEnumField(value: &_storage._type) }()
+        case 3: try { try decoder.decodeSingularInt64Field(value: &_storage._toUid) }()
+        case 4: try { try decoder.decodeSingularInt64Field(value: &_storage._fromUid) }()
+        case 5: try {
+          var v: Server_ContactList?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .contactList(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .contactList(v)}
+        }()
+        case 6: try {
+          var v: Server_Avatar?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .avatar(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .avatar(v)}
+        }()
+        case 7: try {
+          var v: Server_WhisperKeys?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .whisperKeys(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .whisperKeys(v)}
+        }()
+        case 8: try {
+          var v: Server_SeenReceipt?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .seenReceipt(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .seenReceipt(v)}
+        }()
+        case 9: try {
+          var v: Server_DeliveryReceipt?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .deliveryReceipt(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .deliveryReceipt(v)}
+        }()
+        case 10: try {
+          var v: Server_ChatStanza?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .chatStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .chatStanza(v)}
+        }()
+        case 11: try {
+          var v: Server_FeedItem?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .feedItem(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .feedItem(v)}
+        }()
+        case 12: try {
+          var v: Server_FeedItems?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .feedItems(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .feedItems(v)}
+        }()
+        case 13: try {
+          var v: Server_ContactHash?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .contactHash(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .contactHash(v)}
+        }()
+        case 14: try {
+          var v: Server_GroupStanza?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupStanza(v)}
+        }()
+        case 15: try {
+          var v: Server_GroupChat?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupChat(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupChat(v)}
+        }()
+        case 16: try {
+          var v: Server_Name?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .name(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .name(v)}
+        }()
+        case 17: try {
+          var v: Server_ErrorStanza?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .errorStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .errorStanza(v)}
+        }()
+        case 18: try {
+          var v: Server_GroupChatRetract?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupchatRetract(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupchatRetract(v)}
+        }()
+        case 19: try {
+          var v: Server_ChatRetract?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .chatRetract(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .chatRetract(v)}
+        }()
+        case 20: try {
+          var v: Server_GroupFeedItem?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupFeedItem(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupFeedItem(v)}
+        }()
+        case 21: try { try decoder.decodeSingularInt32Field(value: &_storage._retryCount) }()
+        case 22: try {
+          var v: Server_Rerequest?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .rerequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .rerequest(v)}
+        }()
+        case 23: try {
+          var v: Server_SilentChatStanza?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .silentChatStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .silentChatStanza(v)}
+        }()
+        case 24: try {
+          var v: Server_GroupFeedItems?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupFeedItems(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupFeedItems(v)}
+        }()
+        case 25: try { try decoder.decodeSingularInt32Field(value: &_storage._rerequestCount) }()
+        case 26: try {
+          var v: Server_EndOfQueue?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .endOfQueue(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .endOfQueue(v)}
+        }()
+        case 27: try {
+          var v: Server_InviteeNotice?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .inviteeNotice(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .inviteeNotice(v)}
+        }()
+        case 28: try {
+          var v: Server_GroupFeedRerequest?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupFeedRerequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupFeedRerequest(v)}
+        }()
+        case 29: try {
+          var v: Server_HistoryResend?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .historyResend(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .historyResend(v)}
+        }()
+        case 30: try {
+          var v: Server_PlayedReceipt?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .playedReceipt(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .playedReceipt(v)}
+        }()
+        case 31: try {
+          var v: Server_RequestLogs?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .requestLogs(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .requestLogs(v)}
+        }()
+        case 32: try {
+          var v: Server_WakeUp?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .wakeup(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .wakeup(v)}
+        }()
+        case 33: try {
+          var v: Server_HomeFeedRerequest?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .homeFeedRerequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .homeFeedRerequest(v)}
+        }()
+        default: break
         }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .contactList(v)
-        }
-      }()
-      case 6: try {
-        var v: Server_Avatar?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .avatar(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .avatar(v)
-        }
-      }()
-      case 7: try {
-        var v: Server_WhisperKeys?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .whisperKeys(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .whisperKeys(v)
-        }
-      }()
-      case 8: try {
-        var v: Server_SeenReceipt?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .seenReceipt(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .seenReceipt(v)
-        }
-      }()
-      case 9: try {
-        var v: Server_DeliveryReceipt?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .deliveryReceipt(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .deliveryReceipt(v)
-        }
-      }()
-      case 10: try {
-        var v: Server_ChatStanza?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .chatStanza(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .chatStanza(v)
-        }
-      }()
-      case 11: try {
-        var v: Server_FeedItem?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .feedItem(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .feedItem(v)
-        }
-      }()
-      case 12: try {
-        var v: Server_FeedItems?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .feedItems(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .feedItems(v)
-        }
-      }()
-      case 13: try {
-        var v: Server_ContactHash?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .contactHash(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .contactHash(v)
-        }
-      }()
-      case 14: try {
-        var v: Server_GroupStanza?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .groupStanza(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .groupStanza(v)
-        }
-      }()
-      case 15: try {
-        var v: Server_GroupChat?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .groupChat(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .groupChat(v)
-        }
-      }()
-      case 16: try {
-        var v: Server_Name?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .name(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .name(v)
-        }
-      }()
-      case 17: try {
-        var v: Server_ErrorStanza?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .errorStanza(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .errorStanza(v)
-        }
-      }()
-      case 18: try {
-        var v: Server_GroupChatRetract?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .groupchatRetract(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .groupchatRetract(v)
-        }
-      }()
-      case 19: try {
-        var v: Server_ChatRetract?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .chatRetract(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .chatRetract(v)
-        }
-      }()
-      case 20: try {
-        var v: Server_GroupFeedItem?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .groupFeedItem(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .groupFeedItem(v)
-        }
-      }()
-      case 21: try { try decoder.decodeSingularInt32Field(value: &self.retryCount) }()
-      case 22: try {
-        var v: Server_Rerequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .rerequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .rerequest(v)
-        }
-      }()
-      case 23: try {
-        var v: Server_SilentChatStanza?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .silentChatStanza(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .silentChatStanza(v)
-        }
-      }()
-      case 24: try {
-        var v: Server_GroupFeedItems?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .groupFeedItems(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .groupFeedItems(v)
-        }
-      }()
-      case 25: try { try decoder.decodeSingularInt32Field(value: &self.rerequestCount) }()
-      case 26: try {
-        var v: Server_EndOfQueue?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .endOfQueue(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .endOfQueue(v)
-        }
-      }()
-      case 27: try {
-        var v: Server_InviteeNotice?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .inviteeNotice(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .inviteeNotice(v)
-        }
-      }()
-      case 28: try {
-        var v: Server_GroupFeedRerequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .groupFeedRerequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .groupFeedRerequest(v)
-        }
-      }()
-      case 29: try {
-        var v: Server_HistoryResend?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .historyResend(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .historyResend(v)
-        }
-      }()
-      case 30: try {
-        var v: Server_PlayedReceipt?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .playedReceipt(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .playedReceipt(v)
-        }
-      }()
-      case 31: try {
-        var v: Server_RequestLogs?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .requestLogs(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .requestLogs(v)
-        }
-      }()
-      case 32: try {
-        var v: Server_WakeUp?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .wakeup(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .wakeup(v)
-        }
-      }()
-      default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
-    }
-    if self.type != .normal {
-      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 2)
-    }
-    if self.toUid != 0 {
-      try visitor.visitSingularInt64Field(value: self.toUid, fieldNumber: 3)
-    }
-    if self.fromUid != 0 {
-      try visitor.visitSingularInt64Field(value: self.fromUid, fieldNumber: 4)
-    }
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every case branch when no optimizations are
-    // enabled. https://github.com/apple/swift-protobuf/issues/1034
-    switch self.payload {
-    case .contactList?: try {
-      guard case .contactList(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
-    }()
-    case .avatar?: try {
-      guard case .avatar(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-    }()
-    case .whisperKeys?: try {
-      guard case .whisperKeys(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
-    }()
-    case .seenReceipt?: try {
-      guard case .seenReceipt(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
-    }()
-    case .deliveryReceipt?: try {
-      guard case .deliveryReceipt(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
-    }()
-    case .chatStanza?: try {
-      guard case .chatStanza(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
-    }()
-    case .feedItem?: try {
-      guard case .feedItem(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
-    }()
-    case .feedItems?: try {
-      guard case .feedItems(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
-    }()
-    case .contactHash?: try {
-      guard case .contactHash(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
-    }()
-    case .groupStanza?: try {
-      guard case .groupStanza(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
-    }()
-    case .groupChat?: try {
-      guard case .groupChat(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
-    }()
-    case .name?: try {
-      guard case .name(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
-    }()
-    case .errorStanza?: try {
-      guard case .errorStanza(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
-    }()
-    case .groupchatRetract?: try {
-      guard case .groupchatRetract(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
-    }()
-    case .chatRetract?: try {
-      guard case .chatRetract(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 19)
-    }()
-    case .groupFeedItem?: try {
-      guard case .groupFeedItem(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 20)
-    }()
-    default: break
-    }
-    if self.retryCount != 0 {
-      try visitor.visitSingularInt32Field(value: self.retryCount, fieldNumber: 21)
-    }
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every case branch when no optimizations are
-    // enabled. https://github.com/apple/swift-protobuf/issues/1034
-    switch self.payload {
-    case .rerequest?: try {
-      guard case .rerequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
-    }()
-    case .silentChatStanza?: try {
-      guard case .silentChatStanza(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 23)
-    }()
-    case .groupFeedItems?: try {
-      guard case .groupFeedItems(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 24)
-    }()
-    default: break
-    }
-    if self.rerequestCount != 0 {
-      try visitor.visitSingularInt32Field(value: self.rerequestCount, fieldNumber: 25)
-    }
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every case branch when no optimizations are
-    // enabled. https://github.com/apple/swift-protobuf/issues/1034
-    switch self.payload {
-    case .endOfQueue?: try {
-      guard case .endOfQueue(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 26)
-    }()
-    case .inviteeNotice?: try {
-      guard case .inviteeNotice(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 27)
-    }()
-    case .groupFeedRerequest?: try {
-      guard case .groupFeedRerequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 28)
-    }()
-    case .historyResend?: try {
-      guard case .historyResend(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 29)
-    }()
-    case .playedReceipt?: try {
-      guard case .playedReceipt(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 30)
-    }()
-    case .requestLogs?: try {
-      guard case .requestLogs(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 31)
-    }()
-    case .wakeup?: try {
-      guard case .wakeup(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 32)
-    }()
-    default: break
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      if !_storage._id.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._id, fieldNumber: 1)
+      }
+      if _storage._type != .normal {
+        try visitor.visitSingularEnumField(value: _storage._type, fieldNumber: 2)
+      }
+      if _storage._toUid != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._toUid, fieldNumber: 3)
+      }
+      if _storage._fromUid != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._fromUid, fieldNumber: 4)
+      }
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch _storage._payload {
+      case .contactList?: try {
+        guard case .contactList(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+      }()
+      case .avatar?: try {
+        guard case .avatar(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+      }()
+      case .whisperKeys?: try {
+        guard case .whisperKeys(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
+      }()
+      case .seenReceipt?: try {
+        guard case .seenReceipt(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+      }()
+      case .deliveryReceipt?: try {
+        guard case .deliveryReceipt(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
+      }()
+      case .chatStanza?: try {
+        guard case .chatStanza(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
+      }()
+      case .feedItem?: try {
+        guard case .feedItem(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
+      }()
+      case .feedItems?: try {
+        guard case .feedItems(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
+      }()
+      case .contactHash?: try {
+        guard case .contactHash(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
+      }()
+      case .groupStanza?: try {
+        guard case .groupStanza(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
+      }()
+      case .groupChat?: try {
+        guard case .groupChat(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
+      }()
+      case .name?: try {
+        guard case .name(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
+      }()
+      case .errorStanza?: try {
+        guard case .errorStanza(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
+      }()
+      case .groupchatRetract?: try {
+        guard case .groupchatRetract(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
+      }()
+      case .chatRetract?: try {
+        guard case .chatRetract(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 19)
+      }()
+      case .groupFeedItem?: try {
+        guard case .groupFeedItem(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 20)
+      }()
+      default: break
+      }
+      if _storage._retryCount != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._retryCount, fieldNumber: 21)
+      }
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch _storage._payload {
+      case .rerequest?: try {
+        guard case .rerequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
+      }()
+      case .silentChatStanza?: try {
+        guard case .silentChatStanza(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 23)
+      }()
+      case .groupFeedItems?: try {
+        guard case .groupFeedItems(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 24)
+      }()
+      default: break
+      }
+      if _storage._rerequestCount != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._rerequestCount, fieldNumber: 25)
+      }
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch _storage._payload {
+      case .endOfQueue?: try {
+        guard case .endOfQueue(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 26)
+      }()
+      case .inviteeNotice?: try {
+        guard case .inviteeNotice(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 27)
+      }()
+      case .groupFeedRerequest?: try {
+        guard case .groupFeedRerequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 28)
+      }()
+      case .historyResend?: try {
+        guard case .historyResend(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 29)
+      }()
+      case .playedReceipt?: try {
+        guard case .playedReceipt(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 30)
+      }()
+      case .requestLogs?: try {
+        guard case .requestLogs(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 31)
+      }()
+      case .wakeup?: try {
+        guard case .wakeup(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 32)
+      }()
+      case .homeFeedRerequest?: try {
+        guard case .homeFeedRerequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 33)
+      }()
+      default: break
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_Msg, rhs: Server_Msg) -> Bool {
-    if lhs.id != rhs.id {return false}
-    if lhs.type != rhs.type {return false}
-    if lhs.toUid != rhs.toUid {return false}
-    if lhs.fromUid != rhs.fromUid {return false}
-    if lhs.payload != rhs.payload {return false}
-    if lhs.retryCount != rhs.retryCount {return false}
-    if lhs.rerequestCount != rhs.rerequestCount {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._id != rhs_storage._id {return false}
+        if _storage._type != rhs_storage._type {return false}
+        if _storage._toUid != rhs_storage._toUid {return false}
+        if _storage._fromUid != rhs_storage._fromUid {return false}
+        if _storage._payload != rhs_storage._payload {return false}
+        if _storage._retryCount != rhs_storage._retryCount {return false}
+        if _storage._rerequestCount != rhs_storage._rerequestCount {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -8217,81 +8238,57 @@ extension Server_Packet: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
       switch fieldNumber {
       case 1: try {
         var v: Server_Msg?
-        var hadOneofValue = false
         if let current = self.stanza {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .msg(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.stanza = .msg(v)
-        }
+        if let v = v {self.stanza = .msg(v)}
       }()
       case 2: try {
         var v: Server_Iq?
-        var hadOneofValue = false
         if let current = self.stanza {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .iq(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.stanza = .iq(v)
-        }
+        if let v = v {self.stanza = .iq(v)}
       }()
       case 3: try {
         var v: Server_Ack?
-        var hadOneofValue = false
         if let current = self.stanza {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .ack(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.stanza = .ack(v)
-        }
+        if let v = v {self.stanza = .ack(v)}
       }()
       case 4: try {
         var v: Server_Presence?
-        var hadOneofValue = false
         if let current = self.stanza {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .presence(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.stanza = .presence(v)
-        }
+        if let v = v {self.stanza = .presence(v)}
       }()
       case 5: try {
         var v: Server_HaError?
-        var hadOneofValue = false
         if let current = self.stanza {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .haError(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.stanza = .haError(v)
-        }
+        if let v = v {self.stanza = .haError(v)}
       }()
       case 6: try {
         var v: Server_ChatState?
-        var hadOneofValue = false
         if let current = self.stanza {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .chatState(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.stanza = .chatState(v)
-        }
+        if let v = v {self.stanza = .chatState(v)}
       }()
       default: break
       }
@@ -8817,6 +8814,52 @@ extension Server_GroupFeedRerequest.RerequestType: SwiftProtobuf._ProtoNameProvi
   ]
 }
 
+extension Server_HomeFeedRerequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".HomeFeedRerequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .standard(proto: "rerequest_type"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.rerequestType) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if self.rerequestType != .unknownType {
+      try visitor.visitSingularEnumField(value: self.rerequestType, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_HomeFeedRerequest, rhs: Server_HomeFeedRerequest) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.rerequestType != rhs.rerequestType {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_HomeFeedRerequest.RerequestType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_TYPE"),
+    1: .same(proto: "PAYLOAD"),
+    2: .same(proto: "SENDER_STATE"),
+  ]
+}
+
 extension Server_SeenReceipt: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".SeenReceipt"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -9168,6 +9211,38 @@ extension Server_WhisperKeys.Action: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
+extension Server_WhisperKeysCollection: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".WhisperKeysCollection"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "collection"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.collection) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.collection.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.collection, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_WhisperKeysCollection, rhs: Server_WhisperKeysCollection) -> Bool {
+    if lhs.collection != rhs.collection {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Server_NoiseMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".NoiseMessage"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -9222,6 +9297,8 @@ extension Server_DeleteAccount: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
   public static let protoMessageName: String = _protobuf_package + ".DeleteAccount"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "phone"),
+    2: .same(proto: "reason"),
+    3: .same(proto: "feedback"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -9231,6 +9308,8 @@ extension Server_DeleteAccount: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.phone) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.reason) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.feedback) }()
       default: break
       }
     }
@@ -9240,14 +9319,28 @@ extension Server_DeleteAccount: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     if !self.phone.isEmpty {
       try visitor.visitSingularStringField(value: self.phone, fieldNumber: 1)
     }
+    if self.reason != .unknownDeleteReason {
+      try visitor.visitSingularEnumField(value: self.reason, fieldNumber: 2)
+    }
+    if !self.feedback.isEmpty {
+      try visitor.visitSingularStringField(value: self.feedback, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_DeleteAccount, rhs: Server_DeleteAccount) -> Bool {
     if lhs.phone != rhs.phone {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs.feedback != rhs.feedback {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_DeleteAccount.Reason: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_DELETE_REASON"),
+  ]
 }
 
 extension Server_ExportData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -9508,29 +9601,21 @@ extension Server_RegisterRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       switch fieldNumber {
       case 1: try {
         var v: Server_OtpRequest?
-        var hadOneofValue = false
         if let current = self.request {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .otpRequest(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.request = .otpRequest(v)
-        }
+        if let v = v {self.request = .otpRequest(v)}
       }()
       case 2: try {
         var v: Server_VerifyOtpRequest?
-        var hadOneofValue = false
         if let current = self.request {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .verifyRequest(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.request = .verifyRequest(v)
-        }
+        if let v = v {self.request = .verifyRequest(v)}
       }()
       default: break
       }
@@ -9577,29 +9662,21 @@ extension Server_RegisterResponse: SwiftProtobuf.Message, SwiftProtobuf._Message
       switch fieldNumber {
       case 1: try {
         var v: Server_OtpResponse?
-        var hadOneofValue = false
         if let current = self.response {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .otpResponse(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.response = .otpResponse(v)
-        }
+        if let v = v {self.response = .otpResponse(v)}
       }()
       case 2: try {
         var v: Server_VerifyOtpResponse?
-        var hadOneofValue = false
         if let current = self.response {
-          hadOneofValue = true
+          try decoder.handleConflictingOneOf()
           if case .verifyResponse(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.response = .verifyResponse(v)
-        }
+        if let v = v {self.response = .verifyResponse(v)}
       }()
       default: break
       }
