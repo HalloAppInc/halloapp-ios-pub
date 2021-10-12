@@ -2058,6 +2058,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             } else {
                 DDLogError("FeedData/download-task/\(task.id)/error [\(task.error!)]")
                 feedPostMedia.status = .downloadError
+
+                // Mark as permanent failure if we encounter hashMismatch or MACMismatch.
+                switch task.error  as? MediaCrypterError {
+                case .MACMismatch, .hashMismatch:
+                    DDLogInfo("FeedData/download-task/\(task.id)/error [\(task.error!) - fail permanently]")
+                    feedPostMedia.status = .downloadFailure
+                default:
+                    break
+                }
             }
 
             self.save(managedObjectContext)

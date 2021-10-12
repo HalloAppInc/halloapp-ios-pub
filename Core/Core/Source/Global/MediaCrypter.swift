@@ -151,23 +151,23 @@ extension AES256Crypter: Crypter {
 
 }
 
+public enum MediaCrypterError: Error {
+    case keyGeneration(status: Int)
+    case hashMismatch
+    case MACMismatch
+}
+
 public class MediaCrypter {
 
     private static let attachedKeyLength = 32
     private static let expandedKeyLength = 80
-
-    enum Error: Swift.Error {
-        case keyGeneration(status: Int)
-        case hashMismatch
-        case MACMismatch
-    }
 
     private class func randomKey(_ count: Int) throws -> Data {
         var bytes = [UInt8](repeating: 0, count: count)
         let result = SecRandomCopyBytes(kSecRandomDefault, count, &bytes)
         guard result == errSecSuccess else {
             DDLogError("HAC/generateKey error=[\(result)]")
-            throw Error.keyGeneration(status: Int(result))
+            throw MediaCrypterError.keyGeneration(status: Int(result))
         }
         return Data(bytes: bytes, count: count)
     }
@@ -212,7 +212,7 @@ public class MediaCrypter {
 
         let digest = SHA256.hash(data: data)
         guard digest == sha256hash else {
-            throw Error.hashMismatch
+            throw MediaCrypterError.hashMismatch
         }
 
         let attachedMAC = data.suffix(32)
@@ -220,7 +220,7 @@ public class MediaCrypter {
 
         let MAC = CryptoKit.HMAC<SHA256>.authenticationCode(for: encryptedData, using: SymmetricKey(data: SHA256Key))
         guard MAC == attachedMAC.bytes else {
-            throw Error.MACMismatch
+            throw MediaCrypterError.MACMismatch
         }
 
         let decryptedData = try AES256Crypter(key: AESKey, iv: IV).decrypt(encryptedData)
@@ -295,7 +295,7 @@ public class MediaChunkCrypter: MediaCrypter {
         CC_SHA256_Final(&outBytes, &hashContext)
         let digest = Data(bytes: outBytes, count: outLength)
         guard digest == sha256hash else {
-            throw Error.hashMismatch
+            throw MediaCrypterError.hashMismatch
         }
     }
 
@@ -316,7 +316,7 @@ public class MediaChunkCrypter: MediaCrypter {
         var macBytes = [UInt8](repeating: 0, count: macLength)
         CCHmacFinal(&hmacContext, &macBytes)
         guard macBytes == attachedMAC.bytes else {
-            throw Error.MACMismatch
+            throw MediaCrypterError.MACMismatch
         }
     }
 
