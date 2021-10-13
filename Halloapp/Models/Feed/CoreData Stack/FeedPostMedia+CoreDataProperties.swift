@@ -23,6 +23,7 @@ extension FeedPostMedia {
         case downloading = 4
         case downloaded = 5
         case downloadError = 6
+        case downloadFailure = 7
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPostMedia> {

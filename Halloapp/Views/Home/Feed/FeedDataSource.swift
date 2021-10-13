@@ -188,8 +188,9 @@ extension FeedDataSource {
     static func archiveFeedRequest() -> NSFetchRequest<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+//            NSPredicate(format: "userId == -1", MainAppContext.shared.userData.userId),
             NSPredicate(format: "userId == %@", MainAppContext.shared.userData.userId),
-            NSPredicate(format: "timestamp < %@", FeedData.cutoffDate as NSDate)
+//            NSPredicate(format: "timestamp < %@", FeedData.cutoffDate as NSDate)
         ])
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         return fetchRequest

@@ -275,6 +275,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         }
 
         if let animated = needsScrollToTargetWithAnimation {
+            DDLogDebug("CommentsView/viewDidLayoutSubviews/animated: \(animated)")
             if animated {
                 scrollToTarget(withAnimation: true)
             } else {
@@ -285,8 +286,9 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             }
             needsScrollToTargetWithAnimation = nil
 
-            commentToScrollTo = nil
-            needsHighlightCommentToScrollTo = false
+            // Setting this to nil will affect cases where we could not scroll yet - because the comment was not fetched yet.
+            // commentToScrollTo = nil
+            // needsHighlightCommentToScrollTo = false
         }
     }
 
@@ -404,10 +406,12 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     private func scrollToTarget(withAnimation: Bool) {
+        DDLogDebug("CommentsView/scrollToTarget/withAnimation: \(withAnimation)")
         var animated = withAnimation
         if animated {
             animated = isViewLoaded && view.window != nil && transitionCoordinator == nil
         }
+        DDLogDebug("CommentsView/scrollToTarget/commentToScrollTo: \(commentToScrollTo ?? "")")
         if let comment = commentToScrollTo  {
             scroll(toComment: comment, animated: animated, highlightAfterScroll: needsHighlightCommentToScrollTo ? comment : nil)
         } else {
@@ -418,6 +422,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     private func scroll(toComment commentId: FeedPostCommentID, animated: Bool, highlightAfterScroll: FeedPostCommentID?) {
+        DDLogDebug("CommentsView/scroll/toComment: \(commentId)")
         guard let indexPath = indexPath(forCommentId: commentId) else {
             return
         }
@@ -581,7 +586,9 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        trackingPerRowFRCChanges = isViewLoaded && view.window != nil && UIApplication.shared.applicationState == .active
+        DDLogDebug("CommentsView/frc/controllerWillChangeContent/state: \(UIApplication.shared.applicationState.rawValue), \(view.window != nil), \(isViewLoaded)")
+        trackingPerRowFRCChanges = isViewLoaded && view.window != nil &&
+                                    (UIApplication.shared.applicationState == .active || UIApplication.shared.applicationState == .inactive)
         if trackingPerRowFRCChanges {
             numberOfInsertedItems = 0
             if !isCATransactionInProgress {
@@ -595,7 +602,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
 
-        DDLogDebug("CommentsView/frc/\(type) indexpath=[\(String(describing: indexPath))] object=[\(anObject)]")
+        DDLogDebug("CommentsView/frc/\(type.rawValue) indexpath=[\(String(describing: indexPath))] object=[\(anObject)]")
 
         guard trackingPerRowFRCChanges else {
             return
@@ -611,13 +618,14 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
                 commentIndex = nextRootCommentIndex
             }
             sortedComments.insert(newComment, at: commentIndex)
-            DDLogDebug("CommentsView/frc/insert Position: [\(commentIndex)] Comment: [\(newComment)]")
+            DDLogDebug("CommentsView/frc/insert Position: [\(commentIndex)] CommentId: [\(newComment.id)]")
             tableView.insertRows(at: [ IndexPath(row: commentIndex, section: Self.sectionMain) ], with: .none)
         }
 
         let comment = anObject as! FeedPostComment
         switch type {
         case .insert:
+            DDLogDebug("CommentsView/frc/insert")
             insert(comment)
             numberOfInsertedItems += 1
             needsScrollToTargetAfterTableUpdates = true
@@ -625,16 +633,18 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         case .move:
             // We receive .move when the timestamp of a comment is updated with server timestamp which causes changes in the relative
             // ordering of comments. For now we will not move comment rows live.
-            DDLogInfo("CommentsView/frc/move for comment id : \(comment.id)")
+            DDLogDebug("CommentsView/frc/move for comment id : \(comment.id)")
 
 
         case .delete:
+            DDLogDebug("CommentsView/frc/delete")
             guard let commentIndex = sortedComments.firstIndex(where: { $0 == comment }) else { return }
             DDLogDebug("CommentsView/frc/delete Position: [\(commentIndex)]  Comment: [\(comment)] ")
             sortedComments.remove(at: commentIndex)
             tableView.deleteRows(at: [ IndexPath(row: commentIndex, section: Self.sectionMain) ], with: .none)
 
         case .update:
+            DDLogDebug("CommentsView/frc/update")
             guard let commentIndex = sortedComments.firstIndex(where: { $0 == comment }) else { return }
 
             DDLogDebug("CommentsView/frc/update Position: [\(commentIndex)]  Comment: [\(comment)] ")
@@ -652,6 +662,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             }
 
         default:
+            DDLogDebug("CommentsView/frc/default")
             break
         }
     }

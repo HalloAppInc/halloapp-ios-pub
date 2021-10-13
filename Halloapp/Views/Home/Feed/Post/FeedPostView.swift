@@ -76,6 +76,7 @@ class FeedPostView: UIView {
     private var backgroundView: UIView?
     
     private var contentTopConstraint: NSLayoutConstraint? = nil
+    private var footerViewBottomConstraint: NSLayoutConstraint? = nil
 
     private func commonInit() {
 
@@ -121,9 +122,10 @@ class FeedPostView: UIView {
         footerView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(footerView)
 
-        let footerViewBottomConstraint = footerView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -LayoutConstants.backgroundPanelViewOutsetV - LayoutConstants.interCardSpacing / 2)
+        footerViewBottomConstraint = footerView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -LayoutConstants.backgroundPanelViewOutsetV - LayoutConstants.interCardSpacing / 2)
+        footerViewBottomConstraint?.isActive = true
 
-        contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 5)
+        contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8)
         contentTopConstraint?.isActive = true
 
         self.addConstraints([
@@ -140,7 +142,6 @@ class FeedPostView: UIView {
             footerView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor),
             footerView.topAnchor.constraint(equalTo: itemContentView.bottomAnchor),
             footerView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor),
-            footerViewBottomConstraint
         ])
 
         // Separator in the footer view needs to be extended past view bounds to be the same width as background "card".
@@ -262,9 +263,13 @@ class FeedPostView: UIView {
         }
         
         if post.media?.count ?? 0 > 0 {
-            contentTopConstraint?.constant = 5
+            contentTopConstraint?.constant = -8
         } else {
             contentTopConstraint?.constant = 0
+        }
+
+        if post.media?.count ?? 0 == 1 && (post.text?.isEmpty ?? true) {
+            footerViewBottomConstraint?.constant = -LayoutConstants.backgroundPanelViewOutsetV - 8
         }
         
         footerView.configure(with: post, contentWidth: contentWidth)

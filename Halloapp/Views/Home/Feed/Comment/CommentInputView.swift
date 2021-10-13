@@ -188,6 +188,10 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         buttonStack.alignment = .center
         buttonStack.spacing = 16
 
+        let buttonStackHeightConstraint = buttonStack.heightAnchor.constraint(equalToConstant: 38)
+        buttonStackHeightConstraint.priority = .defaultLow // avoid layout constraint issue and logs
+        buttonStackHeightConstraint.isActive = true
+
         // as the user keeps typing, we want the text field to exand while
         // the media/post buttons stick to the bottom,
         let spacer = UIView()

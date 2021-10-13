@@ -163,11 +163,24 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         self.backgroundProcessingQueue.async {
-            let managedObjectContext = self.persistentContainer.newBackgroundContext()
-            managedObjectContext.performAndWait { block(managedObjectContext) }
+            self.initBgContext()
+            guard let bgContext = self.bgContext else {
+                let managedObjectContext = self.persistentContainer.newBackgroundContext()
+                managedObjectContext.performAndWait { block(managedObjectContext) }
+                return
+            }
+            bgContext.performAndWait { block(bgContext) }
         }
     }
 
+    private func initBgContext() {
+        if bgContext == nil {
+            bgContext = persistentContainer.newBackgroundContext()
+            bgContext?.automaticallyMergesChangesFromParent = true
+        }
+    }
+
+    private var bgContext: NSManagedObjectContext? = nil    // binded to the background queue, should access only from background queue
     var viewContext: NSManagedObjectContext {
         get {
             self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
@@ -178,6 +191,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func save(_ managedObjectContext: NSManagedObjectContext) {
         DDLogVerbose("FeedData/will-save")
         do {
+            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             try managedObjectContext.save()
             DDLogVerbose("FeedData/did-save")
         } catch {
@@ -503,8 +517,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         fetchRequest.predicate = NSPredicate(format: "contentID == %@ AND userID == %@", contentID, userID)
         fetchRequest.returnsObjectsAsFaults = false
         do {
-            let result = try managedObjectContext.fetch(fetchRequest).first ?? FeedItemResendAttempt(context: managedObjectContext)
-            return result
+            if let result = try managedObjectContext.fetch(fetchRequest).first {
+                return result
+            } else {
+                let result = FeedItemResendAttempt(context: managedObjectContext)
+                result.contentID = contentID
+                result.userID = userID
+                result.retryCount = 0
+                return result
+            }
         } catch {
             DDLogError("FeedData/fetchAndUpdateRetryCount/error  [\(error)]")
             fatalError("Failed to fetchAndUpdateRetryCount.")
@@ -2057,6 +2078,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             } else {
                 DDLogError("FeedData/download-task/\(task.id)/error [\(task.error!)]")
                 feedPostMedia.status = .downloadError
+
+                // Mark as permanent failure if we encounter hashMismatch or MACMismatch.
+                switch task.error  as? MediaCrypterError {
+                case .MACMismatch, .hashMismatch:
+                    DDLogInfo("FeedData/download-task/\(task.id)/error [\(task.error!) - fail permanently]")
+                    feedPostMedia.status = .downloadFailure
+                default:
+                    break
+                }
             }
 
             self.save(managedObjectContext)
@@ -2381,6 +2411,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/fetchResendAttempt/contentID: \(contentID)/userID: \(userID)/retryCount: \(rerequestCount) - aborting")
                 return
             }
+            self.save(managedObjectContext)
 
             // Check if contentID is a post
             guard let post = self.feedPost(with: contentID, in: managedObjectContext) else {
@@ -2392,7 +2423,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     return
                 }
 
-                DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) begin")
+                DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
                 resendAttempt.comment = comment
                 comment.addToResendAttempts(resendAttempt)
                 self.save(managedObjectContext)
@@ -2401,7 +2432,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.service.resendComment(comment.commentData, groupId: groupId, rerequestCount: rerequestCount, to: userID) { result in
                     switch result {
                     case .success():
-                        DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) success")
+                        DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
                         // TODO: murali@: update rerequestCount only on success.
                     case .failure(let error):
                         DDLogError("FeedData/handleRerequest/commentID: \(comment.id) error \(error)")
@@ -2411,10 +2442,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 return
             }
 
-            // TODO: murali@: keep track of the number of resend attempts?
-            // what is the limit of resendAttempts? if any? we should accomodate all members rerequests with that?
-
-            DDLogInfo("FeedData/handleRerequest/postID: \(post.id) begin")
+            DDLogInfo("FeedData/handleRerequest/postID: \(post.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
             let feed: Feed
             if let groupId = post.groupId {
                 feed = .group(groupId)
@@ -2433,7 +2461,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.service.resendPost(post.postData, feed: feed, rerequestCount: rerequestCount, to: userID) { result in
                 switch result {
                 case .success():
-                    DDLogInfo("FeedData/handleRerequest/postID: \(post.id) success")
+                    DDLogInfo("FeedData/handleRerequest/postID: \(post.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
                     // TODO: murali@: update rerequestCount only on success.
                 case .failure(let error):
                     DDLogError("FeedData/handleRerequest/postID: \(post.id) error \(error)")

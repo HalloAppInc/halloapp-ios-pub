@@ -12,9 +12,8 @@ import Combine
 
 class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
-    var feedDataSource = FeedDataSource(fetchRequest: FeedDataSource.archiveFeedRequest())
-    var feedItems: [FeedPost] = []
-    var postFocusView = PostFocusView()
+    private var feedDataSource = FeedDataSource(fetchRequest: FeedDataSource.archiveFeedRequest())
+    private var feedItems: [FeedPost] = []
 
     private lazy var collectionView: UICollectionView = {
         let cellWidth = (UIScreen.main.bounds.width - 4) / 3.0
@@ -81,8 +80,6 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
             }
         }
         
-        postFocusView.navigationController = navigationController
-        
         view.addSubview(emptyPlaceholderView)
         emptyPlaceholderView.constrain(to: view)
 
@@ -137,9 +134,8 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
         
         guard let cell = collectionView.cellForItem(at: indexPath) as? PostCollectionViewCell else { return }
         guard let post = cell.feedPost else { return }
-        
-        postFocusView.removePostView()
-        postFocusView.show(post: post)
+
+        present(PostViewController(post: post).withNavigationController(), animated: true)
     }
 }
 

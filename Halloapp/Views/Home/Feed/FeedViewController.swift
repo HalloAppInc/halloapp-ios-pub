@@ -419,6 +419,7 @@ class FeedViewController: FeedCollectionViewController {
             }
         case .groupFeedPost:
             // TODO: we should scroll to the specific post - separate diff.
+            DDLogDebug("FeedViewController/processNotification/groupFeedPost, groupId: \(metadata.groupId ?? "")")
             if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                 let vc = GroupFeedViewController(groupId: groupId)
                 navigationController?.pushViewController(vc, animated: false)

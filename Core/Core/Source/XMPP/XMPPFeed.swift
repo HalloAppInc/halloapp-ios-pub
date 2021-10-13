@@ -448,8 +448,8 @@ extension Server_GroupFeedItem {
 
     var encryptedPayload: Data? {
         switch self.item {
-        case .post(let post): return post.encPayload
-        case .comment(let comment): return comment.encPayload
+        case .post(let post): return post.encPayload.isEmpty ? nil : post.encPayload
+        case .comment(let comment): return comment.encPayload.isEmpty ? nil : comment.encPayload
         default: return nil
         }
     }

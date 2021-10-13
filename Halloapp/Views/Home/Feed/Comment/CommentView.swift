@@ -245,7 +245,7 @@ class CommentView: UIView {
     func configure(withComment feedPostComment: FeedPostComment) {
         mediaStatusCancellable?.cancel()
         
-        if voiceCommentView.url != nil {
+        if voiceCommentRow.superview != nil {
             vStack.removeArrangedSubview(voiceCommentRow)
             voiceCommentRow.removeFromSuperview()
         }

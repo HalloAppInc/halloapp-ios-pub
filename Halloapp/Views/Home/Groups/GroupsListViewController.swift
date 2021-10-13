@@ -356,7 +356,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         }
         
         // If the user tapped on a notification, move to group feed
-        DDLogInfo("GroupsListViewController/processNotification/open group feed [\(metadata.groupId ?? "")]")
+        DDLogDebug("GroupsListViewController/processNotification/open group feed [\(metadata.groupId ?? "")], contentType: \(metadata.contentType)")
 
         navigationController?.popToRootViewController(animated: false)
         
