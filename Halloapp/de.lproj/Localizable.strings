@@ -35,7 +35,7 @@
 "activity.center.title" = "Aktivität";
 
 /* Message shown when a user first joins */
-"activity.center.welcome.item" = "Herzlich willkommen zu HalloApp!";
+"activity.center.welcome.item" = "Herzlich willkommen bei HalloApp!";
 
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Zu meinen Kontakten hinzufügen";
@@ -53,7 +53,7 @@
 "app.ios.settings" = "Einstellungen";
 
 /* Placeholder text for when the archive is empty */
-"archive.empty.placeholder" = "Archivierte Beiträge erscheinen hier";
+"archive.empty.placeholder" = "Deine Beiträge werden hier nach 30 Tagen archiviert";
 
 /* Archive navigation label */
 "archive.title.label" = "Archiv";
@@ -440,7 +440,7 @@
 "feed.notification.replied.w.text" = "<$author$> hat geantwortet: <$text$>";
 
 /* Shown when post fails or is canceled. */
-"feed.post.failed" = "Fehler beim posten.";
+"feed.post.failed" = "Fehler beim Posten.";
 
 /* Shown when receiving a new (unsupported) type of post. */
 "feed.post.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Beitrag nicht.";
@@ -575,7 +575,7 @@
 "group.invite.link.reset" = "Link zurückgesetzt";
 
 /* Label for opening QR screen */
-"group.invite.qr.code" = "QR Code";
+"group.invite.qr.code" = "QR-Code";
 
 /* Label for resetting link */
 "group.invite.reset.link" = "Link zurücksetzen";
@@ -794,7 +794,7 @@
 "new.group.members.max.size.alert" = "Die max. Gruppengröße ist %d";
 
 /* Text shown to indicate user is not in the group anymore */
-"not.in.group.banner.text" = "Du bist kein Mitglied dieser Gruppe mehr";
+"not.in.group.banner.text" = "Du bist nicht mehr in dieser Gruppe";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Kommentierte: %@";
@@ -875,7 +875,7 @@
 "picker.media.fail.message" = "Versuch es bitte noch einmal oder wähle ein anderes Foto oder Video aus.";
 
 /* Alert title in media picker when unable to load media file. */
-"picker.media.fail.title" = "Fehler beim Laden des Mediums";
+"picker.media.fail.title" = "Fehler beim Laden der Mediendatei";
 
 /* Button shown to update limited access to media. */
 "picker.media.limit.button" = "Aktualisieren";
@@ -1193,7 +1193,7 @@
 "thread.list.preview.already.user.default" = "%@ nutzt HalloApp";
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
-"thread.list.preview.new.user.default" = "%@ ist nun auch auf HalloApp! 🎉";
+"thread.list.preview.new.user.default" = "%@ nutzt nun auch HalloApp! 🎉";
 
 /* Last seen timestamp: full date in short format and time */
 "timestamp.last.seen.date.at.time" = "Zuletzt online %1$@ um %2$@";
