@@ -216,6 +216,10 @@ open class AppContext {
         fileLogger.rollingFrequency = TimeInterval(60*60*24)
         fileLogger.doNotReuseLogFiles = true
         fileLogger.logFileManager.maximumNumberOfLogFiles = 400
+        // It looks like CocoaLumberJack cleans up old log files that are greater than logFilesDiskQuota in size after rolling.
+        // default value seems to be 20MB - which should be enough for us.
+        // but disabling the cleanup logic to see if it fixes the issue.
+        fileLogger.logFileManager.logFilesDiskQuota = 0
         fileLogger.logFormatter = FileLogFormatter()
         DDLog.add(fileLogger)
         self.fileLogger = fileLogger
