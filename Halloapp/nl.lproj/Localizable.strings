@@ -53,7 +53,7 @@
 "app.ios.settings" = "Instellingen";
 
 /* Placeholder text for when the archive is empty */
-"archive.empty.placeholder" = "Je gearchiveerde posts verschijnen hier";
+"archive.empty.placeholder" = "Je posts worden na 30 dagen hier gearchiveerd";
 
 /* Archive navigation label */
 "archive.title.label" = "Archief";
