@@ -14,15 +14,16 @@ import UIKit
 extension FeedPost {
     var hideFooterSeparator: Bool {
         // Separator should be hidden for media-only posts and posts with link previews
-        if hasText {
-            if hasLinkPreviews { return true }
-            return false
-        }
+        if hasLinkPreviews { return true }
+        if hasText { return false }
         return true
     }
 
     var hasText: Bool {
-        text?.isEmpty ?? false
+        if let text = text, !text.isEmpty {
+            return true
+        }
+        return false
     }
 
     var hasLinkPreviews: Bool {
