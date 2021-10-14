@@ -47,10 +47,9 @@ class AudioRecorderTimeView: UILabel {
         font = .systemFont(ofSize: 21)
         textColor = .lavaOrange
         textAlignment = .left
-        backgroundColor = .clear
+        backgroundColor = .white
         isHidden = true
 
-        widthAnchor.constraint(equalToConstant: 80).isActive = true
         heightAnchor.constraint(equalToConstant: 33).isActive = true
 
         addSubview(dot)

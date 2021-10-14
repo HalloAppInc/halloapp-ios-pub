@@ -16,6 +16,7 @@ private extension Localizations {
 }
 
 protocol AudioRecorderControlViewDelegate: AnyObject {
+    func audioRecorderControlViewWillStart(_ view: AudioRecorderControlView)
     func audioRecorderControlViewStarted(_ view: AudioRecorderControlView)
     func audioRecorderControlViewFinished(_ view: AudioRecorderControlView, cancel: Bool)
     func audioRecorderControlViewLocked(_ view: AudioRecorderControlView)
@@ -74,10 +75,9 @@ class AudioRecorderControlView: UIView {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.font = .systemFont(ofSize: 15)
         button.textColor = .primaryBlackWhite.withAlphaComponent(0.5)
-        button.textAlignment = .center
+        button.textAlignment = .right
         button.text = Localizations.audioCancelMessage
 
-        button.widthAnchor.constraint(equalToConstant: 108).isActive = true
         button.heightAnchor.constraint(equalToConstant: 16).isActive = true
 
         return button
@@ -193,6 +193,7 @@ class AudioRecorderControlView: UIView {
         startLocation = touch.location(in: self)
         show()
         isActive = true
+        delegate?.audioRecorderControlViewWillStart(self)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -325,6 +326,10 @@ class AudioRecorderControlView: UIView {
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if isActive {
+            delegate?.audioRecorderControlViewFinished(self, cancel: true)
+        }
+
         hide()
     }
 

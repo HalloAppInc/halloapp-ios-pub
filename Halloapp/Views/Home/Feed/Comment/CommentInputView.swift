@@ -178,10 +178,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         placeholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor).isActive = true
         placeholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
 
-        textViewContainer.addSubview(voiceNoteTime)
-        voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor, constant: 14).isActive = true
-        voiceNoteTime.centerYAnchor.constraint(equalTo: textViewContainer.centerYAnchor).isActive = true
-
         let buttonStack = UIStackView(arrangedSubviews: [pickMediaButton, recordVoiceNoteControl, postButton])
         buttonStack.translatesAutoresizingMaskIntoConstraints = false
         buttonStack.axis = .horizontal
@@ -206,11 +202,14 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
         stack.addSubview(cancelRecordingButton)
         stack.addSubview(postVoiceNoteButton)
+        stack.addSubview(voiceNoteTime)
 
         cancelRecordingButton.centerXAnchor.constraint(equalTo: stack.centerXAnchor).isActive = true
         cancelRecordingButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
         postVoiceNoteButton.trailingAnchor.constraint(equalTo: stack.trailingAnchor).isActive = true
         postVoiceNoteButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
+        voiceNoteTime.leadingAnchor.constraint(equalTo: stack.leadingAnchor, constant: 14).isActive = true
+        voiceNoteTime.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
 
         return stack
     } ()
@@ -1176,11 +1175,28 @@ extension CommentInputView: AudioRecorderControlViewDelegate {
         updatePostButtons()
     }
 
+    func audioRecorderControlViewWillStart(_ view: AudioRecorderControlView) {
+        voiceNoteTime.text = "0:00"
+        voiceNoteTime.isHidden = false
+        placeholder.isHidden = true
+        textView.isHidden = true
+    }
+
+    func audioRecorderControlViewCancelled(_ view: AudioRecorderControlView) {
+        voiceNoteTime.isHidden = true
+        textView.isHidden = false
+        placeholder.isHidden = !textView.text.isEmpty
+    }
+
     func audioRecorderControlViewStarted(_ view: AudioRecorderControlView) {
         voiceNoteRecorder.start()
     }
 
     func audioRecorderControlViewFinished(_ view: AudioRecorderControlView, cancel: Bool) {
+        voiceNoteTime.isHidden = true
+        textView.isHidden = false
+        placeholder.isHidden = !textView.text.isEmpty
+
         guard let duration = voiceNoteRecorder.duration, duration >= 1 else {
             voiceNoteRecorder.stop(cancel: true)
             return
@@ -1195,7 +1211,7 @@ extension CommentInputView: AudioRecorderControlViewDelegate {
             media.fileURL = voiceNoteRecorder.url
 
             let mentionText = MentionText(expandedText: "", mentionRanges: [:])
-            delegate?.commentInputView(self, wantsToSend: mentionText.trimmed(), andMedia: media)
+            delegate?.commentInputView(self, wantsToSend: mentionText, andMedia: media)
         }
     }
 }
