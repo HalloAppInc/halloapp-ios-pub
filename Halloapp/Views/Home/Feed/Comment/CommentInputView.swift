@@ -10,6 +10,7 @@ import AVKit
 import CocoaLumberjackSwift
 import Combine
 import Core
+import LinkPresentation
 import UIKit
 
 fileprivate protocol ContainerViewDelegate: AnyObject {
@@ -48,6 +49,10 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     private var isVoiceNoteRecordingLocked = false
 
     private var uploadMedia: PendingMedia?
+
+    private var linkPreviewUrl: URL?
+    private var linkPreviewData: LinkPreviewData?
+    private var linkDetectionTimer = Timer()
 
     private var isPostButtonEnabled: Bool {
         get {
@@ -178,10 +183,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         placeholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor).isActive = true
         placeholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
 
-        textViewContainer.addSubview(voiceNoteTime)
-        voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor, constant: 14).isActive = true
-        voiceNoteTime.centerYAnchor.constraint(equalTo: textViewContainer.centerYAnchor).isActive = true
-
         let buttonStack = UIStackView(arrangedSubviews: [pickMediaButton, recordVoiceNoteControl, postButton])
         buttonStack.translatesAutoresizingMaskIntoConstraints = false
         buttonStack.axis = .horizontal
@@ -206,11 +207,14 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
         stack.addSubview(cancelRecordingButton)
         stack.addSubview(postVoiceNoteButton)
+        stack.addSubview(voiceNoteTime)
 
         cancelRecordingButton.centerXAnchor.constraint(equalTo: stack.centerXAnchor).isActive = true
         cancelRecordingButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
         postVoiceNoteButton.trailingAnchor.constraint(equalTo: stack.trailingAnchor).isActive = true
         postVoiceNoteButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
+        voiceNoteTime.leadingAnchor.constraint(equalTo: stack.leadingAnchor, constant: 14).isActive = true
+        voiceNoteTime.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
 
         return stack
     } ()
@@ -693,6 +697,9 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }
 
     func showMediaPanel(with media : PendingMedia) {
+        // Media always takes precedence over link previews.
+        // Remove any existing link previews
+        resetLinkDetection()
         uploadMedia = media
         // Prepare cell for reuse
         if vStack.arrangedSubviews.contains(mediaPanel) {
@@ -767,6 +774,218 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         updatePostButtons()
         setNeedsUpdateHeight()
         setBorder()
+    }
+
+    // MARK: Link Preview
+
+    private lazy var linkPreviewTitleLabel: UILabel = {
+        let titleLabel = UILabel()
+        titleLabel.numberOfLines = 2
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        return titleLabel
+    }()
+
+    private lazy var linkPreviewURLLabel: UILabel = {
+        let urlLabel = UILabel()
+        urlLabel.translatesAutoresizingMaskIntoConstraints = false
+        urlLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
+        urlLabel.textColor = .secondaryLabel
+        urlLabel.textAlignment = .natural
+        return urlLabel
+    }()
+
+    private lazy var linkPreviewTextStack: UIStackView = {
+        let textStack = UIStackView(arrangedSubviews: [ linkPreviewTitleLabel, linkPreviewURLLabel ])
+        textStack.translatesAutoresizingMaskIntoConstraints = false
+        textStack.axis = .vertical
+        textStack.spacing = 4
+        textStack.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        textStack.isLayoutMarginsRelativeArrangement = true
+        return textStack
+    }()
+
+    private lazy var linkPreviewMediaView: UIImageView = {
+        let mediaView = UIImageView()
+        mediaView.contentMode = .scaleAspectFill
+        mediaView.widthAnchor.constraint(equalToConstant: 90).isActive = true
+        mediaView.heightAnchor.constraint(equalToConstant: 90).isActive = true
+        mediaView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+        return mediaView
+    }()
+
+    private lazy var linkPreviewHStack: UIStackView = {
+        let hStack = UIStackView(arrangedSubviews: [ linkPreviewMediaView, linkPreviewTextStack])
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = .feedPostEventDefaultBg
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        hStack.insertSubview(backgroundView, at: 0)
+        backgroundView.leadingAnchor.constraint(equalTo: hStack.leadingAnchor).isActive = true
+        backgroundView.topAnchor.constraint(equalTo: hStack.topAnchor).isActive = true
+        backgroundView.trailingAnchor.constraint(equalTo: hStack.trailingAnchor).isActive = true
+        backgroundView.bottomAnchor.constraint(equalTo: hStack.bottomAnchor).isActive = true
+
+        hStack.axis = .horizontal
+        hStack.alignment = .center
+        hStack.backgroundColor = .commentVoiceNoteBackground
+        hStack.layer.borderWidth = 0.5
+        hStack.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
+        hStack.layer.cornerRadius = 15
+        hStack.layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
+        hStack.layer.shadowOffset = CGSize(width: 0, height: 2)
+        hStack.layer.shadowRadius = 4
+        hStack.layer.shadowOpacity = 0.5
+        hStack.isLayoutMarginsRelativeArrangement = true
+        hStack.clipsToBounds = true
+
+        return hStack
+    }()
+
+    private lazy var linkPreviewPanel: UIView = {
+        var linkPreviewPanel = UIView()
+        linkPreviewPanel.translatesAutoresizingMaskIntoConstraints = false
+        linkPreviewPanel.preservesSuperviewLayoutMargins = true
+        linkPreviewPanel.addSubview(linkPreviewHStack)
+        linkPreviewPanel.addSubview(linkPreviewCloseButton)
+
+        linkPreviewCloseButton.trailingAnchor.constraint(equalTo: linkPreviewHStack.trailingAnchor, constant: -4).isActive = true
+        linkPreviewCloseButton.topAnchor.constraint(equalTo: linkPreviewHStack.topAnchor, constant: 4).isActive = true
+
+        linkPreviewHStack.topAnchor.constraint(equalTo: linkPreviewPanel.topAnchor, constant: 8).isActive = true
+        linkPreviewHStack.bottomAnchor.constraint(equalTo: linkPreviewPanel.bottomAnchor, constant: -8).isActive = true
+        linkPreviewHStack.leadingAnchor.constraint(equalTo: linkPreviewPanel.leadingAnchor, constant: 8).isActive = true
+        linkPreviewHStack.trailingAnchor.constraint(equalTo: linkPreviewPanel.trailingAnchor, constant: -8).isActive = true
+
+        linkPreviewPanel.heightAnchor.constraint(equalToConstant: 90).isActive = true
+        return linkPreviewPanel
+    }()
+
+    private lazy var linkPreviewCloseButton: UIButton = {
+        let closeButton = UIButton(type: .custom)
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.setImage(UIImage(named: "NavbarClose")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        closeButton.tintColor = .placeholderText
+        closeButton.addTarget(self, action: #selector(didTapCloseLinkPreviewPanel), for: .touchUpInside)
+        return closeButton
+    }()
+
+    private func updateLinkPreviewViewIfNecessary() {
+        // if has media OR empty text, we need to remove link previews
+        if uploadMedia != nil || textView.text == "" {
+            resetLinkDetection()
+            return
+        }
+
+        if !linkDetectionTimer.isValid {
+            if let url = detectLink() {
+                // Start timer for 1 second before fetching link preview.
+                setLinkDetectionTimers(url: url)
+            }
+        }
+    }
+
+    private func setLinkDetectionTimers(url: URL?) {
+        linkPreviewUrl = url
+        linkDetectionTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateLinkDetectionTimer), userInfo: nil, repeats: true)
+    }
+
+    private func detectLink() -> URL? {
+        let linkDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        let matches = linkDetector.matches(in: textView.text, options: [], range: NSRange(location: 0, length: textView.text.utf16.count))
+        for match in matches {
+            guard let range = Range(match.range, in: textView.text) else { continue }
+            let url = textView.text[range]
+            if let url = URL(string: String(url)) {
+                // We only care about the first link
+                return url
+            }
+        }
+        return nil
+    }
+
+    @objc private func updateLinkDetectionTimer() {
+        linkDetectionTimer.invalidate()
+        // After waiting for 1 second, if the url did not change, fetch link preview info
+        if let url = detectLink() {
+            if url == linkPreviewUrl {
+                // Have we already fetched the link? then do not fetch again
+                if linkPreviewData?.url == linkPreviewUrl {
+                    return
+                }
+                fetchURLPreview()
+            } else {
+                // link has changed... reset link fetch cycle
+                setLinkDetectionTimers(url: url)
+            }
+        }
+
+    }
+
+    func fetchURLPreview() {
+        guard let url = linkPreviewUrl else { return }
+        removeLinkPreviewPanel()
+        let metadataProvider = LPMetadataProvider()
+        metadataProvider.timeout = 10
+
+        metadataProvider.startFetchingMetadata(for: url) { (metadata, error) in
+            guard let data = metadata, error == nil else {
+                // Error fetching link preview.. remove link preview loading state
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.resetLinkDetection()
+                }
+              return
+            }
+
+            if let imageProvider = data.imageProvider {
+                imageProvider.loadObject(ofClass: UIImage.self) { (image, error) in
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self else { return }
+                        if let image = image as? UIImage {
+                            self.linkPreviewMediaView.image = image
+                        }
+                        self.linkPreviewTitleLabel.text = data.title
+                        self.linkPreviewURLLabel.text = data.url?.host
+                        self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
+                    }
+                }
+            } else {
+                // No Image info
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.linkPreviewTitleLabel.text = data.title
+                    self.linkPreviewURLLabel.text = data.url?.host
+                    self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
+                }
+            }
+        }
+        self.linkPreviewTitleLabel.text = Localizations.loadingPreview
+        self.vStack.insertArrangedSubview(self.linkPreviewPanel, at: vStack.arrangedSubviews.firstIndex(of: textFieldPanel)!)
+    }
+
+    private func resetLinkDetection() {
+        linkDetectionTimer.invalidate()
+        linkPreviewUrl = nil
+        linkPreviewData = nil
+        removeLinkPreviewPanel()
+    }
+
+    func removeLinkPreviewPanel() {
+        // remove media panel from stack
+        linkPreviewTitleLabel.text = ""
+        linkPreviewURLLabel.text = ""
+        linkPreviewMediaView.image = nil
+        linkPreviewPanel.removeFromSuperview()
+        postButton.isEnabled = isPostButtonEnabled
+        updatePostButtons()
+        setNeedsUpdateHeight()
+        setBorder()
+    }
+    
+
+    @objc private func didTapCloseLinkPreviewPanel() {
+        resetLinkDetection()
     }
 
 
@@ -881,6 +1100,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         placeholder.isHidden = !inputTextView.text.isEmpty
 
         updateMentionPickerContent()
+        updateLinkPreviewViewIfNecessary()
         updatePostButtons()
         updateWithMarkdown()
     }
@@ -1176,11 +1396,28 @@ extension CommentInputView: AudioRecorderControlViewDelegate {
         updatePostButtons()
     }
 
+    func audioRecorderControlViewWillStart(_ view: AudioRecorderControlView) {
+        voiceNoteTime.text = "0:00"
+        voiceNoteTime.isHidden = false
+        placeholder.isHidden = true
+        textView.isHidden = true
+    }
+
+    func audioRecorderControlViewCancelled(_ view: AudioRecorderControlView) {
+        voiceNoteTime.isHidden = true
+        textView.isHidden = false
+        placeholder.isHidden = !textView.text.isEmpty
+    }
+
     func audioRecorderControlViewStarted(_ view: AudioRecorderControlView) {
         voiceNoteRecorder.start()
     }
 
     func audioRecorderControlViewFinished(_ view: AudioRecorderControlView, cancel: Bool) {
+        voiceNoteTime.isHidden = true
+        textView.isHidden = false
+        placeholder.isHidden = !textView.text.isEmpty
+
         guard let duration = voiceNoteRecorder.duration, duration >= 1 else {
             voiceNoteRecorder.stop(cancel: true)
             return
@@ -1195,7 +1432,7 @@ extension CommentInputView: AudioRecorderControlViewDelegate {
             media.fileURL = voiceNoteRecorder.url
 
             let mentionText = MentionText(expandedText: "", mentionRanges: [:])
-            delegate?.commentInputView(self, wantsToSend: mentionText.trimmed(), andMedia: media)
+            delegate?.commentInputView(self, wantsToSend: mentionText, andMedia: media)
         }
     }
 }

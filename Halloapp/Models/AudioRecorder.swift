@@ -19,7 +19,7 @@ protocol AudioRecorderDelegate: AnyObject {
 class AudioRecorder {
     public weak var delegate: AudioRecorderDelegate?
     public var url: URL? { recorder?.url }
-    public var isRecording: Bool { recorder?.isRecording == true }
+    public var isRecording = false
     public var duration: TimeInterval? { recorder?.currentTime }
 
     private var recorder: AVAudioRecorder?
@@ -41,7 +41,7 @@ class AudioRecorder {
         nc.addObserver(self,
                        selector: #selector(handleInterruption),
                        name: AVAudioSession.interruptionNotification,
-                       object: AVAudioSession.sharedInstance)
+                       object: nil)
         nc.addObserver(self,
                        selector: #selector(handleInterruption),
                        name: UIApplication.willResignActiveNotification,
@@ -113,6 +113,7 @@ class AudioRecorder {
             guard recorder.record() else {
                 return DDLogError("AudioRecorder/start: recorder failed to start")
             }
+            isRecording = true
 
             self.recorder = recorder
         } catch {
@@ -148,11 +149,11 @@ class AudioRecorder {
             UIApplication.shared.isIdleTimerDisabled = false
         }
 
-        var notifyDelegate = false
-
         timer?.invalidate()
 
-        if let recorder = self.recorder, recorder.isRecording {
+        if let recorder = self.recorder, recorder.isRecording || isRecording {
+            isRecording = false
+
             recorder.stop()
             restoreAudioSession()
 
@@ -164,10 +165,6 @@ class AudioRecorder {
                 AudioServicesPlayAlertSound(1111)
             }
 
-            notifyDelegate = true
-        }
-
-        if notifyDelegate {
             delegate?.audioRecorderStopped(self)
         }
     }

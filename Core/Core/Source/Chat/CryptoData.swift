@@ -99,21 +99,36 @@ public final class CryptoData {
     }
 
     public func generateReport(markEventsReported: Bool = true) -> [DiscreteEvent] {
-        let fetchRequest: NSFetchRequest<MessageDecryption> = MessageDecryption.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "hasBeenReported == false")
-        fetchRequest.returnsObjectsAsFaults = false
+        let messageFetchRequest: NSFetchRequest<MessageDecryption> = MessageDecryption.fetchRequest()
+        messageFetchRequest.predicate = NSPredicate(format: "hasBeenReported == false")
+        messageFetchRequest.returnsObjectsAsFaults = false
+
+        let groupFeedItemFetchRequest: NSFetchRequest<GroupFeedItemDecryption> = GroupFeedItemDecryption.fetchRequest()
+        groupFeedItemFetchRequest.predicate = NSPredicate(format: "hasBeenReported == false")
+        groupFeedItemFetchRequest.returnsObjectsAsFaults = false
 
         do {
-            let unreportedEvents = try viewContext.fetch(fetchRequest)
-            let readyEvents = unreportedEvents.filter { $0.isReadyToBeReported(withDeadline: deadline) }
 
-            DDLogInfo("CryptoData/generateReport [\(readyEvents.count) ready of \(unreportedEvents.count) unreported]")
+            // Message decryption events.
+            let messageUnreportedEvents = try viewContext.fetch(messageFetchRequest)
+            let messageReadyEvents = messageUnreportedEvents.filter { $0.isReadyToBeReported(withDeadline: deadline) }
+            DDLogInfo("CryptoData/generateReport-message [\(messageReadyEvents.count) ready of \(messageUnreportedEvents.count) unreported]")
 
-            if markEventsReported && !readyEvents.isEmpty {
-                markDecryptionsAsReported(readyEvents.map { $0.objectID })
+            // GroupFeedItem decryption events.
+            let groupUnreportedEvents = try viewContext.fetch(groupFeedItemFetchRequest)
+            let groupReadyEvents = groupUnreportedEvents.filter { $0.isReadyToBeReported(withDeadline: deadline) }
+            DDLogInfo("CryptoData/generateReport-group [\(groupReadyEvents.count) ready of \(groupUnreportedEvents.count) unreported]")
+
+            if markEventsReported {
+                if !messageReadyEvents.isEmpty {
+                    markDecryptionsAsReported(messageReadyEvents.map { $0.objectID })
+                }
+                if !groupReadyEvents.isEmpty {
+                    markGroupDecryptionsAsReported(groupReadyEvents.map { $0.objectID })
+                }
             }
 
-            return readyEvents.compactMap { $0.report(deadline: deadline) }
+            return messageReadyEvents.compactMap { $0.report(deadline: deadline) } + groupReadyEvents.compactMap { $0.report(deadline: deadline) }
         }
         catch {
             DDLogError("CryptoData/generateReport/error \(error)")
@@ -346,17 +361,13 @@ public final class CryptoData {
     }
 
     private func createGroupFeedItemDecryption(id: String, contentType: String, groupID: GroupID, timestamp: Date, in context: NSManagedObjectContext) -> GroupFeedItemDecryption? {
-        guard let name = GroupFeedItemDecryption.entity().name,
-              let decryption = NSEntityDescription.insertNewObject(forEntityName: name, into: context) as? GroupFeedItemDecryption else
-        {
-            DDLogError("CryptoData/create/error unable to create GroupFeedItemDecryption entity")
-            return nil
-        }
+        let decryption = GroupFeedItemDecryption(context: context)
         decryption.contentID = id
         decryption.contentType = contentType
         decryption.groupID = groupID
         decryption.timeReceived = timestamp
         decryption.userAgentReceiver = AppContext.userAgent
+        decryption.hasBeenReported = false
         return decryption
     }
 
@@ -382,6 +393,25 @@ public final class CryptoData {
                     continue
                 }
                 messageDecryption.hasBeenReported = true
+            }
+            if self.bgContext.hasChanges {
+                do {
+                    try self.bgContext.save()
+                } catch {
+                    DDLogError("CryptoData/markDecryptionsAsReported/save/error [\(error)]")
+                }
+            }
+        }
+    }
+
+    private func markGroupDecryptionsAsReported(_ managedObjectIDs: [NSManagedObjectID]) {
+        queue.async {
+            for id in managedObjectIDs {
+                guard let groupFeedItemDecryption = try? self.bgContext.existingObject(with: id) as? GroupFeedItemDecryption else {
+                    DDLogError("CryptoData/markDecryptionsAsReported/\(id)/error could not find row to update")
+                    continue
+                }
+                groupFeedItemDecryption.hasBeenReported = true
             }
             if self.bgContext.hasChanges {
                 do {

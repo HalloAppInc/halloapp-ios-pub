@@ -121,4 +121,8 @@ extension Localizations {
     static var unknownContact: String {
         NSLocalizedString("unknown.contact", value: "Unknown Contact", comment: "Displayed in place of contact name if name is not known.")
     }
+    
+    static var loadingPreview: String {
+        NSLocalizedString("loading.preview", value: "Loading Preview...", comment: "Displayed while waiting for link preview to load")
+    }
 }

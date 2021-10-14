@@ -194,8 +194,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         placeholder.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor, constant: 5).isActive = true
         placeholder.topAnchor.constraint(equalTo: textViewContainer.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
 
-        voiceNoteTime.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor, constant: 14).isActive = true
-        voiceNoteTime.centerYAnchor.constraint(equalTo: textViewContainer.centerYAnchor).isActive = true
+        voiceNoteTime.leadingAnchor.constraint(equalTo: textInputRow.leadingAnchor, constant: 14).isActive = true
+        voiceNoteTime.centerYAnchor.constraint(equalTo: textInputRow.centerYAnchor).isActive = true
 
         postVoiceNoteButton.trailingAnchor.constraint(equalTo: textInputRow.trailingAnchor).isActive = true
         postVoiceNoteButton.centerYAnchor.constraint(equalTo: textInputRow.centerYAnchor).isActive = true
@@ -479,6 +479,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.alignment = .bottom
         view.spacing = 0
 
+        view.addSubview(voiceNoteTime)
         view.addSubview(cancelRecordingButton)
         view.addSubview(postVoiceNoteButton)
 
@@ -534,7 +535,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.backgroundColor = UIColor.clear
         view.addSubview(textView)
         view.addSubview(placeholder)
-        view.addSubview(voiceNoteTime)
         
         view.translatesAutoresizingMaskIntoConstraints = false
         view.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -1158,11 +1158,22 @@ extension ChatInputView: AudioRecorderControlViewDelegate {
         updatePostButtons()
     }
 
+    func audioRecorderControlViewWillStart(_ view: AudioRecorderControlView) {
+        voiceNoteTime.text = "0:00"
+        voiceNoteTime.isHidden = false
+        placeholder.isHidden = true
+        textView.isHidden = true
+    }
+
     func audioRecorderControlViewStarted(_ view: AudioRecorderControlView) {
         voiceNoteRecorder.start()
     }
 
     func audioRecorderControlViewFinished(_ view: AudioRecorderControlView, cancel: Bool) {
+        voiceNoteTime.isHidden = true
+        textView.isHidden = false
+        placeholder.isHidden = !textView.text.isEmpty
+
         guard let duration = voiceNoteRecorder.duration, duration >= 1 else {
             voiceNoteRecorder.stop(cancel: true)
             return
