@@ -860,17 +860,17 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         presentMediaPicker()
     }
 
-    func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText, andMedia media: PendingMedia?) {
-        postComment(text: text, media: media)
+    func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText, andMedia media: PendingMedia?, linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia? = nil) {
+        postComment(text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
     }
 
-    func postComment(text: MentionText, media: PendingMedia?) {
+    func postComment(text: MentionText, media: PendingMedia?, linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?) {
         let parentCommentId = replyContext?.parentCommentId
         var sendMedia: [PendingMedia] = []
         if let media = media {
             sendMedia.append(media)
         }
-        commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, media: sendMedia, to: feedPostId, replyingTo: parentCommentId)
+        commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, media: sendMedia, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: feedPostId, replyingTo: parentCommentId)
         FeedData.deletePostCommentDrafts { existingDraft in
             existingDraft.postID == feedPostId
         }

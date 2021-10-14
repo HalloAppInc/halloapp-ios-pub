@@ -20,7 +20,7 @@ fileprivate protocol ContainerViewDelegate: AnyObject {
 
 protocol CommentInputViewDelegate: AnyObject {
     func commentInputView(_ inputView: CommentInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve)
-    func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText, andMedia media: PendingMedia?)
+    func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText, andMedia media: PendingMedia?, linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?)
     func commentInputView(_ inputView: CommentInputView, possibleMentionsForInput input: String) -> [MentionableUser]
     func commentInputViewPickMedia(_ inputView: CommentInputView)
     func commentInputViewResetReplyContext(_ inputView: CommentInputView)
@@ -876,7 +876,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             resetLinkDetection()
             return
         }
-
         if !linkDetectionTimer.isValid {
             if let url = detectLink() {
                 // Start timer for 1 second before fetching link preview.
@@ -982,12 +981,10 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         setNeedsUpdateHeight()
         setBorder()
     }
-    
 
     @objc private func didTapCloseLinkPreviewPanel() {
         resetLinkDetection()
     }
-
 
     // MARK: Text view
 
@@ -1028,10 +1025,30 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             media.fileURL = voiceNoteRecorder.url
 
             let text = MentionText(expandedText: "", mentionRanges: [:])
-            delegate?.commentInputView(self, wantsToSend: text, andMedia: media)
+            delegate?.commentInputView(self, wantsToSend: text, andMedia: media, linkPreviewData: nil, linkPreviewMedia: nil)
+        } else if uploadMedia != nil || linkPreviewUrl == nil {
+            acceptAutoCorrection()
+            delegate?.commentInputView(self, wantsToSend: mentionText.trimmed(), andMedia: uploadMedia, linkPreviewData: nil, linkPreviewMedia: nil)
         } else {
             acceptAutoCorrection()
-            delegate?.commentInputView(self, wantsToSend: mentionText.trimmed(), andMedia: uploadMedia)
+            guard let image = linkPreviewMediaView.image  else {
+                self.delegate?.commentInputView(self, wantsToSend: mentionText.trimmed(), andMedia: nil, linkPreviewData: linkPreviewData, linkPreviewMedia: nil)
+                return
+            }
+            // Send link preview with image
+            let linkPreviewMedia = PendingMedia(type: .image)
+            linkPreviewMedia.image = image
+            if linkPreviewMedia.ready.value {
+                self.delegate?.commentInputView(self, wantsToSend: mentionText.trimmed(), andMedia: nil, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+            } else {
+                self.cancellableSet.insert(
+                    linkPreviewMedia.ready.sink { [weak self] ready in
+                        guard let self = self else { return }
+                        guard ready else { return }
+                        self.delegate?.commentInputView(self, wantsToSend: self.mentionText.trimmed(), andMedia: nil, linkPreviewData: self.linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+                    }
+                )
+            }
         }
     }
     
@@ -1432,7 +1449,7 @@ extension CommentInputView: AudioRecorderControlViewDelegate {
             media.fileURL = voiceNoteRecorder.url
 
             let mentionText = MentionText(expandedText: "", mentionRanges: [:])
-            delegate?.commentInputView(self, wantsToSend: mentionText, andMedia: media)
+            delegate?.commentInputView(self, wantsToSend: mentionText.trimmed(), andMedia: media, linkPreviewData: nil, linkPreviewMedia: nil)
         }
     }
 }
