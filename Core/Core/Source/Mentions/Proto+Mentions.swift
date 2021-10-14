@@ -48,7 +48,7 @@ public extension Clients_Text {
         MentionText(collapsedText: text, mentions: mentionDictionary(from: mentions))
     }
 
-    init(mentionText: MentionText) {
+    init(mentionText: MentionText, linkPreviews: [LinkPreviewData]? = nil) {
         self.init()
         text = mentionText.collapsedText
         mentions = mentionText.mentions
@@ -60,6 +60,28 @@ public extension Clients_Text {
                 return clientMention
             }
             .sorted { $0.index < $1.index }
+        linkPreviews?.forEach { linkPreview in
+            link.url = linkPreview.url.description
+            link.title = linkPreview.title
+            link.description_p = linkPreview.description
+            
+            linkPreview.previewImages.forEach { previewImage in
+                if let downloadURL = previewImage.url?.absoluteString,
+                      let encryptionKey = Data(base64Encoded: previewImage.key),
+                      let cipherTextHash = Data(base64Encoded: previewImage.sha256)
+                {
+                    var res = Clients_EncryptedResource()
+                    res.ciphertextHash = cipherTextHash
+                    res.downloadURL = downloadURL
+                    res.encryptionKey = encryptionKey
+                    var img = Clients_Image()
+                    img.img = res
+                    img.width = Int32(previewImage.size.width)
+                    img.height = Int32(previewImage.size.height)
+                    link.preview = [img]
+                }
+            }
+        }
     }
 }
 

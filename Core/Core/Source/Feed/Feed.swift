@@ -392,8 +392,7 @@ public extension PostData {
         var container = Clients_PostContainer()
         switch content {
         case .text(let mentionText, let linkPreviewData):
-            var text = Clients_Text(mentionText: mentionText)
-            text.linkPreviewData = linkPreviewData
+            var text = Clients_Text(mentionText: mentionText, linkPreviews: linkPreviewData)
             container.post = .text(text)
         case .album(let mentionText, let media):
             var album = Clients_Album()
@@ -440,8 +439,7 @@ public extension CommentData {
         var commentContainer = Clients_CommentContainer()
         switch content {
         case .text(let mentionText, let linkPreviewData):
-            var text = Clients_Text(mentionText: mentionText)
-            text.linkPreviewData = linkPreviewData
+            var text = Clients_Text(mentionText: mentionText, linkPreviews: linkPreviewData)
             commentContainer.text = text
         case .album(let mentionText, let media):
             var album = Clients_Album()
