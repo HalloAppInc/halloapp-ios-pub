@@ -269,7 +269,7 @@ class FeedPostView: UIView {
         }
 
         if post.media?.count ?? 0 == 1 && (post.text?.isEmpty ?? true) {
-            footerViewBottomConstraint?.constant = -LayoutConstants.backgroundPanelViewOutsetV - 8
+            footerViewBottomConstraint?.constant = -LayoutConstants.interCardSpacing / 2
         }
         
         footerView.configure(with: post, contentWidth: contentWidth)
