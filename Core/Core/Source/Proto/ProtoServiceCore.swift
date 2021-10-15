@@ -407,18 +407,35 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func publishPost(_ post: PostData, feed: Feed, completion: @escaping ServiceRequestCompletion<Date>) {
+        // TODO: murali@: this code is not great.
+        // Ideally we should have a more general framework to retry iqs on specific errors.
+        DDLogInfo("ProtoServiceCore/publishPost/\(post.id)/execute/begin")
+        publishPostInternal(post, feed: feed) { result in
+            switch result {
+            case .success(_):
+                completion(result)
+            case .failure(.audienceHashMismatch):
+                DDLogInfo("ProtoServiceCore/publishPost/\(post.id)/execute/retrying on audienceHashMismatch")
+                self.publishPostInternal(post, feed: feed, completion: completion)
+            case .failure(_):
+                completion(result)
+            }
+        }
+    }
+
+    private func publishPostInternal(_ post: PostData, feed: Feed, completion: @escaping ServiceRequestCompletion<Date>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
-            DDLogInfo("ProtoServiceCore/publishPost/\(post.id)/execute/begin")
+            DDLogInfo("ProtoServiceCore/publishPostInternal/\(post.id)/execute/begin")
             self.makePublishPostPayload(post, feed: feed) { result in
                 switch result {
                 case .failure(let error):
-                    DDLogError("ProtoServiceCore/publishPost/\(post.id)/makePublishPostPayload/error [\(error)]")
+                    DDLogError("ProtoServiceCore/publishPostInternal/\(post.id)/makePublishPostPayload/error [\(error)]")
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: error, itemType: .post))
                     completion(.failure(.malformedRequest))
                 case .success(let iqPayload):
-                    DDLogError("ProtoServiceCore/publishPost/\(post.id)/makePublishPostPayload/success")
+                    DDLogError("ProtoServiceCore/publishPostInternal/\(post.id)/makePublishPostPayload/success")
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .post))
                     let request = ProtoRequest<Server_Iq.OneOf_Payload>(
                         iqPacket: .iqPacket(type: .set, payload: iqPayload),
@@ -437,19 +454,19 @@ extension ProtoServiceCore: CoreService {
                             case .success(let iqPayload):
                                 switch iqPayload {
                                 case .groupFeedItem(let groupFeedItem):
-                                    DDLogInfo("ProtoServiceCore/publishPost/\(post.id)/success, groupFeedItem \(groupFeedItem.post.id)")
+                                    DDLogInfo("ProtoServiceCore/publishPostInternal/\(post.id)/success, groupFeedItem \(groupFeedItem.post.id)")
                                     let receiverUids = groupFeedItem.senderStateBundles.map{ UserID($0.uid) }
                                     AppContext.shared.messageCrypter.removePending(userIds: receiverUids, in: groupFeedItem.gid)
                                     completion(.success(Date(timeIntervalSince1970: TimeInterval(groupFeedItem.post.timestamp))))
                                 case .feedItem(let feedItem):
-                                    DDLogInfo("ProtoServiceCore/publishPost/\(post.id)/success, feedItem \(feedItem.post.id)")
+                                    DDLogInfo("ProtoServiceCore/publishPostInternal/\(post.id)/success, feedItem \(feedItem.post.id)")
                                     completion(.success(Date(timeIntervalSince1970: TimeInterval(feedItem.post.timestamp))))
                                 default:
-                                    DDLogInfo("ProtoServiceCore/publishPost\(post.id)/: invalid payload")
+                                    DDLogInfo("ProtoServiceCore/publishPostInternal\(post.id)/: invalid payload")
                                     completion(.failure(.malformedResponse))
                                 }
                             case .failure(RequestError.serverError("audience_hash_mismatch")):
-                                DDLogError("ProtoServiceCore/publishPost/\(post.id)/error audience_hash_mismatch")
+                                DDLogError("ProtoServiceCore/publishPostInternal/\(post.id)/error audience_hash_mismatch")
                                 switch feed {
                                 case .group(let groupID):
                                     AppContext.shared.messageCrypter.updateAudienceHash(for: groupID)
@@ -458,7 +475,7 @@ extension ProtoServiceCore: CoreService {
                                 }
                                 completion(.failure(.audienceHashMismatch))
                             case .failure(let failure):
-                                DDLogError("ProtoServiceCore/publishPost/\(post.id)/error [\(failure)]")
+                                DDLogError("ProtoServiceCore/publishPostInternal/\(post.id)/error [\(failure)]")
                                 completion(.failure(failure))
                             }
                         }
@@ -569,18 +586,33 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func publishComment(_ comment: CommentData, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date>) {
+        DDLogInfo("ProtoServiceCore/publishComment/\(comment.id)/execute/begin")
+        publishCommentInternal(comment, groupId: groupId) { result in
+            switch result {
+            case .success(_):
+                completion(result)
+            case .failure(.audienceHashMismatch):
+                DDLogInfo("ProtoServiceCore/publishComment/\(comment.id)/execute/retrying on audienceHashMismatch")
+                self.publishCommentInternal(comment, groupId: groupId, completion: completion)
+            case .failure(_):
+                completion(result)
+            }
+        }
+    }
+
+    public func publishCommentInternal(_ comment: CommentData, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
-            DDLogInfo("ProtoServiceCore/publishComment/\(comment.id)/execute/begin")
+            DDLogInfo("ProtoServiceCore/publishCommentInternal/\(comment.id)/execute/begin")
             self.makePublishCommentPayload(comment, groupID: groupId) { result in
                 switch result {
                 case .failure(let error):
-                    DDLogError("ProtoServiceCore/publishComment/\(comment.id)/makePublishCommentPayload/error [\(error)]")
+                    DDLogError("ProtoServiceCore/publishCommentInternal/\(comment.id)/makePublishCommentPayload/error [\(error)]")
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: error, itemType: .comment))
                     completion(.failure(.malformedRequest))
                 case .success(let iqPayload):
-                    DDLogError("ProtoServiceCore/publishComment/\(comment.id)/makePublishPostPayload/success")
+                    DDLogError("ProtoServiceCore/publishCommentInternal/\(comment.id)/makePublishPostPayload/success")
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .comment))
                     let request = ProtoRequest<Server_Iq.OneOf_Payload>(
                         iqPacket: .iqPacket(type: .set, payload: iqPayload),
@@ -598,26 +630,26 @@ extension ProtoServiceCore: CoreService {
                             case .success(let iqPayload):
                                 switch iqPayload {
                                 case .groupFeedItem(let groupFeedItem):
-                                    DDLogInfo("ProtoServiceCore/publishComment/\(comment.id)/success, groupFeedItem \(groupFeedItem.comment.id)")
+                                    DDLogInfo("ProtoServiceCore/publishCommentInternal/\(comment.id)/success, groupFeedItem \(groupFeedItem.comment.id)")
                                     let receiverUids = groupFeedItem.senderStateBundles.map{ UserID($0.uid) }
                                     AppContext.shared.messageCrypter.removePending(userIds: receiverUids, in: groupFeedItem.gid)
                                     completion(.success(Date(timeIntervalSince1970: TimeInterval(groupFeedItem.comment.timestamp))))
                                 case .feedItem(let feedItem):
-                                    DDLogInfo("ProtoServiceCore/publishComment/\(comment.id)/success, feedItem \(feedItem.comment.id)")
+                                    DDLogInfo("ProtoServiceCore/publishCommentInternal/\(comment.id)/success, feedItem \(feedItem.comment.id)")
                                     completion(.success(Date(timeIntervalSince1970: TimeInterval(feedItem.comment.timestamp))))
                                 default:
-                                    DDLogInfo("ProtoServiceCore/publishComment\(comment.id)/: invalid payload")
+                                    DDLogInfo("ProtoServiceCore/publishCommentInternal\(comment.id)/: invalid payload")
                                     completion(.failure(.malformedResponse))
                                 }
                             case .failure(RequestError.serverError("audience_hash_mismatch")):
-                                DDLogError("ProtoServiceCore/publishComment/\(comment.id)/error audience_hash_mismatch")
+                                DDLogError("ProtoServiceCore/publishCommentInternal/\(comment.id)/error audience_hash_mismatch")
                                 if let groupID = groupId {
                                     AppContext.shared.messageCrypter.updateAudienceHash(for: groupID)
                                 }
                                 // we could return a better error here to FeedData - so that we can auto retry i guess?
                                 completion(.failure(.audienceHashMismatch))
                             case .failure(let failure):
-                                DDLogError("ProtoServiceCore/publishComment/\(comment.id)/error \(failure)")
+                                DDLogError("ProtoServiceCore/publishCommentInternal/\(comment.id)/error \(failure)")
                                 completion(.failure(failure))
                             }
                         }
