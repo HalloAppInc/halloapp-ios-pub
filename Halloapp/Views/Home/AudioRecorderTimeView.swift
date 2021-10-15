@@ -47,7 +47,7 @@ class AudioRecorderTimeView: UILabel {
         font = .systemFont(ofSize: 21)
         textColor = .lavaOrange
         textAlignment = .left
-        backgroundColor = .white
+        backgroundColor = .messageFooterBackground
         isHidden = true
 
         heightAnchor.constraint(equalToConstant: 33).isActive = true

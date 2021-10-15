@@ -101,8 +101,7 @@ class AudioView : UIStackView {
 
     private var pauseIcon: UIImage {
         let config = UIImage.SymbolConfiguration(pointSize: 20)
-        let iconColor: UIColor = state == .played ? .audioViewControlsPlayed : .primaryBlue
-        let icon = UIImage(systemName: "pause.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
+        let icon = UIImage(systemName: "pause.fill", withConfiguration: config)!.withTintColor(.audioViewControlsPlayed, renderingMode: .alwaysOriginal)
 
         return icon
     }
@@ -193,7 +192,7 @@ class AudioView : UIStackView {
     }
 
     deinit {
-        player?.pause()
+        pause()
         player = nil
     }
 
@@ -207,12 +206,14 @@ class AudioView : UIStackView {
         }
 
         MainAppContext.shared.mediaDidStartPlaying.send(url)
+        UIApplication.shared.isIdleTimerDisabled = true
         player.play()
         delegate?.audioViewDidStartPlaying(self)
     }
 
     func pause() {
         player?.pause()
+        UIApplication.shared.isIdleTimerDisabled = false
     }
 
     private func updateControls() {
@@ -228,7 +229,7 @@ class AudioView : UIStackView {
         guard duration.isNumeric else { return }
 
         let current = player.currentTime()
-        slider.setValue(isPlayerAtTheEnd ? 0 : Float(current.seconds / duration.seconds), animated: false)
+        slider.setValue(isPlayerAtTheEnd && player.rate == 0 ? 0 : Float(current.seconds / duration.seconds), animated: false)
 
         if let time = timeFormatter.string(from: player.rate > 0 ? current.seconds : duration.seconds) {
             delegate?.audioView(self, at: time)
@@ -241,7 +242,7 @@ class AudioView : UIStackView {
         guard duration.isNumeric else { return }
 
         if player.rate > 0 {
-            player.pause()
+            pause()
         }
 
         player.seek(to: CMTime(seconds: duration.seconds * Double(slider.value), preferredTimescale: duration.timescale))
