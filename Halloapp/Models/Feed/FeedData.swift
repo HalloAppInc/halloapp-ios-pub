@@ -661,8 +661,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/update-post/missing-post [\(id)]")
                 return
             }
-            DDLogVerbose("FeedData/update-post [\(id)]")
+            DDLogVerbose("FeedData/update-post [\(id)] - currentStatus: [\(feedPost.status)]")
             block(feedPost)
+            DDLogVerbose("FeedData/update-post-afterBlock [\(id)] - currentStatus: [\(feedPost.status)]")
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
@@ -1453,7 +1454,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 completion()
                 return
             }
-            DDLogInfo("FeedData/retract-post [\(postId)]")
+            DDLogInfo("FeedData/retract-post [\(postId)]/begin")
 
             // 1. Delete media.
             self.deleteMedia(feedPost: feedPost)
@@ -1476,6 +1477,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
+            DDLogInfo("FeedData/retract-post [\(postId)]/done")
 
             if feedPost.groupId != nil {
                 self.didProcessGroupFeedPostRetract.send(feedPost.id)
@@ -3890,7 +3892,8 @@ extension FeedData: HalloFeedDelegate {
 
     func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt) {
         updateFeedPost(with: receipt.itemId) { (feedPost) in
-            if !feedPost.isPostRetracted || !feedPost.isRerequested {
+            // Dont mark the status to be seen if the post is retracted or if the post is rerequested.
+            if !feedPost.isPostRetracted && !feedPost.isRerequested {
                 feedPost.status = .seen
             }
         }
