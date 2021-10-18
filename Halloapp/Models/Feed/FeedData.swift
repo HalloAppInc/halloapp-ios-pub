@@ -1559,7 +1559,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             processPostRetract(postId) {}
 
         // own posts or pending retract posts.
-        case .sent, .retracting:
+        // .seen is the status for posts reshared after reinstall.
+        // This will go away soon once we have e2e everywhere.
+        // TODO: why are we marking own posts as seen anyways?
+        case .sent, .retracting, .seen:
             DDLogInfo("FeedData/retract/postId \(feedPost.id), sending retract request")
             // Mark post as "being retracted"
             feedPost.status = .retracting
@@ -1582,7 +1585,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // everything else.
         default:
-            DDLogError("FeedData/retract/postId \(feedPost.id) unexpected retract request here")
+            DDLogError("FeedData/retract/postId \(feedPost.id) unexpected retract request here: \(feedPost.status)")
             return
         }
     }
