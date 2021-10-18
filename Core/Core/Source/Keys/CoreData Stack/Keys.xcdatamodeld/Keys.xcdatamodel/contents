@@ -48,7 +48,7 @@
     </entity>
     <entity name="SenderStateBundle" representedClassName="SenderStateBundle" syncable="YES">
         <attribute name="chainKey" optional="YES" attributeType="Binary"/>
-        <attribute name="currentChainIndex" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="currentChainIndex" optional="YES" attributeType="Integer 32" defaultValueString="-1" usesScalarValueType="YES"/>
         <attribute name="publicSignatureKey" optional="YES" attributeType="Binary"/>
         <attribute name="userId" optional="YES" attributeType="String"/>
         <relationship name="groupSessionKeyBundle" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="GroupSessionKeyBundle" inverseName="senderStates" inverseEntity="GroupSessionKeyBundle"/>

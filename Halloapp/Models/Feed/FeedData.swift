@@ -2492,45 +2492,58 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 comment.addToResendAttempts(resendAttempt)
                 self.save(managedObjectContext)
 
-                let groupId = comment.post.groupId
-                self.service.resendComment(comment.commentData, groupId: groupId, rerequestCount: rerequestCount, to: userID) { result in
-                    switch result {
-                    case .success():
-                        DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
-                        // TODO: murali@: update rerequestCount only on success.
-                    case .failure(let error):
-                        DDLogError("FeedData/handleRerequest/commentID: \(comment.id) error \(error)")
+                guard let groupId = comment.post.groupId else {
+                    DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) /groupId is missing")
+                    return
+                }
+                // Handle rerequests for comments based on status.
+                switch comment.status {
+                case .retracting, .retracted:
+                    DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id)/userID: \(userID)/sending retract")
+                    self.service.retractComment(comment.id, postID: comment.post.id, in: groupId, to: userID)
+                    completion(.success(()))
+                default:
+                    self.service.resendComment(comment.commentData, groupId: groupId, rerequestCount: rerequestCount, to: userID) { result in
+                        switch result {
+                        case .success():
+                            DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                            // TODO: murali@: update rerequestCount only on success.
+                        case .failure(let error):
+                            DDLogError("FeedData/handleRerequest/commentID: \(comment.id) error \(error)")
+                        }
+                        completion(result)
                     }
-                    completion(result)
                 }
                 return
             }
 
             DDLogInfo("FeedData/handleRerequest/postID: \(post.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
-            let feed: Feed
-            if let groupId = post.groupId {
-                feed = .group(groupId)
-            } else {
-                guard let postAudience = post.audience else {
-                    DDLogError("FeedData/handleRerequest/\(post.id) No audience set")
-                    return
-                }
-                feed = .personal(postAudience)
+            guard let groupId = post.groupId else {
+                DDLogInfo("FeedData/handleRerequest/postID: \(post.id) /groupId is missing")
+                return
             }
-
+            let feed: Feed = .group(groupId)
             resendAttempt.post = post
             post.addToResendAttempts(resendAttempt)
             self.save(managedObjectContext)
 
-            self.service.resendPost(post.postData, feed: feed, rerequestCount: rerequestCount, to: userID) { result in
-                switch result {
-                case .success():
-                    DDLogInfo("FeedData/handleRerequest/postID: \(post.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
-                    // TODO: murali@: update rerequestCount only on success.
-                case .failure(let error):
-                    DDLogError("FeedData/handleRerequest/postID: \(post.id) error \(error)")
+            // Handle rerequests for posts based on status.
+            switch post.status {
+            case .retracting, .retracted:
+                DDLogInfo("FeedData/handleRerequest/postID: \(post.id)/userID: \(userID)/sending retract")
+                self.service.retractPost(post.id, in: groupId, to: userID)
+                completion(.success(()))
+            default:
+                self.service.resendPost(post.postData, feed: feed, rerequestCount: rerequestCount, to: userID) { result in
+                    switch result {
+                    case .success():
+                        DDLogInfo("FeedData/handleRerequest/postID: \(post.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                        // TODO: murali@: update rerequestCount only on success.
+                    case .failure(let error):
+                        DDLogError("FeedData/handleRerequest/postID: \(post.id) error \(error)")
+                    }
+                    completion(result)
                 }
-                completion(result)
             }
         }
     }
