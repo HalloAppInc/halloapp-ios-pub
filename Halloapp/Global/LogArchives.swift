@@ -9,6 +9,7 @@
 import CocoaLumberjackSwift
 import Foundation
 import Zip
+import Core
 
 extension MainAppContext {
 
@@ -18,6 +19,59 @@ extension MainAppContext {
             logfileURLs.append(directoryListingURL)
         }
         try Zip.zipFiles(paths: logfileURLs, zipFilePath: archiveURL, password: nil, progress: nil)
+    }
+
+    public func uploadLogsToServer() {
+        // Run on a low priority queue.
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            guard let self = self else { return }
+            do {
+                DDLogInfo("MainAppContext/uploadLogsToServer/begin")
+                let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+                let archiveURL = tempDirectoryURL.appendingPathComponent("logs.zip")
+                try self.archiveLogs(to: archiveURL)
+
+                let queryItems = [
+                    URLQueryItem(name: "uid", value: self.userData.userId),
+                    URLQueryItem(name: "phone", value: self.userData.normalizedPhoneNumber),
+                    URLQueryItem(name: "version", value: "ios\(AppContext.appVersionForService)"),
+                ]
+                var urlComps = URLComponents(string: "https://api.halloapp.net/api/logs/device/")
+                urlComps?.queryItems = queryItems
+                guard let url = urlComps?.url else {
+                    DDLogError("MainAppContext/uploadLogsToServer/failed to get url: \(String(describing: urlComps))")
+                    return
+                }
+                guard let logData = try? Data(contentsOf: archiveURL) else {
+                    DDLogError("MainAppContext/uploadLogsToServer/failed to get logData: \(archiveURL)")
+                    return
+                }
+
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.httpBody = logData
+                request.setValue(AppContext.userAgent, forHTTPHeaderField: "User-Agent")
+                let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
+                    if let error = error {
+                        DDLogError("MainAppContext/uploadLogsToServer/error [\(error)]")
+                        return
+                    }
+                    guard let data = data,
+                          let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                              DDLogError("MainAppContext/uploadLogsToServer/error Invalid response. [\(data ?? Data())]")
+                              return
+                    }
+                    guard let httpResponse = urlResponse as? HTTPURLResponse else {
+                        DDLogError("MainAppContext/uploadLogsToServer/error Invalid response. [\(String(describing: urlResponse))]")
+                        return
+                    }
+                    DDLogInfo("MainAppContext/uploadLogsToServer/response: \(httpResponse) - \(response)")
+                }
+                task.resume()
+            } catch {
+                DDLogError("Failed to archive log files: \(error)")
+            }
+        }
     }
 
     private func createOrUpdateDirectoryListing() -> URL? {

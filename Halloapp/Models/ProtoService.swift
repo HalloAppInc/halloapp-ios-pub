@@ -890,6 +890,7 @@ final class ProtoService: ProtoServiceCore {
             }
         case .requestLogs(_):
             DDLogInfo("proto/didReceive/\(msg.id)/request logs")
+            MainAppContext.shared.uploadLogsToServer()
         case .wakeup(_):
             DDLogInfo("proto/didReceive/\(msg.id)/wakeup")
         case .endOfQueue:
