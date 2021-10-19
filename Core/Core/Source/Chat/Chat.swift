@@ -27,6 +27,20 @@ public enum ChatMessageMediaType: Int, Codable {
     case audio = 2
 }
 
+public struct MediaCounters {
+    var numImages: Int32 = 0
+    var numVideos: Int32 = 0
+    var numAudio: Int32 = 0
+}
+
+extension MediaCounters {
+    static func +=(lhs: inout MediaCounters, rhs: MediaCounters) {
+        lhs.numImages += rhs.numImages
+        lhs.numVideos += rhs.numVideos
+        lhs.numAudio += rhs.numAudio
+    }
+}
+
 public enum IncomingChatMessage {
     case notDecrypted(ChatMessageTombstone)
     case decrypted(ChatMessageProtocol)
@@ -156,6 +170,28 @@ public extension ChatMessageProtocol {
         }
 
         return protoChatMessage
+    }
+
+    var mediaCounters: MediaCounters {
+        switch content {
+        case .album(_, let media):
+            var counters = MediaCounters()
+            media.forEach { mediaItem in
+                switch mediaItem.mediaType {
+                case .image:
+                    counters.numImages += 1
+                case .video:
+                    counters.numVideos += 1
+                case .audio:
+                    counters.numAudio += 1
+                }
+            }
+            return counters
+        case .voiceNote(_):
+            return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1)
+        case .text, .unsupported:
+            return MediaCounters()
+        }
     }
 }
 

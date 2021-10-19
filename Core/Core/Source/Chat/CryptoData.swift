@@ -56,7 +56,7 @@ public final class CryptoData {
         }
     }
 
-    public func update(contentID: String, contentType: String, groupID: GroupID, timestamp: Date, error: String, rerequestCount: Int) {
+    public func update(contentID: String, contentType: String, groupID: GroupID, timestamp: Date, error: String, sender: UserAgent?, rerequestCount: Int) {
         queue.async { [weak self] in
             guard let self = self else { return }
 
@@ -67,7 +67,7 @@ public final class CryptoData {
                 isItemAlreadyDecrypted = false
             }
             guard let groupFeedItemDecryption = self.fetchGroupFeedItemDecryption(id: contentID, in: self.bgContext) ??
-                    self.createGroupFeedItemDecryption(id: contentID, contentType: contentType, groupID: groupID, timestamp: timestamp, in: self.bgContext) else
+                    self.createGroupFeedItemDecryption(id: contentID, contentType: contentType, groupID: groupID, timestamp: timestamp, sender: sender, in: self.bgContext) else
             {
                 DDLogError("CryptoData/update/\(contentID)/group/\(groupID)/error could not find or create decryption report")
                 return
@@ -360,12 +360,13 @@ public final class CryptoData {
         }
     }
 
-    private func createGroupFeedItemDecryption(id: String, contentType: String, groupID: GroupID, timestamp: Date, in context: NSManagedObjectContext) -> GroupFeedItemDecryption? {
+    private func createGroupFeedItemDecryption(id: String, contentType: String, groupID: GroupID, timestamp: Date, sender: UserAgent?, in context: NSManagedObjectContext) -> GroupFeedItemDecryption? {
         let decryption = GroupFeedItemDecryption(context: context)
         decryption.contentID = id
         decryption.contentType = contentType
         decryption.groupID = groupID
         decryption.timeReceived = timestamp
+        decryption.userAgentSender = sender?.description ?? ""
         decryption.userAgentReceiver = AppContext.userAgent
         decryption.hasBeenReported = false
         return decryption
@@ -476,7 +477,8 @@ extension GroupFeedItemDecryption {
             let timeReceived = timeReceived,
             let contentID = contentID,
             let contentType = contentType,
-            let groupID = groupID
+            let groupID = groupID,
+            let userAgentSender = userAgentSender
             else
         {
             return nil
@@ -499,6 +501,7 @@ extension GroupFeedItemDecryption {
                                       contentType: contentType,
                                       error: decryptionError ?? "",
                                       clientVersion: clientVersion,
+                                      sender: UserAgent(string: userAgentSender),
                                       rerequestCount: Int(rerequestCount),
                                       timeTaken: timeTaken)
     }

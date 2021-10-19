@@ -243,6 +243,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 itemType: contentType,
                 groupID: item.gid,
                 timestamp: Date(),
+                sender: UserAgent(string: item.senderClientVersion),
                 rerequestCount: Int(metadata.rerequestCount))
         }
     }
@@ -280,15 +281,16 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         }
     }
 
-    private func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, itemType: FeedElementType, groupID: GroupID, timestamp: Date, rerequestCount: Int) {
+    private func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, itemType: FeedElementType, groupID: GroupID, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
         let errorString = error?.rawValue ?? ""
         DDLogInfo("NotificationExtension/reportGroupDecryptionResult/\(contentID)/\(itemType)/\(groupID)/error value: \(errorString)")
-        AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemType: itemType))
+        AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemType: itemType, sender: sender))
         AppContext.shared.cryptoData.update(contentID: contentID,
                                             contentType: itemType.rawString,
                                             groupID: groupID,
                                             timestamp: timestamp,
                                             error: errorString,
+                                            sender: sender,
                                             rerequestCount: rerequestCount)
     }
 

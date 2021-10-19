@@ -356,10 +356,15 @@ extension ProtoServiceCore: NoiseDelegate {
     }
 
     public func connectionPayload() -> Data? {
+        var deviceInfo = Server_DeviceInfo()
+        deviceInfo.device = UIDevice.current.getModelName()
+        deviceInfo.osVersion = UIDevice.current.systemVersion
+
         var clientConfig = Server_AuthRequest()
         clientConfig.clientMode.mode = isPassiveMode ? .passive : .active
         clientConfig.clientVersion.version = AppContext.userAgent
         clientConfig.resource = "iphone"
+        clientConfig.deviceInfo = deviceInfo
         if let uid = Int64(userData.userId) {
             clientConfig.uid = uid
         } else {
@@ -674,6 +679,13 @@ extension ProtoServiceCore: CoreService {
         serverPost.publisherUid = Int64(post.userId) ?? 0
         serverPost.timestamp = Int64(post.timestamp.timeIntervalSince1970)
 
+        // Add media counters.
+        let postMediaCounters = post.mediaCounters
+        serverPost.mediaCounters = Server_MediaCounters()
+        serverPost.mediaCounters.numImages = postMediaCounters.numImages
+        serverPost.mediaCounters.numVideos = postMediaCounters.numVideos
+        serverPost.mediaCounters.numAudio = postMediaCounters.numAudio
+
         switch feed {
         case .group(let groupID):
             // Clear unencrypted payload if server prop is disabled.
@@ -722,6 +734,13 @@ extension ProtoServiceCore: CoreService {
             serverComment.payload = Data()
         }
 
+        // Add media counters.
+        let commentMediaCounters = comment.mediaCounters
+        serverComment.mediaCounters = Server_MediaCounters()
+        serverComment.mediaCounters.numImages = commentMediaCounters.numImages
+        serverComment.mediaCounters.numVideos = commentMediaCounters.numVideos
+        serverComment.mediaCounters.numAudio = commentMediaCounters.numAudio
+
         if let groupID = groupID {
             makeGroupEncryptedPayload(payloadData: payloadData, groupID: groupID, oneOfItem: .comment(serverComment)) { result in
                 switch result {
@@ -744,6 +763,7 @@ extension ProtoServiceCore: CoreService {
         var item = Server_GroupFeedItem()
         item.action = .publish
         item.gid = groupID
+        item.senderClientVersion = AppContext.userAgent
 
         // encrypt the containerPayload
         AppContext.shared.messageCrypter.encrypt(payloadData, in: groupID) { result in
@@ -862,6 +882,7 @@ extension ProtoServiceCore: CoreService {
         var item = Server_GroupFeedItem()
         item.action = .publish
         item.gid = groupID
+        item.senderClientVersion = AppContext.userAgent
 
         // Block to encrypt item payload using 1-1 channel.
         let itemPayloadEncryptionCompletion: (() -> Void) = {
@@ -956,6 +977,14 @@ extension ProtoServiceCore: CoreService {
                 chat.senderLogInfo = logInfo.map { "\($0.key): \($0.value)" }.sorted().joined(separator: "; ")
                 chat.encPayload = encryptedData.data
                 chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
+
+                // Add media counters.
+                let messageMediaCounters = message.mediaCounters
+                chat.mediaCounters = Server_MediaCounters()
+                chat.mediaCounters.numImages = messageMediaCounters.numImages
+                chat.mediaCounters.numVideos = messageMediaCounters.numVideos
+                chat.mediaCounters.numVideos = messageMediaCounters.numAudio
+
                 if let publicKey = encryptedData.identityKey {
                     chat.publicKey = publicKey
                 } else {
@@ -979,6 +1008,13 @@ extension ProtoServiceCore: CoreService {
         serverPost.id = post.id
         serverPost.publisherUid = Int64(post.userId) ?? 0
         serverPost.timestamp = Int64(post.timestamp.timeIntervalSince1970)
+
+        // Add media counters.
+        let postMediaCounters = post.mediaCounters
+        serverPost.mediaCounters = Server_MediaCounters()
+        serverPost.mediaCounters.numImages = postMediaCounters.numImages
+        serverPost.mediaCounters.numVideos = postMediaCounters.numVideos
+        serverPost.mediaCounters.numAudio = postMediaCounters.numAudio
 
         switch feed {
         case .group(let groupID):
@@ -1010,6 +1046,13 @@ extension ProtoServiceCore: CoreService {
         if !ServerProperties.sendClearTextGroupFeedContent {
             serverComment.payload = Data()
         }
+
+        // Add media counters.
+        let commentMediaCounters = comment.mediaCounters
+        serverComment.mediaCounters = Server_MediaCounters()
+        serverComment.mediaCounters.numImages = commentMediaCounters.numImages
+        serverComment.mediaCounters.numVideos = commentMediaCounters.numVideos
+        serverComment.mediaCounters.numAudio = commentMediaCounters.numAudio
 
         if let groupID = groupID {
             makeGroupRerequestEncryptedPayload(payloadData: payloadData, groupID: groupID, for: toUserID, oneOfItem: .comment(serverComment)) { result in

@@ -838,6 +838,10 @@ public struct Server_GroupDecryptionReport {
 
   public var timeTakenS: UInt32 = 0
 
+  public var senderPlatform: Server_Platform = .unknown
+
+  public var senderVersion: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Status: SwiftProtobuf.Enum {
@@ -1754,6 +1758,8 @@ extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Me
     6: .standard(proto: "original_version"),
     7: .standard(proto: "rerequest_count"),
     8: .standard(proto: "time_taken_s"),
+    9: .standard(proto: "sender_platform"),
+    10: .standard(proto: "sender_version"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1770,6 +1776,8 @@ extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Me
       case 6: try { try decoder.decodeSingularStringField(value: &self.originalVersion) }()
       case 7: try { try decoder.decodeSingularUInt32Field(value: &self.rerequestCount) }()
       case 8: try { try decoder.decodeSingularUInt32Field(value: &self.timeTakenS) }()
+      case 9: try { try decoder.decodeSingularEnumField(value: &self.senderPlatform) }()
+      case 10: try { try decoder.decodeSingularStringField(value: &self.senderVersion) }()
       default: break
       }
     }
@@ -1800,6 +1808,12 @@ extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Me
     if self.timeTakenS != 0 {
       try visitor.visitSingularUInt32Field(value: self.timeTakenS, fieldNumber: 8)
     }
+    if self.senderPlatform != .unknown {
+      try visitor.visitSingularEnumField(value: self.senderPlatform, fieldNumber: 9)
+    }
+    if !self.senderVersion.isEmpty {
+      try visitor.visitSingularStringField(value: self.senderVersion, fieldNumber: 10)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1812,6 +1826,8 @@ extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Me
     if lhs.originalVersion != rhs.originalVersion {return false}
     if lhs.rerequestCount != rhs.rerequestCount {return false}
     if lhs.timeTakenS != rhs.timeTakenS {return false}
+    if lhs.senderPlatform != rhs.senderPlatform {return false}
+    if lhs.senderVersion != rhs.senderVersion {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
