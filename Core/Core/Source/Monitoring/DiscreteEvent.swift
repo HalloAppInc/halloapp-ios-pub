@@ -13,7 +13,7 @@ public enum DiscreteEvent {
     case mediaDownload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int, totalSize: Int)
     case pushReceived(id: String, timestamp: Date)
     case decryptionReport(id: String, result: String, clientVersion: String, sender: UserAgent, rerequestCount: Int, timeTaken: TimeInterval, isSilent: Bool)
-    case groupDecryptionReport(id: String, gid: String, contentType: String, error: String, clientVersion: String, rerequestCount: Int, timeTaken: TimeInterval)
+    case groupDecryptionReport(id: String, gid: String, contentType: String, error: String, clientVersion: String, sender: UserAgent?, rerequestCount: Int, timeTaken: TimeInterval)
 }
 
 extension DiscreteEvent: Codable {
@@ -56,9 +56,10 @@ extension DiscreteEvent: Codable {
             let contentType = try container.decode(String.self, forKey: .contentType)
             let error = try container.decode(String.self, forKey: .error)
             let clientVersion = try container.decode(String.self, forKey: .version)
+            let sender = try container.decode(UserAgent.self, forKey: .sender)
             let rerequestCount = try container.decode(Int.self, forKey: .count)
             let timeTaken = try container.decode(TimeInterval.self, forKey: .duration)
-            self = .groupDecryptionReport(id: id, gid: gid, contentType: contentType, error: error, clientVersion: clientVersion, rerequestCount: rerequestCount, timeTaken: timeTaken)
+            self = .groupDecryptionReport(id: id, gid: gid, contentType: contentType, error: error, clientVersion: clientVersion, sender: sender, rerequestCount: rerequestCount, timeTaken: timeTaken)
         }
     }
 
@@ -93,13 +94,14 @@ extension DiscreteEvent: Codable {
             try container.encode(rerequestCount, forKey: .count)
             try container.encode(timeTaken, forKey: .duration)
             try container.encode(isSilent, forKey: .silent)
-        case .groupDecryptionReport(let id, let gid, let contentType, let error, let clientVersion, let rerequestCount, let timeTaken):
+        case .groupDecryptionReport(let id, let gid, let contentType, let error, let clientVersion, let sender, let rerequestCount, let timeTaken):
             try container.encode(EventType.groupDecryptionReport, forKey: .eventType)
             try container.encode(id, forKey: .id)
             try container.encode(gid, forKey: .gid)
             try container.encode(contentType, forKey: .contentType)
             try container.encode(error, forKey: .error)
             try container.encode(clientVersion, forKey: .version)
+            try container.encode(sender, forKey: .sender)
             try container.encode(rerequestCount, forKey: .count)
             try container.encode(timeTaken, forKey: .duration)
         }

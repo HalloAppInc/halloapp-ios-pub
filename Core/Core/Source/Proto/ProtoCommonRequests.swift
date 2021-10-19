@@ -265,7 +265,7 @@ private extension DiscreteEvent {
             report.isSilent = isSilent
             return .decryptionReport(report)
 
-        case .groupDecryptionReport(let id, let gid, let contentType, let error, let clientVersion, let rerequestCount, let timeTaken):
+        case .groupDecryptionReport(let id, let gid, let contentType, let error, let clientVersion, let sender, let rerequestCount, let timeTaken):
             var report = Server_GroupDecryptionReport()
             // This is contentID
             report.contentID = id
@@ -281,6 +281,8 @@ private extension DiscreteEvent {
                 report.result = .fail
                 report.reason = error
             }
+            report.senderVersion = sender?.version ?? ""
+            report.senderPlatform = sender?.platform.serverPlatform ?? Server_Platform.unknown
             report.originalVersion = clientVersion
             report.rerequestCount = UInt32(rerequestCount)
             report.timeTakenS = UInt32(timeTaken)

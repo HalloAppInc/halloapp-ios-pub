@@ -10,6 +10,7 @@
         <attribute name="timeDecrypted" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="timeReceived" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="userAgentReceiver" optional="YES" attributeType="String"/>
+        <attribute name="userAgentSender" optional="YES" attributeType="String"/>
     </entity>
     <entity name="MessageDecryption" representedClassName="MessageDecryption" syncable="YES">
         <attribute name="decryptionResult" optional="YES" attributeType="String"/>
@@ -28,7 +29,7 @@
         </uniquenessConstraints>
     </entity>
     <elements>
-        <element name="GroupFeedItemDecryption" positionX="-63" positionY="54" width="128" height="164"/>
+        <element name="GroupFeedItemDecryption" positionX="-63" positionY="54" width="128" height="179"/>
         <element name="MessageDecryption" positionX="-63" positionY="-18" width="128" height="164"/>
     </elements>
 </model>

@@ -820,6 +820,7 @@ final class ProtoService: ProtoServiceCore {
                     itemType: itemType,
                     groupID: item.gid,
                     timestamp: receiptTimestamp,
+                    sender: UserAgent(string: item.senderClientVersion),
                     rerequestCount: Int(msg.rerequestCount))
             }
         case .groupFeedRerequest(let rerequest):
@@ -970,19 +971,20 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    private func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, itemType: FeedElementType, groupID: GroupID, timestamp: Date, rerequestCount: Int) {
+    private func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, itemType: FeedElementType, groupID: GroupID, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
         if (error == .missingPayload) {
             DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(itemType)/\(groupID)/payload is missing - not error.")
             return
         }
         let errorString = error?.rawValue ?? ""
         DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(itemType)/\(groupID)/error value: \(errorString)")
-        AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemType: itemType))
+        AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemType: itemType, sender: sender))
         MainAppContext.shared.cryptoData.update(contentID: contentID,
                                                 contentType: itemType.rawString,
                                                 groupID: groupID,
                                                 timestamp: timestamp,
                                                 error: errorString,
+                                                sender: sender,
                                                 rerequestCount: rerequestCount)
     }
 

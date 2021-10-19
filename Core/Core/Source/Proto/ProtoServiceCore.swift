@@ -749,6 +749,7 @@ extension ProtoServiceCore: CoreService {
         var item = Server_GroupFeedItem()
         item.action = .publish
         item.gid = groupID
+        item.senderClientVersion = AppContext.userAgent
 
         // encrypt the containerPayload
         AppContext.shared.messageCrypter.encrypt(payloadData, in: groupID) { result in
@@ -867,6 +868,7 @@ extension ProtoServiceCore: CoreService {
         var item = Server_GroupFeedItem()
         item.action = .publish
         item.gid = groupID
+        item.senderClientVersion = AppContext.userAgent
 
         // Block to encrypt item payload using 1-1 channel.
         let itemPayloadEncryptionCompletion: (() -> Void) = {

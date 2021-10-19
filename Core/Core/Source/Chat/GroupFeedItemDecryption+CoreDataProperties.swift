@@ -20,6 +20,7 @@ extension GroupFeedItemDecryption {
     @NSManaged public var contentType: String
     @NSManaged public var decryptionError: String
     @NSManaged public var groupID: String
+    @NSManaged public var userAgentSender: String
     @NSManaged public var userAgentReceiver: String
     @NSManaged public var hasBeenReported: Bool
     @NSManaged public var rerequestCount: Int32
