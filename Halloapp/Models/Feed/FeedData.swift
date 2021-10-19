@@ -661,8 +661,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/update-post/missing-post [\(id)]")
                 return
             }
-            DDLogVerbose("FeedData/update-post [\(id)]")
+            DDLogVerbose("FeedData/update-post [\(id)] - currentStatus: [\(feedPost.status)]")
             block(feedPost)
+            DDLogVerbose("FeedData/update-post-afterBlock [\(id)] - currentStatus: [\(feedPost.status)]")
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
@@ -1453,7 +1454,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 completion()
                 return
             }
-            DDLogInfo("FeedData/retract-post [\(postId)]")
+            DDLogInfo("FeedData/retract-post [\(postId)]/begin")
 
             // 1. Delete media.
             self.deleteMedia(feedPost: feedPost)
@@ -1476,6 +1477,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
+            DDLogInfo("FeedData/retract-post [\(postId)]/done")
 
             if feedPost.groupId != nil {
                 self.didProcessGroupFeedPostRetract.send(feedPost.id)
@@ -1557,7 +1559,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             processPostRetract(postId) {}
 
         // own posts or pending retract posts.
-        case .sent, .retracting:
+        // .seen is the status for posts reshared after reinstall.
+        // This will go away soon once we have e2e everywhere.
+        // TODO: why are we marking own posts as seen anyways?
+        case .sent, .retracting, .seen:
             DDLogInfo("FeedData/retract/postId \(feedPost.id), sending retract request")
             // Mark post as "being retracted"
             feedPost.status = .retracting
@@ -1580,7 +1585,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // everything else.
         default:
-            DDLogError("FeedData/retract/postId \(feedPost.id) unexpected retract request here")
+            DDLogError("FeedData/retract/postId \(feedPost.id) unexpected retract request here: \(feedPost.status)")
             return
         }
     }
@@ -2487,45 +2492,58 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 comment.addToResendAttempts(resendAttempt)
                 self.save(managedObjectContext)
 
-                let groupId = comment.post.groupId
-                self.service.resendComment(comment.commentData, groupId: groupId, rerequestCount: rerequestCount, to: userID) { result in
-                    switch result {
-                    case .success():
-                        DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
-                        // TODO: murali@: update rerequestCount only on success.
-                    case .failure(let error):
-                        DDLogError("FeedData/handleRerequest/commentID: \(comment.id) error \(error)")
+                guard let groupId = comment.post.groupId else {
+                    DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) /groupId is missing")
+                    return
+                }
+                // Handle rerequests for comments based on status.
+                switch comment.status {
+                case .retracting, .retracted:
+                    DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id)/userID: \(userID)/sending retract")
+                    self.service.retractComment(comment.id, postID: comment.post.id, in: groupId, to: userID)
+                    completion(.success(()))
+                default:
+                    self.service.resendComment(comment.commentData, groupId: groupId, rerequestCount: rerequestCount, to: userID) { result in
+                        switch result {
+                        case .success():
+                            DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                            // TODO: murali@: update rerequestCount only on success.
+                        case .failure(let error):
+                            DDLogError("FeedData/handleRerequest/commentID: \(comment.id) error \(error)")
+                        }
+                        completion(result)
                     }
-                    completion(result)
                 }
                 return
             }
 
             DDLogInfo("FeedData/handleRerequest/postID: \(post.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
-            let feed: Feed
-            if let groupId = post.groupId {
-                feed = .group(groupId)
-            } else {
-                guard let postAudience = post.audience else {
-                    DDLogError("FeedData/handleRerequest/\(post.id) No audience set")
-                    return
-                }
-                feed = .personal(postAudience)
+            guard let groupId = post.groupId else {
+                DDLogInfo("FeedData/handleRerequest/postID: \(post.id) /groupId is missing")
+                return
             }
-
+            let feed: Feed = .group(groupId)
             resendAttempt.post = post
             post.addToResendAttempts(resendAttempt)
             self.save(managedObjectContext)
 
-            self.service.resendPost(post.postData, feed: feed, rerequestCount: rerequestCount, to: userID) { result in
-                switch result {
-                case .success():
-                    DDLogInfo("FeedData/handleRerequest/postID: \(post.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
-                    // TODO: murali@: update rerequestCount only on success.
-                case .failure(let error):
-                    DDLogError("FeedData/handleRerequest/postID: \(post.id) error \(error)")
+            // Handle rerequests for posts based on status.
+            switch post.status {
+            case .retracting, .retracted:
+                DDLogInfo("FeedData/handleRerequest/postID: \(post.id)/userID: \(userID)/sending retract")
+                self.service.retractPost(post.id, in: groupId, to: userID)
+                completion(.success(()))
+            default:
+                self.service.resendPost(post.postData, feed: feed, rerequestCount: rerequestCount, to: userID) { result in
+                    switch result {
+                    case .success():
+                        DDLogInfo("FeedData/handleRerequest/postID: \(post.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                        // TODO: murali@: update rerequestCount only on success.
+                    case .failure(let error):
+                        DDLogError("FeedData/handleRerequest/postID: \(post.id) error \(error)")
+                    }
+                    completion(result)
                 }
-                completion(result)
             }
         }
     }
@@ -3890,7 +3908,8 @@ extension FeedData: HalloFeedDelegate {
 
     func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt) {
         updateFeedPost(with: receipt.itemId) { (feedPost) in
-            if !feedPost.isPostRetracted || !feedPost.isRerequested {
+            // Dont mark the status to be seen if the post is retracted or if the post is rerequested.
+            if !feedPost.isPostRetracted && !feedPost.isRerequested {
                 feedPost.status = .seen
             }
         }

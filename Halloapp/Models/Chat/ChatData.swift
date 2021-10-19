@@ -171,6 +171,12 @@ class ChatData: ObservableObject {
             }
         )
 
+        cancellableSet.insert(
+            service.didGetNewWhisperMessage.sink { [weak self] whisperMessage in
+                self?.handleIncomingWhisperMessage(whisperMessage)
+            }
+        )
+
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.cancellableSet.insert(
@@ -2314,6 +2320,28 @@ extension ChatData {
 
 extension ChatData {
 
+    // MARK: Handle whisper messages
+    // This part is not great and should be in CoreModule - but since the groups list is stored in ChatData.
+    // This code is ending up here for now - should fix this soon.
+    private func handleIncomingWhisperMessage(_ whisperMessage: WhisperMessage) {
+        DDLogInfo("ChatData/handleIncomingWhisperMessage/begin")
+        switch whisperMessage {
+        case .update(let userID):
+            DDLogInfo("ChatData/handleIncomingWhisperMessage/execute update for \(userID)")
+            performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                guard let self = self else { return }
+                let groupIds = self.chatGroupIds(for: userID, in: managedObjectContext)
+                groupIds.forEach { groupId in
+                    DDLogInfo("ChatData/handleIncomingWhisperMessage/updateWhisperSession/addToPending \(userID) in \(groupId)")
+                    AppContext.shared.messageCrypter.addMembers(userIds: [userID], in: groupId)
+                }
+            }
+        default:
+            DDLogInfo("ChatData/handleIncomingWhisperMessage/ignore")
+            break
+        }
+    }
+
     // MARK: 1-1 Process Inbound Messages
     
     private func processIncomingChatMessage(_ incomingMessage: IncomingChatMessage) {
@@ -3197,6 +3225,11 @@ extension ChatData {
     
     func chatGroupMember(groupId id: GroupID, memberUserId: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatGroupMember? {
         return chatGroupMembers(predicate: NSPredicate(format: "groupId == %@ && userId == %@", id, memberUserId), in: managedObjectContext).first
+    }
+
+    func chatGroupIds(for memberUserId: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> [GroupID] {
+        let chatGroupMemberItems = chatGroupMembers(predicate: NSPredicate(format: "userId == %@", memberUserId), in: managedObjectContext)
+        return chatGroupMemberItems.map { $0.groupId }
     }
     
     private func chatGroupMessages(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {

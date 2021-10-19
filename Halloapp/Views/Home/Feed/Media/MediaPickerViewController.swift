@@ -951,13 +951,6 @@ fileprivate class AssetViewCell: UICollectionViewCell {
     var asset: PHAsset?
     var indexPath: IndexPath?
 
-    static private let durationFormatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.zeroFormattingBehavior = .pad
-        formatter.allowedUnits = [.second, .minute]
-
-        return formatter
-    }()
     private var activeConstraints = [NSLayoutConstraint]()
 
     lazy var indicator: UILabel = {
@@ -1079,14 +1072,9 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         }
 
         duration.isHidden = true
-        if asset?.mediaType == .video, let interval = asset?.duration, var formatted = Self.durationFormatter.string(from: interval) {
-            // Display 1:33 instead of 01:33, but keep 0:33
-            if formatted.hasPrefix("0") == true && formatted.count > 4 {
-                formatted = String(formatted.dropFirst())
-            }
-
+        if asset?.mediaType == .video, let interval = asset?.duration {
             duration.isHidden = false
-            duration.text = formatted
+            duration.text = interval.formatted
         }
 
         favorite.isHidden = asset?.isFavorite != true

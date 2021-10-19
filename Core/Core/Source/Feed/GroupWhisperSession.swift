@@ -100,7 +100,7 @@ final class GroupWhisperSession {
         self.state = .empty
         DDLogInfo("GroupWhisperSession/\(groupID) - state: \(self.state)")
         // Read from coredata and update
-        self.state = loadFromKeyStore(for: groupID)
+        updateState(to: loadFromKeyStore(for: groupID))
         DDLogInfo("GroupWhisperSession/\(groupID) - state: \(self.state)")
     }
 
@@ -110,19 +110,15 @@ final class GroupWhisperSession {
         didSet {
             switch state {
             case .awaitingSetup(let attempts, _):
-                DDLogInfo("GroupWhisperSession/set-state/awaitingSetup/attempts: \(attempts)")
-                DDLogInfo("GroupWhisperSession/set-state/saving keybundle")
-                keyStore.saveGroupSessionKeyBundle(groupID: groupID, state: .awaitingSetup, groupKeyBundle: state.keyBundle)
+                DDLogInfo("GroupWhisperSession/\(groupID)/set-state/awaitingSetup/attempts: \(attempts)")
             case .retrievingKeys(_):
-                DDLogInfo("GroupWhisperSession/set-state/retrievingKeys")
+                DDLogInfo("GroupWhisperSession/\(groupID)/set-state/retrievingKeys")
             case .updatingHash(let attempts, _):
-                DDLogInfo("GroupWhisperSession/set-state/updatingHash/attempts: \(attempts)")
+                DDLogInfo("GroupWhisperSession/\(groupID)/set-state/updatingHash/attempts: \(attempts)")
             case .ready(_):
-                DDLogInfo("GroupWhisperSession/set-state/ready")
-                DDLogInfo("GroupWhisperSession/set-state/saving keybundle")
-                keyStore.saveGroupSessionKeyBundle(groupID: groupID, state: .ready, groupKeyBundle: state.keyBundle)
+                DDLogInfo("GroupWhisperSession/\(groupID)/set-state/ready")
             case .empty:
-                DDLogInfo("GroupWhisperSession/set-state/empty")
+                DDLogInfo("GroupWhisperSession/\(groupID)/set-state/empty")
                 return
             }
         }
@@ -263,7 +259,7 @@ final class GroupWhisperSession {
         while let task = pendingTasks.first {
             // TODO: murali@: update this log to only log the state here.
             DDLogInfo("GroupWhisperSession/executeTasks/\(groupID)/state: \(state) - task: \(task)")
-            switch state {
+            switch self.state {
 
             case .empty:
                 DDLogError("GroupWhisperSession/\(groupID)/execute/task - InvalidState - pausing")
@@ -355,7 +351,7 @@ final class GroupWhisperSession {
         switch state {
         case .ready(var groupKeyBundle):
             groupKeyBundle.pendingUids.append(contentsOf: userIds)
-            self.state = .ready(keyBundle: groupKeyBundle)
+            updateState(to: .ready(keyBundle: groupKeyBundle), saveToKeyStore: true)
         default:
             DDLogError("GroupWhisperSession/executeRemoveMembers/\(groupID)/Invalid state")
             return
@@ -439,7 +435,7 @@ final class GroupWhisperSession {
                                               receiverUids: pendingUids)
                 }
             }()
-            self.state = .ready(keyBundle: updatedKeyBundle)
+            updateState(to: .ready(keyBundle: updatedKeyBundle), saveToKeyStore: true)
             DDLogInfo("GroupWhisperSession/executeEncryption/\(groupID)/success")
             completion(.success(output))
         case .failure(let error):
@@ -484,9 +480,9 @@ final class GroupWhisperSession {
                 DDLogError("GroupWhisperSession/executeDecryption/\(groupID)/Invalid state")
                 return
             case .ready(_):
-                self.state = .ready(keyBundle: updatedKeyBundle)
+                updateState(to: .ready(keyBundle: updatedKeyBundle), saveToKeyStore: true)
             case .awaitingSetup(let attempts, _):
-                self.state = .awaitingSetup(attempts: attempts, incomingSession: newIncomingSession)
+                updateState(to: .awaitingSetup(attempts: attempts, incomingSession: newIncomingSession), saveToKeyStore: true)
             }
 
             DDLogInfo("GroupWhisperSession/executeDecryption/\(groupID)/success")
@@ -562,10 +558,10 @@ final class GroupWhisperSession {
                 if let outgoingSession = outgoingSession {
                     let groupKeyBundle = GroupKeyBundle(outgoingSession: outgoingSession, incomingSession: self.state.incomingSession, pendingUids: members)
                     DDLogInfo("GroupWhisperSession/setupOutbound/\(self.groupID)/success")
-                    self.state = .ready(keyBundle: groupKeyBundle)
+                    self.updateState(to: .ready(keyBundle: groupKeyBundle), saveToKeyStore: true)
                 } else {
                     DDLogError("GroupWhisperSession/\(self.groupID)/setupOutbound/failed [\(attemptNumber)]")
-                    self.state = .awaitingSetup(attempts: attemptNumber, incomingSession: self.state.incomingSession)
+                    self.updateState(to: .awaitingSetup(attempts: attemptNumber, incomingSession: self.state.incomingSession), saveToKeyStore: true)
                 }
 
                 self.executeTasks()
@@ -575,7 +571,7 @@ final class GroupWhisperSession {
 
     private func clearOutbound() {
         DDLogError("GroupWhisperSession/\(self.groupID)/clearOutbound/state: \(state)")
-        self.state = .awaitingSetup(attempts: 0, incomingSession: self.state.incomingSession)
+        updateState(to: .awaitingSetup(attempts: 0, incomingSession: self.state.incomingSession), saveToKeyStore: true)
     }
 
     private func executeUpdateAudienceHash() {
@@ -612,14 +608,14 @@ final class GroupWhisperSession {
                     if groupKeyBundle.outgoingSession != nil {
                         groupKeyBundle.outgoingSession?.audienceHash = hash
                         DDLogInfo("GroupWhisperSession/executeUpdateAudienceHash/\(self.groupID)/success, audienceHash: \(hash.toHexString())")
-                        self.state = .ready(keyBundle: groupKeyBundle)
+                        self.updateState(to: .ready(keyBundle: groupKeyBundle), saveToKeyStore: true)
                     } else {
                         DDLogError("GroupWhisperSession/executeUpdateAudienceHash/\(self.groupID)/outgoingSession is missing")
-                        self.state = .awaitingSetup(attempts: 0, incomingSession: groupKeyBundle.incomingSession ?? GroupIncomingSession(senderStates: [:]))
+                        self.updateState(to: .awaitingSetup(attempts: 0, incomingSession: groupKeyBundle.incomingSession ?? GroupIncomingSession(senderStates: [:])), saveToKeyStore: true)
                     }
                 } else {
                     DDLogError("GroupWhisperSession/executeUpdateAudienceHash/\(self.groupID)/audienceHash is missing")
-                    self.state = .updatingHash(attempts: attemptNumber, keyBundle: self.state.keyBundle)
+                    self.updateState(to: .updatingHash(attempts: attemptNumber, keyBundle: self.state.keyBundle))
                 }
 
                 self.executeTasks()
@@ -657,7 +653,7 @@ final class GroupWhisperSession {
                 incomingSession = GroupIncomingSession(senderStates: [:])
             }
             incomingSession?.senderStates[userID] = senderState
-            self.state = .awaitingSetup(attempts: setupAttempts, incomingSession: incomingSession)
+            self.updateState(to: .awaitingSetup(attempts: setupAttempts, incomingSession: incomingSession), saveToKeyStore: true)
 
         case .retrievingKeys(var incomingSession):
             if incomingSession == nil {
@@ -665,20 +661,21 @@ final class GroupWhisperSession {
             }
             incomingSession?.senderStates[userID] = senderState
             self.state = .retrievingKeys(incomingSession: incomingSession)
+            self.updateState(to: .retrievingKeys(incomingSession: incomingSession))
 
         case .updatingHash(let updateHashAttempts, var groupKeyBundle):
             if groupKeyBundle.incomingSession == nil {
                 groupKeyBundle.incomingSession = GroupIncomingSession(senderStates: [:])
             }
             groupKeyBundle.incomingSession?.senderStates[userID] = senderState
-            self.state = .updatingHash(attempts: updateHashAttempts, keyBundle: groupKeyBundle)
+            self.updateState(to: .updatingHash(attempts: updateHashAttempts, keyBundle: groupKeyBundle))
 
         case .ready(var groupKeyBundle):
             if groupKeyBundle.incomingSession == nil {
                 groupKeyBundle.incomingSession = GroupIncomingSession(senderStates: [:])
             }
             groupKeyBundle.incomingSession?.senderStates[userID] = senderState
-            self.state = .ready(keyBundle: groupKeyBundle)
+            self.updateState(to: .ready(keyBundle: groupKeyBundle), saveToKeyStore: true)
         }
         DDLogInfo("GroupWhisperSession/updateIncomingSession/\(groupID)/from \(userID)/success")
 
@@ -737,7 +734,23 @@ final class GroupWhisperSession {
 
     public func reloadKeysFromKeyStore() {
         sessionQueue.async {
-            self.state = self.loadFromKeyStore(for: self.groupID)
+            self.updateState(to: self.loadFromKeyStore(for: self.groupID))
+        }
+    }
+
+    private func updateState(to state: GroupWhisperState, saveToKeyStore: Bool = false) {
+        self.state = state
+        if saveToKeyStore {
+            switch state {
+            case .awaitingSetup(_, _):
+                DDLogInfo("GroupWhisperSession/\(groupID)/set-state/saving keybundle \(state)")
+                keyStore.saveGroupSessionKeyBundle(groupID: groupID, state: .awaitingSetup, groupKeyBundle: state.keyBundle)
+            case .ready(_):
+                DDLogInfo("GroupWhisperSession/\(groupID)/set-state/saving keybundle \(state)")
+                keyStore.saveGroupSessionKeyBundle(groupID: groupID, state: .ready, groupKeyBundle: state.keyBundle)
+            default:
+                break
+            }
         }
     }
 

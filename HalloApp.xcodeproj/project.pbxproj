@@ -356,6 +356,7 @@
 		F8DFCDAD26304B4F003F850F /* GroupList.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCDA826304B3A003F850F /* GroupList.swift */; };
 		F8E60547266F931E00DDEB2A /* ImageEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */; };
 		F8E6054A2671F6A700DDEB2A /* MediaEdit.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E605492671F6A700DDEB2A /* MediaEdit.swift */; };
+		F8E6DCDF271EB06F005EECC5 /* TimeInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */; };
 		F8FAA14526CCF5B5008282EF /* AudioRecorderControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FAA14426CCF5B5008282EF /* AudioRecorderControlView.swift */; };
 		F8FDA7AC26F84F0700D8B839 /* AudioRecorderTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FDA7AB26F84F0700D8B839 /* AudioRecorderTimeView.swift */; };
 /* End PBXBuildFile section */
@@ -946,6 +947,7 @@
 		F8DFCDA826304B3A003F850F /* GroupList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupList.swift; sourceTree = "<group>"; };
 		F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageEditViewController.swift; sourceTree = "<group>"; };
 		F8E605492671F6A700DDEB2A /* MediaEdit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaEdit.swift; sourceTree = "<group>"; };
+		F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeInterval.swift; sourceTree = "<group>"; };
 		F8FAA14426CCF5B5008282EF /* AudioRecorderControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderControlView.swift; sourceTree = "<group>"; };
 		F8FDA7AB26F84F0700D8B839 /* AudioRecorderTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderTimeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1805,6 +1807,7 @@
 				EA0B991A249C228700B05094 /* DateFormatter.swift */,
 				146B93782405F40500768AC6 /* Font.swift */,
 				EA0B9918249C205E00B05094 /* String.swift */,
+				F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */,
 				761442C8245D4DE500DD9D1A /* UIButton.swift */,
 				761442C2245CF4FC00DD9D1A /* UIColor.swift */,
 				761442C4245D32C200DD9D1A /* UIDevice.swift */,
@@ -2597,6 +2600,7 @@
 				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
 				F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */,
 				EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */,
+				F8E6DCDF271EB06F005EECC5 /* TimeInterval.swift in Sources */,
 				323E88DB26CC430600202655 /* Feed3ToFeed4.xcmappingmodel in Sources */,
 				76271384252D24AD00389FBC /* FeedItemContentView.swift in Sources */,
 				EA796B9D2469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift in Sources */,
@@ -3131,7 +3135,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Share Extension/Info.plist";
@@ -3187,7 +3191,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3258,7 +3262,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3301,7 +3305,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = HalloAppClip/Info.plist;
@@ -3358,7 +3362,7 @@
 				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3430,7 +3434,7 @@
 				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3855,7 +3859,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -3921,7 +3925,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Notification Service Extension/Info.plist";
@@ -3977,7 +3981,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4048,7 +4052,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4087,7 +4091,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Intents Extension/Info.plist";
@@ -4142,7 +4146,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4212,7 +4216,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4378,7 +4382,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -4403,7 +4407,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 171;
+				CURRENT_PROJECT_VERSION = 172;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;

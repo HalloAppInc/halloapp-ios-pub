@@ -35,7 +35,7 @@ class VideoEditViewController : UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-    private let duration: UILabel = {
+    private let durationView: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.systemFont(ofSize: 15, weight: .medium)
@@ -43,16 +43,27 @@ class VideoEditViewController : UIViewController {
 
         return label
     }()
-    private let durationFormatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.unitsStyle = .positional
-        formatter.zeroFormattingBehavior = .dropTrailing
-        formatter.allowedUnits = [.second, .minute]
+    private let trimTimesView: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        label.textColor = .white
 
-        return formatter
+        return label
+    }()
+    private let playbackView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .white.withAlphaComponent(0.7)
+
+        return view
     }()
 
-    private var observerToken: Any?
+    private lazy var playbackPosition: NSLayoutConstraint = {
+        playbackView.leadingAnchor.constraint(equalTo: rangeView.leadingAnchor, constant: rangeView.handleRadius - 1)
+    }()
+
+    private var endObserverToken, playbackObserverToken: Any?
     private var startTime: CMTime {
         guard let interval = videoView.player?.currentItem?.duration else { return CMTime() }
         guard interval.isNumeric else { return CMTime() }
@@ -79,36 +90,51 @@ class VideoEditViewController : UIViewController {
         super.viewDidLoad()
         DDLogInfo("VideoEditViewController/viewDidLoad")
 
-        rangeView = VideoRangeView(start: media.start, end: media.end) { [weak self] start, end in
+        rangeView = VideoRangeView(start: media.start, end: media.end) { [weak self] in
             guard let self = self else { return }
-            guard self.media.start != start || self.media.end != end else { return }
 
-            self.media.start = start
-            self.media.end = end
+            self.updateDuration()
+
+            if self.media.start == self.rangeView.start && self.media.end != self.rangeView.end {
+                self.reset(toStart: false)
+            } else {
+                self.reset(toStart: true)
+            }
+
+            self.media.start = self.rangeView.start
+            self.media.end = self.rangeView.end
         }
         rangeView.translatesAutoresizingMaskIntoConstraints = false
 
         view.backgroundColor = .black
+        view.addSubview(trimTimesView)
         view.addSubview(thumbnailsView)
         view.addSubview(rangeView)
-        view.addSubview(duration)
+        view.addSubview(durationView)
         view.addSubview(videoView)
+        view.addSubview(playbackView)
 
         NSLayoutConstraint.activate([
+            trimTimesView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            trimTimesView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             thumbnailsView.heightAnchor.constraint(equalToConstant: 44),
-            thumbnailsView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            thumbnailsView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            thumbnailsView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
+            thumbnailsView.topAnchor.constraint(equalTo: trimTimesView.bottomAnchor, constant: 8),
+            thumbnailsView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10 + rangeView.handleRadius),
+            thumbnailsView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10 - rangeView.handleRadius),
             rangeView.heightAnchor.constraint(equalToConstant: 44),
-            rangeView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            rangeView.topAnchor.constraint(equalTo: trimTimesView.bottomAnchor, constant: 8),
             rangeView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
             rangeView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
-            duration.topAnchor.constraint(equalTo: thumbnailsView.bottomAnchor, constant: 8),
-            duration.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            videoView.topAnchor.constraint(equalTo: duration.bottomAnchor, constant: 16),
-            videoView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            durationView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            durationView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            videoView.topAnchor.constraint(equalTo: rangeView.bottomAnchor, constant: 16),
+            videoView.bottomAnchor.constraint(equalTo: durationView.topAnchor, constant: -8),
             videoView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             videoView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            playbackView.centerYAnchor.constraint(equalTo: rangeView.centerYAnchor),
+            playbackView.widthAnchor.constraint(equalToConstant: 2),
+            playbackView.heightAnchor.constraint(equalTo: rangeView.heightAnchor),
+            playbackPosition,
         ])
 
         guard let url = media.media.originalVideoURL else {
@@ -122,6 +148,7 @@ class VideoEditViewController : UIViewController {
         videoView.player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
         videoView.player?.isMuted = media.muted
 
+        observePlayback()
         updateDuration()
         reset()
 
@@ -132,18 +159,24 @@ class VideoEditViewController : UIViewController {
 
         cancellableSet.insert(media.$start.sink { [weak self] start in
             guard let self = self else { return }
+            guard self.rangeView.start != start else { return }
 
-            self.rangeView.updateRange(start: start, end: self.media.end)
-            self.updateDuration()
-            self.reset()
+            DispatchQueue.main.async {
+                self.rangeView.updateRange(start: start, end: self.media.end)
+                self.updateDuration()
+                self.reset()
+            }
         })
 
         cancellableSet.insert(media.$end.sink { [weak self] end in
             guard let self = self else { return }
+            guard self.rangeView.end != end else { return }
 
-            self.rangeView.updateRange(start: self.media.start, end: end)
-            self.updateDuration()
-            self.reset()
+            DispatchQueue.main.async {
+                self.rangeView.updateRange(start: self.media.start, end: end)
+                self.updateDuration()
+                self.reset()
+            }
         })
     }
 
@@ -195,23 +228,42 @@ class VideoEditViewController : UIViewController {
     private func updateDuration() {
         guard let interval = videoView.player?.currentItem?.duration else { return }
         guard interval.isNumeric else { return }
-        duration.text = durationFormatter.string(from: interval.seconds * TimeInterval(media.end - media.start))
+
+        durationView.text = TimeInterval(endTime.seconds - startTime.seconds).formatted
+        trimTimesView.text = TimeInterval(startTime.seconds).formattedPrecise + " - " + TimeInterval(endTime.seconds).formattedPrecise
     }
 
-    private func reset() {
+    private func observePlayback() {
+        guard let player = videoView.player else { return }
+        guard let interval = player.currentItem?.duration else { return }
+        guard interval.isNumeric else { return }
+
+        playbackObserverToken = player.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 60), queue: .main) { [weak self] time in
+            guard let self = self else { return }
+            guard player.rate > 0 else { return }
+
+            let left = (self.rangeView.frame.width - self.rangeView.handleRadius) * self.media.start + self.rangeView.handleRadius - 1
+            let right = (self.rangeView.frame.width - self.rangeView.handleRadius) * self.media.end - 1
+            let current = (player.currentTime().seconds - self.startTime.seconds) / (self.endTime.seconds - self.startTime.seconds)
+
+            self.playbackPosition.constant = (right - left) * min(max(current, 0), 1) + left
+        }
+    }
+
+    private func reset(toStart: Bool = true) {
         guard let player = videoView.player else { return }
         guard player.currentItem != nil else { return }
 
         player.pause()
-        player.seek(to: startTime)
+        player.seek(to: toStart ? startTime : endTime)
 
-        if let token = observerToken {
+        if let token = endObserverToken {
             player.removeTimeObserver(token)
         }
 
         var endTimes = [NSValue]()
         endTimes.append(NSValue(time: endTime))
-        observerToken = player.addBoundaryTimeObserver(forTimes: endTimes, queue: nil) { [weak self] in
+        endObserverToken = player.addBoundaryTimeObserver(forTimes: endTimes, queue: nil) { [weak self] in
             guard let self = self else { return }
             player.pause()
             player.seek(to: self.startTime)
@@ -224,16 +276,17 @@ private class VideoRangeView : UIView {
         case start, end, none
     }
 
-    private let borderWidth = CGFloat(2)
-    private let shadowColor = UIColor.black.withAlphaComponent(0.7)
-    private let threshold = CGFloat(44)
+    let handleRadius = CGFloat(6)
+    let borderWidth = CGFloat(2)
+    let shadowColor = UIColor.black.withAlphaComponent(0.7)
+    let threshold = CGFloat(44)
 
-    private var start: CGFloat
-    private var end: CGFloat
+    private(set) var start: CGFloat
+    private(set) var end: CGFloat
     private var dragRegion = DragRegion.none
-    private var onChange: (CGFloat, CGFloat) -> Void
+    private var onChange: () -> Void
 
-    init(start: CGFloat, end: CGFloat, onChange: @escaping (CGFloat, CGFloat) -> Void) {
+    init(start: CGFloat, end: CGFloat, onChange: @escaping () -> Void) {
         self.start = start
         self.end = end
         self.onChange = onChange
@@ -241,11 +294,6 @@ private class VideoRangeView : UIView {
         super.init(frame: .zero)
 
         backgroundColor = .clear
-
-        let recognizer = UIPanGestureRecognizer(target: self, action: #selector(onDrag(sender:)))
-        recognizer.maximumNumberOfTouches = 1
-        addGestureRecognizer(recognizer)
-
     }
 
     required init?(coder: NSCoder) {
@@ -258,39 +306,52 @@ private class VideoRangeView : UIView {
         setNeedsDisplay()
     }
 
-    @objc private func onDrag(sender: UIPanGestureRecognizer) {
-        let location = sender.location(in: self)
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard dragRegion == .none else { return }
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
 
-        switch sender.state {
-        case .began:
-            let startDistance = abs(bounds.width * start - location.x)
-            let endDistance = abs(bounds.width * end - location.x)
+        let startDistance = abs(bounds.width * start - location.x)
+        let endDistance = abs(bounds.width * end - location.x)
 
-            if startDistance < threshold && endDistance > threshold {
-                dragRegion = .start
-            } else if startDistance > threshold && endDistance < threshold {
-                dragRegion = .end
-            } else if startDistance < threshold && endDistance < threshold {
-                dragRegion = startDistance < endDistance ? .start : .end
-            }
-        case .changed:
-            switch dragRegion {
-            case .start:
-                start = max(0, min(end, location.x / bounds.width))
-                setNeedsDisplay()
-                onChange(start, end)
-            case .end:
-                end = min(1, max(start, location.x / bounds.width))
-                setNeedsDisplay()
-                onChange(start, end)
-            default:
-                break
-            }
-        case .ended, .cancelled:
-            dragRegion = .none
-        default:
+        if startDistance < threshold && endDistance > threshold {
+            dragRegion = .start
+        } else if startDistance > threshold && endDistance < threshold {
+            dragRegion = .end
+        } else if startDistance < threshold && endDistance < threshold {
+            dragRegion = startDistance < endDistance ? .start : .end
+        }
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard dragRegion != .none else { return }
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+
+        let minInterval = 2 * (borderWidth + handleRadius) / bounds.width
+
+        switch dragRegion {
+        case .start:
+            start = max(0, min(end - minInterval, location.x / bounds.width))
+            setNeedsDisplay()
+            onChange()
+        case .end:
+            end = min(1, max(start + minInterval, location.x / bounds.width))
+            setNeedsDisplay()
+            onChange()
+        case .none:
             break
         }
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        dragRegion = .none
+        onChange()
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        dragRegion = .none
+        onChange()
     }
 
     override func draw(_ rect: CGRect) {
@@ -300,7 +361,12 @@ private class VideoRangeView : UIView {
     }
 
     private func drawShadow(_ rect: CGRect) {
-        let shadowCut = rect.inset(by: UIEdgeInsets(top: 0, left: rect.width * start, bottom: 0, right: rect.width * (1 - end)))
+        let shadowCut = rect.inset(by: UIEdgeInsets(
+            top: 0,
+            left: (rect.width - handleRadius) * start + handleRadius,
+            bottom: 0,
+            right: (rect.width - handleRadius) * (1 - end) + handleRadius
+        ))
         let path = UIBezierPath(rect: rect)
         path.append(UIBezierPath(rect: shadowCut))
         path.usesEvenOddFillRule = true
@@ -309,7 +375,12 @@ private class VideoRangeView : UIView {
     }
 
     private func drawBorder(_ rect: CGRect) {
-        let borderRect = rect.inset(by: UIEdgeInsets(top: borderWidth / 2, left: rect.width * start, bottom: borderWidth / 2, right: rect.width * (1 - end)))
+        let borderRect = rect.inset(by: UIEdgeInsets(
+            top: borderWidth / 2,
+            left: (rect.width - handleRadius) * start + handleRadius,
+            bottom: borderWidth / 2,
+            right: (rect.width - handleRadius) * (1 - end) + handleRadius
+        ))
 
         let borderPath = UIBezierPath(rect: borderRect)
         borderPath.lineWidth = borderWidth
@@ -317,12 +388,12 @@ private class VideoRangeView : UIView {
         borderPath.stroke()
 
         let leftHandleCenter = CGPoint(x: borderRect.minX, y: borderRect.height / 2)
-        let leftHandlePath = UIBezierPath(arcCenter: leftHandleCenter, radius: 6, startAngle: 0, endAngle: 2 * .pi, clockwise: true)
+        let leftHandlePath = UIBezierPath(arcCenter: leftHandleCenter, radius: handleRadius, startAngle: 0, endAngle: 2 * .pi, clockwise: true)
         UIColor.white.setFill()
         leftHandlePath.fill()
 
         let rightHandleCenter = CGPoint(x: borderRect.maxX, y: borderRect.height / 2)
-        let rightHandlePath = UIBezierPath(arcCenter: rightHandleCenter, radius: 6, startAngle: 0, endAngle: 2 * .pi, clockwise: true)
+        let rightHandlePath = UIBezierPath(arcCenter: rightHandleCenter, radius: handleRadius, startAngle: 0, endAngle: 2 * .pi, clockwise: true)
         UIColor.white.setFill()
         rightHandlePath.fill()
     }

@@ -33,6 +33,8 @@ protocol HalloService: CoreService {
     // MARK: Feed requests
     func retractPost(_ id: FeedPostID, completion: @escaping ServiceRequestCompletion<Void>)
     func retractComment(id: FeedPostCommentID, postID: FeedPostID, completion: @escaping ServiceRequestCompletion<Void>)
+    func retractPost(_ id: FeedPostID, in groupID: GroupID, to toUserID: UserID)
+    func retractComment(_ id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID, to toUserID: UserID)
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Receipts
@@ -40,6 +42,7 @@ protocol HalloService: CoreService {
 
     // MARK: Chat
     var didGetNewChatMessage: PassthroughSubject<IncomingChatMessage, Never> { get }
+    var didGetNewWhisperMessage: PassthroughSubject<WhisperMessage, Never> { get }
     var didGetChatAck: PassthroughSubject<ChatAck, Never> { get }
     var didGetPresence: PassthroughSubject<ChatPresenceInfo, Never> { get }
     var didGetChatState: PassthroughSubject<ChatStateInfo, Never> { get }
