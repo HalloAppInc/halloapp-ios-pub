@@ -88,6 +88,28 @@ public struct PostData {
         }
     }
 
+    public var mediaCounters: MediaCounters {
+        switch content {
+        case .album(_, let media):
+            var counters = MediaCounters()
+            media.forEach { mediaItem in
+                switch mediaItem.type {
+                case .image:
+                    counters.numImages += 1
+                case .video:
+                    counters.numVideos += 1
+                case .audio:
+                    counters.numAudio += 1
+                }
+            }
+            return counters
+        case .text(_, _):
+            return MediaCounters()
+        case .retracted, .unsupported:
+            return MediaCounters()
+        }
+    }
+
     public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), status: FeedItemStatus, isShared: Bool = false) {
         self.id = id
         self.userId = userId
@@ -342,6 +364,30 @@ public struct CommentData {
             return []
         case .text(_, let linkPreviewData):
             return linkPreviewData
+        }
+    }
+
+    public var mediaCounters: MediaCounters {
+        switch content {
+        case .album(_, let media):
+            var counters = MediaCounters()
+            media.forEach { mediaItem in
+                switch mediaItem.type {
+                case .image:
+                    counters.numImages += 1
+                case .video:
+                    counters.numVideos += 1
+                case .audio:
+                    counters.numAudio += 1
+                }
+            }
+            return counters
+        case .text(_, _):
+            return MediaCounters()
+        case .voiceNote:
+            return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1)
+        case .retracted, .unsupported:
+            return MediaCounters()
         }
     }
 
