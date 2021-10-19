@@ -70,6 +70,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Uygulamanı güncelle";
 
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Ön izleme yükleniyor...";
+
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ben";
 

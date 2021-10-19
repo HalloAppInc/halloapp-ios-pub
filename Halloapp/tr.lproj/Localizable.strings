@@ -58,6 +58,9 @@
 /* Archive navigation label */
 "archive.title.label" = "Arşiv";
 
+/* Label shown on the cancel action */
+"audio.control.cancel" = "İptal etmek için kaydır";
+
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "İnternet bağlantısı yok";
 
@@ -682,6 +685,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Uygulamanı güncelle.";
 
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Ön izleme yükleniyor...";
+
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ben";
 
@@ -786,6 +792,9 @@
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ gönderi silindi";
+
+/* Alert text shown when max group size is reached when selecting/adding group members */
+"new.group.members.max.size.alert" = "En fazla %d kişi olabilir";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Artık bu grupta değilsin";
