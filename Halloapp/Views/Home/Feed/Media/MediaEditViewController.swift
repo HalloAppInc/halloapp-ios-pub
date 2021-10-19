@@ -76,7 +76,7 @@ class MediaEditViewController: UIViewController {
         let doneBtn = UIButton()
         doneBtn.titleLabel?.font = .gothamFont(ofFixedSize: 15, weight: .medium)
         doneBtn.setTitle(Localizations.buttonDone, for: .normal)
-        doneBtn.setTitleColor(.blue, for: .normal)
+        doneBtn.setTitleColor(.systemBlue, for: .normal)
         doneBtn.addTarget(self, action: #selector(doneAction), for: .touchUpInside)
         buttonsView.addArrangedSubview(doneBtn)
 
@@ -154,7 +154,7 @@ class MediaEditViewController: UIViewController {
             buttonsView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             buttonsView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 48),
             buttonsView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -48),
-            previewCollectionView.heightAnchor.constraint(equalToConstant: 80),
+            previewCollectionView.heightAnchor.constraint(equalToConstant: media.count > 1 ? 80 : 0),
             previewCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             previewCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             previewCollectionView.bottomAnchor.constraint(equalTo: buttonsView.topAnchor),

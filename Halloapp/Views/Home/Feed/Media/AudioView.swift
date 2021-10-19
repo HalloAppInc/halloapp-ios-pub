@@ -82,15 +82,6 @@ class AudioView : UIStackView {
         }
     }
 
-    private let timeFormatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.unitsStyle = .positional
-        formatter.zeroFormattingBehavior = .pad
-        formatter.allowedUnits = [.second, .minute]
-
-        return formatter
-    }()
-
     private var playIcon: UIImage {
         let config = UIImage.SymbolConfiguration(pointSize: 24)
         let iconColor: UIColor = state == .played ? .audioViewControlsPlayed : .primaryBlue
@@ -231,9 +222,8 @@ class AudioView : UIStackView {
         let current = player.currentTime()
         slider.setValue(isPlayerAtTheEnd && player.rate == 0 ? 0 : Float(current.seconds / duration.seconds), animated: false)
 
-        if let time = timeFormatter.string(from: player.rate > 0 ? current.seconds : duration.seconds) {
-            delegate?.audioView(self, at: time)
-        }
+        let formatted = TimeInterval(player.rate > 0 ? current.seconds : duration.seconds).formatted
+        delegate?.audioView(self, at: formatted)
     }
 
     @objc private func onSliderValueUpdate() {

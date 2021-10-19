@@ -23,14 +23,6 @@ class AudioRecorder {
     public var duration: TimeInterval? { recorder?.currentTime }
 
     private var recorder: AVAudioRecorder?
-    private lazy var durationFormatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.unitsStyle = .positional
-        formatter.zeroFormattingBehavior = .dropTrailing
-        formatter.allowedUnits = [.second, .minute]
-
-        return formatter
-    }()
     private var timer: Timer?
     private var savedSessionCategory: AVAudioSession.Category?
     private var savedSessionMode: AVAudioSession.Mode?
@@ -134,13 +126,10 @@ class AudioRecorder {
             guard let self = self else { return }
 
             if let duration = self.recorder?.currentTime {
-                if let formatted = self.durationFormatter.string(from: duration) {
-                    self.delegate?.audioRecorder(self, at: formatted)
-                    return
-                }
+                self.delegate?.audioRecorder(self, at: duration.formatted)
+            } else {
+                self.delegate?.audioRecorder(self, at: "0:00")
             }
-
-            self.delegate?.audioRecorder(self, at: "0:00")
         }
     }
 
