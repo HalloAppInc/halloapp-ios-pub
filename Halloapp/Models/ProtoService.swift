@@ -901,6 +901,8 @@ final class ProtoService: ProtoServiceCore {
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .homeFeedRerequest(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .answerCall(_), .callRinging(_), .incomingCall(_), .iceCandidate(_), .endCall(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-call-payload [\(payload)]")
         }
     }
 

@@ -275,7 +275,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     // MARK: Post Actions
 
     func showCommentsView(for postId: FeedPostID, highlighting commentId: FeedPostCommentID? = nil) {
-        DDLogDebug("FeedCollectionViewController/showCommentsView/post: \(postId), comment: \(commentId)")
+        DDLogDebug("FeedCollectionViewController/showCommentsView/post: \(postId), comment: \(commentId ?? "")")
         let commentsViewController = CommentsViewController(feedPostId: postId)
         commentsViewController.highlightedCommentId = commentId
         navigationController?.pushViewController(commentsViewController, animated: true)
