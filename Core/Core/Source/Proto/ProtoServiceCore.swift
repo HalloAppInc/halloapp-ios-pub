@@ -356,10 +356,15 @@ extension ProtoServiceCore: NoiseDelegate {
     }
 
     public func connectionPayload() -> Data? {
+        var deviceInfo = Server_DeviceInfo()
+        deviceInfo.device = UIDevice.current.getModelName()
+        deviceInfo.osVersion = UIDevice.current.systemVersion
+
         var clientConfig = Server_AuthRequest()
         clientConfig.clientMode.mode = isPassiveMode ? .passive : .active
         clientConfig.clientVersion.version = AppContext.userAgent
         clientConfig.resource = "iphone"
+        clientConfig.deviceInfo = deviceInfo
         if let uid = Int64(userData.userId) {
             clientConfig.uid = uid
         } else {
