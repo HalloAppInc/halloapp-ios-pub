@@ -425,10 +425,10 @@
 "feed.notification.mention.comment.w.text" = "<$author$> hat dich in einem Kommentar erwähnt: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.no.text" = "<$author$>hat dich in einem Beitrag erwähnt";
+"feed.notification.mention.post.no.text" = "<$author$> hat dich in einem Beitrag erwähnt";
 
 /* Text for feed notification displayed in Activity Center. */
-"feed.notification.mention.post.w.text" = "<$author$>hat dich in einem Beitrag erwähnt: <$text$>";
+"feed.notification.mention.post.w.text" = "<$author$> hat dich in einem Beitrag erwähnt: <$text$>";
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.other.comment.w.text" = "<$author$> kommentierte: <$text$>";
@@ -684,6 +684,9 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Meine App aktualisieren.";
+
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Vorschau wird geladen...";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ich";
