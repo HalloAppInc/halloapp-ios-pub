@@ -305,7 +305,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             from: fromUserID) { result in
 
             // TODO: Refactor this now that we don't send plaintext (success/failure values mutually exclusive)
-            let protobufToSave: MessageProtobuf?
+            let container: Clients_ChatContainer?
             let messageStatus: SharedChatMessage.Status
             let decryptionFailure: DecryptionFailure?
 
@@ -315,34 +315,32 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 messageStatus = .received
                 decryptionFailure = nil
 
-                if let container = Clients_ChatContainer(containerData: decryptedData) {
-                    protobufToSave = .container(container)
-                } else if let legacyMessage = Clients_ChatMessage(containerData: decryptedData) {
-                    protobufToSave = .legacy(legacyMessage)
+                if let clientChatContainer = Clients_ChatContainer(containerData: decryptedData) {
+                    container = clientChatContainer
                 } else {
-                    protobufToSave = nil
+                    container = nil
                 }
             case .failure(let decryptionError):
                 self.logChatPushDecryptionError(with: metadata, error: decryptionError.error)
                 DDLogError("NotificationExtension/decryptChat/failed decryption, error: \(decryptionError)")
                 messageStatus = .decryptionError
                 decryptionFailure = decryptionError
-                protobufToSave = nil
+                container = nil
             }
 
-            self.dataStore.save(protobuf: protobufToSave, metadata: metadata, status: messageStatus, failure: decryptionFailure) { sharedChatMessage in
-                self.processChatAndInvokeHandler(chatMessage: sharedChatMessage, protobuf: protobufToSave, metadata: metadata)
+            self.dataStore.save(container: container, metadata: metadata, status: messageStatus, failure: decryptionFailure) { sharedChatMessage in
+                self.processChatAndInvokeHandler(chatMessage: sharedChatMessage, container: container, metadata: metadata)
             }
         }
     }
 
     // Process Chats - ack/rerequest/download media if necessary.
-    private func processChatAndInvokeHandler(chatMessage: SharedChatMessage, protobuf: MessageProtobuf?, metadata: NotificationMetadata) {
+    private func processChatAndInvokeHandler(chatMessage: SharedChatMessage, container: Clients_ChatContainer?, metadata: NotificationMetadata) {
         let messageId = metadata.messageId ?? "" // messageId is never expected to be nil here.
         // send pending acks for any pending chat messages
         sendPendingAcksAndRerequests(dataStore: dataStore)
         // If we failed to get decrypted chat content successfully - then just return!
-        guard let chatContent = protobuf?.chatContent else {
+        guard let chatContent = container?.chatContent else {
             DDLogError("DecryptionError/decryptChat/failed to get chat content, messageId: \(messageId)")
             invokeCompletionHandler()
             return

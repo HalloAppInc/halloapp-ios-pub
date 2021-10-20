@@ -25,24 +25,6 @@ public extension Clients_Container {
     }
 }
 
-public extension Clients_Post {
-    var mentionText: MentionText {
-        MentionText(collapsedText: text, mentions: mentionDictionary(from: mentions))
-    }
-}
-
-public extension Clients_Comment {
-    var mentionText: MentionText {
-        MentionText(collapsedText: text, mentions: mentionDictionary(from: mentions))
-    }
-}
-
-public extension Clients_ChatMessage {
-    var mentionText: MentionText {
-        MentionText(collapsedText: text, mentions: mentionDictionary(from: mentions))
-    }
-}
-
 public extension Clients_Text {
     var mentionText: MentionText {
         MentionText(collapsedText: text, mentions: mentionDictionary(from: mentions))

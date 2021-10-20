@@ -1236,9 +1236,7 @@ extension ProtoServiceCore: CoreService {
             from: fromUserID) { result in
             switch result {
             case .success(let decryptedData):
-                if let legacyMessage = Clients_ChatMessage(containerData: decryptedData) {
-                    completion(legacyMessage.chatContent, legacyMessage.chatContext, nil)
-                } else if let container = try? Clients_Container(serializedData: decryptedData) {
+                if let container = try? Clients_Container(serializedData: decryptedData) {
                     completion(container.chatContainer.chatContent, container.chatContainer.chatContext, nil)
                 } else {
                     completion(nil, nil, DecryptionFailure(.deserialization))

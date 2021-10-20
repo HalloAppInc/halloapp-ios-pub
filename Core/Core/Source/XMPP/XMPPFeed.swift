@@ -167,19 +167,6 @@ public struct PostData {
                 return .unsupported(payload)
             }
 
-        } else if protoContainer.hasPost {
-            // Legacy post
-            let protoPost = protoContainer.post
-
-            let media = protoPost.media.enumerated().compactMap { FeedMediaData(id: "\(postId)-\($0)", protoMedia: $1) }
-            let mentionText = protoPost.mentionText
-
-            if media.isEmpty {
-                return .text(mentionText, [])
-            } else {
-                return .album(mentionText, media)
-            }
-
         } else {
             DDLogError("Unrecognized post (no post or post container set)")
             return nil
@@ -463,10 +450,6 @@ public struct CommentData {
                 return .unsupported(payload)
             }
 
-        } else if protoContainer.hasComment {
-            // Legacy comment
-            let protoComment = protoContainer.comment
-            return .text(protoComment.mentionText, [])
         } else {
             DDLogError("Unrecognized comment (no comment or comment container set)")
             return nil

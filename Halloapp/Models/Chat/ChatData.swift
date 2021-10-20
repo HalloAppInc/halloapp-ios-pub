@@ -991,9 +991,6 @@ class ChatData: ObservableObject {
                 if let chatContainer = try? Clients_ChatContainer(serializedData: clientChatMsgPb) {
                     chatContent = chatContainer.chatContent
                     chatContext = chatContainer.chatContext
-                } else if let clientChat = try? Clients_ChatMessage(serializedData: clientChatMsgPb) {
-                    chatContent = clientChat.chatContent
-                    chatContext = clientChat.chatContext
                 } else {
                     DDLogError("ChatData/mergeSharedData/failed to extract clientChatMsg: [\(clientChatMsgPb.bytes)]")
                     continue
