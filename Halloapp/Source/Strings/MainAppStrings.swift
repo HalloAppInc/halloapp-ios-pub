@@ -52,6 +52,10 @@ extension Localizations {
         NSLocalizedString("title.privacy", value: "Privacy", comment: "Row in Settings screen")
     }
     
+    static var titleStorage: String {
+        NSLocalizedString("title.storage", value: "Storage", comment: "Row in Settings screen")
+    }
+    
     // MARK: FAB Accessibility
 
     static var fabAccessibilityCamera: String {

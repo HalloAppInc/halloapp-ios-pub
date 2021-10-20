@@ -42,6 +42,9 @@ extension ChatMedia {
     }
     
     @NSManaged var typeValue: Int16
+    
+    // for inbound messages, it will end with xxx.jpg
+    // for outbound messages, it will end with xxx.processed.jpg (resized with compression)
     @NSManaged public var relativeFilePath: String?
 
     @NSManaged var url: URL?
