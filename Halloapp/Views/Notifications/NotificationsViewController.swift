@@ -35,6 +35,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     private var fetchedResultsController: NSFetchedResultsController<FeedNotification>!
     private lazy var tableView: UITableView = { UITableView() }()
     private var bottomBar: UIView!
+    private let readAllButton = UIButton()
   
     private var displayedNotifications: [ActivityCenterNotification] = []
 
@@ -86,10 +87,19 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         fetchedResultsController.delegate = self
         do {
             try fetchedResultsController!.performFetch()
-            dataSource.apply(makeDataSnapshot(), animatingDifferences: false)
+            updateUI()
         } catch { }
         
         setupBottomBar()
+    }
+
+    private func updateUI() {
+        let snapshot = makeDataSnapshot()
+        let hasUnreadItem = snapshot.itemIdentifiers.contains { $0.read == false }
+
+        dataSource.apply(snapshot, animatingDifferences: false)
+        readAllButton.isEnabled = hasUnreadItem
+        readAllButton.setTitleColor(hasUnreadItem ? .systemBlue : .gray, for: .normal)
     }
     
     private func setupBottomBar() {
@@ -106,11 +116,9 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         bottomBar.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         bottomBar.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         bottomBar.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-        
-        let readAllButton = UIButton()
+
         readAllButton.addTarget(self, action: #selector(markAllNotificationsRead), for: .touchUpInside)
-        readAllButton.setTitleColor(.systemBlue, for: .normal)
-        
+
         let title = NSAttributedString(string: Localizations.readAll, attributes: [.font : UIFont.gothamFont(forTextStyle: .callout, weight: .medium)])
         
         readAllButton.setAttributedTitle(title, for: .normal)
@@ -130,7 +138,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     // MARK: Fetched Results Controller
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        dataSource.apply(makeDataSnapshot(), animatingDifferences: false)
+        updateUI()
     }
     
     private func makeDataSnapshot() -> NSDiffableDataSourceSnapshot<ActivityCenterSection, ActivityCenterNotification> {
@@ -265,7 +273,6 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         actionSheet.addAction(UIAlertAction(title: Localizations.markAllRead, style:.destructive) { _ in
             MainAppContext.shared.feedData.markNotificationsAsRead()
-            
         })
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true)

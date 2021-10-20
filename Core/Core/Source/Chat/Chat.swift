@@ -108,11 +108,6 @@ public extension ChatMessageProtocol {
             var ready = false
             var protoContainer = Clients_Container()
 
-            if let clientChatLegacy = clientChatLegacy {
-                protoContainer.chatMessage = clientChatLegacy
-                ready = true
-            }
-
             if let clientChatContainer = clientChatContainer {
                 protoContainer.chatContainer = clientChatContainer
                 ready = true
@@ -143,33 +138,6 @@ public extension ChatMessageProtocol {
             return nil
         }
         return container
-    }
-
-    /// Legacy format chat (will be superseded by Clients_ChatContainer)
-    var clientChatLegacy: Clients_ChatMessage? {
-        var protoChatMessage = Clients_ChatMessage()
-        switch content {
-        case .album(let text, let media):
-            protoChatMessage.text = text ?? ""
-            protoChatMessage.media = media.compactMap { $0.protoMessage }
-        case .text(let text):
-            protoChatMessage.text = text
-        case .voiceNote(_), .unsupported(_):
-            return nil
-        }
-
-        if let feedPostID = context.feedPostID, !feedPostID.isEmpty {
-            protoChatMessage.feedPostID = feedPostID
-            protoChatMessage.feedPostMediaIndex = context.feedPostMediaIndex
-        }
-
-        if let replyMessageID = context.chatReplyMessageID, !replyMessageID.isEmpty, let replySenderID = context.chatReplyMessageSenderID, !replySenderID.isEmpty {
-            protoChatMessage.chatReplyMessageID = replyMessageID
-            protoChatMessage.chatReplyMessageSenderID = replySenderID
-            protoChatMessage.chatReplyMessageMediaIndex = context.chatReplyMessageMediaIndex
-        }
-
-        return protoChatMessage
     }
 
     var mediaCounters: MediaCounters {
@@ -304,47 +272,6 @@ public struct ChatMessageTombstone {
     public var from: UserID
     public var to: UserID
     public var timestamp: Date
-}
-
-extension Clients_ChatMessage {
-    public init?(containerData: Data) {
-        if let protoContainer = try? Clients_Container(serializedData: containerData),
-            protoContainer.hasChatMessage
-        {
-            // Binary protocol
-            self = protoContainer.chatMessage
-        } else if let decodedData = Data(base64Encoded: containerData, options: .ignoreUnknownCharacters),
-            let protoContainer = try? Clients_Container(serializedData: decodedData),
-            protoContainer.hasChatMessage
-        {
-            // Legacy Base64 protocol
-            self = protoContainer.chatMessage
-        } else {
-            return nil
-        }
-    }
-
-    public var chatContext: ChatContext {
-        return ChatContext(
-            feedPostID: feedPostID.isEmpty ? nil : feedPostID,
-            feedPostMediaIndex: feedPostMediaIndex,
-            chatReplyMessageID: chatReplyMessageID.isEmpty ? nil : chatReplyMessageID,
-            chatReplyMessageMediaIndex: chatReplyMessageMediaIndex,
-            chatReplyMessageSenderID: chatReplyMessageSenderID.isEmpty ? nil : chatReplyMessageSenderID)
-    }
-
-    public var chatContent: ChatContent {
-        if media.isEmpty {
-            return .text(text)
-        } else if media.count == 1 && media[0].type == .audio {
-            guard let xmppmedia = XMPPChatMedia(protoMedia: media[0]) else { return .text(text) }
-            return .voiceNote(xmppmedia)
-        } else {
-            return .album(
-                text.isEmpty ? nil : text,
-                media.compactMap { XMPPChatMedia(protoMedia: $0) })
-        }
-    }
 }
 
 extension Clients_Text {

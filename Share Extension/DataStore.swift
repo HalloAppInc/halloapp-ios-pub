@@ -73,6 +73,13 @@ class DataStore: ShareExtensionDataStore {
                         mediaItem.relativeFilePath = path
                         self.save(managedObjectContext)
                         self.uploadMedia(mediaItem: mediaItem, postOrMessageId: postOrMessageId, in: managedObjectContext, completion: onUploadCompletion)
+
+                        // the original media file should be deleted after it's been processed to save space
+                        // nb: the original and processed files have different ids, should revisit to see if they could use the same one to make debugging easier
+                        do {
+                            try FileManager.default.removeItem(at: url)
+                            DDLogInfo("SharedDataStore/upload-media/prepare/success/delete original [\(url)]")
+                        } catch { }
                     case .failure(_):
                         numberOfFailedUploads += 1
 

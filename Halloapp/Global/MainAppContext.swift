@@ -34,6 +34,8 @@ class MainAppContext: AppContext {
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
     private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()
 
+    static let MediaUploadDataLastCleanUpTime = "MediaUploadDataLastCleanUpTime"
+
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
     let didTapIntent = CurrentValueSubject<INIntent?, Never>(nil)
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()

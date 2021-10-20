@@ -382,9 +382,6 @@ public extension PostData {
     var clientContainer: Clients_Container? {
         var container = Clients_Container()
         container.postContainer = clientPostContainer
-        if let postLegacy = clientPostLegacy {
-            container.post = postLegacy
-        }
         return container
     }
 
@@ -404,21 +401,6 @@ public extension PostData {
         }
         return container
     }
-
-    /// Legacy format post (will be superseded by Clients_PostContainer)
-    var clientPostLegacy: Clients_Post? {
-        var post = Clients_Post()
-        if let text = text {
-            post.text = text
-        }
-        post.mentions = orderedMentions.map { $0.protoMention }
-        post.media = orderedMedia.compactMap { $0.protoMessage }
-        if post.media.count < orderedMedia.count {
-            DDLogError("PostData/clientPostLegacy/\(id)/error [media not ready]")
-            return nil
-        }
-        return post
-    }
 }
 
 // MARK: Feed Comment
@@ -427,10 +409,6 @@ public extension CommentData {
 
     var clientContainer: Clients_Container {
         var container = Clients_Container()
-        // Populate container.comment only if its not a media comment
-        if let clientCommentLegacy = clientCommentLegacy {
-            container.comment = clientCommentLegacy
-        }
         container.commentContainer = clientCommentContainer
         return container
     }
@@ -459,33 +437,6 @@ public extension CommentData {
             commentContainer.context.parentCommentID = parentId
         }
         return commentContainer
-    }
-
-    /// Legacy format comment (will be superseded by Clients_CommentContainer)
-    var clientCommentLegacy: Clients_Comment? {
-        var comment = Clients_Comment()
-        switch content {
-        case .text(let mentionText, _):
-            comment.text = mentionText.collapsedText
-            comment.mentions = mentionText.mentions
-                .map { (i, user) in
-                    var clientMention = Clients_Mention()
-                    clientMention.userID = user.userID
-                    clientMention.name = user.pushName ?? ""
-                    clientMention.index = Int32(i)
-                    return clientMention
-                }
-                .sorted { $0.index < $1.index }
-        case .album(_, _), .voiceNote:
-            return nil
-        case .retracted, .unsupported:
-            break
-        }
-        comment.feedPostID = feedPostId
-        if let parentId = parentId {
-            comment.parentCommentID = parentId
-        }
-        return comment
     }
 
     var serverComment: Server_Comment? {

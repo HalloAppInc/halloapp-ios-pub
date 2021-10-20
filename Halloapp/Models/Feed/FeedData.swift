@@ -3041,6 +3041,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         }
                     }
                 }) {
+                    if media.status == .uploaded {
+                        ImageServer.cleanUpUploadData(directoryURL: MainAppContext.mediaDirectoryURL, relativePath: media.relativeFilePath)
+                    }
                     completion(uploadResult.map { $0.fileSize })
                 }
             }
@@ -3124,6 +3127,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         }
                     }
                 }) {
+                    if media.status == .uploaded {
+                        ImageServer.cleanUpUploadData(directoryURL: MainAppContext.mediaDirectoryURL, relativePath: media.relativeFilePath)
+                    }
                     completion(uploadResult.map { $0.fileSize })
                 }
             }
@@ -3207,6 +3213,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         }
                     }
                 }) {
+                    if media.status == .uploaded {
+                        ImageServer.cleanUpUploadData(directoryURL: MainAppContext.mediaDirectoryURL, relativePath: media.relativeFilePath)
+                    }
                     completion(uploadResult.map { $0.fileSize })
                 }
             }
@@ -3216,6 +3225,70 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     func cancelMediaUpload(postId: FeedPostID) {
         DDLogInfo("FeedData/upload-media/cancel/\(postId)")
         mediaUploader.cancelUpload(groupId: postId)
+    }
+
+    // MARK: Clean Up Media Upload Data
+
+    // cleans up old upload data since prior to build 173 we did not do so
+    // this will be a redundant clean up after the first run and can be revisited to see if it's needed
+    public func cleanUpOldUploadData(directoryURL: URL) {
+        DDLogInfo("FeedData/cleanUpOldUploadData")
+        guard let enumerator = FileManager.default.enumerator(atPath: directoryURL.path) else { return }
+        let encryptedSuffix = "enc"
+        let encryptedExtSuffix = ".\(encryptedSuffix)"
+        let processedSuffix = "processed"
+
+        enumerator.forEach({ file in
+            // check if it's an encrypted file that ends with .enc
+            guard let relativeFilePath = file as? String else { return }
+            guard relativeFilePath.hasSuffix(encryptedExtSuffix) else { return }
+
+            // get the last part of the path, which is the filename
+            var relativeFilePathComponents = relativeFilePath.components(separatedBy: "/")
+            guard let fileName = relativeFilePathComponents.last else { return }
+
+            // get the id (with index) of the message from the filename
+            var fileNameComponents = fileName.components(separatedBy: ".")
+            guard let fileNameWithIndex = fileNameComponents.first else { return }
+
+            var fileNameWithIndexComponents = fileNameWithIndex.components(separatedBy: "-")
+
+            // strip out the index part of the id only if it's a feedPost, comments and urlpreviews do not have index suffix
+            // brittle assumption that the index will be less than 3 digits and an id separated with "-" will have more than 2
+            if let mediaIndex = fileNameWithIndexComponents.last, mediaIndex.count < 3 {
+                fileNameWithIndexComponents.removeLast()
+            }
+            let feedPostID = fileNameWithIndexComponents.joined(separator: "-")
+
+            let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostID, in: viewContext)
+
+            if feedPost == nil {
+                // feedPost does not exist anymore, get the processed relative filepath and clean up
+                if fileNameComponents.count == 4, fileNameComponents[3] == encryptedSuffix, fileNameComponents[1] == processedSuffix {
+                    // remove .enc
+                    fileNameComponents.removeLast()
+                    let processedFileName = fileNameComponents.joined(separator: ".")
+
+                    // remove the last part of the path, which is the filename
+                    relativeFilePathComponents.removeLast()
+                    let relativeFilePathForProcessed = relativeFilePathComponents.joined(separator: "/")
+
+                    // form the processed filename's relative path
+                    let processedRelativeFilePath = relativeFilePathForProcessed + "/" + processedFileName
+
+                    DDLogInfo("FeedData/cleanUpOldUploadData/clean up deleted message upload data: \(processedRelativeFilePath)")
+                    ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: processedRelativeFilePath)
+                }
+            } else {
+                // message exists, clean up any upload data in all the media
+                // nb: comments media and urlpreviews media are skipped since they were introduced just before build 173
+                feedPost?.media?.forEach { (media) in
+                    guard media.status == .uploaded else { return }
+                    DDLogInfo("FeedData/cleanUpOldUploadData/clean up existing message upload data: \(media.relativeFilePath ?? "")")
+                    ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                }
+            }
+        })
     }
 
     // MARK: Deletion
@@ -3300,6 +3373,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
             feedPost.managedObjectContext?.delete(media)
+        }
+        feedPost.comments?.forEach {
+            // Delete comment media if any
+            self.deleteMedia(feedPostComment: $0)
+            feedPost.managedObjectContext?.delete($0)
         }
         feedPost.linkPreviews?.forEach {
             // Delete link previews if any

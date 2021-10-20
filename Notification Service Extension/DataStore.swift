@@ -252,7 +252,7 @@ class DataStore: NotificationServiceExtensionDataStore {
         return chatMedia
     }
 
-    func save(protobuf: MessageProtobuf?, metadata: NotificationMetadata, status: SharedChatMessage.Status, failure: DecryptionFailure?, completion: @escaping (SharedChatMessage) -> ()) {
+    func save(container: Clients_ChatContainer?, metadata: NotificationMetadata, status: SharedChatMessage.Status, failure: DecryptionFailure?, completion: @escaping (SharedChatMessage) -> ()) {
         performSeriallyOnBackgroundContext { [self] (managedObjectContext) in
 
             let messageId = metadata.contentId
@@ -276,44 +276,33 @@ class DataStore: NotificationServiceExtensionDataStore {
 
             switch status {
             case .received:
-                switch protobuf {
-                case .container(let container):
-                    switch container.message {
-                    case .album(let album):
-                        chatMessage.text = album.text.text
-                        for (index, mediaItem) in album.media.enumerated() {
-                            guard let mediaData = XMPPChatMedia(albumMedia: mediaItem) else { continue }
-                            let sharedMedia = insertSharedMedia(for: mediaData, index: index, into: managedObjectContext)
-                            sharedMedia.message = chatMessage
-                        }
-                    case .text(let text):
-                        chatMessage.text = text.text
-                    case .contactCard:
-                        DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [contact]")
-                    case .voiceNote(let voiceNote):
-                        if let audioMediaData = XMPPChatMedia(audio: voiceNote.audio) {
-                            let sharedMedia = insertSharedMedia(for: audioMediaData, index: 0, into: managedObjectContext)
-                            sharedMedia.message = chatMessage
-                        } else {
-                            DDLogError("SharedDataStore/message/\(messageId)/unsupported [voice]")
-                        }
-                    case .none:
-                        DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [unknown]")
-                    }
-                    chatMessage.clientChatMsgPb = try? container.serializedData()
-                case .legacy(let clientChatMsg):
-                    chatMessage.text = clientChatMsg.text
-                    for (index, mediaItem) in clientChatMsg.media.enumerated() {
-                        guard let mediaData = XMPPChatMedia(protoMedia: mediaItem) else { continue }
+                guard let container = container else {
+                    DDLogInfo("SharedDataStore/message/\(messageId)/missing container")
+                    return
+                }
+                switch container.message {
+                case .album(let album):
+                    chatMessage.text = album.text.text
+                    for (index, mediaItem) in album.media.enumerated() {
+                        guard let mediaData = XMPPChatMedia(albumMedia: mediaItem) else { continue }
                         let sharedMedia = insertSharedMedia(for: mediaData, index: index, into: managedObjectContext)
                         sharedMedia.message = chatMessage
                     }
-                    chatMessage.clientChatMsgPb = try? clientChatMsg.serializedData()
+                case .text(let text):
+                    chatMessage.text = text.text
+                case .contactCard:
+                    DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [contact]")
+                case .voiceNote(let voiceNote):
+                    if let audioMediaData = XMPPChatMedia(audio: voiceNote.audio) {
+                        let sharedMedia = insertSharedMedia(for: audioMediaData, index: 0, into: managedObjectContext)
+                        sharedMedia.message = chatMessage
+                    } else {
+                        DDLogError("SharedDataStore/message/\(messageId)/unsupported [voice]")
+                    }
                 case .none:
-                    DDLogError("SharedDataStore/message/\(messageId)/missing-protobuf")
-                    break
+                    DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [unknown]")
                 }
-
+                chatMessage.clientChatMsgPb = try? container.serializedData()
             case .decryptionError:
                 break
             case .acked, .rerequesting:
@@ -410,16 +399,3 @@ class DataStore: NotificationServiceExtensionDataStore {
     }
 }
 
-enum MessageProtobuf {
-    case legacy(Clients_ChatMessage)
-    case container(Clients_ChatContainer)
-
-    var chatContent: ChatContent {
-        switch self {
-        case .legacy(let legacyChat):
-            return legacyChat.chatContent
-        case .container(let chatContainer):
-            return chatContainer.chatContent
-        }
-    }
-}

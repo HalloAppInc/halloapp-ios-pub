@@ -257,4 +257,25 @@ class ImageServer {
 
         return false
     }
+
+    // removes the original media and encrypted media file, only relevant for outbound media
+    static public func cleanUpUploadData(directoryURL: URL, relativePath: String?) {
+        guard let processedMediaRelativePath = relativePath else { return }
+        let processedSuffix = "processed."
+        let encryptedSuffix = "enc"
+
+        let originalMediaRelativePath = processedMediaRelativePath.replacingOccurrences(of: processedSuffix, with: "")
+
+        let originalMediaFileURL = directoryURL.appendingPathComponent(originalMediaRelativePath, isDirectory: false)
+        let processedMediaFileURL = directoryURL.appendingPathComponent(processedMediaRelativePath, isDirectory: false)
+        let encryptedMediaFileURL = processedMediaFileURL.appendingPathExtension(encryptedSuffix)
+
+        do {
+            try FileManager.default.removeItem(at: originalMediaFileURL)    // xxx.jpg
+            try FileManager.default.removeItem(at: encryptedMediaFileURL)   // xxx.processed.jpg.enc
+        }
+        catch {
+            DDLogError("ImageServer/cleanUpUploadData/error [\(error)]")
+        }
+    }
 }
