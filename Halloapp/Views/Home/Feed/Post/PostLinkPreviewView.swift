@@ -75,7 +75,7 @@ class PostLinkPreviewView: UIView {
         textStack.translatesAutoresizingMaskIntoConstraints = false
         textStack.axis = .vertical
         textStack.spacing = 2
-        textStack.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 20, right: 0)
+        textStack.layoutMargins = UIEdgeInsets(top: 20, left: 0, bottom: 20, right: 0)
         textStack.isLayoutMarginsRelativeArrangement = true
         return textStack
     }()
@@ -110,14 +110,22 @@ class PostLinkPreviewView: UIView {
 
         titleLabel.text = feedLinkPreview.title
         urlLabel.text = feedLinkPreview.url?.host
-        configureMedia()
+        if let media = media {
+            configureMedia(media: media)
+            vStack.heightAnchor.constraint(equalToConstant: 230).isActive = true
+            mediaView.heightAnchor.constraint(equalToConstant: 150).isActive = true
+        } else {
+            placeholderImageView.isHidden = true
+            mediaView.isHidden = true
+        }
+        
         self.addSubview(vStack)
         
-        vStack.heightAnchor.constraint(equalToConstant: 230).isActive = true
+       
         vStack.constrainMargins(to: self)
         vStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
-        mediaView.heightAnchor.constraint(equalToConstant: 150).isActive = true
+        
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(previewTapped(sender:)))
         self.addGestureRecognizer(tapGestureRecognizer)
         self.isUserInteractionEnabled = true
@@ -129,12 +137,7 @@ class PostLinkPreviewView: UIView {
         }
     }
 
-    private func configureMedia() {
-        guard let media = media else {
-            placeholderImageView.isHidden = true
-            mediaView.isHidden = true
-            return
-        }
+    private func configureMedia(media: FeedMedia) {
         if media.isMediaAvailable {
             if let image = media.image {
                 show(image: image)

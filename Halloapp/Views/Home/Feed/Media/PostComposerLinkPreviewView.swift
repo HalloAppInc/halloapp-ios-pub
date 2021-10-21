@@ -13,10 +13,13 @@ import UIKit
 
 class PostComposerLinkPreviewView: UIView {
 
-    private let didFinish: ((Bool) -> Void)
+    private let didFinish: ((Bool, LinkPreviewData?, UIImage?) -> Void)
     private var latestURL: URL?
     private var linkPreviewUrl: URL?
     private var linkDetectionTimer = Timer()
+    private var linkPreviewData: LinkPreviewData?
+    private var linkViewImage: UIImage?
+
 
     private lazy var titleLabel: UILabel = {
         let titleLabel = UILabel()
@@ -57,7 +60,7 @@ class PostComposerLinkPreviewView: UIView {
         fatalError("Use init(didFinish:)")
     }
 
-    init(didFinish: @escaping ((Bool) -> Void)) {
+    init(didFinish: @escaping ((Bool, LinkPreviewData?, UIImage?) -> Void)) {
         self.didFinish = didFinish
         super.init(frame: .zero)
         preservesSuperviewLayoutMargins = true
@@ -109,7 +112,7 @@ class PostComposerLinkPreviewView: UIView {
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
                     self.resetLinkDetection()
-                    self.didFinish(true)
+                    self.didFinish(true, self.linkPreviewData, self.linkViewImage)
                 }
                 return
             }
@@ -121,6 +124,18 @@ class PostComposerLinkPreviewView: UIView {
                 self.vStack.insertArrangedSubview(self.linkView, at: self.vStack.arrangedSubviews.count)
                 self.linkView.leadingAnchor.constraint(equalTo: self.vStack.leadingAnchor).isActive = true
                 self.linkView.trailingAnchor.constraint(equalTo: self.vStack.trailingAnchor).isActive = true
+
+                self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
+                if let imageProvider = data.imageProvider {
+                    imageProvider.loadObject(ofClass: UIImage.self) { (image, error) in
+                        if let image = image as? UIImage {
+                            self.linkViewImage = image
+                            self.didFinish(false, self.linkPreviewData, self.linkViewImage)
+                        }
+                    }
+                } else {
+                    self.didFinish(false, self.linkPreviewData, self.linkViewImage)
+                }
             }
         }
     }
@@ -129,5 +144,7 @@ class PostComposerLinkPreviewView: UIView {
         linkDetectionTimer.invalidate()
         linkPreviewUrl = nil
         latestURL = nil
+        linkPreviewData = nil
+        linkViewImage = nil
     }
 }

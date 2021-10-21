@@ -7,7 +7,7 @@ import SwiftUI
 import UIKit
 
 protocol PostComposerViewDelegate: AnyObject {
-    func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia])
+    func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
     func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia])
     func willDismissWithInput(mentionInput: MentionInput)
 }
@@ -123,6 +123,8 @@ class PostComposerViewController: UIViewController {
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
     private var link: GenericObservable<String>
+    private var linkPreviewData: GenericObservable<LinkPreviewData?>
+    private var linkPreviewImage: GenericObservable<UIImage?>
     private var recipientName: String?
     private var shouldAutoPlay = GenericObservable(false)
     private var postComposerView: PostComposerView?
@@ -132,6 +134,8 @@ class PostComposerViewController: UIViewController {
     private weak var delegate: PostComposerViewDelegate?
 
     private var barState: NavigationBarState?
+    
+    private var cancellableSet: Set<AnyCancellable> = []
 
     init(
         mediaToPost media: [PendingMedia],
@@ -144,6 +148,8 @@ class PostComposerViewController: UIViewController {
         self.isMediaPost = media.count > 0
         self.inputToPost = GenericObservable(initialInput)
         self.link = GenericObservable("")
+        self.linkPreviewData = GenericObservable(nil)
+        self.linkPreviewImage = GenericObservable(nil)
         self.recipientName = recipientName
         self.configuration = configuration
         self.delegate = delegate
@@ -161,6 +167,8 @@ class PostComposerViewController: UIViewController {
             mediaItems: mediaItems,
             inputToPost: inputToPost,
             link: link,
+            linkPreviewData: linkPreviewData,
+            linkPreviewImage: linkPreviewImage,
             mentionableUsers: configuration.mentionableUsers,
             shouldAutoPlay: shouldAutoPlay,
             configuration: configuration,
@@ -283,8 +291,31 @@ class PostComposerViewController: UIViewController {
         isPosting = true
         updateShareButton()
         let mentionText = MentionText(expandedText: inputToPost.value.text, mentionRanges: inputToPost.value.mentions).trimmed()
-        // Todo add link preview data to send
-        delegate?.composerDidTapShare(controller: self, mentionText: mentionText, media: mediaItems.value)
+        // if no link preview or link preview not yet loaded, send without link preview.
+        // if the link preview does not have an image... send immediately
+        if link.value == "" || linkPreviewData.value == nil ||  linkPreviewImage.value == nil {
+            delegate?.composerDidTapShare(controller: self, mentionText: mentionText, media: mediaItems.value, linkPreviewData: linkPreviewData.value, linkPreviewMedia: nil)
+        } else {
+            // if link preview has an image, load the image before sending.
+            loadLinkPreviewImageAndShare(mentionText: mentionText)
+        }
+    }
+    
+    private func loadLinkPreviewImageAndShare(mentionText: MentionText) {
+        // Send link preview with image in it
+        let linkPreviewMedia = PendingMedia(type: .image)
+        linkPreviewMedia.image = linkPreviewImage.value
+        if linkPreviewMedia.ready.value {
+            self.delegate?.composerDidTapShare(controller: self, mentionText: mentionText, media: mediaItems.value, linkPreviewData: linkPreviewData.value, linkPreviewMedia: linkPreviewMedia)
+        } else {
+            self.cancellableSet.insert(
+                linkPreviewMedia.ready.sink { [weak self] ready in
+                    guard let self = self else { return }
+                    guard ready else { return }
+                    self.delegate?.composerDidTapShare(controller: self, mentionText: mentionText, media: self.mediaItems.value, linkPreviewData: self.linkPreviewData.value, linkPreviewMedia: linkPreviewMedia)
+                }
+            )
+        }
     }
 
     private func alertVideoLengthOverLimit() {
@@ -409,6 +440,8 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
     @ObservedObject private var link: GenericObservable<String>
+    @ObservedObject private var linkPreviewData: GenericObservable<LinkPreviewData?>
+    @ObservedObject private var linkPreviewImage: GenericObservable<UIImage?>
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
     @ObservedObject private var isPosting = GenericObservable<Bool>(false)
     private let mentionableUsers: [MentionableUser]
@@ -429,6 +462,8 @@ fileprivate struct PostComposerView: View {
     private var mediaIsReadyBinding = Binding.constant(false)
     private var numberOfFailedItemsBinding = Binding.constant(0)
     private var linkBinding = Binding.constant("")
+    private var linkPreviewDataBinding = Binding.constant([LinkPreviewData]())
+    private var linkPreviewImageBinding = Binding.constant(UIImage())
     private var shouldAutoPlayBinding = Binding.constant(false)
 
     private var keyboardHeightPublisher: AnyPublisher<CGFloat, Never> =
@@ -475,6 +510,8 @@ fileprivate struct PostComposerView: View {
         mediaItems: ObservableMediaItems,
         inputToPost: GenericObservable<MentionInput>,
         link: GenericObservable<String>,
+        linkPreviewData: GenericObservable<LinkPreviewData?>,
+        linkPreviewImage: GenericObservable<UIImage?>,
         mentionableUsers: [MentionableUser],
         shouldAutoPlay: GenericObservable<Bool>,
         configuration: PostComposerViewConfiguration,
@@ -485,6 +522,8 @@ fileprivate struct PostComposerView: View {
         self.mediaItems = mediaItems
         self.inputToPost = inputToPost
         self.link = link
+        self.linkPreviewData = linkPreviewData
+        self.linkPreviewImage = linkPreviewImage
         self.mentionableUsers = mentionableUsers
         self.shouldAutoPlay = shouldAutoPlay
         self.showAddMoreMediaButton = configuration.showAddMoreMediaButton
@@ -649,9 +688,9 @@ fileprivate struct PostComposerView: View {
             .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
             .padding(.vertical, PostComposerLayoutConstants.postTextVerticalPadding)
             .background(Color(mediaCount > 0 ? .secondarySystemGroupedBackground : .clear))
-            if self.link.value != "" {
-                LinkPreview(link: linkBinding)
-                    .frame(height: 200, alignment: .bottom)
+            if self.link.value != "" && self.mediaCount == 0 {
+                LinkPreview(link: linkBinding, linkPreviewData: linkPreviewData, linkPreviewImage: linkPreviewImage)
+                    .frame(height: PostComposerLayoutConstants.postLinkPreviewHeight, alignment: .bottom)
                     .padding(.all, 8)
             }
         }
@@ -1024,6 +1063,8 @@ fileprivate struct TextView: UIViewRepresentable {
 fileprivate struct LinkPreview: UIViewRepresentable {
 
     @Binding var link: String
+    var linkPreviewData: GenericObservable<LinkPreviewData?>
+    var linkPreviewImage: GenericObservable<UIImage?>
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -1031,9 +1072,12 @@ fileprivate struct LinkPreview: UIViewRepresentable {
 
     func makeUIView(context: Context) -> PostComposerLinkPreviewView {
         DDLogInfo("TextView/makeUIView")
-        let linkView = PostComposerLinkPreviewView() { resetLink in
+        let linkView = PostComposerLinkPreviewView() { resetLink, linkPreviewData, linkPreviewImage in
             if resetLink {
                 link = ""
+            } else {
+                if let linkPreviewData = linkPreviewData {self.linkPreviewData.value = linkPreviewData}
+                if let linkPreviewImage = linkPreviewImage { self.linkPreviewImage.value = linkPreviewImage }
             }
         }
         return linkView

@@ -2226,7 +2226,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     let didSendGroupFeedPost = PassthroughSubject<FeedPost, Never>()
 
-    func post(text: MentionText, media: [PendingMedia], to destination: FeedPostDestination) {
+    func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: FeedPostDestination) {
         let postId: FeedPostID = PacketID.generate()
 
         // Create and save new FeedPost object.
@@ -2283,6 +2283,42 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
 
+        // Add feed link preview if any
+        var linkPreview: FeedLinkPreview?
+        if let linkPreviewData = linkPreviewData {
+            linkPreview = FeedLinkPreview(context: managedObjectContext)
+            linkPreview?.id = PacketID.generate()
+            linkPreview?.url = linkPreviewData.url
+            linkPreview?.title = linkPreviewData.title
+            linkPreview?.desc = linkPreviewData.description
+            // Set preview image if present
+            if let linkPreviewMedia = linkPreviewMedia {
+                let previewMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                previewMedia.type = linkPreviewMedia.type
+                previewMedia.status = .uploading
+                previewMedia.url = linkPreviewMedia.url
+                previewMedia.size = linkPreviewMedia.size!
+                previewMedia.key = ""
+                previewMedia.sha256 = ""
+                previewMedia.order = 0
+                previewMedia.linkPreview = linkPreview
+
+                // Copying depends on all data fields being set, so do this last.
+                do {
+                    try downloadManager.copyMedia(from: linkPreviewMedia, to: previewMedia)
+
+                    if let encryptedFileURL = linkPreviewMedia.encryptedFileUrl {
+                        try FileManager.default.removeItem(at: encryptedFileURL)
+                        DDLogInfo("FeedData/new-post/removed-temporary-file [\(encryptedFileURL.absoluteString)]")
+                    }
+                }
+                catch {
+                    DDLogError("FeedData/new-post/copy-likePreviewmedia/error [\(error)]")
+                }
+            }
+            linkPreview?.post = feedPost
+        }
+
         switch destination {
         case .userFeed:
             let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
@@ -2311,8 +2347,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         save(managedObjectContext)
 
-        uploadMediaAndSend(feedPost: feedPost)
         
+        if let linkPreview = linkPreview {
+            // upload link preview media followed by comment media and send over the wire
+            uploadMediaAndSend(feedLinkPreview: linkPreview)
+        } else {
+            // upload comment media if any and send data over the wire.
+            uploadMediaAndSend(feedPost: feedPost)
+        }
         if feedPost.groupId != nil {
             didSendGroupFeedPost.send(feedPost)
         }
@@ -2770,11 +2812,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         guard let mediaItemsToUpload = feedLinkPreview.media?.filter({ $0.status == .none || $0.status == .uploading || $0.status == .uploadError }), !mediaItemsToUpload.isEmpty else {
             // no link preview media.. upload
             self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-                guard let feedComment = feedLinkPreview.comment, let feedComment = self.feedComment(with: feedComment.id, in: managedObjectContext) else {
-                    DDLogError("FeedData/missing-feedLinkPreview-comment/feedLinkPreviewId [\(feedLinkPreview.id)]")
+                // Comment link preview
+                if let feedComment = feedLinkPreview.comment, let feedComment = self.feedComment(with: feedComment.id, in: managedObjectContext) {
+                    self.uploadMediaAndSend(feedComment: feedComment)
                     return
                 }
-                self.uploadMediaAndSend(feedComment: feedComment)
+                // Post link preview
+                if let feedPost = feedLinkPreview.post, let feedPost = self.feedPost(with: feedPost.id, in: managedObjectContext) {
+                    self.uploadMediaAndSend(feedPost: feedPost)
+                    return
+                }
+                DDLogError("FeedData/missing-feedLinkPreview/feedLinkPreviewId [\(feedLinkPreview.id)]")
             }
             return
         }
@@ -2810,7 +2858,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     switch $0 {
                     case .success(let result):
                         let path = self.downloadManager.relativePath(from: output)
-                        DDLogDebug("FeedData/process-feedLinkPreview-mediaItem/success: comment \(feedLinkPreview.id)/ index: \(mediaIndex)")
+                        DDLogDebug("FeedData/process-feedLinkPreview-mediaItem/success: \(feedLinkPreview.id)/ index: \(mediaIndex)")
                         self.updateFeedLinkPreview(with: feedLinkPreview.id, block: { (feedLinkPreview) in
                             if let media = feedLinkPreview.media?.first(where: { $0.order == mediaIndex }) {
                                 media.size = result.size
@@ -2822,7 +2870,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                             self.uploadFeedLinkPreview(feedLinkPreviewId: feedLinkPreview.id, mediaIndex: mediaIndex, completion: uploadCompletion)
                         }
                     case .failure(_):
-                        DDLogDebug("FeedData/process-comment-mediaItem/failure: feedLinkPreview \(feedLinkPreview.id)/\(mediaIndex) url\(url) output \(output)")
+                        DDLogDebug("FeedData/process-feedLinkPreview-mediaItem/failure: feedLinkPreview \(feedLinkPreview.id)/\(mediaIndex) url\(url) output \(output)")
                         numberOfFailedUploads += 1
 
                         self.updateFeedLinkPreview(with: feedLinkPreview.id, block: { (feedLinkPreview) in
@@ -2848,14 +2896,25 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         feedPostComment.status = .sendError
                     }
                 }
+                if let postId = feedLinkPreview.post?.id {
+                    self.updateFeedPost(with: postId) { (feedPost) in
+                        feedPost.status = .sendError
+                    }
+                }
             } else {
                 // TODO(murali@): one way to avoid looking up the object from the database is to keep an updated in-memory version of the comment.
                 self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-                    guard let feedComment = feedLinkPreview.comment, let feedComment = self.feedComment(with: feedComment.id, in: managedObjectContext) else {
-                        DDLogError("FeedData/missing-feedLinkPreview-comment/feedLinkPreviewId [\(feedLinkPreview.id)]")
+                    // Comment link preview
+                    if let feedComment = feedLinkPreview.comment, let feedComment = self.feedComment(with: feedComment.id, in: managedObjectContext) {
+                        self.uploadMediaAndSend(feedComment: feedComment)
                         return
                     }
-                    self.uploadMediaAndSend(feedComment: feedComment)
+                    // Post link preview
+                    if let feedPost = feedLinkPreview.post, let feedPost = self.feedPost(with: feedPost.id, in: managedObjectContext) {
+                        self.uploadMediaAndSend(feedPost: feedPost)
+                        return
+                    }
+                    DDLogError("FeedData/missing-feedLinkPreview/feedLinkPreviewId [\(feedLinkPreview.id)]")
                 }
             }
         }
