@@ -122,6 +122,7 @@ class PostComposerViewController: UIViewController {
 
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
+    private var link: GenericObservable<String>
     private var recipientName: String?
     private var shouldAutoPlay = GenericObservable(false)
     private var postComposerView: PostComposerView?
@@ -142,6 +143,7 @@ class PostComposerViewController: UIViewController {
         self.mediaItems.value = media
         self.isMediaPost = media.count > 0
         self.inputToPost = GenericObservable(initialInput)
+        self.link = GenericObservable("")
         self.recipientName = recipientName
         self.configuration = configuration
         self.delegate = delegate
@@ -158,6 +160,7 @@ class PostComposerViewController: UIViewController {
         postComposerView = PostComposerView(
             mediaItems: mediaItems,
             inputToPost: inputToPost,
+            link: link,
             mentionableUsers: configuration.mentionableUsers,
             shouldAutoPlay: shouldAutoPlay,
             configuration: configuration,
@@ -280,6 +283,7 @@ class PostComposerViewController: UIViewController {
         isPosting = true
         updateShareButton()
         let mentionText = MentionText(expandedText: inputToPost.value.text, mentionRanges: inputToPost.value.mentions).trimmed()
+        // Todo add link preview data to send
         delegate?.composerDidTapShare(controller: self, mentionText: mentionText, media: mediaItems.value)
     }
 
@@ -382,6 +386,7 @@ fileprivate struct PostComposerLayoutConstants {
     static let postTextUnfocusedMinHeight: CGFloat = 100 - postTextVerticalPadding
     static let postTextFocusedMinHeight: CGFloat = 80 - postTextVerticalPadding
     static let postTextMaxHeight: CGFloat = 250
+    static let postLinkPreviewHeight: CGFloat = 200
 
     static let fontSize: CGFloat = 16
     static let fontSizeLarge: CGFloat = 20
@@ -403,6 +408,7 @@ fileprivate struct PostComposerView: View {
     private let maxVideoLength: TimeInterval
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
+    @ObservedObject private var link: GenericObservable<String>
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
     @ObservedObject private var isPosting = GenericObservable<Bool>(false)
     private let mentionableUsers: [MentionableUser]
@@ -422,6 +428,7 @@ fileprivate struct PostComposerView: View {
     private var mediaItemsBinding = Binding.constant([PendingMedia]())
     private var mediaIsReadyBinding = Binding.constant(false)
     private var numberOfFailedItemsBinding = Binding.constant(0)
+    private var linkBinding = Binding.constant("")
     private var shouldAutoPlayBinding = Binding.constant(false)
 
     private var keyboardHeightPublisher: AnyPublisher<CGFloat, Never> =
@@ -467,6 +474,7 @@ fileprivate struct PostComposerView: View {
     init(
         mediaItems: ObservableMediaItems,
         inputToPost: GenericObservable<MentionInput>,
+        link: GenericObservable<String>,
         mentionableUsers: [MentionableUser],
         shouldAutoPlay: GenericObservable<Bool>,
         configuration: PostComposerViewConfiguration,
@@ -476,6 +484,7 @@ fileprivate struct PostComposerView: View {
     {
         self.mediaItems = mediaItems
         self.inputToPost = inputToPost
+        self.link = link
         self.mentionableUsers = mentionableUsers
         self.shouldAutoPlay = shouldAutoPlay
         self.showAddMoreMediaButton = configuration.showAddMoreMediaButton
@@ -503,7 +512,7 @@ fileprivate struct PostComposerView: View {
             currentPosition.$value.removeDuplicates().map { _ in return true }.eraseToAnyPublisher()
 
         postTextComputedHeight.value = PostComposerView.computePostHeight(
-            itemsCount: self.mediaItems.value.count, keyboardHeight: 0, postTextHeight: postTextHeight.value)
+            itemsCount: self.mediaItems.value.count, keyboardHeight: 0, postTextHeight: postTextHeight.value, link: link.value)
 
         postTextComputedHeightPublisher =
             Publishers.CombineLatest3(
@@ -513,7 +522,7 @@ fileprivate struct PostComposerView: View {
             )
             .map { (mediaItems, keyboardHeight, postTextHeight) -> CGFloat in
                 return PostComposerView.computePostHeight(
-                    itemsCount: mediaItems.count, keyboardHeight: keyboardHeight, postTextHeight: postTextHeight)
+                    itemsCount: mediaItems.count, keyboardHeight: keyboardHeight, postTextHeight: postTextHeight, link: link.value)
             }
             .removeDuplicates()
             .eraseToAnyPublisher()
@@ -546,6 +555,7 @@ fileprivate struct PostComposerView: View {
         self.mediaItemsBinding = self.$mediaItems.value
         self.mediaIsReadyBinding = self.$mediaState.isReady
         self.numberOfFailedItemsBinding = self.$mediaState.numberOfFailedItems
+        self.linkBinding = self.$link.value
         self.shouldAutoPlayBinding = self.$shouldAutoPlay.value
     }
 
@@ -553,8 +563,11 @@ fileprivate struct PostComposerView: View {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to:nil, from:nil, for:nil)
     }
 
-    private static func computePostHeight(itemsCount: Int, keyboardHeight: CGFloat, postTextHeight: CGFloat) -> CGFloat {
+    private static func computePostHeight(itemsCount: Int, keyboardHeight: CGFloat, postTextHeight: CGFloat, link: String) -> CGFloat {
         var minPostHeight = PostComposerLayoutConstants.postTextNoMediaMinHeight
+        if link != "" {
+            minPostHeight = PostComposerLayoutConstants.postTextNoMediaMinHeight - PostComposerLayoutConstants.postLinkPreviewHeight
+        }
         if itemsCount > 0 {
             minPostHeight = keyboardHeight > 0 ?
                 PostComposerLayoutConstants.postTextFocusedMinHeight : PostComposerLayoutConstants.postTextUnfocusedMinHeight
@@ -611,29 +624,37 @@ fileprivate struct PostComposerView: View {
     }
 
     var postTextView: some View {
-        ZStack (alignment: .topLeading) {
-            if (inputToPost.value.text.isEmpty) {
-                Text(mediaCount > 0 ? Localizations.writeDescription : Localizations.writePost)
-                    .font(Font(PostComposerLayoutConstants.getFontSize(
-                        textSize: inputToPost.value.text.count, isPostWithMedia: mediaCount > 0)))
-                    .foregroundColor(Color.primary.opacity(0.5))
-                    .padding(.top, 8)
-                    .padding(.leading, 4)
-                    .frame(height: postTextComputedHeight.value, alignment: .topLeading)
+        VStack(spacing: 0) {
+            ZStack (alignment: .topLeading) {
+                if (inputToPost.value.text.isEmpty) {
+                    Text(mediaCount > 0 ? Localizations.writeDescription : Localizations.writePost)
+                        .font(Font(PostComposerLayoutConstants.getFontSize(
+                            textSize: inputToPost.value.text.count, isPostWithMedia: mediaCount > 0)))
+                        .foregroundColor(Color.primary.opacity(0.5))
+                        .padding(.top, 8)
+                        .padding(.leading, 4)
+                        .frame(height: postTextComputedHeight.value, alignment: .topLeading)
+                }
+                TextView(
+                    mediaItems: mediaItemsBinding,
+                    pendingMention: $pendingMention,
+                    link: linkBinding,
+                    input: inputToPost,
+                    mentionableUsers: mentionableUsers,
+                    textHeight: postTextHeight,
+                    shouldFocusOnLoad: mediaCount == 0)
+                    .frame(height: postTextComputedHeight.value)
             }
-            TextView(
-                mediaItems: mediaItemsBinding,
-                pendingMention: $pendingMention,
-                input: inputToPost,
-                mentionableUsers: mentionableUsers,
-                textHeight: postTextHeight,
-                shouldFocusOnLoad: mediaCount == 0)
-                .frame(height: postTextComputedHeight.value)
+            .background(Color(mediaCount == 0 ? .secondarySystemGroupedBackground : .clear))
+            .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
+            .padding(.vertical, PostComposerLayoutConstants.postTextVerticalPadding)
+            .background(Color(mediaCount > 0 ? .secondarySystemGroupedBackground : .clear))
+            if self.link.value != "" {
+                LinkPreview(link: linkBinding)
+                    .frame(height: 200, alignment: .bottom)
+                    .padding(.all, 8)
+            }
         }
-        .background(Color(mediaCount == 0 ? .secondarySystemGroupedBackground : .clear))
-        .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
-        .padding(.vertical, PostComposerLayoutConstants.postTextVerticalPadding)
-        .background(Color(mediaCount > 0 ? .secondarySystemGroupedBackground : .clear))
     }
 
     var body: some View {
@@ -800,6 +821,7 @@ fileprivate struct Constants {
 fileprivate struct TextView: UIViewRepresentable {
     @Binding var mediaItems: [PendingMedia]
     @Binding var pendingMention: PendingMention?
+    @Binding var link: String
     var input: GenericObservable<MentionInput>
     let mentionableUsers: [MentionableUser]
     var textHeight: GenericObservable<CGFloat>
@@ -964,12 +986,68 @@ fileprivate struct TextView: UIViewRepresentable {
 
             TextView.recomputeTextViewSizes(textView, textSize: parent.input.value.text.count, isPostWithMedia: parent.mediaItems.count > 0, height: parent.textHeight)
             updateMentionPickerContent()
+            updateLinkPreviewViewIfNecessary()
             updateWithMarkdown(textView)
         }
 
         func textViewDidChangeSelection(_ textView: UITextView) {
             parent.input.value.selectedRange = textView.selectedRange
             updateMentionPickerContent()
+        }
+
+        // MARK: Link Preview
+        private func updateLinkPreviewViewIfNecessary() {
+            if let url = detectLink() {
+                parent.link = url.absoluteString
+            } else {
+                parent.link = ""
+            }
+        }
+
+        private func detectLink() -> URL? {
+            let linkDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+            let text = parent.input.value.text
+            let matches = linkDetector.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count))
+            for match in matches {
+                guard let range = Range(match.range, in: text) else { continue }
+                let url = text[range]
+                if let url = URL(string: String(url)) {
+                    // We only care about the first link
+                    return url
+                }
+            }
+            return nil
+        }
+    }
+}
+
+fileprivate struct LinkPreview: UIViewRepresentable {
+
+    @Binding var link: String
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    func makeUIView(context: Context) -> PostComposerLinkPreviewView {
+        DDLogInfo("TextView/makeUIView")
+        let linkView = PostComposerLinkPreviewView() { resetLink in
+            if resetLink {
+                link = ""
+            }
+        }
+        return linkView
+    }
+
+    func updateUIView(_ uiView: PostComposerLinkPreviewView, context: Context) {
+        uiView.updateLink(url: URL(string: link))
+    }
+
+    class Coordinator: NSObject, UITextViewDelegate {
+        var parent: LinkPreview
+
+        init(_ view: LinkPreview) {
+            parent = view
         }
     }
 }
