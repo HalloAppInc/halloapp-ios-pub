@@ -204,8 +204,8 @@ extension NewPostViewController: UIImagePickerControllerDelegate {
 extension NewPostViewController: UINavigationControllerDelegate {}
 
 extension NewPostViewController: PostComposerViewDelegate {
-    func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia]) {
-        MainAppContext.shared.feedData.post(text: mentionText, media: media, to: destination)
+    func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil) {
+        MainAppContext.shared.feedData.post(text: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: destination)
         cleanupAndFinish(didPost: true)
     }
 

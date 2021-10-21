@@ -36,7 +36,7 @@ class CommentLinkPreviewView: UIView {
 
     private lazy var placeholderImageView: UIImageView = {
         let placeholderImageView = UIImageView()
-        placeholderImageView.contentMode = .scaleToFill
+        placeholderImageView.contentMode = .scaleAspectFill
         placeholderImageView.contentMode = .center
         placeholderImageView.widthAnchor.constraint(equalToConstant: 50).isActive = true
         placeholderImageView.heightAnchor.constraint(equalToConstant: 90).isActive = true
@@ -50,10 +50,11 @@ class CommentLinkPreviewView: UIView {
 
     private lazy var mediaView: UIImageView = {
         let mediaView = UIImageView()
-        mediaView.contentMode = .scaleToFill
-        mediaView.widthAnchor.constraint(equalToConstant: 90).isActive = true
+        mediaView.translatesAutoresizingMaskIntoConstraints = false
+        mediaView.contentMode = .scaleAspectFill
+        mediaView.clipsToBounds = true
+        mediaView.widthAnchor.constraint(equalToConstant: 100).isActive = true
         mediaView.heightAnchor.constraint(equalToConstant: 100).isActive = true
-        mediaView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         return mediaView
     }()
 

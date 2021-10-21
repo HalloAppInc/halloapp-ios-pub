@@ -51,6 +51,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     private var uploadMedia: PendingMedia?
 
     private var linkPreviewUrl: URL?
+    private var invalidLinkPreviewUrl: URL?
     private var linkPreviewData: LinkPreviewData?
     private var linkDetectionTimer = Timer()
 
@@ -806,17 +807,17 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private lazy var linkPreviewMediaView: UIImageView = {
         let mediaView = UIImageView()
+        mediaView.translatesAutoresizingMaskIntoConstraints = false
         mediaView.contentMode = .scaleAspectFill
+        mediaView.clipsToBounds = true
         mediaView.widthAnchor.constraint(equalToConstant: 90).isActive = true
         mediaView.heightAnchor.constraint(equalToConstant: 90).isActive = true
-        mediaView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         return mediaView
     }()
 
     private lazy var linkPreviewHStack: UIStackView = {
         let hStack = UIStackView(arrangedSubviews: [ linkPreviewMediaView, linkPreviewTextStack])
         hStack.translatesAutoresizingMaskIntoConstraints = false
-
         let backgroundView = UIView()
         backgroundView.backgroundColor = .feedPostEventDefaultBg
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
@@ -909,7 +910,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         if let url = detectLink() {
             if url == linkPreviewUrl {
                 // Have we already fetched the link? then do not fetch again
-                if linkPreviewData?.url == linkPreviewUrl {
+                // have we previously fetched the link and it was invalid? then do not fetch again
+                if linkPreviewData?.url == linkPreviewUrl || linkPreviewUrl == invalidLinkPreviewUrl {
                     return
                 }
                 fetchURLPreview()
@@ -930,18 +932,20 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         metadataProvider.startFetchingMetadata(for: url) { (metadata, error) in
             guard let data = metadata, error == nil else {
                 // Error fetching link preview.. remove link preview loading state
+                self.invalidLinkPreviewUrl = url
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
                     self.resetLinkDetection()
                 }
               return
             }
-
+            self.invalidLinkPreviewUrl = nil
             if let imageProvider = data.imageProvider {
                 imageProvider.loadObject(ofClass: UIImage.self) { (image, error) in
                     DispatchQueue.main.async { [weak self] in
                         guard let self = self else { return }
                         if let image = image as? UIImage {
+                            self.linkPreviewMediaView.isHidden = false
                             self.linkPreviewMediaView.image = image
                         }
                         self.linkPreviewTitleLabel.text = data.title
@@ -953,6 +957,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
                 // No Image info
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
+                    self.linkPreviewMediaView.isHidden = true
                     self.linkPreviewTitleLabel.text = data.title
                     self.linkPreviewURLLabel.text = data.url?.host
                     self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
