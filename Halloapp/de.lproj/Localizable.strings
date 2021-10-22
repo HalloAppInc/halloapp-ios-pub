@@ -716,13 +716,13 @@
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
 
 /* Button that, when pressed, saves all the post's media to the user's camera roll */
-"media.save.all" = "Alle auf Kamerarolle speichern";
+"media.save.all" = "Alle in der Kamerarolle speichern";
 
 /* Button that, when pressed, saves the post's media to the user's camera roll. Singular version for media.save.all */
-"media.save.all.singular" = "Medien auf Kamerarolle speichern";
+"media.save.all.singular" = "Medien in der Kamerarolle speichern";
 
 /* Button that lets the user save the current media displayed to their camera roll */
-"media.save.camera.roll" = "In Kamerarolle speichern";
+"media.save.camera.roll" = "In der Kamerarolle speichern";
 
 /* Alert title telling the user that the photos couldn't be saved due to camera role privacy settings */
 "media.save.needs.permissions" = "Erlaube Zugriff auf Fotos";
@@ -734,7 +734,7 @@
 "media.save.not.saved" = "Das Foto kann nicht gespeichert werden";
 
 /* Label indicating that media was successfully saved to the camera roll */
-"media.save.saved" = "In Kamerarolle gespeichert";
+"media.save.saved" = "In der Kamerarolle gespeichert";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Schließen";
@@ -1079,13 +1079,13 @@
 "settings.account.delete.action.title" = "Account löschen";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet1" = "dein Account und dein Profilbild gelöscht werden";
+"settings.account.delete.bullet1" = "Deine Account-Info und dein Profilbild löschen";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet2" = "du aus all deinen HalloApp-Gruppen entfernt wirst";
+"settings.account.delete.bullet2" = "Dich aus allen HalloApp-Gruppen entfernen";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet3" = "dein Chatverlauf auf diesem Handy gelöscht wird";
+"settings.account.delete.bullet3" = "Deinen Chatverlauf auf diesem Gerät löschen";
 
 /* Label telling the user that their account has been deleted */
 "settings.account.delete.deleted" = "Account wurde gelöscht";
@@ -1094,7 +1094,7 @@
 "settings.account.delete.error" = "Beim Löschen deines Accounts ist ein Fehler aufgetreten. Bitte deine Handynummer überprüfen.";
 
 /* Label above list of things that will happen if they delete their account */
-"settings.account.delete.header" = "Das Löschen deines Accounts hat zur Folge, dass:";
+"settings.account.delete.header" = "Das Löschen deines Accounts wird:";
 
 /* Alert message telling the user that account deletion is irreversible */
 "settings.account.delete.irreversible.label" = "Dieser Vorgang kann nicht rückgängig gemacht werden";
@@ -1254,6 +1254,9 @@
 
 /* Fourth tab in the main app interface */
 "title.settings" = "Einstellungen";
+
+/* Row in Settings screen */
+"title.storage" = "Speicher";
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Gesehen von";

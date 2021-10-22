@@ -1082,7 +1082,7 @@
 "settings.account.delete.bullet1" = "Je accountinformatie en profielfoto verwijderen";
 
 /* Action that will occur when users delete their account */
-"settings.account.delete.bullet2" = "Je uit al je HalloApp-groepen verwijderen";
+"settings.account.delete.bullet2" = "Je uit alle HalloApp-groepen verwijderen";
 
 /* Action that will occur when users delete their account */
 "settings.account.delete.bullet3" = "Je chatgeschiedenis van je telefoon verwijderen";
@@ -1254,6 +1254,9 @@
 
 /* Fourth tab in the main app interface */
 "title.settings" = "Instellingen";
+
+/* Row in Settings screen */
+"title.storage" = "Opslag";
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Gezien Door";
