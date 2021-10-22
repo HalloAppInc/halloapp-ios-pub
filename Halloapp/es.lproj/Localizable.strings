@@ -685,6 +685,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Actualiza tu aplicación.";
 
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Cargando vista previa...";
+
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Yo";
 
@@ -1251,6 +1254,9 @@
 
 /* Fourth tab in the main app interface */
 "title.settings" = "Configuración";
+
+/* Row in Settings screen */
+"title.storage" = "Almacenamiento";
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Visto por";
