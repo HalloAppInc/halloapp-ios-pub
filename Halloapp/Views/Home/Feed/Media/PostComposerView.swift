@@ -1073,11 +1073,12 @@ fileprivate struct LinkPreview: UIViewRepresentable {
     func makeUIView(context: Context) -> PostComposerLinkPreviewView {
         DDLogInfo("TextView/makeUIView")
         let linkView = PostComposerLinkPreviewView() { resetLink, linkPreviewData, linkPreviewImage in
-            if resetLink {
-                link = ""
-            } else {
-                if let linkPreviewData = linkPreviewData {self.linkPreviewData.value = linkPreviewData}
-                if let linkPreviewImage = linkPreviewImage { self.linkPreviewImage.value = linkPreviewImage }
+            DispatchQueue.main.async {
+                if resetLink {
+                    link = ""
+                }
+                self.linkPreviewImage.value = linkPreviewImage
+                self.linkPreviewData.value = linkPreviewData
             }
         }
         return linkView

@@ -30,13 +30,22 @@ class PostComposerLinkPreviewView: UIView {
         return titleLabel
     }()
 
+    private lazy var linkPreviewCloseButton: UIButton = {
+        let closeButton = UIButton(type: .custom)
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.setImage(UIImage(named: "NavbarClose")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        closeButton.tintColor = .placeholderText
+        closeButton.addTarget(self, action: #selector(didTapCloseLinkPreviewPanel), for: .touchUpInside)
+        return closeButton
+    }()
+
     private lazy var linkView: LPLinkView = {
         let linkView = LPLinkView()
         return linkView
     }()
 
     private lazy var vStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [ titleLabel ])
+        let stack = UIStackView(arrangedSubviews: [ titleLabel , linkPreviewCloseButton ])
         stack.translatesAutoresizingMaskIntoConstraints = false
 
         stack.axis = .vertical
@@ -69,6 +78,11 @@ class PostComposerLinkPreviewView: UIView {
         vStack.heightAnchor.constraint(equalToConstant: 200).isActive = true
         vStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         vStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+
+        self.addSubview(linkPreviewCloseButton)
+
+        linkPreviewCloseButton.trailingAnchor.constraint(equalTo: vStack.trailingAnchor, constant: -4).isActive = true
+        linkPreviewCloseButton.topAnchor.constraint(equalTo: vStack.topAnchor, constant: 4).isActive = true
     }
 
     func updateLink(url: URL?) {
@@ -138,6 +152,11 @@ class PostComposerLinkPreviewView: UIView {
                 }
             }
         }
+    }
+
+    @objc private func didTapCloseLinkPreviewPanel() {
+        resetLinkDetection()
+        didFinish(true, self.linkPreviewData, self.linkViewImage)
     }
 
     private func resetLinkDetection() {
