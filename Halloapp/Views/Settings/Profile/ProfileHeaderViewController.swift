@@ -149,7 +149,7 @@ final class ProfileHeaderViewController: UIViewController {
 
                 MainAppContext.shared.userData.name = name
                 MainAppContext.shared.userData.save()
-                MainAppContext.shared.service.sendCurrentUserNameIfPossible()
+                MainAppContext.shared.service.updateUsername(name)
             }
             controller.dismiss(animated: true)
         }
@@ -288,8 +288,9 @@ final class ProfileHeaderViewController: UIViewController {
         }
 
         DDLogInfo("profile/edit-photo Will upload new photo")
-        MainAppContext.shared.avatarStore.save(image: resizedImage, forUserId: MainAppContext.shared.userData.userId, avatarId: "self")
-        MainAppContext.shared.service.sendCurrentAvatarIfPossible()
+        if let avatarData = MainAppContext.shared.avatarStore.save(image: resizedImage, forUserId: MainAppContext.shared.userData.userId, avatarId: "self") {
+            MainAppContext.shared.service.updateAvatar(avatarData)
+        }
         
         // need to configure again as avatar listens to cached objects and they get evicted once app goes to the background
         headerView.avatarViewButton.avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
@@ -307,7 +308,7 @@ final class ProfileHeaderViewController: UIViewController {
     private func deleteProfilePhoto() {
         DDLogInfo("profile/edit-photo Deleting photo")
         MainAppContext.shared.avatarStore.save(avatarId: "", forUserId: MainAppContext.shared.userData.userId)
-        MainAppContext.shared.service.sendCurrentAvatarIfPossible()
+        MainAppContext.shared.service.updateAvatar(nil)
         // need to configure again as avatar listens to cached objects and they get evicted once app goes to the background
         headerView.avatarViewButton.avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
     }

@@ -27,8 +27,8 @@ protocol HalloService: CoreService {
     var feedDelegate: HalloFeedDelegate? { get set }
 
     // MARK: Profile
-    func sendCurrentUserNameIfPossible()
-    func sendCurrentAvatarIfPossible()
+    func updateUsername(_ name: String)
+    func updateAvatar(_ data: Data?)
 
     // MARK: Feed requests
     func retractPost(_ id: FeedPostID, completion: @escaping ServiceRequestCompletion<Void>)
