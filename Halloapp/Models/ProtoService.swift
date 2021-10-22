@@ -559,12 +559,7 @@ final class ProtoService: ProtoServiceCore {
     private func resendNameIfNecessary() {
         guard !UserDefaults.standard.bool(forKey: userDefaultsKeyForNameSync) else { return }
         guard !userData.name.isEmpty else { return }
-
-        enqueue(request: ProtoSendNameRequest(name: userData.name) { result in
-            if case .success = result {
-                UserDefaults.standard.set(true, forKey: userDefaultsKeyForNameSync)
-            }
-        })
+        updateUsername(userData.name)
     }
 
     // MARK: Message
@@ -938,22 +933,7 @@ final class ProtoService: ProtoServiceCore {
             return
         }
 
-        let logAction = userAvatar.isEmpty ? "removed" : "uploaded"
-        enqueue(request: ProtoUpdateAvatarRequest(data: userAvatar.data) { result in
-            switch result {
-            case .success(let avatarID):
-                DDLogInfo("ProtoService/resendAvatarIfNecessary avatar has been \(logAction)")
-                UserDefaults.standard.set(false, forKey: AvatarStore.Keys.userDefaultsUpload)
-
-                if let avatarID = avatarID {
-                    DDLogInfo("ProtoService/resendAvatarIfNecessary received new avatarID [\(avatarID)]")
-                    MainAppContext.shared.avatarStore.update(avatarId: avatarID, forUserId: self.userData.userId)
-                }
-
-            case .failure(let error):
-                DDLogError("ProtoService/resendAvatarIfNecessary/error avatar not \(logAction): \(error)")
-            }
-        })
+        updateAvatar(userAvatar.data)
     }
 
     private func reportDecryptionResult(error: DecryptionError?, messageID: String, timestamp: Date, sender: UserAgent?, rerequestCount: Int, isSilent: Bool) {
@@ -1028,20 +1008,33 @@ final class ProtoService: ProtoServiceCore {
 
 extension ProtoService: HalloService {
 
-    func sendCurrentUserNameIfPossible() {
+    func updateUsername(_ name: String) {
         UserDefaults.standard.set(false, forKey: userDefaultsKeyForNameSync)
-
-        if isConnected {
-            resendNameIfNecessary()
-        }
+        enqueue(request: ProtoSendNameRequest(name: userData.name) { result in
+            if case .success = result {
+                UserDefaults.standard.set(true, forKey: userDefaultsKeyForNameSync)
+            }
+        })
     }
 
-    func sendCurrentAvatarIfPossible() {
+    func updateAvatar(_ data: Data?) {
         UserDefaults.standard.set(true, forKey: AvatarStore.Keys.userDefaultsUpload)
+        let logAction = data == nil ? "removed" : "uploaded"
+        enqueue(request: ProtoUpdateAvatarRequest(data: data) { result in
+            switch result {
+            case .success(let avatarID):
+                DDLogInfo("ProtoService/updateAvatar avatar has been \(logAction)")
+                UserDefaults.standard.set(false, forKey: AvatarStore.Keys.userDefaultsUpload)
 
-        if isConnected {
-            resendAvatarIfNecessary()
-        }
+                if let avatarID = avatarID {
+                    DDLogInfo("ProtoService/updateAvatar received new avatarID [\(avatarID)]")
+                    MainAppContext.shared.avatarStore.update(avatarId: avatarID, forUserId: self.userData.userId)
+                }
+
+            case .failure(let error):
+                DDLogError("ProtoService/updateAvatar/error avatar not \(logAction): \(error)")
+            }
+        })
     }
 
     func retractComment(id: FeedPostCommentID, postID: FeedPostID, completion: @escaping ServiceRequestCompletion<Void>) {

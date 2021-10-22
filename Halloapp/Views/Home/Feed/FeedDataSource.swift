@@ -19,10 +19,11 @@ final class FeedDataSource: NSObject {
         setup()
     }
 
-    var itemsDidChange: (([FeedDisplayItem]) -> Void)?
     private(set) var displayItems = [FeedDisplayItem]()
+    var modifyItems: (([FeedDisplayItem]) -> ([FeedDisplayItem]))?
+    var itemsDidChange: (([FeedDisplayItem]) -> Void)?
     var deletionLabelToExpand: FeedDisplayItem?
-    
+
     var events = [FeedEvent]()
 
     func index(of feedPostID: FeedPostID) -> Int? {
@@ -49,6 +50,9 @@ final class FeedDataSource: NSObject {
             try fetchedResultsController?.performFetch()
             let posts = fetchedResultsController?.fetchedObjects ?? []
             displayItems = FeedDataSource.makeDisplayItems(orderedPosts: posts, orderedEvents: events)
+            if modifyItems != nil, let modifiedItems = modifyItems?(displayItems) {
+                displayItems = modifiedItems
+            }
             itemsDidChange?(displayItems)
         } catch {
             fatalError("Failed to fetch feed items \(error)")
@@ -58,6 +62,9 @@ final class FeedDataSource: NSObject {
     func refresh() {
         let posts = fetchedResultsController?.fetchedObjects ?? []
         displayItems = FeedDataSource.makeDisplayItems(orderedPosts: posts, orderedEvents: events)
+        if modifyItems != nil, let modifiedItems = modifyItems?(displayItems) {
+            displayItems = modifiedItems
+        }
         itemsDidChange?(displayItems)
     }
     
@@ -129,7 +136,7 @@ final class FeedDataSource: NSObject {
         }
         return displayItems
     }
-    
+
     /// Merges lists of posts and events (sorted by descending timestamp) into a single display item list
     private static func makeDisplayItems(orderedPosts: [FeedPost], orderedEvents: [FeedEvent]) -> [FeedDisplayItem]
     {
@@ -143,11 +150,10 @@ final class FeedDataSource: NSObject {
             let t2 = $1.post?.timestamp ?? $1.event?.timestamp ?? Date()
             return t1 > t2
         }
-        
+
         //merge consecutive deletion posts when the count of consecutive deletion posts >=3
         let displayItems = mergeDeletionPosts(originalItems: originalItems)
         return displayItems
-            
     }
 }
 
@@ -155,6 +161,9 @@ extension FeedDataSource: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         let posts = (controller.fetchedObjects as? [FeedPost]) ?? []
         displayItems = FeedDataSource.makeDisplayItems(orderedPosts: posts, orderedEvents: events)
+        if modifyItems != nil, let modifiedItems = modifyItems?(displayItems) {
+            displayItems = modifiedItems
+        }
         itemsDidChange?(displayItems)
     }
 }
@@ -208,11 +217,15 @@ enum FeedDisplaySection {
 enum FeedDisplayItem: Hashable, Equatable {
     case post(FeedPost)
     case event(FeedEvent)
+    case welcome
+    case groupWelcome
 
     var post: FeedPost? {
         switch self {
         case .post(let post): return post
         case .event: return nil
+        case .welcome: return nil
+        case .groupWelcome: return nil
         }
     }
     
@@ -220,6 +233,8 @@ enum FeedDisplayItem: Hashable, Equatable {
         switch self {
         case .post: return nil
         case .event(let event): return event
+        case .welcome: return nil
+        case .groupWelcome: return nil
         }
     }
 }

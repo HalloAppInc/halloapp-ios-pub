@@ -145,8 +145,9 @@ public class AvatarStore: ServiceAvatarDelegate {
         
         return currentAvatar
     }
-    
-    public func save(image: UIImage, forUserId userId: UserID, avatarId: AvatarID) {
+
+    @discardableResult
+    public func save(image: UIImage, forUserId userId: UserID, avatarId: AvatarID) -> Data? {
         let managedObjectContext = bgContext
 
         let currentAvatar = insertAvatar(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
@@ -159,7 +160,7 @@ public class AvatarStore: ServiceAvatarDelegate {
         } catch {
             DDLogError("AvatarStore/save/failed [\(error)]")
             
-            return
+            return nil
         }
         currentAvatar.relativeFilePath = "\(avatarId).jpeg"
 
@@ -175,6 +176,7 @@ public class AvatarStore: ServiceAvatarDelegate {
             userAvatar.image = image
             userAvatar.data = data
         }
+        return data
     }
 
     private func insertAvatar(avatarId: AvatarID, forUserId userId: UserID, using managedObjectContext: NSManagedObjectContext) -> Avatar {

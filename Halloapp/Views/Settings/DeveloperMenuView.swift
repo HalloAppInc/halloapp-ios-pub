@@ -7,6 +7,7 @@
 //
 
 import Combine
+import Core
 import SwiftUI
 
 private enum MenuTitles {
@@ -17,6 +18,7 @@ private enum MenuTitles {
     static var videoBitRate: String { "BitRate" }
     static var reSyncContacts: String { "Re-Sync Contacts" }
     static var resetNUXDemo: String { "Reset NUX Demo" }
+    static var startZeroZoneDemo: String { "Start Zero Zone Demo" }
     static var clearPushNamesAndNumbers: String { "Clear Pushnames/numbers" }
     static var logOut: String { "Log Out" }
 }
@@ -136,10 +138,19 @@ struct DeveloperMenuView: View {
                 }) {
                     Text(MenuTitles.resetNUXDemo)
                 }
-                
-                // NUX Demo
+
+                Button(action: {
+                    MainAppContext.shared.nux.devSetStateZeroZone()
+                    MainAppContext.shared.nux.startDemo()
+                    MainAppContext.shared.feedData.shouldReloadView.send()
+                    self.dismiss?()
+                }) {
+                    Text(MenuTitles.startZeroZoneDemo)
+                }
+
                 Button(action: {
                     MainAppContext.shared.contactStore.deleteAllPushNamesAndNumbers()
+                    self.dismiss?()
                 }) {
                     Text(MenuTitles.clearPushNamesAndNumbers)
                 }
