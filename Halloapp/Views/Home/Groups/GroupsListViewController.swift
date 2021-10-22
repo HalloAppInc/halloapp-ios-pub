@@ -69,7 +69,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         installLargeTitleUsingGothamFont()
 
         navigationItem.rightBarButtonItem = rightBarButtonItem
-        
+
         definesPresentationContext = true
 
         searchController.searchResultsUpdater = self
@@ -91,7 +91,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.constrain(to: view)
 
-        installEmptyView()
+        installEmptyView() // might be deprecated after NUX zero zone roll out, keep until certain
 
         tableView.register(GroupsListHeaderView.self, forHeaderFooterViewReuseIdentifier: "sectionHeader")
         tableView.register(ThreadListCell.self, forCellReuseIdentifier: GroupsListViewController.cellReuseIdentifier)
@@ -143,10 +143,25 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
             }
         )
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("GroupsListViewController/viewWillAppear")
         super.viewWillAppear(animated)
+
+        if MainAppContext.shared.nux.state == .zeroZone {
+            guard let allChats = fetchedResultsController?.fetchedObjects else { return }
+            let groupName = Localizations.groupsNUXuserGroupName(MainAppContext.shared.userData.name)
+
+            let isDemoMode = MainAppContext.shared.nux.isDemoMode
+            let userGroupAlreadyExists = allChats.first(where: { $0.title == groupName }) != nil
+            if isDemoMode && userGroupAlreadyExists { return }
+
+            let isGroupsListEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
+            if !isDemoMode && !isGroupsListEmpty { return }
+
+            DDLogInfo("GroupsListViewController/viewWillAppear/NUX/ZeroZone/creating user's own group")
+            MainAppContext.shared.chatData.createGroup(name: groupName, description: "", members: [], data: nil) {_ in}
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -717,8 +732,12 @@ class GroupsListHeaderView: UITableViewHeaderFooterView {
 
 private extension Localizations {
 
+    static func groupsNUXuserGroupName(_ username: String) -> String {
+        return String(format: NSLocalizedString("groups.NUX.user.group.name", value: "%@'s Group", comment: "The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content)"), username)
+    }
+
     static var groupsListRemoveMessage: String {
         NSLocalizedString("groups.list.remove.message", value: "Are you sure you want to remove this group and its content from your device?", comment: "Text shown when user is about to remove the group")
     }
-    
+
 }

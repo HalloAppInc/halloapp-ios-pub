@@ -44,6 +44,7 @@ class GroupFeedViewController: FeedCollectionViewController {
         self.theme = group?.background ?? 0
         super.init(title: nil, fetchRequest: FeedDataSource.groupFeedRequest(groupID: groupId))
         self.hidesBottomBarWhenPushed = true
+        self.setupDatasource()
         self.populateEvents()
     }
 
@@ -197,6 +198,22 @@ class GroupFeedViewController: FeedCollectionViewController {
         navigationItem.standardAppearance = navAppearance
         navigationItem.scrollEdgeAppearance = navAppearance
         navigationItem.compactAppearance = navAppearance
+    }
+
+    // MARK: Datasource
+    
+    private func setupDatasource() {
+        feedDataSource.modifyItems = { items in
+            var result = items
+            if MainAppContext.shared.nux.state == .zeroZone {
+                if MainAppContext.shared.nux.isDemoMode {
+                    result.insert(FeedDisplayItem.groupWelcome, at: 0)
+                } else {
+                    result.append(FeedDisplayItem.groupWelcome)
+                }
+            }
+            return result
+        }
     }
 
     private func populateEvents() {

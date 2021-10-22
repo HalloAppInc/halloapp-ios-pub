@@ -76,6 +76,8 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.register(FeedPostCollectionViewCell.self, forCellWithReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier)
         collectionView.register(FeedEventCollectionViewCell.self, forCellWithReuseIdentifier: FeedEventCollectionViewCell.reuseIdentifier)
+        collectionView.register(FeedWelcomeCell.self, forCellWithReuseIdentifier: FeedWelcomeCell.reuseIdentifier)
+        collectionView.register(GroupFeedWelcomeCell.self, forCellWithReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier)
 
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
@@ -95,6 +97,12 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
                 self.feedDataSource.setup()
                 self.collectionView.reloadData()
                 self.view.isUserInteractionEnabled = true
+        })
+
+        cancellableSet.insert(
+            MainAppContext.shared.feedData.shouldReloadView.sink { [weak self] in
+                guard let self = self else { return }
+                self.feedDataSource.refresh()
         })
 
         // feed view needs to know when unread count changes when user is not on view
@@ -311,6 +319,18 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         guard MainAppContext.shared.chatData.chatGroup(groupId: groupID) != nil else { return }
         let vc = GroupFeedViewController(groupId: groupID)
         navigationController?.pushViewController(vc, animated: true)
+    }
+
+    private func showInviteScreen() {
+        guard ContactStore.contactsAccessAuthorized else {
+            let inviteVC = InvitePermissionDeniedViewController()
+            present(UINavigationController(rootViewController: inviteVC), animated: true)
+            return
+        }
+        InviteManager.shared.requestInvitesIfNecessary()
+        let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+        let navController = UINavigationController(rootViewController: inviteVC)
+        present(navController, animated: true)
     }
 
     private func cancelSending(postId: FeedPostID) {
@@ -530,6 +550,22 @@ extension FeedCollectionViewController {
                     self?.configure(cell: postCell, withActiveFeedPost: feedPost)
                 } else {
                     DDLogError("FeedCollectionViewController/error FeedPostCollectionViewCell reuse identifier not registered correctly")
+                }
+                return cell
+            case .welcome:
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedWelcomeCell.reuseIdentifier, for: indexPath)
+                if let welcomeCell = cell as? FeedWelcomeCell {
+                    welcomeCell.maxWidth = collectionView.frame.width
+                    welcomeCell.openInvite = { [weak self] in
+                        guard let self = self else { return }
+                        self.showInviteScreen()
+                    }
+                }
+                return cell
+            case .groupWelcome:
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier, for: indexPath)
+                if let groupFeedWelcomeCell = cell as? GroupFeedWelcomeCell {
+                    groupFeedWelcomeCell.maxWidth = collectionView.frame.width
                 }
                 return cell
             }
@@ -811,6 +847,12 @@ extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
             DDLogDebug("FeedCollectionView Calculated cell height [\(cellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
             cachedCellHeights[displayItem] = cellHeight
             return CGSize(width: cellWidth, height: cellHeight)
+        case .welcome:
+            let contentWidth = cellWidth - collectionView.layoutMargins.left - collectionView.layoutMargins.right
+            return CGSize(width: contentWidth, height: 380) // size does not seem to affect cell?
+        case .groupWelcome:
+            let contentWidth = cellWidth - collectionView.layoutMargins.left - collectionView.layoutMargins.right
+            return CGSize(width: contentWidth, height: 300) // size does not seem to affect cell?
         }
     }
 }

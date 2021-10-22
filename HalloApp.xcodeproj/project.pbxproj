@@ -316,6 +316,8 @@
 		EABDCEDB2697825C009053C7 /* UnknownContactActionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABDCEDA2697825C009053C7 /* UnknownContactActionBanner.swift */; };
 		EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC46555251484FE00783821 /* EditGroupViewController.swift */; };
 		EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */; };
+		EAC6A4452721F57D00E5E12E /* FeedWelcomeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC6A4442721F57C00E5E12E /* FeedWelcomeCell.swift */; };
+		EAC6A4482723302100E5E12E /* GroupFeedWelcomeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC6A4472723302100E5E12E /* GroupFeedWelcomeCell.swift */; };
 		EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EACC34C924FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift */; };
 		EACC34CC24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EACC34CA24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataProperties.swift */; };
 		EAD476CD245513EF00EF8591 /* ChatListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD476CC245513EF00EF8591 /* ChatListViewController.swift */; };
@@ -907,6 +909,8 @@
 		EABDCEDA2697825C009053C7 /* UnknownContactActionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnknownContactActionBanner.swift; sourceTree = "<group>"; };
 		EAC46555251484FE00783821 /* EditGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGroupViewController.swift; sourceTree = "<group>"; };
 		EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMediaDownloader.swift; sourceTree = "<group>"; };
+		EAC6A4442721F57C00E5E12E /* FeedWelcomeCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedWelcomeCell.swift; sourceTree = "<group>"; };
+		EAC6A4472723302100E5E12E /* GroupFeedWelcomeCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupFeedWelcomeCell.swift; sourceTree = "<group>"; };
 		EACC34C924FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageInfo+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EACC34CA24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageInfo+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAD476CC245513EF00EF8591 /* ChatListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListViewController.swift; sourceTree = "<group>"; };
@@ -1271,6 +1275,7 @@
 				764F7750246226120063645A /* PostDashboardViewController.swift */,
 				E5AFB4C626BC5C74002CE127 /* FeedPostView.swift */,
 				329DFD64270FB01E00B85CFF /* PostLinkPreviewView.swift */,
+				EAC6A44627232FB200E5E12E /* NUX */,
 			);
 			path = Post;
 			sourceTree = "<group>";
@@ -1843,6 +1848,15 @@
 				76C64E0C24E5AD85007C0F6F /* MediaUploader.swift */,
 			);
 			path = Network;
+			sourceTree = "<group>";
+		};
+		EAC6A44627232FB200E5E12E /* NUX */ = {
+			isa = PBXGroup;
+			children = (
+				EAC6A4442721F57C00E5E12E /* FeedWelcomeCell.swift */,
+				EAC6A4472723302100E5E12E /* GroupFeedWelcomeCell.swift */,
+			);
+			path = NUX;
 			sourceTree = "<group>";
 		};
 		EACC34C524F9F9EB007D6FC6 /* OneToOne */ = {
@@ -2662,6 +2676,7 @@
 				33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */,
 				68F935C5252CD00800FA6E75 /* ChatMention+CoreDataClass.swift in Sources */,
 				EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */,
+				EAC6A4482723302100E5E12E /* GroupFeedWelcomeCell.swift in Sources */,
 				EAAF43992603F7720037F83D /* BlurView.swift in Sources */,
 				761B3957241D815800858251 /* SyncManager.swift in Sources */,
 				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
@@ -2719,6 +2734,7 @@
 				EA5975DE252D3CF600810F48 /* GroupMemberAvatars.swift in Sources */,
 				EAD944F724F73E4C004A27B1 /* GroupInfoViewController.swift in Sources */,
 				764F7751246226120063645A /* PostDashboardViewController.swift in Sources */,
+				EAC6A4452721F57D00E5E12E /* FeedWelcomeCell.swift in Sources */,
 				764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */,
 				E5959702268E3F6500AA3BB9 /* DeleteAccountModel.swift in Sources */,
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,

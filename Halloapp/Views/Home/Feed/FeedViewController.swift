@@ -10,10 +10,10 @@ import CocoaLumberjackSwift
 import Combine
 import Core
 import CoreData
+import Intents
 import SwiftUI
 import UIKit
 
-import Intents
 
 class FeedViewController: FeedCollectionViewController {
 
@@ -45,15 +45,17 @@ class FeedViewController: FeedCollectionViewController {
         notificationButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
         notificationButton.addTarget(self, action: #selector(didTapNotificationButton), for: .touchUpInside)
         self.notificationButton = notificationButton
-        
+
         let inviteButton = BadgedButton(type: .system)
         inviteButton.centerYConstant = 5
         inviteButton.setImage(UIImage(named: "FeedInviteButton")?.withTintColor(UIColor.primaryBlue, renderingMode: .alwaysOriginal), for: .normal)
         inviteButton.accessibilityLabel = Localizations.inviteFriendsAndFamily
         inviteButton.isBadgeHidden = true
         inviteButton.addTarget(self, action: #selector(didTapInviteButtion), for: .touchUpInside)
-        
+
         self.navigationItem.rightBarButtonItems = [UIBarButtonItem(customView: notificationButton), UIBarButtonItem(customView: inviteButton)]
+
+        setupDatasource()
 
         if let feedNotifications = MainAppContext.shared.feedData.feedNotifications {
             notificationCount = feedNotifications.unreadCount
@@ -129,13 +131,29 @@ class FeedViewController: FeedCollectionViewController {
         updateEmptyView(items.isEmpty)
     }
 
+    // MARK: Datasource
+
+    private func setupDatasource() {
+        feedDataSource.modifyItems = { items in
+            var result = items
+            if MainAppContext.shared.nux.state == .zeroZone {
+                if MainAppContext.shared.nux.isDemoMode {
+                    result.insert(FeedDisplayItem.welcome, at: 0)
+                } else {
+                    result.append(FeedDisplayItem.welcome)
+                }
+            }
+            return result
+        }
+    }
+
     // MARK: UI Actions
 
     @objc private func didTapNotificationButton() {
         overlayContainer.dismissOverlay(with: activityCenterOverlayID)
         self.present(UINavigationController(rootViewController: NotificationsViewController()), animated: true)
     }
-    
+
     @objc private func didTapInviteButtion() {
         guard ContactStore.contactsAccessAuthorized else {
             let inviteVC = InvitePermissionDeniedViewController()

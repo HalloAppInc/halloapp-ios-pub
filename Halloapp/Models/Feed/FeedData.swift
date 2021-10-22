@@ -26,7 +26,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     let willDestroyStore = PassthroughSubject<Void, Never>()
     let didReloadStore = PassthroughSubject<Void, Never>()
-    
+
+    let shouldReloadView = PassthroughSubject<Void, Never>()
+
     let didGetRemoveHomeTabIndicator = PassthroughSubject<Void, Never>()
 
     private struct UserDefaultsKey {

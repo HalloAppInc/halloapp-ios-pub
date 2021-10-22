@@ -621,7 +621,7 @@ class GroupInviteViewController: UIViewController {
     }
 }
 
-private extension Localizations {
+extension Localizations {
     static var groupInviteTitle: String {
         NSLocalizedString("group.invite.title", value: "Group Invite", comment: "Title of group invite screen")
     }

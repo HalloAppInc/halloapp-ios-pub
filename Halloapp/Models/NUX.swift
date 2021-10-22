@@ -10,6 +10,13 @@ import CocoaLumberjackSwift
 import Core
 
 final class NUX {
+
+    enum State: String {
+        case none
+        case zeroZone
+        case somewhatActive
+    }
+
     enum Event: String {
         case homeFeedIntro // no longer used
         case chatListIntro
@@ -22,11 +29,20 @@ final class NUX {
         self.userDefaults = userDefaults
         self.appVersion = appVersion
         loadFromUserDefaults()
+
+        let contacts = MainAppContext.shared.contactStore.allRegisteredContacts(sorted: false)
+        if contacts.count == 0 {
+            state = .zeroZone
+        }
+        
+//        state = .zeroZone
     }
 
     private let userDefaults: UserDefaults
     private let appVersion: String
-    private var isDemoMode = false
+    public private(set) var isDemoMode = false
+
+    public private(set) var state: State = .none
 
     private var eventCompletedVersions = [Event: String]()
 
@@ -44,6 +60,10 @@ final class NUX {
     func startDemo() {
         isDemoMode = true
         eventCompletedVersions.removeAll()
+    }
+    
+    func devSetStateZeroZone() {
+        state = .zeroZone
     }
 
     private func loadFromUserDefaults() {
