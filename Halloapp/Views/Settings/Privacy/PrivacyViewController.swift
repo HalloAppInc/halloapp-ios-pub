@@ -130,8 +130,9 @@ class PrivacyViewController: UITableViewController {
 
     private func openPostsPrivacy() {
         let privacySettings = MainAppContext.shared.privacySettings
-        let feedPrivacyView = FeedPrivacyView(privacySettings: privacySettings)
-        navigationController?.pushViewController(UIHostingController(rootView: feedPrivacyView), animated: true)
+        let feedPrivacyVC = UIHostingController(rootView: FeedPrivacyView(privacySettings: privacySettings))
+        feedPrivacyVC.title = Localizations.privacy
+        navigationController?.pushViewController(feedPrivacyVC, animated: true)
     }
 
     private func openBlockedContacts() {

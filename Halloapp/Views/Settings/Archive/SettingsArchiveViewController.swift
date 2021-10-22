@@ -48,6 +48,7 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
 
         let textLabel = UILabel()
         textLabel.text = Localizations.emptyStatePlaceholder
+        textLabel.numberOfLines = 0
         textLabel.textAlignment = .center
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.textColor = .tertiaryLabel
