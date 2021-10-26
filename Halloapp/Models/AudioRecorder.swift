@@ -13,13 +13,16 @@ protocol AudioRecorderDelegate: AnyObject {
     func audioRecorderMicrphoneAccessDenied(_ recorder: AudioRecorder)
     func audioRecorderStarted(_ recorder: AudioRecorder)
     func audioRecorderStopped(_ recorder: AudioRecorder)
+    func audioRecorderInterrupted(_ recorder: AudioRecorder)
     func audioRecorder(_ recorder: AudioRecorder, at time: String)
 }
 
 class AudioRecorder {
+    private static let fileNamePrefix = "audio-recording-"
+
     public weak var delegate: AudioRecorderDelegate?
     public var url: URL? { recorder?.url }
-    public var isRecording = false
+    private(set) var isRecording = false
     public var duration: TimeInterval? { recorder?.currentTime }
 
     private var recorder: AVAudioRecorder?
@@ -38,6 +41,10 @@ class AudioRecorder {
                        selector: #selector(handleInterruption),
                        name: UIApplication.willResignActiveNotification,
                        object: nil)
+
+        DispatchQueue.global().async {
+            self.removeOldRecordings()
+        }
     }
 
     deinit {
@@ -204,6 +211,94 @@ class AudioRecorder {
     }
 
     @objc func handleInterruption(notification: Notification) {
-        stop(cancel: true)
+        if let duration = recorder?.currentTime, isRecording && duration > 1 {
+            stop(cancel: false)
+            delegate?.audioRecorderInterrupted(self)
+        } else {
+            stop(cancel: true)
+        }
+    }
+
+    // MARK: Saving audio recordings
+
+    func saveVoiceComment(for postId: String) -> URL? {
+        return saveRecording(withId: "voice-comment-\(postId)")
+    }
+
+    class func voiceComment(for postId: String) -> URL? {
+        return recording(withId: "voice-comment-\(postId)")
+    }
+
+    func saveVoiceNote(from: String, to: String) -> URL? {
+        return saveRecording(withId: "voice-note-\(from)-\(to)")
+    }
+
+    class func voiceNote(from: String, to: String) -> URL? {
+        return recording(withId: "voice-note-\(from)-\(to)")
+    }
+
+    func saveRecording(withId id: String) -> URL? {
+        guard let url = recorder?.url else { return nil }
+        guard let destination = Self.recordingUrl(withId: id) else { return nil }
+
+        do {
+            if FileManager.default.fileExists(atPath: destination.path) {
+                try FileManager.default.removeItem(at: destination)
+            }
+
+            try FileManager.default.moveItem(at: url, to: destination)
+        } catch {
+            DDLogError("AudioRecorder/save: \(error)")
+            return nil
+        }
+
+        return destination
+    }
+
+    class func recordingUrl(withId id: String) -> URL? {
+        guard let key = id.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) else { return nil }
+        return URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("\(fileNamePrefix)\(key)", isDirectory: false)
+            .appendingPathExtension("aac")
+    }
+
+    class func recording(withId id: String) -> URL? {
+        guard let url = recordingUrl(withId: id) else { return nil }
+
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+
+        do {
+            let limit = Date().addingTimeInterval(-TimeInterval(60 * 60 * 48))
+            let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
+
+            // keep recordings up to 48 hours
+            if let date = attrs[.creationDate] as? Date, date < limit {
+                return nil
+            }
+        } catch {
+            DDLogError("AudioRecorder/recording: missing attributes \(error)")
+            return nil
+        }
+
+        return url
+    }
+
+    private func removeOldRecordings() {
+        // keep recordings up to 48 hours
+        let limit = Date().addingTimeInterval(-TimeInterval(60 * 60 * 48))
+
+        do {
+            let contents = try FileManager.default.contentsOfDirectory(at: FileManager.default.temporaryDirectory, includingPropertiesForKeys: [.creationDateKey], options: .skipsHiddenFiles)
+
+            for url in contents {
+                if url.lastPathComponent.hasPrefix(Self.fileNamePrefix) {
+                    if let date = try? url.resourceValues(forKeys: [.creationDateKey]).creationDate, date < limit {
+                        try FileManager.default.removeItem(at: url)
+                    }
+                }
+            }
+        } catch {
+            DDLogError("AudioRecorder/removeOldRecordings: \(error)")
+        }
     }
 }

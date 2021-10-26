@@ -27,6 +27,7 @@ protocol CommentInputViewDelegate: AnyObject {
     func commentInputViewResetInputMedia(_ inputView: CommentInputView)
     func commentInputViewMicrophoneAccessDenied(_ inputView: CommentInputView)
     func commentInputViewDidTapSelectedMedia(_ inputView: CommentInputView, mediaToEdit: PendingMedia)
+    func commentInputView(_ inputView: CommentInputView, didInterruptRecorder recorder: AudioRecorder)
 }
 
 class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
@@ -47,6 +48,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private var voiceNoteRecorder = AudioRecorder()
     private var isVoiceNoteRecordingLocked = false
+    private var isShowingVoiceNote = false
 
     private var uploadMedia: PendingMedia?
 
@@ -209,6 +211,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         stack.addSubview(cancelRecordingButton)
         stack.addSubview(postVoiceNoteButton)
         stack.addSubview(voiceNoteTime)
+        stack.addSubview(removeVoiceNoteButton)
+        stack.addSubview(voiceNotePlayer)
 
         cancelRecordingButton.centerXAnchor.constraint(equalTo: stack.centerXAnchor).isActive = true
         cancelRecordingButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
@@ -216,6 +220,11 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         postVoiceNoteButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
         voiceNoteTime.leadingAnchor.constraint(equalTo: stack.leadingAnchor, constant: 14).isActive = true
         voiceNoteTime.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
+
+        voiceNotePlayer.centerXAnchor.constraint(equalTo: stack.centerXAnchor).isActive = true
+        voiceNotePlayer.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
+        removeVoiceNoteButton.leadingAnchor.constraint(equalTo: stack.leadingAnchor).isActive = true
+        removeVoiceNoteButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
 
         return stack
     } ()
@@ -286,6 +295,67 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         button.isHidden = true
 
         return button
+    }()
+
+    private lazy var removeVoiceNoteButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(UIImage(named: "NavbarTrashBinWithLid"), for: .normal)
+        button.accessibilityLabel = Localizations.buttonRemove
+        button.addTarget(self, action: #selector(removeVoiceNoteClicked), for: .touchUpInside)
+        button.tintColor = .lavaOrange
+
+        button.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
+
+        button.isHidden = true
+
+        return button
+    }()
+
+    private lazy var voiceNoteAudioView: AudioView = {
+        let view = AudioView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.state = .played
+        view.delegate = self
+
+        return view
+    }()
+
+    private lazy var voiceNotePlayerTime: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .caption2)
+        label.textColor = UIColor.chatTime
+
+        label.widthAnchor.constraint(equalToConstant: 32).isActive = true
+
+        return label
+    }()
+
+    private lazy var voiceNotePlayer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .voiceNoteInputField
+        view.layer.cornerRadius = 19
+        view.layer.masksToBounds = true
+
+        view.widthAnchor.constraint(equalToConstant: 266).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 38).isActive = true
+
+        view.isHidden = true
+
+        view.addSubview(voiceNoteAudioView)
+        view.addSubview(voiceNotePlayerTime)
+
+        voiceNoteAudioView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        voiceNoteAudioView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16).isActive = true
+        voiceNotePlayerTime.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        voiceNotePlayerTime.leadingAnchor.constraint(equalTo: voiceNoteAudioView.trailingAnchor, constant: 12).isActive = true
+        voiceNotePlayerTime.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16).isActive = true
+
+        return view
     }()
 
     private lazy var mediaView: UIImageView = {
@@ -553,6 +623,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         recordVoiceNoteControl.isHidden = true
         postButton.isHidden = true
 
+        guard !isVoiceNoteRecordingLocked && !isShowingVoiceNote else { return }
+
         if !mentionText.isNonMentionTextEmpty() || mediaPanel.superview != nil {
             if ServerProperties.isMediaCommentsEnabled {
                 pickMediaButton.isHidden = false
@@ -560,9 +632,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
             postButton.isHidden = false
         } else if voiceNoteRecorder.isRecording {
-            if !isVoiceNoteRecordingLocked {
-                recordVoiceNoteControl.isHidden = false
-            }
+            recordVoiceNoteControl.isHidden = false
         } else {
             if ServerProperties.isMediaCommentsEnabled {
                 pickMediaButton.isHidden = false
@@ -1007,6 +1077,32 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             return self.textView.text
         }
     }
+
+    // MARK: Voice note
+
+    func show(voiceNote url: URL) {
+        isShowingVoiceNote = true
+        placeholder.isHidden = true
+        textView.text = ""
+        textView.isHidden = true
+        postVoiceNoteButton.isHidden = false
+        removeVoiceNoteButton.isHidden = false
+        voiceNotePlayer.isHidden = false
+        updatePostButtons()
+
+        voiceNoteAudioView.url = url
+    }
+
+    func hideVoiceNote() {
+        isShowingVoiceNote = false
+        voiceNoteAudioView.pause()
+        placeholder.isHidden = false
+        textView.isHidden = false
+        postVoiceNoteButton.isHidden = true
+        removeVoiceNoteButton.isHidden = true
+        voiceNotePlayer.isHidden = true
+        updatePostButtons()
+    }
     
     // MARK: Mention Picker
     
@@ -1021,7 +1117,17 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }
 
     @objc func postButtonClicked() {
-        if voiceNoteRecorder.isRecording {
+        if isShowingVoiceNote, let url = voiceNoteAudioView.url {
+            hideVoiceNote()
+
+            let media = PendingMedia(type: .audio)
+            media.size = .zero
+            media.order = 1
+            media.fileURL = url
+
+            let text = MentionText(expandedText: "", mentionRanges: [:])
+            delegate?.commentInputView(self, wantsToSend: text, andMedia: media, linkPreviewData: nil, linkPreviewMedia: nil)
+        } else if voiceNoteRecorder.isRecording {
             voiceNoteRecorder.stop(cancel: false)
 
             let media = PendingMedia(type: .audio)
@@ -1064,6 +1170,18 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     @objc func cancelRecordingButtonClicked() {
         if voiceNoteRecorder.isRecording {
             voiceNoteRecorder.stop(cancel: true)
+        }
+    }
+
+    @objc func removeVoiceNoteClicked() {
+        hideVoiceNote()
+
+        if let url = voiceNoteAudioView.url {
+            do {
+                try FileManager.default.removeItem(at: url)
+            } catch {
+                DDLogError("chatInputView/removeVoiceNoteClicked/error [\(error)]")
+            }
         }
     }
 
@@ -1461,6 +1579,10 @@ extension CommentInputView: AudioRecorderControlViewDelegate {
 
 // MARK: AudioRecorderDelegate
 extension CommentInputView: AudioRecorderDelegate {
+    func audioRecorderInterrupted(_ recorder: AudioRecorder) {
+        delegate?.commentInputView(self, didInterruptRecorder: recorder)
+    }
+
     func audioRecorderMicrphoneAccessDenied(_ recorder: AudioRecorder) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -1500,5 +1622,18 @@ extension CommentInputView: AudioRecorderDelegate {
             guard let self = self else { return }
             self.voiceNoteTime.text = time
         }
+    }
+}
+
+// MARK: AudioViewDelegate
+extension CommentInputView: AudioViewDelegate {
+    func audioView(_ view: AudioView, at time: String) {
+        voiceNotePlayerTime.text = time
+    }
+
+    func audioViewDidStartPlaying(_ view: AudioView) {
+    }
+
+    func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
     }
 }

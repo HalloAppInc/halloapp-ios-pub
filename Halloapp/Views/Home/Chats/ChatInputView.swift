@@ -29,6 +29,7 @@ protocol ChatInputViewDelegate: AnyObject {
     func chatInputViewDidSelectMediaPicker(_ inputView: ChatInputView)
     func chatInputViewMicrophoneAccessDenied(_ inputView: ChatInputView)
     func chatInputViewCloseQuotePanel(_ inputView: ChatInputView)
+    func chatInputView(_ inputView: ChatInputView, didInterruptRecorder recorder: AudioRecorder)
 }
 
 protocol ChatInputViewMentionsDelegate: AnyObject {
@@ -63,6 +64,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
     private var voiceNoteRecorder = AudioRecorder()
     private var isVoiceNoteRecordingLocked = false
+    private var isShowingVoiceNote = false
     
     // MARK: ChatInput Lifecycle
 
@@ -205,6 +207,12 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         cancelRecordingButton.centerXAnchor.constraint(equalTo: textInputRow.centerXAnchor).isActive = true
         cancelRecordingButton.centerYAnchor.constraint(equalTo: textInputRow.centerYAnchor).isActive = true
 
+        voiceNotePlayer.centerXAnchor.constraint(equalTo: textInputRow.centerXAnchor).isActive = true
+        voiceNotePlayer.centerYAnchor.constraint(equalTo: textInputRow.centerYAnchor).isActive = true
+
+        removeVoiceNoteButton.leadingAnchor.constraint(equalTo: textInputRow.leadingAnchor).isActive = true
+        removeVoiceNoteButton.centerYAnchor.constraint(equalTo: textInputRow.centerYAnchor).isActive = true
+
         textViewContainerHeightConstraint = textViewContainer.heightAnchor.constraint(equalToConstant: 115)
 
         contentView.addSubview(vStack)
@@ -242,15 +250,15 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         recordVoiceNoteControl.isHidden = true
         postButton.isHidden = true
 
+        guard !isVoiceNoteRecordingLocked && !isShowingVoiceNote else { return }
+
         let mentionText = MentionText(expandedText: textView.text, mentionRanges: textView.mentions)
 
         if !mentionText.isNonMentionTextEmpty() {
             postMediaButton.isHidden = false
             postButton.isHidden = false
         } else if voiceNoteRecorder.isRecording {
-            if !isVoiceNoteRecordingLocked {
-                recordVoiceNoteControl.isHidden = false
-            }
+            recordVoiceNoteControl.isHidden = false
         } else {
             postMediaButton.isHidden = false
 
@@ -482,6 +490,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.addSubview(voiceNoteTime)
         view.addSubview(cancelRecordingButton)
         view.addSubview(postVoiceNoteButton)
+        view.addSubview(removeVoiceNoteButton)
+        view.addSubview(voiceNotePlayer)
 
         view.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return view
@@ -636,6 +646,67 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         button.isHidden = true
 
         return button
+    }()
+
+    private lazy var removeVoiceNoteButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(UIImage(named: "NavbarTrashBinWithLid"), for: .normal)
+        button.accessibilityLabel = Localizations.buttonRemove
+        button.addTarget(self, action: #selector(removeVoiceNoteClicked), for: .touchUpInside)
+        button.tintColor = .lavaOrange
+
+        button.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
+
+        button.isHidden = true
+
+        return button
+    }()
+
+    private lazy var voiceNoteAudioView: AudioView = {
+        let view = AudioView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.state = .played
+        view.delegate = self
+
+        return view
+    }()
+
+    private lazy var voiceNotePlayerTime: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .caption2)
+        label.textColor = UIColor.chatTime
+
+        label.widthAnchor.constraint(equalToConstant: 32).isActive = true
+
+        return label
+    }()
+
+    private lazy var voiceNotePlayer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .voiceNoteInputField
+        view.layer.cornerRadius = 19
+        view.layer.masksToBounds = true
+
+        view.widthAnchor.constraint(equalToConstant: 266).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 38).isActive = true
+
+        view.isHidden = true
+
+        view.addSubview(voiceNoteAudioView)
+        view.addSubview(voiceNotePlayerTime)
+
+        voiceNoteAudioView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        voiceNoteAudioView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16).isActive = true
+        voiceNotePlayerTime.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        voiceNotePlayerTime.leadingAnchor.constraint(equalTo: voiceNoteAudioView.trailingAnchor, constant: 12).isActive = true
+        voiceNotePlayerTime.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16).isActive = true
+
+        return view
     }()
     
     private func resignFirstResponderOnDisappear(in viewController: UIViewController) {
@@ -862,12 +933,51 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
     var textIsUneditedReplyMention = false
     
-    
     func addReplyMentionIfPossible(for userID: UserID, name: String) {
         if textView.text.isEmpty || textIsUneditedReplyMention {
 //            clear()
             textView.addMention(name: name, userID: userID, in: NSRange(location: 0, length: 0))
             textIsUneditedReplyMention = true
+        }
+    }
+
+    // MARK: Voice notes
+
+    func show(voiceNote url: URL) {
+        isShowingVoiceNote = true
+        placeholder.isHidden = true
+        textView.text = ""
+        textView.isHidden = true
+        postVoiceNoteButton.isHidden = false
+        removeVoiceNoteButton.isHidden = false
+        voiceNotePlayer.isHidden = false
+        updatePostButtons()
+
+        voiceNoteAudioView.url = url
+    }
+
+    func hideVoiceNote() {
+        isShowingVoiceNote = false
+        voiceNoteAudioView.pause()
+        placeholder.isHidden = false
+        textView.isHidden = false
+        postVoiceNoteButton.isHidden = true
+        removeVoiceNoteButton.isHidden = true
+        voiceNotePlayer.isHidden = true
+        updatePostButtons()
+    }
+
+    // MARK: Actions
+
+    @objc func removeVoiceNoteClicked() {
+        hideVoiceNote()
+
+        if let url = voiceNoteAudioView.url {
+            do {
+                try FileManager.default.removeItem(at: url)
+            } catch {
+                DDLogError("chatInputView/removeVoiceNoteClicked/error [\(error)]")
+            }
         }
     }
 
@@ -881,7 +991,17 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         resetTypingTimers()
         acceptAutoCorrection()
 
-        if voiceNoteRecorder.isRecording {
+        if isShowingVoiceNote, let url = voiceNoteAudioView.url {
+            hideVoiceNote()
+
+            let media = PendingMedia(type: .audio)
+            media.size = .zero
+            media.order = 1
+            media.fileURL = url
+
+            let mentionText = MentionText(expandedText: "", mentionRanges: [:])
+            delegate?.chatInputView(self, mentionText: mentionText, media: [media])
+        } else if voiceNoteRecorder.isRecording {
             guard let duration = voiceNoteRecorder.duration, duration >= 1 else {
                 voiceNoteRecorder.stop(cancel: true)
                 return
@@ -1195,6 +1315,10 @@ extension ChatInputView: AudioRecorderControlViewDelegate {
 
 // MARK: AudioRecorderDelegate
 extension ChatInputView: AudioRecorderDelegate {
+    func audioRecorderInterrupted(_ recorder: AudioRecorder) {
+        delegate?.chatInputView(self, didInterruptRecorder: recorder)
+    }
+
     func audioRecorderMicrphoneAccessDenied(_ recorder: AudioRecorder) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -1235,6 +1359,19 @@ extension ChatInputView: AudioRecorderDelegate {
             guard let self = self else { return }
             self.voiceNoteTime.text = time
         }
+    }
+}
+
+// MARK: AudioViewDelegate
+extension ChatInputView: AudioViewDelegate {
+    func audioView(_ view: AudioView, at time: String) {
+        voiceNotePlayerTime.text = time
+    }
+
+    func audioViewDidStartPlaying(_ view: AudioView) {
+    }
+
+    func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
     }
 }
 

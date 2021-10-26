@@ -179,4 +179,8 @@ extension UIColor {
     class var archiveCellBackgroundPlaceholder: UIColor {
         UIColor(named: "ArchiveCellBackgroundPlaceholder")!
     }
+
+    class var voiceNoteInputField: UIColor {
+        UIColor(named: "voiceNoteInputField")!
+    }
 }

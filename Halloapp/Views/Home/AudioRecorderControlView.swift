@@ -326,10 +326,6 @@ class AudioRecorderControlView: UIView {
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if isActive {
-            delegate?.audioRecorderControlViewFinished(self, cancel: true)
-        }
-
         hide()
     }
 
