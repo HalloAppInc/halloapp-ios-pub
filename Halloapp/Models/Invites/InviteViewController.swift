@@ -25,8 +25,10 @@ let inviteViaLinkCellReuse = "InviteViaLinkCellReuse"
 final class InviteViewController: UIViewController {
 
     private var showDividers: Bool = true
+    private var screenTitle: String?
 
-    init(manager: InviteManager, showSearch: Bool = true, showDividers: Bool = true, dismissAction: (() -> Void)?) {
+    init(manager: InviteManager, title: String? = nil, showSearch: Bool = true, showDividers: Bool = true, dismissAction: (() -> Void)?) {
+        self.screenTitle = title
         self.showDividers = showDividers
     
         if #available(iOS 14.0, *) {
@@ -248,7 +250,7 @@ final class InviteViewController: UIViewController {
         }()
 
         let titleString = NSMutableAttributedString(
-            string: Localizations.inviteTitle,
+            string: screenTitle ?? Localizations.inviteTitle,
             attributes: [.font: titleFont, .paragraphStyle: paragraphStyle])
         if let countAttributedString = countAttributedString {
             titleString.append(countAttributedString)

@@ -280,7 +280,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         if isZeroZone {
             InviteManager.shared.requestInvitesIfNecessary()
-            let inviteVC = InviteViewController(manager: InviteManager.shared, showDividers: false, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+            let inviteVC = InviteViewController(manager: InviteManager.shared, title: Localizations.titleChatNewMessage, showDividers: false, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
             let navController = UINavigationController(rootViewController: inviteVC)
             present(navController, animated: true)
         } else {
