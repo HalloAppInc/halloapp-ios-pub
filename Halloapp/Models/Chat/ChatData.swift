@@ -2246,15 +2246,13 @@ extension ChatData {
 
     // MARK: 1-1 Clean Up Media Upload Data
 
-    // cleans up old upload data since prior to build 173 we did not do so
-    // this will be a redundant clean up after the first run and can be revisited to see if it's needed
     // todo: this should be called from somewhere else since this is calling chatData & feedData methods
     func cleanUpOldUploadData() {
         var shouldCleanUp = true
         if let mediaUploadDataLastCleanUpDouble = MainAppContext.shared.userDefaults?.double(forKey: MainAppContext.MediaUploadDataLastCleanUpTime) {
             let mediaUploadDataLastCleanUpDate = Date(timeIntervalSince1970: mediaUploadDataLastCleanUpDouble)
 
-            if let diff = Calendar.current.dateComponents([.day], from: mediaUploadDataLastCleanUpDate, to: Date()).day, diff < 7 {
+            if let diff = Calendar.current.dateComponents([.day], from: mediaUploadDataLastCleanUpDate, to: Date()).day, diff < 3 {
                 shouldCleanUp = false
             }
         }
@@ -2267,6 +2265,8 @@ extension ChatData {
         MainAppContext.shared.userDefaults?.setValue(Date().timeIntervalSince1970, forKey: MainAppContext.MediaUploadDataLastCleanUpTime)
     }
 
+    // cleans up old upload data since prior to build 173 we did not do so
+    // this will be a redundant clean up after the first run and can be revisited to see if it's needed
     private func cleanUpOldUploadData(directoryURL: URL) {
         DDLogInfo("ChatData/cleanUpOldUploadData")
         guard let enumerator = FileManager.default.enumerator(atPath: directoryURL.path) else { return }
