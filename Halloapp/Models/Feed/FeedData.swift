@@ -2603,6 +2603,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.updateFeedPostComment(with: commentId) { (feedComment) in
                     feedComment.timestamp = timestamp
                     feedComment.status = .sent
+
+                    MainAppContext.shared.endBackgroundTask(feedComment.id)
                 }
 
             case .failure(let error):
@@ -2611,6 +2613,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 if error.isKnownFailure {
                     self.updateFeedPostComment(with: commentId) { (feedComment) in
                         feedComment.status = .sendError
+                        MainAppContext.shared.endBackgroundTask(feedComment.id)
                     }
                     // TODO: murali@: we might end up in a loop constantly retrying.
 //                    switch error {
@@ -2645,6 +2648,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.updateFeedPost(with: postId) { (feedPost) in
                     feedPost.timestamp = timestamp
                     feedPost.status = .sent
+
+                    MainAppContext.shared.endBackgroundTask(postId)
                 }
 
             case .failure(let error):
@@ -2652,6 +2657,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 if error.isKnownFailure {
                     self.updateFeedPost(with: postId) { (feedPost) in
                         feedPost.status = .sendError
+
+                        MainAppContext.shared.endBackgroundTask(postId)
                     }
 //                    switch error {
 //                    case .audienceHashMismatch:
@@ -2714,6 +2721,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Media Upload
     private func uploadMediaAndSend(feedPost: FeedPost) {
         let postId = feedPost.id
+
+        MainAppContext.shared.beginBackgroundTask(postId)
 
         // Either all media has already been uploaded or post does not contain media.
         guard let mediaItemsToUpload = feedPost.media?.filter({ $0.status == .none || $0.status == .uploading || $0.status == .uploadError }), !mediaItemsToUpload.isEmpty else {
@@ -2846,6 +2855,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             uploadGroup.leave()
         }
 
+        MainAppContext.shared.beginBackgroundTask(feedLinkPreview.id)
+
         for mediaItemToUpload in mediaItemsToUpload {
             let mediaIndex = mediaItemToUpload.order
             uploadGroup.enter()
@@ -2891,6 +2902,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     
         uploadGroup.notify(queue: .main) {
+            MainAppContext.shared.endBackgroundTask(feedLinkPreview.id)
+
             DDLogInfo("FeedData/upload-feedLinkPreview-media/\(feedLinkPreview.id)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
             if numberOfFailedUploads > 0 {
                 if let commentId = feedLinkPreview.comment?.id {
@@ -2923,6 +2936,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
         
         private func uploadMediaAndSend(feedComment: FeedPostComment) {
+
+            MainAppContext.shared.beginBackgroundTask(feedComment.id)
 
             guard let mediaItemsToUpload = feedComment.media?.filter({ $0.status == .none || $0.status == .uploading || $0.status == .uploadError }), !mediaItemsToUpload.isEmpty else {
                 self.performSeriallyOnBackgroundContext { (managedObjectContext) in

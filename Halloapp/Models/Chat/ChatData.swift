@@ -1807,6 +1807,8 @@ extension ChatData {
         let msgID = xmppChatMsg.id
         
         guard let chatMsg = chatMessage(with: msgID, in: context) else { return }
+
+        MainAppContext.shared.beginBackgroundTask(msgID)
         
         // Either all media has already been uploaded or post does not contain media.
         guard let mediaItemsToUpload = chatMsg.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
@@ -1999,7 +2001,9 @@ extension ChatData {
     }
 
     private func send(message: ChatMessageProtocol) {
-        service.sendChatMessage(message) { _ in }
+        service.sendChatMessage(message) { _ in
+            MainAppContext.shared.endBackgroundTask(message.id)
+        }
     }
 
     private func handleRerequest(for messageID: String, from userID: UserID) {
