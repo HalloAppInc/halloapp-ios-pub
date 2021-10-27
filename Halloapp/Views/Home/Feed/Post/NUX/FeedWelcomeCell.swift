@@ -152,7 +152,7 @@ class FeedWelcomeCell: UICollectionViewCell {
         label.numberOfLines = 0
         label.font = .gothamFont(ofFixedSize: 15, weight: .medium)
         label.textColor = .label
-        label.text = "HalloApp"
+        label.text = Localizations.appNameHalloApp
 
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -215,7 +215,6 @@ class FeedWelcomeCell: UICollectionViewCell {
         return view
     }()
 
-    // todo: these kind of buttons can be normalized and share one button view
     private lazy var inviteFriendsButton: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ inviteFriendsLabel ])
         view.axis = .horizontal
@@ -228,7 +227,7 @@ class FeedWelcomeCell: UICollectionViewCell {
 
         view.translatesAutoresizingMaskIntoConstraints = false
         view.heightAnchor.constraint(greaterThanOrEqualToConstant: 42).isActive = true
-        
+
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(openInviteAction)))
 
         return view

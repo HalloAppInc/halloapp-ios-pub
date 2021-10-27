@@ -46,6 +46,7 @@ class ChatData: ObservableObject {
     let didGetAGroupFeed = PassthroughSubject<GroupID, Never>()
     let didGetAChatMsg = PassthroughSubject<UserID, Never>()
     let didGetAGroupEvent = PassthroughSubject<GroupID, Never>()
+    let didResetGroupInviteLink = PassthroughSubject<GroupID, Never>()
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
@@ -1331,7 +1332,20 @@ extension ChatData {
             }
         }
     }
-    
+
+    // trigger update for fetchedcontrollers with a manual (forced) save
+    func triggerGroupThreadUpdate(_ groupID: GroupID) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+
+            guard let chatThread = self.chatThread(type: .group, id: groupID, in: managedObjectContext) else { return }
+            let unreadFeedCount = chatThread.unreadFeedCount
+            chatThread.unreadFeedCount = unreadFeedCount
+
+            self.save(managedObjectContext)
+        }
+    }
+
     func markThreadAsRead(type: ChatType, for id: String) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
@@ -2923,7 +2937,6 @@ extension ChatData {
                 if !description.isEmpty {
                     dispatchGroup.enter()
                     self.changeGroupDescription(groupID: groupID, description: description) { result in
-                    
                         dispatchGroup.leave() // the group can be created regardless if description update succeeds or not
                     }
                 }
@@ -2937,6 +2950,9 @@ extension ChatData {
                 
                 dispatchGroup.notify(queue: self.backgroundProcessingQueue) {
                     completion(.success(groupID))
+
+                    // create invite link now and store it so later UI does not need to show empty link on very first load
+                    self.getGroupInviteLink(groupID: groupID) { _ in }
                 }
             case .failure(let error):
                 completion(.failure(error))
@@ -3194,7 +3210,13 @@ extension ChatData {
 
         return inviteLink
     }
-    
+
+    static public func formatGroupInviteLink(_ link: String) -> String {
+        var result = "https://halloapp.com/invite/?g="
+        result += link
+        return result
+    }
+
     func proceedIfNotGroupInviteLink(_ url: URL) -> Bool {
         guard let inviteToken = ChatData.parseInviteURL(url: url) else { return true }
         MainAppContext.shared.userData.groupInviteToken = inviteToken
@@ -3669,9 +3691,9 @@ extension ChatData {
     private func processGroupCreateAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
 
         let chatGroup = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
-        
+
         var contactNames = [UserID:String]()
-        
+
         // Add Group Creator
         if let existingCreator = chatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroup.sender ?? "", in: managedObjectContext) {
             existingCreator.type = .admin
@@ -3915,8 +3937,14 @@ extension ChatData {
             return
         }
 
-        let chatGroupMessage = ChatGroupMessage(context: managedObjectContext)
+        let isCreateEvent = xmppGroup.action == .create
+        let sharedNUX = MainAppContext.shared.nux
+        let isZeroZone = sharedNUX.state == .zeroZone
+        let haveNotCreatedUserGroup = sharedNUX.isIncomplete(.createdUserGroup)
+        let isUserGroup = xmppGroup.name == Localizations.groupsNUXuserGroupName(MainAppContext.shared.userData.name)
+        let isGroupCreatedForZeroZoneUser = isCreateEvent && isZeroZone && haveNotCreatedUserGroup && isUserGroup
 
+        let chatGroupMessage = ChatGroupMessage(context: managedObjectContext)
         if let messageId = xmppGroup.messageId {
             chatGroupMessage.id = messageId
         }
@@ -3960,10 +3988,26 @@ extension ChatData {
         if let chatThread = self.chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
 
             chatThread.lastFeedUserID = chatGroupMessage.userId
-            chatThread.lastFeedText = chatGroupMessageEvent.text
             chatThread.lastFeedTimestamp = chatGroupMessage.timestamp
+            chatThread.lastFeedText = chatGroupMessageEvent.text
 
-            // unreadCount is not incremented for group event messages
+            if isGroupCreatedForZeroZoneUser {
+                chatThread.lastFeedText = Localizations.groupFeedWelcomePostTitle
+            } else {
+                chatThread.lastFeedText = chatGroupMessageEvent.text
+            }
+
+            // nb: unreadFeedCount is not incremented for group event messages
+            // and NUX zero zone unread welcome post count is recorded in NUX userDefaults, not unreadFeedCount
+        }
+
+        if isGroupCreatedForZeroZoneUser {
+            sharedNUX.didComplete(.createdUserGroup)
+            self.updateUnreadThreadGroupsCount() // refresh bottom nav groups badge
+
+            // remove group message and event since this group is created for the user
+            managedObjectContext.delete(chatGroupMessageEvent)
+            managedObjectContext.delete(chatGroupMessage)
         }
         
         save(managedObjectContext)

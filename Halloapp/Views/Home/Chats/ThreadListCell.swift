@@ -232,21 +232,33 @@ class ThreadListCell: UITableViewCell {
             )
         }
     }
-    
+
     func configureForGroupsList(with chatThread: ChatThread, squareSize: CGFloat = 0) {
         guard chatThread.groupId != nil else { return }
         self.chatThread = chatThread
         titleLabel.text = chatThread.title
-        
+
         lastMsgLabel.attributedText = lastFeedText(for: chatThread).firstLineWithEllipsisIfNecessary()
 
-        if chatThread.unreadFeedCount > 0 {
+        var unreadFeedCount = chatThread.unreadFeedCount
+
+        // account for NUX zero zone
+        let sharedNUX = MainAppContext.shared.nux
+        let isZeroZone = sharedNUX.state == .zeroZone
+
+        if isZeroZone {
+            let haveCreatedUserGroup = sharedNUX.isComplete(.createdUserGroup)
+
+            let isGroupCreatedForUser = chatThread.title == Localizations.groupsNUXuserGroupName(MainAppContext.shared.userData.name)
+            let haveNotSeenGroupWelcomePost = sharedNUX.isIncomplete(.seenUserGroupWelcomePost)
+            if haveCreatedUserGroup, isGroupCreatedForUser, haveNotSeenGroupWelcomePost {
+                unreadFeedCount += 1
+            }
+        }
+
+        if unreadFeedCount > 0 {
             unreadCountView.isHidden = false
-            unreadCountView.label.text = String(chatThread.unreadFeedCount)
-            timeLabel.textColor = .systemBlue
-        } else if chatThread.isNew {
-            unreadCountView.isHidden = false
-            unreadCountView.label.text = " "
+            unreadCountView.label.text = String(unreadFeedCount)
             timeLabel.textColor = .systemBlue
         } else {
             unreadCountView.isHidden = true

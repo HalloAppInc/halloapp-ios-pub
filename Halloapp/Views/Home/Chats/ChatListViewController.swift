@@ -130,6 +130,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         setupFetchedResultsController()
         reloadData(animated: false)
 
+        showInviteViewControllerIfNeeded()
+
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] in
                 guard let self = self else { return }
@@ -196,6 +198,29 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     // MARK: NUX
 
+    private func showInviteViewControllerIfNeeded() {
+        let isZeroZone = MainAppContext.shared.nux.state == .zeroZone
+        guard isZeroZone else { return }
+
+        guard ContactStore.contactsAccessAuthorized else {
+            let inviteVC = InvitePermissionDeniedViewController()
+            present(UINavigationController(rootViewController: inviteVC), animated: true)
+            return
+        }
+        InviteManager.shared.requestInvitesIfNecessary()
+        let inviteVC = InviteViewController(manager: InviteManager.shared, showDividers: false, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+        inviteVC.view.frame = self.view.bounds
+        view.addSubview(inviteVC.view)
+        inviteVC.view.translatesAutoresizingMaskIntoConstraints = false
+        inviteVC.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
+        inviteVC.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        inviteVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        inviteVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+
+        addChild(inviteVC)
+        inviteVC.didMove(toParent: self)
+    }
+
     private lazy var overlayContainer: OverlayContainer = {
         let overlayContainer = OverlayContainer()
         overlayContainer.translatesAutoresizingMaskIntoConstraints = false
@@ -245,7 +270,18 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             present(UINavigationController(rootViewController: NewChatPermissionDeniedController()), animated: true)
             return
         }
-        present(UINavigationController(rootViewController: NewChatViewController(delegate: self)), animated: true)
+
+        let sharedNux = MainAppContext.shared.nux
+        let isZeroZone = sharedNux.state == .zeroZone
+
+        if isZeroZone {
+            InviteManager.shared.requestInvitesIfNecessary()
+            let inviteVC = InviteViewController(manager: InviteManager.shared, showDividers: false, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+            let navController = UINavigationController(rootViewController: inviteVC)
+            present(navController, animated: true)
+        } else {
+            present(UINavigationController(rootViewController: NewChatViewController(delegate: self)), animated: true)
+        }
     }
 
     // MARK: Invite friends
@@ -357,26 +393,26 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     @objc private func openComposeChatAction() {
         showComposeChat()
     }
-    
+
     // MARK: Helpers
-    
+
     func isScrolledFromTop(by fromTop: CGFloat) -> Bool {
         return tableView.contentOffset.y < fromTop
     }
-    
+
     private func populateWithAllContacts() {
         var isTimeToCheck = true
         if let lastCheckedForNewContacts = lastCheckedForNewContacts {
             isTimeToCheck = abs(lastCheckedForNewContacts.timeIntervalSinceNow) >= Date.minutes(1)
         }
-        
+
         if isTimeToCheck {
             DDLogDebug("ChatListViewController/populateWithAllContacts")
             MainAppContext.shared.chatData.populateThreadsWithAllContacts()
             lastCheckedForNewContacts = Date()
         }
     }
-    
+
     private func updateVisibleCellsWithTypingIndicator() {
         guard isVisible else { return }
         for tableCell in tableView.visibleCells {
@@ -385,7 +421,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             updateCellWithChatState(cell: cell, chatThread: chatThread)
         }
     }
-    
+
     private func updateCellWithChatState(cell: ThreadListCell, chatThread: ChatThread) {
         var typingIndicatorStr: String? = nil
         

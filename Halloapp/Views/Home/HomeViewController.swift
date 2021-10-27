@@ -78,7 +78,6 @@ class HomeViewController: UITabBarController {
         tabBar.tintColor = .primaryBlue
 
         updateTabBarBackgroundEffect()
-
         
         tabBarViewControllers = [
             feedNavigationController(),
@@ -254,9 +253,16 @@ class HomeViewController: UITabBarController {
     private func updateGroupsNavigationControllerBadge(_ count: Int) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            if let controller = self.viewControllers?[1] {
-                controller.tabBarItem.badgeValue = count == 0 ? nil : String(count)
+            guard let controller = self.viewControllers?[1] else { return }
+
+            var seenUserGroupWelcomePost = 0
+            let sharedNUX = MainAppContext.shared.nux
+            if sharedNUX.state == .zeroZone, sharedNUX.isComplete(.createdUserGroup), sharedNUX.isIncomplete(.seenUserGroupWelcomePost) {
+                seenUserGroupWelcomePost = 1
             }
+            let badge = count + seenUserGroupWelcomePost
+
+            controller.tabBarItem.badgeValue = badge == 0 ? nil : String(badge)
         }
     }
 

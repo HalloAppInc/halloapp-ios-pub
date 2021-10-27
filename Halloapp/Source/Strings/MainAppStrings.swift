@@ -168,7 +168,7 @@ extension Localizations {
     }
 
     static var inviteTitle: String {
-        NSLocalizedString("invite.title", value: "Invite", comment: "Title for the screen that allows to select contact to invite.")
+        NSLocalizedString("invite.title", value: "Invite Friends", comment: "Title for the screen that allows to select contact to invite.")
     }
 
     static var settingsAppName: String {

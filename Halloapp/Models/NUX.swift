@@ -23,6 +23,9 @@ final class NUX {
         case activityCenterIcon
         case newPostButton
         case feedPostWhoWillSee
+        
+        case createdUserGroup           // zerozone
+        case seenUserGroupWelcomePost   // zerozone
     }
 
     init(userDefaults: UserDefaults, appVersion: String = AppContext.appVersionForService) {
@@ -34,8 +37,6 @@ final class NUX {
         if contacts.count == 0 {
             state = .zeroZone
         }
-        
-//        state = .zeroZone
     }
 
     private let userDefaults: UserDefaults
@@ -46,22 +47,24 @@ final class NUX {
 
     private var eventCompletedVersions = [Event: String]()
 
+    func isComplete(_ event: Event) -> Bool {
+        return eventCompletedVersions.keys.contains(event)
+    }
+
     func isIncomplete(_ event: Event) -> Bool {
         return !eventCompletedVersions.keys.contains(event)
     }
 
     func didComplete(_ event: Event) {
         eventCompletedVersions[event] = appVersion
-        if !isDemoMode {
-            saveToUserDefaults()
-        }
+        saveToUserDefaults()
     }
 
     func startDemo() {
         isDemoMode = true
         eventCompletedVersions.removeAll()
     }
-    
+
     func devSetStateZeroZone() {
         state = .zeroZone
     }

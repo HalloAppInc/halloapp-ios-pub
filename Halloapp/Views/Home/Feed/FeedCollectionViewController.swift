@@ -333,6 +333,16 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         present(navController, animated: true)
     }
 
+    private func shareGroupInviteLink(_ link: String) {
+        if let urlStr = NSURL(string: link) {
+            let shareText = "\(Localizations.groupInviteShareLinkMessage) \(urlStr)"
+            let objectsToShare = [shareText]
+            let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
+
+            present(activityVC, animated: true, completion: nil)
+        }
+    }
+
     private func cancelSending(postId: FeedPostID) {
         MainAppContext.shared.feedData.cancelMediaUpload(postId: postId)
     }
@@ -562,10 +572,15 @@ extension FeedCollectionViewController {
                     }
                 }
                 return cell
-            case .groupWelcome:
+            case .groupWelcome(let groupID):
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier, for: indexPath)
                 if let groupFeedWelcomeCell = cell as? GroupFeedWelcomeCell {
                     groupFeedWelcomeCell.maxWidth = collectionView.frame.width
+                    groupFeedWelcomeCell.configure(groupID: groupID)
+                    groupFeedWelcomeCell.openShareLink = { [weak self] link in
+                        guard let self = self else { return }
+                        self.shareGroupInviteLink(link)
+                    }
                 }
                 return cell
             }

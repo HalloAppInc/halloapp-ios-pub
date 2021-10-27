@@ -13,19 +13,33 @@ import MessageUI
 import UIKit
 
 enum InviteSection {
+    case inviteViaLink
     case contactsWithFriendCount
     case contactsWithoutFriendCount
     case contactsOnHallo
 }
 
 let InviteCellReuse = "InviteCellReuse"
+let inviteViaLinkCellReuse = "InviteViaLinkCellReuse"
 
 final class InviteViewController: UIViewController {
 
-    init(manager: InviteManager, showSearch: Bool = true, dismissAction: (() -> Void)?) {
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+    private var showDividers: Bool = true
+
+    init(manager: InviteManager, showSearch: Bool = true, showDividers: Bool = true, dismissAction: (() -> Void)?) {
+        self.showDividers = showDividers
+    
+        if #available(iOS 14.0, *) {
+            let config = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
+            let layout = UICollectionViewCompositionalLayout.list(using: config)
+            collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        } else {
+            collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+        }
+
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.register(InviteCollectionViewCell.self, forCellWithReuseIdentifier: InviteCellReuse)
+        collectionView.register(InviteViaLinkCell.self, forCellWithReuseIdentifier: inviteViaLinkCellReuse)
 
         inviteManager = manager
 
@@ -123,28 +137,50 @@ final class InviteViewController: UIViewController {
     let inviteContactsManager = InviteContactsManager()
     let searchController: UISearchController?
 
-    lazy var dataSource: UICollectionViewDiffableDataSource<InviteSection, InviteContact> = {
-        UICollectionViewDiffableDataSource<InviteSection, InviteContact>(collectionView: collectionView) { [weak self] collectionView, indexPath, contact in
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: InviteCellReuse, for: indexPath)
-            if let self = self, let itemCell = cell as? InviteCollectionViewCell {
-                var actions = [InviteActionType]()
-                if contact.userID == nil {
-                    if self.isIMessageAvailable { actions.append(.sms) }
-                    if self.isWhatsAppAvailable { actions.append(.whatsApp) }
+    lazy var dataSource: UICollectionViewDiffableDataSource<InviteSection, AnyHashable> = {
+        UICollectionViewDiffableDataSource<InviteSection, AnyHashable>(collectionView: collectionView) { [weak self] collectionView, indexPath, item in
+            guard let self = self else { return UICollectionViewCell() }
+            if let inviteViaLinkCell = item.base as? InviteViaLinkRow {
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: inviteViaLinkCellReuse, for: indexPath)
+                if let inviteViaLinkCell = cell as? InviteViaLinkCell {
+                    inviteViaLinkCell.configure(showDividers: self.showDividers, openShareLinkAction: { [weak self] link in
+                        self?.inviteViaLink(link)
+                    })
                 }
-                itemCell.configure(
-                    with: contact,
-                    actions: InviteActions(
-                        action: { [weak self] action in self?.inviteAction(action, contact: contact)},
-                        types: actions),
-                    visitedActions: self.visitedActions[contact] ?? Set(),
-                    isTopDividerHidden: indexPath.item == 0)
+
+                return cell
+            } else if let contact = item.base as? InviteContact {
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: InviteCellReuse, for: indexPath)
+                if let itemCell = cell as? InviteCollectionViewCell {
+                    var actions = [InviteActionType]()
+                    if contact.userID == nil {
+                        if self.isIMessageAvailable { actions.append(.sms) }
+                        if self.isWhatsAppAvailable { actions.append(.whatsApp) }
+                    }
+                    itemCell.configure(
+                        with: contact,
+                        actions: InviteActions(
+                            action: { [weak self] action in self?.inviteAction(action, contact: contact)},
+                            types: actions),
+                        visitedActions: self.visitedActions[contact] ?? Set(),
+                        showDividers: self.showDividers,
+                        isTopDividerHidden: indexPath.item == 0)
+                }
+                return cell
             }
-            return cell
+            return UICollectionViewCell()
         }
     }()
 
     // MARK: Private
+
+    private func inviteViaLink(_ link: String) {
+        // nb: link is not used for now
+        let shareText = "\(Localizations.shareHalloAppString)"
+        let objectsToShare = [shareText]
+        let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
+        present(activityVC, animated: true, completion: nil)
+    }
 
     private let isWhatsAppAvailable: Bool = {
         guard let url = URL(string: "whatsapp://app") else { return false }
@@ -222,8 +258,8 @@ final class InviteViewController: UIViewController {
         titleLabel.textAlignment = .center
     }
 
-    private func makeDataSnapshot(searchString: String?) -> NSDiffableDataSourceSnapshot<InviteSection, InviteContact> {
-        var snapshot = NSDiffableDataSourceSnapshot<InviteSection, InviteContact>()
+    private func makeDataSnapshot(searchString: String?) -> NSDiffableDataSourceSnapshot<InviteSection, AnyHashable> {
+        var snapshot = NSDiffableDataSourceSnapshot<InviteSection, AnyHashable>()
 
         let contacts = inviteContactsManager.contacts(searchString: searchString)
         let halloAppUsers = contacts.filter { $0.userID != nil }
@@ -231,8 +267,9 @@ final class InviteViewController: UIViewController {
         let withFriends = inviteCandidates.filter { ($0.friendCount ?? 0) > 1 }.sorted { $0.friendCount ?? 0 > $1.friendCount ?? 0 }
         let withoutFriends = inviteCandidates.filter { ($0.friendCount ?? 0) <= 1 }
 
-        snapshot.appendSections([.contactsWithFriendCount, .contactsWithoutFriendCount, .contactsOnHallo])
+        snapshot.appendSections([.inviteViaLink, .contactsWithFriendCount, .contactsWithoutFriendCount, .contactsOnHallo])
 
+        snapshot.appendItems([InviteViaLinkRow.invite], toSection: .inviteViaLink)
         snapshot.appendItems(withFriends, toSection: .contactsWithFriendCount)
         snapshot.appendItems(withoutFriends, toSection: .contactsWithoutFriendCount)
         snapshot.appendItems(halloAppUsers, toSection: .contactsOnHallo)
@@ -366,16 +403,35 @@ extension InviteViewController: UICollectionViewDelegate, UICollectionViewDelega
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard isIMessageAvailable && !isWhatsAppAvailable else {
-            // Trigger SMS action on cell tap only if WhatsApp is not installed
-            return
+
+        // check if it's the first cell, which is the static share button
+        guard !(indexPath.section == 0 && indexPath.row == 0) else { return }
+
+        // at least one must be available to proceed
+        guard isIMessageAvailable || isWhatsAppAvailable else { return }
+
+        guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
+        guard let inviteContact = contact as? InviteContact, inviteContact.userID == nil else { return }
+
+        let actionSheet = UIAlertController(title: Localizations.inviteActionSheetTitle(inviteContact.fullName), message: nil, preferredStyle: .actionSheet)
+        actionSheet.view.tintColor = UIColor.systemBlue
+
+        if isIMessageAvailable {
+            actionSheet.addAction(UIAlertAction(title: Localizations.appNameSMS, style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                self.inviteAction(.sms, contact: inviteContact)
+            })
         }
 
-        guard let contact = dataSource.itemIdentifier(for: indexPath), contact.userID == nil else {
-            return
+        if isWhatsAppAvailable {
+            actionSheet.addAction(UIAlertAction(title: Localizations.appNameWhatsApp, style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                self.inviteAction(.whatsApp, contact: inviteContact)
+            })
         }
 
-        inviteAction(.sms, contact: contact)
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .destructive))
+        present(actionSheet, animated: true)
     }
 }
 
@@ -396,6 +452,112 @@ extension InviteViewController: UISearchBarDelegate {
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         searchBar.setShowsCancelButton(true, animated: true)
         searchBar.setCancelButtonTitleIfNeeded()
+    }
+}
+
+final class InviteViaLinkCell: UICollectionViewCell {
+
+    public func configure(showDividers: Bool = true, openShareLinkAction: ((String) -> ())?) {
+        actionCellView.openShareLink = openShareLinkAction
+        if !showDividers {
+            actionCellView.backgroundColor = .primaryBg
+        }
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupView()
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    private func setupView() {
+        contentView.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+
+        contentView.addSubview(actionCellView)
+        actionCellView.translatesAutoresizingMaskIntoConstraints = false
+        actionCellView.constrainMargins(to: contentView)
+    }
+
+    let actionCellView = ActionCellView()
+}
+
+final class ActionCellView: UIView {
+
+    var openShareLink: ((String) -> ())?
+
+    init() {
+        super.init(frame: .zero)
+        setupView()
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    private func setupView() {
+        mainPanel.addSubview(titleLabel)
+        mainPanel.addSubview(subtitleLabel)
+        addSubview(mainPanel)
+        addSubview(inviteViaLinkButton)
+
+        backgroundColor = .systemBackground
+
+        layoutMargins = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+
+        mainPanel.translatesAutoresizingMaskIntoConstraints = false
+
+        titleLabel.textColor = .label
+        titleLabel.font = .systemFont(forTextStyle: .callout, weight: .semibold)
+        titleLabel.numberOfLines = 1
+        titleLabel.text = Localizations.inviteViaLink
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        subtitleLabel.textColor = UIColor.label.withAlphaComponent(0.5)
+        subtitleLabel.font = .systemFont(forTextStyle: .footnote, pointSizeChange: 1)
+        subtitleLabel.numberOfLines = 1
+        subtitleLabel.text = "http://halloapp.com/dl"
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        inviteViaLinkButton.translatesAutoresizingMaskIntoConstraints = false
+
+        mainPanel.constrainMargins([.leading, .centerY], to: self)
+        mainPanel.topAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.topAnchor).isActive = true
+        mainPanel.bottomAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.bottomAnchor).isActive = true
+
+        titleLabel.constrain([.top, .leading, .trailing], to: mainPanel)
+
+        subtitleLabel.constrain([.bottom, .leading, .trailing], to: mainPanel)
+        subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2).isActive = true
+
+        inviteViaLinkButton.constrainMargins([.centerY], to: self)
+        inviteViaLinkButton.setContentHuggingPriority(.required, for: .horizontal)
+        inviteViaLinkButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -45).isActive = true
+    }
+
+    let mainPanel = UIView()
+    let titleLabel = UILabel()
+    let subtitleLabel = UILabel()
+
+    lazy var inviteViaLinkButton: UIButton = {
+        let button = Self.makeActionButton(title: Localizations.buttonShare)
+        button.addTarget(self, action: #selector(didTapInviteViaLinkButton), for: .touchUpInside)
+        return button
+    }()
+
+    @objc
+    private func didTapInviteViaLinkButton() {
+        guard let link = subtitleLabel.text else { return }
+        openShareLink?(link)
+    }
+
+    static func makeActionButton(title: String) -> UIButton {
+        let button = UIButton()
+        button.setTitle(title, for: .normal)
+        button.titleLabel?.font = .boldSystemFont(ofSize: 15)
+        button.setTitleColor(UIColor.primaryBlue, for: .normal)
+        let width = button.titleLabel?.intrinsicContentSize.width ?? 0
+        button.widthAnchor.constraint(equalToConstant: width).isActive = true
+        button.centerVerticallyWithPadding(padding: 3)
+        return button
     }
 }
 
@@ -424,9 +586,14 @@ final class InviteCollectionViewCell: UICollectionViewCell {
     let inviteCellView = InviteCellView()
     let topDivider = UIView()
 
-    func configure(with contact: InviteContact, actions: InviteActions?, visitedActions: Set<InviteActionType>, isTopDividerHidden: Bool) {
+    func configure(with contact: InviteContact, actions: InviteActions?, visitedActions: Set<InviteActionType>, showDividers: Bool, isTopDividerHidden: Bool) {
         inviteCellView.configure(with: contact, actions: actions, visitedActions: visitedActions)
-        topDivider.isHidden = isTopDividerHidden
+        if !showDividers {
+            inviteCellView.backgroundColor = .primaryBg
+            topDivider.isHidden = true
+        } else {
+            topDivider.isHidden = isTopDividerHidden
+        }
     }
 }
 
@@ -438,8 +605,7 @@ final class InviteCellView: UIView {
         contactInfoPanel.addSubview(nameLabel)
         contactInfoPanel.addSubview(subtitleLabel)
         addSubview(contactInfoPanel)
-        addSubview(whatsAppButton)
-        addSubview(smsButton)
+        addSubview(inviteButton)
 
         backgroundColor = .systemBackground
 
@@ -457,9 +623,6 @@ final class InviteCellView: UIView {
         subtitleLabel.numberOfLines = 0
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        smsButton.translatesAutoresizingMaskIntoConstraints = false
-        whatsAppButton.translatesAutoresizingMaskIntoConstraints = false
-
         contactInfoPanel.constrainMargins([.leading, .centerY], to: self)
         contactInfoPanel.topAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.topAnchor).isActive = true
         contactInfoPanel.bottomAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.bottomAnchor).isActive = true
@@ -469,13 +632,9 @@ final class InviteCellView: UIView {
         subtitleLabel.constrain([.bottom, .leading, .trailing], to: contactInfoPanel)
         subtitleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 2).isActive = true
 
-        whatsAppButton.constrainMargins([.centerY], to: self)
-        whatsAppButton.setContentHuggingPriority(.required, for: .horizontal)
-        whatsAppButton.leadingAnchor.constraint(equalTo: contactInfoPanel.trailingAnchor, constant: 0).isActive = true
-
-        smsButton.constrainMargins([.centerY, .trailing], to: self)
-        smsButton.setContentHuggingPriority(.required, for: .horizontal)
-        smsButton.leadingAnchor.constraint(equalTo: whatsAppButton.trailingAnchor, constant: 16).isActive = true
+        inviteButton.constrainMargins([.centerY], to: self)
+        inviteButton.setContentHuggingPriority(.required, for: .horizontal)
+        inviteButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -25).isActive = true
     }
 
     required init?(coder: NSCoder) {
@@ -500,13 +659,14 @@ final class InviteCellView: UIView {
         nameLabel.text = contact.fullName
         subtitleLabel.text = [secondLine, thirdLine].compactMap({ $0 }).joined(separator: "\n")
 
-        smsButton.setImage(visitedActions.contains(.sms) ? smsImageVisited : smsImage, for: .normal)
-        whatsAppButton.setImage(visitedActions.contains(.whatsApp) ? whatsAppImageVisited : whatsAppImage, for: .normal)
-
         let actionTypes = actions?.types ?? []
 
-        smsButton.isHidden = !actionTypes.contains(.sms)
-        whatsAppButton.isHidden = !actionTypes.contains(.whatsApp)
+        let canInvite = actionTypes.contains(.sms) || actionTypes.contains(.whatsApp)
+        inviteButton.isHidden = !canInvite
+
+        let haveInvitedBefore = visitedActions.contains(.sms) || visitedActions.contains(.whatsApp)
+        inviteButton.backgroundColor = haveInvitedBefore ? .systemGray : .primaryBlue
+
         action = actions?.action
     }
 
@@ -518,35 +678,33 @@ final class InviteCellView: UIView {
 
     var contact: InviteContact?
 
-    lazy var smsImage = UIImage(named: "InviteIconMessages")
-    lazy var smsImageVisited = UIImage(named: "InviteIconMessagesVisited")
-    lazy var smsButton: UIButton = {
-        let button = Self.makeActionButton(
-            image: smsImage,
-            title: Localizations.appNameSMS)
-        button.addTarget(self, action: #selector(didTapSMS), for: .touchUpInside)
-        return button
+    private lazy var inviteButton: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ inviteLabel ])
+        view.axis = .horizontal
+        view.alignment = .center
+        view.backgroundColor = UIColor.primaryBlue
+        view.layer.cornerRadius = 10
+
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        view.isLayoutMarginsRelativeArrangement = true
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.heightAnchor.constraint(greaterThanOrEqualToConstant: 42).isActive = true
+
+        return view
     }()
 
-    lazy var whatsAppImage = UIImage(named: "InviteIconWhatsApp")
-    lazy var whatsAppImageVisited = UIImage(named: "InviteIconWhatsAppVisited")
-    lazy var whatsAppButton: UIButton = {
-        let button = Self.makeActionButton(
-            image: whatsAppImage,
-            title: Localizations.appNameWhatsApp)
-        button.addTarget(self, action: #selector(didTapWhatsApp), for: .touchUpInside)
-        return button
+    private lazy var inviteLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 0
+        label.backgroundColor = .clear
+        label.font = .systemFont(ofSize: 15)
+        label.textColor = UIColor.primaryWhiteBlack
+        label.text = Localizations.buttonInvite
+
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
-
-    @objc
-    private func didTapSMS() {
-        action?(.sms)
-    }
-
-    @objc
-    private func didTapWhatsApp() {
-        action?(.whatsApp)
-    }
 
     static var forSizing: InviteCellView {
         let cell = InviteCellView()
@@ -569,6 +727,11 @@ final class InviteCellView: UIView {
 }
 
 private extension Localizations {
+
+    static var inviteViaLink: String {
+        NSLocalizedString("invite.via.link", value: "Invite via link", comment: "Title of cell at the top of the invite screen")
+    }
+
     static var alreadyHalloAppUser: String {
         NSLocalizedString("invite.already.halloapp.user",
                           value: "Already a HalloApp user",
@@ -599,6 +762,10 @@ private extension Localizations {
         NSLocalizedString("invite.error.alert.message",
                           value: "Something went wrong. Please try again later.",
                           comment: "Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp.")
+    }
+
+    static func inviteActionSheetTitle(_ username: String) -> String {
+        return String(format: NSLocalizedString("invite.action.sheet.title", value: "Invite %@ via...", comment: "Title of action sheet that allows the user to choose between sms and whatsapp to invite contact"), username)
     }
 
     static func inviteText(name: String?, number: String?) -> String {

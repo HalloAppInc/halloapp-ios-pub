@@ -37,10 +37,6 @@ private extension Localizations {
     static var shareRow: String {
         NSLocalizedString("profile.row.share", value: "Share HalloApp", comment: "Row in Profile Screen.")
     }
-    
-    static var shareHalloAppString: String {
-        NSLocalizedString("settings.share.text", value: "Join my real-relationship network on HalloApp. Download for free at halloapp.com/dl", comment: "String to auto-fill if a user tried to share to a friend.")
-    }
 }
 
 class SettingsViewController: UITableViewController {

@@ -28,6 +28,15 @@ class FeedViewController: FeedCollectionViewController {
     private var feedPostIdToScrollTo: FeedPostID?
     private var showContactsPermissionDialogIfNecessary = true
 
+    override init(title: String?, fetchRequest: NSFetchRequest<FeedPost>) {
+        super.init(title: title, fetchRequest: fetchRequest)
+        self.setupDatasourceAndRefreshIfNeeded()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     // MARK: UIViewController
 
     override func viewDidLoad() {
@@ -54,8 +63,6 @@ class FeedViewController: FeedCollectionViewController {
         inviteButton.addTarget(self, action: #selector(didTapInviteButtion), for: .touchUpInside)
 
         self.navigationItem.rightBarButtonItems = [UIBarButtonItem(customView: notificationButton), UIBarButtonItem(customView: inviteButton)]
-
-        setupDatasource()
 
         if let feedNotifications = MainAppContext.shared.feedData.feedNotifications {
             notificationCount = feedNotifications.unreadCount
@@ -133,7 +140,7 @@ class FeedViewController: FeedCollectionViewController {
 
     // MARK: Datasource
 
-    private func setupDatasource() {
+    private func setupDatasourceAndRefreshIfNeeded() {
         feedDataSource.modifyItems = { items in
             var result = items
             if MainAppContext.shared.nux.state == .zeroZone {
@@ -144,6 +151,11 @@ class FeedViewController: FeedCollectionViewController {
                 }
             }
             return result
+        }
+
+        if MainAppContext.shared.nux.state == .zeroZone {
+            DDLogInfo("FeedViewController/setupDatasourceAndRefreshIfNeeded/is zero zone, refresh")
+            feedDataSource.refresh()
         }
     }
 

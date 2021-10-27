@@ -20,10 +20,6 @@ fileprivate struct Constants {
     static let LastMsgColor = UIColor.secondaryLabel
 }
 
-fileprivate enum ChatListViewSection {
-    case main
-}
-
 class GroupsListViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private static let cellReuseIdentifier = "ThreadListCell"
@@ -730,7 +726,7 @@ class GroupsListHeaderView: UITableViewHeaderFooterView {
     }
 }
 
-private extension Localizations {
+extension Localizations {
 
     static func groupsNUXuserGroupName(_ username: String) -> String {
         return String(format: NSLocalizedString("groups.NUX.user.group.name", value: "%@'s Group", comment: "The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content)"), username)

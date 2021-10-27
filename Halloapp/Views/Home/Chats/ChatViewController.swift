@@ -58,8 +58,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     private var cancellableSet: Set<AnyCancellable> = []
 
     private var firstActionHappened: Bool = false
-    
-    private var scrollToBottomDebounceTimer: Timer? = nil
 
     // MARK: Lifecycle
 
@@ -850,22 +848,22 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     }
 
     private func scrollToBottom(_ animated: Bool = true) {
-        scrollToBottomDebounceTimer?.invalidate()
-        scrollToBottomDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { [weak self] _ in
-            guard let self = self else { return }
-            guard let dataSnapshot = self.dataSource?.snapshot() else { return }
-            let numberOfRows = dataSnapshot.numberOfItems(inSection: ChatViewController.sectionMain)
-            guard numberOfRows > 0 else { return }
-            let indexPath = IndexPath(row: numberOfRows - 1, section: ChatViewController.sectionMain)
+        guard let dataSnapshot = self.dataSource?.snapshot() else { return }
+        let numberOfRows = dataSnapshot.numberOfItems(inSection: ChatViewController.sectionMain)
+        guard numberOfRows > 0 else { return }
+        let indexPath = IndexPath(row: numberOfRows - 1, section: ChatViewController.sectionMain)
 
-            if animated {
+        if animated {
+            let scrollPoint = CGPoint(x: 0, y: self.tableView.contentSize.height)
+            self.tableView.setContentOffset(scrollPoint, animated: true)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 // use our own animation because for some reason tableView's animation gets interrupted intermittently
                 UIView.animate(withDuration: 0.2, animations: {
                     self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
                 })
-            } else {
-                self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
             }
+        } else {
+            self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
         }
     }
 

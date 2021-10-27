@@ -49,11 +49,15 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     private var alreadyHaveMembers: Bool = false
     private var currentMembers: [UserID] = []
     
+    private let sharedNUX = MainAppContext.shared.nux
+    private let isZeroZone: Bool
     private var cancellableSet: Set<AnyCancellable> = []
 
     init(currentMembers: [UserID] = []) {
         self.currentMembers = currentMembers
         self.alreadyHaveMembers = self.currentMembers.count > 0 ? true : false
+
+        self.isZeroZone = sharedNUX.state == .zeroZone
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -363,10 +367,12 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSource {
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return self.fetchedResultsController?.sections?.count ?? 0
+        guard !isZeroZone else { return 1 }
+        return fetchedResultsController?.sections?.count ?? 0
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        guard !isZeroZone else { return 1 }
         guard let sections = self.fetchedResultsController?.sections else { return 0 }
         if isFiltering {
           return filteredContacts.count
@@ -375,6 +381,12 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard !isZeroZone else {
+            let cell = ContactTableViewCell()
+            cell.configure(with: MainAppContext.shared.userData.userId)
+            cell.setContact(selected: true, animated: false)
+            return cell
+        }
         let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
 
         let abContact: ABContact?
@@ -385,19 +397,27 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
             abContact = fetchedResultsController?.object(at: indexPath)
         }
 
-        if let abContact = abContact {
-            if let userId = abContact.userId {
-                cell.configure(with: abContact)
-                let isSelected = selectedMembers.contains(userId)
-                cell.setContact(selected: isSelected, animated: false) // animation flickers if true due to too many reloads
+        if MainAppContext.shared.nux.state == .zeroZone {
+            cell.configure(with: MainAppContext.shared.userData.userId)
+            cell.setContact(selected: true, animated: false)
+        } else {
+            if let abContact = abContact {
+                if let userId = abContact.userId {
+                    cell.configure(with: userId)
+                    let isSelected = selectedMembers.contains(userId)
+                    cell.setContact(selected: isSelected, animated: false) // animation flickers if true due to too many reloads
+                }
             }
         }
+
         return cell
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        guard !isZeroZone else { return UITableView.automaticDimension }
+
         var contact: ABContact?
-        
+
         if isFiltering {
             contact = filteredContacts[indexPath.row]
         } else {
@@ -413,6 +433,8 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
     }
 
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        guard !isZeroZone else { return }
+
         var contact: ABContact?
 
         if isFiltering {
@@ -434,6 +456,7 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard !isZeroZone else { return }
         guard let cell = tableView.cellForRow(at: indexPath) as? ContactTableViewCell else { return }
         let abContact: ABContact?
         if isFiltering {
@@ -532,17 +555,23 @@ fileprivate struct TrackedContact {
 
 private extension ContactTableViewCell {
 
-    func configure(with abContact: ABContact) {
+    func configure(with userID: UserID) {
         options.insert(.hasCheckmark)
         options.insert(.useBlueCheckmark)
 
-        nameLabel.text = abContact.fullName
-        subtitleLabel.text = abContact.phoneNumber
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
 
-        if let userId = abContact.userId {
-            contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
+        if userID == MainAppContext.shared.userData.userId {
+            subtitleLabel.text = MainAppContext.shared.userData.formattedPhoneNumber
+        } else {
+            let abContacts = MainAppContext.shared.contactStore.contacts(withUserIds: [userID])
+            if let contact = abContacts.first {
+                subtitleLabel.text = contact.phoneNumber
+            }
         }
+        contactImage.configure(with: userID, using: MainAppContext.shared.avatarStore)
     }
+
 }
 
 extension Localizations {
