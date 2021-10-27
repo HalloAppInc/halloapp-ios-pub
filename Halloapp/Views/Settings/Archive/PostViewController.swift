@@ -16,36 +16,38 @@ class PostViewController: UIViewController {
     private let post: FeedPost
 
     private lazy var backBtn: UIView = {
-        let backBtn = UIButton(type: .custom)
-        backBtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
-        backBtn.addTarget(self, action: #selector(backAction), for: [.touchUpInside, .touchUpOutside])
-        backBtn.setImage(UIImage(named: "NavbarBack")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        backBtn.translatesAutoresizingMaskIntoConstraints = false
+        let background = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
+        background.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
+        background.translatesAutoresizingMaskIntoConstraints = false
+        background.layer.masksToBounds = true
+        background.layer.cornerRadius = 22
 
-        let container = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
-        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
+        let button = UIButton(type: .custom)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(backAction), for: [.touchUpInside, .touchUpOutside])
+        button.setImage(UIImage(named: "NavbarBack")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
+
+        let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.layer.masksToBounds = true
-        container.layer.cornerRadius = 22
+
+        container.addSubview(background)
+        container.addSubview(button)
 
         container.widthAnchor.constraint(equalToConstant: 44).isActive = true
         container.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        background.constrain(to: container)
+        button.constrain(to: container)
 
-        container.contentView.addSubview(backBtn)
-        backBtn.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
-        backBtn.trailingAnchor.constraint(equalTo: container.trailingAnchor).isActive = true
-        backBtn.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
-        backBtn.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
+        return container
+    }()
 
-        let wrapper = UIView()
-        wrapper.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        wrapper.heightAnchor.constraint(equalToConstant: 44).isActive = true
+    private lazy var backgroundView: UIView = {
+        let view = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
+        view.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.3)
+        view.translatesAutoresizingMaskIntoConstraints = false
 
-        wrapper.addSubview(container)
-        container.centerYAnchor.constraint(equalTo: wrapper.centerYAnchor).isActive = true
-        container.centerXAnchor.constraint(equalTo: wrapper.centerXAnchor, constant: -18).isActive = true
-
-        return wrapper
+        return view
     }()
 
     private lazy var postView: FeedPostView = {
@@ -76,53 +78,46 @@ class PostViewController: UIViewController {
         
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .overFullScreen
+        modalTransitionStyle = .crossDissolve
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func withNavigationController() -> UIViewController {
-        let controller = UINavigationController(rootViewController: self)
-        controller.modalPresentationStyle = .overFullScreen
-
-        return controller
-    }
-
     override func viewDidLoad() {
-        view.backgroundColor = .black.withAlphaComponent(0.6)
-        setupNavigation()
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        view.backgroundColor = .clear
+        view.addSubview(backgroundView)
+        backgroundView.constrain(to: view)
+
+        view.addSubview(backBtn)
+        backBtn.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 2).isActive = true
+        backBtn.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
+
         setupPostActions()
 
         scrollView.addSubview(postView)
         view.addSubview(scrollView)
 
+        scrollView.contentInset = UIEdgeInsets(top: 52, left: 0, bottom: 0, right: 0)
         scrollView.constrain(to: view)
-        scrollView.contentLayoutGuide.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor).isActive = true
+        scrollView.contentLayoutGuide.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor, constant: -52).isActive = true
         scrollView.contentLayoutGuide.heightAnchor.constraint(greaterThanOrEqualTo: postView.heightAnchor, constant: 48).isActive = true
         scrollView.contentLayoutGuide.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor).isActive = true
         scrollView.contentLayoutGuide.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor).isActive = true
 
-        let contentWidth = UIScreen.main.bounds.width - 16
-        postView.widthAnchor.constraint(equalToConstant: contentWidth).isActive = true
+        postView.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        postView.widthAnchor.constraint(equalToConstant: view.frame.width).isActive = true
         postView.centerXAnchor.constraint(equalTo: scrollView.contentLayoutGuide.centerXAnchor).isActive = true
         postView.centerYAnchor.constraint(equalTo: scrollView.contentLayoutGuide.centerYAnchor).isActive = true
 
-        postView.configure(with: post, contentWidth: contentWidth, gutterWidth: 8, showGroupName: true, displayData: nil)
-        postView.setHeaderHeight(forPost: post, contentWidth: contentWidth)
+        let contentWidth = view.frame.width - view.layoutMargins.left - view.layoutMargins.right
+        let gutterWidth = (1 - FeedPostCollectionViewCell.LayoutConstants.backgroundPanelHMarginRatio) * view.layoutMargins.left
+        postView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, showGroupName: true, showArchivedDate: true)
         postView.isShowingFooter = false
+
         postView.delegate = self
-    }
-
-    private func setupNavigation() {
-        navigationController?.navigationBar.standardAppearance = .transparentAppearance
-        navigationController?.navigationBar.overrideUserInterfaceStyle = .dark
-        navigationController?.navigationBar.barStyle = .black
-        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-        navigationController?.navigationBar.shadowImage = UIImage()
-        navigationController?.navigationBar.backgroundColor = .clear
-
-        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backBtn)
     }
 
     @objc private func backAction() {
@@ -274,7 +269,7 @@ extension PostViewController {
 // MARK: UIScrollViewDelegate
 extension PostViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView.contentOffset.y < -200 {
+        if scrollView.contentOffset.y < -100 {
             dismiss(animated: true)
         }
     }
