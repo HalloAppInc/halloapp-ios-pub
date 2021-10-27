@@ -51,9 +51,9 @@ final class ProtoPushTokenRequest: ProtoRequest<Void> {
         pushToken.token = token
         
         #if DEBUG
-        pushToken.os = .iosDev
+        pushToken.tokenType = .iosDev
         #else
-        pushToken.os = .ios
+        pushToken.tokenType = .ios
         #endif
 
         var pushRegister = Server_PushRegister()

@@ -2137,10 +2137,21 @@ public struct Server_EndCall {
   public enum Reason: SwiftProtobuf.Enum {
     public typealias RawValue = Int
     case unknown // = 0
+
+    /// receiver rejects the incoming call
     case reject // = 1
+
+    /// receiver is in another call
     case busy // = 2
+
+    /// sender or receiver times out the call after ringing for some time.
     case timeout // = 3
+
+    /// initiator or receiver end the call.
     case callEnd // = 4
+
+    /// initiator hangups before the call connects.
+    case cancel // = 5
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -2154,6 +2165,7 @@ public struct Server_EndCall {
       case 2: self = .busy
       case 3: self = .timeout
       case 4: self = .callEnd
+      case 5: self = .cancel
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -2165,6 +2177,7 @@ public struct Server_EndCall {
       case .busy: return 2
       case .timeout: return 3
       case .callEnd: return 4
+      case .cancel: return 5
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -2184,6 +2197,7 @@ extension Server_EndCall.Reason: CaseIterable {
     .busy,
     .timeout,
     .callEnd,
+    .cancel,
   ]
 }
 
@@ -3842,18 +3856,19 @@ public struct Server_PushToken {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var os: Server_PushToken.Os = .android
+  public var tokenType: Server_PushToken.TokenType = .android
 
   public var token: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public enum Os: SwiftProtobuf.Enum {
+  public enum TokenType: SwiftProtobuf.Enum {
     public typealias RawValue = Int
     case android // = 0
     case ios // = 1
     case iosDev // = 2
     case iosAppclip // = 3
+    case iosVoip // = 4
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -3866,6 +3881,7 @@ public struct Server_PushToken {
       case 1: self = .ios
       case 2: self = .iosDev
       case 3: self = .iosAppclip
+      case 4: self = .iosVoip
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -3876,6 +3892,7 @@ public struct Server_PushToken {
       case .ios: return 1
       case .iosDev: return 2
       case .iosAppclip: return 3
+      case .iosVoip: return 4
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -3887,13 +3904,14 @@ public struct Server_PushToken {
 
 #if swift(>=4.2)
 
-extension Server_PushToken.Os: CaseIterable {
+extension Server_PushToken.TokenType: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
-  public static var allCases: [Server_PushToken.Os] = [
+  public static var allCases: [Server_PushToken.TokenType] = [
     .android,
     .ios,
     .iosDev,
     .iosAppclip,
+    .iosVoip,
   ]
 }
 
@@ -4663,11 +4681,20 @@ public struct Server_RegisterRequest {
     set {request = .verifyRequest(newValue)}
   }
 
+  public var hashcashRequest: Server_HashcashRequest {
+    get {
+      if case .hashcashRequest(let v)? = request {return v}
+      return Server_HashcashRequest()
+    }
+    set {request = .hashcashRequest(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Request: Equatable {
     case otpRequest(Server_OtpRequest)
     case verifyRequest(Server_VerifyOtpRequest)
+    case hashcashRequest(Server_HashcashRequest)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_RegisterRequest.OneOf_Request, rhs: Server_RegisterRequest.OneOf_Request) -> Bool {
@@ -4681,6 +4708,10 @@ public struct Server_RegisterRequest {
       }()
       case (.verifyRequest, .verifyRequest): return {
         guard case .verifyRequest(let l) = lhs, case .verifyRequest(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.hashcashRequest, .hashcashRequest): return {
+        guard case .hashcashRequest(let l) = lhs, case .hashcashRequest(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -4715,11 +4746,20 @@ public struct Server_RegisterResponse {
     set {response = .verifyResponse(newValue)}
   }
 
+  public var hashcashResponse: Server_HashcashResponse {
+    get {
+      if case .hashcashResponse(let v)? = response {return v}
+      return Server_HashcashResponse()
+    }
+    set {response = .hashcashResponse(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Response: Equatable {
     case otpResponse(Server_OtpResponse)
     case verifyResponse(Server_VerifyOtpResponse)
+    case hashcashResponse(Server_HashcashResponse)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_RegisterResponse.OneOf_Response, rhs: Server_RegisterResponse.OneOf_Response) -> Bool {
@@ -4735,11 +4775,39 @@ public struct Server_RegisterResponse {
         guard case .verifyResponse(let l) = lhs, case .verifyResponse(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
+      case (.hashcashResponse, .hashcashResponse): return {
+        guard case .hashcashResponse(let l) = lhs, case .hashcashResponse(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
       default: return false
       }
     }
   #endif
   }
+
+  public init() {}
+}
+
+public struct Server_HashcashRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var countryCode: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Server_HashcashResponse {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var hashcashChallenge: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 }
@@ -4758,6 +4826,10 @@ public struct Server_OtpRequest {
   public var groupInviteToken: String = String()
 
   public var userAgent: String = String()
+
+  public var hashcashSolution: String = String()
+
+  public var hashcashSolutionTimeTakenMs: Int64 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -4862,6 +4934,8 @@ public struct Server_OtpResponse {
     case retriedTooSoon // = 7
     case badRequest // = 8
     case internalServerError // = 9
+    case invalidHashcashNonce // = 10
+    case wrongHashcashSolution // = 11
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -4880,6 +4954,8 @@ public struct Server_OtpResponse {
       case 7: self = .retriedTooSoon
       case 8: self = .badRequest
       case 9: self = .internalServerError
+      case 10: self = .invalidHashcashNonce
+      case 11: self = .wrongHashcashSolution
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -4896,6 +4972,8 @@ public struct Server_OtpResponse {
       case .retriedTooSoon: return 7
       case .badRequest: return 8
       case .internalServerError: return 9
+      case .invalidHashcashNonce: return 10
+      case .wrongHashcashSolution: return 11
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -4929,6 +5007,8 @@ extension Server_OtpResponse.Reason: CaseIterable {
     .retriedTooSoon,
     .badRequest,
     .internalServerError,
+    .invalidHashcashNonce,
+    .wrongHashcashSolution,
   ]
 }
 
@@ -8392,6 +8472,7 @@ extension Server_EndCall.Reason: SwiftProtobuf._ProtoNameProviding {
     2: .same(proto: "BUSY"),
     3: .same(proto: "TIMEOUT"),
     4: .same(proto: "CALL_END"),
+    5: .same(proto: "CANCEL"),
   ]
 }
 
@@ -10115,7 +10196,7 @@ extension Server_PrivacyLists.TypeEnum: SwiftProtobuf._ProtoNameProviding {
 extension Server_PushToken: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".PushToken"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "os"),
+    1: .standard(proto: "token_type"),
     2: .same(proto: "token"),
   ]
 
@@ -10125,7 +10206,7 @@ extension Server_PushToken: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularEnumField(value: &self.os) }()
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.tokenType) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.token) }()
       default: break
       }
@@ -10133,8 +10214,8 @@ extension Server_PushToken: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.os != .android {
-      try visitor.visitSingularEnumField(value: self.os, fieldNumber: 1)
+    if self.tokenType != .android {
+      try visitor.visitSingularEnumField(value: self.tokenType, fieldNumber: 1)
     }
     if !self.token.isEmpty {
       try visitor.visitSingularStringField(value: self.token, fieldNumber: 2)
@@ -10143,19 +10224,20 @@ extension Server_PushToken: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   }
 
   public static func ==(lhs: Server_PushToken, rhs: Server_PushToken) -> Bool {
-    if lhs.os != rhs.os {return false}
+    if lhs.tokenType != rhs.tokenType {return false}
     if lhs.token != rhs.token {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-extension Server_PushToken.Os: SwiftProtobuf._ProtoNameProviding {
+extension Server_PushToken.TokenType: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "ANDROID"),
     1: .same(proto: "IOS"),
     2: .same(proto: "IOS_DEV"),
     3: .same(proto: "IOS_APPCLIP"),
+    4: .same(proto: "IOS_VOIP"),
   ]
 }
 
@@ -11234,6 +11316,7 @@ extension Server_RegisterRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "otp_request"),
     2: .standard(proto: "verify_request"),
+    3: .standard(proto: "hashcash_request"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -11260,6 +11343,15 @@ extension Server_RegisterRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.request = .verifyRequest(v)}
       }()
+      case 3: try {
+        var v: Server_HashcashRequest?
+        if let current = self.request {
+          try decoder.handleConflictingOneOf()
+          if case .hashcashRequest(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.request = .hashcashRequest(v)}
+      }()
       default: break
       }
     }
@@ -11278,6 +11370,10 @@ extension Server_RegisterRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       guard case .verifyRequest(let v)? = self.request else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
+    case .hashcashRequest?: try {
+      guard case .hashcashRequest(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -11295,6 +11391,7 @@ extension Server_RegisterResponse: SwiftProtobuf.Message, SwiftProtobuf._Message
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "otp_response"),
     2: .standard(proto: "verify_response"),
+    3: .standard(proto: "hashcash_response"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -11321,6 +11418,15 @@ extension Server_RegisterResponse: SwiftProtobuf.Message, SwiftProtobuf._Message
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.response = .verifyResponse(v)}
       }()
+      case 3: try {
+        var v: Server_HashcashResponse?
+        if let current = self.response {
+          try decoder.handleConflictingOneOf()
+          if case .hashcashResponse(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.response = .hashcashResponse(v)}
+      }()
       default: break
       }
     }
@@ -11339,6 +11445,10 @@ extension Server_RegisterResponse: SwiftProtobuf.Message, SwiftProtobuf._Message
       guard case .verifyResponse(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
+    case .hashcashResponse?: try {
+      guard case .hashcashResponse(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -11346,6 +11456,70 @@ extension Server_RegisterResponse: SwiftProtobuf.Message, SwiftProtobuf._Message
 
   public static func ==(lhs: Server_RegisterResponse, rhs: Server_RegisterResponse) -> Bool {
     if lhs.response != rhs.response {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_HashcashRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".HashcashRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "country_code"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.countryCode) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.countryCode.isEmpty {
+      try visitor.visitSingularStringField(value: self.countryCode, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_HashcashRequest, rhs: Server_HashcashRequest) -> Bool {
+    if lhs.countryCode != rhs.countryCode {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_HashcashResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".HashcashResponse"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "hashcash_challenge"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.hashcashChallenge) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.hashcashChallenge.isEmpty {
+      try visitor.visitSingularStringField(value: self.hashcashChallenge, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_HashcashResponse, rhs: Server_HashcashResponse) -> Bool {
+    if lhs.hashcashChallenge != rhs.hashcashChallenge {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -11359,6 +11533,8 @@ extension Server_OtpRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     3: .standard(proto: "lang_id"),
     4: .standard(proto: "group_invite_token"),
     5: .standard(proto: "user_agent"),
+    6: .standard(proto: "hashcash_solution"),
+    7: .standard(proto: "hashcash_solution_time_taken_ms"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -11372,6 +11548,8 @@ extension Server_OtpRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       case 3: try { try decoder.decodeSingularStringField(value: &self.langID) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self.groupInviteToken) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self.userAgent) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.hashcashSolution) }()
+      case 7: try { try decoder.decodeSingularInt64Field(value: &self.hashcashSolutionTimeTakenMs) }()
       default: break
       }
     }
@@ -11393,6 +11571,12 @@ extension Server_OtpRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if !self.userAgent.isEmpty {
       try visitor.visitSingularStringField(value: self.userAgent, fieldNumber: 5)
     }
+    if !self.hashcashSolution.isEmpty {
+      try visitor.visitSingularStringField(value: self.hashcashSolution, fieldNumber: 6)
+    }
+    if self.hashcashSolutionTimeTakenMs != 0 {
+      try visitor.visitSingularInt64Field(value: self.hashcashSolutionTimeTakenMs, fieldNumber: 7)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -11402,6 +11586,8 @@ extension Server_OtpRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if lhs.langID != rhs.langID {return false}
     if lhs.groupInviteToken != rhs.groupInviteToken {return false}
     if lhs.userAgent != rhs.userAgent {return false}
+    if lhs.hashcashSolution != rhs.hashcashSolution {return false}
+    if lhs.hashcashSolutionTimeTakenMs != rhs.hashcashSolutionTimeTakenMs {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -11484,6 +11670,8 @@ extension Server_OtpResponse.Reason: SwiftProtobuf._ProtoNameProviding {
     7: .same(proto: "RETRIED_TOO_SOON"),
     8: .same(proto: "BAD_REQUEST"),
     9: .same(proto: "INTERNAL_SERVER_ERROR"),
+    10: .same(proto: "INVALID_HASHCASH_NONCE"),
+    11: .same(proto: "WRONG_HASHCASH_SOLUTION"),
   ]
 }
 

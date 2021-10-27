@@ -73,7 +73,7 @@ public final class NoiseRegistrationService: RegistrationService {
                             }
                         }
                     }
-                case .verifyResponse, .none:
+                case .hashcashResponse, .verifyResponse, .none:
                     DispatchQueue.main.async {
                         completion(.failure(RegistrationErrorResponse(error: VerificationCodeRequestError.malformedResponse)))
                     }
@@ -121,9 +121,9 @@ public final class NoiseRegistrationService: RegistrationService {
             var token = Server_PushToken()
             token.token = pushToken
             #if DEBUG
-            token.os = .iosDev
+            token.tokenType = .iosDev
             #else
-            token.os = pushOS == "ios_appclip" ? .iosAppclip : .ios
+            token.tokenType = pushOS == "ios_appclip" ? .iosAppclip : .ios
             #endif
 
             var register = Server_PushRegister()
@@ -156,7 +156,7 @@ public final class NoiseRegistrationService: RegistrationService {
                             completion(.failure(error))
                         }
                     }
-                case .otpResponse, .none:
+                case .hashcashResponse, .otpResponse, .none:
                     DispatchQueue.main.async {
                         completion(.failure(VerificationCodeRequestError.malformedResponse))
                     }
@@ -370,6 +370,10 @@ private extension VerificationCodeRequestError {
             return .requestCreationError
         case .internalServerError, .unknownReason, .UNRECOGNIZED:
             return .malformedResponse
+        case .invalidHashcashNonce:
+            return .requestCreationError
+        case .wrongHashcashSolution:
+            return .requestCreationError
         }
     }
 }
