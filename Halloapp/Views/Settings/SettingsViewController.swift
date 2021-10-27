@@ -59,7 +59,6 @@ class SettingsViewController: UITableViewController {
         case settings
         case notifications
         case privacy
-        case storage
         case invite
         case help
         case about
@@ -74,7 +73,6 @@ class SettingsViewController: UITableViewController {
     private let cellSettings = SettingsTableViewCell(text: Localizations.titleSettings, image: UIImage(named: "settingsSettings"))
     private let cellNotifications = SettingsTableViewCell(text: Localizations.titleNotifications, image: UIImage(named: "settingsNotifications"))
     private let cellPrivacy = SettingsTableViewCell(text: Localizations.titlePrivacy, image: UIImage(named: "settingsPrivacy"))
-    private let cellStorage = SettingsTableViewCell(text: Localizations.titleStorage, image: UIImage(named: "settingsMyPosts"))
     private let cellInviteFriends = SettingsTableViewCell(text: Localizations.inviteFriends, image: UIImage(named: "settingsInvite"))
     private let cellHelp = SettingsTableViewCell(text: Localizations.help, image: UIImage(named: "settingsHelp"))
     private let cellAbout = SettingsTableViewCell(text: Localizations.about, image: UIImage(named: "settingsAbout"))
@@ -120,7 +118,6 @@ class SettingsViewController: UITableViewController {
             case .settings: return self.cellSettings
             case .notifications: return self.cellNotifications
             case .privacy: return self.cellPrivacy
-            case .storage: return self.cellStorage
             case .invite: return self.cellInviteFriends
             case .help: return self.cellHelp
             case .about: return self.cellAbout
@@ -132,9 +129,6 @@ class SettingsViewController: UITableViewController {
         snapshot.appendSections([ .one, .two, .three ])
         snapshot.appendItems([ .profile, .feed, .archive ], toSection: .one)
         snapshot.appendItems([ .account, .notifications, .privacy ], toSection: .two)
-        if ServerProperties.isInternalUser {
-            snapshot.appendItems([ .storage ], toSection: .two)
-        }
         snapshot.appendItems([ .help, .about, .invite, .share ], toSection: .three)
         dataSource.apply(snapshot, animatingDifferences: false)
 
@@ -201,8 +195,6 @@ class SettingsViewController: UITableViewController {
             openNotifications()
         case .privacy:
             openPrivacy()
-        case .storage:
-            openStorage()
         case .invite:
             openInviteFriends()
         case .help:
@@ -240,12 +232,6 @@ class SettingsViewController: UITableViewController {
     
     private func openPrivacy() {
         let viewController = PrivacyViewController()
-        viewController.hidesBottomBarWhenPushed = false
-        navigationController?.pushViewController(viewController, animated: true)
-    }
-
-    private func openStorage() {
-        let viewController = StorageViewController()
         viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }

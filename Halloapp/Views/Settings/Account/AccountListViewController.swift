@@ -19,11 +19,18 @@ class SettingsAccountViewController: UITableViewController {
     }
 
     private enum Row {
+        case storage
         case export
         case delete
     }
 
     private var dataSource: UITableViewDiffableDataSource<Section, Row>!
+    private let cellStorage: UITableViewCell = {
+        let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+        cell.textLabel?.text = Localizations.titleStorage
+        cell.accessoryType = .disclosureIndicator
+        return cell
+    }()
     private let cellExport: UITableViewCell = {
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
         cell.textLabel?.text = Localizations.exportData
@@ -56,6 +63,7 @@ class SettingsAccountViewController: UITableViewController {
         dataSource = UITableViewDiffableDataSource<Section, Row>(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
             guard let self = self else { return nil }
             switch row {
+            case .storage: return self.cellStorage
             case .export: return self.cellExport
             case .delete: return self.cellDelete
             }
@@ -63,6 +71,9 @@ class SettingsAccountViewController: UITableViewController {
 
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         snapshot.appendSections([ .account ])
+        if ServerProperties.isInternalUser {
+            snapshot.appendItems([ .storage ], toSection: .account)
+        }
         snapshot.appendItems([ .export, .delete ], toSection: .account)
         dataSource.apply(snapshot, animatingDifferences: false)
     }
@@ -90,9 +101,16 @@ class SettingsAccountViewController: UITableViewController {
         }
         
         switch itemId {
+            case .storage: openStorage()
             case .export: openExportView()
             case .delete: openDeleteView()
         }
+    }
+    
+    private func openStorage() {
+        let viewController = StorageViewController()
+        viewController.hidesBottomBarWhenPushed = false
+        navigationController?.pushViewController(viewController, animated: true)
     }
     
     private func openExportView() {

@@ -200,7 +200,11 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     private func showInviteViewControllerIfNeeded() {
         let isZeroZone = MainAppContext.shared.nux.state == .zeroZone
-        guard isZeroZone else { return }
+
+        // check if list is empty since someone could've messaged the user
+        let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
+
+        guard isZeroZone, isEmpty else { return }
 
         guard ContactStore.contactsAccessAuthorized else {
             let inviteVC = InvitePermissionDeniedViewController()
