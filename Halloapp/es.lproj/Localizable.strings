@@ -481,6 +481,12 @@
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body" = "Usa tu número de teléfono para conectarte con amigos y familia en un entorno sin anuncios, marcas, me gustan o influentes.\n\nHalloApp es para tí y para esos cercanos a tí, en privado. ¡Invita a tus amigos de verdad para empezar!";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title" = "Bienvenido a HalloApp, un espacio para relaciones de verdad ✨";
+
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Comentar";
 
@@ -556,6 +562,12 @@
 /* Message text shown when you remove a group member */
 "group.event.removed.member.you" = "Has eliminado a %1@";
 
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
+"group.feed.welcome.post.body" = "Comparte este enlace con tus amigos y ellos se unirán a tu grupo de forma automática.";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
+"group.feed.welcome.post.title" = "Invita a un amigo a este grupo";
+
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Invitar al grupo a través de un enlace";
 
@@ -624,6 +636,9 @@
 
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "¿Estás seguro que quieres eliminar este grupo y su contenido de este dispositivo?";
+
+/* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
+"groups.NUX.user.group.name" = "Grupo de %@'";
 
 /* A label on the header to indicate which person I have groups in common with */
 "groups.title" = "Con %@";
@@ -1169,7 +1184,7 @@
 "settings.privacy.posts" = "Publicaciones";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Únete a mí en mi red social de relaciones reales, HalloApp. Baja la la aplicación gratis en halloapp.com/dl";
+"settings.share.text" = "Únete a mí en mi red social de relaciones reales, HalloApp. Baja la aplicación gratis en halloapp.com/dl";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Añadir a la lista de lectura";
