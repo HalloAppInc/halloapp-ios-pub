@@ -52,7 +52,7 @@ class UnknownContactActionBanner: UIView {
         view.backgroundColor = UIColor.chatOwnBubbleBg
         view.layer.cornerRadius = 30
 
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 15)
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10) // left/right 15 or higher cuts off for Dutch, for small phones (ie. SE)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false

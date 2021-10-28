@@ -218,7 +218,7 @@ enum FeedDisplayItem: Hashable, Equatable {
     case post(FeedPost)
     case event(FeedEvent)
     case welcome
-    case groupWelcome
+    case groupWelcome(GroupID)
 
     var post: FeedPost? {
         switch self {
@@ -235,6 +235,15 @@ enum FeedDisplayItem: Hashable, Equatable {
         case .event(let event): return event
         case .welcome: return nil
         case .groupWelcome: return nil
+        }
+    }
+    
+    var groupWelcome: GroupID? {
+        switch self {
+        case .post: return nil
+        case .event: return nil
+        case .welcome: return nil
+        case .groupWelcome(let groupID): return groupID
         }
     }
 }

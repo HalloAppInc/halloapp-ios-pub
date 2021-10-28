@@ -201,17 +201,35 @@ class GroupFeedViewController: FeedCollectionViewController {
     }
 
     // MARK: Datasource
-    
+
     private func setupDatasource() {
-        feedDataSource.modifyItems = { items in
+        feedDataSource.modifyItems = { [weak self] items in
             var result = items
-            if MainAppContext.shared.nux.state == .zeroZone {
-                if MainAppContext.shared.nux.isDemoMode {
-                    result.insert(FeedDisplayItem.groupWelcome, at: 0)
-                } else {
-                    result.append(FeedDisplayItem.groupWelcome)
-                }
+            guard let self = self else { return result }
+            guard let group = self.group else { return result }
+
+            let sharedNUX = MainAppContext.shared.nux
+            let sharedUserData = MainAppContext.shared.userData
+            let sharedChatData = MainAppContext.shared.chatData
+
+            let isZeroZone = sharedNUX.state == .zeroZone
+            guard isZeroZone else { return result }
+
+            guard let groupMember = sharedChatData?.chatGroupMember(groupId: group.groupId, memberUserId: sharedUserData.userId) else { return result }
+            guard groupMember.type == .admin else { return result }
+
+            // brittle string comparison, should migrate to storing groupID once zero zone feature stabilizes
+            let isGroupCreatedForUser = group.name == Localizations.groupsNUXuserGroupName(MainAppContext.shared.userData.name)
+
+            result.append(FeedDisplayItem.groupWelcome(self.groupId))
+
+            // one time update to mark welcome post as seen in the special group created for the user
+            if isGroupCreatedForUser {
+                sharedNUX.didComplete(.seenUserGroupWelcomePost) // user will see welcome post once loaded since it's at the top
+                MainAppContext.shared.chatData.updateUnreadThreadGroupsCount() // refresh bottom nav groups badge
+                MainAppContext.shared.chatData.triggerGroupThreadUpdate(self.groupId) // refresh groups list thread unread count
             }
+
             return result
         }
     }

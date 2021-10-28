@@ -706,9 +706,11 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             attrText.append(NSMutableAttributedString(string: padStr, attributes: [.font: padTimeFont, .paragraphStyle: paragraph]))
         }
 
-        if let font = textView.font, let color = textView.textColor {
+        if !isLargeFontEmoji, let font = textView.font, let color = textView.textColor {
             let ham = HAMarkdown(font: font, color: color)
             textView.attributedText = ham.parse(attrText)
+        } else {
+            textView.attributedText = attrText
         }
 
         if !showTextRTL {

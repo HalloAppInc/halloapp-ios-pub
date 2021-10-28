@@ -34,12 +34,6 @@ class GroupInviteViewController: UIViewController {
         setupView()
     }
 
-    private func formatLink(_ link: String) -> String {
-        var result = "https://halloapp.com/invite/?g="
-        result += link
-        return result
-    }
-
     func setupView() {
         view.backgroundColor = .primaryBg
 
@@ -48,25 +42,24 @@ class GroupInviteViewController: UIViewController {
         view.addSubview(mainView)
         mainView.constrain(to: view)
 
-        if group?.inviteLink == nil {
-            MainAppContext.shared.chatData.getGroupInviteLink(groupID: groupID) { [weak self] result in
-                guard let self = self else { return }
+        // always get current group invite link (for case when there are more than one admin and link was reset)
+        MainAppContext.shared.chatData.getGroupInviteLink(groupID: groupID) { [weak self] result in
+            guard let self = self else { return }
 
-                switch result {
-                case .success(let link):
-                    guard let link = link else { break }
-                    DispatchQueue.main.async {
-                        self.linkLabel.text = self.formatLink(link)
-                    }
-                case .failure(let error):
-                    DDLogDebug("GroupInviteViewController/getGroupInviteLink/error \(error)")
+            switch result {
+            case .success(let link):
+                guard let link = link else { break }
+                DispatchQueue.main.async {
+                    self.linkLabel.text = ChatData.formatGroupInviteLink(link)
                 }
+            case .failure(let error):
+                DDLogDebug("GroupInviteViewController/getGroupInviteLink/error \(error)")
             }
         }
 
         groupAvatarView.configure(groupId: groupID, squareSize: Constants.AvatarSize, using: MainAppContext.shared.avatarStore)
         groupNameText.text = group?.name ?? ""
-        linkLabel.text = formatLink(group?.inviteLink ?? "")
+        linkLabel.text = ChatData.formatGroupInviteLink(group?.inviteLink ?? "")
     }
 
     private lazy var mainView: UIScrollView = {
@@ -98,9 +91,9 @@ class GroupInviteViewController: UIViewController {
 
         return view
     }()
-    
+
     private lazy var infoRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [avatarRow, groupNameLabelRow, groupNameRow, groupLinkLabelRow, groupLinkRow])
+        let view = UIStackView(arrangedSubviews: [avatarRow, groupNameLabelRow, groupNameRow, groupLinkLabelRow, groupLinkColumn])
         view.axis = .vertical
         view.spacing = 0
         view.setCustomSpacing(30, after: avatarRow)
@@ -204,7 +197,7 @@ class GroupInviteViewController: UIViewController {
         return label
     }()
 
-    private lazy var groupLinkRow: UIStackView = {
+    private lazy var groupLinkColumn: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
 
@@ -577,7 +570,9 @@ class GroupInviteViewController: UIViewController {
                     guard let link = link else { break }
                     DispatchQueue.main.async { [weak self] in
                         guard let self = self else { return }
-                        self.linkLabel.text = self.formatLink(link)
+                        self.linkLabel.text = ChatData.formatGroupInviteLink(link)
+
+                        MainAppContext.shared.chatData.didResetGroupInviteLink.send(self.groupID)
 
                         self.actionResultLabel.attributedText = self.formatResultAttributedText(text: Localizations.groupInviteLinkReset)
                         self.resultRow.isHidden = false

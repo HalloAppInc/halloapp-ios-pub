@@ -10,6 +10,16 @@ import Core
 
 extension Localizations {
 
+    static var appNameHalloApp: String {
+        NSLocalizedString("app.name.halloapp", value: "HalloApp", comment: "Company name")
+    }
+
+    // MARK: Inviting
+
+    static var shareHalloAppString: String {
+        NSLocalizedString("settings.share.text", value: "Join my real-relationship network on HalloApp. Download for free at halloapp.com/dl", comment: "String to auto-fill if a user tried to share to a friend.")
+    }
+
     // MARK: Buttons
 
     static var buttonOK: String {
@@ -34,6 +44,10 @@ extension Localizations {
 
     static var buttonShare: String {
         NSLocalizedString("button.share", value: "Share", comment: "Title for generic Share button. Mostly used to complete some modal flow.")
+    }
+
+    static var buttonInvite: String {
+        NSLocalizedString("button.invite", value: "Invite", comment: "Title for generic Invite button.")
     }
 
     static var buttonSend: String {

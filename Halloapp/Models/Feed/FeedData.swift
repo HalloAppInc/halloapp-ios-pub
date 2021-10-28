@@ -3117,9 +3117,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         }
                     }
                 }) {
-                    if media.status == .uploaded {
-                        ImageServer.cleanUpUploadData(directoryURL: MainAppContext.mediaDirectoryURL, relativePath: media.relativeFilePath)
-                    }
                     completion(uploadResult.map { $0.fileSize })
                 }
             }
@@ -3203,9 +3200,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         }
                     }
                 }) {
-                    if media.status == .uploaded {
-                        ImageServer.cleanUpUploadData(directoryURL: MainAppContext.mediaDirectoryURL, relativePath: media.relativeFilePath)
-                    }
                     completion(uploadResult.map { $0.fileSize })
                 }
             }
@@ -3289,9 +3283,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         }
                     }
                 }) {
-                    if media.status == .uploaded {
-                        ImageServer.cleanUpUploadData(directoryURL: MainAppContext.mediaDirectoryURL, relativePath: media.relativeFilePath)
-                    }
                     completion(uploadResult.map { $0.fileSize })
                 }
             }
@@ -3305,8 +3296,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Clean Up Media Upload Data
 
-    // cleans up old upload data since prior to build 173 we did not do so
-    // this will be a redundant clean up after the first run and can be revisited to see if it's needed
+    // cleans up old upload data since for now we do not remove the originals right after uploading
     public func cleanUpOldUploadData(directoryURL: URL) {
         DDLogInfo("FeedData/cleanUpOldUploadData")
         guard let enumerator = FileManager.default.enumerator(atPath: directoryURL.path) else { return }
@@ -3352,16 +3342,29 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     // form the processed filename's relative path
                     let processedRelativeFilePath = relativeFilePathForProcessed + "/" + processedFileName
 
-                    DDLogInfo("FeedData/cleanUpOldUploadData/clean up deleted message upload data: \(processedRelativeFilePath)")
+                    DDLogVerbose("FeedData/cleanUpOldUploadData/clean up deleted message upload data: \(processedRelativeFilePath)")
                     ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: processedRelativeFilePath)
                 }
             } else {
                 // message exists, clean up any upload data in all the media
-                // nb: comments media and urlpreviews media are skipped since they were introduced just before build 173
                 feedPost?.media?.forEach { (media) in
                     guard media.status == .uploaded else { return }
-                    DDLogInfo("FeedData/cleanUpOldUploadData/clean up existing message upload data: \(media.relativeFilePath ?? "")")
+                    DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing feedpost upload data: \(media.relativeFilePath ?? "")")
                     ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                }
+                feedPost?.comments?.forEach { comment in
+                    comment.media?.forEach { media in
+                        guard media.status == .uploaded else { return }
+                        DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing media comment upload data: \(media.relativeFilePath ?? "")")
+                        ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                    }
+                }
+                feedPost?.linkPreviews?.forEach { linkPreview in
+                    linkPreview.media?.forEach { media in
+                        guard media.status == .uploaded else { return }
+                        DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing link preview upload data: \(media.relativeFilePath ?? "")")
+                        ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
+                    }
                 }
             }
         })

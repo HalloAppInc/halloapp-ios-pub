@@ -70,10 +70,15 @@ class CreateGroupViewController: UIViewController {
         mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         
-        groupNameTextView.text = groupNamePlaceholderText
-        groupNameTextView.textColor = .placeholderText
+        if MainAppContext.shared.nux.state == .zeroZone {
+            groupNameTextView.text = Localizations.createGroupDefaultNameMyNewGroup
+            navigationItem.rightBarButtonItem?.isEnabled = canCreate
+        } else {
+            groupNameTextView.text = groupNamePlaceholderText
+            groupNameTextView.textColor = .placeholderText
+            groupNameTextView.selectedTextRange = groupNameTextView.textRange(from: groupNameTextView.beginningOfDocument, to: groupNameTextView.beginningOfDocument)
+        }
         groupNameTextView.becomeFirstResponder()
-        groupNameTextView.selectedTextRange = groupNameTextView.textRange(from: groupNameTextView.beginningOfDocument, to: groupNameTextView.beginningOfDocument)
 
         groupDescriptionTextView.text = groupDescriptionPlaceholderText
         groupDescriptionTextView.textColor = .placeholderText
@@ -535,6 +540,10 @@ private extension Localizations {
 
     static var createGroupTitle: String {
         NSLocalizedString("create.group.title", value: "Group Info", comment: "Title of group creation screen")
+    }
+
+    static var createGroupDefaultNameMyNewGroup: String {
+        NSLocalizedString("create.group.default.name.my.new.group", value: "My new group", comment: "The default name given to new groups when the user is in Zero Zone (no contacts)")
     }
 
     static var createGroupNamePlaceholder: String {
