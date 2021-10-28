@@ -481,6 +481,12 @@
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body" = "از شماره تلفن خود برای پیوستن به دوستان و آشنایان خود در فضایی بدون تبلیغات، برندها، لایک‌ها و اینفلونسرها استفاده کنید. هالواپ برای شما و نزدیکانتان در فضای خصوصی است. دوستان واقعیتان را برای شروع دعوت کنید!";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title" = "به هالواپ خوش‌آمدید، فضایی برای رابطه‌های واقعی ✨";
+
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "نظر نوشتن";
 
@@ -556,6 +562,12 @@
 /* Message text shown when you remove a group member */
 "group.event.removed.member.you" = "شما @1% را حذف کردید";
 
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
+"group.feed.welcome.post.body" = "این لینک را با دوستانتان به اشتراک بگذارید و آن‌ها اتوماتیک به گروه شما میپیوندند.";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
+"group.feed.welcome.post.title" = "دوست خود را به گروهتان دعوت کنید";
+
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "دعوت به گروه با لینک";
 
@@ -624,6 +636,9 @@
 
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "مطمئنید میخواهید این گروه و محتوای آن را از دستگاه حذف کنید؟";
+
+/* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
+"groups.NUX.user.group.name" = "گروه @%";
 
 /* A label on the header to indicate which person I have groups in common with */
 "groups.title" = "با %@";
@@ -1254,6 +1269,9 @@
 
 /* Fourth tab in the main app interface */
 "title.settings" = "تنظیمات";
+
+/* Row in Settings screen */
+"title.storage" = "حافظه";
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "دیده شد توسط";

@@ -481,6 +481,12 @@
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body" = "Gebruik je telefoonnummer om je te verbinden met vrienden & familie in een ruimte zonder advertenties, zonder merken, zonder likes en zonder influencers.\n\nHalloApp is voor jou en degenen die het dichtst bij je staan, volledig in privé. Nodig je echte vrienden uit om te beginnen!";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title" = "Welkom bij HalloApp, een digitale ruimte voor echte relaties ✨";
+
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Reageren";
 
@@ -556,6 +562,12 @@
 /* Message text shown when you remove a group member */
 "group.event.removed.member.you" = "Je hebt %1@ verwijderd";
 
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
+"group.feed.welcome.post.body" = "Deel deze link met vrienden en ze worden automatisch toegevoegd aan je groep.";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
+"group.feed.welcome.post.title" = "Nodig een vriend uit voor je groep";
+
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Uitnodigen voor Groep via Link";
 
@@ -625,6 +637,9 @@
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "Weet je zeker dat je deze groep en de inhoud ervan wilt verwijderen?";
 
+/* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
+"groups.NUX.user.group.name" = "Group van %@";
+
 /* A label on the header to indicate which person I have groups in common with */
 "groups.title" = "Met %@";
 
@@ -671,7 +686,7 @@
 "invite.text.specific" = "Hey %1$@, ik wil je graag uitnodigen voor HalloApp - een netwerk voor échte relaties die het dichtst bij me staan. Gebruik %2$@ om je te registreren. Download de app op https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
-"invite.title" = "Uitnodigen";
+"invite.title" = "Vrienden uitnodigen";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Zoeken";
