@@ -9,6 +9,7 @@
 import Combine
 import LinkPresentation
 import UIKit
+import SwiftUI
 
 class PostLinkPreviewView: UIView {
 
@@ -55,8 +56,9 @@ class PostLinkPreviewView: UIView {
 
     private lazy var titleLabel: UILabel = {
         let titleLabel = UILabel()
-        titleLabel.numberOfLines = 2
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.numberOfLines = 2
+        titleLabel.font = .systemFont(forTextStyle: .callout, weight: .semibold)
         titleLabel.textAlignment = .natural
         return titleLabel
     }()
@@ -67,6 +69,7 @@ class PostLinkPreviewView: UIView {
         urlLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
         urlLabel.textColor = .secondaryLabel
         urlLabel.textAlignment = .natural
+        urlLabel.numberOfLines = 1
         return urlLabel
     }()
 
@@ -75,7 +78,7 @@ class PostLinkPreviewView: UIView {
         textStack.translatesAutoresizingMaskIntoConstraints = false
         textStack.axis = .vertical
         textStack.spacing = 2
-        textStack.layoutMargins = UIEdgeInsets(top: 20, left: 0, bottom: 20, right: 0)
+        textStack.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
         textStack.isLayoutMarginsRelativeArrangement = true
         return textStack
     }()
@@ -99,8 +102,8 @@ class PostLinkPreviewView: UIView {
         stack.isLayoutMarginsRelativeArrangement = true
         stack.clipsToBounds = true
         stack.distribution = .fillProportionally
-        
-        textStack.leadingAnchor.constraint(equalTo: stack.leadingAnchor, constant: 8).isActive = true
+        stack.backgroundColor = .linkPreviewPostBackground
+        textStack.leadingAnchor.constraint(equalTo: stack.leadingAnchor, constant: 20).isActive = true
         return stack
     }()
 
@@ -109,11 +112,14 @@ class PostLinkPreviewView: UIView {
         guard let feedLinkPreview = feedLinkPreview else { return }
 
         titleLabel.text = feedLinkPreview.title
+        // We want the text to be visible and the image to fill up remaining available s pace.
+        titleLabel.setContentCompressionResistancePriority(.defaultHigh + 1000, for: .vertical)
+        urlLabel.setContentCompressionResistancePriority(.defaultHigh + 1000, for: .vertical)
         urlLabel.text = feedLinkPreview.url?.host
         if let media = media {
             configureMedia(media: media)
-            vStack.heightAnchor.constraint(equalToConstant: 230).isActive = true
-            mediaView.heightAnchor.constraint(equalToConstant: 150).isActive = true
+            vStack.heightAnchor.constraint(equalToConstant: 250).isActive = true
+            textStack.topAnchor.constraint(equalTo: mediaView.bottomAnchor).isActive = true
         } else {
             placeholderImageView.isHidden = true
             mediaView.isHidden = true
@@ -121,6 +127,7 @@ class PostLinkPreviewView: UIView {
         
         self.addSubview(vStack)
         
+        textStack.bottomAnchor.constraint(equalTo: vStack.bottomAnchor, constant: 20).isActive = true
        
         vStack.constrainMargins(to: self)
         vStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true

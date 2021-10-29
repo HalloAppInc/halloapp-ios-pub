@@ -137,6 +137,10 @@ extension UIColor {
     class var commentVoiceNoteBackground: UIColor {
         UIColor(named: "CommentVoiceNoteBackground")!
     }
+
+    class var linkPreviewPostBackground: UIColor {
+        UIColor(named: "LinkPreviewPostBackground")!
+    }
     
     // MARK: Notifications
     

@@ -417,7 +417,7 @@ fileprivate struct PostComposerLayoutConstants {
     static let postTextUnfocusedMinHeight: CGFloat = 100 - postTextVerticalPadding
     static let postTextFocusedMinHeight: CGFloat = 80 - postTextVerticalPadding
     static let postTextMaxHeight: CGFloat = 250
-    static let postLinkPreviewHeight: CGFloat = 200
+    static let postLinkPreviewHeight: CGFloat = 250
 
     static let fontSize: CGFloat = 16
     static let fontSizeLarge: CGFloat = 20
@@ -691,7 +691,10 @@ fileprivate struct PostComposerView: View {
             if self.link.value != "" && self.mediaCount == 0 {
                 LinkPreview(link: linkBinding, linkPreviewData: linkPreviewData, linkPreviewImage: linkPreviewImage)
                     .frame(height: PostComposerLayoutConstants.postLinkPreviewHeight, alignment: .bottom)
-                    .padding(.all, 8)
+                    .padding(.top, -18)
+                    .padding(.leading, 8)
+                    .padding(.trailing, 8)
+                    .padding(.bottom, 8)
             }
         }
     }
