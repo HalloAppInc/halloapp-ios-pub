@@ -52,6 +52,9 @@
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Einstellungen";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
 /* Placeholder text for when the archive is empty */
 "archive.empty.placeholder" = "Deine Beiträge werden hier nach 30 Tagen archiviert";
 
@@ -90,6 +93,9 @@
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "Installieren";
+
+/* Title for generic Invite button. */
+"button.invite" = "Einladen";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Mehr erfahren";
@@ -364,6 +370,9 @@
 /* Title for tutorial explaining how user can enable contacts permission */
 "contacts.permission.tutorial.title" = "So werden \"Kontakte\" aktiviert";
 
+/* The default name given to new groups when the user is in Zero Zone (no contacts) */
+"create.group.default.name.my.new.group" = "Meine neue Gruppe";
+
 /* Text label for group description text box */
 "create.group.description.label" = "Gruppenbeschreibung";
 
@@ -438,6 +447,9 @@
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.replied.w.text" = "<$author$> hat geantwortet: <$text$>";
+
+/* Archived date timestamp */
+"feed.post.archived.timestamp" = "Archiviert am %@";
 
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Fehler beim Posten.";
@@ -655,6 +667,9 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Diese Version ist veraltet";
 
+/* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
+"invite.action.sheet.title" = "%@ einladen per ...";
+
 /* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
 "invite.already.halloapp.user" = "Nutzt bereits HalloApp";
 
@@ -686,7 +701,10 @@
 "invite.text.specific" = "Hey %1$@, ich lade dich ein, dich auch bei HalloApp anzumelden. Ein Netzwerk für echte Beziehungen und diejenigen, die einem am nächsten stehen. Nutze %2$@ zur Registrierung und hol sie dir auf https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
-"invite.title" = "Einladen";
+"invite.title" = "Freunde einladen";
+
+/* Title of cell at the top of the invite screen */
+"invite.via.link" = "Per Link einladen";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Suchen";
