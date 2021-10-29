@@ -849,28 +849,56 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     // MARK: Link Preview
 
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView()
+        activityIndicator.color = .secondaryLabel
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+        return activityIndicator
+    }()
+
     private lazy var linkPreviewTitleLabel: UILabel = {
         let titleLabel = UILabel()
         titleLabel.numberOfLines = 2
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.font = UIFont.systemFont(forTextStyle: .caption1, weight: .semibold)
+        titleLabel.numberOfLines = 2
+        titleLabel.textColor = .label.withAlphaComponent(0.5)
         return titleLabel
+    }()
+
+    private lazy var linkImageView: UIView = {
+        let image = UIImage(named: "LinkIcon")?.withRenderingMode(.alwaysTemplate)
+        let imageView = UIImageView(image: image)
+        imageView.tintColor = UIColor.label.withAlphaComponent(0.5)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isHidden = true
+        return imageView
     }()
 
     private lazy var linkPreviewURLLabel: UILabel = {
         let urlLabel = UILabel()
         urlLabel.translatesAutoresizingMaskIntoConstraints = false
-        urlLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
-        urlLabel.textColor = .secondaryLabel
+        urlLabel.font = UIFont.systemFont(forTextStyle: .caption1)
+        urlLabel.textColor = .label.withAlphaComponent(0.5)
         urlLabel.textAlignment = .natural
         return urlLabel
     }()
 
+    private var linkPreviewLinkStack: UIStackView {
+        let linkStack = UIStackView(arrangedSubviews: [ linkImageView, linkPreviewURLLabel, UIView() ])
+        linkStack.translatesAutoresizingMaskIntoConstraints = false
+        linkStack.spacing = 2
+        linkStack.alignment = .center
+        linkStack.axis = .horizontal
+        return linkStack
+    }
+
     private lazy var linkPreviewTextStack: UIStackView = {
-        let textStack = UIStackView(arrangedSubviews: [ linkPreviewTitleLabel, linkPreviewURLLabel ])
+        let textStack = UIStackView(arrangedSubviews: [ linkPreviewTitleLabel, linkPreviewLinkStack ])
         textStack.translatesAutoresizingMaskIntoConstraints = false
         textStack.axis = .vertical
         textStack.spacing = 4
-        textStack.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        textStack.layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
         textStack.isLayoutMarginsRelativeArrangement = true
         return textStack
     }()
@@ -880,8 +908,9 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         mediaView.translatesAutoresizingMaskIntoConstraints = false
         mediaView.contentMode = .scaleAspectFill
         mediaView.clipsToBounds = true
-        mediaView.widthAnchor.constraint(equalToConstant: 90).isActive = true
-        mediaView.heightAnchor.constraint(equalToConstant: 90).isActive = true
+        mediaView.layer.cornerRadius = 8
+        mediaView.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        mediaView.heightAnchor.constraint(equalToConstant: 60).isActive = true
         return mediaView
     }()
 
@@ -889,7 +918,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         let hStack = UIStackView(arrangedSubviews: [ linkPreviewMediaView, linkPreviewTextStack])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         let backgroundView = UIView()
-        backgroundView.backgroundColor = .feedPostEventDefaultBg
+        backgroundView.backgroundColor = .linkPreviewBackground
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
         hStack.insertSubview(backgroundView, at: 0)
         backgroundView.leadingAnchor.constraint(equalTo: hStack.leadingAnchor).isActive = true
@@ -918,26 +947,35 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         linkPreviewPanel.translatesAutoresizingMaskIntoConstraints = false
         linkPreviewPanel.preservesSuperviewLayoutMargins = true
         linkPreviewPanel.addSubview(linkPreviewHStack)
+        linkPreviewPanel.addSubview(activityIndicator)
         linkPreviewPanel.addSubview(linkPreviewCloseButton)
 
-        linkPreviewCloseButton.trailingAnchor.constraint(equalTo: linkPreviewHStack.trailingAnchor, constant: -4).isActive = true
-        linkPreviewCloseButton.topAnchor.constraint(equalTo: linkPreviewHStack.topAnchor, constant: 4).isActive = true
+        activityIndicator.centerXAnchor.constraint(equalTo: linkPreviewPanel.layoutMarginsGuide.centerXAnchor).isActive = true
+        activityIndicator.centerYAnchor.constraint(equalTo: linkPreviewPanel.layoutMarginsGuide.centerYAnchor).isActive = true
+        activityIndicator.startAnimating()
 
+
+        linkPreviewCloseButton.trailingAnchor.constraint(equalTo: linkPreviewHStack.trailingAnchor, constant: -8).isActive = true
+        linkPreviewCloseButton.topAnchor.constraint(equalTo: linkPreviewHStack.topAnchor, constant: 8).isActive = true
+        linkPreviewMediaView.leadingAnchor.constraint(equalTo: linkPreviewHStack.leadingAnchor, constant: 8).isActive = true
         linkPreviewHStack.topAnchor.constraint(equalTo: linkPreviewPanel.topAnchor, constant: 8).isActive = true
         linkPreviewHStack.bottomAnchor.constraint(equalTo: linkPreviewPanel.bottomAnchor, constant: -8).isActive = true
         linkPreviewHStack.leadingAnchor.constraint(equalTo: linkPreviewPanel.leadingAnchor, constant: 8).isActive = true
         linkPreviewHStack.trailingAnchor.constraint(equalTo: linkPreviewPanel.trailingAnchor, constant: -8).isActive = true
-
         linkPreviewPanel.heightAnchor.constraint(equalToConstant: 90).isActive = true
+
         return linkPreviewPanel
     }()
 
     private lazy var linkPreviewCloseButton: UIButton = {
         let closeButton = UIButton(type: .custom)
         closeButton.translatesAutoresizingMaskIntoConstraints = false
-        closeButton.setImage(UIImage(named: "NavbarClose")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        closeButton.tintColor = .placeholderText
+        closeButton.setImage(UIImage(named: "ReplyPanelClose")?.withRenderingMode(.alwaysTemplate), for: .normal)
+
+        closeButton.tintColor = .label.withAlphaComponent(0.5)
         closeButton.addTarget(self, action: #selector(didTapCloseLinkPreviewPanel), for: .touchUpInside)
+        closeButton.widthAnchor.constraint(equalToConstant: 12).isActive = true
+        closeButton.heightAnchor.constraint(equalToConstant: 12).isActive = true
         return closeButton
     }()
 
@@ -1014,10 +1052,12 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
                 imageProvider.loadObject(ofClass: UIImage.self) { (image, error) in
                     DispatchQueue.main.async { [weak self] in
                         guard let self = self else { return }
+                        self.activityIndicator.stopAnimating()
                         if let image = image as? UIImage {
                             self.linkPreviewMediaView.isHidden = false
                             self.linkPreviewMediaView.image = image
                         }
+                        self.linkImageView.isHidden = false
                         self.linkPreviewTitleLabel.text = data.title
                         self.linkPreviewURLLabel.text = data.url?.host
                         self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
@@ -1027,6 +1067,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
                 // No Image info
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
+                    self.activityIndicator.stopAnimating()
+                    self.linkImageView.isHidden = false
                     self.linkPreviewMediaView.isHidden = true
                     self.linkPreviewTitleLabel.text = data.title
                     self.linkPreviewURLLabel.text = data.url?.host
@@ -1034,8 +1076,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
                 }
             }
         }
-        self.linkPreviewTitleLabel.text = Localizations.loadingPreview
         self.vStack.insertArrangedSubview(self.linkPreviewPanel, at: vStack.arrangedSubviews.firstIndex(of: textFieldPanel)!)
+        self.activityIndicator.startAnimating()
     }
 
     private func resetLinkDetection() {
@@ -1049,6 +1091,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         // remove media panel from stack
         linkPreviewTitleLabel.text = ""
         linkPreviewURLLabel.text = ""
+        linkImageView.isHidden = true
         linkPreviewMediaView.image = nil
         linkPreviewPanel.removeFromSuperview()
         postButton.isEnabled = isPostButtonEnabled

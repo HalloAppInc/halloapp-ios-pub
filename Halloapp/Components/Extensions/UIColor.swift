@@ -106,6 +106,10 @@ extension UIColor {
         UIColor(named: "FeedPostBackground")!
     }
 
+    class var linkPreviewBackground: UIColor {
+        UIColor(named: "LinkPreviewBackground")!
+    }
+
     class var feedPostShadow: UIColor {
         UIColor(named: "FeedPostShadow")!
     }
