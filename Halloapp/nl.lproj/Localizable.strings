@@ -52,6 +52,9 @@
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Instellingen";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
 /* Placeholder text for when the archive is empty */
 "archive.empty.placeholder" = "Je posts worden na 30 dagen hier gearchiveerd";
 
@@ -90,6 +93,9 @@
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "Installeren";
+
+/* Title for generic Invite button. */
+"button.invite" = "Uitnodigen";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Meer Informatie";
@@ -364,6 +370,9 @@
 /* Title for tutorial explaining how user can enable contacts permission */
 "contacts.permission.tutorial.title" = "Hoe “Contacten” aanzetten";
 
+/* The default name given to new groups when the user is in Zero Zone (no contacts) */
+"create.group.default.name.my.new.group" = "Mijn nieuwe groep";
+
 /* Text label for group description text box */
 "create.group.description.label" = "Omschrijving";
 
@@ -438,6 +447,9 @@
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.replied.w.text" = "<$author$> heeft geantwoord: <$text$>";
+
+/* Archived date timestamp */
+"feed.post.archived.timestamp" = "Gearchiveerd op %@";
 
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Plaatsen is mislukt.";
@@ -655,6 +667,9 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Deze versie is verouderd";
 
+/* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
+"invite.action.sheet.title" = "%@ uitnodigen via...";
+
 /* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
 "invite.already.halloapp.user" = "Al op HalloApp";
 
@@ -687,6 +702,9 @@
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Vrienden uitnodigen";
+
+/* Title of cell at the top of the invite screen */
+"invite.via.link" = "Uitnodigen via link";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Zoeken";
