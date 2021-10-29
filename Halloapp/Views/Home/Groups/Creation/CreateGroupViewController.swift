@@ -336,7 +336,10 @@ class CreateGroupViewController: UIViewController {
 
             switch result {
             case .success(let groupID):
-                DispatchQueue.main.async { [weak self] in
+                // 0.5 seconds is needed so group feed can get the group during load,
+                // group creation is done in the bg context and group feed fetches group info with viewcontext,
+                // some milliseconds are needed for core data's contexts to auto merge
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                     guard let self = self else { return }
                     self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
                     self.delegate?.createGroupViewController(self, didCreateGroup: groupID)

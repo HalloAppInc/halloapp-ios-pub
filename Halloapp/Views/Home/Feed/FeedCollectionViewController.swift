@@ -867,7 +867,7 @@ extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
             return CGSize(width: contentWidth, height: 380) // size does not seem to affect cell?
         case .groupWelcome:
             let contentWidth = cellWidth - collectionView.layoutMargins.left - collectionView.layoutMargins.right
-            return CGSize(width: contentWidth, height: 350) // size does not seem to affect cell?
+            return CGSize(width: contentWidth, height: 335) // size does not seem to affect cell?
         }
     }
 }

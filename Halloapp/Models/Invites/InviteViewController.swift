@@ -142,14 +142,22 @@ final class InviteViewController: UIViewController {
     lazy var dataSource: UICollectionViewDiffableDataSource<InviteSection, AnyHashable> = {
         UICollectionViewDiffableDataSource<InviteSection, AnyHashable>(collectionView: collectionView) { [weak self] collectionView, indexPath, item in
             guard let self = self else { return UICollectionViewCell() }
+            let isFirstCell = indexPath.row == 0
+            let isLastCell = indexPath.row == collectionView.numberOfItems(inSection: indexPath.section) - 1
             if let inviteViaLinkCell = item.base as? InviteViaLinkRow {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: inviteViaLinkCellReuse, for: indexPath)
                 if let inviteViaLinkCell = cell as? InviteViaLinkCell {
-                    inviteViaLinkCell.configure(showDividers: self.showDividers, openShareLinkAction: { [weak self] link in
+                    inviteViaLinkCell.configure(showDividers: self.showDividers, isFirstCell: isFirstCell, isLastCell: isLastCell, openShareLinkAction: { [weak self] link in
                         self?.inviteViaLink(link)
                     })
+                    // todo: cleaner to move this ui config into configure, but couldn't figure how to make it appear properly
+                    if self.showDividers, isLastCell {
+                        inviteViaLinkCell.layer.shadowColor = UIColor.systemGray5.cgColor
+                        inviteViaLinkCell.layer.shadowRadius = 0
+                        inviteViaLinkCell.layer.shadowOpacity = 1
+                        inviteViaLinkCell.layer.shadowOffset = CGSize(width: 0, height: 1)
+                    }
                 }
-
                 return cell
             } else if let contact = item.base as? InviteContact {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: InviteCellReuse, for: indexPath)
@@ -161,12 +169,19 @@ final class InviteViewController: UIViewController {
                     }
                     itemCell.configure(
                         with: contact,
-                        actions: InviteActions(
-                            action: { [weak self] action in self?.inviteAction(action, contact: contact)},
-                            types: actions),
+                        actions: InviteActions(action: { [weak self] action in self?.inviteAction(action, contact: contact) }, types: actions),
                         visitedActions: self.visitedActions[contact] ?? Set(),
                         showDividers: self.showDividers,
-                        isTopDividerHidden: indexPath.item == 0)
+                        isTopDividerHidden: indexPath.item == 0,
+                        isFirstCell: isFirstCell,
+                        isLastCell: isLastCell
+                    )
+                    if self.showDividers, isLastCell {
+                        itemCell.layer.shadowColor = UIColor.systemGray5.cgColor
+                        itemCell.layer.shadowRadius = 0
+                        itemCell.layer.shadowOpacity = 1
+                        itemCell.layer.shadowOffset = CGSize(width: 0, height: 1)
+                    }
                 }
                 return cell
             }
@@ -401,6 +416,9 @@ extension InviteViewController: MFMessageComposeViewControllerDelegate {
 
 extension InviteViewController: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        if !showDividers, section == 0 {
+            return .zero
+        }
         return UIEdgeInsets(top: 0, left: 0, bottom: 30, right: 0)
     }
 
@@ -459,11 +477,9 @@ extension InviteViewController: UISearchBarDelegate {
 
 final class InviteViaLinkCell: UICollectionViewCell {
 
-    public func configure(showDividers: Bool = true, openShareLinkAction: ((String) -> ())?) {
+    public func configure(showDividers: Bool = true, isFirstCell: Bool = false, isLastCell: Bool = false, openShareLinkAction: ((String) -> ())?) {
         actionCellView.openShareLink = openShareLinkAction
-        if !showDividers {
-            actionCellView.backgroundColor = .primaryBg
-        }
+        actionCellView.configure(showDividers: showDividers, isFirstCell: isFirstCell, isLastCell: isLastCell)
     }
 
     override init(frame: CGRect) {
@@ -479,6 +495,7 @@ final class InviteViaLinkCell: UICollectionViewCell {
         contentView.addSubview(actionCellView)
         actionCellView.translatesAutoresizingMaskIntoConstraints = false
         actionCellView.constrainMargins(to: contentView)
+        actionCellView.heightAnchor.constraint(lessThanOrEqualToConstant: 70).isActive = true
     }
 
     let actionCellView = ActionCellView()
@@ -487,6 +504,17 @@ final class InviteViaLinkCell: UICollectionViewCell {
 final class ActionCellView: UIView {
 
     var openShareLink: ((String) -> ())?
+    
+    private var isFirst: Bool = false
+    private var isLast: Bool = false
+
+    func configure(showDividers: Bool, isFirstCell: Bool = false, isLastCell: Bool = false) {
+        isFirst = isFirstCell
+        isLast = isLastCell
+        if !showDividers {
+            backgroundColor = .primaryBg
+        }
+    }
 
     init() {
         super.init(frame: .zero)
@@ -494,6 +522,15 @@ final class ActionCellView: UIView {
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        var corner = UIRectCorner()
+        if isFirst { corner.insert([.topLeft, .topRight]) }
+        if isLast { corner.insert([.bottomLeft, .bottomRight]) }
+        roundCorners(corner, radius: 13)
+    }
 
     private func setupView() {
         mainPanel.addSubview(titleLabel)
@@ -503,7 +540,7 @@ final class ActionCellView: UIView {
 
         backgroundColor = .systemBackground
 
-        layoutMargins = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+        layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
 
         mainPanel.translatesAutoresizingMaskIntoConstraints = false
 
@@ -516,10 +553,8 @@ final class ActionCellView: UIView {
         subtitleLabel.textColor = UIColor.label.withAlphaComponent(0.5)
         subtitleLabel.font = .systemFont(forTextStyle: .footnote, pointSizeChange: 1)
         subtitleLabel.numberOfLines = 1
-        subtitleLabel.text = "http://halloapp.com/dl"
+        subtitleLabel.text = "https://halloapp.com/dl"
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        inviteViaLinkButton.translatesAutoresizingMaskIntoConstraints = false
 
         mainPanel.constrainMargins([.leading, .centerY], to: self)
         mainPanel.topAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.topAnchor).isActive = true
@@ -530,16 +565,17 @@ final class ActionCellView: UIView {
         subtitleLabel.constrain([.bottom, .leading, .trailing], to: mainPanel)
         subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2).isActive = true
 
+        inviteViaLinkButton.translatesAutoresizingMaskIntoConstraints = false
         inviteViaLinkButton.constrainMargins([.centerY], to: self)
+        inviteViaLinkButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -35).isActive = true
         inviteViaLinkButton.setContentHuggingPriority(.required, for: .horizontal)
-        inviteViaLinkButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -45).isActive = true
     }
 
     let mainPanel = UIView()
     let titleLabel = UILabel()
     let subtitleLabel = UILabel()
 
-    lazy var inviteViaLinkButton: UIButton = {
+    private lazy var inviteViaLinkButton: UIButton = {
         let button = Self.makeActionButton(title: Localizations.buttonShare)
         button.addTarget(self, action: #selector(didTapInviteViaLinkButton), for: .touchUpInside)
         return button
@@ -556,8 +592,6 @@ final class ActionCellView: UIView {
         button.setTitle(title, for: .normal)
         button.titleLabel?.font = .boldSystemFont(ofSize: 15)
         button.setTitleColor(UIColor.primaryBlue, for: .normal)
-        let width = button.titleLabel?.intrinsicContentSize.width ?? 0
-        button.widthAnchor.constraint(equalToConstant: width).isActive = true
         button.centerVerticallyWithPadding(padding: 3)
         return button
     }
@@ -575,21 +609,26 @@ final class InviteCollectionViewCell: UICollectionViewCell {
         inviteCellView.constrainMargins(to: contentView)
 
         contentView.addSubview(topDivider)
-        topDivider.backgroundColor = UIColor.label.withAlphaComponent(0.15)
+        topDivider.backgroundColor = UIColor.label.withAlphaComponent(0.07)
         topDivider.translatesAutoresizingMaskIntoConstraints = false
         topDivider.heightAnchor.constraint(equalToConstant: 1).isActive = true
-        topDivider.constrainMargins([.top, .leading, .trailing], to: contentView)
+        topDivider.constrainMargins([.top, .trailing], to: contentView)
+        topDivider.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 32).isActive = true
     }
 
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     let inviteCellView = InviteCellView()
     let topDivider = UIView()
 
-    func configure(with contact: InviteContact, actions: InviteActions?, visitedActions: Set<InviteActionType>, showDividers: Bool, isTopDividerHidden: Bool) {
-        inviteCellView.configure(with: contact, actions: actions, visitedActions: visitedActions)
+    func configure( with contact: InviteContact,
+                    actions: InviteActions?,
+                    visitedActions: Set<InviteActionType>,
+                    showDividers: Bool,
+                    isTopDividerHidden: Bool,
+                    isFirstCell: Bool = false,
+                    isLastCell: Bool = false) {
+        inviteCellView.configure(with: contact, actions: actions, visitedActions: visitedActions, isFirstCell: isFirstCell, isLastCell: isLastCell)
         if !showDividers {
             inviteCellView.backgroundColor = .primaryBg
             topDivider.isHidden = true
@@ -601,49 +640,32 @@ final class InviteCollectionViewCell: UICollectionViewCell {
 
 final class InviteCellView: UIView {
 
+    var action: InviteAction?
+
+    private var isFirst: Bool = false
+    private var isLast: Bool = false
+
     init() {
         super.init(frame: .zero)
-
-        contactInfoPanel.addSubview(nameLabel)
-        contactInfoPanel.addSubview(subtitleLabel)
-        addSubview(contactInfoPanel)
-        addSubview(inviteButton)
-
-        backgroundColor = .systemBackground
-
-        layoutMargins = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
-
-        contactInfoPanel.translatesAutoresizingMaskIntoConstraints = false
-
-        nameLabel.textColor = .label
-        nameLabel.font = .systemFont(forTextStyle: .callout, weight: .semibold)
-        nameLabel.numberOfLines = 1
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        subtitleLabel.textColor = UIColor.label.withAlphaComponent(0.5)
-        subtitleLabel.font = .systemFont(forTextStyle: .footnote, pointSizeChange: 1)
-        subtitleLabel.numberOfLines = 0
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        contactInfoPanel.constrainMargins([.leading, .centerY], to: self)
-        contactInfoPanel.topAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.topAnchor).isActive = true
-        contactInfoPanel.bottomAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.bottomAnchor).isActive = true
-
-        nameLabel.constrain([.top, .leading, .trailing], to: contactInfoPanel)
-
-        subtitleLabel.constrain([.bottom, .leading, .trailing], to: contactInfoPanel)
-        subtitleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 2).isActive = true
-
-        inviteButton.constrainMargins([.centerY], to: self)
-        inviteButton.setContentHuggingPriority(.required, for: .horizontal)
-        inviteButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -25).isActive = true
+        setupView()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(with contact: InviteContact, actions: InviteActions?, visitedActions: Set<InviteActionType>) {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        var corner = UIRectCorner()
+        if isFirst { corner.insert([.topLeft, .topRight]) }
+        if isLast { corner.insert([.bottomLeft, .bottomRight]) }
+        roundCorners(corner, radius: 13)
+    }
+
+    func configure(with contact: InviteContact, actions: InviteActions?, visitedActions: Set<InviteActionType>, isFirstCell: Bool = false, isLastCell: Bool = false) {
+        isFirst = isFirstCell
+        isLast = isLastCell
 
         let isUserAlready = contact.userID != nil
 
@@ -658,7 +680,7 @@ final class InviteCellView: UIView {
             return Localizations.contactsOnHalloApp(friendCount)
         }()
 
-        nameLabel.text = contact.fullName
+        nameLabel.text = contact.fullName + "asdf sa fsaf asf sad fsafasdf saf sadf asdfsadf sa fsd f"
         subtitleLabel.text = [secondLine, thirdLine].compactMap({ $0 }).joined(separator: "\n")
 
         let actionTypes = actions?.types ?? []
@@ -670,15 +692,54 @@ final class InviteCellView: UIView {
         inviteButton.backgroundColor = haveInvitedBefore ? .systemGray : .primaryBlue
 
         action = actions?.action
+        
+        layoutSubviews() // needed for rounded corners when reusing cell
     }
 
-    let contactInfoPanel = UIView()
-    let nameLabel = UILabel()
-    let subtitleLabel = UILabel()
-    let actionViewStack = UIStackView()
-    var action: InviteAction?
+    private func setupView() {
+        backgroundColor = .systemBackground
+        addSubview(mainPanel)
+        mainPanel.constrain(to: self)
+    }
 
-    var contact: InviteContact?
+    private lazy var mainPanel: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ contactInfoPanel, inviteButton ])
+        view.axis = .horizontal
+        view.alignment = .center
+        view.spacing = 0
+
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+        view.isLayoutMarginsRelativeArrangement = true
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    private lazy var contactInfoPanel: UIView = {
+        let view = UIStackView(arrangedSubviews: [ nameLabel, subtitleLabel ])
+        view.axis = .vertical
+        view.spacing = 3
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var nameLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .label
+        label.font = .systemFont(forTextStyle: .callout, weight: .semibold)
+        label.numberOfLines = 1
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = UIColor.label.withAlphaComponent(0.5)
+        label.font = .systemFont(forTextStyle: .footnote, pointSizeChange: 1)
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
 
     private lazy var inviteButton: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ inviteLabel ])
