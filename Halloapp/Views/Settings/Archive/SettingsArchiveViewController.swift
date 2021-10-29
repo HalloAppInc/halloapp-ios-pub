@@ -136,7 +136,11 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
         guard let cell = collectionView.cellForItem(at: indexPath) as? PostCollectionViewCell else { return }
         guard let post = cell.feedPost else { return }
 
-        present(PostViewController(post: post).withNavigationController(), animated: true)
+        for media in MainAppContext.shared.feedData.media(for: post) {
+            media.loadImage()
+        }
+
+        present(PostViewController(post: post), animated: true)
     }
 }
 
@@ -208,41 +212,49 @@ private class PostCollectionViewCell: UICollectionViewCell {
         feedPost = nil
         mediaLoadingCancellable?.cancel()
     }
-    
+
+    private lazy var thumbnailWidth: CGFloat = {
+        2 * ((UIScreen.main.bounds.width - 4) / 3.0)
+    }()
+    private lazy var thumbnailSize: CGSize = {
+        CGSize(width: thumbnailWidth, height: thumbnailWidth)
+    }()
+
     func updateCell() {
-        if let feedPost = feedPost {
-            let media = MainAppContext.shared.feedData.media(for: feedPost)
+        guard let post = feedPost else { return }
+        let media = MainAppContext.shared.feedData.media(for: post)
 
+        if media.count > 0 {
+            loadThumbnail(for: post, withMedia: media)
+            imageView.isHidden = false
             multipleMediaIcon.isHidden = media.count < 2
+        } else {
+            labelView.text = post.text
+            labelView.isHidden = false
+        }
+    }
 
-            if let mediaToDisplay = media.first {
-                if mediaToDisplay.isMediaAvailable, let imagePath = mediaToDisplay.fileURL {
-                    if mediaToDisplay.type == .image {
-                        let image = UIImage(contentsOfFile: imagePath.path)
-                        imageView.image = image
-                    } else if mediaToDisplay.type == .video {
-                        let thumbnail = VideoUtils.videoPreviewImage(url: imagePath)
-                        imageView.image = thumbnail
-                    }
-                } else {
-                    if mediaToDisplay.type == .image {
-                        mediaLoadingCancellable = mediaToDisplay.imageDidBecomeAvailable.sink(receiveValue: { image in
-                            self.imageView.image = image
-                        })
-                        mediaToDisplay.loadImage()
-                    }
-                }
-                
-                imageView.isHidden = false
-            } else {
-                labelView.text = feedPost.text
-                labelView.isHidden = false
+    private func loadThumbnail(for post: FeedPost, withMedia media: [FeedMedia]) {
+        guard let item = media.first else { return }
+        guard let url = item.fileURL else { return }
+
+        Self.mediaLoadingQueue.async { [weak self] in
+            guard let self = self else { return }
+            guard post.id == self.feedPost?.id else { return }
+
+            let thumbnail: UIImage?
+            switch item.type {
+            case .image:
+                thumbnail = UIImage.thumbnail(contentsOf: url, maxPixelSize: self.thumbnailWidth)
+            case .video:
+                thumbnail = VideoUtils.videoPreviewImage(url: url, size: self.thumbnailSize)
+            case .audio:
+                return
             }
-            
-            Self.mediaLoadingQueue.async {
-                for media in media {
-                    media.loadImage()
-                }
+
+            DispatchQueue.main.async {
+                guard post.id == self.feedPost?.id else { return }
+                self.imageView.image = thumbnail
             }
         }
     }

@@ -588,9 +588,14 @@ final class FeedItemHeaderView: UIView {
         }
     }
 
-    func configure(with post: FeedPost) {
+    func configure(with post: FeedPost, showArchivedDate: Bool = false) {
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
         timestampLabel.text = post.timestamp.feedTimestamp()
+        if showArchivedDate {
+            let archivedDate = post.timestamp.addingTimeInterval(Date.days(30))
+            timestampLabel.text! += " • " + Localizations.feedPostArchivedTimestamp(time: archivedDate.shortDateFormat())
+        }
+
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
         
         moreButton.isHidden = !(post.hasPostMedia && post.canSaveMedia) && post.userId != MainAppContext.shared.userData.userId
@@ -1069,5 +1074,9 @@ extension Localizations {
     }
     static var feedPostUnsupported: String {
         NSLocalizedString("feed.post.unsupported", value: "Your version of HalloApp does not support this type of post.", comment: "Shown when receiving a new (unsupported) type of post.")
+    }
+    static func feedPostArchivedTimestamp(time: String) -> String {
+        let formatString = NSLocalizedString("feed.post.archived.timestamp", value: "Archived %@", comment: "Archived date timestamp")
+        return String(format: formatString, time)
     }
 }

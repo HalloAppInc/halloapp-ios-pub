@@ -933,6 +933,13 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     lazy var chatInputView: ChatInputView = {
         let inputView = ChatInputView(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 90))
         inputView.delegate = self
+
+        if let fromUserId = fromUserId {
+            if let url = AudioRecorder.voiceNote(from: MainAppContext.shared.userData.userId, to: fromUserId) {
+                inputView.show(voiceNote: url)
+            }
+        }
+
         return inputView
     }()
 
@@ -1346,6 +1353,14 @@ extension ChatViewController: MsgViewCellDelegate {
 
 // MARK: ChatInputView Delegates
 extension ChatViewController: ChatInputViewDelegate {
+    func chatInputView(_ inputView: ChatInputView, didInterruptRecorder recorder: AudioRecorder) {
+        guard let to = fromUserId else { return }
+        guard let url = recorder.saveVoiceNote(from: MainAppContext.shared.userData.userId, to: to) else { return }
+
+        DispatchQueue.main.async {
+            self.chatInputView.show(voiceNote: url)
+        }
+    }
     
     func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
         var animationDuration = animationDuration

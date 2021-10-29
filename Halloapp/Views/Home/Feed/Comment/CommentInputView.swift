@@ -27,6 +27,7 @@ protocol CommentInputViewDelegate: AnyObject {
     func commentInputViewResetInputMedia(_ inputView: CommentInputView)
     func commentInputViewMicrophoneAccessDenied(_ inputView: CommentInputView)
     func commentInputViewDidTapSelectedMedia(_ inputView: CommentInputView, mediaToEdit: PendingMedia)
+    func commentInputView(_ inputView: CommentInputView, didInterruptRecorder recorder: AudioRecorder)
 }
 
 class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
@@ -47,6 +48,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private var voiceNoteRecorder = AudioRecorder()
     private var isVoiceNoteRecordingLocked = false
+    private var isShowingVoiceNote = false
 
     private var uploadMedia: PendingMedia?
 
@@ -209,6 +211,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         stack.addSubview(cancelRecordingButton)
         stack.addSubview(postVoiceNoteButton)
         stack.addSubview(voiceNoteTime)
+        stack.addSubview(removeVoiceNoteButton)
+        stack.addSubview(voiceNotePlayer)
 
         cancelRecordingButton.centerXAnchor.constraint(equalTo: stack.centerXAnchor).isActive = true
         cancelRecordingButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
@@ -216,6 +220,11 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         postVoiceNoteButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
         voiceNoteTime.leadingAnchor.constraint(equalTo: stack.leadingAnchor, constant: 14).isActive = true
         voiceNoteTime.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
+
+        voiceNotePlayer.centerXAnchor.constraint(equalTo: stack.centerXAnchor).isActive = true
+        voiceNotePlayer.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
+        removeVoiceNoteButton.leadingAnchor.constraint(equalTo: stack.leadingAnchor).isActive = true
+        removeVoiceNoteButton.centerYAnchor.constraint(equalTo: stack.centerYAnchor).isActive = true
 
         return stack
     } ()
@@ -286,6 +295,67 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         button.isHidden = true
 
         return button
+    }()
+
+    private lazy var removeVoiceNoteButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(UIImage(named: "NavbarTrashBinWithLid"), for: .normal)
+        button.accessibilityLabel = Localizations.buttonRemove
+        button.addTarget(self, action: #selector(removeVoiceNoteClicked), for: .touchUpInside)
+        button.tintColor = .lavaOrange
+
+        button.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
+
+        button.isHidden = true
+
+        return button
+    }()
+
+    private lazy var voiceNoteAudioView: AudioView = {
+        let view = AudioView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.state = .played
+        view.delegate = self
+
+        return view
+    }()
+
+    private lazy var voiceNotePlayerTime: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .caption2)
+        label.textColor = UIColor.chatTime
+
+        label.widthAnchor.constraint(equalToConstant: 32).isActive = true
+
+        return label
+    }()
+
+    private lazy var voiceNotePlayer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .voiceNoteInputField
+        view.layer.cornerRadius = 19
+        view.layer.masksToBounds = true
+
+        view.widthAnchor.constraint(equalToConstant: 266).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 38).isActive = true
+
+        view.isHidden = true
+
+        view.addSubview(voiceNoteAudioView)
+        view.addSubview(voiceNotePlayerTime)
+
+        voiceNoteAudioView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        voiceNoteAudioView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16).isActive = true
+        voiceNotePlayerTime.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        voiceNotePlayerTime.leadingAnchor.constraint(equalTo: voiceNoteAudioView.trailingAnchor, constant: 12).isActive = true
+        voiceNotePlayerTime.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16).isActive = true
+
+        return view
     }()
 
     private lazy var mediaView: UIImageView = {
@@ -553,6 +623,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         recordVoiceNoteControl.isHidden = true
         postButton.isHidden = true
 
+        guard !isVoiceNoteRecordingLocked && !isShowingVoiceNote else { return }
+
         if !mentionText.isNonMentionTextEmpty() || mediaPanel.superview != nil {
             if ServerProperties.isMediaCommentsEnabled {
                 pickMediaButton.isHidden = false
@@ -560,9 +632,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
             postButton.isHidden = false
         } else if voiceNoteRecorder.isRecording {
-            if !isVoiceNoteRecordingLocked {
-                recordVoiceNoteControl.isHidden = false
-            }
+            recordVoiceNoteControl.isHidden = false
         } else {
             if ServerProperties.isMediaCommentsEnabled {
                 pickMediaButton.isHidden = false
@@ -779,28 +849,56 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     // MARK: Link Preview
 
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView()
+        activityIndicator.color = .secondaryLabel
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+        return activityIndicator
+    }()
+
     private lazy var linkPreviewTitleLabel: UILabel = {
         let titleLabel = UILabel()
         titleLabel.numberOfLines = 2
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.font = UIFont.systemFont(forTextStyle: .caption1, weight: .semibold)
+        titleLabel.numberOfLines = 2
+        titleLabel.textColor = .label.withAlphaComponent(0.5)
         return titleLabel
+    }()
+
+    private lazy var linkImageView: UIView = {
+        let image = UIImage(named: "LinkIcon")?.withRenderingMode(.alwaysTemplate)
+        let imageView = UIImageView(image: image)
+        imageView.tintColor = UIColor.label.withAlphaComponent(0.5)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isHidden = true
+        return imageView
     }()
 
     private lazy var linkPreviewURLLabel: UILabel = {
         let urlLabel = UILabel()
         urlLabel.translatesAutoresizingMaskIntoConstraints = false
-        urlLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
-        urlLabel.textColor = .secondaryLabel
+        urlLabel.font = UIFont.systemFont(forTextStyle: .caption1)
+        urlLabel.textColor = .label.withAlphaComponent(0.5)
         urlLabel.textAlignment = .natural
         return urlLabel
     }()
 
+    private var linkPreviewLinkStack: UIStackView {
+        let linkStack = UIStackView(arrangedSubviews: [ linkImageView, linkPreviewURLLabel, UIView() ])
+        linkStack.translatesAutoresizingMaskIntoConstraints = false
+        linkStack.spacing = 2
+        linkStack.alignment = .center
+        linkStack.axis = .horizontal
+        return linkStack
+    }
+
     private lazy var linkPreviewTextStack: UIStackView = {
-        let textStack = UIStackView(arrangedSubviews: [ linkPreviewTitleLabel, linkPreviewURLLabel ])
+        let textStack = UIStackView(arrangedSubviews: [ linkPreviewTitleLabel, linkPreviewLinkStack ])
         textStack.translatesAutoresizingMaskIntoConstraints = false
         textStack.axis = .vertical
         textStack.spacing = 4
-        textStack.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        textStack.layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
         textStack.isLayoutMarginsRelativeArrangement = true
         return textStack
     }()
@@ -810,8 +908,9 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         mediaView.translatesAutoresizingMaskIntoConstraints = false
         mediaView.contentMode = .scaleAspectFill
         mediaView.clipsToBounds = true
-        mediaView.widthAnchor.constraint(equalToConstant: 90).isActive = true
-        mediaView.heightAnchor.constraint(equalToConstant: 90).isActive = true
+        mediaView.layer.cornerRadius = 8
+        mediaView.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        mediaView.heightAnchor.constraint(equalToConstant: 60).isActive = true
         return mediaView
     }()
 
@@ -819,7 +918,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         let hStack = UIStackView(arrangedSubviews: [ linkPreviewMediaView, linkPreviewTextStack])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         let backgroundView = UIView()
-        backgroundView.backgroundColor = .feedPostEventDefaultBg
+        backgroundView.backgroundColor = .linkPreviewBackground
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
         hStack.insertSubview(backgroundView, at: 0)
         backgroundView.leadingAnchor.constraint(equalTo: hStack.leadingAnchor).isActive = true
@@ -848,26 +947,35 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         linkPreviewPanel.translatesAutoresizingMaskIntoConstraints = false
         linkPreviewPanel.preservesSuperviewLayoutMargins = true
         linkPreviewPanel.addSubview(linkPreviewHStack)
+        linkPreviewPanel.addSubview(activityIndicator)
         linkPreviewPanel.addSubview(linkPreviewCloseButton)
 
-        linkPreviewCloseButton.trailingAnchor.constraint(equalTo: linkPreviewHStack.trailingAnchor, constant: -4).isActive = true
-        linkPreviewCloseButton.topAnchor.constraint(equalTo: linkPreviewHStack.topAnchor, constant: 4).isActive = true
+        activityIndicator.centerXAnchor.constraint(equalTo: linkPreviewPanel.layoutMarginsGuide.centerXAnchor).isActive = true
+        activityIndicator.centerYAnchor.constraint(equalTo: linkPreviewPanel.layoutMarginsGuide.centerYAnchor).isActive = true
+        activityIndicator.startAnimating()
 
+
+        linkPreviewCloseButton.trailingAnchor.constraint(equalTo: linkPreviewHStack.trailingAnchor, constant: -8).isActive = true
+        linkPreviewCloseButton.topAnchor.constraint(equalTo: linkPreviewHStack.topAnchor, constant: 8).isActive = true
+        linkPreviewMediaView.leadingAnchor.constraint(equalTo: linkPreviewHStack.leadingAnchor, constant: 8).isActive = true
         linkPreviewHStack.topAnchor.constraint(equalTo: linkPreviewPanel.topAnchor, constant: 8).isActive = true
         linkPreviewHStack.bottomAnchor.constraint(equalTo: linkPreviewPanel.bottomAnchor, constant: -8).isActive = true
         linkPreviewHStack.leadingAnchor.constraint(equalTo: linkPreviewPanel.leadingAnchor, constant: 8).isActive = true
         linkPreviewHStack.trailingAnchor.constraint(equalTo: linkPreviewPanel.trailingAnchor, constant: -8).isActive = true
-
         linkPreviewPanel.heightAnchor.constraint(equalToConstant: 90).isActive = true
+
         return linkPreviewPanel
     }()
 
     private lazy var linkPreviewCloseButton: UIButton = {
         let closeButton = UIButton(type: .custom)
         closeButton.translatesAutoresizingMaskIntoConstraints = false
-        closeButton.setImage(UIImage(named: "NavbarClose")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        closeButton.tintColor = .placeholderText
+        closeButton.setImage(UIImage(named: "ReplyPanelClose")?.withRenderingMode(.alwaysTemplate), for: .normal)
+
+        closeButton.tintColor = .label.withAlphaComponent(0.5)
         closeButton.addTarget(self, action: #selector(didTapCloseLinkPreviewPanel), for: .touchUpInside)
+        closeButton.widthAnchor.constraint(equalToConstant: 12).isActive = true
+        closeButton.heightAnchor.constraint(equalToConstant: 12).isActive = true
         return closeButton
     }()
 
@@ -944,10 +1052,12 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
                 imageProvider.loadObject(ofClass: UIImage.self) { (image, error) in
                     DispatchQueue.main.async { [weak self] in
                         guard let self = self else { return }
+                        self.activityIndicator.stopAnimating()
                         if let image = image as? UIImage {
                             self.linkPreviewMediaView.isHidden = false
                             self.linkPreviewMediaView.image = image
                         }
+                        self.linkImageView.isHidden = false
                         self.linkPreviewTitleLabel.text = data.title
                         self.linkPreviewURLLabel.text = data.url?.host
                         self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
@@ -957,6 +1067,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
                 // No Image info
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
+                    self.activityIndicator.stopAnimating()
+                    self.linkImageView.isHidden = false
                     self.linkPreviewMediaView.isHidden = true
                     self.linkPreviewTitleLabel.text = data.title
                     self.linkPreviewURLLabel.text = data.url?.host
@@ -964,8 +1076,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
                 }
             }
         }
-        self.linkPreviewTitleLabel.text = Localizations.loadingPreview
         self.vStack.insertArrangedSubview(self.linkPreviewPanel, at: vStack.arrangedSubviews.firstIndex(of: textFieldPanel)!)
+        self.activityIndicator.startAnimating()
     }
 
     private func resetLinkDetection() {
@@ -979,6 +1091,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         // remove media panel from stack
         linkPreviewTitleLabel.text = ""
         linkPreviewURLLabel.text = ""
+        linkImageView.isHidden = true
         linkPreviewMediaView.image = nil
         linkPreviewPanel.removeFromSuperview()
         postButton.isEnabled = isPostButtonEnabled
@@ -1007,6 +1120,32 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             return self.textView.text
         }
     }
+
+    // MARK: Voice note
+
+    func show(voiceNote url: URL) {
+        isShowingVoiceNote = true
+        placeholder.isHidden = true
+        textView.text = ""
+        textView.isHidden = true
+        postVoiceNoteButton.isHidden = false
+        removeVoiceNoteButton.isHidden = false
+        voiceNotePlayer.isHidden = false
+        updatePostButtons()
+
+        voiceNoteAudioView.url = url
+    }
+
+    func hideVoiceNote() {
+        isShowingVoiceNote = false
+        voiceNoteAudioView.pause()
+        placeholder.isHidden = false
+        textView.isHidden = false
+        postVoiceNoteButton.isHidden = true
+        removeVoiceNoteButton.isHidden = true
+        voiceNotePlayer.isHidden = true
+        updatePostButtons()
+    }
     
     // MARK: Mention Picker
     
@@ -1021,7 +1160,17 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }
 
     @objc func postButtonClicked() {
-        if voiceNoteRecorder.isRecording {
+        if isShowingVoiceNote, let url = voiceNoteAudioView.url {
+            hideVoiceNote()
+
+            let media = PendingMedia(type: .audio)
+            media.size = .zero
+            media.order = 1
+            media.fileURL = url
+
+            let text = MentionText(expandedText: "", mentionRanges: [:])
+            delegate?.commentInputView(self, wantsToSend: text, andMedia: media, linkPreviewData: nil, linkPreviewMedia: nil)
+        } else if voiceNoteRecorder.isRecording {
             voiceNoteRecorder.stop(cancel: false)
 
             let media = PendingMedia(type: .audio)
@@ -1064,6 +1213,18 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     @objc func cancelRecordingButtonClicked() {
         if voiceNoteRecorder.isRecording {
             voiceNoteRecorder.stop(cancel: true)
+        }
+    }
+
+    @objc func removeVoiceNoteClicked() {
+        hideVoiceNote()
+
+        if let url = voiceNoteAudioView.url {
+            do {
+                try FileManager.default.removeItem(at: url)
+            } catch {
+                DDLogError("chatInputView/removeVoiceNoteClicked/error [\(error)]")
+            }
         }
     }
 
@@ -1461,6 +1622,10 @@ extension CommentInputView: AudioRecorderControlViewDelegate {
 
 // MARK: AudioRecorderDelegate
 extension CommentInputView: AudioRecorderDelegate {
+    func audioRecorderInterrupted(_ recorder: AudioRecorder) {
+        delegate?.commentInputView(self, didInterruptRecorder: recorder)
+    }
+
     func audioRecorderMicrphoneAccessDenied(_ recorder: AudioRecorder) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -1500,5 +1665,18 @@ extension CommentInputView: AudioRecorderDelegate {
             guard let self = self else { return }
             self.voiceNoteTime.text = time
         }
+    }
+}
+
+// MARK: AudioViewDelegate
+extension CommentInputView: AudioViewDelegate {
+    func audioView(_ view: AudioView, at time: String) {
+        voiceNotePlayerTime.text = time
+    }
+
+    func audioViewDidStartPlaying(_ view: AudioView) {
+    }
+
+    func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
     }
 }

@@ -75,7 +75,7 @@ class PostComposerLinkPreviewView: UIView {
         preservesSuperviewLayoutMargins = true
         self.addSubview(vStack)
 
-        vStack.heightAnchor.constraint(equalToConstant: 200).isActive = true
+        vStack.heightAnchor.constraint(equalToConstant: 250).isActive = true
         vStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         vStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
 

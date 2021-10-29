@@ -355,6 +355,10 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         if viewDidAppear {
             MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
         }
+
+        if let url = AudioRecorder.voiceComment(for: feedPostId) {
+            commentsInputView.show(voiceNote: url)
+        }
     }
 
     private func showNotInGroupBannerIfNeeded(with feedPost: FeedPost) {
@@ -909,6 +913,14 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             self?.commentsInputView.showMediaPanel(with: media[selected])
         }.withNavigationController()
         present(editController, animated: true)
+    }
+
+    func commentInputView(_ inputView: CommentInputView, didInterruptRecorder recorder: AudioRecorder) {
+        guard let url = recorder.saveVoiceComment(for: feedPostId) else { return }
+
+        DispatchQueue.main.async {
+            self.commentsInputView.show(voiceNote: url)
+        }
     }
 
     private func refreshCommentInputViewReplyPanel() {

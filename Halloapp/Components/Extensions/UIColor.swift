@@ -106,6 +106,10 @@ extension UIColor {
         UIColor(named: "FeedPostBackground")!
     }
 
+    class var linkPreviewBackground: UIColor {
+        UIColor(named: "LinkPreviewBackground")!
+    }
+
     class var feedPostShadow: UIColor {
         UIColor(named: "FeedPostShadow")!
     }
@@ -132,6 +136,10 @@ extension UIColor {
 
     class var commentVoiceNoteBackground: UIColor {
         UIColor(named: "CommentVoiceNoteBackground")!
+    }
+
+    class var linkPreviewPostBackground: UIColor {
+        UIColor(named: "LinkPreviewPostBackground")!
     }
     
     // MARK: Notifications
@@ -178,5 +186,9 @@ extension UIColor {
     
     class var archiveCellBackgroundPlaceholder: UIColor {
         UIColor(named: "ArchiveCellBackgroundPlaceholder")!
+    }
+
+    class var voiceNoteInputField: UIColor {
+        UIColor(named: "voiceNoteInputField")!
     }
 }

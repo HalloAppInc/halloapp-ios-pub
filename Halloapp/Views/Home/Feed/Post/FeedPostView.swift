@@ -79,13 +79,9 @@ class FeedPostView: UIView {
     private var footerViewBottomConstraint: NSLayoutConstraint? = nil
 
     private func commonInit() {
-
         backgroundColor = .clear
         preservesSuperviewLayoutMargins = true
-        self.preservesSuperviewLayoutMargins = true
-
-        self.translatesAutoresizingMaskIntoConstraints = false
-        self.constrain(to: self)
+        translatesAutoresizingMaskIntoConstraints = false
 
         // Background
         let solidBackgroundPanelView = FeedItemBackgroundPanelView()
@@ -125,7 +121,7 @@ class FeedPostView: UIView {
         footerViewBottomConstraint = footerView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -LayoutConstants.backgroundPanelViewOutsetV - LayoutConstants.interCardSpacing / 2)
         footerViewBottomConstraint?.isActive = true
 
-        contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8)
+        contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 5)
         contentTopConstraint?.isActive = true
 
         self.addConstraints([
@@ -171,9 +167,9 @@ class FeedPostView: UIView {
         if let backgroundView = backgroundView {
             let panelInsets = UIEdgeInsets(
                 top: LayoutConstants.interCardSpacing / 2,
-                left: 0,
+                left: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.left,
                 bottom: LayoutConstants.interCardSpacing / 2,
-                right: 0)
+                right: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.right)
             backgroundPanelView.frame = backgroundView.bounds.inset(by: panelInsets)
         }
     }
@@ -236,12 +232,12 @@ class FeedPostView: UIView {
         footerView.configure(with: feedPost, contentWidth: contentWidth)
     }
 
-    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool, displayData: FeedPostDisplayData?) {
+    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool, showArchivedDate: Bool, displayData: FeedPostDisplayData? = nil) {
         DDLogVerbose("FeedPostCollectionViewCell/configure [\(post.id)]-[\(post.media?.count ?? 0)]")
 
         postId = post.id
 
-        headerView.configure(with: post)
+        headerView.configure(with: post, showArchivedDate: showArchivedDate)
         if showGroupName {
             configureGroupLabel(with: post.groupId, contentWidth: contentWidth, gutterWidth: gutterWidth)
         }
@@ -263,13 +259,9 @@ class FeedPostView: UIView {
         }
         
         if post.media?.count ?? 0 > 0 {
-            contentTopConstraint?.constant = -8
+            contentTopConstraint?.constant = 5
         } else {
             contentTopConstraint?.constant = 0
-        }
-
-        if post.media?.count ?? 0 == 1 && (post.text?.isEmpty ?? true) {
-            footerViewBottomConstraint?.constant = -LayoutConstants.interCardSpacing / 2
         }
         
         footerView.configure(with: post, contentWidth: contentWidth)
