@@ -310,8 +310,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         tableView.setContentOffset(scrollPoint, animated: false)
 
         // scroll again after setting contentOffset cause for some reason it would
-        // not scroll to the very bottom sometimes (by a few points)
-        scrollToBottom(false)
+        // not scroll to the very bottom sometimes (by a few points) in iOS 14 and 15
+        // dispatch is needed for iOS 14
+        DispatchQueue.main.async {
+            self.scrollToBottom(false)
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -856,9 +859,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         if animated {
             let scrollPoint = CGPoint(x: 0, y: self.tableView.contentSize.height)
             self.tableView.setContentOffset(scrollPoint, animated: true)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            DispatchQueue.main.async {
                 // use our own animation because for some reason tableView's animation gets interrupted intermittently
-                UIView.animate(withDuration: 0.2, animations: {
+                UIView.animate(withDuration: 0.3, animations: {
                     self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
                 })
             }

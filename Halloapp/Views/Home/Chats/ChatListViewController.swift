@@ -215,6 +215,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         let inviteVC = InviteViewController(manager: InviteManager.shared, showDividers: false, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
         inviteVC.view.frame = self.view.bounds
         view.addSubview(inviteVC.view)
+        inviteVC.view.tag = 1000
         inviteVC.view.translatesAutoresizingMaskIntoConstraints = false
         inviteVC.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
         inviteVC.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
@@ -265,6 +266,15 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     private func updateEmptyView() {
         let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
         emptyView.alpha = isEmpty ? 1 : 0
+    }
+    
+    // in the case when user is in zero zone and a message comes in
+    private func dismissInviteScreenIfNeeded() {
+        guard MainAppContext.shared.nux.state == .zeroZone else { return }
+        guard (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) > 0 else { return }
+        if let inviteSubView = view.viewWithTag(1000) {
+            inviteSubView.removeFromSuperview()
+        }
     }
 
     // MARK: New Chat
@@ -341,6 +351,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         DDLogDebug("ChatListView/controllerDidChangeContent")
         reloadData(animated: false)
         updateEmptyView()
+        dismissInviteScreenIfNeeded()
     }
 
     private func reloadData(animated: Bool = true) {

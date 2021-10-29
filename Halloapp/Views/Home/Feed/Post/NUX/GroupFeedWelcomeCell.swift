@@ -98,7 +98,7 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.constrain(to: self)
 
-        contentView.heightAnchor.constraint(equalToConstant: 350).isActive = true
+        contentView.heightAnchor.constraint(equalToConstant: 335).isActive = true
 
         // Background
         backgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
@@ -126,7 +126,7 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         view.axis = .vertical
         view.spacing = 10
 
-        view.layoutMargins = UIEdgeInsets(top: 50, left: 0, bottom: 20, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 35, left: 0, bottom: 20, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false

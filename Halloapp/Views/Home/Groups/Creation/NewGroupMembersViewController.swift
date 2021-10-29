@@ -46,7 +46,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         }
     }
 
-    private var alreadyHaveMembers: Bool = false
+    private var isNewCreationFlow: Bool = false
     private var currentMembers: [UserID] = []
     
     private let sharedNUX = MainAppContext.shared.nux
@@ -55,7 +55,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
     init(currentMembers: [UserID] = []) {
         self.currentMembers = currentMembers
-        self.alreadyHaveMembers = self.currentMembers.count > 0 ? true : false
+        self.isNewCreationFlow = self.currentMembers.count == 0 ? true : false
 
         self.isZeroZone = sharedNUX.state == .zeroZone
         super.init(nibName: nil, bundle: nil)
@@ -66,7 +66,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     override func viewDidLoad() {
         DDLogInfo("NewGroupMembersViewController/viewDidLoad")
 
-        if alreadyHaveMembers {
+        if !isNewCreationFlow {
             navigationItem.title = Localizations.titleSelectGroupMembers
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonAdd, style: .done, target: self, action: #selector(addAction))
         } else {
@@ -94,7 +94,11 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
 
-        tableView.tableHeaderView = nil
+        // when using insetgroup style and header is set to nil,
+        // iOS will default a view that takes up space so an empty view is needed to remove space
+        var emptyHeaderViewFrame = CGRect.zero
+        emptyHeaderViewFrame.size.height = .leastNormalMagnitude
+        tableView.tableHeaderView = UIView(frame: emptyHeaderViewFrame)
 
         view.addSubview(mainView)
         view.backgroundColor = UIColor.primaryBg
@@ -140,13 +144,13 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
     @objc private func keyboardWillShow(notification: Notification) {
         animateWithKeyboard(notification: notification) { (keyboardFrame) in
-            self.mainView.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: keyboardFrame.height, right: 0)
+            self.mainView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: keyboardFrame.height, right: 0)
         }
     }
 
     @objc private func keyboardWillHide(notification: Notification) {
         animateWithKeyboard(notification: notification) { (keyboardFrame) in
-            self.mainView.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+            self.mainView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 10, right: 0)
         }
     }
 
@@ -154,7 +158,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         let view = UIStackView(arrangedSubviews: [ tableView, memberAvatarsRow ])
         view.axis = .vertical
 
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 10, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -196,7 +200,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     }()
 
     private lazy var tableView: UITableView = {
-        let view = UITableView()
+        let view = UITableView(frame: CGRect.zero, style: .insetGrouped)
         view.backgroundColor = .primaryBg
         view.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         view.delegate = self
@@ -367,12 +371,14 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSource {
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        guard !isZeroZone else { return 1 }
+        if isZeroZone, isNewCreationFlow { return 1 }
         return fetchedResultsController?.sections?.count ?? 0
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard !isZeroZone else { return 1 }
+        if isZeroZone, isNewCreationFlow {
+            return 1 // for the cell that shows the user
+        }
         guard let sections = self.fetchedResultsController?.sections else { return 0 }
         if isFiltering {
           return filteredContacts.count
@@ -381,7 +387,7 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard !isZeroZone else {
+        if isZeroZone, isNewCreationFlow {
             let cell = ContactTableViewCell()
             cell.configure(with: MainAppContext.shared.userData.userId)
             cell.setContact(selected: true, animated: false)
@@ -397,16 +403,11 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
             abContact = fetchedResultsController?.object(at: indexPath)
         }
 
-        if MainAppContext.shared.nux.state == .zeroZone {
-            cell.configure(with: MainAppContext.shared.userData.userId)
-            cell.setContact(selected: true, animated: false)
-        } else {
-            if let abContact = abContact {
-                if let userId = abContact.userId {
-                    cell.configure(with: userId)
-                    let isSelected = selectedMembers.contains(userId)
-                    cell.setContact(selected: isSelected, animated: false) // animation flickers if true due to too many reloads
-                }
+        if let abContact = abContact {
+            if let userId = abContact.userId {
+                cell.configure(with: userId)
+                let isSelected = selectedMembers.contains(userId)
+                cell.setContact(selected: isSelected, animated: false) // animation flickers if true due to too many reloads
             }
         }
 
@@ -414,7 +415,7 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        guard !isZeroZone else { return UITableView.automaticDimension }
+        if isZeroZone, isNewCreationFlow { return UITableView.automaticDimension }
 
         var contact: ABContact?
 
@@ -433,7 +434,7 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
     }
 
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        guard !isZeroZone else { return }
+        if isZeroZone, isNewCreationFlow { return }
 
         var contact: ABContact?
 
@@ -456,7 +457,7 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard !isZeroZone else { return }
+        if isZeroZone, isNewCreationFlow { return }
         guard let cell = tableView.cellForRow(at: indexPath) as? ContactTableViewCell else { return }
         let abContact: ABContact?
         if isFiltering {
@@ -471,7 +472,7 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         guard let userId = contact.userId else { return }
         if !selectedMembers.contains(userId) {
             var totalMembers = currentMembers.count + selectedMembers.count
-            if !alreadyHaveMembers {
+            if isNewCreationFlow {
                 totalMembers += 1 // count yourself also if this is a new creation flow
             }
             guard totalMembers < ServerProperties.maxGroupSize else {
