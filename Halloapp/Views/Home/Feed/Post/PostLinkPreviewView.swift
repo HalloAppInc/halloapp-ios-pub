@@ -63,6 +63,14 @@ class PostLinkPreviewView: UIView {
         return titleLabel
     }()
 
+    private lazy var linkImageView: UIView = {
+        let image = UIImage(named: "LinkIcon")?.withRenderingMode(.alwaysTemplate)
+        let imageView = UIImageView(image: image)
+        imageView.tintColor = UIColor.label.withAlphaComponent(0.5)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+
     private lazy var urlLabel: UILabel = {
         let urlLabel = UILabel()
         urlLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -73,8 +81,17 @@ class PostLinkPreviewView: UIView {
         return urlLabel
     }()
 
+    private var linkPreviewLinkStack: UIStackView {
+        let linkStack = UIStackView(arrangedSubviews: [ linkImageView, urlLabel, UIView() ])
+        linkStack.translatesAutoresizingMaskIntoConstraints = false
+        linkStack.spacing = 2
+        linkStack.alignment = .center
+        linkStack.axis = .horizontal
+        return linkStack
+    }
+
     private lazy var textStack: UIStackView = {
-        let textStack = UIStackView(arrangedSubviews: [ titleLabel, urlLabel ])
+        let textStack = UIStackView(arrangedSubviews: [ titleLabel, linkPreviewLinkStack ])
         textStack.translatesAutoresizingMaskIntoConstraints = false
         textStack.axis = .vertical
         textStack.spacing = 2

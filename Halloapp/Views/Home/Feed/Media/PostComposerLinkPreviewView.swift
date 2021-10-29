@@ -33,8 +33,7 @@ class PostComposerLinkPreviewView: UIView {
     private lazy var linkPreviewCloseButton: UIButton = {
         let closeButton = UIButton(type: .custom)
         closeButton.translatesAutoresizingMaskIntoConstraints = false
-        closeButton.setImage(UIImage(named: "NavbarClose")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        closeButton.tintColor = .placeholderText
+        closeButton.setImage(UIImage(named: "CloseCircle"), for: .normal)
         closeButton.addTarget(self, action: #selector(didTapCloseLinkPreviewPanel), for: .touchUpInside)
         return closeButton
     }()
