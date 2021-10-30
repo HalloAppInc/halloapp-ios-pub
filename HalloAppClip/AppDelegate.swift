@@ -15,7 +15,7 @@ import CoreData
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     private let serviceBuilder: ServiceBuilder = {
-       return AppClipProtoService(userData: $0)
+       return ProtoServiceCore(credentials: $0)
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {

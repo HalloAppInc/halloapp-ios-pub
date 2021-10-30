@@ -39,6 +39,9 @@ public protocol CoreService {
     var isAppVersionCloseToExpiry: CurrentValueSubject<Bool, Never> { get }
 
     // MARK: Connection
+    var credentials: Credentials? { get set }
+    var useTestServer: Bool { get set }
+    var hostName: String { get }
     var didConnect: PassthroughSubject<Void, Never> { get }
     var didDisconnect: PassthroughSubject<Void, Never> { get }
     var connectionState: ConnectionState { get }

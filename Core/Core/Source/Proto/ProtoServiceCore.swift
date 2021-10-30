@@ -59,21 +59,55 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     public let didDisconnect = PassthroughSubject<Void, Never>()
 
     private var stream: Stream?
-    public let userData: UserData
+    public var credentials: Credentials? {
+        didSet {
+            DDLogInfo("proto/set-credentials [\(credentials?.userID ?? "nil")]")
+            if let credentials = credentials {
+                configureStream(with: credentials)
+                connect()
+            } else {
+                disconnectImmediately()
+            }
+        }
+    }
 
-    required public init(userData: UserData, passiveMode: Bool = false, automaticallyReconnect: Bool = true) {
-        self.userData = userData
+    required public init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = true) {
+        self.credentials = credentials
         self.isPassiveMode = passiveMode
         self.isAutoReconnectEnabled = automaticallyReconnect
         super.init()
 
-        configureStream(with: userData)
+        if let credentials = credentials {
+            configureStream(with: credentials)
+        } else {
+            DDLogInfo("proto/init/no-credentials")
+        }
     }
 
     // MARK: Connection management
 
     private let isPassiveMode: Bool
     private let isAutoReconnectEnabled: Bool
+    private let noisePort: UInt16 = 5222
+
+    public var useTestServer: Bool {
+        get {
+            #if DEBUG
+            if UserDefaults.shared.value(forKey: "UseTestServer") == nil {
+                // Debug builds should default to test server
+                return true
+            }
+            #endif
+            return UserDefaults.shared.bool(forKey: "UseTestServer")
+        }
+        set {
+            UserDefaults.shared.set(newValue, forKey: "UseTestServer")
+        }
+    }
+
+    public var hostName: String {
+        useTestServer ? "s-test.halloapp.net" : "s.halloapp.net"
+    }
 
     public func send(_ data: Data) {
         switch stream {
@@ -84,18 +118,13 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         }
     }
 
-    public func configureStream(with userData: UserData?) {
-        DDLogInfo("proto/stream/configure [\(userData?.userId ?? "nil")]")
-        switch userData?.credentials {
-        case .v2(let userID, let noiseKeys):
-            let noise = NoiseStream(
-                            noiseKeys: noiseKeys,
-                            serverStaticKey: Keychain.loadServerStaticKey(for: userID),
-                            delegate: self)
-            stream = .noise(noise)
-        case .none:
-            return
-        }
+    public func configureStream(with credentials: Credentials) {
+        DDLogInfo("proto/stream/configure [\(credentials.userID)]")
+        let noise = NoiseStream(
+            noiseKeys: credentials.noiseKeys,
+            serverStaticKey: Keychain.loadServerStaticKey(for: credentials.userID),
+            delegate: self)
+        stream = .noise(noise)
     }
 
     public func startConnectingIfNecessary() {
@@ -116,7 +145,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         guard let stream = stream else { return }
         switch stream {
         case .noise(let noise):
-            noise.connect(host: userData.hostName, port: userData.hostPort)
+            noise.connect(host: hostName, port: noisePort)
         }
 
         // Retry if we're not connected in 10 seconds (cancel pending retry if it exists)
@@ -301,7 +330,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             switch authResult.result {
             case .failure:
                 DispatchQueue.main.async {
-                    self.userData.logout()
+                    AppContext.shared.userData.logout()
                 }
             case .UNRECOGNIZED, .unknown, .success:
                 DDLogError("ProtoServiceCore/authenticationFailed/unexpected-result [\(authResult.result)] [\(authResult.reason)]")
@@ -365,10 +394,10 @@ extension ProtoServiceCore: NoiseDelegate {
         clientConfig.clientVersion.version = AppContext.userAgent
         clientConfig.resource = "iphone"
         clientConfig.deviceInfo = deviceInfo
-        if let uid = Int64(userData.userId) {
+        if let userID = credentials?.userID, let uid = Int64(userID) {
             clientConfig.uid = uid
         } else {
-            DDLogError("ProtoServiceCore/connectionPayload/error invalid userID [\(userData.userId)]")
+            DDLogError("ProtoServiceCore/connectionPayload/error invalid userID [\(credentials?.userID ?? "nil")]")
         }
         DDLogInfo("ProtoServiceCore/connectionPayload [passiveMode: \(isPassiveMode)]")
         return try? clientConfig.serializedData()
@@ -395,7 +424,8 @@ extension ProtoServiceCore: NoiseDelegate {
     }
 
     public func receivedServerStaticKey(_ key: Data) {
-        Keychain.saveServerStaticKey(key, for: userData.userId)
+        guard let userID = credentials?.userID else { return }
+        Keychain.saveServerStaticKey(key, for: userID)
     }
 }
 
@@ -494,13 +524,12 @@ extension ProtoServiceCore: CoreService {
 
     public func resendPost(_ post: PostData, feed: Feed, rerequestCount: Int32, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
         DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/begin")
-        guard self.isConnected else {
+        guard let fromUserID = credentials?.userID, self.isConnected else {
             DDLogInfo("ProtoServiceCore/resendPost/\(post.id) skipping (disconnected)")
             completion(.failure(RequestError.notConnected))
             return
         }
 
-        let fromUserID = userData.userId
         makeGroupFeedMessage(post, feed: feed, to: toUserID) { result in
             switch result {
             case .failure(let failure):
@@ -542,13 +571,11 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func resendComment(_ comment: CommentData, groupId: GroupID?, rerequestCount: Int32, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-        guard self.isConnected else {
+        guard let fromUserID = credentials?.userID, self.isConnected else {
             DDLogInfo("ProtoServiceCore/resendComment/\(comment.id) skipping (disconnected)")
             completion(.failure(RequestError.notConnected))
             return
         }
-
-        let fromUserID = userData.userId
 
         makeGroupFeedMessage(comment, groupID: groupId, to: toUserID) { result in
             switch result {
@@ -1215,10 +1242,15 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func rerequestGroupFeedItem(contentId: String, groupID: String, authorUserID: UserID, rerequestType: Server_GroupFeedRerequest.RerequestType, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let fromUserID = credentials?.userID else {
+            DDLogError("proto/rerequestGroupFeedItem/error no-user-id")
+            completion(.failure(.notConnected))
+            return
+        }
         // TODO: murali@: why are we using ProtoRequest based on iqs? -- fix this?
         enqueue(request: ProtoGroupFeedRerequest(groupID: groupID,
                                                  contentId: contentId,
-                                                 fromUserID: userData.userId,
+                                                 fromUserID: fromUserID,
                                                  toUserID: authorUserID,
                                                  rerequestType: rerequestType,
                                                  completion: completion))
@@ -1249,13 +1281,11 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func sendChatMessage(_ message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
-        guard self.isConnected else {
+        guard let fromUserID = credentials?.userID, self.isConnected else {
             DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) skipping (disconnected)")
             completion(.failure(RequestError.notConnected))
             return
         }
-
-        let fromUserID = userData.userId
 
         makeChatStanza(message) { chat, error in
             guard let chat = chat else {
@@ -1353,7 +1383,12 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func rerequestMessage(_ messageID: String, senderID: UserID, rerequestData: RerequestData, completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoMessageRerequest(messageID: messageID, fromUserID: userData.userId, toUserID: senderID, rerequestData: rerequestData, completion: completion))
+        guard let fromUserID = credentials?.userID else {
+            DDLogError("proto/rerequestMessage/error no-user-id")
+            completion(.failure(.notConnected))
+            return
+        }
+        enqueue(request: ProtoMessageRerequest(messageID: messageID, fromUserID: fromUserID, toUserID: senderID, rerequestData: rerequestData, completion: completion))
     }
 
     public func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>) {

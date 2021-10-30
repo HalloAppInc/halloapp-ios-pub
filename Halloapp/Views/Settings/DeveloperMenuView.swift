@@ -25,7 +25,7 @@ private enum MenuTitles {
 
 struct DeveloperMenuView: View {
 
-    @State var useTestServer = MainAppContext.shared.userData.useTestServer
+    @State var useTestServer = MainAppContext.shared.coreService.useTestServer
 
     @ObservedObject var videoSettings = VideoSettings.shared
     @State var showVideoResolutionActionSheet = false
@@ -57,7 +57,7 @@ struct DeveloperMenuView: View {
                     Text(MenuTitles.server)
                     Spacer()
                     ///FIXME: this does not update in real time
-                    Text(self.userData.hostName)
+                    Text(self.service.hostName)
                 }
 
                 // User ID
@@ -71,8 +71,8 @@ struct DeveloperMenuView: View {
                 HStack {
                     Toggle(MenuTitles.useDevServer, isOn: $useTestServer)
                         .onReceive(Just(self.useTestServer)) { value in
-                            if value != self.userData.useTestServer {
-                                self.userData.useTestServer = value
+                            if value != self.service.useTestServer {
+                                (self.service as? ProtoServiceCore)?.useTestServer = value
                                 self.service.disconnectImmediately()
                                 self.service.connect()
                             }

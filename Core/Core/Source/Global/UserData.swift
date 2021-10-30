@@ -14,9 +14,15 @@ import SwiftUI
 public enum Credentials {
     case v2(userID: UserID, noiseKeys: NoiseKeys)
 
-    var userID: UserID {
+    public var userID: UserID {
         switch self {
         case .v2(let userID, _): return userID
+        }
+    }
+
+    public var noiseKeys: NoiseKeys {
+        switch self {
+        case .v2(_, let noiseKeys): return noiseKeys
         }
     }
 }
@@ -39,21 +45,6 @@ public final class UserData: ObservableObject {
      */
     @Published public var isLoggedIn = false
 
-    public var useTestServer: Bool {
-        get {
-            #if DEBUG
-            if UserDefaults.shared.value(forKey: "UseTestServer") == nil {
-                // Debug builds should default to test server
-                return true
-            }
-            #endif
-            return UserDefaults.shared.bool(forKey: "UseTestServer")
-        }
-        set {
-            UserDefaults.shared.set(newValue, forKey: "UseTestServer")
-        }
-    }
-
     public static var compressionQuality: Float = 0.4
 
     public var groupInviteToken: String? = nil
@@ -72,14 +63,6 @@ public final class UserData: ObservableObject {
     public var normalizedPhoneNumber: String = ""
     public var userId: UserID = ""
     public private(set) var noiseKeys: NoiseKeys?
-
-    public var hostName: String {
-        useTestServer ? "s-test.halloapp.net" : "s.halloapp.net"
-    }
-
-    public var hostPort: UInt16 {
-        5222
-    }
 
     public var credentials: Credentials? {
         guard !userId.isEmpty else { return nil }

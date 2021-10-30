@@ -47,7 +47,6 @@
 		329E043E2682490300C2D250 /* AppClipContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E043D2682490300C2D250 /* AppClipContext.swift */; };
 		329E0442268249E700C2D250 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 329E0441268249E700C2D250 /* GoogleService-Info.plist */; };
 		329E044326824A4900C2D250 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
-		329E044626824A8C00C2D250 /* AppClipProtoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E044526824A8C00C2D250 /* AppClipProtoService.swift */; };
 		329E044A26824B1F00C2D250 /* AppClipHomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E044926824B1F00C2D250 /* AppClipHomeViewController.swift */; };
 		329E044D26824B8900C2D250 /* VerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E044C26824B8900C2D250 /* VerificationViewController.swift */; };
 		329E045026824DC900C2D250 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41E24A6C5F300D4E354 /* Color.swift */; };
@@ -525,7 +524,6 @@
 		329E0422268247BE00C2D250 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		329E043D2682490300C2D250 /* AppClipContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppClipContext.swift; sourceTree = "<group>"; };
 		329E0441268249E700C2D250 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		329E044526824A8C00C2D250 /* AppClipProtoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppClipProtoService.swift; sourceTree = "<group>"; };
 		329E044926824B1F00C2D250 /* AppClipHomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppClipHomeViewController.swift; sourceTree = "<group>"; };
 		329E044C26824B8900C2D250 /* VerificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationViewController.swift; sourceTree = "<group>"; };
 		32A9F9B82710D98F004BB00B /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -1140,7 +1138,6 @@
 		329E044426824A7200C2D250 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				329E044526824A8C00C2D250 /* AppClipProtoService.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -2568,7 +2565,6 @@
 				329E043E2682490300C2D250 /* AppClipContext.swift in Sources */,
 				329E03FD268247BD00C2D250 /* SceneDelegate.swift in Sources */,
 				329E04392682481A00C2D250 /* VerificationCodeViewController.swift in Sources */,
-				329E044626824A8C00C2D250 /* AppClipProtoService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
