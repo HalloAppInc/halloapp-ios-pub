@@ -17,7 +17,7 @@ import FirebaseCrashlytics
 
 fileprivate var sharedContext: AppContext?
 
-public typealias ServiceBuilder = (UserData) -> CoreService
+public typealias ServiceBuilder = (Credentials?) -> CoreService
 
 public func initAppContext(_ appContextClass: AppContext.Type, serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
     sharedContext = appContextClass.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
@@ -108,6 +108,8 @@ open class AppContext {
             privacySettingsImpl
         }
     }
+
+    private var cancellableSet: Set<AnyCancellable> = []
 
     // MARK: Event monitoring
 
@@ -246,7 +248,7 @@ open class AppContext {
         }
 
         userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL, isAppClip: Self.isAppClip)
-        coreService = serviceBuilder(userData)
+        coreService = serviceBuilder(userData.credentials)
         contactStoreImpl = contactStoreClass.init(userData: userData)
         privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)
         keyStore = KeyStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
@@ -254,6 +256,17 @@ open class AppContext {
         messageCrypter = MessageCrypter(service: coreService, keyStore: keyStore)
         keyStore.delegate = messageCrypter
         mediaHashStore = MediaHashStore(persistentStoreURL: AppContext.mediaHashStoreURL)
+
+        cancellableSet.insert(
+            userData.didLogIn.sink { [weak self] in
+                self?.coreService.credentials = self?.userData.credentials
+            }
+        )
+        cancellableSet.insert(
+            userData.didLogOff.sink { [weak self] in
+                self?.coreService.credentials = nil
+            }
+        )
 
         FirebaseApp.configure()
         let logger = CrashlyticsLogger()

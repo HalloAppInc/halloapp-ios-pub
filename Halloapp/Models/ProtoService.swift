@@ -19,21 +19,8 @@ fileprivate let userDefaultsKeyForSilentRerequestRecords = "silentRerequestRecor
 
 final class ProtoService: ProtoServiceCore {
 
-    public required init(userData: UserData, passiveMode: Bool = false, automaticallyReconnect: Bool = true) {
-        super.init(userData: userData, passiveMode: passiveMode, automaticallyReconnect: automaticallyReconnect)
-
-        self.cancellableSet.insert(
-            userData.didLogIn.sink {
-                DDLogInfo("proto/userdata/didLogIn")
-                self.configureStream(with: self.userData)
-                self.connect()
-            })
-        self.cancellableSet.insert(
-            userData.didLogOff.sink {
-                DDLogInfo("proto/userdata/didLogOff")
-                self.disconnectImmediately() // this is only necessary when manually logging out from a developer menu.
-                self.configureStream(with: nil)
-            })
+    public required init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = true) {
+        super.init(credentials: credentials, passiveMode: passiveMode, automaticallyReconnect: automaticallyReconnect)
     }
 
     override func performOnConnect() {
@@ -558,8 +545,8 @@ final class ProtoService: ProtoServiceCore {
 
     private func resendNameIfNecessary() {
         guard !UserDefaults.standard.bool(forKey: userDefaultsKeyForNameSync) else { return }
-        guard !userData.name.isEmpty else { return }
-        updateUsername(userData.name)
+        guard !AppContext.shared.userData.name.isEmpty else { return }
+        updateUsername(AppContext.shared.userData.name)
     }
 
     // MARK: Message
@@ -907,10 +894,10 @@ final class ProtoService: ProtoServiceCore {
 
     private func queryAvatarForCurrentUserIfNecessary() {
         guard !UserDefaults.standard.bool(forKey: AvatarStore.Keys.userDefaultsDownload) else { return }
-
+        guard let userID = credentials?.userID else { return }
         DDLogInfo("proto/queryAvatarForCurrentUserIfNecessary start")
 
-        let request = ProtoAvatarRequest(userID: userData.userId) { result in
+        let request = ProtoAvatarRequest(userID: userID) { result in
             switch result {
             case .success(let avatarInfo):
                 UserDefaults.standard.set(true, forKey: AvatarStore.Keys.userDefaultsDownload)
@@ -926,8 +913,9 @@ final class ProtoService: ProtoServiceCore {
 
     private func resendAvatarIfNecessary() {
         guard UserDefaults.standard.bool(forKey: AvatarStore.Keys.userDefaultsUpload) else { return }
+        guard let userID = credentials?.userID else { return }
 
-        let userAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: self.userData.userId)
+        let userAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: userID)
         guard userAvatar.isEmpty || userAvatar.data != nil else {
             DDLogError("ProtoService/resendAvatarIfNecessary/upload/error avatar data is not ready")
             return
@@ -1010,7 +998,7 @@ extension ProtoService: HalloService {
 
     func updateUsername(_ name: String) {
         UserDefaults.standard.set(false, forKey: userDefaultsKeyForNameSync)
-        enqueue(request: ProtoSendNameRequest(name: userData.name) { result in
+        enqueue(request: ProtoSendNameRequest(name: name) { result in
             if case .success = result {
                 UserDefaults.standard.set(true, forKey: userDefaultsKeyForNameSync)
             }
@@ -1018,6 +1006,7 @@ extension ProtoService: HalloService {
     }
 
     func updateAvatar(_ data: Data?) {
+        guard let userID = credentials?.userID else { return }
         UserDefaults.standard.set(true, forKey: AvatarStore.Keys.userDefaultsUpload)
         let logAction = data == nil ? "removed" : "uploaded"
         enqueue(request: ProtoUpdateAvatarRequest(data: data) { result in
@@ -1028,7 +1017,7 @@ extension ProtoService: HalloService {
 
                 if let avatarID = avatarID {
                     DDLogInfo("ProtoService/updateAvatar received new avatarID [\(avatarID)]")
-                    MainAppContext.shared.avatarStore.update(avatarId: avatarID, forUserId: self.userData.userId)
+                    MainAppContext.shared.avatarStore.update(avatarId: avatarID, forUserId: userID)
                 }
 
             case .failure(let error):
@@ -1049,7 +1038,7 @@ extension ProtoService: HalloService {
         guard let toUID = Int64(toUserID) else {
             return
         }
-        guard let fromUID = Int64(userData.userId) else {
+        guard let userID = credentials?.userID, let fromUID = Int64(userID) else {
             DDLogError("ProtoService/retractPost/error invalid sender uid")
             return
         }
@@ -1086,7 +1075,7 @@ extension ProtoService: HalloService {
         guard let toUID = Int64(toUserID) else {
             return
         }
-        guard let fromUID = Int64(userData.userId) else {
+        guard let userID = credentials?.userID, let fromUID = Int64(userID) else {
             DDLogError("ProtoService/retractComment/error invalid sender uid")
             return
         }
@@ -1130,7 +1119,7 @@ extension ProtoService: HalloService {
         guard let toUID = Int64(toUserID) else {
             return
         }
-        guard let fromUID = Int64(userData.userId) else {
+        guard let userID = credentials?.userID, let fromUID = Int64(userID) else {
             DDLogError("ProtoService/retractChatMessage/error invalid sender uid")
             return
         }
@@ -1330,7 +1319,7 @@ extension ProtoService: HalloService {
             DDLogError("ProtoService/sendGroupChatMessage/\(message.id)/error could not serialize message data")
             return
         }
-         guard let fromUID = Int64(userData.userId) else {
+        guard let userID = credentials?.userID, let fromUID = Int64(userID) else {
             DDLogError("ProtoService/sendGroupChatMessage/\(message.id)/error invalid sender uid")
             return
         }
@@ -1359,7 +1348,7 @@ extension ProtoService: HalloService {
     }
 
     func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String) {
-        guard let fromUID = Int64(userData.userId) else {
+        guard let userID = credentials?.userID, let fromUID = Int64(userID) else {
             DDLogError("ProtoService/retractChatGroupMessage/error invalid sender uid")
             return
         }

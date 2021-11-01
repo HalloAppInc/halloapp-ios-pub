@@ -25,7 +25,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
     }()
 
     private let serviceBuilder: ServiceBuilder = {
-        return ProtoServiceCore(userData: $0, passiveMode: true, automaticallyReconnect: true)
+        return ProtoServiceCore(credentials: $0, passiveMode: true, automaticallyReconnect: true)
     }
     private var service: CoreService? = nil
     private func recordPushEvent(requestID: String, messageID: String?) {

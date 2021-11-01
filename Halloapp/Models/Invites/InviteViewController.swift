@@ -495,7 +495,6 @@ final class InviteViaLinkCell: UICollectionViewCell {
         contentView.addSubview(actionCellView)
         actionCellView.translatesAutoresizingMaskIntoConstraints = false
         actionCellView.constrainMargins(to: contentView)
-        actionCellView.heightAnchor.constraint(lessThanOrEqualToConstant: 70).isActive = true
     }
 
     let actionCellView = ActionCellView()
@@ -680,7 +679,7 @@ final class InviteCellView: UIView {
             return Localizations.contactsOnHalloApp(friendCount)
         }()
 
-        nameLabel.text = contact.fullName + "asdf sa fsaf asf sad fsafasdf saf sadf asdfsadf sa fsd f"
+        nameLabel.text = contact.fullName
         subtitleLabel.text = [secondLine, thirdLine].compactMap({ $0 }).joined(separator: "\n")
 
         let actionTypes = actions?.types ?? []
@@ -706,7 +705,8 @@ final class InviteCellView: UIView {
         let view = UIStackView(arrangedSubviews: [ contactInfoPanel, inviteButton ])
         view.axis = .horizontal
         view.alignment = .center
-        view.spacing = 0
+        view.distribution = .fill
+        view.spacing = 5
 
         view.layoutMargins = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
         view.isLayoutMarginsRelativeArrangement = true
@@ -720,6 +720,7 @@ final class InviteCellView: UIView {
         view.axis = .vertical
         view.spacing = 3
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return view
     }()
     
@@ -753,19 +754,20 @@ final class InviteCellView: UIView {
 
         view.translatesAutoresizingMaskIntoConstraints = false
         view.heightAnchor.constraint(greaterThanOrEqualToConstant: 42).isActive = true
-
         return view
     }()
 
     private lazy var inviteLabel: UILabel = {
         let label = UILabel()
-        label.numberOfLines = 0
         label.backgroundColor = .clear
+        label.numberOfLines = 1 // setContentHuggingPriority will not be respected when set to 0
+        label.textAlignment = .center
         label.font = .systemFont(ofSize: 15)
         label.textColor = UIColor.primaryWhiteBlack
         label.text = Localizations.buttonInvite
 
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         return label
     }()
 
