@@ -301,6 +301,7 @@
 		EAA424FE24ECF1480025CBBE /* ChatGroup+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F824ECF1480025CBBE /* ChatGroup+CoreDataClass.swift */; };
 		EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F924ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift */; };
 		EAA4906625311CD1003348B5 /* OutboundMsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */; };
+		EAA4C08D27310B70002F1628 /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4C08C27310B70002F1628 /* NSAttributedString.swift */; };
 		EAA85A0B25E5D510006D0BC9 /* NotInGroupBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */; };
 		EAAF43992603F7720037F83D /* BlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAF43982603F7720037F83D /* BlurView.swift */; };
 		EAAFC9F02708267C004EAE29 /* HAMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA50FBA326FE82D00097C451 /* HAMarkdown.swift */; };
@@ -895,6 +896,7 @@
 		EAA424F924ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroup+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
 		EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundMsgViewCell.swift; sourceTree = "<group>"; };
+		EAA4C08C27310B70002F1628 /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
 		EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotInGroupBannerView.swift; sourceTree = "<group>"; };
 		EAAF43982603F7720037F83D /* BlurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurView.swift; sourceTree = "<group>"; };
 		EAB1FFEC2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageEvent+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -1822,6 +1824,7 @@
 				763B42AD2435A74E00FF0E82 /* Date.swift */,
 				EA0B991A249C228700B05094 /* DateFormatter.swift */,
 				146B93782405F40500768AC6 /* Font.swift */,
+				EAA4C08C27310B70002F1628 /* NSAttributedString.swift */,
 				EA0B9918249C205E00B05094 /* String.swift */,
 				F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */,
 				761442C8245D4DE500DD9D1A /* UIButton.swift */,
@@ -2758,6 +2761,7 @@
 				6A6D50D9270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
 				76B5B5322501F1700055E712 /* NotificationSettings.swift in Sources */,
+				EAA4C08D27310B70002F1628 /* NSAttributedString.swift in Sources */,
 				68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */,
 				7653F302255DB7FE001CC946 /* FeedPostCollectionViewCell.swift in Sources */,
 				EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */,

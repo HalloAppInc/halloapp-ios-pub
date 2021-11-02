@@ -88,7 +88,7 @@ class FeedWelcomeCell: UICollectionViewCell {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.constrain(to: self)
 
-        contentView.heightAnchor.constraint(equalToConstant: 380).isActive = true
+        contentView.heightAnchor.constraint(equalToConstant: 370).isActive = true
 
         // Background
         backgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
@@ -103,6 +103,7 @@ class FeedWelcomeCell: UICollectionViewCell {
         mainView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
         mainView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
         mainView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        mainView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor).isActive = true
     }
 
     private lazy var mainView: UIStackView = {
@@ -184,7 +185,7 @@ class FeedWelcomeCell: UICollectionViewCell {
     private lazy var bodyTitleLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 0
-        label.font = .systemFont(ofSize: 16, weight: .bold)
+        label.font = .systemFont(ofSize: 16, weight: .semibold)
         label.textColor = .label
         label.text = Localizations.feedWelcomePostTitle
 
@@ -222,10 +223,11 @@ class FeedWelcomeCell: UICollectionViewCell {
         view.backgroundColor = UIColor.primaryBlue
         view.layer.cornerRadius = 20
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 25, bottom: 0, right: 25)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 25, bottom: 2, right: 25)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.widthAnchor.constraint(greaterThanOrEqualToConstant: 172).isActive = true
         view.heightAnchor.constraint(greaterThanOrEqualToConstant: 42).isActive = true
 
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(openInviteAction)))
@@ -235,9 +237,10 @@ class FeedWelcomeCell: UICollectionViewCell {
 
     private lazy var inviteFriendsLabel: UILabel = {
         let label = UILabel()
-        label.numberOfLines = 0
+        label.numberOfLines = 1
         label.backgroundColor = .clear
-        label.font = .systemFont(ofSize: 17)
+        label.textAlignment = .center
+        label.font = .systemFont(ofSize: 17, weight: .semibold)
         label.textColor = UIColor.primaryWhiteBlack
         label.text = Localizations.chatInviteFriends
 

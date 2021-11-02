@@ -419,7 +419,7 @@ extension InviteViewController: UICollectionViewDelegate, UICollectionViewDelega
         if !showDividers, section == 0 {
             return .zero
         }
-        return UIEdgeInsets(top: 0, left: 0, bottom: 30, right: 0)
+        return UIEdgeInsets(top: 0, left: 20, bottom: 15, right: 20)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -544,15 +544,30 @@ final class ActionCellView: UIView {
         mainPanel.translatesAutoresizingMaskIntoConstraints = false
 
         titleLabel.textColor = .label
-        titleLabel.font = .systemFont(forTextStyle: .callout, weight: .semibold)
+        titleLabel.font = .systemFont(forTextStyle: .subheadline, weight: .semibold)
         titleLabel.numberOfLines = 1
         titleLabel.text = Localizations.inviteViaLink
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         subtitleLabel.textColor = UIColor.label.withAlphaComponent(0.5)
-        subtitleLabel.font = .systemFont(forTextStyle: .footnote, pointSizeChange: 1)
+        subtitleLabel.font = .systemFont(forTextStyle: .caption2)
         subtitleLabel.numberOfLines = 1
-        subtitleLabel.text = "https://halloapp.com/dl"
+
+        let attrStr = NSMutableAttributedString(string: "")
+
+        let shareLinkIcon: UIImage? = {
+            return UIImage(named: "InviteShareIcon")?.withTintColor(UIColor.label.withAlphaComponent(0.4))
+        }()
+
+        if let icon = shareLinkIcon {
+            let iconAttachment = NSTextAttachment(image: icon)
+            iconAttachment.bounds = CGRect(x: 0, y: -5, width: 18, height: 18)
+
+            attrStr.append(NSAttributedString(attachment: iconAttachment))
+            attrStr.append(NSAttributedString(string: "  " + "https://halloapp.com/dl"))
+        }
+
+        subtitleLabel.attributedText = attrStr
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         mainPanel.constrainMargins([.leading, .centerY], to: self)
@@ -566,7 +581,7 @@ final class ActionCellView: UIView {
 
         inviteViaLinkButton.translatesAutoresizingMaskIntoConstraints = false
         inviteViaLinkButton.constrainMargins([.centerY], to: self)
-        inviteViaLinkButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -35).isActive = true
+        inviteViaLinkButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -30).isActive = true
         inviteViaLinkButton.setContentHuggingPriority(.required, for: .horizontal)
     }
 
@@ -589,7 +604,7 @@ final class ActionCellView: UIView {
     static func makeActionButton(title: String) -> UIButton {
         let button = UIButton()
         button.setTitle(title, for: .normal)
-        button.titleLabel?.font = .boldSystemFont(ofSize: 15)
+        button.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
         button.setTitleColor(UIColor.primaryBlue, for: .normal)
         button.centerVerticallyWithPadding(padding: 3)
         return button
@@ -723,20 +738,20 @@ final class InviteCellView: UIView {
         view.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return view
     }()
-    
+
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.textColor = .label
-        label.font = .systemFont(forTextStyle: .callout, weight: .semibold)
+        label.font = .systemFont(forTextStyle: .subheadline, weight: .semibold)
         label.numberOfLines = 1
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
+
     private lazy var subtitleLabel: UILabel = {
         let label = UILabel()
         label.textColor = UIColor.label.withAlphaComponent(0.5)
-        label.font = .systemFont(forTextStyle: .footnote, pointSizeChange: 1)
+        label.font = .systemFont(forTextStyle: .caption2)
         label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -747,9 +762,9 @@ final class InviteCellView: UIView {
         view.axis = .horizontal
         view.alignment = .center
         view.backgroundColor = UIColor.primaryBlue
-        view.layer.cornerRadius = 10
+        view.layer.cornerRadius = 8
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -762,7 +777,7 @@ final class InviteCellView: UIView {
         label.backgroundColor = .clear
         label.numberOfLines = 1 // setContentHuggingPriority will not be respected when set to 0
         label.textAlignment = .center
-        label.font = .systemFont(ofSize: 15)
+        label.font = .systemFont(ofSize: 15, weight: .semibold)
         label.textColor = UIColor.primaryWhiteBlack
         label.text = Localizations.buttonInvite
 

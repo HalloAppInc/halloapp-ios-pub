@@ -7,11 +7,11 @@
 //
 
 import AVFoundation
+import CocoaLumberjackSwift
 import Combine
 import Core
 import MarkdownKit
 import UIKit
-import CocoaLumberjackSwift
 
 fileprivate struct Constants {
     static let QuotedMediaSize: CGFloat = 50
@@ -43,7 +43,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }
 
     private var cancellableSet: Set<AnyCancellable> = []
- 
+
     // MARK: Lifecycle
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -52,16 +52,16 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-    
+
     override func prepareForReuse() {
         super.prepareForReuse()
         reset()
     }
-    
+
     private func setup() {
         selectionStyle = .none
-        backgroundColor = UIColor.feedBackground
-        
+        backgroundColor = UIColor.primaryBg
+
         contentView.preservesSuperviewLayoutMargins = false
 
         contentView.addSubview(mainView)
