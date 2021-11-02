@@ -1571,7 +1571,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             save(viewContext)
 
             // Request to retract.
-            service.retractPost(feedPost.id) { result in
+            service.retractPost(feedPost.id, in: feedPost.groupId) { result in
                 switch result {
                 case .success:
                     DDLogInfo("FeedData/retract/postId \(feedPost.id), retract request was successful")
@@ -1600,7 +1600,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         save(viewContext)
 
         // Request to retract.
-        service.retractComment(id: comment.id, postID: comment.post.id) { result in
+        service.retractComment(id: comment.id, postID: comment.post.id, in: comment.post.groupId) { result in
             switch result {
             case .success:
                 self.processCommentRetract(commentId) {}
