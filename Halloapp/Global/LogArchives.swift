@@ -21,9 +21,9 @@ extension MainAppContext {
         try Zip.zipFiles(paths: logfileURLs, zipFilePath: archiveURL, password: nil, progress: nil)
     }
 
-    public func uploadLogsToServer() {
+    public func uploadLogsToServer(completion: @escaping (Result<Void, Error>) -> Void) {
         // Run on a low priority queue.
-        DispatchQueue.global(qos: .utility).async { [weak self] in
+        DispatchQueue.global(qos: .default).async { [weak self] in
             guard let self = self else { return }
             do {
                 DDLogInfo("MainAppContext/uploadLogsToServer/begin")
@@ -52,8 +52,8 @@ extension MainAppContext {
                 request.httpBody = logData
                 request.setValue(AppContext.userAgent, forHTTPHeaderField: "User-Agent")
                 let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
-                    if let error = error {
-                        DDLogError("MainAppContext/uploadLogsToServer/error [\(error)]")
+                    guard let httpResponse = urlResponse as? HTTPURLResponse else {
+                        DDLogError("MainAppContext/uploadLogsToServer/error Invalid response. [\(String(describing: urlResponse))]")
                         return
                     }
                     guard let data = data,
@@ -61,9 +61,11 @@ extension MainAppContext {
                               DDLogError("MainAppContext/uploadLogsToServer/error Invalid response. [\(data ?? Data())]")
                               return
                     }
-                    guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                        DDLogError("MainAppContext/uploadLogsToServer/error Invalid response. [\(String(describing: urlResponse))]")
-                        return
+                    if let error = error {
+                        DDLogError("MainAppContext/uploadLogsToServer/error [\(error)]")
+                        completion(.failure(NSError(domain: "com.halloapp.uploadLogs", code: httpResponse.statusCode, userInfo: nil)))
+                    } else {
+                        completion(.success(()))
                     }
                     DDLogInfo("MainAppContext/uploadLogsToServer/response: \(httpResponse) - \(response)")
                 }
