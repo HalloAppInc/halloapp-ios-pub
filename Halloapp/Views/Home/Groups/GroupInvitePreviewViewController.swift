@@ -147,18 +147,11 @@ class GroupInvitePreviewViewController: UIViewController {
     }()
 
     private lazy var actionsRow: UIStackView = {
-        let leftSpacer = UIView()
-        leftSpacer.translatesAutoresizingMaskIntoConstraints = false
-        leftSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-
-        let rightSpacer = UIView()
-        rightSpacer.translatesAutoresizingMaskIntoConstraints = false
-
-        let view = UIStackView(arrangedSubviews: [leftSpacer, cancelLabel, joinLabel])
+        let view = UIStackView(arrangedSubviews: [cancelLabel, joinLabel])
         view.axis = .horizontal
         view.spacing = 50
 
-        view.layoutMargins = UIEdgeInsets(top: 30, left: 20, bottom: 15, right: 10)
+        view.layoutMargins = UIEdgeInsets(top: 30, left: 10, bottom: 15, right: 10)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -171,7 +164,7 @@ class GroupInvitePreviewViewController: UIViewController {
         label.textAlignment = .left
         label.textColor = .label
         label.font = .systemFont(ofSize: 20)
-        label.text = Localizations.buttonCancelCapitalized
+        label.text = Localizations.buttonCancel
         label.translatesAutoresizingMaskIntoConstraints = false
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(cancelAction(_:)))
@@ -259,7 +252,7 @@ private extension Localizations {
     }
 
     static var groupPreviewJoinGroup: String {
-        NSLocalizedString("group.preview.join.group", value: "JOIN GROUP", comment: "Label for joining group action")
+        NSLocalizedString("group.preview.join.group", value: "Join Group", comment: "Label for joining group action")
     }
 
     static var groupPreviewJoinErrorTitle: String {

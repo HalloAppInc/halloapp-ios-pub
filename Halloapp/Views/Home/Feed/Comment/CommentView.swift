@@ -316,7 +316,7 @@ class CommentView: UIView {
                 mediaCarouselView.delegate = self
                 mediaView.insertArrangedSubview(mediaCarouselView, at: mediaView.arrangedSubviews.count - 1)
                 vStack.insertArrangedSubview(mediaView, at: vStack.arrangedSubviews.count - 1)
-                mediaView.topAnchor.constraint(equalTo: vStack.topAnchor, constant: 20).isActive = true
+                mediaView.topAnchor.constraint(equalTo: nameTextLabel.bottomAnchor, constant: 20).isActive = true
                 self.mediaCarouselView = mediaCarouselView
             }
 
