@@ -52,6 +52,9 @@
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Configuración";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
 /* Placeholder text for when the archive is empty */
 "archive.empty.placeholder" = "Tus publicaciones archivadas aparecerán aquí";
 
@@ -90,6 +93,9 @@
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "Instalar";
+
+/* Title for generic Invite button. */
+"button.invite" = "Invitar";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Saber más";
@@ -364,6 +370,9 @@
 /* Title for tutorial explaining how user can enable contacts permission */
 "contacts.permission.tutorial.title" = "Cómo activar los permisos de los contactos";
 
+/* The default name given to new groups when the user is in Zero Zone (no contacts) */
+"create.group.default.name.my.new.group" = "Mi grupo nuevo";
+
 /* Text label for group description text box */
 "create.group.description.label" = "Descripción";
 
@@ -438,6 +447,9 @@
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.replied.w.text" = "<$author$> respondió: <$text$>";
+
+/* Archived date timestamp */
+"feed.post.archived.timestamp" = "Archivado %@";
 
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "No se pudo publicar.";
@@ -619,9 +631,6 @@
 /* Title for alert box when the user can't join the group via group link */
 "group.preview.join.error.title" = "No se puede unir al grupo";
 
-/* Label for joining group action */
-"group.preview.join.group" = "UNIRSE AL GRUPO";
-
 /* Label for the number of members in the group */
 "group.preview.members" = "Miembros";
 
@@ -655,6 +664,9 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Esta versión está desactualizada";
 
+/* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
+"invite.action.sheet.title" = "Invita a %@ mediante...";
+
 /* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
 "invite.already.halloapp.user" = "Ya es usuario de HalloApp";
 
@@ -687,6 +699,9 @@
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Invitar";
+
+/* Title of cell at the top of the invite screen */
+"invite.via.link" = "Invita mediante enlace";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Búsqueda";

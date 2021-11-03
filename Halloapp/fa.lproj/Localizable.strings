@@ -52,6 +52,9 @@
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "تنظیمات";
 
+/* Company name */
+"app.name.halloapp" = "هالواپ";
+
 /* Placeholder text for when the archive is empty */
 "archive.empty.placeholder" = "پست‌های بایگانی شده شما اینجا خواهند بود";
 
@@ -90,6 +93,9 @@
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "نصب";
+
+/* Title for generic Invite button. */
+"button.invite" = "دعوت";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "بیشتر بدانید";
@@ -364,6 +370,9 @@
 /* Title for tutorial explaining how user can enable contacts permission */
 "contacts.permission.tutorial.title" = "مخاطب‌ها";
 
+/* The default name given to new groups when the user is in Zero Zone (no contacts) */
+"create.group.default.name.my.new.group" = "گروه جدیدم";
+
 /* Text label for group description text box */
 "create.group.description.label" = "توضیحات";
 
@@ -438,6 +447,9 @@
 
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.replied.w.text" = "<$author$> پاسخ داد:‌ <$text$>";
+
+/* Archived date timestamp */
+"feed.post.archived.timestamp" = "در %@ بایگانی شد";
 
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "خطا در ارسال پست.";
@@ -619,9 +631,6 @@
 /* Title for alert box when the user can't join the group via group link */
 "group.preview.join.error.title" = "خطا در پیوستن به گروه";
 
-/* Label for joining group action */
-"group.preview.join.group" = "پیوستن به گروه";
-
 /* Label for the number of members in the group */
 "group.preview.members" = "اعضا";
 
@@ -655,6 +664,9 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "این نسخه قدیمی است";
 
+/* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
+"invite.action.sheet.title" = "دعوت %@ از طریق...";
+
 /* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
 "invite.already.halloapp.user" = "کاربر هالواپ است";
 
@@ -687,6 +699,9 @@
 
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "دعوت";
+
+/* Title of cell at the top of the invite screen */
+"invite.via.link" = "دعوت از طریق لینک";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "جستجو";

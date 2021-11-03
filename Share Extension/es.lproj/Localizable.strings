@@ -4,6 +4,9 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Comprueba si tienes conexión a Internet y vuelve a intentarlo.";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Añadir";
 
@@ -27,6 +30,9 @@
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
 "button.go.to.settings" = "Ir a la configuración";
+
+/* Title for generic Invite button. */
+"button.invite" = "Invitar ";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Más información";
@@ -75,6 +81,9 @@
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Yo";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "Únete a mi red social de relaciones verdaderas en HalloApp. Bájalo gratis en halloapp.com/dl ";
 
 /* Placeholder for media caption. */
 "share.composer.placeholder" = "Escribe una descripción";
