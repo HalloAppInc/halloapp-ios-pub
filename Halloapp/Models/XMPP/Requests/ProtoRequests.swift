@@ -127,6 +127,43 @@ final class ProtoRetractCommentRequest: ProtoRequest<Void> {
     }
 }
 
+final class ProtoRetractGroupPostRequest: ProtoRequest<Void> {
+
+    init(id: FeedPostID, in groupID: GroupID, completion: @escaping Completion) {
+        var post = Server_Post()
+        post.id = id
+
+        var serverGroupFeedItem = Server_GroupFeedItem()
+        serverGroupFeedItem.item = .post(post)
+        serverGroupFeedItem.action = .retract
+        serverGroupFeedItem.gid = groupID
+
+        super.init(
+            iqPacket: .iqPacket(type: .set, payload: .groupFeedItem(serverGroupFeedItem)),
+            transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
+
+final class ProtoRetractGroupCommentRequest: ProtoRequest<Void> {
+
+    init(id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID, completion: @escaping Completion) {
+        var comment = Server_Comment()
+        comment.id = id
+        comment.postID = postID
+
+        var serverGroupFeedItem = Server_GroupFeedItem()
+        serverGroupFeedItem.item = .comment(comment)
+        serverGroupFeedItem.action = .retract
+        serverGroupFeedItem.gid = groupID
+
+        super.init(
+            iqPacket: .iqPacket(type: .set, payload: .groupFeedItem(serverGroupFeedItem)),
+            transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
+
 final class ProtoContactSyncRequest: ProtoRequest<[HalloContact]> {
 
     init<T: Sequence>(

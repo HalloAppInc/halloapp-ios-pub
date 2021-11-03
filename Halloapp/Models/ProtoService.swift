@@ -16,6 +16,7 @@ fileprivate let userDefaultsKeyForLangID = "langId"
 fileprivate let userDefaultsKeyForAPNSSyncTime = "apnsSyncTime"
 fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 fileprivate let userDefaultsKeyForSilentRerequestRecords = "silentRerequestRecords"
+fileprivate let userDefaultsKeyForRequestLogs = "serverRequestedLogs"
 
 final class ProtoService: ProtoServiceCore {
 
@@ -41,6 +42,7 @@ final class ProtoService: ProtoServiceCore {
         NotificationSettings.current.sendConfigIfNecessary(using: self)
         MainAppContext.shared.startReportingEvents()
         clearSilentChatRerequestRecords()
+        uploadLogsToServerIfNecessary()
     }
 
     override func authenticationSucceeded(with authResult: Server_AuthResult) {
@@ -762,49 +764,68 @@ final class ProtoService: ProtoServiceCore {
                 return
             }
 
-            // Dont process groupFeedItems that were already decrypted and saved.
-            if isGroupFeedItemDecryptedAndSaved(contentID: contentID) {
-                return
-            }
-
             let group = HalloGroup(id: item.gid, name: item.name, avatarID: item.avatarID)
-            hasAckBeenDelegated = true
-            decryptGroupFeedPayload(for: item) { content, groupDecryptionFailure in
-                let receiptTimestamp = Date()
-                if let content = content {
-                    DDLogInfo("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/successfully decrypted content")
-                    let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
 
-                    delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
-                } else {
-                    DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/failed to decrypt/using unencrypted content")
-                    // fallback to existing logic of using unencrypted payload
-                    let contents = self.payloadContents(for: [item], status: .rerequesting)
-                    if contents.isEmpty {
-                        ack()
+            switch item.action {
+            case .publish:
+                // Dont process groupFeedItems that were already decrypted and saved.
+                if isGroupFeedItemDecryptedAndSaved(contentID: contentID) {
+                    return
+                }
+                hasAckBeenDelegated = true
+                decryptGroupFeedPayload(for: item) { content, groupDecryptionFailure in
+                    let receiptTimestamp = Date()
+                    if let content = content {
+                        DDLogInfo("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/successfully decrypted content")
+                        let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
+
+                        delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
                     } else {
-                        // TODO(murali@): why are we sending multiple acks if at all here?
-                        for content in contents  {
-                            let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
-                            delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
+                        DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/failed to decrypt/using unencrypted content")
+                        // fallback to existing logic of using unencrypted payload
+                        let contents = self.payloadContents(for: [item], status: .rerequesting)
+                        if contents.isEmpty {
+                            ack()
+                        } else {
+                            // TODO(murali@): why are we sending multiple acks if at all here?
+                            for content in contents  {
+                                let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
+                                delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
+                            }
                         }
                     }
+                    if let failure = groupDecryptionFailure {
+                        DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/error \(failure.error)")
+                        self.rerequestGroupFeedItemIfNecessary(message: msg, groupID: item.gid, failure: failure)
+                    } else {
+                        DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/success")
+                    }
+                    self.reportGroupDecryptionResult(
+                        error: groupDecryptionFailure?.error,
+                        contentID: contentID,
+                        itemType: itemType,
+                        groupID: item.gid,
+                        timestamp: receiptTimestamp,
+                        sender: UserAgent(string: item.senderClientVersion),
+                        rerequestCount: Int(msg.rerequestCount))
                 }
-                if let failure = groupDecryptionFailure {
-                    DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/error \(failure.error)")
-                    self.rerequestGroupFeedItemIfNecessary(message: msg, groupID: item.gid, failure: failure)
+
+            case .retract:
+                hasAckBeenDelegated = true
+                let contents = self.payloadContents(for: [item], status: .received)
+                if contents.isEmpty {
+                    ack()
                 } else {
-                    DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/success")
+                    for content in contents  {
+                        let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
+                        delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
+                    }
                 }
-                self.reportGroupDecryptionResult(
-                    error: groupDecryptionFailure?.error,
-                    contentID: contentID,
-                    itemType: itemType,
-                    groupID: item.gid,
-                    timestamp: receiptTimestamp,
-                    sender: UserAgent(string: item.senderClientVersion),
-                    rerequestCount: Int(msg.rerequestCount))
+
+            default:
+                break
             }
+
         case .groupFeedRerequest(let rerequest):
             guard let delegate = feedDelegate else {
                 DDLogError("proto/handleGroupFeedRerequest/delegate missing")
@@ -872,7 +893,8 @@ final class ProtoService: ProtoServiceCore {
             }
         case .requestLogs(_):
             DDLogInfo("proto/didReceive/\(msg.id)/request logs")
-            MainAppContext.shared.uploadLogsToServer()
+            UserDefaults.standard.set(true, forKey: userDefaultsKeyForRequestLogs)
+            uploadLogsToServerIfNecessary()
         case .wakeup(_):
             DDLogInfo("proto/didReceive/\(msg.id)/wakeup")
         case .endOfQueue:
@@ -887,6 +909,19 @@ final class ProtoService: ProtoServiceCore {
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .answerCall(_), .callRinging(_), .incomingCall(_), .iceCandidate(_), .endCall(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-call-payload [\(payload)]")
+        }
+    }
+
+    private func uploadLogsToServerIfNecessary() {
+        guard UserDefaults.standard.bool(forKey: userDefaultsKeyForRequestLogs) else { return }
+        MainAppContext.shared.uploadLogsToServer() { result in
+            DDLogInfo("proto/uploadLogsToServerIfNecessary/result: \(result)")
+            switch result {
+            case .success:
+                UserDefaults.standard.set(false, forKey: userDefaultsKeyForRequestLogs)
+            default:
+                break
+            }
         }
     }
 
@@ -1032,6 +1067,22 @@ extension ProtoService: HalloService {
 
     func retractPost(_ id: FeedPostID, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoRetractPostRequest(id: id, completion: completion))
+    }
+
+    func retractPost(_ id: FeedPostID, in groupID: GroupID?, completion: @escaping ServiceRequestCompletion<Void>) {
+        if let groupID = groupID {
+            enqueue(request: ProtoRetractGroupPostRequest(id: id, in: groupID, completion: completion))
+        } else {
+            enqueue(request: ProtoRetractPostRequest(id: id, completion: completion))
+        }
+    }
+
+    func retractComment(id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID?, completion: @escaping ServiceRequestCompletion<Void>) {
+        if let groupID = groupID {
+            enqueue(request: ProtoRetractGroupCommentRequest(id: id, postID: postID, in: groupID, completion: completion))
+        } else {
+            enqueue(request: ProtoRetractCommentRequest(id: id, postID: postID, completion: completion))
+        }
     }
 
     func retractPost(_ id: FeedPostID, in groupID: GroupID, to toUserID: UserID) {

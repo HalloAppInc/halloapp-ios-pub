@@ -31,8 +31,8 @@ protocol HalloService: CoreService {
     func updateAvatar(_ data: Data?)
 
     // MARK: Feed requests
-    func retractPost(_ id: FeedPostID, completion: @escaping ServiceRequestCompletion<Void>)
-    func retractComment(id: FeedPostCommentID, postID: FeedPostID, completion: @escaping ServiceRequestCompletion<Void>)
+    func retractPost(_ id: FeedPostID, in groupID: GroupID?, completion: @escaping ServiceRequestCompletion<Void>)
+    func retractComment(id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID?, completion: @escaping ServiceRequestCompletion<Void>)
     func retractPost(_ id: FeedPostID, in groupID: GroupID, to toUserID: UserID)
     func retractComment(_ id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID, to toUserID: UserID)
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)

@@ -98,7 +98,7 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.constrain(to: self)
 
-        contentView.heightAnchor.constraint(equalToConstant: 335).isActive = true
+        contentView.heightAnchor.constraint(equalToConstant: 320).isActive = true
 
         // Background
         backgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
@@ -113,6 +113,7 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         mainView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
         mainView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
         mainView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        mainView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
         cancellableSet.insert(MainAppContext.shared.chatData.didResetGroupInviteLink.sink { [weak self] (groupID) in
             guard let self = self else { return }
@@ -124,7 +125,8 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
     private lazy var mainView: UIStackView = {
         let view = UIStackView(arrangedSubviews: [headerRow, bodyColumn, footerColumn])
         view.axis = .vertical
-        view.spacing = 10
+        view.spacing = 5
+        view.distribution = .fill
 
         view.layoutMargins = UIEdgeInsets(top: 35, left: 0, bottom: 20, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
@@ -187,7 +189,7 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
     private lazy var bodyColumn: UIStackView = {
         let view = UIStackView(arrangedSubviews: [bodyTitleLabel, bodyLabel])
         view.axis = .vertical
-        view.spacing = 15
+        view.spacing = 5
 
         view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 5)
         view.isLayoutMarginsRelativeArrangement = true
@@ -200,7 +202,7 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         let label = UILabel()
         label.numberOfLines = 0
         label.textAlignment = .left
-        label.font = .systemFont(ofSize: 16, weight: .bold)
+        label.font = .systemFont(ofSize: 16, weight: .semibold)
         label.textColor = .label
         label.text = Localizations.groupFeedWelcomePostTitle
 
@@ -226,25 +228,25 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         view.alignment = .center
         view.spacing = 10
 
-        view.layoutMargins = UIEdgeInsets(top: 20, left: 0, bottom: 20, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 15, left: 10, bottom: 20, right: 10)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-    
+
     private lazy var inviteLinkBubble: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ inviteLinkLabel ])
         view.axis = .horizontal
         view.alignment = .center
-        view.backgroundColor = UIColor.systemGray5
-        view.layer.cornerRadius = 13
+        view.backgroundColor = UIColor.primaryBg
+        view.layer.cornerRadius = 15
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.heightAnchor.constraint(greaterThanOrEqualToConstant: 52).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 52).isActive = true
 
         return view
     }()
@@ -253,8 +255,8 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         let label = UILabel()
         label.numberOfLines = 1
         label.backgroundColor = .clear
-        label.font = .systemFont(ofSize: 16)
-        label.textColor = UIColor.systemGray
+        label.font = .systemFont(ofSize: 16, weight: .regular)
+        label.textColor = UIColor.primaryBlackWhite.withAlphaComponent(0.6)
 
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -268,12 +270,13 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         view.backgroundColor = UIColor.primaryBlue
         view.layer.cornerRadius = 20
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 25, bottom: 0, right: 25)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 25, bottom: 2, right: 25)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.heightAnchor.constraint(greaterThanOrEqualToConstant: 42).isActive = true
-        
+        view.widthAnchor.constraint(equalToConstant: 172).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 42).isActive = true
+
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(shareLinkAction)))
 
         return view
@@ -281,9 +284,10 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
 
     private lazy var shareLinkLabel: UILabel = {
         let label = UILabel()
-        label.numberOfLines = 0
+        label.numberOfLines = 1
         label.backgroundColor = .clear
-        label.font = .systemFont(ofSize: 17)
+        label.textAlignment = .center
+        label.font = .systemFont(ofSize: 17, weight: .semibold)
         label.textColor = UIColor.primaryWhiteBlack
         label.text = Localizations.groupInviteShareLink
 
