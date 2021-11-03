@@ -8,9 +8,6 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "Voici Hallo App ! Nous l'avons créée pour vous et vos proches. \n\nNous avons rapporté les applications de réseaux sociaux aux leurs caractéristiques de base, tout en ajoutant une couche de sécurité et de confidentialité à laquelle nous pensons que tout le monde devrait avoir accès.\n\nHalloApp n'utilisera jamais vos informations personnelles et ne vous montrera jamais de publicités.\n\nEn revance, nous prévoyons de vous offrir des fonctionnalités supplémentaires à un prix modique.";
-
-/* About screen: body text. */
 "about.body.2" = "Merci d'utiliser et de partager HalloApp avec vos amis et votre famille. Nous l'améliorons chaque semaine.";
 
 /* About screen: footer text. Parameter is support email address. */
@@ -51,9 +48,6 @@
 
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Paramètres";
-
-/* Text to show on banner when no connection is available */
-"banner.no.connection" = "Pas de connexion Internet";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Ajouter";
@@ -160,9 +154,6 @@
 /* Message text shown when you leave a group */
 "chat.group.event.member.left.you" = "Tu es parti";
 
-/* Action label for adding members to a group */
-"chat.group.info.add.members" = "Ajouter des membres";
-
 /* Label shown in the members list when member is an admin */
 "chat.group.info.admin.label" = "Administrateur";
 
@@ -199,9 +190,6 @@
 /* Confirmation message presented when leaving a group */
 "chat.group.leave.group.confirmation" = "Quitter « %@ » ?";
 
-/* Label shown above group name input box */
-"chat.group.name.label" = "NOM DU GROUPE";
-
 /* Title for group photo actions */
 "chat.group.photo.label" = "Photo du groupe";
 
@@ -210,9 +198,6 @@
 
 /* Label for inviting friends */
 "chat.invite.friends" = "Inviter des amis";
-
-/* Message text shown in a message that have audio media but no text */
-"chat.message.audio" = "message vocale";
 
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Ce message a été supprimé.";
@@ -334,9 +319,6 @@
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Pour t'aider à communiquer avec tes amis et ta famille, autorise HalloApp à accéder à tes contacts.";
 
-/* Title for tutorial explaining how user can enable contacts permission */
-"contacts.permission.tutorial.title" = "Contacts";
-
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Une erreur s'est produite lors de la création du groupe, merci de réessayer.";
 
@@ -445,9 +427,6 @@
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Commenter";
 
-/* Button under someoneelse's post. Verb. */
-"feedpost.button.reply" = "Répondre";
-
 /* Label for choosing a color at the group background preview screen */
 "group.bg.pick.a.color.label" = "CHOISIS UNE COULEUR";
 
@@ -550,9 +529,6 @@
 /* Title for alert box when the user can't join the group via group link */
 "group.preview.join.error.title" = "Impossible de joindre le groupe";
 
-/* Label for joining group action */
-"group.preview.join.group" = "REJOINDRE LE GROUPE";
-
 /* Label for the number of members in the group */
 "group.preview.members" = "Membres";
 
@@ -613,9 +589,6 @@
 /* Text of invitation to join HalloApp. First argument is the invitee's name, second argument is their phone number. */
 "invite.text.specific" = "Bonjour %1$@, j'ai une invitation pour que tu me rejoignes sur HalloApp – un réseau de relations authentiques pour tous mes proches. Utilise %2$@ pour t'inscrire. Télécharge l'appli sur https://halloapp.com/dl";
 
-/* Title for the screen that allows to select contact to invite. */
-"invite.title" = "Inviter";
-
 /* Link text to open invite flow */
 "link.invite.friend" = "Inviter un ami";
 
@@ -669,9 +642,6 @@
 
 /* Alert displayed explaining to the user that the media save operation failed */
 "media.save.not.saved" = "La photo n'a pas pu être enregistrée";
-
-/* Label indicating that media was successfully saved to the camera roll */
-"media.save.saved" = "Enregistré";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Fermer";
@@ -819,9 +789,6 @@
 
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "choix.média.n.limite";
-
-/* Displayed in place of a deleted feed post. */
-"post.has.been.deleted" = "La publication a été supprimée";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted.by.author" = "%@ a supprimé sa publication";
@@ -1083,9 +1050,6 @@
 
 /* Settings > Privacy: name of a setting that defines who can see your posts. */
 "settings.privacy.posts" = "Publications";
-
-/* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Rejoins-moi sur HalloApp, télécharge-la gratuitement sur halloapp.com/dl";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Ajouter à la liste de lecture";

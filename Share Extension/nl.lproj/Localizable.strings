@@ -32,7 +32,7 @@
 "button.go.to.settings" = "Ga naar Instellingen";
 
 /* Title for generic Invite button. */
-"button.invite" = "Uitnodigen";
+"button.invite" = "Nodig uit";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Meer Informatie";
@@ -59,7 +59,7 @@
 "button.send" = "Verzenden";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Delen";
+"button.share" = "Deel";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Bijwerken";

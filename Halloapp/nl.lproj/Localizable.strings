@@ -95,7 +95,7 @@
 "button.install" = "Installeren";
 
 /* Title for generic Invite button. */
-"button.invite" = "Uitnodigen";
+"button.invite" = "Nodig uit";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Meer Informatie";
@@ -122,7 +122,7 @@
 "button.send" = "Verzenden";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Delen";
+"button.share" = "Deel";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Bijwerken";
@@ -631,9 +631,6 @@
 /* Title for alert box when the user can't join the group via group link */
 "group.preview.join.error.title" = "Niet mogelijk om aan groep deel te nemen";
 
-/* Label for joining group action */
-"group.preview.join.group" = "DEELNEMEN";
-
 /* Label for the number of members in the group */
 "group.preview.members" = "Deelnemers";
 
@@ -650,7 +647,7 @@
 "groups.list.remove.message" = "Weet je zeker dat je deze groep en de inhoud ervan wilt verwijderen?";
 
 /* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
-"groups.NUX.user.group.name" = "Group van %@";
+"groups.NUX.user.group.name" = "Groep van %@";
 
 /* A label on the header to indicate which person I have groups in common with */
 "groups.title" = "Met %@";
