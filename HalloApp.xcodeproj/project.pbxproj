@@ -22,7 +22,7 @@
 		2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F774D246224C30063645A /* ContactTableViewCell.swift */; };
 		2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D68A24CF732B005BAD3C /* DataStore.swift */; };
 		24AA69D324DCC1B500ED65CE /* XMPPChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */; };
-		24AA69DC24DDC6DA00ED65CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
+		24AA69DC24DDC6DA00ED65CE /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */; };
 		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		24D743E824B3D504001111BF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
 		2918BD1FA51BFAD142F377E5 /* Pods_HalloAppClip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */; };
@@ -46,7 +46,7 @@
 		329E04392682481A00C2D250 /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */; };
 		329E043E2682490300C2D250 /* AppClipContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E043D2682490300C2D250 /* AppClipContext.swift */; };
 		329E0442268249E700C2D250 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 329E0441268249E700C2D250 /* GoogleService-Info.plist */; };
-		329E044326824A4900C2D250 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
+		329E044326824A4900C2D250 /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */; };
 		329E044A26824B1F00C2D250 /* AppClipHomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E044926824B1F00C2D250 /* AppClipHomeViewController.swift */; };
 		329E044D26824B8900C2D250 /* VerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E044C26824B8900C2D250 /* VerificationViewController.swift */; };
 		329E045026824DC900C2D250 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41E24A6C5F300D4E354 /* Color.swift */; };
@@ -96,6 +96,7 @@
 		68A0A0F126436CA600E9431E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 68A0A0EF26436CA600E9431E /* InfoPlist.strings */; };
 		68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8D24D33DEF00F40F1F /* Mentions.swift */; };
 		68A64E9224D33E0F00F40F1F /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
+		68AAE4EF273498A600C10B05 /* MainAppAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 68AAE4EE273498A600C10B05 /* MainAppAssets.xcassets */; };
 		68B47B02260DBAD000D675FC /* InviteContactsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B47B01260DBAD000D675FC /* InviteContactsManager.swift */; };
 		68B5C22D264C6F3F004C7939 /* SafetyNumberViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B5C22C264C6F3F004C7939 /* SafetyNumberViewController.swift */; };
 		68B5C232264DC710004C7939 /* QRCodeScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B5C231264DC710004C7939 /* QRCodeScannerViewController.swift */; };
@@ -331,7 +332,7 @@
 		EAD944F724F73E4C004A27B1 /* GroupInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD944F624F73E4C004A27B1 /* GroupInfoViewController.swift */; };
 		EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C22334191E00805FF9 /* AppDelegate.swift */; };
 		EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */; };
-		EAF3A1C92334192000805FF9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
+		EAF3A1C92334192000805FF9 /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */; };
 		EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */; };
 		EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1D92334192000805FF9 /* HalloappTests.swift */; };
 		EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1E42334192000805FF9 /* HalloappUITests.swift */; };
@@ -664,6 +665,7 @@
 		68AACB8426AA23AE00B397C0 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-br.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		68AACB8526AA23AE00B397C0 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = "pt-BR"; path = "../HalloApp/pt-br.lproj/Localizable.stringsdict"; sourceTree = "<group>"; };
 		68AACB8626AA23AE00B397C0 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-br.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		68AAE4EE273498A600C10B05 /* MainAppAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = MainAppAssets.xcassets; sourceTree = "<group>"; };
 		68B47B01260DBAD000D675FC /* InviteContactsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactsManager.swift; sourceTree = "<group>"; };
 		68B5C22C264C6F3F004C7939 /* SafetyNumberViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyNumberViewController.swift; sourceTree = "<group>"; };
 		68B5C231264DC710004C7939 /* QRCodeScannerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeScannerViewController.swift; sourceTree = "<group>"; };
@@ -936,7 +938,7 @@
 		EAF3A1BF2334191E00805FF9 /* HalloApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAF3A1C22334191E00805FF9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		EAF3A1C82334192000805FF9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = SharedAssets.xcassets; sourceTree = "<group>"; };
 		EAF3A1CE2334192000805FF9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		EAF3A1D02334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EAF3A1D52334192000805FF9 /* HalloAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HalloAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1053,10 +1055,11 @@
 		146B93702405F2F900768AC6 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				EAF3A1C82334192000805FF9 /* Assets.xcassets */,
+				EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */,
 				146B93752405F35E00768AC6 /* Fonts */,
 				765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */,
 				6AC68EF626399BAE0073CBE9 /* ServerStrings.swift */,
+				68AAE4EE273498A600C10B05 /* MainAppAssets.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -2284,7 +2287,7 @@
 			files = (
 				24009E8E24B667FA00155DE2 /* GoogleService-Info.plist in Resources */,
 				7688FA4025489E26006B86B3 /* Localizable.strings in Resources */,
-				24AA69DC24DDC6DA00ED65CE /* Assets.xcassets in Resources */,
+				24AA69DC24DDC6DA00ED65CE /* SharedAssets.xcassets in Resources */,
 				2446D66924C7E48E005BAD3C /* ExtensionPreprocessing.js in Resources */,
 				687D5EC7265317F8008A3A65 /* InfoPlist.strings in Resources */,
 			);
@@ -2301,7 +2304,7 @@
 				329E0407268247BD00C2D250 /* Assets.xcassets in Resources */,
 				680AFE11269031C500D80D7F /* Localizable.strings in Resources */,
 				329E0402268247BD00C2D250 /* Main.storyboard in Resources */,
-				329E044326824A4900C2D250 /* Assets.xcassets in Resources */,
+				329E044326824A4900C2D250 /* SharedAssets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2350,6 +2353,7 @@
 				762EDBCF244E2EB700986617 /* Gotham-BoldIta.otf in Resources */,
 				762EDBD3244E2EB700986617 /* Gotham-BookIta.otf in Resources */,
 				EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */,
+				68AAE4EF273498A600C10B05 /* MainAppAssets.xcassets in Resources */,
 				762EDBD8244E2EB700986617 /* Gotham-Bold.otf in Resources */,
 				762EDBCC244E2EB700986617 /* Gotham-UltraIta.otf in Resources */,
 				762EDBD6244E2EB700986617 /* Gotham-MediumIta.otf in Resources */,
@@ -2363,7 +2367,7 @@
 				762EDBD7244E2EB700986617 /* Gotham-Black.otf in Resources */,
 				762EDBCE244E2EB700986617 /* Gotham-XLight.otf in Resources */,
 				76955DEA24746E4C0088BE8C /* GoogleService-Info.plist in Resources */,
-				EAF3A1C92334192000805FF9 /* Assets.xcassets in Resources */,
+				EAF3A1C92334192000805FF9 /* SharedAssets.xcassets in Resources */,
 				762EDBCB244E2EB700986617 /* Gotham-Medium.otf in Resources */,
 				76271758257B08E5006F7F3D /* AboutView.storyboard in Resources */,
 			);
