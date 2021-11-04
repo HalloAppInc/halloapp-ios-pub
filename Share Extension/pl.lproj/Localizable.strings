@@ -1,0 +1,135 @@
+/* Title for alert shown when there's no internet connectivity */
+"alert.no.internet.title" = "Brak połączenia z Internetem";
+
+/* Message to tell the user to try again when they have internet connectivity again */
+"alert.no.internet.try.again" = "Prosimy sprawdzić, czy masz połączenie z Internetem, a następnie spróbować ponownie.";
+
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Dodaj";
+
+/* Title for generic Cancel button. Mostly used in popups and as such. */
+"button.cancel" = "Anuluj";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "ANULUJ";
+
+/* Title for generic Continue button. Mostly used to complete some modal flow. */
+"button.continue" = "Kontynuuj";
+
+/* Title for generic Create button */
+"button.create" = "Utwórz";
+
+/* Title for generic Dismiss button. Mostly used to complete some modal flow. */
+"button.dismiss" = "Odrzuć";
+
+/* Title for generic Done button. Mostly used to complete some modal flow. */
+"button.done" = "Zrobione";
+
+/* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
+"button.go.to.settings" = "Przejdź do ustawień";
+
+/* Title for generic Invite button. */
+"button.invite" = "Zaproś";
+
+/* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
+"button.learn.more" = "Dowiedz się więcej";
+
+/* Title for generic More button. Mostly used to complete some modal flow. */
+"button.more" = "Więcej";
+
+/* Title for generic Next button. Mostly used to proceed to next screen in flow. */
+"button.next" = "Dalej";
+
+/* Title for generic Not Now button. Mostly used to complete some modal flow. */
+"button.not.now" = "Nie teraz";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "OK";
+
+/* Title for generic Remove button. Mostly used to complete some modal flow. */
+"button.remove" = "Usuń";
+
+/* Title for generic Save button. Mostly used to complete some modal flow. */
+"button.save" = "Zapisz";
+
+/* Title for generic Send button. Mostly used to complete some modal flow. */
+"button.send" = "Wyślij";
+
+/* Title for generic Share button. Mostly used to complete some modal flow. */
+"button.share" = "Udostępnij";
+
+/* Title for generic Update button. Mostly used to complete some modal flow. */
+"button.update" = "Aktualizuj";
+
+/* Title for generic delete button. */
+"Delete" = "Usuń";
+
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Szukaj";
+
+/* Generic 'learn more' link. Mostly used to present additional information about topic. */
+"link.learnMore" = "Dowiedz się więcej";
+
+/* Link that when tapped will open App Store so user can update to the latest version of the app. */
+"link.update.your.app" = "Zaktualizuj swoją aplikację.";
+
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Wczytywanie podglądu...";
+
+/* Displayed in place of own name (e.g., next to own comments) */
+"meCapitalized" = "Ja";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "Dołącz do mojej sieci prawdziwych relacji z bliskimi na HalloApp. Pobierz za darmo na halloapp.com/dl";
+
+/* Placeholder for media caption. */
+"share.composer.placeholder" = "Wprowadź opis";
+
+/* Placeholder when sharing text only. */
+"share.composer.placeholder.text" = "Stwórz wpis";
+
+/* Composer subtitle when sharing with a contact */
+"share.composer.subtitle.contact" = "Wysyłanie do: %@";
+
+/* Composer subtitle for group posts */
+"share.composer.subtitle.group" = "Udostępnianie dla: %@";
+
+/* Composer title when sharing with a contact */
+"share.composer.title.contact" = "Nowa wiadomość";
+
+/* Composer title when sharing to feed */
+"share.composer.title.feed" = "Nowy wpis";
+
+/* Alert dialog message shown when uploading fails. */
+"share.composer.uploading.fail.message" = "Prosimy spróbować ponownie później.";
+
+/* Alert dialog title shown when uploading fails. */
+"share.composer.uploading.fail.title" = "Przesyłanie nie powiodło się";
+
+/* Alert dialog title shown when uploading begins. */
+"share.composer.uploading.title" = "Przesyłanie...";
+
+/* Contacts category label */
+"share.destination.contacts" = "Kontakty";
+
+/* Groups category label */
+"share.destination.groups" = "Grupy";
+
+/* Share on the home feed label */
+"share.destination.home" = "Strona główna";
+
+/* Destination screen title */
+"share.destination.title" = "HalloApp";
+
+/* Message of alert when user is not logged in */
+"share.notlogged.message" = "Prosimy otworzyć aplikację HalloApp i zalogować się.";
+
+/* Title of alert when user is not logged in */
+"share.notlogged.title" = "Nie jesteś zalogowany(-a)";
+
+/* Displayed in place of contact name if name is not known. */
+"unknown.contact" = "Nieznany kontakt";
+
