@@ -17,6 +17,11 @@ class FeedWelcomeCell: UICollectionViewCell {
 
     var openInvite: (() -> ())?
 
+    public func height() -> CGFloat {
+        let size = bodyLabel.getSize(width: contentView.bounds.size.width)
+        return size.height + 240
+    }
+
     private lazy var maxWidthConstraint: NSLayoutConstraint = {
         widthAnchor.constraint(equalToConstant: maxWidth)
     }()
@@ -88,7 +93,7 @@ class FeedWelcomeCell: UICollectionViewCell {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.constrain(to: self)
 
-        contentView.heightAnchor.constraint(equalToConstant: 370).isActive = true
+        contentView.heightAnchor.constraint(equalToConstant: height()).isActive = true
 
         // Background
         backgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
@@ -103,19 +108,18 @@ class FeedWelcomeCell: UICollectionViewCell {
         mainView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
         mainView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
         mainView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-        mainView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor).isActive = true
     }
 
     private lazy var mainView: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ headerRow, bodyColumn, footerColumn ])
         view.axis = .vertical
         view.spacing = 10
+        view.setCustomSpacing(20, after: bodyColumn)
 
         view.layoutMargins = UIEdgeInsets(top: 33, left: 0, bottom: 20, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
-
         return view
     }()
 
@@ -209,9 +213,6 @@ class FeedWelcomeCell: UICollectionViewCell {
         view.axis = .vertical
         view.alignment = .center
 
-        view.layoutMargins = UIEdgeInsets(top: 20, left: 0, bottom: 20, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -227,8 +228,8 @@ class FeedWelcomeCell: UICollectionViewCell {
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.widthAnchor.constraint(greaterThanOrEqualToConstant: 172).isActive = true
-        view.heightAnchor.constraint(greaterThanOrEqualToConstant: 42).isActive = true
+        view.widthAnchor.constraint(equalToConstant: 172).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 42).isActive = true
 
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(openInviteAction)))
 
@@ -253,6 +254,12 @@ class FeedWelcomeCell: UICollectionViewCell {
     @objc(openInviteAction)
     private func openInviteAction() {
         openInvite?()
+    }
+}
+
+fileprivate extension UILabel {
+    func getSize(width: CGFloat) -> CGSize {
+        return systemLayoutSizeFitting(CGSize(width: width, height: UIView.layoutFittingCompressedSize.height), withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
     }
 }
 

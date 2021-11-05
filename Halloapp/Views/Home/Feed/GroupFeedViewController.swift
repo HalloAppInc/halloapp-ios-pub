@@ -211,21 +211,29 @@ class GroupFeedViewController: FeedCollectionViewController {
             let sharedNUX = MainAppContext.shared.nux
             let sharedUserData = MainAppContext.shared.userData
             let sharedChatData = MainAppContext.shared.chatData
-
+            let welcomePostExist = sharedNUX.welcomePostExist(id: self.groupId)
             let isZeroZone = sharedNUX.state == .zeroZone
-            guard isZeroZone else { return result }
+            let isSampleGroup = sharedNUX.sampleGroupID() == self.groupId
+            let showWelcomePostIfNeeded = welcomePostExist || isZeroZone
 
             guard let groupMember = sharedChatData?.chatGroupMember(groupId: group.groupId, memberUserId: sharedUserData.userId) else { return result }
             guard groupMember.type == .admin else { return result }
 
-            // brittle string comparison, should migrate to storing groupID once zero zone feature stabilizes
-            let isGroupCreatedForUser = group.name == Localizations.groupsNUXuserGroupName(MainAppContext.shared.userData.name)
+            if showWelcomePostIfNeeded {
+                if welcomePostExist {
+                    // don't show post if post was closed by user or expired
+                    if sharedNUX.showWelcomePost(id: self.groupId) {
+                        result.append(FeedDisplayItem.groupWelcome(self.groupId))
+                    }
+                } else {
+                    sharedNUX.recordWelcomePost(id: self.groupId, type: .group)
+                    result.append(FeedDisplayItem.groupWelcome(self.groupId))
+                }
+            }
 
-            result.append(FeedDisplayItem.groupWelcome(self.groupId))
-
-            // one time update to mark welcome post as seen in the special group created for the user
-            if isGroupCreatedForUser {
-                sharedNUX.didComplete(.seenUserGroupWelcomePost) // user will see welcome post once loaded since it's at the top
+            // one time update to mark sample group welcome post as seen if not seen before
+            if isSampleGroup, let seen = sharedNUX.sampleGroupWelcomePostSeen(), !seen {
+                sharedNUX.markSampleGroupWelcomePostSeen() // user will see welcome post once loaded since it's at the top
                 MainAppContext.shared.chatData.updateUnreadThreadGroupsCount() // refresh bottom nav groups badge
                 MainAppContext.shared.chatData.triggerGroupThreadUpdate(self.groupId) // refresh groups list thread unread count
             }

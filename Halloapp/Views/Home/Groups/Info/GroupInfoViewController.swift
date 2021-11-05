@@ -314,7 +314,12 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         snapshot.appendItems(contactRows, toSection: .contacts(numContacts: numContacts))
 
         dataSource?.defaultRowAnimation = .fade
-        dataSource?.apply(snapshot, animatingDifferences: animated)
+
+        if #available(iOS 15.0, *) {
+            dataSource?.applySnapshotUsingReloadData(snapshot)
+        } else {
+            dataSource?.apply(snapshot, animatingDifferences: animated)
+        }
     }
 
     // MARK: Actions

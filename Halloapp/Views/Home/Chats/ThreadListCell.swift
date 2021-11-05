@@ -234,7 +234,7 @@ class ThreadListCell: UITableViewCell {
     }
 
     func configureForGroupsList(with chatThread: ChatThread, squareSize: CGFloat = 0) {
-        guard chatThread.groupId != nil else { return }
+        guard let groupID = chatThread.groupId else { return }
         self.chatThread = chatThread
         titleLabel.text = chatThread.title
 
@@ -244,16 +244,8 @@ class ThreadListCell: UITableViewCell {
 
         // account for NUX zero zone
         let sharedNUX = MainAppContext.shared.nux
-        let isZeroZone = sharedNUX.state == .zeroZone
-
-        if isZeroZone {
-            let haveCreatedUserGroup = sharedNUX.isComplete(.createdUserGroup)
-
-            let isGroupCreatedForUser = chatThread.title == Localizations.groupsNUXuserGroupName(MainAppContext.shared.userData.name)
-            let haveNotSeenGroupWelcomePost = sharedNUX.isIncomplete(.seenUserGroupWelcomePost)
-            if haveCreatedUserGroup, isGroupCreatedForUser, haveNotSeenGroupWelcomePost {
-                unreadFeedCount += 1
-            }
+        if groupID == sharedNUX.sampleGroupID(), let seen = sharedNUX.sampleGroupWelcomePostSeen(), !seen {
+            unreadFeedCount += 1
         }
 
         if unreadFeedCount > 0 {

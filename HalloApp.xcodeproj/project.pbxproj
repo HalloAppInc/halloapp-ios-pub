@@ -40,6 +40,7 @@
 		329E040A268247BD00C2D250 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 329E0408268247BD00C2D250 /* LaunchScreen.storyboard */; };
 		329E0416268247BE00C2D250 /* HalloAppClipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E0415268247BE00C2D250 /* HalloAppClipTests.swift */; };
 		329E0421268247BE00C2D250 /* HalloAppClipUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E0420268247BE00C2D250 /* HalloAppClipUITests.swift */; };
+		329E0425268247BE00C2D250 /* HalloAppClip.app in Embed App Clips */ = {isa = PBXBuildFile; fileRef = 329E03F8268247BC00C2D250 /* HalloAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		329E0434268247D400C2D250 /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
 		329E0435268247D400C2D250 /* Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		329E04372682481500C2D250 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */; };
@@ -57,7 +58,6 @@
 		329E045626824DDF00C2D250 /* UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C8245D4DE500DD9D1A /* UIButton.swift */; };
 		329E045726824E0A00C2D250 /* SharedStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76451C3E2547960A00B9E268 /* SharedStrings.swift */; };
 		329E045826824E0E00C2D250 /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */; };
-		329E045D26826EC100C2D250 /* PhoneNumberMetadata.json in Resources */ = {isa = PBXBuildFile; fileRef = 765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */; };
 		32C83FB7268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FB6268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift */; };
 		32C83FB9268FC8FE00BEB4F5 /* NewChatPermissionDeniedController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FB8268FC8FE00BEB4F5 /* NewChatPermissionDeniedController.swift */; };
 		32C83FBD268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FBC268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift */; };
@@ -84,6 +84,8 @@
 		6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4F924FEE97800A9C202 /* HalloService.swift */; };
 		6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FB24FEE97800A9C202 /* ProtoService.swift */; };
 		6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */; };
+		6854CCEB2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 in Resources */ = {isa = PBXBuildFile; fileRef = 6854CCEA2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 */; };
+		6854CCEC2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 in Resources */ = {isa = PBXBuildFile; fileRef = 6854CCEA2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 */; };
 		685B509B25E075FE00F782F9 /* Reachability in Frameworks */ = {isa = PBXBuildFile; productRef = 685B509A25E075FE00F782F9 /* Reachability */; };
 		685B76C124E262AF00BF666A /* MentionInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76BF24E262AF00BF666A /* MentionInputTests.swift */; };
 		685B76CC24E4A37600BF666A /* FloatingMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76CB24E4A37600BF666A /* FloatingMenu.swift */; };
@@ -190,7 +192,6 @@
 		7653F302255DB7FE001CC946 /* FeedPostCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653F301255DB7FE001CC946 /* FeedPostCollectionViewCell.swift */; };
 		765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765D03D62492C971007A7D3B /* ZoomableImageView.swift */; };
 		765EB4EB24D92404002FA5D9 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765EB4EA24D92404002FA5D9 /* SafariView.swift */; };
-		765FE0FE2469C4E500806CED /* PhoneNumberMetadata.json in Resources */ = {isa = PBXBuildFile; fileRef = 765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */; };
 		766103A42461E65300728870 /* Receipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A32461E65300728870 /* Receipt.swift */; };
 		766103A72461EE8200728870 /* receipts.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A62461EE8200728870 /* receipts.pb.swift */; };
 		766103AA2461F08A00728870 /* FeedPostInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A82461F08A00728870 /* FeedPostInfo+CoreDataClass.swift */; };
@@ -305,7 +306,6 @@
 		EAA424FE24ECF1480025CBBE /* ChatGroup+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F824ECF1480025CBBE /* ChatGroup+CoreDataClass.swift */; };
 		EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F924ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift */; };
 		EAA4906625311CD1003348B5 /* OutboundMsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */; };
-		EAA4C08D27310B70002F1628 /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4C08C27310B70002F1628 /* NSAttributedString.swift */; };
 		EAA85A0B25E5D510006D0BC9 /* NotInGroupBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */; };
 		EAAF43992603F7720037F83D /* BlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAF43982603F7720037F83D /* BlurView.swift */; };
 		EAAFC9F02708267C004EAE29 /* HAMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA50FBA326FE82D00097C451 /* HAMarkdown.swift */; };
@@ -436,6 +436,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		329E0426268247BE00C2D250 /* Embed App Clips */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/AppClips";
+			dstSubfolderSpec = 16;
+			files = (
+				329E0425268247BE00C2D250 /* HalloAppClip.app in Embed App Clips */,
+			);
+			name = "Embed App Clips";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		329E0436268247D400C2D250 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -587,6 +598,7 @@
 		6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequests.swift; sourceTree = "<group>"; };
 		685479E5269E5B6800815BE0 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		685479E6269E5B6800815BE0 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		6854CCEA2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = PhoneNumberMetadata.json.lz4; sourceTree = "<group>"; };
 		6857271027344159006DAE0A /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = pl; path = ../HalloApp/pl.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		6857271127344159006DAE0A /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6857271227344159006DAE0A /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -793,7 +805,6 @@
 		7653F301255DB7FE001CC946 /* FeedPostCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPostCollectionViewCell.swift; path = HalloApp/Views/Home/Feed/Post/FeedPostCollectionViewCell.swift; sourceTree = SOURCE_ROOT; };
 		765D03D62492C971007A7D3B /* ZoomableImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ZoomableImageView.swift; path = HalloApp/Views/Home/Feed/MediaSlider/ZoomableImageView.swift; sourceTree = SOURCE_ROOT; };
 		765EB4EA24D92404002FA5D9 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafariView.swift; path = HalloApp/Components/Views/SafariView.swift; sourceTree = SOURCE_ROOT; };
-		765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = PhoneNumberMetadata.json; path = HalloApp/Resources/PhoneNumberMetadata.json; sourceTree = SOURCE_ROOT; };
 		766103A32461E65300728870 /* Receipt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Receipt.swift; path = HalloApp/Models/Receipts/Receipt.swift; sourceTree = SOURCE_ROOT; };
 		766103A52461E7BA00728870 /* receipts.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = receipts.proto; sourceTree = "<group>"; };
 		766103A62461EE8200728870 /* receipts.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = receipts.pb.swift; path = HalloApp/Models/Receipts/receipts.pb.swift; sourceTree = SOURCE_ROOT; };
@@ -912,7 +923,6 @@
 		EAA424F924ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroup+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
 		EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundMsgViewCell.swift; sourceTree = "<group>"; };
-		EAA4C08C27310B70002F1628 /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
 		EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotInGroupBannerView.swift; sourceTree = "<group>"; };
 		EAAF43982603F7720037F83D /* BlurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurView.swift; sourceTree = "<group>"; };
 		EAB1FFEC2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageEvent+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -1061,9 +1071,9 @@
 		146B93702405F2F900768AC6 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				6854CCEA2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 */,
 				EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */,
 				146B93752405F35E00768AC6 /* Fonts */,
-				765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */,
 				6AC68EF626399BAE0073CBE9 /* ServerStrings.swift */,
 				68AAE4EE273498A600C10B05 /* MainAppAssets.xcassets */,
 			);
@@ -1844,7 +1854,6 @@
 				763B42AD2435A74E00FF0E82 /* Date.swift */,
 				EA0B991A249C228700B05094 /* DateFormatter.swift */,
 				146B93782405F40500768AC6 /* Font.swift */,
-				EAA4C08C27310B70002F1628 /* NSAttributedString.swift */,
 				EA0B9918249C205E00B05094 /* String.swift */,
 				F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */,
 				761442C8245D4DE500DD9D1A /* UIButton.swift */,
@@ -2134,6 +2143,7 @@
 				D51A16EB7C89AD8DAF43C14C /* [CP] Embed Pods Frameworks */,
 				768123A02485A240008C5216 /* Embed App Extensions */,
 				768123CB2485D9F5008C5216 /* Embed Frameworks */,
+				329E0426268247BE00C2D250 /* Embed App Clips */,
 			);
 			buildRules = (
 			);
@@ -2311,7 +2321,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				329E045D26826EC100C2D250 /* PhoneNumberMetadata.json in Resources */,
+				6854CCEC2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 in Resources */,
 				680AFE0E269031C500D80D7F /* InfoPlist.strings in Resources */,
 				329E040A268247BD00C2D250 /* LaunchScreen.storyboard in Resources */,
 				329E0442268249E700C2D250 /* GoogleService-Info.plist in Resources */,
@@ -2372,13 +2382,13 @@
 				762EDBCC244E2EB700986617 /* Gotham-UltraIta.otf in Resources */,
 				762EDBD6244E2EB700986617 /* Gotham-MediumIta.otf in Resources */,
 				762EDBD9244E2EB700986617 /* Gotham-ThinIta.otf in Resources */,
-				765FE0FE2469C4E500806CED /* PhoneNumberMetadata.json in Resources */,
 				762EDBD1244E2EB700986617 /* Gotham-Book.otf in Resources */,
 				76D566EA2550D14900E57185 /* Localizable.strings in Resources */,
 				762EDBD4244E2EB700986617 /* Gotham-Thin.otf in Resources */,
 				762EDBCA244E2EB700986617 /* Gotham-BlackIta.otf in Resources */,
 				762EDBD2244E2EB700986617 /* Gotham-Light.otf in Resources */,
 				762EDBD7244E2EB700986617 /* Gotham-Black.otf in Resources */,
+				6854CCEB2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 in Resources */,
 				762EDBCE244E2EB700986617 /* Gotham-XLight.otf in Resources */,
 				76955DEA24746E4C0088BE8C /* GoogleService-Info.plist in Resources */,
 				EAF3A1C92334192000805FF9 /* SharedAssets.xcassets in Resources */,
@@ -2791,7 +2801,6 @@
 				6A6D50D9270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
 				76B5B5322501F1700055E712 /* NotificationSettings.swift in Sources */,
-				EAA4C08D27310B70002F1628 /* NSAttributedString.swift in Sources */,
 				68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */,
 				7653F302255DB7FE001CC946 /* FeedPostCollectionViewCell.swift in Sources */,
 				EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */,
