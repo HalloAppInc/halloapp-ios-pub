@@ -93,6 +93,9 @@
 		68781D822600170D0045AB61 /* InviteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68781D812600170D0045AB61 /* InviteViewController.swift */; };
 		687D5EC7265317F8008A3A65 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 687D5EC5265317F8008A3A65 /* InfoPlist.strings */; };
 		687D5ECB265317F8008A3A65 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 687D5EC9265317F8008A3A65 /* InfoPlist.strings */; };
+		68929F9F2734AD3C00F79288 /* MarkdownKit in Frameworks */ = {isa = PBXBuildFile; productRef = 68929F9E2734AD3B00F79288 /* MarkdownKit */; };
+		68929FA22734AD6000F79288 /* MarkdownKit in Frameworks */ = {isa = PBXBuildFile; productRef = 68929FA12734AD6000F79288 /* MarkdownKit */; };
+		68929FA42734AD6B00F79288 /* MarkdownKit in Frameworks */ = {isa = PBXBuildFile; productRef = 68929FA32734AD6B00F79288 /* MarkdownKit */; };
 		68A0A0F126436CA600E9431E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 68A0A0EF26436CA600E9431E /* InfoPlist.strings */; };
 		68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8D24D33DEF00F40F1F /* Mentions.swift */; };
 		68A64E9224D33E0F00F40F1F /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
@@ -979,6 +982,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				24D743E824B3D504001111BF /* Core.framework in Frameworks */,
+				68929FA42734AD6B00F79288 /* MarkdownKit in Frameworks */,
 				1574C89268C6C26E2539B753 /* Pods_Share_Extension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1011,6 +1015,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				768123DE2485DFB1008C5216 /* Core.framework in Frameworks */,
+				68929FA22734AD6000F79288 /* MarkdownKit in Frameworks */,
 				94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1028,6 +1033,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				768123E02485DFB7008C5216 /* Core.framework in Frameworks */,
+				68929F9F2734AD3C00F79288 /* MarkdownKit in Frameworks */,
 				685B509B25E075FE00F782F9 /* Reachability in Frameworks */,
 				49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */,
 				761E9AAD2465E83900864AE9 /* Zip in Frameworks */,
@@ -2015,6 +2021,9 @@
 			dependencies = (
 			);
 			name = "Share Extension";
+			packageProductDependencies = (
+				68929FA32734AD6B00F79288 /* MarkdownKit */,
+			);
 			productName = "Shared Extension";
 			productReference = 24D743D624B3D199001111BF /* Share Extension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -2090,6 +2099,9 @@
 			dependencies = (
 			);
 			name = "Notification Service Extension";
+			packageProductDependencies = (
+				68929FA12734AD6000F79288 /* MarkdownKit */,
+			);
 			productName = "Notification Service Extension";
 			productReference = 768123942485A240008C5216 /* Notification Service Extension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -2135,6 +2147,7 @@
 			packageProductDependencies = (
 				761E9AAC2465E83900864AE9 /* Zip */,
 				685B509A25E075FE00F782F9 /* Reachability */,
+				68929F9E2734AD3B00F79288 /* MarkdownKit */,
 			);
 			productName = Halloapp;
 			productReference = EAF3A1BF2334191E00805FF9 /* HalloApp.app */;
@@ -2246,6 +2259,7 @@
 				761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */,
 				76E5153124A1770A003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				685B509925E075FE00F782F9 /* XCRemoteSwiftPackageReference "Reachability" */,
+				68929F9D2734AD3B00F79288 /* XCRemoteSwiftPackageReference "MarkdownKit" */,
 			);
 			productRefGroup = EAF3A1C02334191E00805FF9 /* Products */;
 			projectDirPath = "";
@@ -4683,6 +4697,14 @@
 				version = 5.1.0;
 			};
 		};
+		68929F9D2734AD3B00F79288 /* XCRemoteSwiftPackageReference "MarkdownKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/bmoliveira/MarkdownKit";
+			requirement = {
+				kind = exactVersion;
+				version = 1.7.1;
+			};
+		};
 		761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/marmelroy/Zip.git";
@@ -4706,6 +4728,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 685B509925E075FE00F782F9 /* XCRemoteSwiftPackageReference "Reachability" */;
 			productName = Reachability;
+		};
+		68929F9E2734AD3B00F79288 /* MarkdownKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 68929F9D2734AD3B00F79288 /* XCRemoteSwiftPackageReference "MarkdownKit" */;
+			productName = MarkdownKit;
+		};
+		68929FA12734AD6000F79288 /* MarkdownKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 68929F9D2734AD3B00F79288 /* XCRemoteSwiftPackageReference "MarkdownKit" */;
+			productName = MarkdownKit;
+		};
+		68929FA32734AD6B00F79288 /* MarkdownKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 68929F9D2734AD3B00F79288 /* XCRemoteSwiftPackageReference "MarkdownKit" */;
+			productName = MarkdownKit;
 		};
 		761E9AAC2465E83900864AE9 /* Zip */ = {
 			isa = XCSwiftPackageProductDependency;

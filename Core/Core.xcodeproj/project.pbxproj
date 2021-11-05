@@ -125,7 +125,6 @@
 		EAAE7B5024DD2C3000946B77 /* OneTimePreKey+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4624DD2C3000946B77 /* OneTimePreKey+CoreDataProperties.swift */; };
 		EAAE7B5124DD2C3000946B77 /* MessageKey+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4724DD2C3000946B77 /* MessageKey+CoreDataClass.swift */; };
 		EAAE7B5224DD2C3000946B77 /* MessageKey+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4824DD2C3000946B77 /* MessageKey+CoreDataProperties.swift */; };
-		EAAFC9F327082798004EAE29 /* MarkdownKit in Frameworks */ = {isa = PBXBuildFile; productRef = EAAFC9F227082798004EAE29 /* MarkdownKit */; };
 		EAF47E0A251D80930056196F /* GroupAvatar+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF47E08251D80930056196F /* GroupAvatar+CoreDataClass.swift */; };
 		EAF47E0B251D80930056196F /* GroupAvatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF47E09251D80930056196F /* GroupAvatar+CoreDataProperties.swift */; };
 		F86919E226397F0C00B01306 /* UIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86919E126397F0C00B01306 /* UIImageView.swift */; };
@@ -263,7 +262,6 @@
 			files = (
 				76E5152F24A1761E003F1273 /* Alamofire in Frameworks */,
 				768124222486CF8E008C5216 /* PhoneNumberKit in Frameworks */,
-				EAAFC9F327082798004EAE29 /* MarkdownKit in Frameworks */,
 				7681242B2486D4E6008C5216 /* CryptoSwift in Frameworks */,
 				68BB0047268A776600425EEB /* CocoaAsyncSocket in Frameworks */,
 				ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */,
@@ -653,7 +651,6 @@
 				68BB004B268A7A1800425EEB /* CocoaLumberjackSwift */,
 				68BB004D268A7A1800425EEB /* CocoaLumberjack */,
 				6841289726A80CB20000DCE4 /* FirebaseCrashlytics */,
-				EAAFC9F227082798004EAE29 /* MarkdownKit */,
 			);
 			productName = Core;
 			productReference = 768123B82485D9C7008C5216 /* Core.framework */;
@@ -692,7 +689,6 @@
 				68BB0045268A776600425EEB /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */,
 				68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */,
 				6841289626A80CB20000DCE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				EAAFC9F127082798004EAE29 /* XCRemoteSwiftPackageReference "MarkdownKit" */,
 			);
 			productRefGroup = 768123B92485D9C7008C5216 /* Products */;
 			projectDirPath = "";
@@ -1226,14 +1222,6 @@
 				version = 5.4.1;
 			};
 		};
-		EAAFC9F127082798004EAE29 /* XCRemoteSwiftPackageReference "MarkdownKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/bmoliveira/MarkdownKit";
-			requirement = {
-				kind = exactVersion;
-				version = 1.7.1;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1281,11 +1269,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 76E5152D24A1761E003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
-		};
-		EAAFC9F227082798004EAE29 /* MarkdownKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = EAAFC9F127082798004EAE29 /* XCRemoteSwiftPackageReference "MarkdownKit" */;
-			productName = MarkdownKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 
