@@ -631,6 +631,9 @@
 /* Title for alert box when the user can't join the group via group link */
 "group.preview.join.error.title" = "Beitritt zur Gruppe nicht möglich";
 
+/* Label for joining group action */
+"group.preview.join.group" = "Beitreten";
+
 /* Label for the number of members in the group */
 "group.preview.members" = "Mitglieder";
 
@@ -1226,7 +1229,7 @@
 "thread.list.preview.already.user.default" = "%@ nutzt HalloApp";
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
-"thread.list.preview.new.user.default" = "%@ nutzt nun auch HalloApp! 🎉";
+"thread.list.preview.new.user.default" = "%@ nutzt HalloApp! 🎉";
 
 /* Last seen timestamp: full date in short format and time */
 "timestamp.last.seen.date.at.time" = "Zuletzt online %1$@ um %2$@";

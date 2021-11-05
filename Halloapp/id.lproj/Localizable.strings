@@ -607,6 +607,9 @@
 /* Title for alert box when the user can't join the group via group link */
 "group.preview.join.error.title" = "Gagal bergabung ke grup";
 
+/* Label for joining group action */
+"group.preview.join.group" = "BERGABUNG DENGAN GRUP";
+
 /* Label for the number of members in the group */
 "group.preview.members" = "Anggota";
 

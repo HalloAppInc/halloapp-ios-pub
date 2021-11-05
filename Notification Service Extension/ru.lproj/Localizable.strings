@@ -4,6 +4,9 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Проверьте, есть ли у вас интернет-подключение, и повторите попытку.";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Добавить";
 
@@ -27,6 +30,9 @@
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
 "button.go.to.settings" = "Перейти в Настройки";
+
+/* Title for generic Invite button. */
+"button.invite" = "Пригласить";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Подробнее";
@@ -73,6 +79,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Обнови свое приложение.";
 
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Загрузка предварительного просмотра...";
+
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Я";
 
@@ -114,6 +123,9 @@
 
 /* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Голосовая заметка";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "Присоединяйся к моей сети настоящих отношений в HalloApp. Скачай бесплатно на halloapp.com/dl";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Неизвестный контакт";

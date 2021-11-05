@@ -4,11 +4,17 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Merci de vérifier si tu disposes d'une connexion Internet, puis réessaye.";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Ajouter";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Annuler";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "ANNULER";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Continuer";
@@ -27,6 +33,9 @@
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "Installer";
+
+/* Title for generic Invite button. */
+"button.invite" = "Inviter";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "En savoir plus";
@@ -70,11 +79,17 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Cette version est obsolète";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Recherche";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "En savoir plus";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Mettre à jour ton application.";
+
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Chargement de l'aperçu...";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Moi";
@@ -115,6 +130,9 @@
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Installe HalloApp pour ouvrir %@";
 
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "Mince !";
+
 /* Popup that appears when user tries to register invalid number */
 "registration.invalidphone.only" = "Le numéro de téléphone que vous avez entré n'est pas valide. Veuillez revérifier.";
 
@@ -144,6 +162,9 @@
 
 /* Alert title telling the user that their account was successfully deleted */
 "settings.account.deleted.title" = "Compte supprimé avec succès";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "Rejoignez mon réseau de relations réelles sur HalloApp. Téléchargez-le gratuitement sur le site halloapp.com/dl";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Contact inconnu";
