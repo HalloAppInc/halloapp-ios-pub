@@ -282,11 +282,14 @@ open class AppContext {
 
     static func phoneNumberKitMetadataCallback() throws -> Data? {
         // TODO: proper path for app extensions
-        guard let jsonPath = Bundle.main.path(forResource: "PhoneNumberMetadata", ofType: "json") else {
+        guard let lz4Path = Bundle.main.path(forResource: "PhoneNumberMetadata", ofType: "json.lz4"),
+              let compressedData = NSData(contentsOf: URL(fileURLWithPath: lz4Path)) else
+        {
             throw PhoneNumberError.metadataNotFound
         }
-        let data = try Data(contentsOf: URL(fileURLWithPath: jsonPath))
-        return data
+
+        let decompressedData = try compressedData.decompressed(using: .lz4)
+        return decompressedData as Data
     }
 
     public func getchatMsgSerialId() -> Int32 {
