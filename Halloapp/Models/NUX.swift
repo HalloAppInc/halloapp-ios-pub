@@ -23,15 +23,45 @@ final class NUX {
         case activityCenterIcon
         case newPostButton
         case feedPostWhoWillSee
-        
-        case createdUserGroup           // zerozone
-        case seenUserGroupWelcomePost   // zerozone
+    }
+
+    /*
+        Main Feed Welcome Post:
+            - Shown when in Zero Zone or when there are zero posts
+            - Once shown, stays in feed until closed or expired
+            - Marked as seen immediately when it's shown
+            - Does not increment any unread counters
+        Sample Group:
+            - Created once if user is in Zero Zone or when there are zero groups
+        Sample Group Welcome Post:
+            - Recorded once sample group is created even if not shown
+            - Increments bottom nav unread counter and thread unread counter if not seen
+            - Stays in sample group until closed or expired
+        Group Welcome Post:
+            - Shown in groups that user creates while in Zero Zone
+            - Once shown, stays in group feed until closed or expired
+            - Marked as seen immediately when it's shown
+            - Does not increment any unread counters
+    */
+    struct WelcomePost: Hashable, Codable {
+        var id: String // GroupID with the exception when it's the main feed, then it's the UserID
+        var type: WelcomePostType
+        var creationDate: Date
+        var seen: Bool = false
+        var show: Bool = true
+    }
+
+    enum WelcomePostType: String, Codable {
+        case mainFeed
+        case sampleGroup
+        case group
     }
 
     init(userDefaults: UserDefaults, appVersion: String = AppContext.appVersionForService) {
         self.userDefaults = userDefaults
         self.appVersion = appVersion
         loadFromUserDefaults()
+        expireWelcomePosts()
 
         let contacts = MainAppContext.shared.contactStore.allRegisteredContacts(sorted: false)
         if contacts.count == 0 {
@@ -46,6 +76,55 @@ final class NUX {
     public private(set) var state: State = .none
 
     private var eventCompletedVersions = [Event: String]()
+
+    private var welcomePostsDict = [String: WelcomePost]()
+
+    func welcomePostExist(id: String) -> Bool {
+        return welcomePostsDict[id] != nil ? true : false
+    }
+
+    func showWelcomePost(id: String) -> Bool {
+        guard let welcomePost = welcomePostsDict[id] else { return false }
+        return welcomePost.show
+    }
+
+    func recordWelcomePost(id: String, type: WelcomePostType) {
+        var post = WelcomePost(id: id, type: type, creationDate: Date())
+
+        // mainFeed and new groups created do not increment the unread counters,
+        // so they are considered seen as they are recorded
+        if type == .mainFeed {
+            post.seen = true
+        } else if type == .group {
+            post.seen = true
+        }
+        welcomePostsDict[id] = post
+        saveToUserDefaults()
+    }
+
+    func sampleGroupID() -> GroupID? {
+        guard let key = welcomePostsDict.first(where: {
+            let welcomePost = $0.value as WelcomePost
+            return welcomePost.type == .sampleGroup ? true : false
+        })?.key else {
+            return nil
+        }
+        return key
+    }
+
+    func sampleGroupWelcomePostSeen() -> Bool? {
+        guard let sampleGroupID = sampleGroupID() else { return nil }
+        guard let welcomePost = welcomePostsDict[sampleGroupID] else { return nil }
+        return welcomePost.seen
+    }
+
+    func markSampleGroupWelcomePostSeen() {
+        guard let sampleGroupID = sampleGroupID() else { return }
+        if welcomePostsDict[sampleGroupID] != nil {
+            welcomePostsDict[sampleGroupID]?.seen = true
+        }
+        saveToUserDefaults()
+    }
 
     func isComplete(_ event: Event) -> Bool {
         return eventCompletedVersions.keys.contains(event)
@@ -63,6 +142,7 @@ final class NUX {
     func startDemo() {
         isDemoMode = true
         eventCompletedVersions.removeAll()
+        welcomePostsDict.removeAll()
     }
 
     func devSetStateZeroZone() {
@@ -80,16 +160,52 @@ final class NUX {
         } else {
             DDLogInfo("NUX/loadFromUserDefaults no events saved in user defaults")
         }
+        
+        if let decoded: [String: WelcomePost] = try? AppContext.shared.userDefaults.codable(forKey: UserDefaultsKey.welcomePosts) {
+            welcomePostsDict = decoded
+        }
+    }
+
+    // expiring welcome posts mean not showing them, it does not delete them
+    private func expireWelcomePosts() {
+        let cutoffDate = FeedData.cutoffDate
+
+        for (key, value) in welcomePostsDict {
+            guard value.show else { return }
+            if value.creationDate < cutoffDate {
+                DDLogInfo("NUX/expireWelcomePosts/expiring \(value.id)")
+                welcomePostsDict[key]?.show = false
+            }
+        }
+        saveToUserDefaults()
+    }
+
+    // only delete welcome posts when the actual group is deleted
+    // keep the mainfeed welcome post and sample group welcome post since those are to be shown just once
+    func deleteWelcomePost(id: String) {
+        guard let key = welcomePostsDict.first(where: {
+            let welcomePost = $0.value as WelcomePost
+            guard welcomePost.type == .group else { return false }
+            return welcomePost.id == id ? true : false
+        })?.key else {
+            return
+        }
+        DDLogInfo("NUX/deleteWelcomePost/\(id)")
+        welcomePostsDict.removeValue(forKey: key)
+        saveToUserDefaults()
     }
 
     private func saveToUserDefaults() {
         let userDefaultsDict = Dictionary(uniqueKeysWithValues: eventCompletedVersions.map { ($0.key.rawValue, $0.value) })
         DDLogInfo("NUX/saveToUserDefaults saving events [\(userDefaultsDict.count)]")
         userDefaults.set(userDefaultsDict, forKey: UserDefaultsKey.eventCompletedVersions)
+        
+        try? AppContext.shared.userDefaults.setCodable(welcomePostsDict, forKey: UserDefaultsKey.welcomePosts)
     }
 
     private struct UserDefaultsKey {
         static var eventCompletedVersions = "nux.completed"
+        static var welcomePosts = "nux.welcome.posts"
     }
 }
 

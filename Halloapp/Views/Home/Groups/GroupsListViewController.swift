@@ -143,21 +143,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("GroupsListViewController/viewWillAppear")
         super.viewWillAppear(animated)
-
-        if MainAppContext.shared.nux.state == .zeroZone {
-            guard let allChats = fetchedResultsController?.fetchedObjects else { return }
-            let groupName = Localizations.groupsNUXuserGroupName(MainAppContext.shared.userData.name)
-
-            let isDemoMode = MainAppContext.shared.nux.isDemoMode
-            let userGroupAlreadyExists = allChats.first(where: { $0.title == groupName }) != nil
-            if isDemoMode && userGroupAlreadyExists { return }
-
-            let isGroupsListEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
-            if !isDemoMode && !isGroupsListEmpty { return }
-
-            DDLogInfo("GroupsListViewController/viewWillAppear/NUX/ZeroZone/creating user's own group")
-            MainAppContext.shared.chatData.createGroup(name: groupName, description: "", members: [], data: nil) {_ in}
-        }
+        createSampleGroupIfNeeded()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -224,6 +210,38 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     private func updateEmptyView() {
         let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
         emptyView.alpha = isEmpty ? 1 : 0
+    }
+
+    private func createSampleGroupIfNeeded() {
+        let sharedNUX = MainAppContext.shared.nux
+        let sharedUserData = MainAppContext.shared.userData
+
+        // continue only if in zero zone or if groups list is empty
+        let isZeroZone = sharedNUX.state == .zeroZone
+        let isGroupsListEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
+        guard (isZeroZone || isGroupsListEmpty) else { return }
+
+        // continue only if sample group hasn't been created
+        let sampleGroupExist = sharedNUX.sampleGroupID() != nil
+        guard !sampleGroupExist else { return }
+
+        // secondary check if another group with the same name already exist
+        // useful for edge cases like running demo multiple times or if user does a fresh re-install
+        guard let allChats = fetchedResultsController?.fetchedObjects else { return }
+        let sampleGroupName = Localizations.groupsNUXuserGroupName(sharedUserData.name)
+        let groupWithSampleGroupNameExist = allChats.first(where: { $0.title == sampleGroupName }) != nil
+        guard !groupWithSampleGroupNameExist else { return }
+
+        // create sample group
+        DDLogInfo("GroupsListViewController/viewWillAppear/NUX/creating sample group for user")
+        MainAppContext.shared.chatData.createGroup(name: sampleGroupName, description: "", members: [], data: nil) { result in
+            switch result {
+            case .success(let groupID):
+                sharedNUX.recordWelcomePost(id: groupID, type: .sampleGroup)
+            case .failure(let error):
+                DDLogError("GroupsListViewController/viewWillAppear/NUX/creating sample group error \(error)")
+            }
+        }
     }
 
     // MARK: Invite friends

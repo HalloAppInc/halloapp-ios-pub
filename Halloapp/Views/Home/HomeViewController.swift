@@ -255,12 +255,12 @@ class HomeViewController: UITabBarController {
             guard let self = self else { return }
             guard let controller = self.viewControllers?[1] else { return }
 
-            var seenUserGroupWelcomePost = 0
+            var unseenSampleGroupWelcomePost = 0
             let sharedNUX = MainAppContext.shared.nux
-            if sharedNUX.state == .zeroZone, sharedNUX.isComplete(.createdUserGroup), sharedNUX.isIncomplete(.seenUserGroupWelcomePost) {
-                seenUserGroupWelcomePost = 1
+            if let seen = sharedNUX.sampleGroupWelcomePostSeen(), !seen {
+                unseenSampleGroupWelcomePost = 1
             }
-            let badge = count + seenUserGroupWelcomePost
+            let badge = count + unseenSampleGroupWelcomePost
 
             controller.tabBarItem.badgeValue = badge == 0 ? nil : String(badge)
         }

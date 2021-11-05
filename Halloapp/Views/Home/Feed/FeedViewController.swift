@@ -141,19 +141,42 @@ class FeedViewController: FeedCollectionViewController {
     // MARK: Datasource
 
     private func setupDatasourceAndRefreshIfNeeded() {
+        var needToShowWelcomePost: Bool = false
+
         feedDataSource.modifyItems = { items in
             var result = items
-            if MainAppContext.shared.nux.state == .zeroZone {
-                if MainAppContext.shared.nux.isDemoMode {
-                    result.insert(FeedDisplayItem.welcome, at: 0)
+
+            let sharedNUX = MainAppContext.shared.nux
+            let userID = MainAppContext.shared.userData.userId
+
+            let isDemoMode = sharedNUX.isDemoMode
+            let isZeroZone = sharedNUX.state == .zeroZone
+            let welcomePostExist = sharedNUX.welcomePostExist(id: userID)
+            let isEmptyItemsList = items.count == 0
+            let showWelcomePostIfNeeded = welcomePostExist || isZeroZone || isEmptyItemsList
+
+            if isDemoMode {
+                result.insert(FeedDisplayItem.welcome, at: 0)
+                return result
+            }
+
+            if showWelcomePostIfNeeded {
+                if welcomePostExist {
+                    // don't show post if post was closed by user or expired
+                    if sharedNUX.showWelcomePost(id: userID) {
+                        result.append(FeedDisplayItem.welcome)
+                        needToShowWelcomePost = true
+                    }
                 } else {
+                    sharedNUX.recordWelcomePost(id: userID, type: .mainFeed)
                     result.append(FeedDisplayItem.welcome)
+                    needToShowWelcomePost = true
                 }
             }
             return result
         }
 
-        if MainAppContext.shared.nux.state == .zeroZone {
+        if needToShowWelcomePost {
             DDLogInfo("FeedViewController/setupDatasourceAndRefreshIfNeeded/is zero zone, refresh")
             feedDataSource.refresh()
         }

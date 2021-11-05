@@ -3480,10 +3480,13 @@ extension ChatData {
                 DDLogError("ChatData/group/delete-messages/error  [\(error)]")
                 return
             }
-            
+
             // delete feeds
             MainAppContext.shared.feedData.deletePosts(groupId: groupId)
-            
+
+            // delete welcome post
+            MainAppContext.shared.nux.deleteWelcomePost(id: groupId)
+
             self.save(managedObjectContext)
         }
     }
@@ -3939,10 +3942,8 @@ extension ChatData {
 
         let isCreateEvent = xmppGroup.action == .create
         let sharedNUX = MainAppContext.shared.nux
-        let isZeroZone = sharedNUX.state == .zeroZone
-        let haveNotCreatedUserGroup = sharedNUX.isIncomplete(.createdUserGroup)
-        let isUserGroup = xmppGroup.name == Localizations.groupsNUXuserGroupName(MainAppContext.shared.userData.name)
-        let isGroupCreatedForZeroZoneUser = isCreateEvent && isZeroZone && haveNotCreatedUserGroup && isUserGroup
+        let isSampleGroup = sharedNUX.sampleGroupID() == xmppGroup.groupId
+        let isSampleGroupCreationEvent = isCreateEvent && isSampleGroup
 
         let chatGroupMessage = ChatGroupMessage(context: managedObjectContext)
         if let messageId = xmppGroup.messageId {
@@ -3991,7 +3992,7 @@ extension ChatData {
             chatThread.lastFeedTimestamp = chatGroupMessage.timestamp
             chatThread.lastFeedText = chatGroupMessageEvent.text
 
-            if isGroupCreatedForZeroZoneUser {
+            if isSampleGroupCreationEvent {
                 chatThread.lastFeedText = Localizations.groupFeedWelcomePostTitle
             } else {
                 chatThread.lastFeedText = chatGroupMessageEvent.text
@@ -4001,8 +4002,7 @@ extension ChatData {
             // and NUX zero zone unread welcome post count is recorded in NUX userDefaults, not unreadFeedCount
         }
 
-        if isGroupCreatedForZeroZoneUser {
-            sharedNUX.didComplete(.createdUserGroup)
+        if isSampleGroupCreationEvent {
             self.updateUnreadThreadGroupsCount() // refresh bottom nav groups badge
 
             // remove group message and event since this group is created for the user
