@@ -95,7 +95,7 @@
 "button.install" = "Installeren";
 
 /* Title for generic Invite button. */
-"button.invite" = "Nodig uit";
+"button.invite" = "Uitnodigen";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Meer Informatie";
@@ -122,7 +122,7 @@
 "button.send" = "Verzenden";
 
 /* Title for generic Share button. Mostly used to complete some modal flow. */
-"button.share" = "Deel";
+"button.share" = "Delen";
 
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Bijwerken";
@@ -578,7 +578,7 @@
 "group.feed.welcome.post.body" = "Deel deze link met vrienden en ze worden automatisch toegevoegd aan je groep.";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
-"group.feed.welcome.post.title" = "Nodig een vriend uit voor je groep";
+"group.feed.welcome.post.title" = "Nodig vrienden uit voor je groep";
 
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Uitnodigen voor Groep via Link";
@@ -630,6 +630,9 @@
 
 /* Title for alert box when the user can't join the group via group link */
 "group.preview.join.error.title" = "Niet mogelijk om aan groep deel te nemen";
+
+/* Label for joining group action */
+"group.preview.join.group" = "Deelnemen";
 
 /* Label for the number of members in the group */
 "group.preview.members" = "Deelnemers";

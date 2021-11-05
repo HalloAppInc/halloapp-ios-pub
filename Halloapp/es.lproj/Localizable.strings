@@ -631,6 +631,9 @@
 /* Title for alert box when the user can't join the group via group link */
 "group.preview.join.error.title" = "No se puede unir al grupo";
 
+/* Label for joining group action */
+"group.preview.join.group" = "UNIRSE AL GRUPO";
+
 /* Label for the number of members in the group */
 "group.preview.members" = "Miembros";
 

@@ -52,14 +52,20 @@
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Настройки";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
 /* Placeholder text for when the archive is empty */
-"archive.empty.placeholder" = "Здесь будут отображаться ваши архивные сообщения";
+"archive.empty.placeholder" = "Ваши сообщения будут заархивированы здесь через 30 дней.";
 
 /* Archive navigation label */
 "archive.title.label" = "Архив";
 
+/* Label shown on the cancel action */
+"audio.control.cancel" = "сдвиньте, чтобы отменить";
+
 /* Text to show on banner when no connection is available */
-"banner.no.connection" = "Нет подключения к Интернету";
+"banner.no.connection" = "Нет соединения";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Добавить";
@@ -87,6 +93,9 @@
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "Установить";
+
+/* Title for generic Invite button. */
+"button.invite" = "Пригласить";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Подробнее";
@@ -212,7 +221,7 @@
 "chat.group.leave.group.confirmation" = "Выйти из “%@”?";
 
 /* Label shown above group name input box */
-"chat.group.name.label" = "НАЗВАНИЕ ГРУППЫ";
+"chat.group.name.label" = "Имя группы";
 
 /* Title for group photo actions */
 "chat.group.photo.label" = "Фото группы";
@@ -361,6 +370,9 @@
 /* Title for tutorial explaining how user can enable contacts permission */
 "contacts.permission.tutorial.title" = "Как разрешить “Контакты”";
 
+/* The default name given to new groups when the user is in Zero Zone (no contacts) */
+"create.group.default.name.my.new.group" = "Моя новая группа";
+
 /* Text label for group description text box */
 "create.group.description.label" = "Описание";
 
@@ -436,6 +448,9 @@
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.replied.w.text" = "<$author$> ответил(-а): <$text$>";
 
+/* Archived date timestamp */
+"feed.post.archived.timestamp" = "Архивировано %@";
+
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Не удалось опубликовать.";
 
@@ -477,6 +492,12 @@
 
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
+
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body" = "Используйте свой номер телефона, чтобы общаться с друзьями и семьей в пространстве без рекламы, брендов, лайков и влиятельных лиц.\n\nHalloApp предназначен для вас и ваших близких. Пригласите своих настоящих друзей, чтобы начать!";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title" = "Добро пожаловать в HalloApp, пространство для настоящих отношений ✨";
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Комментировать";
@@ -553,6 +574,12 @@
 /* Message text shown when you remove a group member */
 "group.event.removed.member.you" = "Ты удалил(-а) %1@";
 
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
+"group.feed.welcome.post.body" = "Поделитесь этой ссылкой с друзьями, и они автоматически присоединятся к вашей группе.";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
+"group.feed.welcome.post.title" = "Пригласите друга в свою группу";
+
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Пригласить в группу по ссылке";
 
@@ -604,6 +631,9 @@
 /* Title for alert box when the user can't join the group via group link */
 "group.preview.join.error.title" = "Невозможно присоединиться к группе";
 
+/* Label for joining group action */
+"group.preview.join.group" = "Вступить в группу";
+
 /* Label for the number of members in the group */
 "group.preview.members" = "Участники";
 
@@ -619,6 +649,9 @@
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "Вы точно хотите удалить эту группу и ее содержимое со своего устройства?";
 
+/* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
+"groups.NUX.user.group.name" = "Группа %@";
+
 /* A label on the header to indicate which person I have groups in common with */
 "groups.title" = "С %@";
 
@@ -633,6 +666,9 @@
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Эта версия устарела";
+
+/* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
+"invite.action.sheet.title" = "Пригласить %@ по...";
 
 /* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
 "invite.already.halloapp.user" = "Уже пользуюсь HalloApp";
@@ -665,7 +701,10 @@
 "invite.text.specific" = "Привет, %1$@, приглашаю тебя присоединиться ко мне в HalloApp — подлинной сети отношений между близкими мне людьми. Используй %2$@ для регистрации. Получи его по адресу https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
-"invite.title" = "Приглашение";
+"invite.title" = "Пригласить друзей";
+
+/* Title of cell at the top of the invite screen */
+"invite.via.link" = "Пригласить по ссылке";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Поиск";
@@ -678,6 +717,9 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Обнови свое приложение.";
+
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Загрузка предварительного просмотра...";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Я";
@@ -783,6 +825,9 @@
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "Сообщения %@ удалены";
+
+/* Alert text shown when max group size is reached when selecting/adding group members */
+"new.group.members.max.size.alert" = "Максимальный размер группы %d";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Вы больше не входите в эту группу";
@@ -1242,6 +1287,9 @@
 
 /* Fourth tab in the main app interface */
 "title.settings" = "Настройки";
+
+/* Row in Settings screen */
+"title.storage" = "Место хранения";
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Видели:";

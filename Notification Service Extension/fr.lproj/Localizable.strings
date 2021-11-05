@@ -4,11 +4,17 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Assure-toi d'être bien connecté à Internet, puis réessaie.";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Ajouter";
 
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Annuler";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "ANNULER";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Continuer";
@@ -24,6 +30,9 @@
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
 "button.go.to.settings" = "Aller dans les paramètres";
+
+/* Title for generic Invite button. */
+"button.invite" = "Inviter";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "En savoir plus";
@@ -61,11 +70,17 @@
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Tu as été ajouté à un nouveau groupe";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Recherche";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "En savoir plus";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Mettre à jour ton application.";
+
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Chargement de l'aperçu...";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Moi";
@@ -85,6 +100,12 @@
 /* New post notification text when post is multiple videos without caption. */
 "notification.n.videos" = "notification.n.videos";
 
+/* Title for the new comment notification. */
+"notification.new.comment" = "Nouveau commentaire";
+
+/* Content for contact notification. */
+"notification.new.contact.content" = "%@ est maintenant sur HalloApp";
+
 /* Content for friend notification. */
 "notification.new.friend.content" = "%@ est maintenant sur HalloApp";
 
@@ -102,6 +123,9 @@
 
 /* New post notification text when post is a voice note. */
 "notification.voicenote" = "message vocale";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "Rejoignez mon réseau de relations réelles sur HalloApp. Téléchargez-le gratuitement sur halloapp.com/dl";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Contact inconnu";
