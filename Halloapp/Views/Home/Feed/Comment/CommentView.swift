@@ -315,8 +315,9 @@ class CommentView: UIView {
                 mediaCarouselView.heightAnchor.constraint(equalToConstant: 170).isActive = true
                 mediaCarouselView.delegate = self
                 mediaView.insertArrangedSubview(mediaCarouselView, at: mediaView.arrangedSubviews.count - 1)
-                vStack.insertArrangedSubview(mediaView, at: vStack.arrangedSubviews.count - 1)
-                mediaView.topAnchor.constraint(equalTo: vStack.topAnchor, constant: 20).isActive = true
+                vStack.insertArrangedSubview(mediaView, at: vStack.arrangedSubviews.firstIndex(of: nameTextLabel)! + 1)
+                mediaView.topAnchor.constraint(equalTo: nameTextLabel.bottomAnchor, constant: 20).isActive = true
+                vStack.setCustomSpacing(4, after: nameTextLabel)
                 self.mediaCarouselView = mediaCarouselView
             }
 
@@ -335,7 +336,7 @@ class CommentView: UIView {
                 }
 
                 textCommentLabel.delegate = self
-                vStack.insertArrangedSubview(textCommentLabel, at: vStack.arrangedSubviews.count - 1)
+                vStack.insertArrangedSubview(textCommentLabel, at: vStack.arrangedSubviews.firstIndex(of: mediaView)! + 1)
                 vStack.setCustomSpacing(4, after: mediaView)
             }
         } else if let feedLinkPreviews = feedPostComment.linkPreviews, let feedLinkPreview = feedLinkPreviews.first  {
