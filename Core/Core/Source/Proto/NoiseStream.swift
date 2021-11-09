@@ -32,6 +32,8 @@ public enum NoiseStreamError: Error {
     case packetDecryptionFailure
 }
 
+fileprivate let tcpTimeout: TimeInterval = 30.0
+
 public final class NoiseStream: NSObject {
 
     public init(
@@ -56,8 +58,8 @@ public final class NoiseStream: NSObject {
             return
         }
         do {
-            DDLogInfo("noise/connect [\(host):\(port)]")
-            try socket.connect(toHost: host, onPort: port)
+            DDLogInfo("noise/connect [\(host):\(port)] timeout: \(tcpTimeout)")
+            try socket.connect(toHost: host, onPort: port, withTimeout: tcpTimeout)
             state = .connecting
         } catch {
             DDLogError("noise/connect/error [\(error)]")
