@@ -295,6 +295,7 @@ public class MediaChunkCrypter: MediaCrypter {
         CC_SHA256_Final(&outBytes, &hashContext)
         let digest = Data(bytes: outBytes, count: outLength)
         guard digest == sha256hash else {
+            DDLogError("MediaCrypter/hashFinalizeAndVerify/failed/expected: \(sha256hash.bytes)/actual: \(digest.bytes)")
             throw MediaCrypterError.hashMismatch
         }
     }
@@ -316,6 +317,7 @@ public class MediaChunkCrypter: MediaCrypter {
         var macBytes = [UInt8](repeating: 0, count: macLength)
         CCHmacFinal(&hmacContext, &macBytes)
         guard macBytes == attachedMAC.bytes else {
+            DDLogError("MediaCrypter/hmacFinalizeAndVerify/failed/expected: \(attachedMAC.bytes)/actual: \(macBytes)")
             throw MediaCrypterError.MACMismatch
         }
     }
