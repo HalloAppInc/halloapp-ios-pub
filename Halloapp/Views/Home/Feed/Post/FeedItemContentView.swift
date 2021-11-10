@@ -336,7 +336,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         explorerController.delegate = transitionDelegate
 
         if let controller = findController() {
-            controller.present(explorerController.withNavigationController(), animated: true)
+            controller.present(explorerController, animated: true)
         }
     }
 

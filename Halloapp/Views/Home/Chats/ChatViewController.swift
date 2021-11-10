@@ -528,14 +528,14 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         let controller = MediaExplorerController(media: media, index: index)
         controller.delegate = delegate
 
-        present(controller.withNavigationController(), animated: true)
+        present(controller, animated: true)
     }
 
     private func presentMediaExplorer(media: [ChatQuotedMedia], At index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         let controller = MediaExplorerController(media: media, index: index)
         controller.delegate = delegate
 
-        present(controller.withNavigationController(), animated: true)
+        present(controller, animated: true)
     }
 
     private func setupOrRefreshHeaderAndFooter() {

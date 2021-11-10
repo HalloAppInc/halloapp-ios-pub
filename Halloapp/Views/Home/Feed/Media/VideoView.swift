@@ -49,8 +49,7 @@ class VideoView: UIView {
     private lazy var playButton: UIView = {
         let size: CGFloat = 100
         let config = UIImage.SymbolConfiguration(pointSize: 36)
-        let iconColor = UIColor.primaryWhiteBlack
-        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
+        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(.white, renderingMode: .alwaysOriginal)
 
         let buttonIcon = UIImageView(image: icon)
         buttonIcon.translatesAutoresizingMaskIntoConstraints = false
@@ -214,16 +213,14 @@ fileprivate class TimeSeekView : UIView {
 
     private lazy var playIcon: UIImage = {
         let config = UIImage.SymbolConfiguration(pointSize: 24)
-        let iconColor = UIColor.primaryWhiteBlack
-        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
+        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(.white, renderingMode: .alwaysOriginal)
 
         return icon
     } ()
 
     private lazy var pauseIcon: UIImage = {
         let config = UIImage.SymbolConfiguration(pointSize: 20)
-        let iconColor = UIColor.primaryWhiteBlack
-        let icon = UIImage(systemName: "pause.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
+        let icon = UIImage(systemName: "pause.fill", withConfiguration: config)!.withTintColor(.white, renderingMode: .alwaysOriginal)
 
         return icon
     } ()

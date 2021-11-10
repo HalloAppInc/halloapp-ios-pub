@@ -203,7 +203,7 @@ final class ProfileHeaderViewController: UIViewController {
         let mediaController = MediaExplorerController(avatarImage: maskRoundedImage(image: image, radius: image.size.width / 2))
         mediaController.delegate = self
 
-        present(mediaController.withNavigationController(), animated: true)
+        present(mediaController, animated: true)
     }
     
     /// - Author: [StackOverflow](https://stackoverflow.com/a/29046647)
