@@ -14,12 +14,12 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
     weak var delegate: MediaExplorerTransitionDelegate?
     weak var delegateExplorer: MediaExplorerController?
 
-    private var media: MediaExplorerMedia
+    private weak var media: MediaExplorerMedia?
     private let originIndex: Int?
     private let explorerIndex: Int
     private let presenting: Bool
-    private var context: UIViewControllerContextTransitioning?
-    private var interactiveTransitionView: UIView?
+    private weak var context: UIViewControllerContextTransitioning?
+    private weak var interactiveTransitionView: UIView?
 
     init(media: MediaExplorerMedia, between originIndex: Int?, and explorerIndex: Int, presenting: Bool) {
         self.media = media
@@ -27,7 +27,7 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
         self.explorerIndex = explorerIndex
         self.presenting = presenting
 
-        self.media.computeSize()
+        self.media?.computeSize()
     }
 
     private func shouldScaleToFit() -> Bool {
@@ -56,6 +56,8 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
     }
 
     func getTransitionView() -> UIView? {
+        guard let media = media else { return nil}
+
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
@@ -89,6 +91,7 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
 
     func runTransition(using transitionContext: UIViewControllerContextTransitioning) {
         guard let index = originIndex,
+              let media = media,
               let transitionView = getTransitionView(),
               let explorer = delegateExplorer,
               let originView = delegate?.getTransitionView(atPostion: index),

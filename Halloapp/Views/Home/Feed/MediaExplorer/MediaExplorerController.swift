@@ -52,9 +52,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 let oldCell = collectionView.cellForItem(at: IndexPath(item: oldValue, section: 0))
                 let currentCell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0))
 
-                if let cell = oldCell as? MediaExplorerVideoCell {
-                    cell.pause()
-                } else if let cell = oldCell as? MediaExplorerImageCell {
+                MainAppContext.shared.mediaDidStartPlaying.send(nil)
+
+                if let cell = oldCell as? MediaExplorerImageCell {
                     cell.reset()
                 }
 
@@ -440,12 +440,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-
-        for cell in collectionView.visibleCells {
-            if let cell = cell as? MediaExplorerVideoCell {
-                cell.pause()
-            }
-        }
+        MainAppContext.shared.mediaDidStartPlaying.send(nil)
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
