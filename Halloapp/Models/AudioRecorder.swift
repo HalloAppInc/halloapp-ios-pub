@@ -26,6 +26,7 @@ class AudioRecorder {
     public var duration: TimeInterval? { recorder?.currentTime }
 
     private var recorder: AVAudioRecorder?
+    private var task: DispatchWorkItem?
     private var timer: Timer?
     private var savedSessionCategory: AVAudioSession.Category?
     private var savedSessionMode: AVAudioSession.Mode?
@@ -58,15 +59,21 @@ class AudioRecorder {
             guard let self = self else { return }
 
             if granted {
+                // stop any audio or video currently playing
+                MainAppContext.shared.mediaDidStartPlaying.send(nil)
+
                 self.respectSilenceMode {
                     AudioServicesPlayAlertSound(1110)
                 }
 
-                // stop any audio or video currently playing
-                MainAppContext.shared.mediaDidStartPlaying.send(nil)
-
-                self.saveAudioSession()
-                self.record()
+                // 300ms to avoid recording the start sound
+                self.task?.cancel()
+                self.task = DispatchWorkItem {
+                    self.task = nil
+                    self.saveAudioSession()
+                    self.record()
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300), execute: self.task!)
             } else {
                 self.delegate?.audioRecorderMicrphoneAccessDenied(self)
             }
@@ -146,6 +153,7 @@ class AudioRecorder {
         }
 
         timer?.invalidate()
+        task?.cancel()
 
         if let recorder = self.recorder, recorder.isRecording || isRecording {
             isRecording = false
