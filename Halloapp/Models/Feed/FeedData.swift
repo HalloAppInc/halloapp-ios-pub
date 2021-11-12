@@ -354,7 +354,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 } else {
                     DDLogInfo("FeedData/stuck-comments/\(comment.id)/resending")
-                    send(comment: comment)
+                    uploadMediaAndSend(feedComment: comment)
                 }
             }
         } catch {
