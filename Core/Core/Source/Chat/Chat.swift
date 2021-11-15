@@ -64,7 +64,7 @@ public protocol ChatMessageProtocol {
 }
 
 public enum ChatContent {
-    case text(String)
+    case text(String, [LinkPreviewProtocol])
     case album(String?, [ChatMediaProtocol])
     case voiceNote(ChatMediaProtocol)
     case unsupported(Data)
@@ -126,8 +126,30 @@ public extension ChatMessageProtocol {
             album.media = media.compactMap { $0.albumMedia }
             album.text = Clients_Text(text: text ?? "")
             container.message = .album(album)
-        case .text(let text):
-            let clientsText = Clients_Text(text: text)
+        case .text(let text, let linkPreviewData):
+            var clientsText = Clients_Text(text: text)
+            linkPreviewData.forEach { linkPreview in
+                clientsText.link.url = linkPreview.url.description
+                clientsText.link.title = linkPreview.title
+                clientsText.link.description_p = linkPreview.description
+
+                linkPreview.previewImages.forEach { previewImage in
+                    if let downloadURL = previewImage.url?.absoluteString,
+                          let encryptionKey = Data(base64Encoded: previewImage.key),
+                          let cipherTextHash = Data(base64Encoded: previewImage.sha256)
+                    {
+                        var res = Clients_EncryptedResource()
+                        res.ciphertextHash = cipherTextHash
+                        res.downloadURL = downloadURL
+                        res.encryptionKey = encryptionKey
+                        var img = Clients_Image()
+                        img.img = res
+                        img.width = Int32(previewImage.size.width)
+                        img.height = Int32(previewImage.size.height)
+                        clientsText.link.preview = [img]
+                    }
+                }
+            }
             container.message = .text(clientsText)
         case .voiceNote(let media):
             guard let protoResource = media.protoResource else { return nil }
@@ -303,7 +325,7 @@ extension Clients_ChatContainer {
     public var chatContent: ChatContent {
         switch message {
         case .text(let clientText):
-            return .text(clientText.text)
+            return .text(clientText.text, clientText.linkPreviewData)
         case .album(let album):
             return .album(
                 album.text.text.isEmpty ? nil : album.text.text,

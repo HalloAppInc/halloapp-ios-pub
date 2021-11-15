@@ -35,6 +35,15 @@ extension XMPPChatMessage: ChatMessageProtocol {
     var timeIntervalSince1970: TimeInterval? {
         timestamp
     }
+
+    var linkPreviewData: [LinkPreviewProtocol] {
+        switch content {
+        case .album, .voiceNote, .unsupported:
+            return []
+        case .text(_, let linkPreviewData):
+            return linkPreviewData
+        }
+    }
 }
 
 extension XMPPChatMedia {

@@ -1044,7 +1044,8 @@ class ChatData: ObservableObject {
             switch chatContent {
             case .album(let text, _):
                 chatMessage.text = text
-            case .text(let text):
+            case .text(let text, let linkPreviewData):
+                // TODO @dini merge linkPreviewData
                 chatMessage.text = text
             case .voiceNote(_):
                 chatMessage.text = ""
@@ -1757,7 +1758,18 @@ extension ChatData {
                 }
             }
         }
-        
+        // Process link preview if present
+        if let linkPreviewData = linkPreviewData {
+            // add link preview info to the chatMessage
+            generateLinkPreview(
+                messageId: messageId,
+                chatMessage: chatMessage,
+                isMsgToYourself: isMsgToYourself,
+                linkPreviewData: linkPreviewData,
+                linkPreviewMedia: linkPreviewMedia,
+                using: context)
+        }
+
         if let chatReplyMessageID = chatReplyMessageID,
            let chatReplyMessageSenderID = chatReplyMessageSenderID,
            let quotedChatMessage = self.chatMessage(with: chatReplyMessageID, in: context) {
@@ -1824,7 +1836,82 @@ extension ChatData {
         }
     }
 
-    private func uploadChatMsgMediaAndSend(_ xmppChatMsg: XMPPChatMessage, in context: NSManagedObjectContext) {
+    private func generateLinkPreview(messageId: ChatMessageID, chatMessage: ChatMessage, isMsgToYourself: Bool, linkPreviewData: LinkPreviewProtocol, linkPreviewMedia: PendingMedia?, using context: NSManagedObjectContext) {
+        DDLogDebug("ChatData/process-chats/new/generate-link-preview [\(linkPreviewData.url)]")
+        let linkPreview = NSEntityDescription.insertNewObject(forEntityName: ChatLinkPreview.entity().name!, into: context) as! ChatLinkPreview
+        linkPreview.id = PacketID.generate()
+        linkPreview.url = linkPreviewData.url
+        linkPreview.title = linkPreviewData.title
+        linkPreview.desc = linkPreviewData.description
+        // Set preview image if present
+        if let linkPreviewMedia = linkPreviewMedia {
+            let linkPreviewChatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: context) as! ChatMedia
+            if let mediaItemSize = linkPreviewMedia.size,
+                  let mediaItemfileURL = linkPreviewMedia.fileURL {
+                linkPreviewChatMedia.type = {
+                    switch linkPreviewMedia.type {
+                    case .image:
+                        return .image
+                    case .video:
+                        return .video
+                    case .audio:
+                        return .audio
+                    }
+                }()
+                linkPreviewChatMedia.outgoingStatus = isMsgToYourself ? .uploaded : .pending
+                linkPreviewChatMedia.url = linkPreviewMedia.url
+                linkPreviewChatMedia.uploadUrl = linkPreviewMedia.uploadUrl
+                linkPreviewChatMedia.size = mediaItemSize
+                linkPreviewChatMedia.key = ""
+                linkPreviewChatMedia.sha256 = ""
+                linkPreviewChatMedia.order = 0
+                linkPreviewChatMedia.linkPreview = linkPreview
+                linkPreview.message = chatMessage
+                do {
+                    try copyFiles(toChatMedia: linkPreviewChatMedia, fileUrl: mediaItemfileURL, encryptedFileUrl: linkPreviewMedia.encryptedFileUrl)
+                }
+                catch {
+                    DDLogError("ChatData/createChatMsg/\(messageId)/copy-media-linkPreview/error [\(error)]")
+                }
+            } else {
+                DDLogDebug("ChatData/createChatMsg/\(messageId)/add-media-linkPreview/skip/missing info")
+            }
+        }
+    }
+    
+    private func addLinkPreview(chatMessage: ChatMessage, linkPreviewData: [LinkPreviewProtocol], using context: NSManagedObjectContext) {
+        linkPreviewData.forEach { linkPreviewData in
+            DDLogDebug("ChatData/process-chats/new/add-link-preview [\(linkPreviewData.url)]")
+            let linkPreview = NSEntityDescription.insertNewObject(forEntityName: ChatLinkPreview.entity().name!, into: context) as! ChatLinkPreview
+            linkPreview.id = linkPreview.id
+            linkPreview.url = linkPreviewData.url
+            linkPreview.title = linkPreviewData.title
+            linkPreview.desc = linkPreviewData.description
+            // Set preview image if present
+            linkPreviewData.previewImages.forEach { previewMedia in
+                let media = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: context) as! ChatMedia
+                media.type = {
+                    switch previewMedia.type {
+                    case .image:
+                        return .image
+                    case .video:
+                        return .video
+                    case .audio:
+                        return .audio
+                    }
+                }()
+                media.incomingStatus = .none
+                media.url = previewMedia.url
+                media.size = previewMedia.size
+                media.key = previewMedia.key
+                media.sha256 = previewMedia.sha256
+                media.linkPreview = linkPreview
+            }
+            linkPreview.message = chatMessage
+        }
+    }
+
+    private func uploadAllChatMsgMediaAndSend(_ xmppChatMsg: XMPPChatMessage, in context: NSManagedObjectContext) {
         let msgID = xmppChatMsg.id
         
         guard let chatMsg = chatMessage(with: msgID, in: context) else { return }
@@ -1832,11 +1919,23 @@ extension ChatData {
         MainAppContext.shared.beginBackgroundTask(msgID)
         
         // Either all media has already been uploaded or post does not contain media.
-        guard let mediaItemsToUpload = chatMsg.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
+        if let mediaItemsToUpload = chatMsg.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty {
+            uploadChatMsgMediaAndSend(msgID: msgID, chatMsg: chatMsg, mediaItemsToUpload: mediaItemsToUpload, in: context, mediaType: .chatMedia)
+        } else if let mediaItemsToUpload = chatMsg.linkPreviews?.first?.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty{
+            uploadChatMsgMediaAndSend(msgID: msgID, chatMsg: chatMsg, mediaItemsToUpload: mediaItemsToUpload, in: context, mediaType: .linkPreviewMedia)
+        } else {
             send(message: XMPPChatMessage(chatMessage: chatMsg))
             return
         }
-        
+    }
+    
+    private enum chatMediaType {
+        case chatMedia
+        case linkPreviewMedia
+    }
+
+    private func uploadChatMsgMediaAndSend(msgID: ChatMessageID, chatMsg: ChatMessage, mediaItemsToUpload: Set<ChatMedia>, in context: NSManagedObjectContext, mediaType: chatMediaType) {
+
         var numberOfFailedUploads = 0
         var isMsgStale: Bool = false
         let totalUploads = mediaItemsToUpload.count
@@ -1886,27 +1985,47 @@ extension ChatData {
                         let path = self.relativePath(from: output)
                         DDLogDebug("ChatData/process-mediaItem/success: \(msgID)/\(mediaIndex)")
                         self.updateChatMessage(with: msgID, block: { msg in
-                            guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else {
-                                DDLogError("ChatData/process-mediaItem/failed to save/msgId: \(msgID)/\(mediaIndex)")
-                                return
-                            }
+                            switch mediaType {
+                            case .chatMedia:
+                                guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else {
+                                    DDLogError("ChatData/process-mediaItem/failed to save/msgId: \(msgID)/\(mediaIndex)")
+                                    return
+                                }
 
-                            media.size = result.size
-                            media.key = result.key
-                            media.sha256 = result.sha256
-                            media.relativeFilePath = path
-                            DDLogDebug("ChatData/updating chat message: \(msgID), relativeFilePath: \(path ?? "nil")")
+                                media.size = result.size
+                                media.key = result.key
+                                media.sha256 = result.sha256
+                                media.relativeFilePath = path
+                                DDLogDebug("ChatData/updating chat message: \(msgID), relativeFilePath: \(path ?? "nil")")
+                            case .linkPreviewMedia:
+                                guard let media = msg.linkPreviews?.first?.media?.first(where: { $0.order == mediaIndex }) else {
+                                    DDLogError("ChatData/process-linkPreview-mediaItem/failed to save/msgId: \(msgID)/\(mediaIndex)")
+                                    return
+                                }
+
+                                media.size = result.size
+                                media.key = result.key
+                                media.sha256 = result.sha256
+                                media.relativeFilePath = path
+                                DDLogDebug("ChatData/linkPreview updating chat message: \(msgID), relativeFilePath: \(path ?? "nil")")
+                            }
                         }) {
                             self.uploadChat(msgID: msgID, mediaIndex: mediaIndex, in: context, completion: uploadCompletion)
                         }
                     case .failure(_):
                         DDLogDebug("ChatData/process-mediaItem/failure: \(msgID)/\(mediaIndex)")
                         numberOfFailedUploads += 1
-
                         self.updateChatMessage(with: msgID, block: { msg in
-                            guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
-                            media.outgoingStatus = .error
-                            media.numTries += 1
+                            switch mediaType {
+                            case .chatMedia:
+                                guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
+                                media.outgoingStatus = .error
+                                media.numTries += 1
+                            case .linkPreviewMedia:
+                                guard let media = msg.linkPreviews?.first?.media?.first(where: { $0.order == mediaIndex }) else { return }
+                                media.outgoingStatus = .error
+                                media.numTries += 1
+                            }
                         }) {
                             uploadGroup.leave()
                         }
@@ -2604,8 +2723,9 @@ extension ChatData {
             chatMedia.order = 0
             chatMedia.sha256 = xmppMedia.sha256
             chatMedia.message = chatMessage
-        case .text(let text):
+        case .text(let text, let linkPreviewData):
             chatMessage.text = text
+            addLinkPreview( chatMessage: chatMessage, linkPreviewData: linkPreviewData, using: managedObjectContext)
         case .unsupported(let data):
             chatMessage.rawData = data
             chatMessage.incomingStatus = .unsupported
@@ -2787,7 +2907,7 @@ extension ChatData {
                 let xmppChatMsg = XMPPChatMessage(chatMessage: pendingMsg)
                 self.backgroundProcessingQueue.async { [weak self] in
                     guard let self = self else { return }
-                    self.uploadChatMsgMediaAndSend(xmppChatMsg, in: managedObjectContext)
+                    self.uploadAllChatMsgMediaAndSend(xmppChatMsg, in: managedObjectContext)
                 }
             }
         }
@@ -2877,7 +2997,8 @@ extension ChatData {
         let body: String
 
         switch xmppChatMessage.content {
-        case .text(let text):
+        case .text(let text, _):
+            // TODO Dini present linkPreviewData here?
             body = text
         case .album(let text, let media):
             let mediaStr: String? = {
@@ -4170,7 +4291,7 @@ extension XMPPChatMessage {
                     media.sorted(by: { $0.order < $1.order }).map{ XMPPChatMedia(chatMedia: $0) })
             }
         } else {
-            self.content = .text(chatMessage.text ?? "")
+            self.content = .text(chatMessage.text ?? "", chatMessage.linkPreviewData)
         }
     }
 
