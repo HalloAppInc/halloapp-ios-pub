@@ -41,6 +41,7 @@ extension SharedChatMessage {
     @NSManaged public var decryptionError: String?
     @NSManaged public var ephemeralKey: Data?
     @NSManaged public var media: Set<SharedMedia>?
+    @NSManaged public var linkPreviews: Set<SharedFeedLinkPreview>?
     
     public var status: Status {
         get {
@@ -92,10 +93,35 @@ extension SharedChatMessage: ChatMessageProtocol {
     public var timeIntervalSince1970: TimeInterval? {
         timestamp.timeIntervalSince1970
     }
+    
+    var linkPreviewData: [LinkPreviewProtocol] {
+        switch content {
+        case .album, .voiceNote, .unsupported:
+            return []
+        case .text(_, let linkPreviewData):
+            return linkPreviewData
+        }
+    }
 
     public var content: ChatContent {
         if orderedMedia.isEmpty {
-            return .text(text ?? "")
+            var linkPreviewData = [LinkPreviewData]()
+            if let linkPreviews = linkPreviews , !linkPreviews.isEmpty {
+                linkPreviews.forEach { linkPreview in
+                    // Check for link preview media
+                    var mediaData = [FeedMediaData]()
+                    if let linkPreviewMedia = linkPreview.media, !linkPreviewMedia.isEmpty {
+                        mediaData = linkPreviewMedia
+                            .map {
+                                FeedMediaData(from: $0)
+                            }
+                    }
+                    if let linkPreview = LinkPreviewData(id: linkPreview.id, url: linkPreview.url, title: linkPreview.title ?? "", description: linkPreview.desc ?? "", previewImages: mediaData) {
+                        linkPreviewData.append(linkPreview)
+                    }
+                }
+            }
+            return .text(text ?? "", linkPreviewData)
         } else {
             return .album(text, orderedMedia)
         }

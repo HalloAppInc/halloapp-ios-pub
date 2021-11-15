@@ -7,10 +7,25 @@
 //
 //
 
+import Core
 import Foundation
 import CoreData
 
 @objc(ChatMedia)
 public class ChatMedia: NSManagedObject {
+    
+    @NSManaged public var linkPreview: ChatLinkPreview?
 
+    public var feedMediaType: FeedMediaType {
+        get {
+            switch type {
+            case .image:
+                return .image
+            case .video:
+                return .video
+            case .audio:
+                return .audio
+            }
+        }
+    }
 }

@@ -97,6 +97,27 @@ extension ChatMessage {
             return media.sorted { $0.order < $1.order }
         }
     }
+
+    public var linkPreviewData: [LinkPreviewProtocol] {
+        get {
+            var linkPreviewData = [LinkPreviewData]()
+            linkPreviews?.forEach { linkPreview in
+                // Check for link preview media
+                var mediaData = [FeedMediaData]()
+                if let linkPreviewMedia = linkPreview.media, !linkPreviewMedia.isEmpty {
+                    mediaData = linkPreviewMedia
+                        .map {
+                            // @TODO Unify Media Objects. Github issue: 1502
+                            FeedMediaData(id: "", url: $0.url , type: $0.feedMediaType , size: $0.size, key: $0.key, sha256: $0.sha256)
+                        }
+                }
+                if let linkPreview = LinkPreviewData(id: linkPreview.id, url: linkPreview.url, title: linkPreview.title ?? "", description: linkPreview.desc ?? "", previewImages: mediaData) {
+                    linkPreviewData.append(linkPreview)
+                }
+            }
+            return linkPreviewData
+        }
+    }
 }
 
 

@@ -57,7 +57,7 @@
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="url" optional="YES" attributeType="URI"/>
         <relationship name="media" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMedia" inverseName="linkPreview" inverseEntity="ChatMedia"/>
-        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="linkPreview" inverseEntity="ChatMessage"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="linkPreviews" inverseEntity="ChatMessage"/>
     </entity>
     <entity name="ChatMedia" representedClassName="ChatMedia" syncable="YES">
         <attribute name="height" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
@@ -101,7 +101,7 @@
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="toUserId" attributeType="String"/>
-        <relationship name="linkPreview" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatLinkPreview" inverseName="message" inverseEntity="ChatLinkPreview"/>
+        <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatLinkPreview" inverseName="message" inverseEntity="ChatLinkPreview"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ChatMedia" inverseName="message" inverseEntity="ChatMedia"/>
         <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="message" inverseEntity="ChatQuoted"/>
     </entity>
@@ -154,7 +154,7 @@
         <element name="ChatLinkPreview" positionX="-27" positionY="153" width="128" height="119"/>
         <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="254"/>
         <element name="ChatMention" positionX="-36" positionY="144" width="128" height="89"/>
-        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="344"/>
+        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="14"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="148"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="149"/>
         <element name="ChatThread" positionX="-36" positionY="108" width="128" height="314"/>

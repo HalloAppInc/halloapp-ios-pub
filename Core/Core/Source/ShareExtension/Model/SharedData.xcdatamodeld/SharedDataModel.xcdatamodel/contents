@@ -14,6 +14,7 @@
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="toUserId" attributeType="String"/>
+        <relationship name="linkPreviews" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedLinkPreview"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="SharedMedia" inverseName="message" inverseEntity="SharedMedia"/>
     </entity>
     <entity name="SharedFeedComment" representedClassName="SharedFeedComment" syncable="YES">
@@ -41,6 +42,7 @@
         <attribute name="url" optional="YES" attributeType="URI"/>
         <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedComment" inverseName="linkPreviews" inverseEntity="SharedFeedComment"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedMedia" inverseName="linkPreview" inverseEntity="SharedMedia"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedChatMessage"/>
         <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedPost" inverseName="linkPreviews" inverseEntity="SharedFeedPost"/>
     </entity>
     <entity name="SharedFeedMention" representedClassName="SharedFeedMention" syncable="YES">
@@ -88,9 +90,9 @@
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <elements>
-        <element name="SharedChatMessage" positionX="-54" positionY="81" width="128" height="239"/>
+        <element name="SharedChatMessage" positionX="-54" positionY="81" width="128" height="254"/>
         <element name="SharedFeedComment" positionX="-45" positionY="99" width="128" height="194"/>
-        <element name="SharedFeedLinkPreview" positionX="-36" positionY="153" width="128" height="134"/>
+        <element name="SharedFeedLinkPreview" positionX="-36" positionY="153" width="128" height="149"/>
         <element name="SharedFeedMention" positionX="-54" positionY="81" width="128" height="88"/>
         <element name="SharedFeedPost" positionX="-63" positionY="-18" width="128" height="209"/>
         <element name="SharedMedia" positionX="-45" positionY="27" width="128" height="239"/>

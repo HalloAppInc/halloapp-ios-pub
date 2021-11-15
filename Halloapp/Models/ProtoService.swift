@@ -632,8 +632,8 @@ final class ProtoService: ProtoServiceCore {
                     switch chatMessage.content {
                     case .album(let text, let media):
                         DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/album [length=\(text?.count ?? 0)] [media=\(media.count)]")
-                    case .text(let text):
-                        DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/text [length=\(text.count)]")
+                    case .text(let text, let linkPreviewData):
+                        DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/text [length=\(text.count)] [linkPreviewCount=\(linkPreviewData.count)]")
                     case .voiceNote(_):
                         DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/voiceNote")
                     case .unsupported(let data):

@@ -596,7 +596,7 @@ class NotificationMetadata: Codable {
     static func bodyText(from chatContent: ChatContent, contactStore: ContactStore) -> String? {
         // NB: contactStore will be needed once we support mentions
         switch chatContent {
-        case .text(let text):
+        case .text(let text, _):
             return text
         case .album(let text, let media):
             guard let text = text, !text.isEmpty else {
