@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20G80" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19206" systemVersion="20E241" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="ChatGroup" representedClassName="ChatGroup" syncable="YES">
         <attribute name="avatar" optional="YES" attributeType="String"/>
         <attribute name="background" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -51,6 +51,14 @@
         <attribute name="userId" optional="YES" attributeType="String"/>
         <relationship name="groupMessage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatGroupMessage" inverseName="info" inverseEntity="ChatGroupMessage"/>
     </entity>
+    <entity name="ChatLinkPreview" representedClassName="ChatLinkPreview" syncable="YES">
+        <attribute name="desc" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="url" optional="YES" attributeType="URI"/>
+        <relationship name="media" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMedia" inverseName="linkPreview" inverseEntity="ChatMedia"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="linkPreview" inverseEntity="ChatMessage"/>
+    </entity>
     <entity name="ChatMedia" representedClassName="ChatMedia" syncable="YES">
         <attribute name="height" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="incomingStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -65,6 +73,7 @@
         <attribute name="url" optional="YES" attributeType="URI"/>
         <attribute name="width" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="groupMessage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatGroupMessage" inverseName="media" inverseEntity="ChatGroupMessage"/>
+        <relationship name="linkPreview" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatLinkPreview" inverseName="media" inverseEntity="ChatLinkPreview"/>
         <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="media" inverseEntity="ChatMessage"/>
     </entity>
     <entity name="ChatMention" representedClassName="ChatMention" syncable="YES">
@@ -92,6 +101,7 @@
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="toUserId" attributeType="String"/>
+        <relationship name="linkPreview" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatLinkPreview" inverseName="message" inverseEntity="ChatLinkPreview"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ChatMedia" inverseName="message" inverseEntity="ChatMedia"/>
         <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="message" inverseEntity="ChatQuoted"/>
     </entity>
@@ -141,9 +151,10 @@
         <element name="ChatGroupMessage" positionX="-27" positionY="153" width="128" height="284"/>
         <element name="ChatGroupMessageEvent" positionX="-27" positionY="144" width="128" height="133"/>
         <element name="ChatGroupMessageInfo" positionX="-18" positionY="162" width="128" height="118"/>
-        <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="253"/>
+        <element name="ChatLinkPreview" positionX="-27" positionY="153" width="128" height="119"/>
+        <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="254"/>
         <element name="ChatMention" positionX="-36" positionY="144" width="128" height="89"/>
-        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="343"/>
+        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="344"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="148"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="149"/>
         <element name="ChatThread" positionX="-36" positionY="108" width="128" height="314"/>
