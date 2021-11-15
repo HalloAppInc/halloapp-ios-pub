@@ -74,6 +74,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     private var currentIndex = 0 {
         didSet {
             pageControl?.currentPage = currentIndex
+            pageControl?.setNeedsLayout()
 
             if oldValue != currentIndex {
                 if let videoCell = collectionView.cellForItem(at: IndexPath(row: oldValue, section: MediaSliderSection.main.rawValue)) as? MediaCarouselVideoCollectionViewCell {

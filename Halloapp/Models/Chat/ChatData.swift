@@ -23,6 +23,7 @@ typealias ChatRetractInfo = (from: UserID, threadType: ChatType, threadID: Strin
 
 typealias ChatMessageID = String
 typealias ChatGroupMessageID = String
+public typealias ChatLinkPreviewID = String
 
 public enum UserPresenceType: Int16 {
     case none = 0
@@ -1611,6 +1612,8 @@ extension ChatData {
     func sendMessage(toUserId: String,
                      text: String,
                      media: [PendingMedia],
+                     linkPreviewData: LinkPreviewData? = nil,
+                     linkPreviewMedia : PendingMedia? = nil,
                      feedPostId: String?,
                      feedPostMediaIndex: Int32,
                      chatReplyMessageID: String? = nil,
@@ -1621,6 +1624,8 @@ extension ChatData {
             self.createChatMsg( toUserId: toUserId,
                                 text: text,
                                 media: media,
+                                linkPreviewData: linkPreviewData,
+                                linkPreviewMedia : linkPreviewMedia,
                                 feedPostId: feedPostId,
                                 feedPostMediaIndex: feedPostMediaIndex,
                                 chatReplyMessageID: chatReplyMessageID,
@@ -1635,6 +1640,8 @@ extension ChatData {
     func createChatMsg( toUserId: String,
                         text: String,
                         media: [PendingMedia],
+                        linkPreviewData: LinkPreviewData?,
+                        linkPreviewMedia : PendingMedia?,
                         feedPostId: String?,
                         feedPostMediaIndex: Int32,
                         chatReplyMessageID: String? = nil,

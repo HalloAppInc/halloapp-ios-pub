@@ -70,6 +70,8 @@ extension ChatMessage {
     @NSManaged var cellHeight: Int16
 
     @NSManaged var rawData: Data?
+
+    @NSManaged public var linkPreviews: Set<ChatLinkPreview>?
     
     var incomingStatus: IncomingStatus {
         get {
