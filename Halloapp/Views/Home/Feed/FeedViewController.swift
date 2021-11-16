@@ -177,7 +177,7 @@ class FeedViewController: FeedCollectionViewController {
         }
 
         if needToShowWelcomePost {
-            DDLogInfo("FeedViewController/setupDatasourceAndRefreshIfNeeded/is zero zone, refresh")
+            DDLogInfo("FeedViewController/setupDatasourceAndRefreshIfNeeded/needToShowWelcomePost, refresh")
             feedDataSource.refresh()
         }
     }

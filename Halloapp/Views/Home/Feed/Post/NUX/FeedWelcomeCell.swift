@@ -16,6 +16,11 @@ class FeedWelcomeCell: UICollectionViewCell {
     }
 
     var openInvite: (() -> ())?
+    var closeWelcomePost: (() -> ())?
+    
+    public func configure(showCloseButton: Bool) {
+        closeButtonColumn.isHidden = !showCloseButton
+    }
 
     public func height() -> CGFloat {
         let size = bodyLabel.getSize(width: contentView.bounds.size.width)
@@ -124,8 +129,9 @@ class FeedWelcomeCell: UICollectionViewCell {
     }()
 
     private lazy var headerRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [logoView, headerTitleColumn])
+        let view = UIStackView(arrangedSubviews: [logoView, headerTitleColumn, closeButtonColumn])
         view.axis = .horizontal
+        view.alignment = .center
         view.spacing = 6
 
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -146,7 +152,7 @@ class FeedWelcomeCell: UICollectionViewCell {
         let view = UIStackView(arrangedSubviews: [headerTitleLabel, timeLabel])
         view.axis = .vertical
         view.alignment = .leading
-        view.spacing = 0
+        view.spacing = 3
 
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -172,6 +178,32 @@ class FeedWelcomeCell: UICollectionViewCell {
 
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+
+    private lazy var closeButtonColumn: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [closeButton])
+        view.axis = .vertical
+
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 15, right: 5)
+        view.isLayoutMarginsRelativeArrangement = true
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(closeAction)))
+        
+        view.isHidden = true
+        return view
+    }()
+
+    private lazy var closeButton: UIImageView = {
+        let view = UIImageView()
+        let image = UIImage(named: "ReplyPanelClose")?.withRenderingMode(.alwaysTemplate)
+        view.image = image
+        view.tintColor = .primaryBlackWhite.withAlphaComponent(0.4)
+
+        view.widthAnchor.constraint(equalToConstant: 13).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 13).isActive = true
+        return view
     }()
 
     private lazy var bodyColumn: UIStackView = {
@@ -250,6 +282,11 @@ class FeedWelcomeCell: UICollectionViewCell {
     }()
 
     // MARK: Button actions
+
+    @objc(closeAction)
+    private func closeAction() {
+        closeWelcomePost?()
+    }
 
     @objc(openInviteAction)
     private func openInviteAction() {

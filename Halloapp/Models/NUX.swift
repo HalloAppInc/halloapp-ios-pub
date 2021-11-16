@@ -125,6 +125,13 @@ final class NUX {
         }
         saveToUserDefaults()
     }
+    
+    func stopShowingWelcomePost(id: String) {
+        if welcomePostsDict[id] != nil {
+            welcomePostsDict[id]?.show = false
+        }
+        saveToUserDefaults()
+    }
 
     func isComplete(_ event: Event) -> Bool {
         return eventCompletedVersions.keys.contains(event)
