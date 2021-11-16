@@ -22,7 +22,9 @@ open class KeyStore {
     public let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.keys")
     public let userData: UserData
     public let appTarget: AppTarget
-    
+
+    private let bgQueueKey = DispatchSpecificKey<String>()
+    private let bgQueueValue = "com.halloapp.keys"
     private var bgContext: NSManagedObjectContext
     public weak var delegate: KeyStoreDelegate?
     
@@ -40,6 +42,7 @@ open class KeyStore {
         // Add observer to notify us when persistentStore records changes.
         // These notifications are triggered for all cross process writes to the store.
         NotificationCenter.default.addObserver(self, selector: #selector(processStoreRemoteChanges), name: .NSPersistentStoreRemoteChange, object: persistentContainer.persistentStoreCoordinator)
+        backgroundProcessingQueue.setSpecific(key: bgQueueKey, value: bgQueueValue)
     }
 
     // Process persistent history to merge changes from other coordinators.
@@ -120,6 +123,17 @@ open class KeyStore {
             self.bgContext.performAndWait { block(self.bgContext) }
         }
     }
+
+    public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
+        if DispatchQueue.getSpecific(key: bgQueueKey) as String? == bgQueueValue {
+            bgContext.performAndWait { block(bgContext) }
+        } else {
+            backgroundProcessingQueue.sync { [weak self] in
+                guard let self = self else { return }
+                self.bgContext.performAndWait { block(self.bgContext) }
+            }
+        }
+    }
         
     public var viewContext: NSManagedObjectContext {
         get {
@@ -159,10 +173,23 @@ open class KeyStore {
             fatalError("Failed to fetch key bundle")
         }
     }
-    
+
+    // This function expects to run synchronously.
+    // So it should either run on the backgroundProcessingQueue with its own context (or)
+    // it should run on the mainQueue with viewContext (or)
+    // If the context is nil: then it runs synchronously on the backgroundQueue with its own context.
+    // This way: we avoid crashes when context argument is nil.
     public func keyBundle(in managedObjectContext: NSManagedObjectContext? = nil) -> UserKeyBundle? {
         DDLogDebug("KeyStore/fetchUserKeyBundle")
-        return self.keyBundles(in: managedObjectContext).first
+        if let managedObjectContext = managedObjectContext {
+            return keyBundles(in: managedObjectContext).first
+        } else {
+            var userKeyBundle: UserKeyBundle? = nil
+            performOnBackgroundContextAndWait { context in
+                userKeyBundle = keyBundles(in: context).first
+            }
+            return userKeyBundle
+        }
     }
  
     public func messageKeyBundles(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [MessageKeyBundle] {
