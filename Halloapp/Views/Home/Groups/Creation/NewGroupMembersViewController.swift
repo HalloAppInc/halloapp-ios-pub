@@ -396,7 +396,9 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     private func updateEmptyView() {
         guard !isNewCreationFlow else { return }
         let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
-        navigationItem.rightBarButtonItem = nil
+        if isEmpty {
+            navigationItem.rightBarButtonItem = nil
+        }
         emptyPlaceholderView.alpha = isEmpty ? 1 : 0
     }
 

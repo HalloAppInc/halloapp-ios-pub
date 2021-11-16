@@ -464,7 +464,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             textView.textColor = UIColor.chatTime
             text = Localizations.chatMessageDeleted
         }
-        
+
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
@@ -753,7 +753,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     
     func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {
         switch status {
-        case .pending: return UIImage(named: "CheckmarkSingle")?.withTintColor(.clear)
+        case .pending: return UIImage(named: "Clock")?.withTintColor(.systemGray)
         case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray)
         case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray)
         case .seen, .played: return UIImage(named: "CheckmarkDouble")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
