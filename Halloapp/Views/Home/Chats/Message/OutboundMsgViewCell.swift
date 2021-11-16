@@ -104,9 +104,12 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }()
 
     private lazy var bubbleWrapper: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ quotedRow, mediaRow, textRow ])
+        let view = UIStackView(arrangedSubviews: [ quotedRow, linkPreviewRow, mediaRow, textRow ])
         view.axis = .vertical
         view.spacing = 0
+        view.layer.cornerRadius = 20
+        view.layer.masksToBounds = true
+        view.clipsToBounds = true
 
         view.layoutMargins = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
         view.isLayoutMarginsRelativeArrangement = true
@@ -260,7 +263,6 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
-
         view.addSubview(uploadProgressView)
         uploadProgressView.topAnchor.constraint(equalTo: view.topAnchor, constant: -17).isActive = true
         uploadProgressView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 5).isActive = true
@@ -417,7 +419,28 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             })
         }
     }
-    
+
+    // MARK: Link Preivew Row
+
+    private lazy var linkPreviewRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ chatLinkPreviewView ])
+        view.axis = .horizontal
+        view.isLayoutMarginsRelativeArrangement = true
+        view.spacing = 0
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true
+        view.clipsToBounds = true
+        chatLinkPreviewView.heightAnchor.constraint(equalToConstant: 85).isActive = true
+        return view
+    }()
+
+    private lazy var chatLinkPreviewView: ChatLinkPreviewView = {
+        let view = ChatLinkPreviewView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
     // MARK: Update
     
     func updateWithChatMessage(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
@@ -450,6 +473,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                    text: text,
                    orderedMentions: [],
                    media: chatMessage.media,
+                   linkPreview: chatMessage.linkPreviews?.first,
                    timestamp: chatMessage.timestamp,
                    statusIcon: statusIcon(chatMessage.outgoingStatus))
 
@@ -542,7 +566,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         return isQuotedMessage
     }
     
-    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, isPlayed: Bool, text: String?, orderedMentions: [ChatMention], media: Set<ChatMedia>?, timestamp: Date?, statusIcon: UIImage?) {
+    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, isPlayed: Bool, text: String?, orderedMentions: [ChatMention], media: Set<ChatMedia>?, linkPreview: ChatLinkPreview?, timestamp: Date?, statusIcon: UIImage?) {
         if isPreviousMsgSameSender {
             contentView.layoutMargins = UIEdgeInsets(top: 3, left: 18, bottom: 0, right: 18)
         } else {
@@ -573,6 +597,13 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             textRow.layoutMargins.top = 2
         } else {
             textRow.layoutMargins.top = 10
+        }
+
+        // link preview
+        if let linkPreview = linkPreview {
+            chatLinkPreviewView.configure(chatLinkPreview: linkPreview)
+            linkPreviewRow.isHidden = false
+            bubbleWrapper.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         }
 
         // media
@@ -767,6 +798,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         mediaRow.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         mediaImageView.isHidden = true
         
+        // Reset of Link Previews
+        linkPreviewRow.isHidden = true
+
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
         textView.textColor = UIColor.chatOwnMsg
         textView.attributedText = nil
