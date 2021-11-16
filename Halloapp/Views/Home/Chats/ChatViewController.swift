@@ -983,12 +983,14 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         tableView.scrollIndicatorInsets = scrollIndicatorInsets
     }
 
-    func sendMessage(text: String, media: [PendingMedia]) {
+    func sendMessage(text: String, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?) {
         guard let sendToUserId = self.fromUserId else { return }
 
         MainAppContext.shared.chatData.sendMessage(toUserId: sendToUserId,
                                                    text: text,
                                                    media: media,
+                                                   linkPreviewData: linkPreviewData,
+                                                   linkPreviewMedia : linkPreviewMedia,
                                                    feedPostId: feedPostId,
                                                    feedPostMediaIndex: feedPostMediaIndex,
                                                    chatReplyMessageID: chatReplyMessageID,
@@ -1095,7 +1097,7 @@ extension ChatViewController: CNContactViewControllerDelegate {
 extension ChatViewController: PostComposerViewDelegate {
 
     func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil) {
-        sendMessage(text: mentionText.trimmed().collapsedText, media: media)
+        sendMessage(text: mentionText.trimmed().collapsedText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
         view.window?.rootViewController?.dismiss(animated: true, completion: nil)
     }
 
@@ -1430,9 +1432,9 @@ extension ChatViewController: ChatInputViewDelegate {
         present(alert, animated: true)
     }
     
-    func chatInputView(_ inputView: ChatInputView, mentionText: MentionText, media: [PendingMedia]) {
+    func chatInputView(_ inputView: ChatInputView, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?) {
         let text = mentionText.trimmed().collapsedText
-        sendMessage(text: text, media: media)
+        sendMessage(text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
     }
 }
 

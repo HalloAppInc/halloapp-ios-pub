@@ -9,6 +9,7 @@ import AVKit
 import CocoaLumberjackSwift
 import Combine
 import Core
+import LinkPresentation
 import MarkdownKit
 import UIKit
 
@@ -23,7 +24,7 @@ fileprivate protocol ContainerViewDelegate: AnyObject {
 
 protocol ChatInputViewDelegate: AnyObject {
     func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve)
-    func chatInputView(_ inputView: ChatInputView, mentionText: MentionText, media: [PendingMedia])
+    func chatInputView(_ inputView: ChatInputView, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
     func chatInputView(_ inputView: ChatInputView, isTyping: Bool)
     func chatInputViewDidPasteImage(_ inputView: ChatInputView, media: PendingMedia)
     func chatInputViewDidSelectMediaPicker(_ inputView: ChatInputView)
@@ -67,7 +68,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     private var isShowingVoiceNote = false
     
     // MARK: ChatInput Lifecycle
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         previousHeight = frame.size.height
@@ -272,7 +272,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         guard textView.markedTextRange == nil else { return } // account for IME
         let font = textView.font ?? UIFont.preferredFont(forTextStyle: TextFontStyle)
         let color = UIColor.label // do not use textView.textColor directly as that changes when attributedText changes color
-
         let ham = HAMarkdown(font: font, color: color)
         if let text = textView.text {
             if let selectedRange = textView.selectedTextRange {
@@ -280,6 +279,272 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                 textView.selectedTextRange = selectedRange // keeps cursor in original position
             }
         }
+    }
+
+    // MARK: Link Preview
+    private var linkPreviewUrl: URL?
+    private var invalidLinkPreviewUrl: URL?
+    private var linkPreviewData: LinkPreviewData?
+    private var linkDetectionTimer = Timer()
+
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView()
+        activityIndicator.color = .secondaryLabel
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+        return activityIndicator
+    }()
+
+    private lazy var linkPreviewTitleLabel: UILabel = {
+        let titleLabel = UILabel()
+        titleLabel.numberOfLines = 2
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.font = UIFont.systemFont(forTextStyle: .caption1, weight: .semibold)
+        titleLabel.textColor = .label.withAlphaComponent(0.5)
+        return titleLabel
+    }()
+
+    private lazy var linkImageView: UIView = {
+        let image = UIImage(named: "LinkIcon")?.withRenderingMode(.alwaysTemplate)
+        let imageView = UIImageView(image: image)
+        imageView.tintColor = UIColor.label.withAlphaComponent(0.5)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isHidden = true
+        return imageView
+    }()
+
+    private lazy var linkPreviewURLLabel: UILabel = {
+        let urlLabel = UILabel()
+        urlLabel.translatesAutoresizingMaskIntoConstraints = false
+        urlLabel.font = UIFont.systemFont(forTextStyle: .caption1)
+        urlLabel.textColor = .label.withAlphaComponent(0.5)
+        urlLabel.textAlignment = .natural
+        return urlLabel
+    }()
+
+    private var linkPreviewLinkStack: UIStackView {
+        let linkStack = UIStackView(arrangedSubviews: [ linkImageView, linkPreviewURLLabel, UIView() ])
+        linkStack.translatesAutoresizingMaskIntoConstraints = false
+        linkStack.spacing = 2
+        linkStack.alignment = .center
+        linkStack.axis = .horizontal
+        return linkStack
+    }
+
+    private lazy var linkPreviewTextStack: UIStackView = {
+        let textStack = UIStackView(arrangedSubviews: [ linkPreviewTitleLabel, linkPreviewLinkStack ])
+        textStack.translatesAutoresizingMaskIntoConstraints = false
+        textStack.axis = .vertical
+        textStack.spacing = 4
+        textStack.layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
+        textStack.isLayoutMarginsRelativeArrangement = true
+        return textStack
+    }()
+
+    private lazy var linkPreviewMediaView: UIImageView = {
+        let mediaView = UIImageView()
+        mediaView.translatesAutoresizingMaskIntoConstraints = false
+        mediaView.contentMode = .scaleAspectFill
+        mediaView.clipsToBounds = true
+        mediaView.layer.cornerRadius = 8
+        mediaView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize).isActive = true
+        mediaView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize).isActive = true
+        return mediaView
+    }()
+
+    private lazy var linkPreviewHStack: UIStackView = {
+        let hStack = UIStackView(arrangedSubviews: [ linkPreviewMediaView, linkPreviewTextStack])
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = .linkPreviewBackground
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        hStack.insertSubview(backgroundView, at: 0)
+        backgroundView.leadingAnchor.constraint(equalTo: hStack.leadingAnchor).isActive = true
+        backgroundView.topAnchor.constraint(equalTo: hStack.topAnchor).isActive = true
+        backgroundView.trailingAnchor.constraint(equalTo: hStack.trailingAnchor).isActive = true
+        backgroundView.bottomAnchor.constraint(equalTo: hStack.bottomAnchor).isActive = true
+
+        hStack.axis = .horizontal
+        hStack.alignment = .center
+        hStack.backgroundColor = .commentVoiceNoteBackground
+        hStack.layer.borderWidth = 0.5
+        hStack.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
+        hStack.layer.cornerRadius = 15
+        hStack.layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
+        hStack.layer.shadowOffset = CGSize(width: 0, height: 2)
+        hStack.layer.shadowRadius = 4
+        hStack.layer.shadowOpacity = 0.5
+        hStack.isLayoutMarginsRelativeArrangement = true
+        hStack.clipsToBounds = true
+
+        return hStack
+    }()
+
+    private lazy var linkPreviewPanel: UIView = {
+        var linkPreviewPanel = UIView()
+        linkPreviewPanel.isHidden = true
+        linkPreviewPanel.translatesAutoresizingMaskIntoConstraints = false
+        linkPreviewPanel.preservesSuperviewLayoutMargins = true
+        linkPreviewPanel.addSubview(linkPreviewHStack)
+        linkPreviewPanel.addSubview(activityIndicator)
+        linkPreviewPanel.addSubview(linkPreviewCloseButton)
+
+        activityIndicator.centerXAnchor.constraint(equalTo: linkPreviewPanel.layoutMarginsGuide.centerXAnchor).isActive = true
+        activityIndicator.centerYAnchor.constraint(equalTo: linkPreviewPanel.layoutMarginsGuide.centerYAnchor).isActive = true
+        activityIndicator.startAnimating()
+
+        linkPreviewCloseButton.trailingAnchor.constraint(equalTo: linkPreviewHStack.trailingAnchor).isActive = true
+        linkPreviewCloseButton.topAnchor.constraint(equalTo: linkPreviewHStack.topAnchor).isActive = true
+        linkPreviewMediaView.leadingAnchor.constraint(equalTo: linkPreviewHStack.leadingAnchor, constant: 8).isActive = true
+        linkPreviewMediaView.topAnchor.constraint(equalTo: linkPreviewHStack.topAnchor, constant: 8).isActive = true
+        linkPreviewMediaView.bottomAnchor.constraint(equalTo: linkPreviewHStack.bottomAnchor, constant: -8).isActive = true
+        linkPreviewHStack.topAnchor.constraint(equalTo: linkPreviewPanel.topAnchor).isActive = true
+        linkPreviewHStack.bottomAnchor.constraint(equalTo: linkPreviewPanel.bottomAnchor).isActive = true
+        linkPreviewHStack.leadingAnchor.constraint(equalTo: linkPreviewPanel.leadingAnchor).isActive = true
+        linkPreviewHStack.trailingAnchor.constraint(equalTo: linkPreviewPanel.trailingAnchor).isActive = true
+
+        return linkPreviewPanel
+    }()
+
+    private lazy var linkPreviewCloseButton: UIButton = {
+        let closeButton = UIButton(type: .custom)
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
+        closeButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 0, bottom: 0, right: 10)
+
+        closeButton.tintColor = UIColor.systemGray
+        closeButton.addTarget(self, action: #selector(didTapCloseLinkPreviewPanel), for: .touchUpInside)
+        closeButton.setContentHuggingPriority(.required, for: .horizontal)
+        return closeButton
+    }()
+
+    private func updateLinkPreviewViewIfNecessary() {
+        // if has media OR empty text, we need to remove link previews
+        if !quoteFeedPanel.isHidden || textView.text == "" {
+            resetLinkDetection()
+            return
+        }
+        if !linkDetectionTimer.isValid {
+            if let url = detectLink() {
+                if url != linkPreviewUrl {
+                    removeLinkPreviewPanel()
+                }
+                // Start timer for 1 second before fetching link preview.
+                setLinkDetectionTimers(url: url)
+            }
+        }
+    }
+
+    private func setLinkDetectionTimers(url: URL?) {
+        linkPreviewUrl = url
+        linkDetectionTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateLinkDetectionTimer), userInfo: nil, repeats: true)
+    }
+
+    private func detectLink() -> URL? {
+        let linkDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        let matches = linkDetector.matches(in: textView.text, options: [], range: NSRange(location: 0, length: textView.text.utf16.count))
+        for match in matches {
+            guard let range = Range(match.range, in: textView.text) else { continue }
+            let url = textView.text[range]
+            if let url = URL(string: String(url)) {
+                // We only care about the first link
+                return url
+            }
+        }
+        return nil
+    }
+
+    @objc private func updateLinkDetectionTimer() {
+        linkDetectionTimer.invalidate()
+        // After waiting for 1 second, if the url did not change, fetch link preview info
+        if let url = detectLink() {
+            if url == linkPreviewUrl {
+                // Have we already fetched the link? then do not fetch again
+                // have we previously fetched the link and it was invalid? then do not fetch again
+                if linkPreviewData?.url == linkPreviewUrl || linkPreviewUrl == invalidLinkPreviewUrl {
+                    return
+                }
+                fetchURLPreview()
+            } else {
+                // link has changed... reset link fetch cycle
+                setLinkDetectionTimers(url: url)
+            }
+        }
+
+    }
+
+    func fetchURLPreview() {
+        guard let url = linkPreviewUrl else { return }
+        removeLinkPreviewPanel()
+        let metadataProvider = LPMetadataProvider()
+        metadataProvider.timeout = 10
+
+        metadataProvider.startFetchingMetadata(for: url) { (metadata, error) in
+            guard let data = metadata, error == nil else {
+                // Error fetching link preview.. remove link preview loading state
+                self.invalidLinkPreviewUrl = url
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.resetLinkDetection()
+                }
+              return
+            }
+            self.invalidLinkPreviewUrl = nil
+            if let imageProvider = data.imageProvider {
+                imageProvider.loadObject(ofClass: UIImage.self) { (image, error) in
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self else { return }
+                        self.activityIndicator.stopAnimating()
+                        if let image = image as? UIImage {
+                            self.linkPreviewMediaView.isHidden = false
+                            self.linkPreviewMediaView.image = image
+                        }
+                        
+                        self.linkPreviewPanel.isHidden = false
+                        self.linkImageView.isHidden = false
+                        self.linkPreviewTitleLabel.text = data.title
+                        self.linkPreviewURLLabel.text = data.url?.host
+                        self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title ?? "", description: "", previewImages: [])
+                    }
+                }
+            } else {
+                // No Image info
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.activityIndicator.stopAnimating()
+                    self.linkPreviewPanel.isHidden = false
+                    self.linkImageView.isHidden = false
+                    self.linkPreviewMediaView.isHidden = true
+                    self.linkPreviewTitleLabel.text = data.title
+                    self.linkPreviewURLLabel.text = data.url?.host
+                    self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
+                }
+            }
+        }
+        self.linkPreviewPanel.isHidden = false
+        self.activityIndicator.startAnimating()
+    }
+
+    private func resetLinkDetection() {
+        linkDetectionTimer.invalidate()
+        linkPreviewUrl = nil
+        linkPreviewData = nil
+        removeLinkPreviewPanel()
+    }
+
+    func removeLinkPreviewPanel() {
+        // remove media panel from stack
+        linkPreviewTitleLabel.text = ""
+        linkPreviewURLLabel.text = ""
+        linkImageView.isHidden = true
+        linkPreviewMediaView.image = nil
+        linkPreviewPanel.isHidden = true
+        updatePostButtons()
+        setNeedsUpdateHeight()
+        setBorder()
+    }
+
+    @objc private func didTapCloseLinkPreviewPanel() {
+        resetLinkDetection()
     }
 
     class ContainerView: UIView {
@@ -338,7 +603,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     }()
     
     private lazy var vStack: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [quoteFeedPanel, textInputRow])
+        let view = UIStackView(arrangedSubviews: [linkPreviewPanel, quoteFeedPanel, textInputRow])
         view.axis = .vertical
         view.alignment = .trailing
         view.spacing = 4
@@ -354,6 +619,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.translatesAutoresizingMaskIntoConstraints = false
                 
         quoteFeedPanel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
+        linkPreviewPanel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
         
         textInputRow.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
         textInputRow.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor).isActive = true
@@ -715,7 +981,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     }
 
     // MARK: Layout
-
     func setInputViewWidth(_ width: CGFloat) {
         guard bounds.size.width != width else { return }
         bounds = CGRect(origin: .zero, size: CGSize(width: width, height: containerView.preferredHeight(for: width)))
@@ -822,6 +1087,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     // MARK: Quote Panel
     
     func showQuoteFeedPanel(with userId: String, text: String, mediaType: ChatMessageMediaType?, mediaUrl: URL?, groupID: GroupID? = nil, from viewController: UIViewController) {
+        // Quote panel takes precedence over link preview. Remove link preview if present
+        resetLinkDetection()
         quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
 
         let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .subheadline), color: UIColor.secondaryLabel)
@@ -942,7 +1209,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     }
 
     // MARK: Voice notes
-
     func show(voiceNote url: URL) {
         isShowingVoiceNote = true
         placeholder.isHidden = true
@@ -968,7 +1234,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     }
 
     // MARK: Actions
-
     @objc func removeVoiceNoteClicked() {
         hideVoiceNote()
 
@@ -1000,7 +1265,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
             media.fileURL = url
 
             let mentionText = MentionText(expandedText: "", mentionRanges: [:])
-            delegate?.chatInputView(self, mentionText: mentionText, media: [media])
+            delegate?.chatInputView(self, mentionText: mentionText, media: [media], linkPreviewData: nil, linkPreviewMedia: nil)
         } else if voiceNoteRecorder.isRecording {
             guard let duration = voiceNoteRecorder.duration, duration >= 1 else {
                 voiceNoteRecorder.stop(cancel: true)
@@ -1015,10 +1280,32 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
             media.fileURL = voiceNoteRecorder.url
 
             let mentionText = MentionText(expandedText: "", mentionRanges: [:])
-            delegate?.chatInputView(self, mentionText: mentionText, media: [media])
+            delegate?.chatInputView(self, mentionText: mentionText, media: [media], linkPreviewData: nil, linkPreviewMedia: nil)
         } else {
             let mentionText = MentionText(expandedText: textView.text, mentionRanges: textView.mentions)
-            delegate?.chatInputView(self, mentionText: mentionText, media: [])
+            // If message has a link preview, process and send it
+            if let linkPreviewData = linkPreviewData {
+                guard let image = linkPreviewMediaView.image  else {
+                    delegate?.chatInputView(self, mentionText: mentionText, media: [], linkPreviewData: linkPreviewData, linkPreviewMedia: nil)
+                    return
+                }
+                // Send link preview with image
+                let linkPreviewMedia = PendingMedia(type: .image)
+                linkPreviewMedia.image = image
+                if linkPreviewMedia.ready.value {
+                    delegate?.chatInputView(self, mentionText: mentionText, media: [], linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+                } else {
+                    self.cancellableSet.insert(
+                        linkPreviewMedia.ready.sink { [weak self] ready in
+                            guard let self = self else { return }
+                            guard ready else { return }
+                            self.delegate?.chatInputView(self, mentionText: mentionText, media: [], linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+                        }
+                    )
+                }
+            } else {
+                delegate?.chatInputView(self, mentionText: mentionText, media: [], linkPreviewData: nil, linkPreviewMedia: nil)
+            }
         }
 
         closeQuoteFeedPanel()
@@ -1034,7 +1321,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     }
     
     // MARK: Keyboard
-
     enum KeyboardState {
         case hidden
         case hiding
@@ -1142,7 +1428,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 //        let beginFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)!.cgRectValue
 //        let endFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
 //        DDLogDebug("chatView/keyboard/did-hide: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
-
         // If the owning view controller disappears while the keyboard is still visible, we need to
         // manually notify the view controller to update its bottom inset. Otherwise, for certain
         // custom transitions, updating the bottom inset in response to -keyboardWillShow: may be too
@@ -1256,6 +1541,7 @@ extension ChatInputView: InputTextViewDelegate {
             self.typingThrottleTimer = nil
         }
 
+        updateLinkPreviewViewIfNecessary()
         updatePostButtons()
         updateWithMarkdown()
     }
@@ -1308,7 +1594,7 @@ extension ChatInputView: AudioRecorderControlViewDelegate {
             media.fileURL = voiceNoteRecorder.url
 
             let mentionText = MentionText(expandedText: "", mentionRanges: [:])
-            delegate?.chatInputView(self, mentionText: mentionText, media: [media])
+            delegate?.chatInputView(self, mentionText: mentionText, media: [media], linkPreviewData: nil, linkPreviewMedia: nil)
         }
     }
 }

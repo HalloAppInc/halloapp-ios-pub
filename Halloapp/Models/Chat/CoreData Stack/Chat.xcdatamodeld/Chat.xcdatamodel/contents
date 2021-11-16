@@ -56,7 +56,7 @@
         <attribute name="id" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="url" optional="YES" attributeType="URI"/>
-        <relationship name="media" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMedia" inverseName="linkPreview" inverseEntity="ChatMedia"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMedia" inverseName="linkPreview" inverseEntity="ChatMedia"/>
         <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="linkPreviews" inverseEntity="ChatMessage"/>
     </entity>
     <entity name="ChatMedia" representedClassName="ChatMedia" syncable="YES">

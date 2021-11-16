@@ -840,6 +840,9 @@ class ChatData: ObservableObject {
         if let chatMessage = chatMedia.message {
             threadId = chatMessage.toUserId
             messageId = chatMessage.id
+        } else if let chatMessage = chatMedia.linkPreview?.message {
+            threadId = chatMessage.toUserId
+            messageId = chatMessage.id
         } else if let chatGroupMessage = chatMedia.groupMessage {
             threadId = chatGroupMessage.groupId
             messageId = chatGroupMessage.id
@@ -1843,11 +1846,11 @@ extension ChatData {
         linkPreview.url = linkPreviewData.url
         linkPreview.title = linkPreviewData.title
         linkPreview.desc = linkPreviewData.description
+        linkPreview.message = chatMessage
         // Set preview image if present
         if let linkPreviewMedia = linkPreviewMedia {
             let linkPreviewChatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: context) as! ChatMedia
-            if let mediaItemSize = linkPreviewMedia.size,
-                  let mediaItemfileURL = linkPreviewMedia.fileURL {
+            if let mediaItemSize = linkPreviewMedia.size, let mediaItemfileURL = linkPreviewMedia.fileURL {
                 linkPreviewChatMedia.type = {
                     switch linkPreviewMedia.type {
                     case .image:
@@ -1866,7 +1869,6 @@ extension ChatData {
                 linkPreviewChatMedia.sha256 = ""
                 linkPreviewChatMedia.order = 0
                 linkPreviewChatMedia.linkPreview = linkPreview
-                linkPreview.message = chatMessage
                 do {
                     try copyFiles(toChatMedia: linkPreviewChatMedia, fileUrl: mediaItemfileURL, encryptedFileUrl: linkPreviewMedia.encryptedFileUrl)
                 }
@@ -1928,13 +1930,13 @@ extension ChatData {
             return
         }
     }
-    
-    private enum chatMediaType {
+ 
+    private enum ChatMediaType {
         case chatMedia
         case linkPreviewMedia
     }
 
-    private func uploadChatMsgMediaAndSend(msgID: ChatMessageID, chatMsg: ChatMessage, mediaItemsToUpload: Set<ChatMedia>, in context: NSManagedObjectContext, mediaType: chatMediaType) {
+    private func uploadChatMsgMediaAndSend(msgID: ChatMessageID, chatMsg: ChatMessage, mediaItemsToUpload: Set<ChatMedia>, in context: NSManagedObjectContext, mediaType: ChatMediaType) {
 
         var numberOfFailedUploads = 0
         var isMsgStale: Bool = false
@@ -2010,7 +2012,7 @@ extension ChatData {
                                 DDLogDebug("ChatData/linkPreview updating chat message: \(msgID), relativeFilePath: \(path ?? "nil")")
                             }
                         }) {
-                            self.uploadChat(msgID: msgID, mediaIndex: mediaIndex, in: context, completion: uploadCompletion)
+                            self.uploadChat(msgID: msgID, mediaIndex: mediaIndex, in: context, mediaType: mediaType, completion: uploadCompletion)
                         }
                     case .failure(_):
                         DDLogDebug("ChatData/process-mediaItem/failure: \(msgID)/\(mediaIndex)")
@@ -2033,7 +2035,7 @@ extension ChatData {
                 }
             } else {
                 DDLogDebug("ChatData/process-mediaItem/processed already: \(msgID)/\(mediaIndex)")
-                uploadChat(msgID: msgID, mediaIndex: mediaIndex, in: context, completion: uploadCompletion)
+                uploadChat(msgID: msgID, mediaIndex: mediaIndex, in: context, mediaType: mediaType, completion: uploadCompletion)
             }
         }
 
@@ -2053,9 +2055,20 @@ extension ChatData {
         }
     }
 
-    private func uploadChat(msgID: String, mediaIndex: Int16, in context: NSManagedObjectContext, completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
+    private func getChatMediaFromMessage(msg: ChatMessage, mediaIndex: Int16, mediaType: ChatMediaType) -> ChatMedia? {
+        var chatMedia: ChatMedia?
+        switch mediaType {
+        case .chatMedia:
+            chatMedia = msg.media?.first(where: { $0.order == mediaIndex })
+        case .linkPreviewMedia:
+            chatMedia = msg.linkPreviews?.first?.media?.first(where: { $0.order == mediaIndex })
+        }
+        return chatMedia
+    }
+
+    private func uploadChat(msgID: String, mediaIndex: Int16, in context: NSManagedObjectContext, mediaType: ChatMediaType, completion: @escaping (Result<MediaUploader.UploadDetails, Error>) -> Void) {
         guard let msg = chatMessage(with: msgID, in: context),
-              let chatMedia = msg.media?.first(where: { $0.order == mediaIndex }) else {
+              let chatMedia = getChatMediaFromMessage(msg: msg, mediaIndex: mediaIndex, mediaType: mediaType) else {
             DDLogError("ChatData/uploadChat/fetch msg and media \(msgID)/\(mediaIndex) - missing")
             return
         }
