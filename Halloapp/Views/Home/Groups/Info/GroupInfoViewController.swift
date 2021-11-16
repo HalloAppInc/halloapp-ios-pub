@@ -379,7 +379,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
             navigationController?.pushViewController(vController, animated: true)
             return
         }
-        let vController = NewGroupMembersViewController(currentMembers: currentMembers)
+        let vController = NewGroupMembersViewController(currentMembers: currentMembers, groupID: groupID)
         vController.delegate = self
         self.navigationController?.pushViewController(vController, animated: true)
     }

@@ -309,6 +309,7 @@
 		EAA424FE24ECF1480025CBBE /* ChatGroup+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F824ECF1480025CBBE /* ChatGroup+CoreDataClass.swift */; };
 		EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F924ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift */; };
 		EAA4906625311CD1003348B5 /* OutboundMsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */; };
+		EAA4C0A12739F505002F1628 /* AddGroupMembersWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4C0A02739F505002F1628 /* AddGroupMembersWelcomeView.swift */; };
 		EAA85A0B25E5D510006D0BC9 /* NotInGroupBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */; };
 		EAAF43992603F7720037F83D /* BlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAF43982603F7720037F83D /* BlurView.swift */; };
 		EAAFC9F02708267C004EAE29 /* HAMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA50FBA326FE82D00097C451 /* HAMarkdown.swift */; };
@@ -930,6 +931,7 @@
 		EAA424F924ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroup+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
 		EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundMsgViewCell.swift; sourceTree = "<group>"; };
+		EAA4C0A02739F505002F1628 /* AddGroupMembersWelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddGroupMembersWelcomeView.swift; sourceTree = "<group>"; };
 		EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotInGroupBannerView.swift; sourceTree = "<group>"; };
 		EAAF43982603F7720037F83D /* BlurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurView.swift; sourceTree = "<group>"; };
 		EAB1FFEC2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageEvent+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -1566,6 +1568,7 @@
 				EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */,
 				32C83FBC268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift */,
 				EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */,
+				EAA4C0A02739F505002F1628 /* AddGroupMembersWelcomeView.swift */,
 			);
 			path = Creation;
 			sourceTree = "<group>";
@@ -2895,6 +2898,7 @@
 				76A92449244EBCB600794859 /* ShapeView.swift in Sources */,
 				68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */,
 				68CCB16726964851007015FA /* InitializingViewController.swift in Sources */,
+				EAA4C0A12739F505002F1628 /* AddGroupMembersWelcomeView.swift in Sources */,
 				EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */,
 				EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */,
 				76C64E0D24E5AD85007C0F6F /* MediaUploader.swift in Sources */,

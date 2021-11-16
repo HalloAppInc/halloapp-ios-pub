@@ -14,6 +14,7 @@ import UIKit
 class GroupFeedWelcomeCell: UICollectionViewCell {
 
     var openShareLink: ((String) -> ())?
+    var closeWelcomePost: (() -> ())?
 
     class var reuseIdentifier: String {
         "group-welcome-post"
@@ -85,8 +86,9 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         backgroundPanelView.isShadowHidden = traitCollection.userInterfaceStyle == .dark
     }
 
-    func configure(groupID: GroupID) {
+    func configure(groupID: GroupID, showCloseButton: Bool = false) {
         self.groupID = groupID
+        closeButtonColumn.isHidden = !showCloseButton
         refreshInviteLinkLabel()
     }
 
@@ -113,7 +115,6 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         mainView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
         mainView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
         mainView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-        mainView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
         cancellableSet.insert(MainAppContext.shared.chatData.didResetGroupInviteLink.sink { [weak self] (groupID) in
             guard let self = self else { return }
@@ -125,7 +126,7 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
     private lazy var mainView: UIStackView = {
         let view = UIStackView(arrangedSubviews: [headerRow, bodyColumn, footerColumn])
         view.axis = .vertical
-        view.spacing = 5
+        view.spacing = 10
         view.distribution = .fill
 
         view.layoutMargins = UIEdgeInsets(top: 35, left: 0, bottom: 20, right: 0)
@@ -136,8 +137,9 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
     }()
 
     private lazy var headerRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [logoView, headerTitleColumn])
+        let view = UIStackView(arrangedSubviews: [logoView, headerTitleColumn, closeButtonColumn])
         view.axis = .horizontal
+        view.alignment = .center
         view.spacing = 6
 
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -158,7 +160,7 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         let view = UIStackView(arrangedSubviews: [headerTitleLabel, timeLabel])
         view.axis = .vertical
         view.alignment = .leading
-        view.spacing = 0
+        view.spacing = 3
 
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -186,10 +188,36 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         return label
     }()
 
+    private lazy var closeButtonColumn: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [closeButton])
+        view.axis = .vertical
+
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 15, right: 5)
+        view.isLayoutMarginsRelativeArrangement = true
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(closeAction)))
+        
+        view.isHidden = true
+        return view
+    }()
+
+    private lazy var closeButton: UIImageView = {
+        let view = UIImageView()
+        let image = UIImage(named: "ReplyPanelClose")?.withRenderingMode(.alwaysTemplate)
+        view.image = image
+        view.tintColor = .primaryBlackWhite.withAlphaComponent(0.4)
+
+        view.widthAnchor.constraint(equalToConstant: 13).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 13).isActive = true
+        return view
+    }()
+
     private lazy var bodyColumn: UIStackView = {
         let view = UIStackView(arrangedSubviews: [bodyTitleLabel, bodyLabel])
         view.axis = .vertical
-        view.spacing = 5
+        view.spacing = 10
 
         view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 5)
         view.isLayoutMarginsRelativeArrangement = true
@@ -226,9 +254,9 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         let view = UIStackView(arrangedSubviews: [inviteLinkBubble, shareLinkButton])
         view.axis = .vertical
         view.alignment = .center
-        view.spacing = 10
+        view.spacing = 13
 
-        view.layoutMargins = UIEdgeInsets(top: 15, left: 10, bottom: 20, right: 10)
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 20, right: 10)
         view.isLayoutMarginsRelativeArrangement = true
 
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -321,6 +349,11 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
 
     // MARK: Button actions
 
+    @objc(closeAction)
+    private func closeAction() {
+        closeWelcomePost?()
+    }
+
     @objc(shareLinkAction)
     private func shareLinkAction() {
         guard let link = inviteLinkLabel.text else { return }
@@ -339,4 +372,3 @@ extension Localizations {
     }
 
 }
-

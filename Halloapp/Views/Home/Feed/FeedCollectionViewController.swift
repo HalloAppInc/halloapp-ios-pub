@@ -566,9 +566,22 @@ extension FeedCollectionViewController {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedWelcomeCell.reuseIdentifier, for: indexPath)
                 if let welcomeCell = cell as? FeedWelcomeCell {
                     welcomeCell.maxWidth = collectionView.frame.width
+                    if indexPath.row > 5 {
+                        welcomeCell.configure(showCloseButton: true)
+                    }
+
                     welcomeCell.openInvite = { [weak self] in
                         guard let self = self else { return }
                         self.showInviteScreen()
+                    }
+
+                    welcomeCell.closeWelcomePost = {
+                        MainAppContext.shared.nux.stopShowingWelcomePost(id: MainAppContext.shared.userData.userId)
+                        UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseOut, animations: {
+                            welcomeCell.alpha = 0.0
+                        }, completion: { _ in
+                            welcomeCell.isHidden = true
+                        })
                     }
                 }
                 return cell
@@ -576,10 +589,22 @@ extension FeedCollectionViewController {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier, for: indexPath)
                 if let groupFeedWelcomeCell = cell as? GroupFeedWelcomeCell {
                     groupFeedWelcomeCell.maxWidth = collectionView.frame.width
-                    groupFeedWelcomeCell.configure(groupID: groupID)
+
+                    let showCloseButton = indexPath.row > 5
+                    groupFeedWelcomeCell.configure(groupID: groupID, showCloseButton: showCloseButton)
+
                     groupFeedWelcomeCell.openShareLink = { [weak self] link in
                         guard let self = self else { return }
                         self.shareGroupInviteLink(link)
+                    }
+
+                    groupFeedWelcomeCell.closeWelcomePost = {
+                        MainAppContext.shared.nux.stopShowingWelcomePost(id: groupID)
+                        UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseOut, animations: {
+                            groupFeedWelcomeCell.alpha = 0.0
+                        }, completion: { _ in
+                            groupFeedWelcomeCell.isHidden = true
+                        })
                     }
                 }
                 return cell

@@ -24,20 +24,14 @@ let inviteViaLinkCellReuse = "InviteViaLinkCellReuse"
 
 final class InviteViewController: UIViewController {
 
-    private var showDividers: Bool = true
     private var screenTitle: String?
+    private var showDividers: Bool = true
 
     init(manager: InviteManager, title: String? = nil, showSearch: Bool = true, showDividers: Bool = true, dismissAction: (() -> Void)?) {
         self.screenTitle = title
         self.showDividers = showDividers
-    
-        if #available(iOS 14.0, *) {
-            let config = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
-            let layout = UICollectionViewCompositionalLayout.list(using: config)
-            collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        } else {
-            collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-        }
+
+        collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
 
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.register(InviteCollectionViewCell.self, forCellWithReuseIdentifier: InviteCellReuse)

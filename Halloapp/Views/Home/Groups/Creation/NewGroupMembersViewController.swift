@@ -25,7 +25,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     private var fetchedResultsController: NSFetchedResultsController<ABContact>?
 
     private var searchController: UISearchController!
-   
+
     var isSearchBarEmpty: Bool {
         return searchController.searchBar.text?.isEmpty ?? true
     }
@@ -48,13 +48,15 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
     private var isNewCreationFlow: Bool = false
     private var currentMembers: [UserID] = []
-    
+    private var groupID: GroupID? = nil
+
     private let sharedNUX = MainAppContext.shared.nux
     private let isZeroZone: Bool
     private var cancellableSet: Set<AnyCancellable> = []
 
-    init(currentMembers: [UserID] = []) {
+    init(currentMembers: [UserID] = [], groupID: GroupID? = nil) {
         self.currentMembers = currentMembers
+        self.groupID = groupID
         self.isNewCreationFlow = self.currentMembers.count == 0 ? true : false
 
         self.isZeroZone = sharedNUX.state == .zeroZone
@@ -115,6 +117,9 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
         setupFetchedResultsController()
 
+        view.addSubview(emptyPlaceholderView)
+        emptyPlaceholderView.constrain(to: view)
+
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
 
@@ -153,6 +158,45 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
             self.mainView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 10, right: 0)
         }
     }
+
+    private lazy var emptyPlaceholderView: UIView = {
+        let containerView = UIView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.alpha = 0
+        containerView.backgroundColor = .primaryBg
+
+        let textLabel = UILabel()
+        textLabel.text = Localizations.newGroupMembersEmptyStatePlaceholder
+        textLabel.numberOfLines = 0
+        textLabel.textAlignment = .center
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+        textLabel.textColor = .tertiaryLabel
+
+        containerView.addSubview(textLabel)
+
+        textLabel.centerXAnchor.constraint(equalTo: containerView.centerXAnchor).isActive = true
+        textLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor).isActive = true
+        textLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor).isActive = true
+        textLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor).isActive = true
+        
+        let welcomeView = AddGroupMembersWelcomeView()
+        if let groupID = groupID {
+            welcomeView.configure(groupID: groupID)
+            welcomeView.openShareLink = { [weak self] link in
+                guard let self = self else { return }
+                self.shareGroupInviteLink(link)
+            }
+        }
+        welcomeView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(welcomeView)
+
+        welcomeView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor).isActive = true
+        welcomeView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor).isActive = true
+        welcomeView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor).isActive = true
+        welcomeView.heightAnchor.constraint(equalToConstant: 230).isActive = true
+
+        return containerView
+    }()
 
     private lazy var mainView: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ tableView, memberAvatarsRow ])
@@ -255,6 +299,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         self.fetchedResultsController = self.newFetchedResultsController()
         do {
             try self.fetchedResultsController?.performFetch()
+            updateEmptyView()
         } catch {
             fatalError("Failed to fetch feed items \(error)")
         }
@@ -328,6 +373,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         if reloadTableViewInDidChangeContent || isFiltering {
             tableView.reloadData()
         }
+        updateEmptyView()
     }
 
     func isDuplicate(_ abContact: ABContact) -> Bool {
@@ -346,7 +392,24 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     }
     
     // MARK: Helpers
-    
+
+    private func updateEmptyView() {
+        guard !isNewCreationFlow else { return }
+        let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
+        navigationItem.rightBarButtonItem = nil
+        emptyPlaceholderView.alpha = isEmpty ? 1 : 0
+    }
+
+    private func shareGroupInviteLink(_ link: String) {
+        if let urlStr = NSURL(string: link) {
+            let shareText = "\(Localizations.groupInviteShareLinkMessage) \(urlStr)"
+            let objectsToShare = [shareText]
+            let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
+
+            present(activityVC, animated: true, completion: nil)
+        }
+    }
+
     private func animateWithKeyboard(notification: Notification, animations: ((_ keyboardFrame: CGRect) -> Void)?) {
         
         let durationKey = UIResponder.keyboardAnimationDurationUserInfoKey
@@ -532,7 +595,7 @@ extension NewGroupMembersViewController: UISearchResultsUpdating {
 
 // MARK: GroupMemberAvatars Delegates
 extension NewGroupMembersViewController: GroupMemberAvatarsDelegate {
-    
+
     func groupMemberAvatarsDelegate(_ view: GroupMemberAvatars, selectedUser: String) {
         selectedMembers.removeAll(where: { $0 == selectedUser })
         tableView.reloadData()
@@ -576,6 +639,10 @@ private extension ContactTableViewCell {
 }
 
 extension Localizations {
+
+    static var newGroupMembersEmptyStatePlaceholder: String {
+        NSLocalizedString("new.group.members.empty.placeholder", value: "Your contacts who are on HalloApp will appear here", comment: "Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add")
+    }
 
     static func newGroupMembersMaxSizeAlert(_ maxGroupSize: Int) -> String {
         return String(

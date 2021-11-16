@@ -56,7 +56,7 @@ class GroupInvitePreviewViewController: UIViewController {
 
         groupNameLabel.text = groupInviteLink.group.name
         let numGroupMembers = groupInviteLink.group.members.count
-        numMembersLabel.text = "\(numGroupMembers) \(Localizations.groupPreviewMembers)"
+        numMembersLabel.text = Localizations.groupPreviewNumMembers(numGroupMembers)
     }
 
     private lazy var mainView: UIStackView = {
@@ -243,12 +243,13 @@ class GroupInvitePreviewViewController: UIViewController {
 
 private extension Localizations {
 
-    static var groupPreviewGetInfoErrorInvalidLink: String {
-        NSLocalizedString("group.preview.get.info.error.invalid.link", value: "The group invite link is invalid", comment: "Text for alert box when the user clicks on an invalid group invite link")
+    static func groupPreviewNumMembers(_ count: Int) -> String {
+        let format = NSLocalizedString("group.feed.n.members", comment: "Indicates how many members are in the group")
+        return String.localizedStringWithFormat(format, count)
     }
 
-    static var groupPreviewMembers: String {
-        NSLocalizedString("group.preview.members", value: "Members", comment: "Label for the number of members in the group")
+    static var groupPreviewGetInfoErrorInvalidLink: String {
+        NSLocalizedString("group.preview.get.info.error.invalid.link", value: "The group invite link is invalid", comment: "Text for alert box when the user clicks on an invalid group invite link")
     }
 
     static var groupPreviewJoinGroup: String {
