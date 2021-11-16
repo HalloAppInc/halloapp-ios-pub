@@ -106,7 +106,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         tableView.rowHeight = UITableView.automaticDimension
 
-        setupOrRefreshHeaderAndFooter()
+        DispatchQueue.main.async { [weak self] in
+            self?.setupOrRefreshHeaderAndFooter()
+        }
 
         dataSource = ChatDataSource(tableView: tableView) { [weak self] tableView, indexPath, chatMessage in
             guard let self = self else { return nil }
