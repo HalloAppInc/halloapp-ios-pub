@@ -104,6 +104,11 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         tableView.backgroundColor = .feedBackground
         tableView.delegate = self
 
+        // remove extra space at the top
+        var emptyHeaderViewFrame = CGRect.zero
+        emptyHeaderViewFrame.size.height = .leastNormalMagnitude
+        tableView.tableHeaderView = UIView(frame: emptyHeaderViewFrame)
+
         dataSource = PostReceiptsDataSource(tableView: tableView) { (tableView, indexPath, row) in
             if indexPath.section == 0 {
                 switch row {
