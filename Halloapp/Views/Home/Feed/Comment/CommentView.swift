@@ -336,7 +336,7 @@ class CommentView: UIView {
                 }
 
                 textCommentLabel.delegate = self
-                vStack.insertArrangedSubview(textCommentLabel, at: vStack.arrangedSubviews.firstIndex(of: mediaView)! + 1)
+                vStack.insertArrangedSubview(textCommentLabel, at: vStack.arrangedSubviews.count - 1)
                 vStack.setCustomSpacing(4, after: mediaView)
             }
         } else if let feedLinkPreviews = feedPostComment.linkPreviews, let feedLinkPreview = feedLinkPreviews.first  {
