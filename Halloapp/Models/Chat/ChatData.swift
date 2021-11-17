@@ -150,10 +150,18 @@ class ChatData: ObservableObject {
         }
         
         cancellableSet.insert(
-            mediaUploader.uploadProgressDidChange.sink { [weak self] (groupId, progress) in
+            mediaUploader.uploadProgressDidChange.receive(on: DispatchQueue.main).sink { [weak self] groupId in
                 guard let self = self else { return }
                 guard let chatMessage = self.chatMessage(with: groupId, in: self.viewContext) else { return }
-                self.didGetMediaUploadProgress.send((chatMessage.id, progress))
+                self.updateSendingProgress(for: chatMessage)
+            }
+        )
+
+        cancellableSet.insert(
+            ImageServer.progress.receive(on: DispatchQueue.main).sink { [weak self] id in
+                guard let self = self else { return }
+                guard let chatMessage = self.chatMessage(with: id, in: self.viewContext) else { return }
+                self.updateSendingProgress(for: chatMessage)
             }
         )
 
@@ -432,6 +440,18 @@ class ChatData: ObservableObject {
         DispatchQueue.main.async {
             self.cleanUpOldUploadData()
         }
+    }
+
+    private func updateSendingProgress(for message: ChatMessage) {
+        guard let count = message.media?.count, count > 0 else { return }
+
+        var (processingCount, processingProgress) = ImageServer.progress(for: message.id)
+        var (uploadCount, uploadProgress) = mediaUploader.uploadProgress(forGroupId: message.id)
+
+        processingProgress = processingProgress * Float(processingCount) / Float(count)
+        uploadProgress = uploadProgress * Float(uploadCount) / Float(count)
+
+        self.didGetMediaUploadProgress.send((message.id, (processingProgress + uploadProgress) / 2))
     }
 
     // MARK: Migration
@@ -1979,7 +1999,7 @@ extension ChatData {
                     }
                 } ()
 
-                imageServer.prepare(type, url: url, output: output) { [weak self] in
+                imageServer.prepare(type, url: url, output: output, for: msgID) { [weak self] in
                     guard let self = self else { return }
 
                     switch $0 {
@@ -2042,6 +2062,8 @@ extension ChatData {
         uploadGroup.notify(queue: backgroundProcessingQueue) { [weak self] in
             guard let self = self else { return }
             DDLogInfo("ChatData/uploadChatMsgMediaAndSend/finish/\(msgID) failed/total: \(numberOfFailedUploads)/\(totalUploads)")
+            ImageServer.clearProgress(for: msgID)
+            self.mediaUploader.clearTasks(withGroupID: msgID)
             if numberOfFailedUploads > 0 {
                 if isMsgStale {
                     self.updateChatMessage(with: msgID) { msg in

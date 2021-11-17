@@ -95,7 +95,7 @@ public enum VideoUtilsError: Error, CustomStringConvertible {
 
 final class VideoUtils {
 
-    static func resizeVideo(inputUrl: URL, completion: @escaping (Swift.Result<(URL, CGSize), Error>) -> Void) {
+    static func resizeVideo(inputUrl: URL, progress: ((Float) -> Void)? = nil, completion: @escaping (Swift.Result<(URL, CGSize), Error>) -> Void) {
 
         let avAsset = AVURLAsset(url: inputUrl, options: nil)
         
@@ -187,8 +187,12 @@ final class VideoUtils {
         exporter.optimizeForNetworkUse = true
 
         DDLogInfo("video-processing/export/start")
-        exporter.export(retryOnCancel: 2, progressHandler: { (progress) in
-            DDLogInfo("video-processing/export/progress [\(progress)] input=[\(inputUrl.description)]")
+        exporter.export(retryOnCancel: 2, progressHandler: { (exporterProgress) in
+            DDLogInfo("video-processing/export/progress [\(exporterProgress)] input=[\(inputUrl.description)]")
+
+            if let progress = progress {
+                progress(exporterProgress)
+            }
         }) { (result) in
             switch result {
             case .success(let status):

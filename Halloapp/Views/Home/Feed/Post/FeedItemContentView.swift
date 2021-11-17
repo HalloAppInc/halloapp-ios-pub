@@ -824,29 +824,44 @@ final class FeedItemFooterView: UIView {
             showProgressView()
             hideErrorView()
 
-            let postId = post.id
-            let mediaUploader = MainAppContext.shared.feedData.mediaUploader
+            if let count = post.media?.count, count > 0 {
+                let postId = post.id
+                let mediaUploader = MainAppContext.shared.feedData.mediaUploader
 
-            if mediaUploader.hasTasks(forGroupId: postId) {
                 progressView.isIndeterminate = false
 
-                if uploadProgressCancellable == nil {
-                    uploadProgressCancellable = mediaUploader.uploadProgressDidChange.sink { [weak self] (groupId, progress) in
-                        guard let self = self else { return }
-                        if postId == groupId {
-                            self.progressView.progress = progress
-                        }
-                    }
-                    progressView.progress = mediaUploader.uploadProgress(forGroupId: postId)
+                processingProgressCancellable = ImageServer.progress.receive(on: DispatchQueue.main).sink { [weak self] id in
+                    guard let self = self else { return }
+                    guard postId == id else { return }
+                    self.updateSendingProgress(for: post)
                 }
+
+                uploadProgressCancellable = mediaUploader.uploadProgressDidChange.receive(on: DispatchQueue.main).sink { [weak self] groupId in
+                    guard let self = self else { return }
+                    guard postId == groupId else { return }
+                    self.updateSendingProgress(for: post)
+                }
+
+                updateSendingProgress(for: post)
             } else {
-                progressView.isIndeterminate = true
-                progressView.indeterminateProgressText = state == .sending ? Localizations.feedPosting : Localizations.feedDeleting
+                progressView.progress = 0.5
             }
         case .error:
             showSendErrorView()
             hideProgressView()
         }
+    }
+
+    private func updateSendingProgress(for post: FeedPost) {
+        guard let count = post.media?.count, count > 0 else { return }
+
+        var (processingCount, processingProgress) = ImageServer.progress(for: post.id)
+        var (uploadCount, uploadProgress) = MainAppContext.shared.feedData.mediaUploader.uploadProgress(forGroupId: post.id)
+
+        processingProgress = processingProgress * Float(processingCount) / Float(count)
+        uploadProgress = uploadProgress * Float(uploadCount) / Float(count)
+
+        progressView.progress = (processingProgress + uploadProgress) / 2
     }
 
     func prepareForReuse() {
@@ -860,6 +875,7 @@ final class FeedItemFooterView: UIView {
 
     static private let progressViewTag = 1
 
+    private var processingProgressCancellable: AnyCancellable?
     private var uploadProgressCancellable: AnyCancellable?
 
     private lazy var progressView: PostingProgressView = {

@@ -178,10 +178,17 @@ final class MediaUploader {
         }
     }
 
+    func clearTasks(withGroupID groupID: String) {
+        tasksQueue.sync {
+            for task in tasks.filter({ $0.groupId == groupID }) {
+                tasks.remove(task)
+            }
+        }
+    }
+
     private func finish(task: Task) {
         tasksQueue.sync {
             task.finished()
-            tasks.remove(task)
         }
     }
 
@@ -268,25 +275,14 @@ final class MediaUploader {
 
     // MARK: Upload progress
 
-    let uploadProgressDidChange = PassthroughSubject<(String, Float), Never>()
+    let uploadProgressDidChange = PassthroughSubject<String, Never>()
 
-    func uploadProgress(forGroupId groupId: String) -> Float {
-        let (totalSize, uploadedSize) = tasks(forGroupId: groupId).reduce(into: (Int64(0), Int64(0))) { (result, task) in
-            result.0 += task.totalUploadSize
-            result.1 += task.completedSize
-        }
-        guard totalSize > 0 else {
-            DDLogDebug("MediaUploader/task/\(groupId)/upload-progress [0.0]")
-            return 0
-        }
-        let progress = Float(Double(uploadedSize) / Double(totalSize))
-        DDLogDebug("MediaUploader/task/\(groupId)/upload-progress [\(progress)]")
-        return progress
-    }
+    func uploadProgress(forGroupId groupId: String) -> (Int, Float) {
+        let items = tasks(forGroupId: groupId).filter { $0.totalUploadSize > 0 }
+        guard items.count > 0 else { return (0, 0) }
 
-    private func updateUploadProgress(forGroupId groupId: String) {
-        let progress = uploadProgress(forGroupId: groupId)
-        uploadProgressDidChange.send((groupId, progress))
+        let total = items.reduce(into: Float(0)) { $0 += Float(Double($1.completedSize) / Double($1.totalUploadSize)) }
+        return (items.count, total / Float(items.count))
     }
 
     // MARK: Starting / canceling uploads.
@@ -397,7 +393,7 @@ final class MediaUploader {
                 }
                 task.totalUploadSize = progress.totalUnitCount
                 task.completedSize = completedUnitCount
-                self.updateUploadProgress(forGroupId: task.groupId)
+                self.uploadProgressDidChange.send(task.groupId)
             }
             .validate()
             .response { [weak task] (response) in
@@ -486,7 +482,7 @@ final class MediaUploader {
                     task.progressDidChange = true
                 }
                 task.completedSize = completedUnitCount
-                self.updateUploadProgress(forGroupId: task.groupId)
+                self.uploadProgressDidChange.send(task.groupId)
             }
             .validate()
             .response { [weak task] response in
