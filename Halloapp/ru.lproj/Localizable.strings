@@ -634,9 +634,6 @@
 /* Label for joining group action */
 "group.preview.join.group" = "Вступить в группу";
 
-/* Label for the number of members in the group */
-"group.preview.members" = "Участники";
-
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Коснитесь здесь, чтобы прочесть информацию о группе";
 
