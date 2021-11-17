@@ -42,6 +42,8 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         }
     }
 
+    private var pendingMsgIconTimer: Timer? = nil
+
     private var cancellableSet: Set<AnyCancellable> = []
 
     // MARK: Lifecycle
@@ -314,7 +316,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-    
+
     // font point 11
     private lazy var timeAndStatusLabel: UILabel = {
         let label = UILabel()
@@ -327,6 +329,19 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         return label
+    }()
+
+    private lazy var pendingMsgIconView: UIImageView = {
+        let view = UIImageView()
+        view.image = UIImage(named: "Clock")?.withTintColor(.systemGray2)
+        view.contentMode = .scaleAspectFill
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        let height = timeAndStatusLabel.font.pointSize + 8
+        view.widthAnchor.constraint(equalToConstant: height).isActive = true
+        view.heightAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+        return view
     }()
     
     private lazy var uploadProgressView: PostingProgressView = {
@@ -752,12 +767,26 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }
     
     func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {
+        if pendingMsgIconTimer != nil {
+            pendingMsgIconTimer?.invalidate()
+            pendingMsgIconView.removeFromSuperview()
+        }
+
         switch status {
-        case .pending: return UIImage(named: "Clock")?.withTintColor(.systemGray)
-        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray)
-        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray)
-        case .seen, .played: return UIImage(named: "CheckmarkDouble")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
-//        case .error: return UIImage(systemName: "arrow.counterclockwise.circle")?.withTintColor(.systemRed)
+        case .pending:
+            pendingMsgIconTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
+                guard let self = self else { return }
+                self.timeAndStatusRow.addSubview(self.pendingMsgIconView)
+                self.pendingMsgIconView.trailingAnchor.constraint(equalTo: self.timeAndStatusLabel.trailingAnchor, constant: 3).isActive = true
+                self.pendingMsgIconView.bottomAnchor.constraint(equalTo: self.timeAndStatusLabel.bottomAnchor).isActive = true
+            }
+            return UIImage(named: "CheckmarkSingle")?.withTintColor(.clear)
+        case .sentOut:
+            return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray)
+        case .delivered:
+            return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray)
+        case .seen, .played:
+            return UIImage(named: "CheckmarkDouble")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
         default: return nil }
     }
 
@@ -809,7 +838,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         voiceNoteRow.removeFromSuperview()
 
         timeAndStatusLabel.attributedText = nil
-        
+
         cancellableSet.forEach { $0.cancel() }
         cancellableSet.removeAll()
     }

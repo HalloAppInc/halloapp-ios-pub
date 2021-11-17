@@ -4065,6 +4065,7 @@ extension ChatData {
     }
     
     private func recordGroupMessageEvent(xmppGroup: XMPPGroup, xmppGroupMember: XMPPGroupMember?, in managedObjectContext: NSManagedObjectContext) {
+        DDLogVerbose("ChatData/recordGroupMessageEvent/groupID/\(xmppGroup.groupId)")
 
         // hack: skip recording the event(s) of an avatar change and/or description change if the changes are done at group creation,
         // since server api require separate requests for them but we want to show only the group creation event
@@ -4144,13 +4145,14 @@ extension ChatData {
         }
 
         if isSampleGroupCreationEvent {
+            DDLogVerbose("ChatData/recordGroupMessageEvent/groupID/\(xmppGroup.groupId)/isSampleGroupCreationEvent")
             self.updateUnreadThreadGroupsCount() // refresh bottom nav groups badge
 
             // remove group message and event since this group is created for the user
             managedObjectContext.delete(chatGroupMessageEvent)
             managedObjectContext.delete(chatGroupMessage)
         }
-        
+
         save(managedObjectContext)
 
         didGetAGroupEvent.send(chatGroupMessage.groupId)
