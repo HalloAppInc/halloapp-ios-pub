@@ -634,9 +634,6 @@
 /* Label for joining group action */
 "group.preview.join.group" = "Beitreten";
 
-/* Label for the number of members in the group */
-"group.preview.members" = "Mitglieder";
-
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Für Gruppen-Info hier tippen";
 
@@ -825,6 +822,9 @@
 
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "%@ gelöschte Beiträge";
+
+/* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
+"new.group.members.empty.placeholder" = "Deine Kontakte, die auf HalloApp sind, werden hier angezeigt";
 
 /* Alert text shown when max group size is reached when selecting/adding group members */
 "new.group.members.max.size.alert" = "Die max. Gruppengröße ist %d";

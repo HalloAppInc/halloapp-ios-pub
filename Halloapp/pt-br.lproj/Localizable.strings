@@ -634,9 +634,6 @@
 /* Label for joining group action */
 "group.preview.join.group" = "Juntar-se ao grupo";
 
-/* Label for the number of members in the group */
-"group.preview.members" = "Membros";
-
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Clique aqui para obter informações do grupo";
 

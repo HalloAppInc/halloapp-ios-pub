@@ -610,9 +610,6 @@
 /* Label for joining group action */
 "group.preview.join.group" = "BERGABUNG DENGAN GRUP";
 
-/* Label for the number of members in the group */
-"group.preview.members" = "Anggota";
-
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Ketuk di sini untuk info grup";
 

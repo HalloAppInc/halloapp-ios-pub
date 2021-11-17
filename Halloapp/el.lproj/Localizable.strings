@@ -544,9 +544,6 @@
 /* Label for joining group action */
 "group.preview.join.group" = "ΣΥΜΜΕΤΟΧΗ ΣΤΗΝ ΟΜΑΔΑ";
 
-/* Label for the number of members in the group */
-"group.preview.members" = "Μέλη";
-
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Πατήστε εδώ για πληροφορίες ομάδας";
 
