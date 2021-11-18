@@ -51,6 +51,7 @@ class AudioView : UIStackView {
     private var rateObservation: NSKeyValueObservation?
     private var timeObservation: Any?
     private var mediaPlaybackCancellable: AnyCancellable?
+    private var sessionManager = AudioSessionManager()
 
     private var player: AVPlayer? {
         didSet {
@@ -67,6 +68,7 @@ class AudioView : UIStackView {
 
                 if change.oldValue == 1 && change.newValue == 0 {
                     self.delegate?.audioViewDidEndPlaying(self, completed: self.isPlayerAtTheEnd)
+                    self.pause()
                 }
             }
 
@@ -171,6 +173,12 @@ class AudioView : UIStackView {
             guard self.url != playingUrl else { return }
             self.pause()
         }
+
+        let nc = NotificationCenter.default
+        nc.addObserver(self,
+                       selector: #selector(proximityChanged),
+                       name: UIDevice.proximityStateDidChangeNotification,
+                       object: nil)
     }
 
     convenience init(url: URL) {
@@ -187,6 +195,18 @@ class AudioView : UIStackView {
         player = nil
     }
 
+    @objc func proximityChanged() {
+        do {
+            if UIDevice.current.proximityState {
+                try AVAudioSession.sharedInstance().overrideOutputAudioPort(.none)
+            } else {
+                try AVAudioSession.sharedInstance().overrideOutputAudioPort(.speaker)
+            }
+        } catch {
+            return DDLogError("AudioView/proximityChanged: output port [\(error)]")
+        }
+    }
+
     func play() {
         guard let player = player else { return }
         guard let duration = player.currentItem?.duration else { return }
@@ -198,12 +218,27 @@ class AudioView : UIStackView {
 
         MainAppContext.shared.mediaDidStartPlaying.send(url)
         UIApplication.shared.isIdleTimerDisabled = true
+        UIDevice.current.isProximityMonitoringEnabled = true
+
+        sessionManager.save()
+
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playAndRecord)
+            if !UIDevice.current.proximityState {
+                try AVAudioSession.sharedInstance().overrideOutputAudioPort(.speaker)
+            }
+        } catch {
+            return DDLogError("AudioView/play: audio session [\(error)]")
+        }
+
         player.play()
         delegate?.audioViewDidStartPlaying(self)
     }
 
     func pause() {
         player?.pause()
+        sessionManager.restore()
+        UIDevice.current.isProximityMonitoringEnabled = false
         UIApplication.shared.isIdleTimerDisabled = false
     }
 

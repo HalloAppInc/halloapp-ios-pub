@@ -1635,7 +1635,6 @@ extension ChatInputView: AudioRecorderDelegate {
             self.postVoiceNoteButton.isHidden = true
             self.placeholder.isHidden = false
             self.textView.isHidden = false
-            self.hideKeyboard()
             self.updatePostButtons()
         }
     }

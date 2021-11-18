@@ -365,6 +365,7 @@
 		F893C86F25E5213000068F00 /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893C86E25E5213000068F00 /* VideoView.swift */; };
 		F8B0F7612745785400235CCF /* ShareDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8B0F7602745785400235CCF /* ShareDataLoader.swift */; };
 		F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */; };
+		F8D876332746603700E69F41 /* AudioSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D876322746603700E69F41 /* AudioSessionManager.swift */; };
 		F8DA6F38252370BE007833A7 /* MediaExplorerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */; };
 		F8DFCD88262EF4C0003F850F /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCD87262EF4C0003F850F /* ShareViewController.swift */; };
 		F8DFCDAD26304B4F003F850F /* GroupList.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCDA826304B3A003F850F /* GroupList.swift */; };
@@ -990,6 +991,7 @@
 		F893C86E25E5213000068F00 /* VideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
 		F8B0F7602745785400235CCF /* ShareDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareDataLoader.swift; sourceTree = "<group>"; };
 		F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaEditViewController.swift; sourceTree = "<group>"; };
+		F8D876322746603700E69F41 /* AudioSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionManager.swift; sourceTree = "<group>"; };
 		F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerController.swift; sourceTree = "<group>"; };
 		F8DFCD87262EF4C0003F850F /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		F8DFCDA826304B3A003F850F /* GroupList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupList.swift; sourceTree = "<group>"; };
@@ -1654,6 +1656,7 @@
 				766103A22461E63200728870 /* Receipts */,
 				76DFA0012419560300F49CA4 /* XMPP */,
 				F850677726A55DAC00A120EC /* AudioRecorder.swift */,
+				F8D876322746603700E69F41 /* AudioSessionManager.swift */,
 				2446D67B24CB54F8005BAD3C /* VideoUtils.swift */,
 				68C8264A251A77A000BB8F3A /* NUX.swift */,
 			);
@@ -2913,6 +2916,7 @@
 				EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */,
 				EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */,
 				76C64E0D24E5AD85007C0F6F /* MediaUploader.swift in Sources */,
+				F8D876332746603700E69F41 /* AudioSessionManager.swift in Sources */,
 				EAA424FA24ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift in Sources */,
 				769CD3AC255CDB8D006F21BB /* NameEditViewController.swift in Sources */,
 				E537A1B726792AEF0008B286 /* ChatDraft.swift in Sources */,
