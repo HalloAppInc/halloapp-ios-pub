@@ -225,7 +225,7 @@ class FeedPostView: UIView {
     }
 
     func refreshTimestamp(using feedPost: FeedPost) {
-        headerView.configure(with: feedPost)
+        headerView.refreshTimestamp(with: feedPost)
     }
 
     func refreshFooter(using feedPost: FeedPost, contentWidth: CGFloat) {
@@ -237,10 +237,7 @@ class FeedPostView: UIView {
 
         postId = post.id
 
-        headerView.configure(with: post, showArchivedDate: showArchivedDate)
-        if showGroupName {
-            configureGroupLabel(with: post.groupId, contentWidth: contentWidth, gutterWidth: gutterWidth)
-        }
+        headerView.configure(with: post, contentWidth: contentWidth, showGroupName: showGroupName, showArchivedDate: showArchivedDate)
         headerView.showUserAction = { [weak self] in
             self?.showUserAction?(post.userId)
         }
@@ -267,34 +264,25 @@ class FeedPostView: UIView {
         footerView.configure(with: post, contentWidth: contentWidth)
     }
     
-    func configureGroupLabel(with groupID: String?, contentWidth: CGFloat, gutterWidth: CGFloat) {
-        headerView.configureGroupLabel(with: groupID, contentWidth: contentWidth, gutterWidth: gutterWidth)
+    func configureGroupLabel(with groupID: String?, contentWidth: CGFloat, showGroupName: Bool) {
+        headerView.configureGroupLabel(with: groupID, contentWidth: contentWidth, showGroupName: showGroupName)
     }
 
     // MARK: Height computation
 
-    class func height(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?, showingFooter: Bool = true) -> CGFloat {
-        let headerHeight = Self.headerHeight(forPost: post, contentWidth: contentWidth)
+    class func height(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool, displayData: FeedPostDisplayData?, showingFooter: Bool = true) -> CGFloat {
+        let headerHeight = Self.headerHeight(forPost: post, contentWidth: contentWidth, showGroupName: showGroupName)
         let contentHeight = Self.contentHeight(forPost: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
         let footerHeight = showingFooter ? Self.footerHeight(forPost: post, contentWidth: contentWidth) : 0
         
         return headerHeight + contentHeight + footerHeight + 2 * LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing
     }
-    
-    func setHeaderHeight(forPost post: FeedPost, contentWidth: CGFloat) {
-        headerView.heightAnchor.constraint(equalToConstant: Self.headerHeight(forPost: post, contentWidth: contentWidth)).isActive = true
-    }
 
-    private static let headerCacheKey = "height.header"
-    private class func headerHeight(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat {
-        if let cachedHeaderHeight = Self.metricsCache[headerCacheKey] {
-            return cachedHeaderHeight
-        }
+    private class func headerHeight(forPost post: FeedPost, contentWidth: CGFloat, showGroupName: Bool) -> CGFloat {
         let headerView = FeedItemHeaderView()
-        headerView.configure(with: post)
+        headerView.configure(with: post, contentWidth: contentWidth, showGroupName: showGroupName)
         let targetSize = CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
         let headerSize = headerView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
-        Self.metricsCache[headerCacheKey] = headerSize.height
         return headerSize.height
     }
 
