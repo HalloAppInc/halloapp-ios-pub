@@ -37,7 +37,7 @@ extension FeedPost {
 protocol FeedPostCollectionViewCellDelegate: AnyObject {
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didRequestOpen url: URL)
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didChangeMediaIndex index: Int)
-    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell)
+    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell, for label: TextLabel)
 }
 
 class FeedPostCollectionViewCell: UICollectionViewCell {
@@ -227,7 +227,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     }
 
     func refreshTimestamp(using feedPost: FeedPost) {
-        headerView.configure(with: feedPost)
+        headerView.refreshTimestamp(with: feedPost)
     }
 
     func refreshFooter(using feedPost: FeedPost, contentWidth: CGFloat) {
@@ -243,10 +243,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
         postId = post.id
 
-        headerView.configure(with: post)
-        if showGroupName {
-            configureGroupLabel(with: post.groupId, contentWidth: contentWidth, gutterWidth: gutterWidth)
-        }
+        headerView.configure(with: post, contentWidth: contentWidth, showGroupName: showGroupName)
         headerView.showUserAction = { [weak self] in
             self?.showUserAction?(post.userId)
         }
@@ -272,30 +269,21 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         
         footerView.configure(with: post, contentWidth: contentWidth)
     }
-    
-    func configureGroupLabel(with groupID: String?, contentWidth: CGFloat, gutterWidth: CGFloat) {
-        headerView.configureGroupLabel(with: groupID, contentWidth: contentWidth, gutterWidth: gutterWidth)
-    }
 
     // MARK: Height computation
 
-    class func height(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) -> CGFloat {
-        let headerHeight = Self.headerHeight(forPost: post, contentWidth: contentWidth)
+    class func height(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?, showGroupName: Bool) -> CGFloat {
+        let headerHeight = Self.headerHeight(forPost: post, contentWidth: contentWidth, showGroupName: showGroupName)
         let contentHeight = Self.contentHeight(forPost: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
         let footerHeight = Self.footerHeight(forPost: post, contentWidth: contentWidth)
         return headerHeight + contentHeight + footerHeight + 2 * LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing
     }
 
-    private static let headerCacheKey = "height.header"
-    private class func headerHeight(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat {
-        if let cachedHeaderHeight = Self.metricsCache[headerCacheKey] {
-            return cachedHeaderHeight
-        }
-        let headerView = FeedItemHeaderView()
-        headerView.configure(with: post)
+    private static let sizingHeader = FeedItemHeaderView()
+    private class func headerHeight(forPost post: FeedPost, contentWidth: CGFloat, showGroupName: Bool) -> CGFloat {
+        sizingHeader.configure(with: post, contentWidth: contentWidth, showGroupName: showGroupName)
         let targetSize = CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
-        let headerSize = headerView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
-        Self.metricsCache[headerCacheKey] = headerSize.height
+        let headerSize = sizingHeader.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
         return headerSize.height
     }
 
@@ -356,7 +344,7 @@ extension FeedPostCollectionViewCell: TextLabelDelegate {
     }
 
     func textLabelDidRequestToExpand(_ label: TextLabel) {
-        delegate?.feedPostCollectionViewCellDidRequestTextExpansion(self)
+        delegate?.feedPostCollectionViewCellDidRequestTextExpansion(self, for: label)
     }
 }
 

@@ -58,9 +58,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
         view.backgroundColor = .feedBackground
 
-        feedLayout.estimatedItemSize.width = view.frame.width
-        feedLayout.estimatedItemSize.height = view.frame.width
-
         feedLayout.minimumInteritemSpacing = 0
         feedLayout.minimumLineSpacing = 0
 
@@ -158,12 +155,14 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
                 guard let self = self else { return }
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
-                    for indexPath in self.collectionView.indexPathsForVisibleItems {
-                        guard let feedCell = self.collectionView.cellForItem(at: indexPath) as? FeedPostCollectionViewCell else { continue }
-                        guard let feedPost = self.feedDataSource.item(at: indexPath.item)?.post else { continue }
-                        guard feedPost.groupId != nil, feedPost.groupId == groupID else { continue }
-                        feedCell.configureGroupLabel(with: groupID, contentWidth: self.cellContentWidth, gutterWidth: self.gutterWidth)
-                        feedCell.layoutSubviews()
+                    let visibleCellNeedsUpdate = self.collectionView.indexPathsForVisibleItems.contains { indexPath in
+                        guard let cellGroupID = self.feedDataSource.item(at: indexPath.item)?.post?.groupId else  {
+                            return false
+                        }
+                        return cellGroupID == groupID
+                    }
+                    if visibleCellNeedsUpdate {
+                        self.collectionView.reloadData()
                     }
                 }
             }
@@ -881,7 +880,7 @@ extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
                     return FeedEventCollectionViewCell.height(for: text, width: cellWidth)
                 } else {
                     let contentWidth = cellWidth - collectionView.layoutMargins.left - collectionView.layoutMargins.right
-                    return FeedPostCollectionViewCell.height(forPost: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: postDisplayData[feedPost.id])
+                    return FeedPostCollectionViewCell.height(forPost: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: postDisplayData[feedPost.id], showGroupName: showGroupName())
                 }
             }()
             DDLogDebug("FeedCollectionView Calculated cell height [\(cellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
@@ -912,30 +911,27 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
         postDisplayData[postID] = displayData
     }
 
-    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell) {
+    func feedPostCollectionViewCellDidRequestTextExpansion(_ cell: FeedPostCollectionViewCell, for label: TextLabel) {
         guard let indexPath = collectionView.indexPath(for: cell),
               let postID = cell.postId else
         {
             return
         }
+
         var displayData = postDisplayData[postID] ?? FeedPostDisplayData()
         displayData.isTextExpanded = true
         postDisplayData[postID] = displayData
 
-        guard let collectionViewDataSource = self.collectionViewDataSource,
-              let displayItem = self.feedDataSource.item(at: indexPath.item) else
-        {
-            self.collectionView.reloadData()
-            return
+        if let displayItem = self.feedDataSource.item(at: indexPath.item) {
+            cachedCellHeights.removeValue(forKey: displayItem)
+        } else {
+            cachedCellHeights.removeAll()
         }
-        cachedCellHeights.removeValue(forKey: displayItem)
-        let offset = collectionView.contentOffset
+
+        label.numberOfLines = 0
         UIView.animate(withDuration: 0.35) {
             self.collectionView.collectionViewLayout.invalidateLayout()
-            var snapshot = collectionViewDataSource.snapshot()
-            snapshot.reloadItems([displayItem])
-            collectionViewDataSource.apply(snapshot)
-            self.collectionView.contentOffset = offset
+            label.superview?.layoutIfNeeded()
         }
     }
 }

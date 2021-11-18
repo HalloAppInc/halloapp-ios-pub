@@ -109,6 +109,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     var textLabel: TextLabel! {
         textContentView.textLabel
     }
+    var textWidthConstraint: NSLayoutConstraint?
 
     private var mediaView: MediaCarouselView?
     private var postLinkPreviewView: PostLinkPreviewView?
@@ -122,6 +123,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
         textContentView = TextContentView()
         textContentView.translatesAutoresizingMaskIntoConstraints = false
+        textWidthConstraint = textContentView.widthAnchor.constraint(equalToConstant: 0)
 
         vStack = UIStackView(arrangedSubviews: [ textContentView ])
         vStack.translatesAutoresizingMaskIntoConstraints = false
@@ -133,9 +135,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) {
         feedPost = post
 
-        // TODO: Make media view reusable (it hurts scroll performance to reinitialize for each post)
         if let mediaView = mediaView {
-            let keepMediaView = postId == post.id && mediaView.configuration.gutterWidth == gutterWidth
+            let keepMediaView = mediaView.configuration.gutterWidth == gutterWidth
             if !keepMediaView {
                 vStack.removeArrangedSubview(mediaView)
                 mediaView.removeFromSuperview()
@@ -156,10 +157,16 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         }
 
         let media = MainAppContext.shared.feedData.media(for: post)
+
+        // Media
+
         if !media.isEmpty {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: media, width: contentWidth)
             DDLogInfo("FeedItemContentView/media-view-height post=[\(post.id)] height=[\(mediaViewHeight)]")
-            if mediaView == nil {
+            if let mediaView = mediaView {
+                mediaViewHeightConstraint?.constant = mediaViewHeight
+                mediaView.refreshData(media: media, index: displayData?.currentMediaIndex ?? 0)
+            } else {
                 // Create new media view
                 var mediaViewConfiguration = MediaCarouselViewConfiguration.default
                 mediaViewConfiguration.gutterWidth = gutterWidth
@@ -173,21 +180,24 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
                 mediaViewHeightConstraint?.isActive = true
                 vStack.insertArrangedSubview(mediaView, at: 0)
                 self.mediaView = mediaView
-            } else {
-                // Update height on existing media view
-                mediaViewHeightConstraint?.constant = mediaViewHeight
             }
-        } else {
-            if let feedLinkPreview = post.linkPreviews?.first {
-                if postLinkPreviewView == nil {
-                    MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
-                    let postLinkPreviewView = PostLinkPreviewView()
-                    postLinkPreviewView.configure(feedLinkPreview: feedLinkPreview)
-                    vStack.insertArrangedSubview(postLinkPreviewView, at: 1)
-                    self.postLinkPreviewView = postLinkPreviewView
-                }
-            }
+            mediaView?.isHidden = false
         }
+
+        // Link preview
+
+        if let feedLinkPreview = post.linkPreviews?.first, media.isEmpty {
+            if postLinkPreviewView == nil {
+                MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
+                let postLinkPreviewView = PostLinkPreviewView()
+                postLinkPreviewView.configure(feedLinkPreview: feedLinkPreview)
+                vStack.insertArrangedSubview(postLinkPreviewView, at: 1)
+                self.postLinkPreviewView = postLinkPreviewView
+            }
+            postLinkPreviewView?.isHidden = false
+        }
+
+        // Text
 
         let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: post.id)
         let postTextWithCryptoResult = (post.text ?? "") + cryptoResultString
@@ -234,6 +244,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         } else {
             textContentView.isHidden = true
         }
+        textWidthConstraint?.constant = contentWidth
+        textWidthConstraint?.isActive = true
 
         // Remove extra spacing
         layoutMargins.bottom = post.hideFooterSeparator ? LayoutConstants.bottomMarginNoSeparator : LayoutConstants.bottomMarginWithSeparator
@@ -258,74 +270,25 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         return cryptoResultString
     }
 
-    private static var textContentViewForSizing = { TextContentView() }()
+    private static var forSizing: FeedItemContentView = {
+        let view = FeedItemContentView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
 
-    // TODO: Optimize the `configure` function so we can just measure a view instead of duplicating all the layout logic.
     class func preferredHeight(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) -> CGFloat {
-        var contentHeight = LayoutConstants.topMargin
-
-        let media = MainAppContext.shared.feedData.media(for: post)
-        if !media.isEmpty {
-            contentHeight += MediaCarouselView.preferredHeight(for: media, width: contentWidth)
-        }
-
-        let cryptoResultString: String = obtainCryptoResultString(for: post.id)
-        let postTextWithCryptoResult = (post.text ?? "") + cryptoResultString
-        let textContentView: TextContentView? = {
-            let postContainsText = !(postTextWithCryptoResult).isEmpty
-            if post.isPostUnsupported  {
-                let text = NSMutableAttributedString(string: "⚠️ " + Localizations.feedPostUnsupported + cryptoResultString)
-
-                if let url = AppContext.appStoreURL {
-                    let link = NSMutableAttributedString(string: Localizations.linkUpdateYourApp)
-                    link.addAttribute(.link, value: url, range: link.utf16Extent)
-                    text.append(NSAttributedString(string: " "))
-                    text.append(link)
-                }
-
-                let font = UIFont.preferredFont(forTextStyle: .body).withItalicsIfAvailable
-
-                let textContentView = textContentViewForSizing
-                textContentView.textLabel.attributedText = text.with(font: font, color: .label)
-                textContentView.textLabel.numberOfLines = 0
-                textContentView.layoutMargins.top = 8
-
-                return textContentView
-            } else if postContainsText {
-                let isTextExpanded = displayData?.isTextExpanded ?? false
-                let postText = MainAppContext.shared.contactStore.textWithMentions(
-                    postTextWithCryptoResult,
-                    mentions: post.orderedMentions)
-                let postFont: UIFont = {
-                    let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
-                    let fontSizeDiff: CGFloat = media.isEmpty && (postText?.string ?? "").count <= 180 ? 3 : -1
-                    return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
-                }()
-
-                let textContentView = textContentViewForSizing
-                textContentView.textLabel.attributedText = postText?.with(font: postFont, color: .label)
-                textContentView.textLabel.numberOfLines = isTextExpanded ? 0 : media.isEmpty ? 10 : 3
-                // Adjust vertical margins around text.
-                textContentView.layoutMargins.top = media.isEmpty ? 9 : 11
-
-                return textContentView
-            } else {
-                return nil
-            }
-        }()
-
-        if let textContentView = textContentView {
-            let targetSize = CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
-            let textContentViewSize = textContentView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
-
-            contentHeight += textContentViewSize.height
-        }
-
-        contentHeight += post.hideFooterSeparator ? LayoutConstants.bottomMarginNoSeparator : LayoutConstants.bottomMarginWithSeparator
-        return contentHeight
+        let fittingView = FeedItemContentView.forSizing
+        let targetSize = CGSize(width: contentWidth + 2 * gutterWidth, height: 0)
+        fittingView.prepareForReuse()
+        fittingView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
+        let fittingSize = fittingView.systemLayoutSizeFitting(targetSize)
+        return fittingSize.height
     }
 
-    func prepareForReuse() { }
+    func prepareForReuse() {
+        mediaView?.isHidden = true
+        postLinkPreviewView?.isHidden = true
+    }
 
     func stopPlayback() {
         if let mediaView = mediaView {
@@ -530,7 +493,7 @@ final class FeedItemHeaderView: UIView {
         wrapperView.addSubview(button)
         wrapperView.translatesAutoresizingMaskIntoConstraints = false
 
-        button.topAnchor.constraint(equalTo: wrapperView.topAnchor).isActive = true
+        button.constrain([.top, .bottom], to: wrapperView)
         button.heightAnchor.constraint(equalToConstant: 18 + moreButtonPadding).isActive = true
 
         button.contentHorizontalAlignment = .trailing
@@ -556,6 +519,7 @@ final class FeedItemHeaderView: UIView {
         let hStack = UIStackView(arrangedSubviews: [ nameColumn, moreButton ])
         hStack.axis = .horizontal
         hStack.spacing = moreButtonSpacing
+        hStack.alignment = .leading
         hStack.translatesAutoresizingMaskIntoConstraints = false
  
         addSubview(hStack)
@@ -567,7 +531,6 @@ final class FeedItemHeaderView: UIView {
         hStack.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
-        moreButton.topAnchor.constraint(equalTo: hStack.topAnchor).isActive = true
 
         contentSizeCategoryDidChangeCancellable = NotificationCenter.default
             .publisher(for: UIContentSizeCategory.didChangeNotification)
@@ -588,9 +551,12 @@ final class FeedItemHeaderView: UIView {
         }
     }
 
-    func configure(with post: FeedPost, showArchivedDate: Bool = false) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
+    func refreshTimestamp(with post: FeedPost) {
         timestampLabel.text = post.timestamp.feedTimestamp()
+    }
+
+    func configure(with post: FeedPost, contentWidth: CGFloat, showGroupName: Bool, showArchivedDate: Bool = false) {
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
         if showArchivedDate {
             let archivedDate = post.timestamp.addingTimeInterval(Date.days(30))
             timestampLabel.text! += " • " + Localizations.feedPostArchivedTimestamp(time: archivedDate.shortDateFormat())
@@ -599,10 +565,12 @@ final class FeedItemHeaderView: UIView {
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
         
         moreButton.isHidden = !(post.hasPostMedia && post.canSaveMedia) && post.userId != MainAppContext.shared.userData.userId
+        configureGroupLabel(with: post.groupId, contentWidth: contentWidth, showGroupName: showGroupName)
+        refreshTimestamp(with: post)
     }
 
-    func configureGroupLabel(with groupID: String?, contentWidth: CGFloat, gutterWidth: CGFloat) {
-        guard let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) else {
+    func configureGroupLabel(with groupID: String?, contentWidth: CGFloat, showGroupName: Bool) {
+        guard let groupID = groupID, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID), showGroupName else {
             groupNameLabel.isHidden = true
             secondLineGroupNameLabel.isHidden = true
             groupIndicatorLabel.isHidden = true
@@ -612,7 +580,7 @@ final class FeedItemHeaderView: UIView {
         groupNameLabel.text = groupChat.name
         secondLineGroupNameLabel.text = groupChat.name
 
-        let shouldShowTwoLines = isRowTruncated(contentWidth: contentWidth, gutterWidth: gutterWidth)
+        let shouldShowTwoLines = isRowTruncated(contentWidth: contentWidth)
         groupNameLabel.isHidden = shouldShowTwoLines
         secondLineGroupNameLabel.isHidden = !shouldShowTwoLines
         groupIndicatorLabel.isHidden = false
@@ -635,14 +603,12 @@ final class FeedItemHeaderView: UIView {
         showGroupFeedAction?()
     }
 
-    private func isRowTruncated(contentWidth: CGFloat, gutterWidth: CGFloat) -> Bool {
-        let availableWidth = contentWidth - 2 * gutterWidth
-
+    private func isRowTruncated(contentWidth: CGFloat) -> Bool {
         var requiredWidth = userAndGroupNameRow.systemLayoutSizeFitting(CGSize(width: contentWidth, height: 20)).width
         requiredWidth += moreButton.isHidden ? 0 : (moreButtonWidth + moreButtonPadding + moreButtonSpacing)
         requiredWidth += avatarButtonWidth + avatarButtonSpacing
 
-        return requiredWidth > availableWidth
+        return requiredWidth > contentWidth
     }
 }
 
