@@ -2797,10 +2797,7 @@ extension ChatData {
             self.updateUnreadChatsThreadCount()
         }
 
-        // 1 and higher means it's an offline message and that server has sent out a push notification already
-        if xmppChatMessage.retryCount == nil || xmppChatMessage.retryCount == 0 {
-            showOneToOneNotification(for: xmppChatMessage)
-        }
+        showOneToOneNotification(for: xmppChatMessage)
 
         // download chat message media
         processInboundPendingChatMsgMedia()
@@ -3864,7 +3861,7 @@ extension ChatData {
                 contactNames[xmppGroupMember.userId] = name
             }
             
-            if xmppGroupMember.userId == MainAppContext.shared.userData.userId, xmppGroup.retryCount == 0 {
+            if xmppGroupMember.userId == MainAppContext.shared.userData.userId {
                 DispatchQueue.main.async {
                     // dummy avatarview to preload group avatar for new groups with avatar
                     // nice to show avatar but not required, 2 seconds given for chance to finish downloading
@@ -3978,7 +3975,7 @@ extension ChatData {
 
             recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
 
-            if xmppGroupMember.action == .add, xmppGroupMember.userId == MainAppContext.shared.userData.userId, xmppGroup.retryCount == 0 {
+            if xmppGroupMember.action == .add, xmppGroupMember.userId == MainAppContext.shared.userData.userId {
                 showGroupAddNotification(for: xmppGroup)
             }
         }

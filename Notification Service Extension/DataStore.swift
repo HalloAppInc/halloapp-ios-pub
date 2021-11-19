@@ -232,6 +232,16 @@ class DataStore: NotificationServiceExtensionDataStore {
         }
     }
 
+    func saveServerMsg(contentId: String, serverMsgPb: Data) {
+        DDLogInfo("NotificationExtension/DataStore/saveServerMsg, contentId: \(contentId)")
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let serverMsg = NSEntityDescription.insertNewObject(forEntityName: "SharedServerMessage", into: managedObjectContext) as! SharedServerMessage
+            serverMsg.msg = serverMsgPb
+            serverMsg.timestamp = Date()
+            self.save(managedObjectContext)
+        }
+    }
+
     func insertSharedMedia(for mediaData: XMPPChatMedia, index: Int, into managedObjectContext: NSManagedObjectContext) -> SharedMedia {
         let chatMedia = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
         chatMedia.type = {

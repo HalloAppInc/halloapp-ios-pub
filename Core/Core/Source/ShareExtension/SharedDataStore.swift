@@ -172,7 +172,7 @@ open class SharedDataStore {
     public final func serverMessages() -> [SharedServerMessage] {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedServerMessage> = SharedServerMessage.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedServerMessage.timestamp, ascending: false)]
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedServerMessage.timestamp, ascending: true)]
         
         do {
             let messages = try managedObjectContext.fetch(fetchRequest)

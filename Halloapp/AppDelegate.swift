@@ -16,6 +16,8 @@ import FirebaseCrashlytics
 import Reachability
 import UIKit
 
+// App in the background can run upto 30 seconds in most cases and 10 seconds should usually be good enough.
+fileprivate let backgroundProcessingTimeSec = 25.0
 fileprivate let BackgroundFeedRefreshTaskIdentifier = "com.halloapp.hallo.feed.refresh"
 
 @UIApplicationMain
@@ -135,10 +137,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // Delete content on notifications if server asks us to delete a push.
         if let metadata = NotificationMetadata.initialize(userInfo: userInfo, userData: MainAppContext.shared.userData) {
-            if let pushId = metadata.messageId {
-                DDLogInfo("application/background-push/observe event, identifier: \(pushId)")
-                AppContext.shared.observeAndSave(event: .pushReceived(id: pushId, timestamp: Date()))
-            }
+            let pushId = metadata.messageId
+            // TODO: this is not nice anymore: we should come up with a different way to report these push stats.
+            DDLogInfo("application/background-push/observe event, identifier: \(pushId)")
+            AppContext.shared.observeAndSave(event: .pushReceived(id: pushId, timestamp: Date()))
             if metadata.isRetractNotification {
                 let contentId = metadata.contentId
                 DDLogInfo("application/background-push/retract notification, identifier: \(contentId)")
@@ -158,9 +160,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
             DDLogInfo("application/background-push/connected")
 
-            // Disconnect gracefully after 10 seconds, which should be enough to finish processing.
-            // TODO: disconnect immediately after receiving "offline marker".
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+            // Disconnect gracefully after a few seconds, which should be enough to finish processing.
+            DispatchQueue.main.asyncAfter(deadline: .now() + backgroundProcessingTimeSec) {
                 // Make sure to check if the app is still backgrounded.
                 if application.applicationState == .background {
                     DDLogInfo("application/background-push/disconnect")
@@ -271,8 +272,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return
         }
 
-        task.expirationHandler = {
+        task.expirationHandler = { [weak self] in
+            guard let self = self else { return }
             DDLogError("application/bg-feed-refresh Expiration handler")
+            self.taskFinishCompletionBlock(task: task)
         }
         
         MainAppContext.shared.mergeSharedData()
@@ -287,30 +290,34 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 task.setTaskCompleted(success: true)
                 return
             }
-
             DDLogInfo("application/bg-feed-refresh/connected")
 
-            // Disconnect gracefully after 3 seconds, which should be enough to finish processing.
-            // TODO: disconnect immediately after receiving "offline marker".
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                // Make sure to check if the app is still backgrounded.
-                if application.applicationState == .background {
-                    DDLogInfo("application/bg-feed-refresh/disconnect")
-                    service.disconnect()
-
-                    // Finish bg task once we're disconnected.
-                    service.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
-                        DDLogInfo("application/bg-feed-refresh/complete")
-                        task.setTaskCompleted(success: true)
-                    }
-                } else {
-                    task.setTaskCompleted(success: true)
-                }
+            // Disconnect gracefully after a few seconds, which should be enough to finish processing.
+            DispatchQueue.main.asyncAfter(deadline: .now() + backgroundProcessingTimeSec) { [self] in
+                taskFinishCompletionBlock(task: task)
             }
         }
 
         // Schedule next bg fetch.
         scheduleFeedRefresh(after: Date.hours(2))
+    }
+
+    private func taskFinishCompletionBlock(task: BGAppRefreshTask) {
+        let application = UIApplication.shared
+        let service = MainAppContext.shared.service
+        // Make sure to check if the app is still backgrounded.
+        if application.applicationState == .background {
+            DDLogInfo("application/bg-feed-refresh/disconnect")
+            service.disconnect()
+
+            // Finish bg task once we're disconnected.
+            service.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
+                DDLogInfo("application/bg-feed-refresh/complete")
+                task.setTaskCompleted(success: true)
+            }
+        } else {
+            task.setTaskCompleted(success: true)
+        }
     }
 
     // MARK: Background Connection Task
