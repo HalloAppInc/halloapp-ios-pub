@@ -1400,10 +1400,6 @@ extension ProtoServiceCore: CoreService {
     public func getGroupMemberIdentityKeys(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupStanza>) {
         enqueue(request: ProtoGroupMemberKeysRequest(groupID: groupID, completion: completion))
     }
-        
-    public func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoWhisperUploadRequest(keyBundle: bundle, completion: completion))
-    }
 
     public func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoWhisperAddOneTimeKeysRequest(preKeys: keys, completion: completion))
