@@ -83,9 +83,8 @@ final class NewPostViewController: UIViewController {
         didFinish(didPost)
     }
 
-    private func didFinishPickingMedia(showAddMoreMediaButton: Bool = true) {
-        containedNavigationController.pushViewController(
-            makeComposerViewController(showAddMoreMediaButton: showAddMoreMediaButton), animated: true)
+    private func didFinishPickingMedia() {
+        containedNavigationController.pushViewController(makeComposerViewController(), animated: true)
     }
 
     private func makeNavigationController() -> UINavigationController {
@@ -99,9 +98,8 @@ final class NewPostViewController: UIViewController {
         }
     }
 
-    private func makeComposerViewController(showAddMoreMediaButton: Bool = true) -> UIViewController {
+    private func makeComposerViewController() -> UIViewController {
         var configuration: PostComposerViewConfiguration = .userPost
-        configuration.showAddMoreMediaButton = showAddMoreMediaButton
         var recipientName: String? = nil
         if case .groupFeed(let groupId) = destination {
             configuration = .groupPost(id: groupId)
@@ -163,7 +161,7 @@ final class NewPostViewController: UIViewController {
 
         pendingMedia.append(mediaToPost)
         state.pendingMedia = pendingMedia
-        didFinishPickingMedia(showAddMoreMediaButton: false)
+        didFinishPickingMedia()
     }
 
     private func onCameraVideoPicked(_ videoURL: URL) {
@@ -174,7 +172,7 @@ final class NewPostViewController: UIViewController {
 
         pendingMedia.append(mediaToPost)
         state.pendingMedia = pendingMedia
-        didFinishPickingMedia(showAddMoreMediaButton: false)
+        didFinishPickingMedia()
     }
 }
 

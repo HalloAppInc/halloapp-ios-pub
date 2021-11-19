@@ -621,6 +621,9 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         let manager = PHImageManager.default()
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
+
+            // keep in-app camera media
+            result.append(contentsOf: self.originalMedia.filter { $0.asset == nil })
             
             for i in 0..<self.selected.count {
                 let asset = self.selected[i]
