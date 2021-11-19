@@ -3228,6 +3228,9 @@ extension ChatData {
         }
     }
 
+    // TODO: murali@: Why are we syncing after every group event.
+    // This is very inefficient: we should not be doing this!
+    // We should just follow our own state of groupEvents and do a weekly sync of all our groups.
     public func getAndSyncGroup(groupId: GroupID) {
         DDLogDebug("ChatData/group/getAndSyncGroupInfo/group \(groupId)")
         service.getGroupInfo(groupID: groupId) { [weak self] result in
@@ -3241,7 +3244,9 @@ extension ChatData {
                     switch reason {
                     case "not_member":
                         DDLogInfo("ChatData/group/getGroupInfo/error/not_member/removing user")
-                        self.deleteChatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId)
+                        self.performSeriallyOnBackgroundContext { context in
+                            self.deleteChatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId, in: context)
+                        }
                     default:
                         DDLogError("ChatData/group/getGroupInfo/error \(error)")
                     }
@@ -3651,24 +3656,20 @@ extension ChatData {
         }
     }
 
-    func deleteChatGroupMember(groupId: GroupID, memberUserId: UserID) {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
-            let fetchRequest = NSFetchRequest<ChatGroupMember>(entityName: ChatGroupMember.entity().name!)
-            fetchRequest.predicate = NSPredicate(format: "groupId = %@ && userId = %@", groupId, memberUserId)
+    func deleteChatGroupMember(groupId: GroupID, memberUserId: UserID, in managedObjectContext: NSManagedObjectContext) {
+        let fetchRequest = NSFetchRequest<ChatGroupMember>(entityName: ChatGroupMember.entity().name!)
+        fetchRequest.predicate = NSPredicate(format: "groupId = %@ && userId = %@", groupId, memberUserId)
 
-            do {
-                let chatGroupMembers = try managedObjectContext.fetch(fetchRequest)
-                DDLogInfo("ChatData/group/deleteChatGroupMember/begin count=[\(chatGroupMembers.count)]")
-                chatGroupMembers.forEach {
-                    managedObjectContext.delete($0)
-                }
+        do {
+            let chatGroupMembers = try managedObjectContext.fetch(fetchRequest)
+            DDLogInfo("ChatData/group/deleteChatGroupMember/begin count=[\(chatGroupMembers.count)]")
+            chatGroupMembers.forEach {
+                managedObjectContext.delete($0)
             }
-            catch {
-                DDLogError("ChatData/group/deleteChatGroupMember/error  [\(error)]")
-                return
-            }
-            self.save(managedObjectContext)
+        }
+        catch {
+            DDLogError("ChatData/group/deleteChatGroupMember/error  [\(error)]")
+            return
         }
     }
 
@@ -3940,7 +3941,7 @@ extension ChatData {
         for xmppGroupMember in xmppGroup.members ?? [] {
             DDLogDebug("ChatData/group/process/new/leave-member [\(xmppGroupMember.userId)]")
             guard xmppGroupMember.action == .leave else { continue }
-            deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
+            deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId, in: managedObjectContext)
             
             recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
 
@@ -3982,7 +3983,7 @@ extension ChatData {
                 processGroupAddMemberAction(chatGroup: group, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
             case .remove:
                 membersRemoved.append(xmppGroupMember.userId)
-                deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
+                deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId, in: managedObjectContext)
             case .promote:
                 if let foundMember = group.members?.first(where: { $0.userId == xmppGroupMember.userId }) {
                     foundMember.type = .admin
