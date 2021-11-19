@@ -101,6 +101,8 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
                 self.selected.remove(at: idx)
                 self.updateNextBtn()
                 self.updateSelectionRow()
+                self.tableView.reloadData()
+                self.reloadSelection()
             }
 
             return cell
@@ -598,7 +600,32 @@ fileprivate class SelectionViewCell: UICollectionViewCell {
     public var removeAction: (() -> ())?
     private var cancellable: AnyCancellable?
 
-    private var avatar: UIImageView = {
+
+    private lazy var homeView: UIView = {
+        let icon = UIImage(named: "HomeFill")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+        let imageView = UIImageView(image: icon)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.backgroundColor = .avatarDefaultBg
+        container.layer.cornerRadius = 24
+        container.clipsToBounds = true
+
+        container.addSubview(imageView)
+
+        container.widthAnchor.constraint(equalToConstant: 48).isActive = true
+        container.heightAnchor.constraint(equalTo: container.widthAnchor).isActive = true
+        imageView.widthAnchor.constraint(equalToConstant: 36).isActive = true
+        imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor).isActive = true
+        imageView.centerXAnchor.constraint(equalTo: container.centerXAnchor).isActive = true
+        imageView.centerYAnchor.constraint(equalTo: container.centerYAnchor).isActive = true
+
+        return container
+    }()
+
+    private lazy var avatar: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.layer.cornerRadius = 24
@@ -636,10 +663,13 @@ fileprivate class SelectionViewCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
+        contentView.addSubview(homeView)
         contentView.addSubview(avatar)
         contentView.addSubview(title)
         contentView.addSubview(removeButton)
 
+        homeView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
+        homeView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8).isActive = true
         avatar.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
         avatar.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8).isActive = true
         title.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
@@ -658,9 +688,16 @@ fileprivate class SelectionViewCell: UICollectionViewCell {
         }
     }
 
-    public func configure(_ text: String) {
+    override func prepareForReuse() {
+        super.prepareForReuse()
         cancellable?.cancel()
+        avatar.isHidden = true
+        homeView.isHidden = true
+    }
+
+    public func configure(_ text: String) {
         title.text = text
+        homeView.isHidden = false
     }
 
     public func configure(_ group: GroupListItem) {
@@ -672,6 +709,7 @@ fileprivate class SelectionViewCell: UICollectionViewCell {
 
     public func configure(_ contact: ABContact) {
         title.text = contact.fullName
+        avatar.isHidden = false
 
         if let id = contact.userId {
             loadAvatar(user: id)

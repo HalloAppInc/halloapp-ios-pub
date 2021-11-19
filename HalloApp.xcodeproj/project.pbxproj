@@ -363,6 +363,7 @@
 		F881ED77261B1F6F0013599F /* Upload+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = F881ED75261B1F6F0013599F /* Upload+CoreDataProperties.swift */; };
 		F88A5CD927145F0800DFA205 /* PostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88A5CD827145F0800DFA205 /* PostViewController.swift */; };
 		F893C86F25E5213000068F00 /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893C86E25E5213000068F00 /* VideoView.swift */; };
+		F8B0F7612745785400235CCF /* ShareDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8B0F7602745785400235CCF /* ShareDataLoader.swift */; };
 		F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */; };
 		F8DA6F38252370BE007833A7 /* MediaExplorerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */; };
 		F8DFCD88262EF4C0003F850F /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCD87262EF4C0003F850F /* ShareViewController.swift */; };
@@ -987,6 +988,7 @@
 		F881ED75261B1F6F0013599F /* Upload+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Upload+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		F88A5CD827145F0800DFA205 /* PostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostViewController.swift; sourceTree = "<group>"; };
 		F893C86E25E5213000068F00 /* VideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
+		F8B0F7602745785400235CCF /* ShareDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareDataLoader.swift; sourceTree = "<group>"; };
 		F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaEditViewController.swift; sourceTree = "<group>"; };
 		F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerController.swift; sourceTree = "<group>"; };
 		F8DFCD87262EF4C0003F850F /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
@@ -1128,6 +1130,7 @@
 				24009EB924BE3FA200155DE2 /* ShareDestinationViewController.swift */,
 				24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */,
 				F8DFCD87262EF4C0003F850F /* ShareViewController.swift */,
+				F8B0F7602745785400235CCF /* ShareDataLoader.swift */,
 			);
 			path = "Share Extension";
 			sourceTree = "<group>";
@@ -2592,6 +2595,7 @@
 				EAAFC9F02708267C004EAE29 /* HAMarkdown.swift in Sources */,
 				2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */,
 				F86919E026395EB300B01306 /* UIFont.swift in Sources */,
+				F8B0F7612745785400235CCF /* ShareDataLoader.swift in Sources */,
 				E598D4C2265F0558001A436A /* ConversationID.swift in Sources */,
 				76B5B524250086330055E712 /* UIColor.swift in Sources */,
 				2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */,
