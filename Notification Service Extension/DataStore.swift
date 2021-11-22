@@ -300,6 +300,30 @@ class DataStore: NotificationServiceExtensionDataStore {
                     }
                 case .text(let text):
                     chatMessage.text = text.text
+                    // Add link previews
+                    var linkPreviews: Set<SharedFeedLinkPreview> = []
+                    text.linkPreviewData.forEach { linkPreviewData in
+                        DDLogDebug("NotificationExtension/DataStore/new-chat/add-link-preview [\(linkPreviewData.url)]")
+                        let linkPreview = NSEntityDescription.insertNewObject(forEntityName: SharedFeedLinkPreview.entity().name!, into: managedObjectContext) as! SharedFeedLinkPreview
+                        linkPreview.id = PacketID.generate()
+                        linkPreview.url = linkPreviewData.url
+                        linkPreview.title = linkPreviewData.title
+                        linkPreview.desc = linkPreviewData.description
+                        // Set preview image if present
+                        linkPreviewData.previewImages.forEach { previewMedia in
+                            let media = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
+                            media.type = previewMedia.type
+                            media.status = .none
+                            media.url = previewMedia.url
+                            media.size = previewMedia.size
+                            media.key = previewMedia.key
+                            media.sha256 = previewMedia.sha256
+                            media.linkPreview = linkPreview
+                        }
+                        linkPreviews.insert(linkPreview)
+                    }
+                    chatMessage.linkPreviews = linkPreviews
+
                 case .contactCard:
                     DDLogInfo("SharedDataStore/message/\(messageId)/unsupported [contact]")
                 case .voiceNote(let voiceNote):

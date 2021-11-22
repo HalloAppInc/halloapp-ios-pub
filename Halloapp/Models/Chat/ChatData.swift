@@ -1223,6 +1223,57 @@ class ChatData: ObservableObject {
                 chatMessage.text = message.text
             }
 
+            // Process link preview if present
+            var linkPreviews = Set<ChatLinkPreview>()
+            message.linkPreviews?.forEach { chatLinkPreview in
+                DDLogDebug("ChatData/mergeSharedData/message/add-link-preview [\(String(describing: chatLinkPreview.url))]")
+
+            let linkPreview = NSEntityDescription.insertNewObject(forEntityName: ChatLinkPreview.entity().name!, into: managedObjectContext) as! ChatLinkPreview
+            linkPreview.id = PacketID.generate()
+            linkPreview.url = chatLinkPreview.url
+            linkPreview.title = chatLinkPreview.title
+            linkPreview.desc = chatLinkPreview.desc
+            // Set preview image if present
+            chatLinkPreview.media?.forEach { sharedPreviewMedia in
+                DDLogInfo("ChatData/mergeSharedData/message/\(messageId)/add-link-preview-media [\(sharedPreviewMedia)], status: \(sharedPreviewMedia.status)")
+                let chatMedia = ChatMedia(context: managedObjectContext)
+                    // set incoming and outgoing status.
+                    switch sharedPreviewMedia.status {
+                    case .none:
+                        chatMedia.incomingStatus = isIncomingMsg ? .pending : .none
+                        chatMedia.outgoingStatus = .none
+                    case .downloaded:
+                        chatMedia.incomingStatus = .downloaded
+                        chatMedia.outgoingStatus = .none
+                    case .uploaded:
+                        chatMedia.incomingStatus = .none
+                        chatMedia.outgoingStatus = .uploaded
+                    case .error, .uploading:
+                        chatMedia.incomingStatus = .none
+                        chatMedia.outgoingStatus = .error
+                    }
+                    chatMedia.url = sharedPreviewMedia.url
+                    chatMedia.uploadUrl = sharedPreviewMedia.uploadUrl
+                    chatMedia.size = sharedPreviewMedia.size
+                    chatMedia.key = sharedPreviewMedia.key
+                    chatMedia.order = sharedPreviewMedia.order
+                    chatMedia.sha256 = sharedPreviewMedia.sha256
+                    if let relativeFilePath = sharedPreviewMedia.relativeFilePath {
+                        do {
+                            let sourceUrl = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
+                            let encryptedFileUrl = chatMedia.outgoingStatus == .error ? sourceUrl.appendingPathExtension("enc") : nil
+                            DDLogInfo("ChatData/mergeSharedData/link-preview-media/\(messageId)/sourceUrl: \(sourceUrl), encryptedFileUrl: \(encryptedFileUrl?.absoluteString ?? "[nil]"), \(sharedPreviewMedia.status)")
+                            try copyFiles(toChatMedia: chatMedia, fileUrl: sourceUrl, encryptedFileUrl: encryptedFileUrl)
+                        } catch {
+                            DDLogError("ChatData/mergeSharedData/link-preview-media/copy-media/error [\(error)]")
+                        }
+                    }
+                    chatMedia.linkPreview = linkPreview
+                    linkPreview.message = chatMessage
+                }
+                linkPreviews.insert(linkPreview)
+            }
+
             var lastMsgMediaType: ChatThread.LastMediaType = .none
             message.media?.forEach { media in
                 DDLogInfo("ChatData/mergeSharedData/message/\(messageId)/add-media [\(media)], status: \(media.status)")
@@ -1356,6 +1407,7 @@ class ChatData: ObservableObject {
         processPendingChatMsgs()
         // download chat message media
         processInboundPendingChatMsgMedia()
+        processInboundPendingChaLinkPreviewMedia()
 
         DDLogInfo("ChatData/mergeSharedData/finished")
 
