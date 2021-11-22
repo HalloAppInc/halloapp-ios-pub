@@ -69,9 +69,13 @@
 		68F935BD252BED9A00FA6E75 /* EventMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935BB252BED9900FA6E75 /* EventMonitor.swift */; };
 		68F9361C252E759200FA6E75 /* CommonEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F9361B252E759200FA6E75 /* CommonEvents.swift */; };
 		6A00887F264B3D6200A2353D /* PersistentHistoryTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A00887E264B3D6200A2353D /* PersistentHistoryTracker.swift */; };
+		6A087B952745722F00BC337B /* PushNotifications.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 6A087B932745722F00BC337B /* PushNotifications.xcdatamodeld */; };
 		6A1B25272630BD0600D8BC60 /* CrashlyticsLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1B25262630BD0600D8BC60 /* CrashlyticsLogger.swift */; };
 		6A3630B7260AA3AE0032DB5B /* SharedFeedComment+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A3630B6260AA3AE0032DB5B /* SharedFeedComment+CoreDataProperties.swift */; };
 		6A3630BA260AA3C20032DB5B /* SharedFeedComment+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A3630B9260AA3C20032DB5B /* SharedFeedComment+CoreDataClass.swift */; };
+		6A5729772745885500E02BAC /* NotificationStatus+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5729752745885500E02BAC /* NotificationStatus+CoreDataClass.swift */; };
+		6A5729782745885500E02BAC /* NotificationStatus+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5729762745885500E02BAC /* NotificationStatus+CoreDataProperties.swift */; };
+		6A57297A2745C51100E02BAC /* NotificationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5729792745C51100E02BAC /* NotificationStore.swift */; };
 		6A958D7D270764E6007C89C6 /* SenderStateBundle+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A958D77270764E6007C89C6 /* SenderStateBundle+CoreDataClass.swift */; };
 		6A958D7E270764E6007C89C6 /* SenderStateBundle+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A958D78270764E6007C89C6 /* SenderStateBundle+CoreDataProperties.swift */; };
 		6A958D7F270764E6007C89C6 /* GroupMessageKey+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A958D79270764E6007C89C6 /* GroupMessageKey+CoreDataClass.swift */; };
@@ -193,9 +197,13 @@
 		68F935BB252BED9900FA6E75 /* EventMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventMonitor.swift; sourceTree = "<group>"; };
 		68F9361B252E759200FA6E75 /* CommonEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonEvents.swift; sourceTree = "<group>"; };
 		6A00887E264B3D6200A2353D /* PersistentHistoryTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentHistoryTracker.swift; sourceTree = "<group>"; };
+		6A087B942745722F00BC337B /* PushNotifications.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PushNotifications.xcdatamodel; sourceTree = "<group>"; };
 		6A1B25262630BD0600D8BC60 /* CrashlyticsLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsLogger.swift; sourceTree = "<group>"; };
 		6A3630B6260AA3AE0032DB5B /* SharedFeedComment+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedComment+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6A3630B9260AA3C20032DB5B /* SharedFeedComment+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedComment+CoreDataClass.swift"; sourceTree = "<group>"; };
+		6A5729752745885500E02BAC /* NotificationStatus+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotificationStatus+CoreDataClass.swift"; sourceTree = "<group>"; };
+		6A5729762745885500E02BAC /* NotificationStatus+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotificationStatus+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		6A5729792745C51100E02BAC /* NotificationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationStore.swift; sourceTree = "<group>"; };
 		6A958D77270764E6007C89C6 /* SenderStateBundle+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SenderStateBundle+CoreDataClass.swift"; path = "Core/Source/Chat/SenderStateBundle+CoreDataClass.swift"; sourceTree = "<group>"; };
 		6A958D78270764E6007C89C6 /* SenderStateBundle+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SenderStateBundle+CoreDataProperties.swift"; path = "Core/Source/Chat/SenderStateBundle+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6A958D79270764E6007C89C6 /* GroupMessageKey+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "GroupMessageKey+CoreDataClass.swift"; path = "Core/Source/Chat/GroupMessageKey+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -375,6 +383,17 @@
 			path = Monitoring;
 			sourceTree = "<group>";
 		};
+		6A087B92274571FE00BC337B /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				6A5729752745885500E02BAC /* NotificationStatus+CoreDataClass.swift */,
+				6A5729762745885500E02BAC /* NotificationStatus+CoreDataProperties.swift */,
+				6A087B932745722F00BC337B /* PushNotifications.xcdatamodeld */,
+				6A5729792745C51100E02BAC /* NotificationStore.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
 		6AB4BBB726EFD7A0006D66AD /* MediaHash */ = {
 			isa = PBXGroup;
 			children = (
@@ -445,6 +464,7 @@
 		768123CF2485DA8B008C5216 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				6A087B92274571FE00BC337B /* Notifications */,
 				321A70092704E511005603B8 /* LinkPreview */,
 				6AB4BBB726EFD7A0006D66AD /* MediaHash */,
 				246A8B7824902A2200CE0429 /* Avatars */,
@@ -741,6 +761,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				68567EE326C49BE200A3800F /* CryptoStats.xcdatamodeld in Sources */,
+				6A5729772745885500E02BAC /* NotificationStatus+CoreDataClass.swift in Sources */,
+				6A5729782745885500E02BAC /* NotificationStatus+CoreDataProperties.swift in Sources */,
 				327334F32672A5C3006E31E5 /* Locale.swift in Sources */,
 				EAAE7B4924DD2C3000946B77 /* UserKeyBundle+CoreDataClass.swift in Sources */,
 				6AB4BBBE26EFDBF7006D66AD /* MediaHashStore.swift in Sources */,
@@ -756,6 +778,7 @@
 				68567EE026C493C800A3800F /* MessageDecryption+CoreDataClass.swift in Sources */,
 				6AB4BBBA26EFD7CF006D66AD /* MediaHash.xcdatamodeld in Sources */,
 				321A7019270505A9005603B8 /* SharedFeedLinkPreview+CoreDataProperties.swift in Sources */,
+				6A087B952745722F00BC337B /* PushNotifications.xcdatamodeld in Sources */,
 				68DB8E6D264AF67E0082AEC2 /* SharedServerMessage+CoreDataClass.swift in Sources */,
 				76451C4C25479E5400B9E268 /* Localizations.swift in Sources */,
 				EAAE7B3924DCDEBB00946B77 /* KeyStore.swift in Sources */,
@@ -833,6 +856,7 @@
 				76C7429624A155E900C7D945 /* FeedDownloadManager.swift in Sources */,
 				249028A024C5DFDE0019C4D5 /* Media+CoreDataClass.swift in Sources */,
 				6832F50324FEE9CB00A9C202 /* CoreService.swift in Sources */,
+				6A57297A2745C51100E02BAC /* NotificationStore.swift in Sources */,
 				327334F02672A2EA006E31E5 /* RegistrationService.swift in Sources */,
 				7681241F2486C178008C5216 /* String.swift in Sources */,
 				76812405248614BA008C5216 /* XMPPFeed.swift in Sources */,
@@ -1302,6 +1326,16 @@
 			currentVersion = 683DFA1F26C1D80400F99557 /* CryptoStats.xcdatamodel */;
 			path = CryptoStats.xcdatamodeld;
 			sourceTree = "<group>";
+		};
+		6A087B932745722F00BC337B /* PushNotifications.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				6A087B942745722F00BC337B /* PushNotifications.xcdatamodel */,
+			);
+			currentVersion = 6A087B942745722F00BC337B /* PushNotifications.xcdatamodel */;
+			path = PushNotifications.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
 		};
 		6AB4BBB826EFD7CF006D66AD /* MediaHash.xcdatamodeld */ = {
 			isa = XCVersionGroup;

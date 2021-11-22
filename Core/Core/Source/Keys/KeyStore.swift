@@ -239,7 +239,16 @@ open class KeyStore {
     }
 
     public func groupSessionKeyBundle(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext? = nil) -> GroupSessionKeyBundle? {
-        return groupSessionKeyBundle(predicate: NSPredicate(format: "groupId == %@", groupID), in: managedObjectContext)
+        let groupPredicate = NSPredicate(format: "groupId == %@", groupID)
+        if let managedObjectContext = managedObjectContext {
+            return groupSessionKeyBundle(predicate: groupPredicate, in: managedObjectContext)
+        } else {
+            var groupKeyBundle: GroupSessionKeyBundle? = nil
+            performOnBackgroundContextAndWait { context in
+                groupKeyBundle = groupSessionKeyBundle(predicate: groupPredicate, in: managedObjectContext)
+            }
+            return groupKeyBundle
+        }
     }
     
     // MARK: Deleting

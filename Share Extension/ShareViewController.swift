@@ -104,6 +104,11 @@ class ShareViewController: UINavigationController {
         setViewControllers([ShareDestinationViewController()], animated: false)
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        ShareDataLoader.shared.load(from: extensionContext)
+    }
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

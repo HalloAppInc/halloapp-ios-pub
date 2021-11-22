@@ -18,14 +18,14 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
 
     private let spaceBetweenPages: CGFloat = 20
 
-    public var scrollView: UIScrollView!
+    public weak var scrollView: UIScrollView?
 
     private var originalOffset = CGPoint.zero
     private var imageConstraints: [NSLayoutConstraint] = []
     private var imageViewWidth: CGFloat = .zero
     private var imageViewHeight: CGFloat = .zero
     private var scale: CGFloat = 1
-    private var animator: UIDynamicAnimator!
+    private var animator: UIDynamicAnimator?
 
     private var width: CGFloat {
         imageViewWidth * scale
@@ -190,7 +190,7 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
         imageView.center = CGPoint(x: contentView.bounds.midX, y: contentView.bounds.midY)
         scale = 1
         originalOffset = CGPoint.zero
-        animator.removeAllBehaviors()
+        animator?.removeAllBehaviors()
     }
 
     // perform zoom & drag simultaneously
@@ -199,11 +199,13 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
     }
 
     @objc func onZoom(sender: UIPinchGestureRecognizer) {
+        guard let scrollView = scrollView else { return }
+
         if sender.state == .began {
             originalOffset = scrollView.contentOffset
 
             let temp = imageView.center
-            animator.removeAllBehaviors()
+            animator?.removeAllBehaviors()
             imageView.center = temp
         }
 
@@ -236,11 +238,13 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
     }
 
     @objc func onDrag(sender: UIPanGestureRecognizer) {
+        guard let scrollView = scrollView else { return }
+
         if sender.state == .began {
             originalOffset = scrollView.contentOffset
 
             let temp = imageView.center
-            animator.removeAllBehaviors()
+            animator?.removeAllBehaviors()
             imageView.center = temp
         }
 
@@ -289,7 +293,7 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
 
     @objc func onDoubleTapAction(sender: UITapGestureRecognizer) {
         let temp = imageView.center
-        animator.removeAllBehaviors()
+        animator?.removeAllBehaviors()
         imageView.center = temp
 
         let center: CGPoint
@@ -341,6 +345,8 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
     }
 
     private func shouldScrollPage(velocity: CGFloat) -> Bool {
+        guard let scrollView = scrollView else { return false }
+
         let offset = originalOffset.x + scrollView.frame.width * (velocity > 0 ? -1 : 1)
         if offset >= 0 && offset < scrollView.contentSize.width {
             let diff = scrollView.contentOffset.x - originalOffset.x
@@ -351,6 +357,8 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
     }
 
     private func scrollPage(velocity: CGFloat) {
+        guard let scrollView = scrollView else { return }
+
         let offset = originalOffset.x + scrollView.frame.width * (velocity > 0 ? -1 : 1)
 
         if offset >= 0 && offset < scrollView.contentSize.width {
@@ -358,8 +366,8 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
             let duration = min(TimeInterval(abs(distance / velocity)), 0.3)
 
             UIView.animate(withDuration: duration) {
-                self.scrollView.setContentOffset(CGPoint(x: offset, y: self.originalOffset.y), animated: false)
-                self.scrollView.layoutIfNeeded()
+                scrollView.setContentOffset(CGPoint(x: offset, y: self.originalOffset.y), animated: false)
+                scrollView.layoutIfNeeded()
             }
         }
     }
@@ -397,11 +405,11 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
             guard let self = self else { return }
             self.imageView.transform = CGAffineTransform(scaleX: self.scale, y: self.scale)
         }
-        animator.addBehavior(dynamicBehavior)
+        animator?.addBehavior(dynamicBehavior)
 
         let boundaries = CGRect(x: boundMinX, y: boundMinY, width: boundMaxX - boundMinX, height: boundMaxY - boundMinY)
         let collisionBehavior = UICollisionBehavior(items: [imageView])
         collisionBehavior.addBoundary(withIdentifier: NSString("boundaries"), for: UIBezierPath(rect: boundaries))
-        animator.addBehavior(collisionBehavior)
+        animator?.addBehavior(collisionBehavior)
     }
 }

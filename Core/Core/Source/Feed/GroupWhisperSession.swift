@@ -682,54 +682,57 @@ final class GroupWhisperSession {
     }
 
     private func loadFromKeyStore(for groupID: GroupID) -> GroupWhisperState {
-        guard let groupSessionKeyBundle = keyStore.groupSessionKeyBundle(for: groupID) else {
-            return .awaitingSetup(attempts: 0, incomingSession: GroupIncomingSession(senderStates: [:]))
-        }
-
-        let ownUserID = AppContext.shared.userData.userId
-
-        // Obtain all senderStates including own copy.
-        var memberSenderStates: [UserID: GroupIncomingSenderState] = [:]
-        groupSessionKeyBundle.senderStates?.forEach{ senderState in
-            var messageKeys: [Int32: Data] = [:]
-            senderState.messageKeys?.forEach { groupMessageKey in
-                messageKeys[groupMessageKey.chainIndex] = groupMessageKey.messageKey
+        var localState: GroupWhisperState = .awaitingSetup(attempts: 0, incomingSession: GroupIncomingSession(senderStates: [:]))
+        keyStore.performOnBackgroundContextAndWait { context in
+            guard let groupSessionKeyBundle = keyStore.groupSessionKeyBundle(for: groupID, in: context) else {
+                return
             }
-            let senderKey = GroupSenderKey(chainKey: senderState.chainKey,
-                                           publicSignatureKey: senderState.publicSignatureKey)
-            let incomingSenderState = GroupIncomingSenderState(senderKey: senderKey,
-                                                               currentChainIndex: Int(senderState.currentChainIndex),
-                                                               unusedMessageKeys: messageKeys)
-            memberSenderStates[senderState.userId] = incomingSenderState
-        }
 
-        // First setup outgoingSession if available.
-        var outgoingSession: GroupOutgoingSession? = nil
-        if let ownSenderState = memberSenderStates[ownUserID],
-           let signKey = groupSessionKeyBundle.privateSignatureKey,
-           !signKey.isEmpty {
-            let audienceHash = groupSessionKeyBundle.audienceHash ?? nil
-            outgoingSession = GroupOutgoingSession(audienceHash: audienceHash, senderKey: ownSenderState.senderKey, currentChainIndex: ownSenderState.currentChainIndex, privateSigningKey: signKey)
-        }
+            let ownUserID = AppContext.shared.userData.userId
 
-        // Remove our own senderState and setup incomingSession
-        memberSenderStates.removeValue(forKey: ownUserID)
-        let incomingSession = GroupIncomingSession(senderStates: memberSenderStates)
-
-        if let outgoingSession = outgoingSession {
-            // Creating groupKeyBundle
-            let groupKeyBundle = GroupKeyBundle(outgoingSession: outgoingSession, incomingSession: incomingSession, pendingUids: groupSessionKeyBundle.pendingUserIds)
-            switch groupSessionKeyBundle.state {
-            case .awaitingSetup:
-                return .awaitingSetup(attempts: 0, incomingSession: incomingSession)
-            case .ready:
-                return .ready(keyBundle: groupKeyBundle)
+            // Obtain all senderStates including own copy.
+            var memberSenderStates: [UserID: GroupIncomingSenderState] = [:]
+            groupSessionKeyBundle.senderStates?.forEach{ senderState in
+                var messageKeys: [Int32: Data] = [:]
+                senderState.messageKeys?.forEach { groupMessageKey in
+                    messageKeys[groupMessageKey.chainIndex] = groupMessageKey.messageKey
+                }
+                let senderKey = GroupSenderKey(chainKey: senderState.chainKey,
+                                               publicSignatureKey: senderState.publicSignatureKey)
+                let incomingSenderState = GroupIncomingSenderState(senderKey: senderKey,
+                                                                   currentChainIndex: Int(senderState.currentChainIndex),
+                                                                   unusedMessageKeys: messageKeys)
+                memberSenderStates[senderState.userId] = incomingSenderState
             }
-        } else {
-            // Setup correctState accordingly and return
-            return .awaitingSetup(attempts: 0, incomingSession: incomingSession)
-        }
 
+            // First setup outgoingSession if available.
+            var outgoingSession: GroupOutgoingSession? = nil
+            if let ownSenderState = memberSenderStates[ownUserID],
+               let signKey = groupSessionKeyBundle.privateSignatureKey,
+               !signKey.isEmpty {
+                let audienceHash = groupSessionKeyBundle.audienceHash ?? nil
+                outgoingSession = GroupOutgoingSession(audienceHash: audienceHash, senderKey: ownSenderState.senderKey, currentChainIndex: ownSenderState.currentChainIndex, privateSigningKey: signKey)
+            }
+
+            // Remove our own senderState and setup incomingSession
+            memberSenderStates.removeValue(forKey: ownUserID)
+            let incomingSession = GroupIncomingSession(senderStates: memberSenderStates)
+
+            if let outgoingSession = outgoingSession {
+                // Creating groupKeyBundle
+                let groupKeyBundle = GroupKeyBundle(outgoingSession: outgoingSession, incomingSession: incomingSession, pendingUids: groupSessionKeyBundle.pendingUserIds)
+                switch groupSessionKeyBundle.state {
+                case .awaitingSetup:
+                    localState = .awaitingSetup(attempts: 0, incomingSession: incomingSession)
+                case .ready:
+                    localState = .ready(keyBundle: groupKeyBundle)
+                }
+            } else {
+                // Setup correctState accordingly and return
+                localState = .awaitingSetup(attempts: 0, incomingSession: incomingSession)
+            }
+        }
+        return localState
     }
 
     public func reloadKeysFromKeyStore() {

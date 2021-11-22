@@ -1655,7 +1655,6 @@ extension CommentInputView: AudioRecorderDelegate {
             self.textView.isHidden = false
             self.placeholder.isHidden = !self.textView.text.isEmpty
             self.postVoiceNoteButton.isHidden = true
-            self.hideKeyboard()
             self.updatePostButtons()
         }
     }

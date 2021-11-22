@@ -84,6 +84,17 @@ extension SharedMedia: FeedMediaProtocol {
     }
 }
 
+extension SharedMedia {
+    public var contentOwnerID: String? {
+        if let post = post {
+            return post.id
+        } else if let message = message {
+            return message.id
+        }
+        return nil
+    }
+}
+
 extension SharedMedia: ChatMediaProtocol {
     public var mediaType: ChatMessageMediaType {
         switch type {

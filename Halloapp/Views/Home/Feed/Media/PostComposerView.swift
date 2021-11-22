@@ -15,7 +15,6 @@ protocol PostComposerViewDelegate: AnyObject {
 struct PostComposerViewConfiguration {
     var titleMode: PostComposerViewController.TitleMode = .userPost
     var mentionableUsers: [MentionableUser]
-    var showAddMoreMediaButton = true
     var useTransparentNavigationBar = false
     var mediaCarouselMaxAspectRatio: CGFloat = 1.25
     var mediaEditMaxAspectRatio: CGFloat?
@@ -434,7 +433,6 @@ fileprivate struct PostComposerLayoutConstants {
 }
 
 fileprivate struct PostComposerView: View {
-    private let showAddMoreMediaButton: Bool
     private let mediaCarouselMaxAspectRatio: CGFloat
     private let maxVideoLength: TimeInterval
     @ObservedObject private var mediaItems: ObservableMediaItems
@@ -526,7 +524,6 @@ fileprivate struct PostComposerView: View {
         self.linkPreviewImage = linkPreviewImage
         self.mentionableUsers = mentionableUsers
         self.shouldAutoPlay = shouldAutoPlay
-        self.showAddMoreMediaButton = configuration.showAddMoreMediaButton
         self.mediaCarouselMaxAspectRatio = configuration.mediaCarouselMaxAspectRatio
         self.maxVideoLength = configuration.maxVideoLength
         self.crop = crop
@@ -639,17 +636,18 @@ fileprivate struct PostComposerView: View {
     var controls: some View {
         HStack {
             if keyboardHeight == 0 {
-                if showAddMoreMediaButton {
-                    Button(action: addMedia) {
-                        ControlIconView(imageLabel: "ComposerAddMedia")
-                    }.sheet(isPresented: $presentPicker) {
-                        picker
-                    }
+                Button(action: addMedia) {
+                    ControlIconView(imageLabel: "ComposerAddMedia")
+                }.sheet(isPresented: $presentPicker) {
+                    picker
                 }
+
                 Spacer()
+
                 Button(action: deleteMedia) {
                     ControlIconView(imageLabel: "ComposerDeleteMedia")
                 }
+
                 if mediaState.isReady && showCropButton {
                     Button(action: cropMedia) {
                         ControlIconView(imageLabel: "ComposerCropMedia")

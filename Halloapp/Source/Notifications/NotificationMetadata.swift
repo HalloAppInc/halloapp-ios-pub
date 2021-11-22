@@ -99,10 +99,11 @@ class NotificationMetadata: Codable {
     var fromId: UserID
     var timestamp: Date?
     var data: Data?
-    var messageId: String?
+    var messageId: String
     var pushName: String?
     var serverMsgPb: Data?
     var rerequestCount: Int32 = 0
+    var messageTypeRawValue: Int = Server_Msg.TypeEnum.normal.rawValue
 
     // Chat specific fields
     var pushNumber: String?
@@ -227,7 +228,8 @@ class NotificationMetadata: Codable {
         self.fromId = fromId
         self.timestamp = timestamp
         self.data = data
-        self.messageId = messageId
+        // messageId could be nil for local pushes when app is alive - in those cases: this field is not that important.
+        self.messageId = messageId ?? contentId
         self.pushName = pushName
     }
 
@@ -244,6 +246,7 @@ class NotificationMetadata: Codable {
         }
         messageId = msg.id
         rerequestCount = msg.rerequestCount
+        messageTypeRawValue = msg.type.rawValue
         switch msg.payload {
 
         case .contactList(let contactList):
@@ -268,7 +271,7 @@ class NotificationMetadata: Codable {
             }
             let contactUid = String(contact.uid)
             fromId = UserID(contactUid)
-            timestamp = nil
+            timestamp = Date()
             data = nil
             pushName = contact.name
             normalizedPhone = contact.normalized
@@ -383,15 +386,16 @@ class NotificationMetadata: Codable {
             contentId = chatRetractStanza.id
             contentType = .chatMessageRetract
             fromId = UserID(msg.fromUid)
-            timestamp = nil
+            timestamp = Date()
             data = nil
             pushName = nil
         case .groupStanza(let groupStanza):
-            if groupStanza.action == .modifyMembers || groupStanza.action == .create {
+            let addedToNewGroup = groupStanza.members.contains(where: { $0.action == .add && $0.uid == Int64(AppContext.shared.userData.userId) })
+            if addedToNewGroup {
                 contentId = msg.id
                 contentType = .groupAdd
                 fromId = UserID(groupStanza.senderUid)
-                timestamp = nil
+                timestamp = Date()
                 data = nil
                 pushName = nil
                 groupId = groupStanza.gid
@@ -407,7 +411,7 @@ class NotificationMetadata: Codable {
             messageId = msg.id
             contentType = .chatRerequest
             fromId = UserID(msg.fromUid)
-            timestamp = nil
+            timestamp = Date()
             data = nil
             pushName = nil
             return

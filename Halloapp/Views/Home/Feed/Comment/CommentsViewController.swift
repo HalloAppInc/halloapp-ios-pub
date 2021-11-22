@@ -57,7 +57,7 @@ private extension Localizations {
     }
 }
 
-class CommentsViewController: UITableViewController, CommentInputViewDelegate, NSFetchedResultsControllerDelegate, TextLabelDelegate {
+class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetchedResultsControllerDelegate, TextLabelDelegate, UITableViewDataSource, UITableViewDelegate {
 
     static private let cellReuseIdentifier = "CommentCell"
     static private let cellHighlightAnimationDuration = 0.15
@@ -79,6 +79,10 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     
     private var isCommentingEnabled: Bool = true
     private var isPostTextExpanded = false
+    
+    var tableView: UITableView {
+        return view as! UITableView
+    }
 
     var highlightedCommentId: FeedPostCommentID?
     private var replyContext: ReplyContext? {
@@ -107,7 +111,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     init(feedPostId: FeedPostID) {
         DDLogDebug("CommentsView/init/\(feedPostId)")
         self.feedPostId = feedPostId
-        super.init(style: .plain)
+        super.init(nibName: nil, bundle: nil)
         self.hidesBottomBarWhenPushed = true
     }
 
@@ -118,6 +122,13 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     deinit {
         postLoadingCancellable?.cancel()
         DDLogDebug("CommentsView/deinit/\(feedPostId)")
+    }
+    
+    override func loadView() {
+        let tableView = UITableView(frame: .zero, style: .plain)
+        tableView.dataSource = self
+        tableView.delegate = self
+        view = tableView
     }
 
     override func viewDidLoad() {
@@ -483,7 +494,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         }
     }
 
-    override func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         if let commentId = commentToHighlightAfterScrollingEnds{
             DDLogDebug("CommentsView/content-offset-change/animated/ended: [\(tableView.contentOffset)]")
             highlightComment(commentId)
@@ -733,15 +744,15 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
     // MARK: UITableView
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.sortedComments.count
     }
 
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
         let feedPostComment = self.sortedComments[indexPath.row]
 
@@ -774,7 +785,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         return cell
     }
 
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         let feedPostComment = self.sortedComments[indexPath.row]
         if feedPostComment.canBeRetracted {
             return abs(feedPostComment.timestamp.timeIntervalSinceNow) < Date.hours(1)
@@ -782,7 +793,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         return false
     }
 
-    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         // Use this method instead of tableView(_:commit:forRowAt:) because this method
         // allows in-cell Delete button to stay visible when confirmation (action sheet) is presented.
         let feedPostComment = self.sortedComments[indexPath.row]
@@ -850,6 +861,11 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         } else {
             UIView.performWithoutAnimation(updateBlock)
         }
+
+        // Manually adjust insets to account for inputView
+        let bottomContentInset = inputView.bottomInset - tableView.safeAreaInsets.bottom
+        tableView.contentInset.bottom = bottomContentInset
+        tableView.verticalScrollIndicatorInsets.bottom = bottomContentInset
     }
 
     func computeMentionableUsers() -> [MentionableUser] {
@@ -1016,7 +1032,7 @@ extension CommentsViewController: CommentViewDelegate {
         guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID) else { return }
         let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
         controller.delegate = view
-        present(controller.withNavigationController(), animated: true)
+        present(controller, animated: true)
     }
 }
 
@@ -1038,7 +1054,7 @@ extension CommentsViewController: MediaCarouselViewDelegate {
         let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
         controller.delegate = view
 
-        present(controller.withNavigationController(), animated: true)
+        present(controller, animated: true)
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {

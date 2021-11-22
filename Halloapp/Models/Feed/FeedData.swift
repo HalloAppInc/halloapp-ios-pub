@@ -2757,7 +2757,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
-                imageServer.prepare(mediaItem.type, url: url, output: output) { [weak self] in
+                imageServer.prepare(mediaItem.type, url: url, output: output, for: postId) { [weak self] in
                     guard let self = self else { return }
                     switch $0 {
                     case .success(let result):
@@ -2794,6 +2794,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         uploadGroup.notify(queue: .main) {
             DDLogInfo("FeedData/upload-media/\(postId)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
+            ImageServer.clearProgress(for: postId)
+            self.mediaUploader.clearTasks(withGroupID: postId)
             if numberOfFailedUploads > 0 {
                 self.updateFeedPost(with: postId) { (feedPost) in
                     feedPost.status = .sendError
@@ -2866,7 +2868,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
-                imageServer.prepare(mediaItemToUpload.type, url: url, output: output) { [weak self] in
+                imageServer.prepare(mediaItemToUpload.type, url: url, output: output, for: feedLinkPreview.id) { [weak self] in
                     guard let self = self else { return }
                     switch $0 {
                     case .success(let result):
@@ -2905,6 +2907,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             MainAppContext.shared.endBackgroundTask(feedLinkPreview.id)
 
             DDLogInfo("FeedData/upload-feedLinkPreview-media/\(feedLinkPreview.id)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
+            ImageServer.clearProgress(for: feedLinkPreview.id)
+            self.mediaUploader.clearTasks(withGroupID: feedLinkPreview.id)
             if numberOfFailedUploads > 0 {
                 if let commentId = feedLinkPreview.comment?.id {
                     self.updateFeedPostComment(with: commentId) { (feedPostComment) in
@@ -2976,7 +2980,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                     let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
-                    imageServer.prepare(mediaItemToUpload.type, url: url, output: output) { [weak self] in
+                    imageServer.prepare(mediaItemToUpload.type, url: url, output: output, for: feedComment.id) { [weak self] in
                         guard let self = self else { return }
                         switch $0 {
                         case .success(let result):
@@ -3013,6 +3017,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         uploadGroup.notify(queue: .main) {
             DDLogInfo("FeedData/upload-comment-media/\(feedComment.id)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
+            ImageServer.clearProgress(for: feedComment.id)
+            self.mediaUploader.clearTasks(withGroupID: feedComment.id)
             if numberOfFailedUploads > 0 {
                 self.updateFeedPost(with: feedComment.post.id) { (feedPost) in
                     feedPost.status = .sendError

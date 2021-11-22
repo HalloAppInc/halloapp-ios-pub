@@ -50,8 +50,9 @@ public class KeyData {
 //                    self.keyStore.deleteUserKeyBundles()
 
                     if self.keyStore.keyBundle(in: managedObjectContext) == nil {
-                        DDLogInfo("KeyData/onConnect/noUserKeyBundle")
-                        self.uploadWhisperKeyBundle()
+                        DDLogError("KeyData/onConnect/noUserKeyBundle")
+                        AppContext.shared.errorLogger?.logError(KeyDataError.identityKeyMissing)
+                        userData.logout()
                     }
                 }
             }
@@ -112,24 +113,6 @@ public class KeyData {
             self.keyStore.save(managedObjectContext)
 
             self.keyStore.deleteAllMessageKeyBundles()
-        }
-    }
-    
-    private func uploadWhisperKeyBundle() {
-        DDLogInfo("KeyData/uploadWhisperKeyBundle")
-
-        guard let userKeys = generateUserKeys() else {
-            DDLogError("Keydata/uploadWhisperKeyBundle/error unable to generate user keys")
-            return
-        }
-
-        service.uploadWhisperKeyBundle(userKeys.whisperKeys) { result in
-            switch result {
-            case .success:
-                self.saveUserKeys(userKeys)
-            case .failure(let error):
-                DDLogInfo("KeyData/uploadWhisperKeyBundle/save/error \(error)")
-            }
         }
     }
     

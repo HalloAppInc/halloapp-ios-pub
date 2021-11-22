@@ -52,9 +52,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 let oldCell = collectionView.cellForItem(at: IndexPath(item: oldValue, section: 0))
                 let currentCell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0))
 
-                if let cell = oldCell as? MediaExplorerVideoCell {
-                    cell.pause()
-                } else if let cell = oldCell as? MediaExplorerImageCell {
+                MainAppContext.shared.mediaDidStartPlaying.send(nil)
+
+                if let cell = oldCell as? MediaExplorerImageCell {
                     cell.reset()
                 }
 
@@ -72,6 +72,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     override var prefersStatusBarHidden: Bool {
         isSystemUIHidden
+    }
+
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        transitionHasFinished ? .all : .portrait
     }
     
     init(avatarImage image: UIImage) {
@@ -104,20 +108,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         container.heightAnchor.constraint(equalToConstant: 44).isActive = true
 
         container.contentView.addSubview(backBtn)
-        backBtn.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
-        backBtn.trailingAnchor.constraint(equalTo: container.trailingAnchor).isActive = true
-        backBtn.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
-        backBtn.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
+        backBtn.constrain(to: container)
 
-        let wrapper = UIView()
-        wrapper.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        wrapper.heightAnchor.constraint(equalToConstant: 44).isActive = true
-
-        wrapper.addSubview(container)
-        container.centerYAnchor.constraint(equalTo: wrapper.centerYAnchor).isActive = true
-        container.centerXAnchor.constraint(equalTo: wrapper.centerXAnchor, constant: -18).isActive = true
-
-        return wrapper
+        return container
     }()
 
     private lazy var shareBtn: UIView = {
@@ -136,20 +129,24 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         container.heightAnchor.constraint(equalToConstant: 44).isActive = true
 
         container.contentView.addSubview(shareBtn)
-        shareBtn.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
-        shareBtn.trailingAnchor.constraint(equalTo: container.trailingAnchor).isActive = true
-        shareBtn.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
-        shareBtn.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
+        shareBtn.constrain(to: container)
 
-        let wrapper = UIView()
-        wrapper.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        wrapper.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        return container
+    }()
 
-        wrapper.addSubview(container)
-        container.centerYAnchor.constraint(equalTo: wrapper.centerYAnchor).isActive = true
-        container.centerXAnchor.constraint(equalTo: wrapper.centerXAnchor, constant: 15).isActive = true
+    private lazy var navigationView: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        return wrapper
+        let stack = UIStackView(arrangedSubviews: [backBtn, spacer, shareBtn])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        stack.spacing = 4
+        stack.alignment = .center
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.layoutMargins = UIEdgeInsets(top: 0, left: 1, bottom: 0, right: 4)
+
+        return stack
     }()
 
     private lazy var pageControl: UIPageControl = {
@@ -198,6 +195,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         self.canSaveMedia = canSaveMedia
 
         super.init(nibName: nil, bundle: nil)
+
+        modalPresentationStyle = .fullScreen
+        transitioningDelegate = self
     }
 
     init(media: [ChatMedia], index: Int, startTime: CMTime = .zero) {
@@ -217,6 +217,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         try? fetchedResultsController?.performFetch()
         
         canSaveMedia = true
+
+        modalPresentationStyle = .fullScreen
+        transitioningDelegate = self
     }
 
     init(media: [ChatQuotedMedia], index: Int) {
@@ -228,48 +231,38 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         self.currentIndex = index
 
         super.init(nibName: nil, bundle: nil)
+
+        modalPresentationStyle = .fullScreen
+        transitioningDelegate = self
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func withNavigationController() -> UIViewController {
-        let controller = UINavigationController(rootViewController: self)
-        controller.modalPresentationStyle = .fullScreen
-        controller.transitioningDelegate = self
-        controller.delegate = self
-
-        return controller
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationController?.navigationBar.standardAppearance = .transparentAppearance
-        navigationController?.navigationBar.overrideUserInterfaceStyle = .dark
-        navigationController?.navigationBar.barStyle = .black
-        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-        navigationController?.navigationBar.shadowImage = UIImage()
-        navigationController?.navigationBar.backgroundColor = .clear
-
-        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backBtn)
-        
-        if canSaveMedia {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(customView: shareBtn)
-        }
-
+        overrideUserInterfaceStyle = .dark
         view.backgroundColor = .black
 
+        shareBtn.isHidden = !canSaveMedia
+
         collectionView = makeCollectionView()
-        self.view.addSubview(collectionView)
+        view.addSubview(collectionView)
 
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            collectionView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: -spaceBetweenPages),
-            collectionView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: spaceBetweenPages),
-            collectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
+            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            collectionView.leftAnchor.constraint(equalTo: view.leftAnchor, constant: -spaceBetweenPages),
+            collectionView.rightAnchor.constraint(equalTo: view.rightAnchor, constant: spaceBetweenPages),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+
+        view.addSubview(navigationView)
+        navigationView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
+        navigationView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        navigationView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        navigationView.heightAnchor.constraint(equalToConstant: 44).isActive = true
 
         if media.count > 1 && fetchedResultsController == nil {
             view.addSubview(pageControlContainer)
@@ -440,12 +433,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-
-        for cell in collectionView.visibleCells {
-            if let cell = cell as? MediaExplorerVideoCell {
-                cell.pause()
-            }
-        }
+        MainAppContext.shared.mediaDidStartPlaying.send(nil)
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -650,28 +638,13 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private func toggleSystemUI() {
         isSystemUIHidden = !isSystemUIHidden
 
-        // Fade in/out animations on both status bar and navigation
-        if isSystemUIHidden {
-            UIView.animate(withDuration: 0.3, animations: {
-                self.navigationController?.navigationBar.alpha = 0.0
+        navigationView.alpha = isSystemUIHidden ? 1 : 0
+        pageControlContainer.alpha = isSystemUIHidden ? 1 : 0
 
-                if self.pageControlContainer.superview != nil {
-                    self.pageControlContainer.alpha = 0.0
-                }
-            }, completion: { _ in
-                self.navigationController?.setNavigationBarHidden(true, animated: true)
-            })
-        } else {
-            self.navigationController?.setNavigationBarHidden(false, animated: true)
-            self.navigationController?.navigationBar.alpha = 0.0
-
-            UIView.animate(withDuration: 0.3, delay: Double(UINavigationController.hideShowBarDuration), options: [], animations: {
-                self.navigationController?.navigationBar.alpha = 1.0
-
-                if self.pageControlContainer.superview != nil {
-                    self.pageControlContainer.alpha = 1.0
-                }
-            }, completion: nil)
+        UIView.animate(withDuration: 0.3) {
+            self.navigationView.alpha = self.isSystemUIHidden ? 0 : 1
+            self.pageControlContainer.alpha = self.isSystemUIHidden ? 0 : 1
+            self.setNeedsStatusBarAppearanceUpdate()
         }
 
         for cell in collectionView.visibleCells {
@@ -821,13 +794,6 @@ extension MediaExplorerController: NSFetchedResultsControllerDelegate {
         guard let chatMedia = anObject as? ChatMedia else { return }
 
         chatMediaUpdated.send((chatMedia, indexPath))
-    }
-}
-
-// MARK: UINavigationControllerDelegate
-extension MediaExplorerController: UINavigationControllerDelegate {
-    func navigationControllerSupportedInterfaceOrientations(_ navigationController: UINavigationController) -> UIInterfaceOrientationMask {
-        return transitionHasFinished ? .all : .portrait
     }
 }
 

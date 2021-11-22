@@ -150,10 +150,18 @@ class ChatData: ObservableObject {
         }
         
         cancellableSet.insert(
-            mediaUploader.uploadProgressDidChange.sink { [weak self] (groupId, progress) in
+            mediaUploader.uploadProgressDidChange.receive(on: DispatchQueue.main).sink { [weak self] groupId in
                 guard let self = self else { return }
                 guard let chatMessage = self.chatMessage(with: groupId, in: self.viewContext) else { return }
-                self.didGetMediaUploadProgress.send((chatMessage.id, progress))
+                self.updateSendingProgress(for: chatMessage)
+            }
+        )
+
+        cancellableSet.insert(
+            ImageServer.progress.receive(on: DispatchQueue.main).sink { [weak self] id in
+                guard let self = self else { return }
+                guard let chatMessage = self.chatMessage(with: id, in: self.viewContext) else { return }
+                self.updateSendingProgress(for: chatMessage)
             }
         )
 
@@ -432,6 +440,18 @@ class ChatData: ObservableObject {
         DispatchQueue.main.async {
             self.cleanUpOldUploadData()
         }
+    }
+
+    private func updateSendingProgress(for message: ChatMessage) {
+        guard let count = message.media?.count, count > 0 else { return }
+
+        var (processingCount, processingProgress) = ImageServer.progress(for: message.id)
+        var (uploadCount, uploadProgress) = mediaUploader.uploadProgress(forGroupId: message.id)
+
+        processingProgress = processingProgress * Float(processingCount) / Float(count)
+        uploadProgress = uploadProgress * Float(uploadCount) / Float(count)
+
+        self.didGetMediaUploadProgress.send((message.id, (processingProgress + uploadProgress) / 2))
     }
 
     // MARK: Migration
@@ -1979,7 +1999,7 @@ extension ChatData {
                     }
                 } ()
 
-                imageServer.prepare(type, url: url, output: output) { [weak self] in
+                imageServer.prepare(type, url: url, output: output, for: msgID) { [weak self] in
                     guard let self = self else { return }
 
                     switch $0 {
@@ -2042,6 +2062,8 @@ extension ChatData {
         uploadGroup.notify(queue: backgroundProcessingQueue) { [weak self] in
             guard let self = self else { return }
             DDLogInfo("ChatData/uploadChatMsgMediaAndSend/finish/\(msgID) failed/total: \(numberOfFailedUploads)/\(totalUploads)")
+            ImageServer.clearProgress(for: msgID)
+            self.mediaUploader.clearTasks(withGroupID: msgID)
             if numberOfFailedUploads > 0 {
                 if isMsgStale {
                     self.updateChatMessage(with: msgID) { msg in
@@ -2797,10 +2819,7 @@ extension ChatData {
             self.updateUnreadChatsThreadCount()
         }
 
-        // 1 and higher means it's an offline message and that server has sent out a push notification already
-        if xmppChatMessage.retryCount == nil || xmppChatMessage.retryCount == 0 {
-            showOneToOneNotification(for: xmppChatMessage)
-        }
+        showOneToOneNotification(for: xmppChatMessage)
 
         // download chat message media
         processInboundPendingChatMsgMedia()
@@ -3209,6 +3228,9 @@ extension ChatData {
         }
     }
 
+    // TODO: murali@: Why are we syncing after every group event.
+    // This is very inefficient: we should not be doing this!
+    // We should just follow our own state of groupEvents and do a weekly sync of all our groups.
     public func getAndSyncGroup(groupId: GroupID) {
         DDLogDebug("ChatData/group/getAndSyncGroupInfo/group \(groupId)")
         service.getGroupInfo(groupID: groupId) { [weak self] result in
@@ -3222,7 +3244,9 @@ extension ChatData {
                     switch reason {
                     case "not_member":
                         DDLogInfo("ChatData/group/getGroupInfo/error/not_member/removing user")
-                        self.deleteChatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId)
+                        self.performSeriallyOnBackgroundContext { context in
+                            self.deleteChatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId, in: context)
+                        }
                     default:
                         DDLogError("ChatData/group/getGroupInfo/error \(error)")
                     }
@@ -3632,24 +3656,20 @@ extension ChatData {
         }
     }
 
-    func deleteChatGroupMember(groupId: GroupID, memberUserId: UserID) {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
-            let fetchRequest = NSFetchRequest<ChatGroupMember>(entityName: ChatGroupMember.entity().name!)
-            fetchRequest.predicate = NSPredicate(format: "groupId = %@ && userId = %@", groupId, memberUserId)
+    func deleteChatGroupMember(groupId: GroupID, memberUserId: UserID, in managedObjectContext: NSManagedObjectContext) {
+        let fetchRequest = NSFetchRequest<ChatGroupMember>(entityName: ChatGroupMember.entity().name!)
+        fetchRequest.predicate = NSPredicate(format: "groupId = %@ && userId = %@", groupId, memberUserId)
 
-            do {
-                let chatGroupMembers = try managedObjectContext.fetch(fetchRequest)
-                DDLogInfo("ChatData/group/deleteChatGroupMember/begin count=[\(chatGroupMembers.count)]")
-                chatGroupMembers.forEach {
-                    managedObjectContext.delete($0)
-                }
+        do {
+            let chatGroupMembers = try managedObjectContext.fetch(fetchRequest)
+            DDLogInfo("ChatData/group/deleteChatGroupMember/begin count=[\(chatGroupMembers.count)]")
+            chatGroupMembers.forEach {
+                managedObjectContext.delete($0)
             }
-            catch {
-                DDLogError("ChatData/group/deleteChatGroupMember/error  [\(error)]")
-                return
-            }
-            self.save(managedObjectContext)
+        }
+        catch {
+            DDLogError("ChatData/group/deleteChatGroupMember/error  [\(error)]")
+            return
         }
     }
 
@@ -3864,7 +3884,7 @@ extension ChatData {
                 contactNames[xmppGroupMember.userId] = name
             }
             
-            if xmppGroupMember.userId == MainAppContext.shared.userData.userId, xmppGroup.retryCount == 0 {
+            if xmppGroupMember.userId == MainAppContext.shared.userData.userId {
                 DispatchQueue.main.async {
                     // dummy avatarview to preload group avatar for new groups with avatar
                     // nice to show avatar but not required, 2 seconds given for chance to finish downloading
@@ -3921,7 +3941,7 @@ extension ChatData {
         for xmppGroupMember in xmppGroup.members ?? [] {
             DDLogDebug("ChatData/group/process/new/leave-member [\(xmppGroupMember.userId)]")
             guard xmppGroupMember.action == .leave else { continue }
-            deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
+            deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId, in: managedObjectContext)
             
             recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
 
@@ -3963,7 +3983,7 @@ extension ChatData {
                 processGroupAddMemberAction(chatGroup: group, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
             case .remove:
                 membersRemoved.append(xmppGroupMember.userId)
-                deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
+                deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId, in: managedObjectContext)
             case .promote:
                 if let foundMember = group.members?.first(where: { $0.userId == xmppGroupMember.userId }) {
                     foundMember.type = .admin
@@ -3978,7 +3998,7 @@ extension ChatData {
 
             recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
 
-            if xmppGroupMember.action == .add, xmppGroupMember.userId == MainAppContext.shared.userData.userId, xmppGroup.retryCount == 0 {
+            if xmppGroupMember.action == .add, xmppGroupMember.userId == MainAppContext.shared.userData.userId {
                 showGroupAddNotification(for: xmppGroup)
             }
         }

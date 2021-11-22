@@ -502,7 +502,9 @@ final class ProtoService: ProtoServiceCore {
                 self.didGetChatAck.send((id: ack.id, timestamp: timestamp))
             }
         case .msg(let msg):
-            handleMessage(msg, isEligibleForNotification: msg.retryCount == 0)
+            // We now use contentId to eliminate push notifications: so here, we assume all content is worth notifying.
+            // TODO: murali@: since this is always true, lets try and remove this argument.
+            handleMessage(msg, isEligibleForNotification: true)
         case .haError(let error):
             DDLogError("proto/didReceive/\(requestID) received packet with error \(error)")
         case .presence(let pbPresence):
@@ -1018,13 +1020,16 @@ final class ProtoService: ProtoServiceCore {
             return
         }
 
-        let notification = UNMutableNotificationContent()
-        notification.populate(from: metadata, contactStore: MainAppContext.shared.contactStore)
-        notifications.append(notification)
+        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: metadata.contentId) {
+            let notification = UNMutableNotificationContent()
+            notification.populate(from: metadata, contactStore: MainAppContext.shared.contactStore)
+            notifications.append(notification)
 
-        let notificationCenter = UNUserNotificationCenter.current()
-        notifications.forEach { (notificationContent) in
-            notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+            let notificationCenter = UNUserNotificationCenter.current()
+            notifications.forEach { (notificationContent) in
+                notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+                AppContext.shared.notificationStore.save(id: metadata.contentId, type: metadata.contentType.rawValue)
+            }
         }
     }
 }

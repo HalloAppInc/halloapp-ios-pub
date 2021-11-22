@@ -36,16 +36,58 @@ class ImageServer {
         static let maxImageSize: CGFloat = 1600
     }
 
+    private class Task {
+        var id: String
+        var url: URL
+        var progress: Float
+
+        internal init(id: String, url: URL) {
+            self.id = id
+            self.url = url
+            self.progress = 0
+        }
+    }
+
+    private static let queue = DispatchQueue(label: "ImageServer.MediaProcessing", qos: .userInitiated)
+    private static var tasks = [Task]()
+    public static let progress = PassthroughSubject<String, Never>()
+
+    public static func progress(for id: String) -> (Int, Float) {
+        let items = tasks.filter { $0.id == id }
+        guard items.count > 0 else { return (0, 0) }
+
+        let total = items.reduce(into: Float(0)) { $0 += $1.progress }
+        return (items.count, total / Float(items.count))
+    }
+
+    public static func clearProgress(for id: String) {
+        queue.async {
+            tasks.removeAll { $0.id == id }
+        }
+    }
+
     private static let mediaProcessingSemaphore = DispatchSemaphore(value: 3) // Prevents having more than 3 instances of AVAssetReader
 
-    private let mediaProcessingQueue = DispatchQueue(label: "ImageServer.MediaProcessing")
     private var isCancelled = false
 
     func cancel() {
         isCancelled = true
     }
 
-    func prepare(_ type: FeedMediaType, url: URL, output: URL, completion: @escaping (Result<ImageServerResult, Error>) -> Void) {
+    func prepare(_ type: FeedMediaType, url: URL, output: URL, for id: String, completion: @escaping (Result<ImageServerResult, Error>) -> Void) {
+        let task: Task
+        if let existingTask = ImageServer.tasks.first(where: { $0.id == id && $0.url == url }) {
+            task = existingTask
+        } else {
+            task = Task(id: id, url: url)
+            ImageServer.tasks.append(task)
+        }
+
+        let processingProgress: (Float) -> Void = { progress in
+            task.progress = progress
+            ImageServer.progress.send(id)
+        }
+
         let processingCompletion: (Result<(URL, CGSize), Error>) -> Void = { [weak self] result in
             guard let self = self, !self.isCancelled else { return }
 
@@ -63,6 +105,7 @@ class ImageServer {
                     DDLogError("ImageServer/preapre/media/error error=[\(error)]")
                 }
 
+                processingProgress(1)
                 completion(
                     self.encrypt(type, input: output, output: output.appendingPathExtension("enc"))
                         .map { ImageServerResult(size: size, key: $0.key, sha256: $0.sha256) }
@@ -72,14 +115,15 @@ class ImageServer {
             }
         }
 
-        mediaProcessingQueue.async { [weak self] in
+        processingProgress(0)
+        ImageServer.queue.async { [weak self] in
             guard let self = self, !self.isCancelled else { return }
 
             switch type {
             case .image:
-                self.process(image: url, completion: processingCompletion)
+                self.process(image: url, progress: processingProgress, completion: processingCompletion)
             case .video:
-                self.resize(video: url, completion: processingCompletion)
+                self.resize(video: url, progress: processingProgress, completion: processingCompletion)
             case .audio:
                 processingCompletion(.success((url, .zero)))
             }
@@ -117,7 +161,7 @@ class ImageServer {
         }
     }
 
-    private func process(image url: URL, completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
+    private func process(image url: URL, progress: @escaping ((Float) -> Void), completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
         completion(self.resize(image: url).flatMap(self.save(image:)))
     }
 
@@ -148,7 +192,7 @@ class ImageServer {
         }
     }
 
-    private func resize(video url: URL, completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
+    private func resize(video url: URL, progress: @escaping ((Float) -> Void), completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
         guard shouldConvert(video: url) else {
             DDLogInfo("ImageServer/video/prepare/ready  conversion not required [\(url.description)]")
 

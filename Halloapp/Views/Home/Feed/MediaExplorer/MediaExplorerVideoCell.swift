@@ -19,6 +19,7 @@ class MediaExplorerVideoCell: UICollectionViewCell {
     private let spaceBetweenPages: CGFloat = 20
     private var readyCancellable: AnyCancellable?
     private var progressCancellable: AnyCancellable?
+    private var mediaPlaybackCancellable: AnyCancellable?
 
     private lazy var video: VideoView = {
         let view = VideoView(playbackControls: .advanced)
@@ -106,6 +107,12 @@ class MediaExplorerVideoCell: UICollectionViewCell {
             video.topAnchor.constraint(equalTo: contentView.topAnchor),
             video.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
         ])
+
+        mediaPlaybackCancellable = MainAppContext.shared.mediaDidStartPlaying.sink { [weak self] url in
+            guard let self = self else { return }
+            guard self.media?.url != url else { return }
+            self.pause()
+        }
     }
 
     required init?(coder: NSCoder) {
@@ -138,6 +145,8 @@ class MediaExplorerVideoCell: UICollectionViewCell {
     }
 
     func play(time: CMTime = .zero) {
+        MainAppContext.shared.mediaDidStartPlaying.send(media?.url)
+
         video.player?.seek(to: time)
         video.player?.play()
     }
@@ -147,6 +156,10 @@ class MediaExplorerVideoCell: UICollectionViewCell {
     }
 
     func togglePlay() {
+        if !isPlaying() {
+            MainAppContext.shared.mediaDidStartPlaying.send(media?.url)
+        }
+
         video.togglePlay()
     }
 

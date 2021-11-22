@@ -28,9 +28,7 @@ class AudioRecorder {
     private var recorder: AVAudioRecorder?
     private var task: DispatchWorkItem?
     private var timer: Timer?
-    private var savedSessionCategory: AVAudioSession.Category?
-    private var savedSessionMode: AVAudioSession.Mode?
-    private var savedSessionOptions: AVAudioSession.CategoryOptions?
+    private let sessionManager = AudioSessionManager()
 
     init() {
         let nc = NotificationCenter.default
@@ -62,7 +60,7 @@ class AudioRecorder {
                 // stop any audio or video currently playing
                 MainAppContext.shared.mediaDidStartPlaying.send(nil)
 
-                self.respectSilenceMode {
+                self.sessionManager.respectSilenceMode {
                     AudioServicesPlayAlertSound(1110)
                 }
 
@@ -70,7 +68,7 @@ class AudioRecorder {
                 self.task?.cancel()
                 self.task = DispatchWorkItem {
                     self.task = nil
-                    self.saveAudioSession()
+                    self.sessionManager.save()
                     self.record()
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300), execute: self.task!)
@@ -159,63 +157,18 @@ class AudioRecorder {
             isRecording = false
 
             recorder.stop()
-            restoreAudioSession()
+            sessionManager.restore()
 
             if cancel {
                 recorder.deleteRecording()
             }
 
-            respectSilenceMode {
+            sessionManager.respectSilenceMode {
                 AudioServicesPlayAlertSound(1111)
             }
 
             delegate?.audioRecorderStopped(self)
         }
-    }
-
-    private func saveAudioSession() {
-        let session = AVAudioSession.sharedInstance()
-
-        savedSessionCategory = session.category
-        savedSessionMode = session.mode
-        savedSessionOptions = session.categoryOptions
-    }
-
-    private func restoreAudioSession() {
-        guard let category = savedSessionCategory else { return }
-        guard let mode = savedSessionMode else { return }
-        guard let options = savedSessionOptions else { return }
-
-        savedSessionCategory = nil
-        savedSessionMode = nil
-        savedSessionOptions = nil
-
-        let session = AVAudioSession.sharedInstance()
-
-        do {
-            try session.setCategory(category, mode: mode, options: options)
-            try session.setActive(true)
-        } catch {
-            return DDLogError("AudioRecorder/restoreAudioSession: \(error)")
-        }
-    }
-
-    private func respectSilenceMode(callback: () -> ()) {
-        saveAudioSession()
-
-        let session = AVAudioSession.sharedInstance()
-
-        // Respect silence mode
-        do {
-            try session.setCategory(.ambient)
-            try session.setActive(true)
-        } catch {
-            return DDLogError("AudioRecorder/respectSilenceMode/default: \(error)")
-        }
-
-        callback()
-
-        restoreAudioSession()
     }
 
     @objc func handleInterruption(notification: Notification) {

@@ -9,38 +9,6 @@
 import CocoaLumberjackSwift
 import Foundation
 
-final public class ProtoWhisperUploadRequest: ProtoRequest<Void> {
-
-    public init(keyBundle: WhisperKeyBundle, completion: @escaping Completion) {
-        var keys = Server_WhisperKeys()
-
-        // todo: error if following conditionals fail?
-
-        let protoIdentityKey = keyBundle.protoIdentityKey
-        if let data = try? protoIdentityKey.serializedData() {
-            keys.identityKey = data
-        }
-
-        let protoSignedPreKey = keyBundle.protoSignedPreKey
-        if let data = try? protoSignedPreKey.serializedData() {
-            keys.signedKey = data
-        }
-
-        keys.oneTimeKeys = keyBundle.oneTime.compactMap { oneTimeKey in
-            var protoOneTimePreKey = Clients_OneTimePreKey()
-            protoOneTimePreKey.id = oneTimeKey.id
-            protoOneTimePreKey.publicKey = oneTimeKey.publicKey
-            return try? protoOneTimePreKey.serializedData()
-        }
-
-        keys.action = .set
-
-        let packet = Server_Packet.iqPacket(type: .set, payload: .whisperKeys(keys))
-
-        super.init(iqPacket: packet, transform: { _ in .success(()) }, completion: completion)
-    }
-}
-
 final public class ProtoWhisperAddOneTimeKeysRequest: ProtoRequest<Void> {
 
     public init(preKeys: [PreKey], completion: @escaping Completion) {
