@@ -480,6 +480,7 @@ final class NotificationProtoService: ProtoServiceCore {
         runIfNotificationWasNotPresented(for: metadata.contentId) { [self] in
             DDLogDebug("ProtoService/presentPostNotification")
             let notificationContent = UNMutableNotificationContent()
+            notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
             notificationContent.populateFeedPostBody(from: postData, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
             notificationContent.attachments = attachments
             notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
@@ -500,6 +501,7 @@ final class NotificationProtoService: ProtoServiceCore {
             runIfNotificationWasNotPresented(for: metadata.contentId) { [self] in
                 DDLogDebug("ProtoService/presentCommentNotification")
                 let notificationContent = UNMutableNotificationContent()
+                notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
                 notificationContent.populateFeedCommentBody(from: commentData, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
                 notificationContent.attachments = attachments
                 notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
