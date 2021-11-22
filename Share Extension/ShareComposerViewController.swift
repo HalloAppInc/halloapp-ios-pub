@@ -4,7 +4,6 @@
 //
 //  Copyright © 2021 Halloapp, Inc. All rights reserved.
 //
-
 import AVFoundation
 import CocoaLumberjackSwift
 import Combine
@@ -80,6 +79,9 @@ class ShareComposerViewController: UIViewController {
     private var collectionView: UICollectionView!
     private var pageControl: UIPageControl!
     private var cancellableSet: Set<AnyCancellable> = []
+    private var linkPreviewData: LinkPreviewData?
+    private var linkViewImage: UIImage?
+    private var linkPreviewMedia: PendingMedia?
 
     private var mentions = MentionRangeMap()
     private lazy var mentionableUsers: [MentionableUser] = {
@@ -259,6 +261,7 @@ class ShareComposerViewController: UIViewController {
             vStack.translatesAutoresizingMaskIntoConstraints = false
             vStack.axis = .vertical
             vStack.alignment = .center
+
             textView = makeTextView()
             linkPreviewView = makeLinkPreviewView()
             vStack.addArrangedSubview(textView)
@@ -489,7 +492,8 @@ class ShareComposerViewController: UIViewController {
     private func makeLinkPreviewView() -> PostComposerLinkPreviewView  {
         let linkPreviewView = PostComposerLinkPreviewView() {
             resetLink, linkPreviewData, linkPreviewImage in
-            // TODO setup link preview info for sending
+            self.linkPreviewData = linkPreviewData
+            self.linkViewImage = linkPreviewImage
         }
         linkPreviewView.translatesAutoresizingMaskIntoConstraints = false
         linkPreviewView.isHidden = true
@@ -592,13 +596,32 @@ class ShareComposerViewController: UIViewController {
 
     @objc func shareAction() {
         guard media.count > 0 || !textView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        if let linkViewImage = linkViewImage {
+            linkPreviewMedia = PendingMedia(type: .image)
+            linkPreviewMedia?.image = linkViewImage
+            guard let linkPreviewMedia = linkPreviewMedia else { return }
+            if linkPreviewMedia.ready.value {
+                share()
+            } else {
+                self.cancellableSet.insert(
+                    linkPreviewMedia.ready.sink { [weak self] ready in
+                        guard let self = self else { return }
+                        guard ready else { return }
+                        self.share()
+                    }
+                )
+            }
+        } else {
+            share()
+        }
+        showUploadingAlert()
+    }
 
+    private func share() {
         let queue = DispatchQueue(label: "com.halloapp.share.prepare", qos: .userInitiated)
         ShareExtensionContext.shared.coreService.execute(whenConnectionStateIs: .connected, onQueue: queue) {
             self.prepareAndUpload()
         }
-
-        showUploadingAlert()
     }
 
     @objc func backAction() {
@@ -662,13 +685,13 @@ class ShareComposerViewController: UIViewController {
             switch destination {
             case .feed:
                 DDLogInfo("ShareComposerViewController/upload feed")
-                ShareExtensionContext.shared.dataStore.post(text: mentionText, media: media) {
+                ShareExtensionContext.shared.dataStore.post(text: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
                     results.append($0)
                     uploadDispatchGroup.leave()
                 }
             case .group(let group):
                 DDLogInfo("ShareComposerViewController/upload group")
-                ShareExtensionContext.shared.dataStore.post(group: group, text: mentionText, media: media) {
+                ShareExtensionContext.shared.dataStore.post(group: group, text: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
                     results.append($0)
                     uploadDispatchGroup.leave()
                 }
@@ -676,7 +699,7 @@ class ShareComposerViewController: UIViewController {
             case .contact(let contact):
                 DDLogInfo("ShareComposerViewController/upload contact")
                 guard let userId = contact.userId else { return }
-                ShareExtensionContext.shared.dataStore.send(to: userId, text: text, media: media) {
+                ShareExtensionContext.shared.dataStore.send(to: userId, text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
                     results.append($0)
                     uploadDispatchGroup.leave()
                 }

@@ -95,7 +95,7 @@ extension SharedFeedPost {
             linkPreviews?.forEach { linkPreview in
                 // Check for link preview media
                 var mediaData = [FeedMediaData]()
-                if let linkPreviewMedia = linkPreview.media, linkPreviewMedia.isEmpty {
+                if let linkPreviewMedia = linkPreview.media, !linkPreviewMedia.isEmpty {
                     mediaData = linkPreviewMedia
                         .map { FeedMediaData(from: $0) }
                 }
