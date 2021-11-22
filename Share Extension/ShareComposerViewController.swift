@@ -71,6 +71,7 @@ class ShareComposerViewController: UIViewController {
     private var media: [PendingMedia] = []
     private var text: String = ""
     private var textView: UITextView!
+    private var linkPreviewView: PostComposerLinkPreviewView!
     private var textViewPlaceholder: UILabel!
     private var textViewHeightConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
@@ -237,6 +238,7 @@ class ShareComposerViewController: UIViewController {
 
             bottomConstraint = textView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
             textViewHeightConstraint = textView.heightAnchor.constraint(equalToConstant: computeTextViewHeight())
+            cardViewHeightConstraint = cardView.heightAnchor.constraint(equalToConstant: computeCardViewHeight())
 
             constraints.append(contentsOf: [
                 bottomConstraint,
@@ -245,23 +247,30 @@ class ShareComposerViewController: UIViewController {
                 textView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
                 textViewPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 25),
                 textViewPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 20),
-
                 scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
                 scrollView.bottomAnchor.constraint(equalTo: textView.topAnchor),
                 scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
                 scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-                cardView.heightAnchor.constraint(equalToConstant: computeCardViewHeight()),
+                cardViewHeightConstraint,
             ])
         } else {
+            let vStack = UIStackView()
+            vStack.translatesAutoresizingMaskIntoConstraints = false
+            vStack.axis = .vertical
+            vStack.alignment = .center
             textView = makeTextView()
-            cardView.addSubview(textView)
+            linkPreviewView = makeLinkPreviewView()
+            vStack.addArrangedSubview(textView)
+            vStack.addArrangedSubview(linkPreviewView)
+            cardView.addSubview(vStack)
 
             textViewPlaceholder = makeTextViewPlaceholder()
             textView.addSubview(textViewPlaceholder)
 
             bottomConstraint = scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
             textViewHeightConstraint = textView.heightAnchor.constraint(equalToConstant: computeTextViewHeight())
+            cardViewHeightConstraint = cardView.heightAnchor.constraint(equalToConstant: computeCardViewHeight())
 
             constraints.append(contentsOf: [
                 bottomConstraint,
@@ -269,15 +278,22 @@ class ShareComposerViewController: UIViewController {
                 scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
                 scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-                textView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
-                textView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
-                textView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor),
-                textView.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
+                vStack.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
+                vStack.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
+                vStack.topAnchor.constraint(equalTo: cardView.topAnchor),
+                vStack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor),
+
+                textView.leadingAnchor.constraint(equalTo: vStack.leadingAnchor),
+                textView.trailingAnchor.constraint(equalTo: vStack.trailingAnchor),
+                linkPreviewView.heightAnchor.constraint(equalToConstant: 150),
+                linkPreviewView.leadingAnchor.constraint(equalTo: vStack.leadingAnchor, constant: 10),
+                linkPreviewView.trailingAnchor.constraint(equalTo: vStack.trailingAnchor, constant: -10),
                 textViewHeightConstraint,
                 textViewPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 25),
                 textViewPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 20),
 
-                cardView.heightAnchor.constraint(equalTo: textView.heightAnchor),
+                textView.topAnchor.constraint(equalTo: cardView.topAnchor),
+                cardViewHeightConstraint,
             ])
         }
 
@@ -298,6 +314,7 @@ class ShareComposerViewController: UIViewController {
             cardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
         ])
 
+        updateLinkPreviewViewIfNecessary()
         NSLayoutConstraint.activate(constraints)
         handleKeyboardUpdates()
     }
@@ -366,6 +383,8 @@ class ShareComposerViewController: UIViewController {
 
         if media.count > 0 {
             return max(100, min(size.height, 250))
+        } else if let linkPreviewView = linkPreviewView, !linkPreviewView.isHidden {
+            return max(size.height, 100)
         } else {
             return max(size.height, 400)
         }
@@ -467,6 +486,16 @@ class ShareComposerViewController: UIViewController {
         return collectionView
     }
 
+    private func makeLinkPreviewView() -> PostComposerLinkPreviewView  {
+        let linkPreviewView = PostComposerLinkPreviewView() {
+            resetLink, linkPreviewData, linkPreviewImage in
+            // TODO setup link preview info for sending
+        }
+        linkPreviewView.translatesAutoresizingMaskIntoConstraints = false
+        linkPreviewView.isHidden = true
+        return linkPreviewView
+    }
+
     private func makePageControl() -> UIPageControl {
         let pageControl = UIPageControl()
         pageControl.translatesAutoresizingMaskIntoConstraints = false
@@ -478,8 +507,36 @@ class ShareComposerViewController: UIViewController {
         return pageControl
     }
 
-    // MARK: Mentions
+    // MARK: Link Preview
+    private func updateLinkPreviewViewIfNecessary() {
+        if let url = detectLink(text: textView.text), let linkPreviewView = linkPreviewView {
+            linkPreviewView.updateLink(url: url)
+            linkPreviewView.isHidden = false
+            textView.heightAnchor.constraint(equalToConstant: computeTextViewHeight()).isActive = true
+        } else {
+            // TODO reset link preview info
+            if let linkPreviewView = linkPreviewView {
+                linkPreviewView.isHidden = true
+            }
+        }
+    }
 
+    private func detectLink(text: String) -> URL? {
+        let linkDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        let text = text
+        let matches = linkDetector.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count))
+        for match in matches {
+            guard let range = Range(match.range, in: text) else { continue }
+            let url = text[range]
+            if let url = URL(string: String(url)) {
+                // We only care about the first link
+                return url
+            }
+        }
+        return nil
+    }
+
+    // MARK: Mentions
     private func fetchMentionPickerContent(for input: MentionInput) -> [MentionableUser] {
         guard let mentionCandidateRange = input.rangeOfMentionCandidateAtCurrentPosition() else {
             return []
@@ -732,7 +789,9 @@ extension ShareComposerViewController: UITextViewDelegate {
         textViewHeightConstraint.constant = computeTextViewHeight()
 
         updateMentionPickerContent()
+        updateLinkPreviewViewIfNecessary()
         updateWithMarkdown()
+        cardViewHeightConstraint.constant = computeCardViewHeight()
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
