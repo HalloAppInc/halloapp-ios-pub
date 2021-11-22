@@ -4,6 +4,9 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Lütfen internet bağlantını kontrol et ve tekrar dene";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Ekle";
 
@@ -27,6 +30,9 @@
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
 "button.go.to.settings" = "Ayarlara git";
+
+/* Title for generic Invite button. */
+"button.invite" = "Davet et";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Daha fazlasını öğren";
@@ -117,6 +123,9 @@
 
 /* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Sesli mesaj";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "HalloApp'teki gerçek ilişkiler ağıma katıl. halloapp.com/dl adresinden ücretsiz indir.";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Bilinmeyen kişi";
