@@ -1241,7 +1241,43 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func rerequestGroupFeedItem(contentId: String, groupID: String, authorUserID: UserID, rerequestType: Server_GroupFeedRerequest.RerequestType, completion: @escaping ServiceRequestCompletion<Void>) {
+    // Checks if the groupFeedItem is decrypted and saved in the stats dataStore.
+    public func isGroupFeedItemDecryptedAndSaved(contentID: String) -> Bool {
+        var isGroupFeedItemDecrypted = false
+        AppContext.shared.cryptoData.performOnBackgroundContextAndWait { managedObjectContext in
+            guard let result = AppContext.shared.cryptoData.fetchGroupFeedItemDecryption(id: contentID, in: managedObjectContext) else {
+                isGroupFeedItemDecrypted = false
+                return
+            }
+            isGroupFeedItemDecrypted = result.isSuccess()
+        }
+        if isGroupFeedItemDecrypted {
+            DDLogInfo("ProtoService/isGroupFeedItemDecryptedAndSaved/contentID \(contentID) success")
+            return true
+        }
+        DDLogInfo("ProtoService/isGroupFeedItemDecryptedAndSaved/contentID \(contentID) - content is missing.")
+        return false
+
+        // Lets try using only the stats store this time and see how it works out.
+    }
+
+    public func rerequestGroupFeedItemIfNecessary(id contentID: String, groupID: GroupID, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let authorUserID = failure.fromUserId else {
+            DDLogError("proto/rerequestGroupFeedItemIfNecessary/\(contentID)/decrypt/authorUserID missing")
+            return
+        }
+
+        // Dont rerequest messages that were already decrypted and saved.
+        if !isGroupFeedItemDecryptedAndSaved(contentID: contentID) {
+            self.rerequestGroupFeedItem(contentId: contentID,
+                                        groupID: groupID,
+                                        authorUserID: authorUserID,
+                                        rerequestType: failure.rerequestType,
+                                        completion: completion)
+        }
+    }
+
+    private func rerequestGroupFeedItem(contentId: String, groupID: String, authorUserID: UserID, rerequestType: Server_GroupFeedRerequest.RerequestType, completion: @escaping ServiceRequestCompletion<Void>) {
         guard let fromUserID = credentials?.userID else {
             DDLogError("proto/rerequestGroupFeedItem/error no-user-id")
             completion(.failure(.notConnected))
