@@ -5,10 +5,10 @@
 //  Created by Nandini Shetty on 11/8/21.
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
-
 import Combine
 import LinkPresentation
 import UIKit
+import SwiftUI
 
 class ChatLinkPreviewView: UIView {
 
@@ -31,19 +31,15 @@ class ChatLinkPreviewView: UIView {
         self.chatLinkPreview  = chatLinkPreview
         commonInit()
     }
-
-    private lazy var placeholderImageView: UIImageView = {
-        let placeholderImageView = UIImageView()
-        placeholderImageView.contentMode = .scaleAspectFill
-        placeholderImageView.contentMode = .center
-        placeholderImageView.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        placeholderImageView.heightAnchor.constraint(equalToConstant: 90).isActive = true
-        placeholderImageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
-        placeholderImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
-        placeholderImageView.image = UIImage(systemName: "photo")
-        placeholderImageView.tintColor = .systemGray3
-        placeholderImageView.isHidden = true
-        return placeholderImageView
+    
+    private lazy var progressView: CircularProgressView = {
+        let progressView = CircularProgressView()
+        progressView.barWidth = 2
+        progressView.trackTintColor = .systemGray3
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        progressView.widthAnchor.constraint(equalToConstant: 20).isActive = true
+        progressView.heightAnchor.constraint(equalTo: progressView.widthAnchor, multiplier: 1).isActive = true
+        return progressView
     }()
 
     private lazy var mediaView: UIImageView = {
@@ -84,9 +80,14 @@ class ChatLinkPreviewView: UIView {
 
 
     private lazy var hStack: UIStackView = {
-        let hStack = UIStackView(arrangedSubviews: [placeholderImageView, mediaView, textStack])
+        let hStack = UIStackView(arrangedSubviews: [mediaView, textStack])
         hStack.translatesAutoresizingMaskIntoConstraints = false
 
+        mediaView.addSubview(progressView)
+        progressView.centerXAnchor.constraint(equalTo: mediaView.centerXAnchor).isActive = true
+        progressView.centerYAnchor.constraint(equalTo: mediaView.centerYAnchor).isActive = true
+        progressView.widthAnchor.constraint(equalToConstant: 20).isActive = true
+        progressView.heightAnchor.constraint(equalToConstant: 20).isActive = true
         hStack.axis = .horizontal
         hStack.alignment = .center
         hStack.backgroundColor = UIColor.white.withAlphaComponent(0.5)
@@ -122,31 +123,51 @@ class ChatLinkPreviewView: UIView {
 
     private func configureMedia() {
         guard let media = media else {
-            placeholderImageView.isHidden = true
+            progressView.isHidden = true
             mediaView.isHidden = true
             return
         }
+        // Reset the media view to show a placeholder view and progress indicator
+        progressView.isHidden = false
+        mediaView.image = UIImage(systemName: "photo")
+        mediaView.tintColor = .systemGray3
+        mediaView.isHidden = false
+
         let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath ?? "", isDirectory: false)
-        
+
         if media.type == .image {
             if let image = UIImage(contentsOfFile: fileURL.path) {
                 self.show(image: image)
+            } else if imageLoadingCancellable == nil {
+                showPlaceholderImage()
+                imageLoadingCancellable = MainAppContext.shared.chatData.didGetLinkPreviewMediaDownloadProgress.sink { [weak self] (linkPreviewId, mediaOrder, progress, relativeFilePath) in
+                    guard let self = self else { return }
+                    guard linkPreviewId == self.chatLinkPreview?.id else { return }
+                    DispatchQueue.main.async {
+                        self.progressView.setProgress(Float(progress), animated: true)
+                        if let relativeFilePath = relativeFilePath {
+                            let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+                            if let image = UIImage(contentsOfFile: fileURL.path) {
+                                self.show(image: image)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
     private func showPlaceholderImage() {
-        placeholderImageView.isHidden = false
-        mediaView.isHidden = true
+        mediaView.bringSubviewToFront(progressView)
+        progressView.isHidden = false
     }
 
-    private func show(image: UIImage) {
-        placeholderImageView.isHidden = true
-        mediaView.isHidden = false
+    func show(image: UIImage) {
+        progressView.isHidden = true
         mediaView.image = image
+        mediaView.isHidden = false
         // Loading cancellable is no longer needed
         imageLoadingCancellable?.cancel()
         imageLoadingCancellable = nil
     }
 }
-

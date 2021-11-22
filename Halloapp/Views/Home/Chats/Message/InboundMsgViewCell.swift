@@ -107,9 +107,12 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }()
 
     private lazy var bubbleWrapper: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ quotedRow, nameRow, mediaRow, textRow ])
+        let view = UIStackView(arrangedSubviews: [ quotedRow, nameRow, linkPreviewRow, mediaRow, textRow ])
         view.axis = .vertical
         view.spacing = 0
+        view.layer.cornerRadius = 20
+        view.layer.masksToBounds = true
+        view.clipsToBounds = true
         
         view.layoutMargins = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
         view.isLayoutMarginsRelativeArrangement = true
@@ -413,6 +416,26 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             })
         }
     }
+    
+    // MARK: Link Preview Row
+    private lazy var linkPreviewRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ chatLinkPreviewView ])
+        view.axis = .horizontal
+        view.isLayoutMarginsRelativeArrangement = true
+        view.spacing = 0
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true
+        view.clipsToBounds = true
+        chatLinkPreviewView.heightAnchor.constraint(equalToConstant: 85).isActive = true
+        return view
+    }()
+
+    private lazy var chatLinkPreviewView: ChatLinkPreviewView = {
+        let view = ChatLinkPreviewView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
 
     // MARK: Updates
 
@@ -459,6 +482,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                    isPlayed: [.played, .sentPlayedReceipt].contains(chatMessage.incomingStatus),
                    displayText: displayText,
                    media: chatMessage.media,
+                   linkPreview: chatMessage.linkPreviews?.first,
                    timestamp: chatMessage.timestamp)
 
         let gesture = UILongPressGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
@@ -548,7 +572,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }
     
     
-    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, isPlayed: Bool, displayText: DisplayText, media: Set<ChatMedia>?, timestamp: Date?) {
+    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, isPlayed: Bool, displayText: DisplayText, media: Set<ChatMedia>?, linkPreview: ChatLinkPreview?, timestamp: Date?) {
         if isPreviousMsgSameSender {
             contentView.layoutMargins = UIEdgeInsets(top: 3, left: 18, bottom: 0, right: 18)
         } else {
@@ -618,6 +642,13 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             textView.makeTextWritingDirectionLeftToRight(nil)
         } else {
             textView.makeTextWritingDirectionRightToLeft(nil)
+        }
+        
+        // link preview
+        if let linkPreview = linkPreview {
+            chatLinkPreviewView.configure(chatLinkPreview: linkPreview)
+            linkPreviewRow.isHidden = false
+            bubbleWrapper.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         }
 
         // media
@@ -701,6 +732,19 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         }
     }
     
+    func updateLinkPreviewMedia(_ media: ChatMedia) {
+        guard let relativeFilePath = media.relativeFilePath else { return }
+        let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
+
+        switch media.type {
+        case .image:
+            guard let image = UIImage(contentsOfFile: url.path) else { return }
+            chatLinkPreviewView.show(image: image)
+        case .video, .audio:
+            break
+        }
+    }
+    
     // MARK: reuse
     
     func reset() {
@@ -727,6 +771,9 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         mediaImageView.isHidden = true
         mediaImageView.reset()
         mediaImageView.removeConstraints(mediaImageView.constraints)
+        
+        // Reset of Link Previews
+        linkPreviewRow.isHidden = true
 
         textRow.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
