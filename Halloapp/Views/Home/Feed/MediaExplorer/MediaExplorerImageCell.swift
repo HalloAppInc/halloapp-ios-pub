@@ -251,6 +251,12 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
         if sender.state == .began || sender.state == .changed {
             var translation = sender.translation(in: window)
 
+            if abs(translation.x) <= abs(translation.y) {
+                translation.x = 0
+            } else if abs(translation.x) > abs(translation.y) {
+                translation.y = 0
+            }
+
             if scrollView.contentOffset.x == originalOffset.x {
                 if translation.x > 0 && minX < spaceBetweenPages {
                     imageView.center.x += min(translation.x, spaceBetweenPages - minX)
