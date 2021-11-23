@@ -492,6 +492,9 @@ class ShareComposerViewController: UIViewController {
     private func makeLinkPreviewView() -> PostComposerLinkPreviewView  {
         let linkPreviewView = PostComposerLinkPreviewView() {
             resetLink, linkPreviewData, linkPreviewImage in
+            if resetLink {
+                self.linkPreviewView.isHidden = true
+            }
             self.linkPreviewData = linkPreviewData
             self.linkViewImage = linkPreviewImage
         }
