@@ -2105,9 +2105,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/download-task/\(task.id)/error [\(task.error!)]")
                 feedPostMedia.status = .downloadError
 
+                // TODO: Do an exponential backoff on the client for 1 day and then show a manual retry button for the user.
                 // Mark as permanent failure if we encounter hashMismatch or MACMismatch.
-                switch task.error  as? MediaCrypterError {
-                case .MACMismatch, .hashMismatch:
+                switch task.error {
+                case .macMismatch, .hashMismatch, .decryptionFailed:
                     DDLogInfo("FeedData/download-task/\(task.id)/error [\(task.error!) - fail permanently]")
                     feedPostMedia.status = .downloadFailure
                 default:
