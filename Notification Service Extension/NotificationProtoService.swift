@@ -288,14 +288,24 @@ final class NotificationProtoService: ProtoServiceCore {
                 }
             } else {
                 DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/failure \(groupDecryptionFailure.debugDescription)")
-                switch contentType {
-                case .post:
-                    self.processPostData(postData: metadata.postData(status: .rerequesting), status: .decryptionError, metadata: metadata, ack: ack)
-                case .comment:
-                    self.processCommentData(commentData: metadata.commentData(status: .rerequesting), status: .decryptionError, metadata: metadata, ack: ack)
-                case .linkPreview:
-                    DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/received link preview")
-                    ack()
+                if let groupId = metadata.groupId,
+                   let decryptionFailure = groupDecryptionFailure {
+                    self.rerequestGroupFeedItemIfNecessary(id: contentID, groupID: groupId, failure: decryptionFailure) { result in
+                        switch result {
+                        case .success: break
+                        case .failure(let error):
+                            DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/failed rerequest: \(error)")
+                        }
+                        switch contentType {
+                        case .post:
+                            self.processPostData(postData: metadata.postData(status: .rerequesting), status: .decryptionError, metadata: metadata, ack: ack)
+                        case .comment:
+                            self.processCommentData(commentData: metadata.commentData(status: .rerequesting), status: .decryptionError, metadata: metadata, ack: ack)
+                        case .linkPreview:
+                            DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/received link preview")
+                            ack()
+                        }
+                    }
                 }
             }
             self.reportGroupDecryptionResult(
@@ -364,7 +374,7 @@ final class NotificationProtoService: ProtoServiceCore {
 
             self.dataStore.save(container: container, metadata: metadata, status: messageStatus, failure: decryptionFailure) { sharedChatMessage in
                 self.incrementApplicationIconBadgeNumber()
-                self.processChatAndInvokeHandler(chatMessage: sharedChatMessage, container: container, metadata: metadata)
+                self.processChat(chatMessage: sharedChatMessage, container: container, metadata: metadata)
             }
         }
     }
@@ -377,7 +387,7 @@ final class NotificationProtoService: ProtoServiceCore {
     }
 
     // Process Chats - ack/rerequest/download media if necessary.
-    private func processChatAndInvokeHandler(chatMessage: SharedChatMessage, container: Clients_ChatContainer?, metadata: NotificationMetadata) {
+    private func processChat(chatMessage: SharedChatMessage, container: Clients_ChatContainer?, metadata: NotificationMetadata) {
         let messageId = metadata.messageId
         // send pending acks for any pending chat messages
         sendPendingAcksAndRerequests(dataStore: dataStore)

@@ -415,46 +415,6 @@ final class ProtoService: ProtoServiceCore {
         return false
     }
 
-    // Checks if the groupFeedItem is decrypted and saved in the stats dataStore.
-    private func isGroupFeedItemDecryptedAndSaved(contentID: String) -> Bool {
-        var isGroupFeedItemDecrypted = false
-        MainAppContext.shared.cryptoData.performOnBackgroundContextAndWait { managedObjectContext in
-            guard let result = MainAppContext.shared.cryptoData.fetchGroupFeedItemDecryption(id: contentID, in: managedObjectContext) else {
-                isGroupFeedItemDecrypted = false
-                return
-            }
-            isGroupFeedItemDecrypted = result.isSuccess()
-        }
-        if isGroupFeedItemDecrypted {
-            DDLogInfo("ProtoService/isGroupFeedItemDecryptedAndSaved/contentID \(contentID) success")
-            return true
-        }
-        DDLogInfo("ProtoService/isGroupFeedItemDecryptedAndSaved/contentID \(contentID) - content is missing.")
-        return false
-
-        // Lets try using only the stats store this time and see how it works out.
-    }
-
-    private func rerequestGroupFeedItemIfNecessary(message: Server_Msg, groupID: GroupID, failure: GroupDecryptionFailure) {
-        guard let contentID = failure.contentId else {
-            DDLogError("proto/rerequestGroupFeedItemIfNecessary/\(message.id)/decrypt/contentId missing")
-            return
-        }
-        guard let authorUserID = failure.fromUserId else {
-            DDLogError("proto/rerequestGroupFeedItemIfNecessary/\(message.id)/decrypt/authorUserID missing")
-            return
-        }
-
-        // Dont rerequest messages that were already decrypted and saved.
-        if !isGroupFeedItemDecryptedAndSaved(contentID: contentID) {
-            self.updateMessageStatus(id: message.id, status: .rerequested)
-            self.rerequestGroupFeedItem(contentId: contentID,
-                                        groupID: groupID,
-                                        authorUserID: authorUserID,
-                                        rerequestType: failure.rerequestType) { _ in }
-        }
-    }
-
     private func rerequestMessageIfNecessary(_ message: Server_Msg, failedEphemeralKey: Data?) {
         // Dont rerequest messages that were already decrypted and saved.
         if !isMessageDecryptedAndSaved(msgId: message.id) {
@@ -798,7 +758,14 @@ final class ProtoService: ProtoServiceCore {
                     }
                     if let failure = groupDecryptionFailure {
                         DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/error \(failure.error)")
-                        self.rerequestGroupFeedItemIfNecessary(message: msg, groupID: item.gid, failure: failure)
+                        self.rerequestGroupFeedItemIfNecessary(id: contentID, groupID: item.gid, failure: failure) { result in
+                            switch result {
+                            case .success:
+                                self.updateMessageStatus(id: msg.id, status: .rerequested)
+                            case .failure(let error):
+                                DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/failed rerequesting: \(error)")
+                            }
+                        }
                     } else {
                         DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/success")
                     }

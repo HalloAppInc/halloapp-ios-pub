@@ -14,7 +14,7 @@
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="toUserId" attributeType="String"/>
-        <relationship name="linkPreviews" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedLinkPreview"/>
+        <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedFeedLinkPreview" inverseName="message" inverseEntity="SharedFeedLinkPreview"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="SharedMedia" inverseName="message" inverseEntity="SharedMedia"/>
     </entity>
     <entity name="SharedFeedComment" representedClassName="SharedFeedComment" syncable="YES">
@@ -42,7 +42,7 @@
         <attribute name="url" optional="YES" attributeType="URI"/>
         <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedComment" inverseName="linkPreviews" inverseEntity="SharedFeedComment"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedMedia" inverseName="linkPreview" inverseEntity="SharedMedia"/>
-        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedChatMessage"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedChatMessage" inverseName="linkPreviews" inverseEntity="SharedChatMessage"/>
         <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedPost" inverseName="linkPreviews" inverseEntity="SharedFeedPost"/>
     </entity>
     <entity name="SharedFeedMention" representedClassName="SharedFeedMention" syncable="YES">

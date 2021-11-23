@@ -43,6 +43,7 @@ class ChatData: ObservableObject {
     
     let didGetMediaUploadProgress = PassthroughSubject<(String, Float), Never>()
     let didGetMediaDownloadProgress = PassthroughSubject<(String, Int, Double), Never>()
+    let didGetLinkPreviewMediaDownloadProgress = PassthroughSubject<(String, Int, Double, String?), Never>()
     
     let didGetAGroupFeed = PassthroughSubject<GroupID, Never>()
     let didGetAChatMsg = PassthroughSubject<UserID, Never>()
@@ -775,6 +776,148 @@ class ChatData: ObservableObject {
             }
         }
     }
+    
+    func processInboundPendingChaLinkPreviewMedia() {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            guard self.currentlyDownloading.count <= self.maxNumDownloads else { return }
+
+            let pendingLinkPreivewsWithMedia = self.pendingIncomingLinkPreviewMedia(in: managedObjectContext)
+
+            for linkPreview in pendingLinkPreivewsWithMedia {
+                guard let media = linkPreview.media else { continue }
+                let sortedMedia = media.sorted(by: { $0.order < $1.order })
+                guard let med = sortedMedia.first(where: {
+                    guard let url = $0.url else { return false }
+                    guard $0.incomingStatus == .pending else { return false }
+                    guard !self.currentlyDownloading.contains(url) else { return false }
+                    if $0.numTries > self.maxTries {
+                        DDLogDebug("ChatData/processInboundPendingChaLinkPreviewMedia/\(linkPreview.id)/media/order/\($0.order)/reached maxTries: \(self.maxTries), numTries: \($0.numTries)")
+                        return false
+                    }
+                    return true
+                } ) else { continue }
+
+                DDLogDebug("ChatData/processInboundPendingChaLinkPreviewMedia/\(linkPreview.id)/media/order/\(med.order)")
+                guard let url = med.url else { continue }
+
+                self.appendToCurrentDownloads(url: url)
+
+                guard let chatMessage = linkPreview.message else { return }
+                let threadId = chatMessage.fromUserId
+                let linkPreviewId = linkPreview.id
+                let order = med.order
+                let key = med.key
+                let sha = med.sha256
+                let type: FeedMediaType = {
+                    switch med.type {
+                    case .image:
+                        return .image
+                    case .video:
+                        return .video
+                    case .audio:
+                        return .audio
+                    }
+                } ()
+
+                // save attempts
+                self.updateLinkPreview(with: linkPreviewId) { (linkPreview) in
+                    if let index = linkPreview.media?.firstIndex(where: { $0.order == order } ), (linkPreview.media?[index].numTries ?? 0) < 9999 {
+                        linkPreview.media?[index].numTries += 1
+                    }
+                }
+
+                _ = ChatMediaDownloader(url: url, progressHandler: { [weak self] progress in
+                    guard let self = self else { return }
+                    let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
+                    self.didGetLinkPreviewMediaDownloadProgress.send((linkPreviewId, Int(order), progress, med.relativeFilePath))
+                }, completion: { [weak self] (outputUrl) in
+                    guard let self = self else { return }
+                    self.removeFromCurrentDownloads(url: url)
+
+                    var encryptedData: Data
+                    do {
+                        encryptedData = try Data(contentsOf: outputUrl)
+                    } catch {
+                        return
+                    }
+
+                    // Decrypt data
+                    guard let mediaKey = Data(base64Encoded: key), let sha256Hash = Data(base64Encoded: sha) else {
+                        return
+                    }
+
+                    var decryptedData: Data
+                    do {
+                        decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
+                    } catch {
+                        DDLogDebug("ChatData/processInboundPendingChaLinkPreviewMedia/\(linkPreview.id)/media/order/\(med.order)/could not decrypt media data")
+                        return
+                    }
+
+                    MainAppContext.shared.mediaHashStore.update(data: decryptedData, key: key, sha256: sha, downloadURL: url)
+
+                    let fileExtension: String = {
+                        switch type {
+                        case .image:
+                            return "jpg"
+                        case .video:
+                            return "mp4"
+                        case .audio:
+                            return "aac"
+                        }
+                    } ()
+                    let filename = "\(linkPreviewId)-\(order).\(fileExtension)"
+
+                    let fileURL = MainAppContext.chatMediaDirectoryURL
+                        .appendingPathComponent(threadId, isDirectory: true)
+                        .appendingPathComponent(filename, isDirectory: false)
+
+                    // create intermediate directories
+                    if !FileManager.default.fileExists(atPath: fileURL.path) {
+                        do {
+                            try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
+                        } catch {
+                            DDLogError(error.localizedDescription)
+                        }
+                    }
+
+                    // delete the file if it already exists, ie. previous attempts
+                    do {
+                        if FileManager.default.fileExists(atPath: fileURL.path) {
+                            DDLogDebug("ChatData/processInboundPendingChaLinkPreviewMedia/\(linkPreview.id)/media/order/\(med.order)/previous file exists, try removing first: \(fileURL.path)")
+                            try FileManager.default.removeItem(atPath: fileURL.path)
+                        }
+                    }
+                    catch {
+                        DDLogError("ChatData/processInboundPendingChaLinkPreviewMedia/\(linkPreview.id)/media/order/\(med.order)/remove previous file error: \(error)")
+                    }
+
+                    do {
+                        try decryptedData.write(to: fileURL, options: [])
+                    }
+                    catch {
+                        DDLogError("ChatData/processInboundPendingChaLinkPreviewMedia/\(linkPreview.id)/media/order/\(med.order)/can't write error: \(error)")
+                        return
+                    }
+
+                    self.updateLinkPreview(with: linkPreviewId, block: { [weak self] (chatLinkPreview) in
+                        guard let self = self else { return }
+                        if let index = chatLinkPreview.media?.firstIndex(where: { $0.order == order } ) {
+                            let relativePath = self.relativePath(from: fileURL)
+                            chatLinkPreview.media?[index].relativeFilePath = relativePath
+                            chatLinkPreview.media?[index].incomingStatus = .downloaded
+                            self.didGetLinkPreviewMediaDownloadProgress.send((linkPreviewId, Int(order), 1.0, relativePath))
+                        }
+                    }) { [weak self] in
+                        guard let self = self else { return }
+                        self.processInboundPendingChaLinkPreviewMedia()
+                    }
+                })
+
+            }
+        }
+    }
 
     // MARK: Core Data Setup
     
@@ -1080,6 +1223,57 @@ class ChatData: ObservableObject {
                 chatMessage.text = message.text
             }
 
+            // Process link preview if present
+            var linkPreviews = Set<ChatLinkPreview>()
+            message.linkPreviews?.forEach { chatLinkPreview in
+                DDLogDebug("ChatData/mergeSharedData/message/add-link-preview [\(String(describing: chatLinkPreview.url))]")
+
+            let linkPreview = NSEntityDescription.insertNewObject(forEntityName: ChatLinkPreview.entity().name!, into: managedObjectContext) as! ChatLinkPreview
+            linkPreview.id = PacketID.generate()
+            linkPreview.url = chatLinkPreview.url
+            linkPreview.title = chatLinkPreview.title
+            linkPreview.desc = chatLinkPreview.desc
+            // Set preview image if present
+            chatLinkPreview.media?.forEach { sharedPreviewMedia in
+                DDLogInfo("ChatData/mergeSharedData/message/\(messageId)/add-link-preview-media [\(sharedPreviewMedia)], status: \(sharedPreviewMedia.status)")
+                let chatMedia = ChatMedia(context: managedObjectContext)
+                    // set incoming and outgoing status.
+                    switch sharedPreviewMedia.status {
+                    case .none:
+                        chatMedia.incomingStatus = isIncomingMsg ? .pending : .none
+                        chatMedia.outgoingStatus = .none
+                    case .downloaded:
+                        chatMedia.incomingStatus = .downloaded
+                        chatMedia.outgoingStatus = .none
+                    case .uploaded:
+                        chatMedia.incomingStatus = .none
+                        chatMedia.outgoingStatus = .uploaded
+                    case .error, .uploading:
+                        chatMedia.incomingStatus = .none
+                        chatMedia.outgoingStatus = .error
+                    }
+                    chatMedia.url = sharedPreviewMedia.url
+                    chatMedia.uploadUrl = sharedPreviewMedia.uploadUrl
+                    chatMedia.size = sharedPreviewMedia.size
+                    chatMedia.key = sharedPreviewMedia.key
+                    chatMedia.order = sharedPreviewMedia.order
+                    chatMedia.sha256 = sharedPreviewMedia.sha256
+                    if let relativeFilePath = sharedPreviewMedia.relativeFilePath {
+                        do {
+                            let sourceUrl = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
+                            let encryptedFileUrl = chatMedia.outgoingStatus == .error ? sourceUrl.appendingPathExtension("enc") : nil
+                            DDLogInfo("ChatData/mergeSharedData/link-preview-media/\(messageId)/sourceUrl: \(sourceUrl), encryptedFileUrl: \(encryptedFileUrl?.absoluteString ?? "[nil]"), \(sharedPreviewMedia.status)")
+                            try copyFiles(toChatMedia: chatMedia, fileUrl: sourceUrl, encryptedFileUrl: encryptedFileUrl)
+                        } catch {
+                            DDLogError("ChatData/mergeSharedData/link-preview-media/copy-media/error [\(error)]")
+                        }
+                    }
+                    chatMedia.linkPreview = linkPreview
+                    linkPreview.message = chatMessage
+                }
+                linkPreviews.insert(linkPreview)
+            }
+
             var lastMsgMediaType: ChatThread.LastMediaType = .none
             message.media?.forEach { media in
                 DDLogInfo("ChatData/mergeSharedData/message/\(messageId)/add-media [\(media)], status: \(media.status)")
@@ -1213,6 +1407,7 @@ class ChatData: ObservableObject {
         processPendingChatMsgs()
         // download chat message media
         processInboundPendingChatMsgMedia()
+        processInboundPendingChaLinkPreviewMedia()
 
         DDLogInfo("ChatData/mergeSharedData/finished")
 
@@ -1905,7 +2100,7 @@ extension ChatData {
         linkPreviewData.forEach { linkPreviewData in
             DDLogDebug("ChatData/process-chats/new/add-link-preview [\(linkPreviewData.url)]")
             let linkPreview = NSEntityDescription.insertNewObject(forEntityName: ChatLinkPreview.entity().name!, into: context) as! ChatLinkPreview
-            linkPreview.id = linkPreview.id
+            linkPreview.id = PacketID.generate()
             linkPreview.url = linkPreviewData.url
             linkPreview.title = linkPreviewData.title
             linkPreview.desc = linkPreviewData.description
@@ -1922,7 +2117,8 @@ extension ChatData {
                         return .audio
                     }
                 }()
-                media.incomingStatus = .none
+                media.outgoingStatus = .none
+                media.incomingStatus = .pending
                 media.url = previewMedia.url
                 media.size = previewMedia.size
                 media.key = previewMedia.key
@@ -2108,7 +2304,7 @@ extension ChatData {
             // Lookup object from coredata again instead of passing around the object across threads.
             DDLogInfo("ChatData/uploadChat/fetch upload hash \(msgID)/\(mediaIndex)")
             guard let msg = self.chatMessage(with: msgID, in: context),
-                  let media = msg.media?.first(where: { $0.order == mediaIndex }) else {
+                  let media = self.getChatMediaFromMessage(msg: msg, mediaIndex: mediaIndex, mediaType: mediaType) else {
                 DDLogError("ChatData/uploadChat/fetch msg and media \(msgID)/\(mediaIndex) - missing")
                 return
             }
@@ -2130,7 +2326,7 @@ extension ChatData {
 
                 // Save URLs acquired during upload to the database.
                 self.updateChatMessage(with: msgID) { msg in
-                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
+                    guard let media = self.getChatMediaFromMessage(msg: msg, mediaIndex: mediaIndex, mediaType: mediaType) else { return }
 
                     switch mediaURLs {
                     case .getPut(let getURL, let putURL):
@@ -2148,7 +2344,7 @@ extension ChatData {
 
                 // Save URLs acquired during upload to the database.
                 self.updateChatMessage(with: msgID, block: { msg in
-                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
+                    guard let media = self.getChatMediaFromMessage(msg: msg, mediaIndex: mediaIndex, mediaType: mediaType) else { return }
 
                     switch uploadResult {
                     case .success(let details):
@@ -2286,8 +2482,30 @@ extension ChatData {
         }
     }
     
+    private func linkPreviews(  predicate: NSPredicate? = nil,
+                                limit: Int? = nil,
+                                in managedObjectContext: NSManagedObjectContext) -> [ChatLinkPreview] {
+        let fetchRequest: NSFetchRequest<ChatLinkPreview> = ChatLinkPreview.fetchRequest()
+        fetchRequest.predicate = predicate
+        if let fetchLimit = limit { fetchRequest.fetchLimit = fetchLimit }
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let linkPreviews = try managedObjectContext.fetch(fetchRequest)
+            return linkPreviews
+        }
+        catch {
+            DDLogError("ChatData/fetch-linkPreviews/error  [\(error)]")
+            fatalError("Failed to fetch chat linkPreviews")
+        }
+    }
+    
     func chatMessage(with id: String, in managedObjectContext: NSManagedObjectContext) -> ChatMessage? {
         return self.chatMessages(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
+    }
+    
+    func chatLinkPreview(with id: String, in managedObjectContext: NSManagedObjectContext) -> ChatLinkPreview? {
+        return self.linkPreviews(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
 
     // includes seen but not sent messages
@@ -2333,6 +2551,10 @@ extension ChatData {
         ]
         return chatMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
+    
+    func pendingIncomingLinkPreviewMedia(in managedObjectContext: NSManagedObjectContext) -> [ChatLinkPreview] {
+        return linkPreviews(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), in: managedObjectContext)
+    }
 
     func haveMessagedBefore(userID: UserID, in managedObjectContext: NSManagedObjectContext) -> Bool {
         let predicate = NSPredicate(format: "fromUserId = %@ AND toUserId = %@", userData.userId, userID)
@@ -2356,6 +2578,26 @@ extension ChatData {
             }
             DDLogVerbose("ChatData/update-message [\(chatMessageId)]")
             block(chatMessage)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+    
+    private func updateLinkPreview(with linkPreviewId: String, block: @escaping (ChatLinkPreview) -> (), performAfterSave: (() -> ())? = nil) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
+            guard let self = self else { return }
+            guard let chatLinkPreview = self.chatLinkPreview(with: linkPreviewId, in: managedObjectContext) else {
+                DDLogError("ChatData/update-link-preview/missing [\(linkPreviewId)]")
+                return
+            }
+            DDLogVerbose("ChatData/update-link-preview [\(linkPreviewId)]")
+            block(chatLinkPreview)
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
@@ -2823,6 +3065,7 @@ extension ChatData {
 
         // download chat message media
         processInboundPendingChatMsgMedia()
+        processInboundPendingChaLinkPreviewMedia()
 
         // remove user from typing state
         removeFromChatStateList(from: xmppChatMessage.fromUserId, threadType: .oneToOne, threadID: xmppChatMessage.fromUserId, type: .available)

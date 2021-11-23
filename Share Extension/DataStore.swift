@@ -35,7 +35,7 @@ class DataStore: ShareExtensionDataStore {
     /**
      - parameter completion Completion handler will not be called if sending was canceled.
      */
-    private func upload(media mediaItemsToUpload: [SharedMedia], postOrMessageId: String, managedObjectContext: NSManagedObjectContext, completion: @escaping (Bool) -> ()) {
+    private func upload(media mediaItemsToUpload: [SharedMedia], postOrMessageOrLinkPreviewId: String, managedObjectContext: NSManagedObjectContext, completion: @escaping (Bool) -> ()) {
         var numberOfFailedUploads = 0
         let totalUploads = mediaItemsToUpload.count
         DDLogInfo("SharedDataStore/upload-media/starting [\(totalUploads)]")
@@ -62,7 +62,7 @@ class DataStore: ShareExtensionDataStore {
                 let path = Self.relativeFilePath(forFilename: UUID().uuidString + ".processed", mediaType: mediaItem.type)
                 let output = fileURL(forRelativeFilePath: path)
 
-                imageServer.prepare(mediaItem.type, url: url, output: output, for: postOrMessageId) { [weak self] in
+                imageServer.prepare(mediaItem.type, url: url, output: output, for: postOrMessageOrLinkPreviewId) { [weak self] in
                     guard let self = self else { return }
 
                     switch $0 {
@@ -72,7 +72,7 @@ class DataStore: ShareExtensionDataStore {
                         mediaItem.sha256 = result.sha256
                         mediaItem.relativeFilePath = path
                         self.save(managedObjectContext)
-                        self.uploadMedia(mediaItem: mediaItem, postOrMessageId: postOrMessageId, in: managedObjectContext, completion: onUploadCompletion)
+                        self.uploadMedia(mediaItem: mediaItem, postOrMessageOrLinkPreviewId: postOrMessageOrLinkPreviewId, in: managedObjectContext, completion: onUploadCompletion)
 
                         // the original media file should be deleted after it's been processed to save space
                         // nb: the original and processed files have different ids, should revisit to see if they could use the same one to make debugging easier
@@ -90,13 +90,13 @@ class DataStore: ShareExtensionDataStore {
                     }
                 }
             } else {
-                self.uploadMedia(mediaItem: mediaItem, postOrMessageId: postOrMessageId, in: managedObjectContext, completion: onUploadCompletion)
+                self.uploadMedia(mediaItem: mediaItem, postOrMessageOrLinkPreviewId: postOrMessageOrLinkPreviewId, in: managedObjectContext, completion: onUploadCompletion)
             }
         }
 
         uploadGroup.notify(queue: .main) {
-            ImageServer.clearProgress(for: postOrMessageId)
-            self.mediaUploader.clearTasks(withGroupID: postOrMessageId)
+            ImageServer.clearProgress(for: postOrMessageOrLinkPreviewId)
+            self.mediaUploader.clearTasks(withGroupID: postOrMessageOrLinkPreviewId)
             guard !self.isSendingCanceled else {
                 DDLogWarn("SharedDataStore/upload-media/canceled Will not call completion handler")
                 return
@@ -106,7 +106,7 @@ class DataStore: ShareExtensionDataStore {
         }
     }
 
-    private func uploadMedia(mediaItem: SharedMedia, postOrMessageId: String, in managedObjectContext: NSManagedObjectContext, completion: @escaping MediaUploader.Completion) {
+    private func uploadMedia(mediaItem: SharedMedia, postOrMessageOrLinkPreviewId: String, in managedObjectContext: NSManagedObjectContext, completion: @escaping MediaUploader.Completion) {
         let mediaIndex = mediaItem.order
         let onDidGetURLs: (MediaURLInfo) -> () = { (mediaURLs) in
             DDLogInfo("SharedDataStore/uploadMedia/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
@@ -129,7 +129,7 @@ class DataStore: ShareExtensionDataStore {
         }
 
         guard let relativeFilePath = mediaItem.relativeFilePath else {
-            DDLogError("SharedDataStore/uploadMedia/\(postOrMessageId)/\(mediaIndex) missing file path")
+            DDLogError("SharedDataStore/uploadMedia/\(postOrMessageOrLinkPreviewId)/\(mediaIndex) missing file path")
             return completion(.failure(MediaUploadError.unknownError))
         }
         let processed = fileURL(forRelativeFilePath: relativeFilePath)
@@ -138,16 +138,16 @@ class DataStore: ShareExtensionDataStore {
             if let url = upload?.url {
                 DDLogInfo("Media \(processed) has been uploaded before at \(url).")
                 if let uploadUrl = mediaItem.uploadUrl {
-                    DDLogInfo("SharedDataStore/uploadMedia/upload url is supposed to be nil here/\(postOrMessageId)/\(mediaIndex), uploadUrl: \(uploadUrl)")
+                    DDLogInfo("SharedDataStore/uploadMedia/upload url is supposed to be nil here/\(postOrMessageOrLinkPreviewId)/\(mediaIndex), uploadUrl: \(uploadUrl)")
                     // we set it to be nil here explicitly.
                     mediaItem.uploadUrl = nil
                 }
                 mediaItem.url = url
             } else {
-                DDLogInfo("SharedDataStore/uploadMedia/uploading media now/\(postOrMessageId)/\(mediaItem.order), index:\(mediaIndex)")
+                DDLogInfo("SharedDataStore/uploadMedia/uploading media now/\(postOrMessageOrLinkPreviewId)/\(mediaItem.order), index:\(mediaIndex)")
             }
 
-            self.mediaUploader.upload(media: mediaItem, groupId: postOrMessageId, didGetURLs: onDidGetURLs) { (uploadResult) in
+            self.mediaUploader.upload(media: mediaItem, groupId: postOrMessageOrLinkPreviewId, didGetURLs: onDidGetURLs) { (uploadResult) in
                 switch uploadResult {
                 case .success(let details):
                     mediaItem.url = details.downloadURL
@@ -169,7 +169,7 @@ class DataStore: ShareExtensionDataStore {
         }
     }
 
-    private func attach(media: PendingMedia, to target: PostOrMessage, using managedObjectContext: NSManagedObjectContext) {
+    private func attach(media: PendingMedia, to target: PostOrMessageOrLinkPreview, using managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("SharedDataStore/attach-media [\(media.fileURL!)]")
 
         let feedMedia = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
@@ -186,6 +186,8 @@ class DataStore: ShareExtensionDataStore {
             feedMedia.post = feedPost
         case .message(let chatMessage):
             feedMedia.message = chatMessage
+        case .linkPreview(let linkPreview):
+            feedMedia.linkPreview = linkPreview
         }
 
         let relativeFilePath = Self.relativeFilePath(forFilename: UUID().uuidString, mediaType: media.type)
@@ -214,7 +216,7 @@ class DataStore: ShareExtensionDataStore {
         }
     }
 
-    func post(group: GroupListItem? = nil, text: MentionText, media: [PendingMedia], completion: @escaping (Result<String, Error>) -> ()) {
+    func post(group: GroupListItem? = nil, text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil, completion: @escaping (Result<String, Error>) -> ()) {
         let postId: FeedPostID = UUID().uuidString
         DDLogInfo("SharedDataStore/post/\(postId)/created")
 
@@ -256,6 +258,24 @@ class DataStore: ShareExtensionDataStore {
             feedPost.audienceUserIds = Array(postAudience.userIds)
         }
 
+        //Process LinkPreviews
+        if let linkPreviewData = linkPreviewData {
+            var linkPreviews: Set<SharedFeedLinkPreview> = []
+            DDLogDebug("NotificationExtension/DataStore/new-post/add-link-preview [\(linkPreviewData.url)]")
+            let linkPreview = NSEntityDescription.insertNewObject(forEntityName: SharedFeedLinkPreview.entity().name!, into: managedObjectContext) as! SharedFeedLinkPreview
+            linkPreview.id = UUID().uuidString
+            linkPreview.url = linkPreviewData.url
+            linkPreview.title = linkPreviewData.title
+            linkPreview.desc = linkPreviewData.description
+            // Set preview image if present
+            if let linkPreviewMedia = linkPreviewMedia {
+                attach(media: linkPreviewMedia, to: .linkPreview(linkPreview), using: managedObjectContext)
+            }
+            linkPreview.media?.forEach({ $0.status = .uploading })
+            linkPreviews.insert(linkPreview)
+            feedPost.linkPreviews = linkPreviews
+        }
+
         save(managedObjectContext)
 
         // All this code is not great - we are using viewContext to perform all Coredata write operations here
@@ -265,7 +285,16 @@ class DataStore: ShareExtensionDataStore {
 
         // 2. Upload any media if necesary.
         if let itemsToUpload = feedPost.media?.sorted(by: { $0.order < $1.order }), !itemsToUpload.isEmpty {
-            upload(media: itemsToUpload, postOrMessageId: postId, managedObjectContext: managedObjectContext) { (allItemsUploaded) in
+            upload(media: itemsToUpload, postOrMessageOrLinkPreviewId: postId, managedObjectContext: managedObjectContext) { (allItemsUploaded) in
+                if allItemsUploaded {
+                    // Send if all items have been uploaded.
+                    self.send(post: feedPost, completion: completion)
+                } else {
+                    completion(.failure(ShareError.mediaUploadFailed))
+                }
+            }
+        } else if let linkPreview = feedPost.linkPreviews?.first, let itemsToUpload = linkPreview.media {
+            upload(media: itemsToUpload.sorted(by: { $0.order < $1.order }), postOrMessageOrLinkPreviewId: linkPreview.id, managedObjectContext: managedObjectContext) { (allItemsUploaded) in
                 if allItemsUploaded {
                     // Send if all items have been uploaded.
                     self.send(post: feedPost, completion: completion)
@@ -322,7 +351,7 @@ class DataStore: ShareExtensionDataStore {
         }
     }
     
-    func send(to userId: UserID, text: String, media: [PendingMedia], completion: @escaping (Result<String, Error>) -> ()) {
+    func send(to userId: UserID, text: String, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil, completion: @escaping (Result<String, Error>) -> ()) {
 
         let messageId = UUID().uuidString
         
@@ -350,11 +379,37 @@ class DataStore: ShareExtensionDataStore {
         }
         chatMessage.media?.forEach({ $0.status = .uploading })
         
+        //Process LinkPreviews
+        if let linkPreviewData = linkPreviewData {
+            var linkPreviews: Set<SharedFeedLinkPreview> = []
+            DDLogDebug("NotificationExtension/DataStore/new-chat/add-link-preview [\(linkPreviewData.url)]")
+            let linkPreview = NSEntityDescription.insertNewObject(forEntityName: SharedFeedLinkPreview.entity().name!, into: managedObjectContext) as! SharedFeedLinkPreview
+            linkPreview.id = UUID().uuidString
+            linkPreview.url = linkPreviewData.url
+            linkPreview.title = linkPreviewData.title
+            linkPreview.desc = linkPreviewData.description
+            // Set preview image if present
+            if let linkPreviewMedia = linkPreviewMedia {
+                attach(media: linkPreviewMedia, to: .linkPreview(linkPreview), using: managedObjectContext)
+            }
+            linkPreview.media?.forEach({ $0.status = .uploading })
+            linkPreviews.insert(linkPreview)
+            chatMessage.linkPreviews = linkPreviews
+        }
         save(managedObjectContext)
 
         // 2. Upload any media if necesary.
         if let itemsToUpload = chatMessage.media?.sorted(by: { $0.order < $1.order }), !itemsToUpload.isEmpty {
-            upload(media: itemsToUpload, postOrMessageId: messageId, managedObjectContext: managedObjectContext) { (allItemsUploaded) in
+            upload(media: itemsToUpload, postOrMessageOrLinkPreviewId: messageId, managedObjectContext: managedObjectContext) { (allItemsUploaded) in
+                if allItemsUploaded {
+                    // Send if all items have been uploaded.
+                    self.send(message: chatMessage, completion: completion)
+                } else {
+                    completion(.failure(ShareError.mediaUploadFailed))
+                }
+            }
+        } else if let linkPreview = chatMessage.linkPreviews?.first, let itemsToUpload = linkPreview.media {
+            upload(media: itemsToUpload.sorted(by: { $0.order < $1.order }), postOrMessageOrLinkPreviewId: linkPreview.id, managedObjectContext: managedObjectContext) { (allItemsUploaded) in
                 if allItemsUploaded {
                     // Send if all items have been uploaded.
                     self.send(message: chatMessage, completion: completion)
