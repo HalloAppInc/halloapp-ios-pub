@@ -368,9 +368,7 @@ class NotificationMetadata: Codable {
             pushName = chatMsg.senderName
             pushNumber = chatMsg.senderPhone
 
-            if let name = pushName, !name.isEmpty {
-                AppContext.shared.contactStore.addPushNames([ fromId : name ])
-            }
+            // Save pushNumber from the message received.
             if let phone = pushNumber, !phone.isEmpty {
                 AppContext.shared.contactStore.addPushNumbers([ fromId : phone ])
             }
@@ -418,6 +416,9 @@ class NotificationMetadata: Codable {
         default:
             return nil
         }
+
+        // Save pushName from the message received.
+        checkAndSavePushName(for: fromId, with: pushName)
     }
 
     private static func mediaIcon(_ mediaType: NotificationMediaType) -> String {
@@ -454,13 +455,8 @@ class NotificationMetadata: Codable {
 
     func getMentionNames(contactStore: ContactStore, mentions: [FeedMentionProtocol] = []) -> ((UserID) -> String) {
         // Add mention names if any in the payload to contactStore and then return dictionary.
-        var contactNames = [UserID:String]()
         mentions.forEach{
-            guard !$0.name.isEmpty else { return }
-            contactNames[$0.userID] = $0.name
-        }
-        if !contactNames.isEmpty {
-            contactStore.addPushNames(contactNames)
+            checkAndSavePushName(for: $0.userID, with: $0.name, to: contactStore)
         }
 
         let mentionNameProvider: (UserID) -> String = { [self] userID in
@@ -477,6 +473,9 @@ class NotificationMetadata: Codable {
         // "Contact @ Group" for group feed posts / comments and group chat messages.
         let contactName = contactStore.fullNameIfAvailable(for: fromId, ownName: nil) ?? pushName
         title = [contactName, groupName].compactMap({ $0 }).joined(separator: " @ ")
+
+        // Save push name for contact
+        checkAndSavePushName(for: fromId, with: pushName, to: contactStore)
 
         switch contentType {
 
@@ -500,11 +499,6 @@ class NotificationMetadata: Codable {
 
         // Contact notification for new friend or new invitee
         case .newFriend, .newInvitee, .newContact:
-            // Save push name for contact
-            var contactNames = [UserID:String]()
-            contactNames[fromId] = pushName
-            contactStore.addPushNames(contactNames)
-
             // Look up contact using phone number as the user ID probably hasn't synced yet
             let contactName = contactStore.fullNameIfAvailable(forNormalizedPhone: normalizedPhone!, ownName: nil)
             title = ""
@@ -527,6 +521,14 @@ class NotificationMetadata: Codable {
             break
         }
         return true
+    }
+
+    func checkAndSavePushName(for fromUserID: UserID, with pushName: String?, to contactStore: ContactStore = AppContext.shared.contactStore) {
+        if let name = pushName, !name.isEmpty {
+            var contactNames = [UserID:String]()
+            contactNames[fromUserID] = pushName
+            contactStore.addPushNames(contactNames)
+        }
     }
 
     func populateChatBody(from chatContent: ChatContent, contactStore: ContactStore) {
