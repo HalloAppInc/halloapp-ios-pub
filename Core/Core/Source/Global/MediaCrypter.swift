@@ -151,12 +151,6 @@ extension AES256Crypter: Crypter {
 
 }
 
-public enum MediaCrypterError: Error {
-    case keyGeneration(status: Int)
-    case hashMismatch
-    case MACMismatch
-}
-
 public class MediaCrypter {
 
     private static let attachedKeyLength = 32
@@ -167,7 +161,7 @@ public class MediaCrypter {
         let result = SecRandomCopyBytes(kSecRandomDefault, count, &bytes)
         guard result == errSecSuccess else {
             DDLogError("HAC/generateKey error=[\(result)]")
-            throw MediaCrypterError.keyGeneration(status: Int(result))
+            throw MediaDownloadError.keyGenerationFailed
         }
         return Data(bytes: bytes, count: count)
     }
@@ -212,7 +206,7 @@ public class MediaCrypter {
 
         let digest = SHA256.hash(data: data)
         guard digest == sha256hash else {
-            throw MediaCrypterError.hashMismatch
+            throw MediaDownloadError.hashMismatch
         }
 
         let attachedMAC = data.suffix(32)
@@ -220,7 +214,7 @@ public class MediaCrypter {
 
         let MAC = CryptoKit.HMAC<SHA256>.authenticationCode(for: encryptedData, using: SymmetricKey(data: SHA256Key))
         guard MAC == attachedMAC.bytes else {
-            throw MediaCrypterError.MACMismatch
+            throw MediaDownloadError.macMismatch
         }
 
         let decryptedData = try AES256Crypter(key: AESKey, iv: IV).decrypt(encryptedData)
@@ -296,7 +290,7 @@ public class MediaChunkCrypter: MediaCrypter {
         let digest = Data(bytes: outBytes, count: outLength)
         guard digest == sha256hash else {
             DDLogError("MediaCrypter/hashFinalizeAndVerify/failed/expected: \(sha256hash.bytes)/actual: \(digest.bytes)")
-            throw MediaCrypterError.hashMismatch
+            throw MediaDownloadError.hashMismatch
         }
     }
 
@@ -318,7 +312,7 @@ public class MediaChunkCrypter: MediaCrypter {
         CCHmacFinal(&hmacContext, &macBytes)
         guard macBytes == attachedMAC.bytes else {
             DDLogError("MediaCrypter/hmacFinalizeAndVerify/failed/expected: \(attachedMAC.bytes)/actual: \(macBytes)")
-            throw MediaCrypterError.MACMismatch
+            throw MediaDownloadError.macMismatch
         }
     }
 

@@ -552,6 +552,7 @@ final class NotificationProtoService: ProtoServiceCore {
             notificationContent.subtitle = content.subtitle
             notificationContent.body = content.body
             notificationContent.attachments = attachments
+            notificationContent.userInfo = content.userInfo
             notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
 
             let notificationCenter = UNUserNotificationCenter.current()

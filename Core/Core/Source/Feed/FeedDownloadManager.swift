@@ -12,6 +12,15 @@ import Combine
 import CoreData
 import Foundation
 
+public enum MediaDownloadError: Error {
+    case keyGenerationFailed
+    case hashMismatch
+    case macMismatch
+    case networkError
+    case decryptionFailed
+    case unknownError
+}
+
 public protocol FeedDownloadManagerDelegate: AnyObject {
     func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task)
 }
@@ -30,7 +39,7 @@ public class FeedDownloadManager {
         public let downloadProgress = CurrentValueSubject<Float, Never>(0)
         public weak var downloadRequest: Alamofire.DownloadRequest?
         public fileprivate(set) var completed = false
-        public var error: Error?
+        public var error: MediaDownloadError?
         fileprivate var encryptedFilePath: String?
         public var decryptedFilePath: String?
         public var fileSize: Int?
@@ -134,7 +143,7 @@ public class FeedDownloadManager {
                             self.decryptDataInChunks(for: task)
                         }
                     } else {
-                        task.error = NSError(domain: "com.halloapp.downloadmanager", code: httpURLResponse.statusCode, userInfo: nil)
+                        task.error = .networkError
                         self.taskFailed(task)
                     }
                 } else {
@@ -144,7 +153,7 @@ public class FeedDownloadManager {
                     {
                         self.saveResumeData(resumeData, for: task)
                     }
-                    task.error = afDownloadResponse.error
+                    task.error = .networkError
                     self.taskFailed(task)
                 }
         }
@@ -227,6 +236,7 @@ public class FeedDownloadManager {
          // reference: https://forums.swift.org/t/why-is-this-apparently-leaking-memory/34612
          */
         guard let encryptedFilePath = task.encryptedFilePath else {
+            task.error = .unknownError
             self.taskFailed(task)
             return
         }
@@ -236,7 +246,7 @@ public class FeedDownloadManager {
         // Fetch keys
         guard let mediaKey = Data(base64Encoded: task.mediaData.key), let sha256Hash = Data(base64Encoded: task.mediaData.sha256) else {
             DDLogError("FeedDownloadManager/\(task.id)/load/error Invalid key or hash.")
-            task.error = NSError(domain: "com.halloapp.downloadmanager", code: 1, userInfo: nil)
+            task.error = .unknownError
             self.taskFailed(task)
             return
         }
@@ -254,7 +264,7 @@ public class FeedDownloadManager {
             DDLogError("FeedDownloadManager/\(task.id)/init/MediaChunkCrypter duration: \(-ts.timeIntervalSinceNow) s]")
         } catch {
             DDLogError("FeedDownloadManager/\(task.id)/load/error Failed to create chunkCrypter: [\(error)]")
-            task.error = error
+            task.error = .unknownError
             self.taskFailed(task)
             return
         }
@@ -306,7 +316,7 @@ public class FeedDownloadManager {
             DDLogInfo("FeedDownloadManager/\(task.id)/verifyHash/success full-fileSize=[\(fileSize)] duration: \(-ts.timeIntervalSinceNow) s]")
         } catch {
             DDLogError("FeedDownloadManager/\(task.id)/verifyHash/error Failed to verify hash: [\(error)]")
-            task.error = error
+            task.error = error as? MediaDownloadError ?? .unknownError
             self.taskFailed(task)
             return
         }
@@ -325,7 +335,7 @@ public class FeedDownloadManager {
             DDLogInfo("FeedDownloadManager/\(task.id)/create/file: [\(decryptedFileURL)]")
         } catch {
             DDLogError("FeedDownloadManager/\(task.id)/createFile/failed: failed to create file: [\(error)]")
-            task.error = error
+            task.error = .unknownError
             self.taskFailed(task)
             return
         }
@@ -372,7 +382,7 @@ public class FeedDownloadManager {
 
             DDLogInfo("FeedDownloadManager/\(task.id)/decrypt/successful: full-fileSize=[\(fileSize)] duration: \(-ts.timeIntervalSinceNow) s")
         } catch {
-            task.error = error
+            task.error = .decryptionFailed
             DDLogError("FeedDownloadManager/\(task.id)/decrypt/failed [\(error)]")
             self.taskFailed(task)
             return
