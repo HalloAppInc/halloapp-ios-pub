@@ -432,6 +432,7 @@ final class FeedItemHeaderView: UIView {
     
     private lazy var secondLineGroupNameLabel: UILabel = {
         let label = Self.makeLabel()
+        label.setContentCompressionResistancePriority(.required, for: .vertical)
         label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         label.isUserInteractionEnabled = true
         label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showGroupFeed)))
@@ -524,13 +525,15 @@ final class FeedItemHeaderView: UIView {
  
         addSubview(hStack)
 
-        avatarViewButton.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
-        avatarViewButton.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        avatarViewButton.constrain([.top, .leading], to: self)
+        avatarViewButton.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor).isActive = true
+
         hStack.leadingAnchor.constraint(equalTo: avatarViewButton.trailingAnchor, constant: avatarButtonSpacing).isActive = true
-        hStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
-        hStack.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+        hStack.constrain(anchor: .centerY, to: avatarViewButton, priority: .defaultLow)
+
+        userAndGroupNameRow.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
+        timestampLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor).isActive = true
 
         contentSizeCategoryDidChangeCancellable = NotificationCenter.default
             .publisher(for: UIContentSizeCategory.didChangeNotification)
