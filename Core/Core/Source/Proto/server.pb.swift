@@ -2152,6 +2152,15 @@ public struct Server_EndCall {
 
     /// initiator hangups before the call connects.
     case cancel // = 5
+
+    /// receiver could not decrypt the content.
+    case decryptionFailed // = 6
+
+    /// receiver could not encrypt the answer.
+    case encryptionFailed // = 7
+
+    /// system errors or crashes.
+    case systemError // = 8
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -2166,6 +2175,9 @@ public struct Server_EndCall {
       case 3: self = .timeout
       case 4: self = .callEnd
       case 5: self = .cancel
+      case 6: self = .decryptionFailed
+      case 7: self = .encryptionFailed
+      case 8: self = .systemError
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -2178,6 +2190,9 @@ public struct Server_EndCall {
       case .timeout: return 3
       case .callEnd: return 4
       case .cancel: return 5
+      case .decryptionFailed: return 6
+      case .encryptionFailed: return 7
+      case .systemError: return 8
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -2198,6 +2213,9 @@ extension Server_EndCall.Reason: CaseIterable {
     .timeout,
     .callEnd,
     .cancel,
+    .decryptionFailed,
+    .encryptionFailed,
+    .systemError,
   ]
 }
 
@@ -8473,6 +8491,9 @@ extension Server_EndCall.Reason: SwiftProtobuf._ProtoNameProviding {
     3: .same(proto: "TIMEOUT"),
     4: .same(proto: "CALL_END"),
     5: .same(proto: "CANCEL"),
+    6: .same(proto: "DECRYPTION_FAILED"),
+    7: .same(proto: "ENCRYPTION_FAILED"),
+    8: .same(proto: "SYSTEM_ERROR"),
   ]
 }
 

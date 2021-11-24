@@ -3819,6 +3819,26 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     media.key = previewMedia.key
                     media.sha256 = previewMedia.sha256
                     media.linkPreview = linkPreview
+
+                    // Copy media if there'a a local copy (outgoing posts or incoming posts with downloaded media).
+                    if let relativeFilePath = previewMedia.relativeFilePath {
+                        let pendingMedia = PendingMedia(type: media.type)
+                        pendingMedia.fileURL = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
+                        if media.status == .uploadError {
+                            // Only copy encrypted file if media failed to upload so that upload could be retried.
+                            pendingMedia.encryptedFileUrl = pendingMedia.fileURL!.appendingPathExtension("enc")
+                        }
+                        do {
+                            try downloadManager.copyMedia(from: pendingMedia, to: media)
+                        }
+                        catch {
+                            DDLogError("FeedData/merge-data/post/\(postId)/copy-media-error [\(error)]")
+
+                            if media.status == .downloaded {
+                                media.status = .none
+                            }
+                        }
+                    }
                 }
                 linkPreview.post = feedPost
             }

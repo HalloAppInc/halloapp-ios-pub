@@ -23,6 +23,7 @@ class SceneDelegate: UIResponder {
         case initializing
         case registration
         case mainInterface
+        case call
     }
 
     private var userInterfaceState: UserInterfaceState?
@@ -40,6 +41,9 @@ class SceneDelegate: UIResponder {
 
         case .expiredVersion:
             return ExpiredVersionViewController()
+
+        case .call:
+            return makeCallViewController()
         }
     }
 
@@ -47,6 +51,10 @@ class SceneDelegate: UIResponder {
     {
         if isAppVersionKnownExpired ?? MainAppContext.shared.coreService.isAppVersionKnownExpired.value {
             return .expiredVersion
+        }
+
+        if isInCallUI {
+            return .call
         }
 
         if isLoggedIn ?? MainAppContext.shared.userData.isLoggedIn {
@@ -75,6 +83,21 @@ class SceneDelegate: UIResponder {
         let noiseService = NoiseRegistrationService(noiseKeys: noiseKeys)
         return DefaultRegistrationManager(registrationService: noiseService)
     }
+
+    private var isInCallUI = false {
+        didSet {
+            if isInCallUI != oldValue {
+                transition(to: state())
+            }
+        }
+    }
+    private func makeCallViewController() -> CallViewController {
+        // TODO: SceneDelegate shouldn't worry about these details.
+        let peerUserID = MainAppContext.shared.callManager.peerUserID ?? ""
+        let isOutgoing = MainAppContext.shared.callManager.isOutgoing ?? false
+        return CallViewController(peerUserID: peerUserID, isOutgoing: isOutgoing)
+    }
+
 }
 
 extension SceneDelegate: UIWindowSceneDelegate {
@@ -124,6 +147,23 @@ extension SceneDelegate: UIWindowSceneDelegate {
                 guard let self = self else { return }
                 if isCloseToExpiry {
                     self.presentAppUpdateWarning()
+                }
+        })
+
+        cancellables.insert(
+            MainAppContext.shared.callManager.isAnyCallActive.sink { call in
+                DispatchQueue.main.async {
+                    if UIApplication.shared.applicationState == .background {
+                        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+                        if call == nil {
+                            appDelegate.beginBackgroundConnectionTask()
+                        } else {
+                            appDelegate.endBackgroundConnectionTask()
+                            appDelegate.resumeMediaDownloads()
+                        }
+                    }
+
+                    self.isInCallUI = call != nil
                 }
         })
         
@@ -201,7 +241,9 @@ extension SceneDelegate: UIWindowSceneDelegate {
 
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
 
-        appDelegate.beginBackgroundConnectionTask()
+        if MainAppContext.shared.callManager.activeCall == nil {
+            appDelegate.beginBackgroundConnectionTask()
+        }
 
         // Schedule periodic data refresh in the background.
         if MainAppContext.shared.userData.isLoggedIn {

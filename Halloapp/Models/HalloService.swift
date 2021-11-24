@@ -25,6 +25,8 @@ protocol HalloService: CoreService {
     // MARK: Delegates
     var chatDelegate: HalloChatDelegate? { get set }
     var feedDelegate: HalloFeedDelegate? { get set }
+    var callDelegate: HalloCallDelegate? { get set }
+    var readyToHandleCallMessages: Bool { get set }
 
     // MARK: Profile
     func updateUsername(_ name: String)
@@ -68,6 +70,14 @@ protocol HalloService: CoreService {
     func setGroupBackground(groupID: GroupID, background: Int32, completion: @escaping ServiceRequestCompletion<Void>)
     func exportDataStatus(isSetRequest: Bool, completion: @escaping ServiceRequestCompletion<Server_ExportData>)
     func requestAccountDeletion(phoneNumber: String, completion: @escaping ServiceRequestCompletion<Void>)
+
+    // MARK: Calls
+    func getCallServers(id callID: CallID, for peerUserID: UserID, callType: CallType, completion: @escaping ServiceRequestCompletion<Server_GetCallServersResult>)
+    func startCall(id callID: CallID, to peerUserID: UserID, callType: CallType, payload: Data, completion: @escaping ServiceRequestCompletion<Server_StartCallResult>)
+    func answerCall(id callID: CallID, to peerUserID: UserID, payload: Data, completion: @escaping (Result<Void, RequestError>) -> Void)
+    func sendCallRinging(id callID: CallID, to peerUserID: UserID)
+    func endCall(id callID: CallID, to peerUserID: UserID, reason: EndCallReason)
+    func sendIceCandidate(id callID: CallID, to peerUserID: UserID, iceCandidateInfo: IceCandidateInfo)
     
     @discardableResult
     func subscribeToPresenceIfPossible(to userID: UserID) -> Bool
@@ -87,6 +97,7 @@ protocol HalloService: CoreService {
     // MARK: Push notifications
     var hasValidAPNSPushToken: Bool { get }
     func sendAPNSTokenIfNecessary(_ token: String?)
+    func sendVOIPTokenIfNecessary(_ token: String?)
     func updateNotificationSettings(_ settings: [NotificationSettings.ConfigKey: Bool], completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Client version
@@ -107,4 +118,12 @@ protocol HalloChatDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt)
     func halloService(_ halloService: HalloService, didReceiveGroupMessage group: HalloGroup)
+}
+
+protocol HalloCallDelegate: AnyObject {
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIncomingCall incomingCall: Server_IncomingCall)
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveAnswerCall answerCall: Server_AnswerCall)
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveCallRinging callRinging: Server_CallRinging)
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIceCandidate iceCandidate: Server_IceCandidate)
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveEndCall endCall: Server_EndCall)
 }

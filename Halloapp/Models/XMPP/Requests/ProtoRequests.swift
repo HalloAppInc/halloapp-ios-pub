@@ -46,16 +46,10 @@ final class ProtoUpdateAvatarRequest: ProtoRequest<String?> {
 
 final class ProtoPushTokenRequest: ProtoRequest<Void> {
 
-    init(token: String, langID: String?, completion: @escaping Completion) {
+    init(type: Server_PushToken.TokenType, token: String, langID: String?, completion: @escaping Completion) {
         var pushToken = Server_PushToken()
         pushToken.token = token
-        
-        #if DEBUG
-        pushToken.tokenType = .iosDev
-        #else
-        pushToken.tokenType = .ios
-        #endif
-
+        pushToken.tokenType = type
         var pushRegister = Server_PushRegister()
         pushRegister.pushToken = pushToken
         if let langID = langID {
@@ -440,6 +434,29 @@ final class ProtoDeleteAccountRequest: ProtoRequest<Void> {
         let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .deleteAccount(payload))
         
         super.init(iqPacket: iqPacket, transform: { _ in .success(()) }, completion: completion)
+    }
+}
+
+final class ProtoGetCallServersRequest: ProtoRequest<Server_GetCallServersResult> {
+    init(id callID: CallID, for peerUid: Int64, callType: Server_CallType, completion: @escaping Completion) {
+        var getCallServersRequest = Server_GetCallServers()
+        getCallServersRequest.callID = callID
+        getCallServersRequest.callType = callType
+        getCallServersRequest.peerUid = peerUid
+        let iqPacket: Server_Packet = .iqPacket(type: .get, payload: .getCallServers(getCallServersRequest))
+        super.init(iqPacket: iqPacket, transform: { response in return .success(response.getCallServersResult) }, completion: completion)
+    }
+}
+
+final class ProtoStartCallRequest: ProtoRequest<Server_StartCallResult> {
+    init(id callID: CallID, to peerUid: Int64, callType: Server_CallType, webRtcOffer: Server_WebRtcSessionDescription, completion: @escaping Completion) {
+        var startCallRequest = Server_StartCall()
+        startCallRequest.callType = callType
+        startCallRequest.callID = callID
+        startCallRequest.webrtcOffer = webRtcOffer
+        startCallRequest.peerUid = peerUid
+        let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .startCall(startCallRequest))
+        super.init(iqPacket: iqPacket, transform: { response in return .success(response.startCallResult) }, completion: completion)
     }
 }
 

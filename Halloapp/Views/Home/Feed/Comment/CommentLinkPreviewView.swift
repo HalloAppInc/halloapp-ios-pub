@@ -74,8 +74,25 @@ class CommentLinkPreviewView: UIView {
         return urlLabel
     }()
 
+    private lazy var linkIconView: UIView = {
+        let image = UIImage(named: "LinkIcon")?.withRenderingMode(.alwaysTemplate)
+        let imageView = UIImageView(image: image)
+        imageView.tintColor = UIColor.label.withAlphaComponent(0.5)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+
+    private var linkPreviewLinkStack: UIStackView {
+        let linkStack = UIStackView(arrangedSubviews: [ linkIconView, urlLabel, UIView() ])
+        linkStack.translatesAutoresizingMaskIntoConstraints = false
+        linkStack.spacing = 2
+        linkStack.alignment = .center
+        linkStack.axis = .horizontal
+        return linkStack
+    }
+
     private lazy var textStack: UIStackView = {
-        let textStack = UIStackView(arrangedSubviews: [ titleLabel, urlLabel ])
+        let textStack = UIStackView(arrangedSubviews: [ titleLabel, linkPreviewLinkStack ])
         textStack.translatesAutoresizingMaskIntoConstraints = false
         textStack.axis = .vertical
         textStack.spacing = 4
@@ -113,10 +130,11 @@ class CommentLinkPreviewView: UIView {
         configureMedia()
         self.addSubview(hStack)
 
-        hStack.widthAnchor.constraint(equalToConstant: 300).isActive = true
         hStack.heightAnchor.constraint(equalToConstant: 100).isActive = true
         hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        hStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
 
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(previewTapped(sender:)))
         self.addGestureRecognizer(tapGestureRecognizer)

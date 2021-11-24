@@ -15,6 +15,7 @@ import CoreData
 import FirebaseCrashlytics
 import Reachability
 import UIKit
+import PushKit
 
 // App in the background can run upto 30 seconds in most cases and 10 seconds should usually be good enough.
 fileprivate let backgroundProcessingTimeSec = 25.0
@@ -44,6 +45,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         // This is necessary otherwise application(_:didReceiveRemoteNotification:fetchCompletionHandler:) won't be called.
         UIApplication.shared.registerForRemoteNotifications()
+
+        // This is necessary to keep our voip push token updated.
+        registerForVoipNotifications()
         
         UNUserNotificationCenter.current().delegate = self
 
@@ -339,12 +343,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // Let iOS trigger an expiration handler for our app and then disconnect and end the task.
     func beginBackgroundConnectionTask() {
         guard backgroundTaskIdentifier == .invalid else {
-            DDLogError("appdelegate/bg-task Identifier is not set")
-            fatalError("Background task identifier is not set")
+            DDLogWarn("appdelegate/bg-task Identifier is already set")
+            return
         }
         guard disconnectTimer == nil else {
-            DDLogError("appdelegate/bg-task Timer is not nil")
-            fatalError("Disconnect timer is not nil")
+            DDLogWarn("appdelegate/bg-task Timer is not nil")
+            return
         }
 
         let service = MainAppContext.shared.service
@@ -428,4 +432,72 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         completionHandler(.alert)
     }
     
+}
+
+// MARK: VOIP
+
+extension AppDelegate: PKPushRegistryDelegate {
+
+    // Register for VoIP notifications
+    func registerForVoipNotifications() {
+        DDLogInfo("appdelegate/voip-notifications/registerForVoipNotifications")
+        let voipRegistry: PKPushRegistry = PKPushRegistry(queue: DispatchQueue.main)
+        voipRegistry.delegate = self
+        voipRegistry.desiredPushTypes = [.voIP]
+    }
+
+    // Register for token
+    func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
+        if pushCredentials.type == .voIP {
+            let tokenString = pushCredentials.token.toHexString()
+            DDLogInfo("appdelegate/voip-notifications/didUpdate/voIP-push-token/success [\(tokenString)]")
+            MainAppContext.shared.service.sendVOIPTokenIfNecessary(tokenString)
+        }
+    }
+
+    func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
+        if type == .voIP {
+            DDLogInfo("appdelegate/voip-notifications/didInvalidatePushTokenFor/voIP-push-token: nil")
+            MainAppContext.shared.service.sendVOIPTokenIfNecessary(nil)
+        }
+    }
+
+    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
+
+        // Merge any data if necessary.
+        MainAppContext.shared.mergeSharedData()
+
+        if type == .voIP {
+            DDLogInfo("appdelegate/voip-notifications/didReceiveIncomingPushWith/payload: \(payload.dictionaryPayload)")
+            var service = MainAppContext.shared.service
+            service.startConnectingIfNecessary()
+
+            guard let noiseKeys = AppContext.shared.userData.noiseKeys,
+                  let metadata = payload.dictionaryPayload[NotificationMetadata.userInfoKeyMetadata] as? [String: String],
+                  let encryptedContentB64 = metadata[NotificationMetadata.encryptedData],
+                  let encryptedMessage = Data(base64Encoded: encryptedContentB64),
+                  let pushContent = NoiseStream.decryptPushContent(noiseKeys: noiseKeys, encryptedMessage: encryptedMessage) else {
+                DDLogError("appdelegate/voip-notifications/noise/error unable to find encrypted content")
+                completion()
+                return
+            }
+
+            do {
+                let msg = try Server_Msg(serializedData: pushContent.content)
+                let fromUserID = UserID(msg.fromUid)
+                switch msg.payload {
+                case .incomingCall(let incomingCall):
+                    DDLogInfo("appdelegate/voip-notifications/invoking delegate now for call from: \(fromUserID)")
+                    service.readyToHandleCallMessages = true
+                    service.callDelegate?.halloService(service, from: fromUserID, didReceiveIncomingCall: incomingCall)
+                default:
+                    DDLogError("appdelegate/voip-notifications/error invalid payload: \(msg)")
+                    break
+                }
+            } catch {
+                DDLogError("appdelegate/voip-notifications/error \(error)")
+            }
+        }
+        completion()
+    }
 }
