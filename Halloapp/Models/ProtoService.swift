@@ -12,16 +12,26 @@ import Core
 import SwiftProtobuf
 
 fileprivate let userDefaultsKeyForAPNSToken = "apnsPushToken"
+fileprivate let userDefaultsKeyForVOIPToken = "VoipPushToken"
 fileprivate let userDefaultsKeyForLangID = "langId"
 fileprivate let userDefaultsKeyForAPNSSyncTime = "apnsSyncTime"
+fileprivate let userDefaultsKeyForVOIPSyncTime = "voipSyncTime"
 fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 fileprivate let userDefaultsKeyForSilentRerequestRecords = "silentRerequestRecords"
 fileprivate let userDefaultsKeyForRequestLogs = "serverRequestedLogs"
 
 final class ProtoService: ProtoServiceCore {
 
+    var readyToHandleCallMessages = false
+    var pendingCallMessages = [CallID: [Server_Msg]]()
+
     public required init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = true) {
         super.init(credentials: credentials, passiveMode: passiveMode, automaticallyReconnect: automaticallyReconnect)
+        self.cancellableSet.insert(
+            didDisconnect.sink {
+                // reset our call handling state.
+                self.readyToHandleCallMessages = false
+            })
     }
 
     override func performOnConnect() {
@@ -31,6 +41,11 @@ final class ProtoService: ProtoServiceCore {
         if hasValidAPNSPushToken {
             let token = UserDefaults.standard.string(forKey: userDefaultsKeyForAPNSToken)
             sendAPNSTokenIfNecessary(token)
+        }
+
+        if hasValidVOIPPushToken {
+            let token = UserDefaults.standard.string(forKey: userDefaultsKeyForVOIPToken)
+            sendVOIPTokenIfNecessary(token)
         }
 
         resendNameIfNecessary()
@@ -55,6 +70,8 @@ final class ProtoService: ProtoServiceCore {
     override func authenticationFailed(with authResult: Server_AuthResult) {
         // Clear push token sync time on authentication failure.
         UserDefaults.standard.removeObject(forKey: userDefaultsKeyForAPNSSyncTime)
+        // Clear voip push token sync time on auth failure.
+        UserDefaults.standard.removeObject(forKey: userDefaultsKeyForVOIPSyncTime)
 
         super.authenticationFailed(with: authResult)
     }
@@ -63,6 +80,7 @@ final class ProtoService: ProtoServiceCore {
 
     weak var chatDelegate: HalloChatDelegate?
     weak var feedDelegate: HalloFeedDelegate?
+    weak var callDelegate: HalloCallDelegate?
 
     let didGetNewChatMessage = PassthroughSubject<IncomingChatMessage, Never>()
     let didGetNewWhisperMessage = PassthroughSubject<WhisperMessage, Never>()
@@ -868,6 +886,8 @@ final class ProtoService: ProtoServiceCore {
             DDLogInfo("proto/didReceive/\(msg.id)/wakeup")
         case .endOfQueue:
             DDLogInfo("proto/didReceive/\(msg.id)/endOfQueue")
+            readyToHandleCallMessages = true
+            handlePendingCallMessages()
         case .errorStanza(let error):
             DDLogError("proto/didReceive/\(msg.id) received message with error \(error)")
         case .inviteeNotice:
@@ -876,8 +896,59 @@ final class ProtoService: ProtoServiceCore {
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .homeFeedRerequest(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .answerCall(_), .callRinging(_), .incomingCall(_), .iceCandidate(_), .endCall(_):
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-call-payload [\(payload)]")
+
+        case .incomingCall(let incomingCall):
+            if !readyToHandleCallMessages {
+                DDLogInfo("proto/didReceive/\(msg.id)/incomingCall/\(incomingCall.callID)/addedToPending")
+                var pendingMsgs = pendingCallMessages[incomingCall.callID] ?? []
+                pendingMsgs.append(msg)
+                pendingCallMessages[incomingCall.callID] = pendingMsgs
+            } else {
+                DDLogInfo("proto/didReceive/\(msg.id)/incomingCall/\(incomingCall.callID)")
+                callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveIncomingCall: incomingCall)
+            }
+
+        case .answerCall(let answerCall):
+            if !readyToHandleCallMessages {
+                DDLogInfo("proto/didReceive/\(msg.id)/answerCall/\(answerCall.callID)/addedToPending")
+                var pendingMsgs = pendingCallMessages[answerCall.callID] ?? []
+                pendingMsgs.append(msg)
+                pendingCallMessages[answerCall.callID] = pendingMsgs
+            } else {
+                DDLogInfo("proto/didReceive/\(msg.id)/answerCall/\(answerCall.callID)")
+                callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveAnswerCall: answerCall)
+            }
+
+        case .callRinging(let callRinging):
+            if !readyToHandleCallMessages {
+                DDLogInfo("proto/didReceive/\(msg.id)/callRinging/\(callRinging.callID)/addedToPending")
+                var pendingMsgs = pendingCallMessages[callRinging.callID] ?? []
+                pendingMsgs.append(msg)
+                pendingCallMessages[callRinging.callID] = pendingMsgs
+            } else {
+                DDLogInfo("proto/didReceive/\(msg.id)/callRinging/\(callRinging.callID)")
+                callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveCallRinging: callRinging)
+            }
+
+        case .endCall(let endCall):
+            if !readyToHandleCallMessages {
+                DDLogInfo("proto/didReceive/\(msg.id)/endCall/\(endCall.callID)/clear all call messages")
+                pendingCallMessages[endCall.callID] = nil
+            } else {
+                DDLogInfo("proto/didReceive/\(msg.id)/endCall/\(endCall.callID)")
+                callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveEndCall: endCall)
+            }
+
+        case .iceCandidate(let iceCandidate):
+            if !readyToHandleCallMessages {
+                DDLogInfo("proto/didReceive/\(msg.id)/iceCandidate/\(iceCandidate.callID)/addedToPending")
+                var pendingMsgs = pendingCallMessages[iceCandidate.callID] ?? []
+                pendingMsgs.append(msg)
+                pendingCallMessages[iceCandidate.callID] = pendingMsgs
+            } else {
+                DDLogInfo("proto/didReceive/\(msg.id)/iceCandidate/\(iceCandidate.callID)")
+                callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveIceCandidate: iceCandidate)
+            }
         }
     }
 
@@ -890,6 +961,29 @@ final class ProtoService: ProtoServiceCore {
                 UserDefaults.standard.set(false, forKey: userDefaultsKeyForRequestLogs)
             default:
                 break
+            }
+        }
+    }
+
+    // We want to wait handling certain call messages until end of queue is received.
+    // Else - we could start ringing for a call that was already ended on the remote side.
+    private func handlePendingCallMessages() {
+        pendingCallMessages.forEach { (callID, pendingMsgs) in
+            pendingMsgs.forEach { pendingMsg in
+                DDLogInfo("proto/handlePendingCallMessages/callID: \(callID)/msg: \(pendingMsg.id)")
+                switch pendingMsg.payload {
+                case .incomingCall(let incomingCall):
+                    callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveIncomingCall: incomingCall)
+                case .answerCall(let answerCall):
+                    callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveAnswerCall: answerCall)
+                case .callRinging(let callRinging):
+                    callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveCallRinging: callRinging)
+                case .iceCandidate(let iceCandidate):
+                    callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveIceCandidate: iceCandidate)
+                default:
+                    DDLogError("proto/didReceive/unexpected call message: \(String(describing: pendingMsg.payload))")
+                    break
+                }
             }
         }
     }
@@ -1276,6 +1370,13 @@ extension ProtoService: HalloService {
         return false
     }
 
+    var hasValidVOIPPushToken: Bool {
+        if let token = UserDefaults.standard.string(forKey: userDefaultsKeyForVOIPToken) {
+            return !token.isEmpty
+        }
+        return false
+    }
+
     func sendAPNSTokenIfNecessary(_ token: String?) {
         let langID = Locale.current.halloServiceLangID
         let hasSyncTokenChanged = token != UserDefaults.standard.string(forKey: userDefaultsKeyForAPNSToken)
@@ -1283,16 +1384,46 @@ extension ProtoService: HalloService {
         let savedAPNSSyncTime = UserDefaults.standard.object(forKey: userDefaultsKeyForAPNSSyncTime) as? Date
         let isSyncScheduled = Date() > (savedAPNSSyncTime ?? Date.distantPast)
 
+        let type: Server_PushToken.TokenType
+        #if DEBUG
+        type = .iosDev
+        #else
+        type = .ios
+        #endif
+
         // Sync push token and langID whenever they change or every 24hrs.
         if (hasSyncTokenChanged || hasLangIDChanged || isSyncScheduled), let token = token {
             execute(whenConnectionStateIs: .connected, onQueue: .main) {
-                self.enqueue(request: ProtoPushTokenRequest(token: token, langID: langID) { result in
+                self.enqueue(request: ProtoPushTokenRequest(type: type, token: token, langID: langID) { result in
                     DDLogInfo("proto/push-token/sent")
                     if case .success = result {
                         DDLogInfo("proto/push-token/update local data")
                         self.saveAPNSTokenAndLangID(token: token, langID: langID)
                     } else {
                         DDLogInfo("proto/push-token/failed to set on server")
+                    }
+                })
+            }
+        }
+    }
+
+    func sendVOIPTokenIfNecessary(_ token: String?) {
+        let langID = Locale.current.halloServiceLangID
+        let hasVoipTokenChanged = token != UserDefaults.standard.string(forKey: userDefaultsKeyForVOIPToken)
+        let hasLangIDChanged = langID != UserDefaults.standard.string(forKey: userDefaultsKeyForLangID)
+        let savedVOIPSyncTime = UserDefaults.standard.object(forKey: userDefaultsKeyForVOIPSyncTime) as? Date
+        let isSyncScheduled = Date() > (savedVOIPSyncTime ?? Date.distantPast)
+
+        // Sync voip push token and langID whenever they change or every 24hrs.
+        if (hasVoipTokenChanged || hasLangIDChanged || isSyncScheduled), let token = token {
+            execute(whenConnectionStateIs: .connected, onQueue: .main) {
+                self.enqueue(request: ProtoPushTokenRequest(type: .iosVoip, token: token, langID: langID) { result in
+                    DDLogInfo("proto/voip-push-token/sent")
+                    if case .success = result {
+                        DDLogInfo("proto/voip-push-token/update local data")
+                        self.saveVoipToken(token: token)
+                    } else {
+                        DDLogInfo("proto/voip-push-token/failed to set on server")
                     }
                 })
             }
@@ -1317,6 +1448,19 @@ extension ProtoService: HalloService {
         // save next sync date - after 1 day.
         let nextDate = Date(timeIntervalSinceNow: 60*60*24)
         UserDefaults.standard.set(nextDate, forKey: userDefaultsKeyForAPNSSyncTime)
+    }
+
+    func saveVoipToken(token: String?) {
+        // save voip token
+        if let token = token {
+            UserDefaults.standard.set(token, forKey: userDefaultsKeyForVOIPToken)
+        } else {
+            UserDefaults.standard.removeObject(forKey: userDefaultsKeyForVOIPToken)
+        }
+
+        // save next sync date - after 1 day.
+        let nextDate = Date(timeIntervalSinceNow: 60*60*24)
+        UserDefaults.standard.set(nextDate, forKey: userDefaultsKeyForVOIPSyncTime)
     }
 
 
@@ -1473,6 +1617,178 @@ extension ProtoService: HalloService {
             }
         }
         sharedDataStore.delete(serverMessages: sharedServerMessages, completion: completion)
+    }
+
+    func getCallServers(id callID: CallID, for peerUserID: UserID, callType: CallType, completion: @escaping ServiceRequestCompletion<Server_GetCallServersResult>) {
+        guard let toUID = Int64(peerUserID) else {
+            DDLogError("ProtoService/getCallServers/error invalid to uid: \(peerUserID)")
+            completion(.failure(.aborted))
+            return
+        }
+        DDLogInfo("ProtoService/getCallServers/for: \(peerUserID) sending")
+        enqueue(request: ProtoGetCallServersRequest(id: callID, for: toUID, callType: callType.serverCallType, completion: completion))
+    }
+
+    func startCall(id callID: CallID, to peerUserID: UserID, callType: CallType, payload: Data, completion: @escaping ServiceRequestCompletion<Server_StartCallResult>) {
+        AppContext.shared.messageCrypter.encrypt(payload, for: peerUserID) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .failure(let error):
+                DDLogError("ProtoService/startCall/\(callID)/failed encryption: \(peerUserID)/error: \(error)")
+                completion(.failure(.aborted))
+            case .success((let encryptedData, _)):
+                var webRtcOffer = Server_WebRtcSessionDescription()
+                webRtcOffer.encPayload = encryptedData.data
+                webRtcOffer.publicKey = encryptedData.identityKey ?? Data()
+                webRtcOffer.oneTimePreKeyID = Int32(encryptedData.oneTimeKeyId)
+                guard let toUID = Int64(peerUserID) else {
+                    DDLogError("ProtoService/startCall/\(callID)/error invalid to uid: \(peerUserID)")
+                    completion(.failure(.aborted))
+                    return
+                }
+                DDLogInfo("ProtoService/startCall/\(callID) sending")
+                self.enqueue(request: ProtoStartCallRequest(id: callID, to: toUID, callType: callType.serverCallType, webRtcOffer: webRtcOffer, completion: completion))
+            }
+        }
+    }
+
+    func answerCall(id callID: CallID, to peerUserID: UserID, payload: Data, completion: @escaping (Result<Void, RequestError>) -> Void) {
+        AppContext.shared.messageCrypter.encrypt(payload, for: peerUserID) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .failure(let error):
+                DDLogError("ProtoService/startCall/\(callID)/failed encryption: \(peerUserID)/error: \(error)")
+                completion(.failure(.aborted))
+            case .success((let encryptedData, _)):
+                guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+                    DDLogError("ProtoService/answerCall/\(callID)/error invalid sender uid")
+                    completion(.failure(.aborted))
+                    return
+                }
+                guard let toUID = Int64(peerUserID) else {
+                    DDLogError("ProtoService/answerCall/\(callID)/error invalid to uid")
+                    completion(.failure(.aborted))
+                    return
+                }
+
+                let msgID = PacketID.generate()
+                var webrtcAnswer = Server_WebRtcSessionDescription()
+                webrtcAnswer.encPayload = encryptedData.data
+                webrtcAnswer.publicKey = encryptedData.identityKey ?? Data()
+                webrtcAnswer.oneTimePreKeyID = Int32(encryptedData.oneTimeKeyId)
+
+                var answerCall = Server_AnswerCall()
+                answerCall.callID = callID
+                answerCall.webrtcAnswer = webrtcAnswer
+                var packet = Server_Packet()
+                packet.msg.fromUid = fromUID
+                packet.msg.id = msgID
+                packet.msg.toUid = toUID
+                packet.msg.payload = .answerCall(answerCall)
+
+                guard let packetData = try? packet.serializedData() else {
+                    DDLogError("ProtoService/answerCall/\(callID)/error could not serialize packet")
+                    return
+                }
+                DDLogInfo("ProtoService/answerCall/\(callID) sending")
+                self.send(packetData)
+                completion(.success(()))
+            }
+        }
+    }
+
+    func sendCallRinging(id callID: CallID, to peerUserID: UserID) {
+        guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+            DDLogError("ProtoService/sendCallRinging/\(callID)/error invalid sender uid")
+            return
+        }
+        guard let toUID = Int64(peerUserID) else {
+            DDLogError("ProtoService/sendCallRinging/\(callID)/error invalid to uid")
+            return
+        }
+
+        let msgID = PacketID.generate()
+
+        var callRinging = Server_CallRinging()
+        callRinging.callID = callID
+
+        var packet = Server_Packet()
+        packet.msg.fromUid = fromUID
+        packet.msg.id = msgID
+        packet.msg.toUid = toUID
+        packet.msg.payload = .callRinging(callRinging)
+
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoService/sendCallRinging/\(callID)/error could not serialize packet")
+            return
+        }
+
+        DDLogInfo("ProtoService/sendCallRinging/\(callID) sending")
+        send(packetData)
+    }
+
+    func endCall(id callID: CallID, to peerUserID: UserID, reason: EndCallReason) {
+        guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+            DDLogError("ProtoService/endCall/\(callID)/error invalid sender uid")
+            return
+        }
+        guard let toUID = Int64(peerUserID) else {
+            DDLogError("ProtoService/endCall/\(callID)/error invalid to uid")
+            return
+        }
+
+        let msgID = PacketID.generate()
+
+        var endCall = Server_EndCall()
+        endCall.callID = callID
+        endCall.reason = reason.serverEndCallReason
+
+        var packet = Server_Packet()
+        packet.msg.fromUid = fromUID
+        packet.msg.id = msgID
+        packet.msg.toUid = toUID
+        packet.msg.payload = .endCall(endCall)
+
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoService/endCall/\(callID)/error could not serialize packet")
+            return
+        }
+
+        DDLogInfo("ProtoService/endCall/\(callID) sending")
+        send(packetData)
+    }
+
+    func sendIceCandidate(id callID: CallID, to peerUserID: UserID, iceCandidateInfo: IceCandidateInfo) {
+        guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+            DDLogError("ProtoService/sendIceCandidate/\(callID)/error invalid sender uid")
+            return
+        }
+        guard let toUID = Int64(peerUserID) else {
+            DDLogError("ProtoService/sendIceCandidate/\(callID)/error invalid to uid")
+            return
+        }
+
+        let msgID = PacketID.generate()
+
+        var iceCandidate = Server_IceCandidate()
+        iceCandidate.callID = callID
+        iceCandidate.sdpMediaID = iceCandidateInfo.sdpMid
+        iceCandidate.sdpMediaLineIndex = iceCandidateInfo.sdpMLineIndex
+        iceCandidate.sdp = iceCandidateInfo.sdpInfo
+
+        var packet = Server_Packet()
+        packet.msg.fromUid = fromUID
+        packet.msg.id = msgID
+        packet.msg.toUid = toUID
+        packet.msg.payload = .iceCandidate(iceCandidate)
+
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoService/sendIceCandidate/\(callID)/error could not serialize packet")
+            return
+        }
+
+        DDLogInfo("ProtoService/sendIceCandidate/\(callID) sending")
+        send(packetData)
     }
 }
 

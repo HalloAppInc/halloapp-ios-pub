@@ -24,6 +24,9 @@ public struct ServerProperties {
         case isVoiceNotesEnabled = "voice_notes"
         case isMediaCommentsEnabled = "media_comments"
         case sendClearTextGroupFeedContent = "cleartext_group_feed"
+        case isAudioCallsEnabled = "audio_calls"
+        case isVideoCallsEnabled = "video_calls"
+        case callWaitTimeoutSec = "call_wait_timeout"
     }
 
     private struct UserDefaultsKey {
@@ -47,6 +50,9 @@ public struct ServerProperties {
         static let isVoiceNotesEnabled = false
         static let isMediaCommentsEnabled = false
         static let sendClearTextGroupFeedContent = true
+        static let isAudioCallsEnabled = false
+        static let isVideoCallsEnabled = false
+        static let callWaitTimeoutSec = 60
     }
 
     // MARK: Storage
@@ -212,5 +218,17 @@ public struct ServerProperties {
 
     public static var sendClearTextGroupFeedContent: Bool {
         ServerProperties.bool(forKey: .sendClearTextGroupFeedContent) ?? Defaults.sendClearTextGroupFeedContent
+    }
+
+    public static var isAudioCallsEnabled: Bool {
+        ServerProperties.bool(forKey: .isAudioCallsEnabled) ?? Defaults.isAudioCallsEnabled
+    }
+
+    public static var isVideoCallsEnabled: Bool {
+        ServerProperties.bool(forKey: .isVideoCallsEnabled) ?? Defaults.isVideoCallsEnabled
+    }
+
+    public static var callWaitTimeoutSec: Int {
+        ServerProperties.integer(forKey: .callWaitTimeoutSec) ?? Defaults.callWaitTimeoutSec
     }
 }

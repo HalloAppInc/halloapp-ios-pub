@@ -72,12 +72,27 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
+    // Should always be called on the main queue.
+    private func checkAndUpdateCallButton() {
+        if fromUserId != MainAppContext.shared.userData.userId && MainAppContext.shared.callManager.activeCallID == nil {
+            navigationItem.rightBarButtonItem?.isEnabled = true
+        } else {
+            navigationItem.rightBarButtonItem?.isEnabled = false
+        }
+    }
+
     override func viewDidLoad() {
         guard let fromUserId = fromUserId else { return }
 
         super.viewDidLoad()
 
         preventNavLoop()
+
+        if ServerProperties.isAudioCallsEnabled {
+            let image = UIImage(systemName: "phone.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(callButtonTapped))
+        }
+        checkAndUpdateCallButton()
 
         let navAppearance = UINavigationBarAppearance()
         navAppearance.backgroundColor = UIColor.primaryBg
@@ -260,6 +275,16 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             }
         )
 
+        cancellableSet.insert(
+            MainAppContext.shared.callManager.isAnyCallActive.sink { [weak self] call in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    // Disable call button when the user is in an active call.
+                    self.checkAndUpdateCallButton()
+                }
+            }
+        )
+
         // Update name in title view if we just discovered this new user.
         cancellableSet.insert(
             MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
@@ -356,6 +381,41 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
     deinit {
         DDLogDebug("ChatViewController/deinit/\(fromUserId ?? "")")
+    }
+
+    @objc private func callButtonTapped() {
+        guard let peerUserID = fromUserId else {
+            DDLogInfo("ChatViewController/callButtonTapped/peerUserID is empty")
+            return
+        }
+        if peerUserID == MainAppContext.shared.userData.userId {
+            DDLogInfo("ChatViewController/callButtonTapped/cannot call oneself")
+            return
+        }
+        MainAppContext.shared.callManager.startCall(to: peerUserID) { [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    DDLogInfo("ChatViewController/startCall/success")
+                case .failure:
+                    DDLogInfo("ChatViewController/startCall/failure")
+                    let alert = self.getFailedCallAlertController()
+                    self.present(alert, animated: true)
+                }
+            }
+        }
+    }
+
+    private func getFailedCallAlertController() -> UIAlertController {
+        let alert = UIAlertController(
+            title: Localizations.failedCallTitle,
+            message: Localizations.failedCallNoticeText,
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonOk, style: .default, handler: { action in
+            self.dismiss(animated: true, completion: nil)
+        }))
+        return alert
     }
 
     private func pauseVoiceNotes() {

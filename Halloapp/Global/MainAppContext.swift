@@ -28,6 +28,7 @@ class MainAppContext: AppContext {
     private(set) var feedData: FeedData!
     private(set) var chatData: ChatData!
     private(set) var syncManager: SyncManager!
+    private(set) var callManager: CallManager!
     private(set) var privacySettingsImpl: PrivacySettings!
     private(set) var shareExtensionDataStore: ShareExtensionDataStore!
     private(set) var notificationServiceExtensionDataStore: NotificationServiceExtensionDataStore!
@@ -144,6 +145,7 @@ class MainAppContext: AppContext {
         privacySettingsImpl = PrivacySettings(contactStore: contactStore, service: service)
         shareExtensionDataStore = ShareExtensionDataStore()
         notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()
+        callManager = CallManager(service: service)
 
         performAppUpdateMigrationIfNecessary()
         migrateUploadDataIfNecessary()
