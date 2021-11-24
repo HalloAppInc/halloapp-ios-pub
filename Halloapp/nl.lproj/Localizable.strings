@@ -658,6 +658,21 @@
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "\n\n\nBeschrijf het probleem of de feedback in de ruimte hierboven alsjeblieft.\n\nVersie %1$@ - %2$@\n%3$@";
 
+/* Button to dismiss the alert. */
+"home.calls.button.exit" = "OK";
+
+/* Text shown to users on call failure. */
+"home.calls.fail.text" = "Sorry, probeer later opnieuw.";
+
+/* Title of failed call screen alert. */
+"home.calls.fail.title" = "Oproep mislukt.";
+
+/* Text shown to users trying to open the call screen. */
+"home.calls.notice.text" = "Je hebt op dit moment geen actieve oproep.";
+
+/* Title of call screen alert. */
+"home.calls.notice.title" = "Geen Actieve Oproepen";
+
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Afsluiten";
 
@@ -683,7 +698,7 @@
 "invite.contact.count" = "%d contacten op HalloApp";
 
 /* Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
-"invite.error.alert.message" = "Er ging iets mis. Probeer het later opnieuw.";
+"invite.error.alert.message" = "Er ging iets mis. Probeer later opnieuw.";
 
 /* Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp. */
 "invite.error.alert.title" = "Kon niet uitnodigen";
