@@ -265,7 +265,7 @@ final class NotificationProtoService: ProtoServiceCore {
     // Decrypt, process and ack group feed items
     private func decryptAndProcessGroupFeedItem(contentID: String, contentType: FeedElementType,
                                                 item: Server_GroupFeedItem, metadata: NotificationMetadata, ack: @escaping () -> ()) {
-        decryptGroupFeedPayload(for: item) { content, groupDecryptionFailure in
+        decryptGroupFeedPayload(for: item, in: item.gid) { content, groupDecryptionFailure in
             if let content = content, groupDecryptionFailure == nil {
                 DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/success")
                 switch content {
