@@ -130,10 +130,11 @@ class CommentLinkPreviewView: UIView {
         configureMedia()
         self.addSubview(hStack)
 
-        hStack.widthAnchor.constraint(equalToConstant: 300).isActive = true
         hStack.heightAnchor.constraint(equalToConstant: 100).isActive = true
         hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        hStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
 
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(previewTapped(sender:)))
         self.addGestureRecognizer(tapGestureRecognizer)
