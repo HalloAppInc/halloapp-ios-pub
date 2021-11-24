@@ -399,9 +399,14 @@ class CommentView: UIView {
                 feedPostComment.text,
                 mentions: Array(feedPostComment.mentions ?? Set()))
 
-            let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
-            let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
-            textCommentLabel.attributedText = textWithMentions?.with(font: baseFont).applyingFontForMentions(nameFont)
+            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+            let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
+            let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
+            if let attrText = textWithMentions?.with(font: font, color: .label) {
+                let ham = HAMarkdown(font: font, color: .label)
+                textCommentLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
+            }
+
             textCommentLabel.delegate = self
             vStack.insertArrangedSubview(textCommentLabel, at: vStack.arrangedSubviews.count - 1)
         }
