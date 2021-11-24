@@ -338,7 +338,6 @@ public enum MediaURLInfo {
 public enum FeedElementType: Int {
     case post = 0
     case comment = 1
-    case linkPreview = 3
 }
 
 extension FeedElementType {
@@ -348,8 +347,6 @@ extension FeedElementType {
             return "post"
         case .comment:
             return "comment"
-        case .linkPreview:
-            return "linkPreview"
         }
     }
 }

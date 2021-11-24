@@ -1856,7 +1856,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Status could be "downloading" if download has previously started
                 // but the app was terminated before the download has finished.
                 if feedPostMedia.url != nil && (feedPostMedia.status == .none || feedPostMedia.status == .downloading || feedPostMedia.status == .downloadError) {
-                    let (taskAdded, task) = downloadManager.downloadMedia(for: feedPostMedia, feedElementType: .post)
+                    let (taskAdded, task) = downloadManager.downloadMedia(for: feedPostMedia)
                     if taskAdded {
                         switch feedPostMedia.type {
                         case .image: photosDownloaded += 1
@@ -1888,7 +1888,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.linkPreviews?.forEach { linkPreview in
                 linkPreview.media?.forEach { linkPreviewMedia in
                     if linkPreviewMedia.url != nil && (linkPreviewMedia.status == .none || linkPreviewMedia.status == .downloading || linkPreviewMedia.status == .downloadError) {
-                        let (taskAdded, task) = downloadManager.downloadMedia(for: linkPreviewMedia, feedElementType: .linkPreview)
+                        let (taskAdded, task) = downloadManager.downloadMedia(for: linkPreviewMedia)
                         if taskAdded {
                             switch linkPreviewMedia.type {
                             case .image: photosDownloaded += 1
@@ -1970,7 +1970,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     var totalDownloadSize = 0
 
                     if media.url != nil && (media.status == .none || media.status == .downloading || media.status == .downloadError) {
-                        let(taskAdded, task) = downloadManager.downloadMedia(for: media, feedElementType: .comment)
+                        let(taskAdded, task) = downloadManager.downloadMedia(for: media)
                         if taskAdded {
                             switch media.type
                             {
@@ -2022,7 +2022,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedComment.linkPreviews?.forEach { linkPreview in
                 linkPreview.media?.forEach { linkPreviewMedia in
                     if linkPreviewMedia.url != nil && (linkPreviewMedia.status == .none || linkPreviewMedia.status == .downloading || linkPreviewMedia.status == .downloadError) {
-                        let (taskAdded, task) = downloadManager.downloadMedia(for: linkPreviewMedia, feedElementType: .linkPreview)
+                        let (taskAdded, task) = downloadManager.downloadMedia(for: linkPreviewMedia)
                         if taskAdded {
                             task.feedMediaObjectId = linkPreviewMedia.objectID
                             linkPreviewMedia.status = .downloading
@@ -2127,30 +2127,25 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             // Step 3: Notify UI about finished download.
-            switch task.feedElementType {
-            case .post:
-                if let  feedPost = feedPostMedia.post {
-                    let feedPostId = feedPost.id
-                    let mediaOrder = Int(feedPostMedia.order)
-                    DispatchQueue.main.async {
-                        self.reloadMedia(feedPostId: feedPostId, order: mediaOrder)
-                    }
+            if let  feedPost = feedPostMedia.post {
+                let feedPostId = feedPost.id
+                let mediaOrder = Int(feedPostMedia.order)
+                DispatchQueue.main.async {
+                    self.reloadMedia(feedPostId: feedPostId, order: mediaOrder)
                 }
-            case .comment:
-                if let  feedComment = feedPostMedia.comment {
-                    let feedCommentId = feedComment.id
-                    let mediaOrder = Int(feedPostMedia.order)
-                    DispatchQueue.main.async {
-                        self.reloadMedia(feedCommentID: feedCommentId, order: mediaOrder)
-                    }
+            }
+            else if let  feedComment = feedPostMedia.comment {
+                let feedCommentId = feedComment.id
+                let mediaOrder = Int(feedPostMedia.order)
+                DispatchQueue.main.async {
+                    self.reloadMedia(feedCommentID: feedCommentId, order: mediaOrder)
                 }
-            case .linkPreview:
-                if let feedLinkPreview = feedPostMedia.linkPreview {
-                    let feedLinkPreviewId = feedLinkPreview.id
-                    let mediaOrder = Int(feedPostMedia.order)
-                    DispatchQueue.main.async {
-                        self.reloadMedia(feedLinkPreviewID: feedLinkPreviewId, order: mediaOrder)
-                    }
+            }
+            else if let feedLinkPreview = feedPostMedia.linkPreview {
+                let feedLinkPreviewId = feedLinkPreview.id
+                let mediaOrder = Int(feedPostMedia.order)
+                DispatchQueue.main.async {
+                    self.reloadMedia(feedLinkPreviewID: feedLinkPreviewId, order: mediaOrder)
                 }
             }
             // Step 4: Update upload data to avoid duplicate uploads

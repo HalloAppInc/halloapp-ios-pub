@@ -89,7 +89,7 @@ open class SharedDataStore {
     public final func posts() -> [SharedFeedPost] {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedFeedPost> = SharedFeedPost.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedFeedPost.timestamp, ascending: false)]
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedFeedPost.timestamp, ascending: true)]
         
         do {
             let posts = try managedObjectContext.fetch(fetchRequest)

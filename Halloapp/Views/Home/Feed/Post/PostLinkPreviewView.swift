@@ -144,12 +144,8 @@ class PostLinkPreviewView: UIView {
         
         self.addSubview(vStack)
         
-        textStack.bottomAnchor.constraint(equalTo: vStack.bottomAnchor, constant: 20).isActive = true
-       
         vStack.constrainMargins(to: self)
-        vStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
-        
+
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(previewTapped(sender:)))
         self.addGestureRecognizer(tapGestureRecognizer)
         self.isUserInteractionEnabled = true

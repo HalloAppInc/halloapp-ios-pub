@@ -242,16 +242,19 @@ class MainAppContext: AppContext {
             DDLogInfo("MainAppContext/merge-data/notification-service-extension")
 
             mergeGroup.enter()
-            self.service.mergeData(from: self.notificationServiceExtensionDataStore) {
-                mergeGroup.leave()
-            }
-
-            mergeGroup.enter()
             self.feedData.mergeData(from: self.notificationServiceExtensionDataStore) {
                 mergeGroup.leave()
             }
             mergeGroup.enter()
             self.chatData.mergeData(from: self.notificationServiceExtensionDataStore) {
+                mergeGroup.leave()
+            }
+
+            // We need to merge other messages after merging chatMsgs and FeedMsgs
+            // since retracts are stored here.
+            // TODO: We dont like this api on CoreService: we should remove it.
+            mergeGroup.enter()
+            self.service.mergeData(from: self.notificationServiceExtensionDataStore) {
                 mergeGroup.leave()
             }
 
