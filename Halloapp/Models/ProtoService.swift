@@ -753,7 +753,7 @@ final class ProtoService: ProtoServiceCore {
                     return
                 }
                 hasAckBeenDelegated = true
-                decryptGroupFeedPayload(for: item) { content, groupDecryptionFailure in
+                decryptGroupFeedPayload(for: item, in: item.gid) { content, groupDecryptionFailure in
                     let receiptTimestamp = Date()
                     if let content = content {
                         DDLogInfo("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/successfully decrypted content")
@@ -799,13 +799,15 @@ final class ProtoService: ProtoServiceCore {
 
             case .retract:
                 hasAckBeenDelegated = true
-                let contents = self.payloadContents(for: [item], status: .received)
-                if contents.isEmpty {
-                    ack()
-                } else {
-                    for content in contents  {
-                        let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
-                        delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
+                processGroupFeedRetract(for: item, in: item.gid) {
+                    let contents = self.payloadContents(for: [item], status: .received)
+                    if contents.isEmpty {
+                        ack()
+                    } else {
+                        for content in contents  {
+                            let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
+                            delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
+                        }
                     }
                 }
 

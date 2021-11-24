@@ -61,7 +61,8 @@ public protocol CoreService {
     func publishComment(_ comment: CommentData, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date>)
     func resendPost(_ post: PostData, feed: Feed, rerequestCount: Int32, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
     func resendComment(_ comment: CommentData, groupId: GroupID?, rerequestCount: Int32, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
-    func decryptGroupFeedPayload(for item: Server_GroupFeedItem, completion: @escaping (FeedContent?, GroupDecryptionFailure?) -> Void)
+    func decryptGroupFeedPayload(for item: Server_GroupFeedItem, in groupID: GroupID, completion: @escaping (FeedContent?, GroupDecryptionFailure?) -> Void)
+    func processGroupFeedRetract(for item: Server_GroupFeedItem, in groupID: GroupID, completion: @escaping () -> Void)
     func rerequestGroupFeedItemIfNecessary(id contentID: String, groupID: GroupID, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Keys

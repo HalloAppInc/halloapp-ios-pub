@@ -58,6 +58,14 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     public let didConnect = PassthroughSubject<Void, Never>()
     public let didDisconnect = PassthroughSubject<Void, Never>()
 
+    private enum GroupProcessingState {
+        case ready
+        case busy
+    }
+    private var pendingWorkItems = [GroupID: [DispatchWorkItem]]()
+    private var groupStates = [GroupID: GroupProcessingState]()
+    private var groupWorkQueue = DispatchQueue(label: "com.halloapp.group-work", qos: .default)
+
     private var stream: Stream?
     public var credentials: Credentials? {
         didSet {
@@ -1096,45 +1104,115 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func decryptGroupFeedPayload(for item: Server_GroupFeedItem, completion: @escaping (FeedContent?, GroupDecryptionFailure?) -> Void) {
-
-        guard let contentId = item.contentId,
-              let publisherUid = item.publisherUid,
-              let encryptedPayload = item.encryptedPayload else {
-            completion(nil, GroupDecryptionFailure(nil, nil, .missingPayload, .payload))
-            return
+    public func processGroupFeedRetract(for item: Server_GroupFeedItem, in groupID: GroupID, completion: @escaping () -> Void) {
+        let newCompletion: () -> Void = { [weak self] in
+            guard let self = self else { return }
+            completion()
+            DispatchQueue.main.async {
+                self.groupStates[groupID] = .ready
+                self.executePendingWorkItems(for: groupID)
+            }
         }
 
-        DDLogInfo("ProtoServiceCore/decryptGroupFeedPayload/contentId/\(item.gid)/\(contentId), publisherUid: \(publisherUid)/begin")
+        let work = DispatchWorkItem {
+            newCompletion()
+        }
 
-        if !item.senderState.encSenderState.isEmpty {
-            // We might already have an e2e session setup with this user.
-            // but we have to overwrite our current session with this user. our code does this.
-            AppContext.shared.messageCrypter.decrypt(
-                EncryptedData(
-                    data: item.senderState.encSenderState,
-                    identityKey: item.senderState.publicKey.isEmpty ? nil : item.senderState.publicKey,
-                    oneTimeKeyId: Int(item.senderState.oneTimePreKeyID)),
-                from: publisherUid) { result in
-                    // After decrypting sender state.
-                    switch result {
-                    case .success(let decryptedData):
-                        DDLogInfo("proto/decryptGroupFeedPayload/\(item.gid)/success/decrypted senderState successfully")
-                        do {
-                            let senderState = try Clients_SenderState(serializedData: decryptedData)
-                            self.inspectAndDecryptClientEncryptedPayload(payload: encryptedPayload, senderState: senderState, item: item, completion: completion)
-                        } catch {
-                            DDLogError("proto/decryptGroupFeedPayload/\(item.gid)/error/invalid senderState \(error)")
+        DispatchQueue.main.async { [self] in
+            // Append task to pendingWorkItems and try to perform task.
+            if var pendingGroupWorkItems = pendingWorkItems[groupID] {
+                pendingGroupWorkItems.append(work)
+                self.pendingWorkItems[groupID] = pendingGroupWorkItems
+            } else {
+                pendingWorkItems[groupID] = [work]
+            }
+            executePendingWorkItems(for: groupID)
+        }
+    }
+
+    public func decryptGroupFeedPayload(for item: Server_GroupFeedItem, in groupID: GroupID, completion: @escaping (FeedContent?, GroupDecryptionFailure?) -> Void) {
+        let newCompletion: (FeedContent?, GroupDecryptionFailure?) -> Void = { [weak self] content, decryptionFailure in
+            guard let self = self else { return }
+            completion(content, decryptionFailure)
+            DispatchQueue.main.async {
+                self.groupStates[groupID] = .ready
+                self.executePendingWorkItems(for: groupID)
+            }
+        }
+
+        let work = DispatchWorkItem {
+            guard let contentId = item.contentId,
+                  let publisherUid = item.publisherUid,
+                  let encryptedPayload = item.encryptedPayload else {
+                newCompletion(nil, GroupDecryptionFailure(nil, nil, .missingPayload, .payload))
+                return
+            }
+
+            DDLogInfo("ProtoServiceCore/decryptGroupFeedPayload/contentId/\(item.gid)/\(contentId), publisherUid: \(publisherUid)/begin")
+
+            if !item.senderState.encSenderState.isEmpty {
+                // We might already have an e2e session setup with this user.
+                // but we have to overwrite our current session with this user. our code does this.
+                AppContext.shared.messageCrypter.decrypt(
+                    EncryptedData(
+                        data: item.senderState.encSenderState,
+                        identityKey: item.senderState.publicKey.isEmpty ? nil : item.senderState.publicKey,
+                        oneTimeKeyId: Int(item.senderState.oneTimePreKeyID)),
+                    from: publisherUid) { result in
+                        // After decrypting sender state.
+                        switch result {
+                        case .success(let decryptedData):
+                            DDLogInfo("proto/decryptGroupFeedPayload/\(item.gid)/success/decrypted senderState successfully")
+                            do {
+                                let senderState = try Clients_SenderState(serializedData: decryptedData)
+                                self.inspectAndDecryptClientEncryptedPayload(payload: encryptedPayload, senderState: senderState, item: item, completion: newCompletion)
+                            } catch {
+                                DDLogError("proto/decryptGroupFeedPayload/\(item.gid)/error/invalid senderState \(error)")
+                            }
+                        case .failure(let failure):
+                            DDLogError("proto/decryptGroupFeedPayload/\(item.gid)/error/\(failure.error)")
+                            AppContext.shared.eventMonitor.count(.sessionReset(true))
+                            newCompletion(nil, GroupDecryptionFailure(contentId, publisherUid, failure.error, .senderState))
+                            return
                         }
-                    case .failure(let failure):
-                        DDLogError("proto/decryptGroupFeedPayload/\(item.gid)/error/\(failure.error)")
-                        AppContext.shared.eventMonitor.count(.sessionReset(true))
-                        completion(nil, GroupDecryptionFailure(contentId, publisherUid, failure.error, .senderState))
-                        return
-                    }
+                }
+            } else {
+                self.inspectAndDecryptClientEncryptedPayload(payload: encryptedPayload, senderState: nil, item: item, completion: newCompletion)
+            }
+        }
+
+        DispatchQueue.main.async { [self] in
+            // Append task to pendingWorkItems and try to perform task.
+            if var pendingGroupWorkItems = pendingWorkItems[groupID] {
+                pendingGroupWorkItems.append(work)
+                self.pendingWorkItems[groupID] = pendingGroupWorkItems
+            } else {
+                pendingWorkItems[groupID] = [work]
+            }
+            executePendingWorkItems(for: groupID)
+        }
+    }
+
+    /// this function must run on main queue asynchronously.
+    /// that ensures that the state and pendingWorkItems variables are always modified on the same queue.
+    private func executePendingWorkItems(for groupID: GroupID) {
+        if groupStates[groupID] != .busy {
+            DDLogInfo("proto/executePendingWorkItems/gid:\(groupID)/checking!")
+            if var pendingGroupItems = pendingWorkItems[groupID],
+               !pendingGroupItems.isEmpty,
+               let firstWork = pendingGroupItems.first {
+                DDLogInfo("proto/executePendingWorkItems/gid:\(groupID)/working on it!")
+                groupStates[groupID] = .busy
+                pendingGroupItems.removeFirst()
+                pendingWorkItems[groupID] = pendingGroupItems
+                firstWork.perform()
+            } else {
+                DDLogInfo("proto/executePendingWorkItems/gid:\(groupID)/done!")
+                groupStates[groupID] = .ready
+                pendingWorkItems[groupID] = nil
             }
         } else {
-            self.inspectAndDecryptClientEncryptedPayload(payload: encryptedPayload, senderState: nil, item: item, completion: completion)
+            DDLogInfo("proto/executePendingWorkItems/gid:\(groupID)/waiting!")
         }
     }
 
