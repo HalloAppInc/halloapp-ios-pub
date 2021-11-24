@@ -1258,6 +1258,8 @@ class ChatData: ObservableObject {
                     chatMedia.key = sharedPreviewMedia.key
                     chatMedia.order = sharedPreviewMedia.order
                     chatMedia.sha256 = sharedPreviewMedia.sha256
+                    chatMedia.linkPreview = linkPreview
+                    linkPreview.message = chatMessage
                     if let relativeFilePath = sharedPreviewMedia.relativeFilePath {
                         do {
                             let sourceUrl = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
@@ -1268,8 +1270,6 @@ class ChatData: ObservableObject {
                             DDLogError("ChatData/mergeSharedData/link-preview-media/copy-media/error [\(error)]")
                         }
                     }
-                    chatMedia.linkPreview = linkPreview
-                    linkPreview.message = chatMessage
                 }
                 linkPreviews.insert(linkPreview)
             }

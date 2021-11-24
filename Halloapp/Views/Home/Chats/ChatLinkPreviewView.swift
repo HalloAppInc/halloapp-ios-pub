@@ -52,13 +52,6 @@ class ChatLinkPreviewView: UIView {
         return mediaView
     }()
 
-    private lazy var titleLabel: UILabel = {
-        let titleLabel = UILabel()
-        titleLabel.numberOfLines = 2
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        return titleLabel
-    }()
-
     private lazy var urlLabel: UILabel = {
         let urlLabel = UILabel()
         urlLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -68,8 +61,32 @@ class ChatLinkPreviewView: UIView {
         return urlLabel
     }()
 
+    private lazy var linkIconView: UIView = {
+        let image = UIImage(named: "LinkIcon")?.withRenderingMode(.alwaysTemplate)
+        let imageView = UIImageView(image: image)
+        imageView.tintColor = UIColor.label.withAlphaComponent(0.5)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+
+    private var linkPreviewLinkStack: UIStackView {
+        let linkStack = UIStackView(arrangedSubviews: [ linkIconView, urlLabel, UIView() ])
+        linkStack.translatesAutoresizingMaskIntoConstraints = false
+        linkStack.spacing = 2
+        linkStack.alignment = .center
+        linkStack.axis = .horizontal
+        return linkStack
+    }
+
+    private lazy var titleLabel: UILabel = {
+        let titleLabel = UILabel()
+        titleLabel.numberOfLines = 2
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        return titleLabel
+    }()
+
     private lazy var textStack: UIStackView = {
-        let textStack = UIStackView(arrangedSubviews: [ titleLabel, urlLabel ])
+        let textStack = UIStackView(arrangedSubviews: [ titleLabel, linkPreviewLinkStack ])
         textStack.translatesAutoresizingMaskIntoConstraints = false
         textStack.axis = .vertical
         textStack.spacing = 4
@@ -77,7 +94,6 @@ class ChatLinkPreviewView: UIView {
         textStack.isLayoutMarginsRelativeArrangement = true
         return textStack
     }()
-
 
     private lazy var hStack: UIStackView = {
         let hStack = UIStackView(arrangedSubviews: [mediaView, textStack])
