@@ -301,9 +301,6 @@ final class NotificationProtoService: ProtoServiceCore {
                             self.processPostData(postData: metadata.postData(status: .rerequesting), status: .decryptionError, metadata: metadata, ack: ack)
                         case .comment:
                             self.processCommentData(commentData: metadata.commentData(status: .rerequesting), status: .decryptionError, metadata: metadata, ack: ack)
-                        case .linkPreview:
-                            DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/received link preview")
-                            ack()
                         }
                     }
                 }
@@ -590,7 +587,7 @@ extension NotificationProtoService: FeedDownloadManagerDelegate {
      - returns: Download task if download has started.
      */
     private func startDownloading(media: FeedMediaProtocol) -> FeedDownloadManager.Task? {
-        let (taskAdded, task) = downloadManager.downloadMedia(for: media, feedElementType: .post)
+        let (taskAdded, task) = downloadManager.downloadMedia(for: media)
         if taskAdded {
             DDLogInfo("media/download/started \(task.id)")
             return task
