@@ -83,7 +83,8 @@ public struct ServerProperties {
         }
         var decodedObject: Any?
         do {
-            decodedObject = try NSKeyedUnarchiver.unarchivedObject(ofClass: NSDictionary.self, from: data)
+            decodedObject = try NSKeyedUnarchiver.unarchivedObject(ofClasses: [NSDictionary.self, NSString.self],
+                                                                   from: data)
         }
         catch {
             DDLogError("serverprops/error [invalid pref value]")
