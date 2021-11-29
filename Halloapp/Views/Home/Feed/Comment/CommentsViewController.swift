@@ -18,6 +18,10 @@ private extension Localizations {
         NSLocalizedString("title.comments", value: "Comments", comment: "Title for the Comments screen.")
     }
 
+    static var newComment: String {
+        NSLocalizedString("title.comments.picker", value: "New Comment", comment: "Title for the picker screen.")
+    }
+
     static var commentDelete: String {
         NSLocalizedString("comment.delete",
                           value: "Delete",
@@ -1010,6 +1014,8 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
             self.dismissMediaPicker(animated: true)
             self.commentsInputView.showKeyboard(from: self)
         }
+        mediaPickerController?.title = Localizations.newComment
+
         present(UINavigationController(rootViewController: mediaPickerController!), animated: true)
     }
 

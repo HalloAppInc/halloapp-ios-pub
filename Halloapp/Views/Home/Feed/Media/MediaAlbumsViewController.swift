@@ -129,10 +129,11 @@ fileprivate struct AlbumsView: View {
             Text(Localizations.albums)
                 .font(.gotham(fixedSize: 17, weight: .medium))
         }
+        .frame(height: 54)
     }
     
     var body: some View {
-        VStack {
+        VStack(alignment: .center, spacing: 0) {
             topBar
             
             ScrollView(.vertical) {
