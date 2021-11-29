@@ -267,8 +267,11 @@ class MainAppContext: AppContext {
     private var backgroundTaskIds: [String: UIBackgroundTaskIdentifier] = [:]
 
     func beginBackgroundTask(_ itemId: String, expirationHandler: (() -> Void)? = nil) {
-        DDLogInfo("background task [\(itemId)]")
-
+        if backgroundTaskIds[itemId] != nil {
+            DDLogInfo("end existing background task: [\(itemId)]")
+            endBackgroundTask(itemId)
+        }
+        DDLogInfo("background task create [\(itemId)]")
         backgroundTaskIds[itemId] = UIApplication.shared.beginBackgroundTask(withName: "background-task-\(itemId)") { [weak self] in
             guard let self = self else { return }
 
