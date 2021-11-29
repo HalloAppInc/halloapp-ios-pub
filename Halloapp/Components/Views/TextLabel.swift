@@ -427,9 +427,9 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
 
     private var linkAttributes: [ NSAttributedString.Key: Any ] {
         if let linkColor = linkColor {
-            return [ .foregroundColor: linkColor ]
+            return [ .underlineStyle: NSUnderlineStyle.single.rawValue, .foregroundColor: linkColor ]
         }
-        return [:]
+        return [.underlineStyle: NSUnderlineStyle.single.rawValue]
     }
 
     private static let dateAttributes: [ NSAttributedString.Key: Any ] =
