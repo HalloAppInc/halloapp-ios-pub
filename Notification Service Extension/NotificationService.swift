@@ -13,12 +13,20 @@ import UserNotifications
 
 class NotificationService: UNNotificationServiceExtension  {
 
+    // dispatch_once semantics
+    private static let initializeAppContext: Void = {
+        let serviceBuilder: ServiceBuilder = {
+            return NotificationProtoService(credentials: $0, passiveMode: false, automaticallyReconnect: false)
+        }
+        initAppContext(AppExtensionContext.self,
+                       serviceBuilder: serviceBuilder,
+                       contactStoreClass: ContactStore.self,
+                       appTarget: AppTarget.notificationExtension)
+    }()
+
     // NSE can run upto 30 seconds in most cases and 10 seconds should usually be good enough.
     let extensionRunTimeSec = 25.0
     var contentHandler: ((UNNotificationContent) -> Void)!
-    private let serviceBuilder: ServiceBuilder = {
-        return NotificationProtoService(credentials: $0, passiveMode: false, automaticallyReconnect: false)
-    }
     private var service: CoreService? = nil
     private func recordPushEvent(requestID: String, messageID: String?) {
         let timestamp = Date()
@@ -35,7 +43,7 @@ class NotificationService: UNNotificationServiceExtension  {
 
     private func processDidReceive(request: UNNotificationRequest, contentHandler: @escaping (UNNotificationContent) -> Void) {
         DDLogInfo("didReceiveRequest/begin \(request) [\(AppContext.userAgent)]")
-        initAppContext(AppExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self, appTarget: AppTarget.notificationExtension)
+        Self.initializeAppContext
         service = AppExtensionContext.shared.coreService
         service?.startConnectingIfNecessary()
 
