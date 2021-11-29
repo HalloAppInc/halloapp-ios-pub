@@ -3016,9 +3016,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             ImageServer.clearProgress(for: feedComment.id)
             self.mediaUploader.clearTasks(withGroupID: feedComment.id)
             if numberOfFailedUploads > 0 {
-                self.updateFeedPost(with: feedComment.post.id) { (feedPost) in
-                    feedPost.status = .sendError
-                }
+                self.updateFeedPostComment(with: feedComment.id, block: { (feedComment) in
+                    feedComment.status = .sendError
+                })
             } else {
                 // TODO(murali@): one way to avoid looking up the object from the database is to keep an updated in-memory version of the comment.
                 self.performSeriallyOnBackgroundContext { (managedObjectContext) in
