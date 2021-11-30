@@ -12,6 +12,7 @@ import Combine
 import Core
 import SwiftProtobuf
 import UserNotifications
+import CallKit
 
 final class NotificationProtoService: ProtoServiceCore {
 
@@ -25,11 +26,14 @@ final class NotificationProtoService: ProtoServiceCore {
     // List of notifications presented: used to update notification content after downloading media.
     private var pendingNotificationContent = [String: UNNotificationContent]()
     private var pendingRetractNotificationIds: [String] = []
+    private var pendingCallMessages: [Server_Msg] = []
+    private var readyToHandleCallMessages = false
 
     public required init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = false) {
         super.init(credentials: credentials, passiveMode: passiveMode, automaticallyReconnect: automaticallyReconnect)
         self.cancellableSet.insert(
             didDisconnect.sink { [weak self] in
+                self?.readyToHandleCallMessages = false
                 self?.downloadManager.suspendMediaDownloads()
                 self?.processRetractNotifications()
             })
@@ -112,6 +116,42 @@ final class NotificationProtoService: ProtoServiceCore {
 
     }
 
+    // MARK: Calls
+
+    private func processPendingCallMsgs() {
+        DDLogInfo("NotificationProtoService/processPendingCallMsgs/count: \(pendingCallMessages.count)")
+        if let incomingCallServerMsg = pendingCallMessages.first {
+            let serverMsgPb: Data
+            do {
+                serverMsgPb = try incomingCallServerMsg.serializedData()
+            } catch {
+                DDLogError("NotificationMetadata/init/msg - unable to serialize it.")
+                return
+            }
+            reportIncomingCall(serverMsgPb: serverMsgPb)
+        }
+    }
+
+    private func reportIncomingCall(serverMsgPb: Data) {
+        disconnectImmediately()
+        // might have to add an artificial delay here to handle cleanup.
+        if #available(iOSApplicationExtension 14.5, *) {
+            DispatchQueue.main.async {
+                let metadataContent = ["nse_content": serverMsgPb.base64EncodedString()]
+                CXProvider.reportNewIncomingVoIPPushPayload(["metadata": metadataContent]) { error in
+                    if let error = error {
+                        DDLogError("NotificationProtoService/reportIncomingCall/failure: \(error)")
+                    } else {
+                        DDLogInfo("NotificationProtoService/reportIncomingCall/success")
+                    }
+                }
+            }
+        } else {
+            // Fallback on earlier versions.
+            // Test with always sending voip push on ios for versions < 14.5
+        }
+    }
+
 
     // MARK: Message
 
@@ -131,6 +171,35 @@ final class NotificationProtoService: ProtoServiceCore {
         } catch {
             DDLogError("NotificationMetadata/init/msg - unable to serialize it.")
             return
+        }
+
+        switch msg.payload {
+        case .endOfQueue(_):
+            readyToHandleCallMessages = true
+            processPendingCallMsgs()
+            return
+        case .incomingCall:
+            // If nse is ready to handle call messages.
+            // abort everything and just report the call to the main app.
+            // else hold this message to process and report after eoq.
+            dataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
+            if readyToHandleCallMessages {
+                reportIncomingCall(serverMsgPb: serverMsgPb)
+            } else {
+                pendingCallMessages.append(msg)
+            }
+            return
+        case .endCall(let endCall):
+            _ = pendingCallMessages.filter {
+                switch $0.payload {
+                case .incomingCall(let incomingCall):
+                    return endCall.callID != incomingCall.callID
+                default:
+                    return true
+                }
+            }
+        default:
+            break
         }
 
         // Extract notification related metadata from message if possible.
@@ -566,7 +635,12 @@ final class NotificationProtoService: ProtoServiceCore {
     }
 
     private func removeNotification(id identifier: String) {
-        // Remove notifications after a couple of seconds.
+        // Try and remove notification immediately if possible.
+        DispatchQueue.main.async {
+            DDLogInfo("ProtoService/removeNotification/id: \(identifier)")
+            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
+        }
+        // Try to remove notifications again after a couple of seconds.
         // Allows us more time to remove any notifications that had media to download.
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             DDLogInfo("ProtoService/removeNotification/id: \(identifier)")

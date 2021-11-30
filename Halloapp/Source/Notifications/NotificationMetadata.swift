@@ -87,6 +87,7 @@ class NotificationMetadata: Codable {
     static let userDefaultsKeyRawData = "rawdata"
     static let messagePacketData = "message"
     static let encryptedData = "content"
+    static let nseVoipData = "nse_content"
     static let contentTypeKey = "content_type"
 
     /*

@@ -469,35 +469,56 @@ extension AppDelegate: PKPushRegistryDelegate {
 
         if type == .voIP {
             DDLogInfo("appdelegate/voip-notifications/didReceiveIncomingPushWith/payload: \(payload.dictionaryPayload)")
-            var service = MainAppContext.shared.service
-            service.startConnectingIfNecessary()
+            MainAppContext.shared.service.startConnectingIfNecessary()
 
             guard let noiseKeys = AppContext.shared.userData.noiseKeys,
                   let metadata = payload.dictionaryPayload[NotificationMetadata.userInfoKeyMetadata] as? [String: String],
                   let encryptedContentB64 = metadata[NotificationMetadata.encryptedData],
                   let encryptedMessage = Data(base64Encoded: encryptedContentB64),
                   let pushContent = NoiseStream.decryptPushContent(noiseKeys: noiseKeys, encryptedMessage: encryptedMessage) else {
-                DDLogError("appdelegate/voip-notifications/noise/error unable to find encrypted content")
-                completion()
-                return
+
+                      // Check if nse_content is available.
+                      // This happens if the incomingCall message was received by the notification extension.
+                      // NotificationExtension then invokes the main app wth the base64 encoded version of serialzed server_msg stanza.
+                      // We extract the contents from there and then try to report the call to system.
+                      guard let metadata = payload.dictionaryPayload[NotificationMetadata.userInfoKeyMetadata] as? [String: String],
+                            let serverMsgBase64String = metadata[NotificationMetadata.nseVoipData],
+                            let serverMsgPb = Data(base64Encoded: serverMsgBase64String) else {
+                          DDLogError("appdelegate/voip-notifications/noise/error unable to find encrypted content")
+                          completion()
+                          return
+                      }
+
+                      // Report call, run completion and return
+                      handleVoipMsg(serverMsgPb: serverMsgPb, completion: completion)
+                      return
             }
 
-            do {
-                let msg = try Server_Msg(serializedData: pushContent.content)
-                let fromUserID = UserID(msg.fromUid)
-                switch msg.payload {
-                case .incomingCall(let incomingCall):
-                    DDLogInfo("appdelegate/voip-notifications/invoking delegate now for call from: \(fromUserID)")
-                    service.readyToHandleCallMessages = true
-                    service.callDelegate?.halloService(service, from: fromUserID, didReceiveIncomingCall: incomingCall)
-                default:
-                    DDLogError("appdelegate/voip-notifications/error invalid payload: \(msg)")
-                    break
-                }
-            } catch {
-                DDLogError("appdelegate/voip-notifications/error \(error)")
-            }
+            // Report call, run completion and return
+            handleVoipMsg(serverMsgPb: pushContent.content, completion: completion)
+            return
         }
         completion()
     }
+
+    private func handleVoipMsg(serverMsgPb: Data, completion: @escaping () -> Void) {
+        var service = MainAppContext.shared.service
+        do {
+            let msg = try Server_Msg(serializedData: serverMsgPb)
+            let fromUserID = UserID(msg.fromUid)
+            switch msg.payload {
+            case .incomingCall(let incomingCall):
+                DDLogInfo("appdelegate/voip-notifications/invoking delegate now for call from: \(fromUserID)")
+                service.callDelegate?.halloService(service, from: fromUserID, didReceiveIncomingCall: incomingCall)
+                service.readyToHandleCallMessages = true
+            default:
+                DDLogError("appdelegate/voip-notifications/error invalid payload: \(msg)")
+                break
+            }
+        } catch {
+            DDLogError("appdelegate/voip-notifications/error \(error)")
+        }
+        completion()
+    }
+
 }
