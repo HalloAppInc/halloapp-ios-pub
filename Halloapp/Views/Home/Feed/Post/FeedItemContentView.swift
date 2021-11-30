@@ -129,6 +129,9 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         addSubview(vStack)
+
+        textContentView.topAnchor.constraint(greaterThanOrEqualTo: self.layoutMarginsGuide.topAnchor).isActive = true
+        textContentView.bottomAnchor.constraint(lessThanOrEqualTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
         vStack.constrainMargins(to: self)
     }
 
@@ -172,13 +175,10 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
                 mediaViewConfiguration.gutterWidth = gutterWidth
                 let mediaView = MediaCarouselView(media: media, initialIndex: displayData?.currentMediaIndex, configuration: mediaViewConfiguration)
                 mediaView.delegate = self
-                mediaViewHeightConstraint = {
-                    let constraint = mediaView.heightAnchor.constraint(equalToConstant: mediaViewHeight)
-                    constraint.priority = .required - 10
-                    return constraint
-                }()
+                mediaViewHeightConstraint = mediaView.heightAnchor.constraint(equalToConstant: mediaViewHeight)
                 mediaViewHeightConstraint?.isActive = true
                 vStack.insertArrangedSubview(mediaView, at: 0)
+                mediaView.bottomAnchor.constraint(lessThanOrEqualTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
                 self.mediaView = mediaView
             }
             mediaView?.isHidden = false
@@ -191,7 +191,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
                 MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
                 let postLinkPreviewView = PostLinkPreviewView()
                 postLinkPreviewView.configure(feedLinkPreview: feedLinkPreview)
-                vStack.insertArrangedSubview(postLinkPreviewView, at: 1)
+                vStack.addArrangedSubview(postLinkPreviewView)
+                postLinkPreviewView.bottomAnchor.constraint(lessThanOrEqualTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
                 self.postLinkPreviewView = postLinkPreviewView
             }
             postLinkPreviewView?.isHidden = false
