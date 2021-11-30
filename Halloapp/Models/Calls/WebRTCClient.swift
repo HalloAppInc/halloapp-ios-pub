@@ -100,6 +100,7 @@ final class WebRTCClient: NSObject {
         // This is done in CallManager - ProviderDelegate callbacks.
         rtcAudioSession.useManualAudio = true
         rtcAudioSession.isAudioEnabled = false
+        rtcAudioSession.add(self)
 
         createMediaSenders()
         configureAudioSession()
@@ -147,14 +148,16 @@ final class WebRTCClient: NSObject {
 
     func end() {
         self.peerConnection.close()
+        self.rtcAudioSession.remove(self)
     }
 
     // MARK: Media
     private func configureAudioSession() {
         self.rtcAudioSession.lockForConfiguration()
         do {
-            try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue, with: AVAudioSession.CategoryOptions.mixWithOthers)
+            try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue, with: AVAudioSession.CategoryOptions.allowBluetooth)
             try self.rtcAudioSession.setMode(AVAudioSession.Mode.voiceChat.rawValue)
+            try self.rtcAudioSession.overrideOutputAudioPort(.none)
             try self.rtcAudioSession.setActive(true)
         } catch let error {
             DDLogError("WebRTCClient/Error changeing AVAudioSession category: \(error)")
@@ -281,7 +284,7 @@ extension WebRTCClient {
 
             self.rtcAudioSession.lockForConfiguration()
             do {
-                try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue, with: AVAudioSession.CategoryOptions.mixWithOthers)
+                try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue, with: AVAudioSession.CategoryOptions.allowBluetooth)
                 try self.rtcAudioSession.overrideOutputAudioPort(.none)
                 try self.rtcAudioSession.setActive(true)
             } catch let error {
@@ -300,7 +303,7 @@ extension WebRTCClient {
 
             self.rtcAudioSession.lockForConfiguration()
             do {
-                try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue, with: AVAudioSession.CategoryOptions.mixWithOthers)
+                try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue, with: AVAudioSession.CategoryOptions.allowBluetooth)
                 try self.rtcAudioSession.overrideOutputAudioPort(.speaker)
                 try self.rtcAudioSession.setActive(true)
             } catch let error {
@@ -329,4 +332,52 @@ extension WebRTCClient: RTCDataChannelDelegate {
     func dataChannel(_ dataChannel: RTCDataChannel, didReceiveMessageWith buffer: RTCDataBuffer) {
         DDLogDebug("WebRTCClient/dataChannel/didReceiveMessageWith: \(buffer.data)")
     }
+}
+
+extension WebRTCClient: RTCAudioSessionDelegate {
+
+    func audioSessionMediaServerReset(_ session: RTCAudioSession) {
+        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(session.description)")
+    }
+
+    func audioSessionMediaServerTerminated(_ session: RTCAudioSession) {
+        DDLogDebug("WebRTCClient/audioSessionMediaServerTerminated/\(session.description)")
+    }
+
+    func audioSessionDidBeginInterruption(_ session: RTCAudioSession) {
+        DDLogDebug("WebRTCClient/audioSessionDidBeginInterruption/\(session.description)")
+    }
+
+    func audioSessionDidEndInterruption(_ session: RTCAudioSession, shouldResumeSession: Bool) {
+        DDLogDebug("WebRTCClient/audioSessionDidEndInterruption/\(session.description): \(shouldResumeSession)")
+    }
+
+    func audioSessionDidStartPlayOrRecord(_ session: RTCAudioSession) {
+        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(session.description)")
+    }
+
+    func audioSessionDidStopPlayOrRecord(_ session: RTCAudioSession) {
+        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(session.description)")
+    }
+
+    func audioSession(_ session: RTCAudioSession, didChangeCanPlayOrRecord canPlayOrRecord: Bool) {
+        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(session.description): \(canPlayOrRecord)")
+    }
+
+    func audioSession(_ audioSession: RTCAudioSession, failedToSetActive active: Bool, error: Error) {
+        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(audioSession.description): \(active): \(error)")
+    }
+
+    func audioSession(_ audioSession: RTCAudioSession, didSetActive active: Bool) {
+        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(audioSession.description): \(active)")
+    }
+
+    func audioSession(_ audioSession: RTCAudioSession, willSetActive active: Bool) {
+        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(audioSession.description): \(active)")
+    }
+
+    func audioSessionDidChangeRoute(_ session: RTCAudioSession, reason: AVAudioSession.RouteChangeReason, previousRoute: AVAudioSessionRouteDescription) {
+        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(session.description): \(reason.rawValue)")
+    }
+
 }
