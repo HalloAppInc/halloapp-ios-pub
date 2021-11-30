@@ -36,7 +36,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var swipeExitInProgress = false
     private var isSystemUIHidden = false
     private var isTransition = false
-    private var animator: MediaExplorerAnimator!
+    private var animator: MediaExplorerAnimator?
     private var fetchedResultsController: NSFetchedResultsController<ChatMedia>?
     private let chatMediaUpdated = PassthroughSubject<(ChatMedia, IndexPath), Never>()
     private var canSaveMedia = false
@@ -700,20 +700,20 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 swipeExitInProgress = true
                 backAction()
             } else if swipeExitInProgress {
-                animator.move(translation)
+                animator?.move(translation)
             }
         case .cancelled:
             guard swipeExitInProgress else { return }
             swipeExitInProgress = false
-            animator.cancelInteractiveTransition()
+            animator?.cancelInteractiveTransition()
         case .ended:
             guard swipeExitInProgress else { return }
             swipeExitInProgress = false
 
             if swipeExitShouldFinish(translation: translation, velocity: velocity) {
-                animator.finishInteractiveTransition()
+                animator?.finishInteractiveTransition()
             } else {
-                animator.cancelInteractiveTransition()
+                animator?.cancelInteractiveTransition()
             }
 
             // Restore collectionView position in place.
@@ -739,8 +739,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         let originalPosition = media.firstIndex { $0.url == currentMedia.url }
 
         animator = MediaExplorerAnimator(media: currentMedia, between: originalPosition, and: currentIndex, presenting: true)
-        animator.delegate = delegate
-        animator.delegateExplorer = self
+        animator?.delegate = delegate
+        animator?.delegateExplorer = self
 
         return animator
     }
@@ -750,8 +750,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         let originalPosition = media.firstIndex { $0.url == currentMedia.url }
 
         animator = MediaExplorerAnimator(media: currentMedia, between: originalPosition, and: currentIndex, presenting: false)
-        animator.delegate = delegate
-        animator.delegateExplorer = self
+        animator?.delegate = delegate
+        animator?.delegateExplorer = self
 
         return animator
     }

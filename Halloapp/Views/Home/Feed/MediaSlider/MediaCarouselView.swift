@@ -325,6 +325,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
 
         dataSource.apply(snapshot, animatingDifferences: false)
+        collectionView.collectionViewLayout.invalidateLayout()
         self.media = media
 
         updatePageControl()

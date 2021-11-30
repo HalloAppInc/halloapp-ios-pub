@@ -1016,6 +1016,114 @@ public struct Clients_Link {
   public init() {}
 }
 
+public struct Clients_MemberDetails {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var uid: Int64 = 0
+
+  public var publicIdentityKey: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Clients_PostIdContext {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var feedPostID: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Clients_CommentIdContext {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var commentID: String = String()
+
+  public var feedPostID: String = String()
+
+  public var parentCommentID: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Clients_ContentDetails {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var contentID: Clients_ContentDetails.OneOf_ContentID? = nil
+
+  public var postIDContext: Clients_PostIdContext {
+    get {
+      if case .postIDContext(let v)? = contentID {return v}
+      return Clients_PostIdContext()
+    }
+    set {contentID = .postIDContext(newValue)}
+  }
+
+  public var commentIDContext: Clients_CommentIdContext {
+    get {
+      if case .commentIDContext(let v)? = contentID {return v}
+      return Clients_CommentIdContext()
+    }
+    set {contentID = .commentIDContext(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_ContentID: Equatable {
+    case postIDContext(Clients_PostIdContext)
+    case commentIDContext(Clients_CommentIdContext)
+
+  #if !swift(>=4.1)
+    public static func ==(lhs: Clients_ContentDetails.OneOf_ContentID, rhs: Clients_ContentDetails.OneOf_ContentID) -> Bool {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch (lhs, rhs) {
+      case (.postIDContext, .postIDContext): return {
+        guard case .postIDContext(let l) = lhs, case .postIDContext(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.commentIDContext, .commentIDContext): return {
+        guard case .commentIDContext(let l) = lhs, case .commentIDContext(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      default: return false
+      }
+    }
+  #endif
+  }
+
+  public init() {}
+}
+
+public struct Clients_GroupHistoryPayload {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var memberDetails: [Clients_MemberDetails] = []
+
+  public var contentDetails: [Clients_ContentDetails] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "clients"
@@ -2556,6 +2664,219 @@ extension Clients_Link: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     if lhs.title != rhs.title {return false}
     if lhs.description_p != rhs.description_p {return false}
     if lhs.preview != rhs.preview {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_MemberDetails: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".MemberDetails"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "uid"),
+    2: .standard(proto: "public_identity_key"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self.publicIdentityKey) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.uid != 0 {
+      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 1)
+    }
+    if !self.publicIdentityKey.isEmpty {
+      try visitor.visitSingularBytesField(value: self.publicIdentityKey, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_MemberDetails, rhs: Clients_MemberDetails) -> Bool {
+    if lhs.uid != rhs.uid {return false}
+    if lhs.publicIdentityKey != rhs.publicIdentityKey {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_PostIdContext: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PostIdContext"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "feed_post_id"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.feedPostID) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.feedPostID.isEmpty {
+      try visitor.visitSingularStringField(value: self.feedPostID, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_PostIdContext, rhs: Clients_PostIdContext) -> Bool {
+    if lhs.feedPostID != rhs.feedPostID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_CommentIdContext: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".CommentIdContext"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "comment_id"),
+    2: .standard(proto: "feed_post_id"),
+    3: .standard(proto: "parent_comment_id"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.commentID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.feedPostID) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.parentCommentID) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.commentID.isEmpty {
+      try visitor.visitSingularStringField(value: self.commentID, fieldNumber: 1)
+    }
+    if !self.feedPostID.isEmpty {
+      try visitor.visitSingularStringField(value: self.feedPostID, fieldNumber: 2)
+    }
+    if !self.parentCommentID.isEmpty {
+      try visitor.visitSingularStringField(value: self.parentCommentID, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_CommentIdContext, rhs: Clients_CommentIdContext) -> Bool {
+    if lhs.commentID != rhs.commentID {return false}
+    if lhs.feedPostID != rhs.feedPostID {return false}
+    if lhs.parentCommentID != rhs.parentCommentID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_ContentDetails: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ContentDetails"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "post_id_context"),
+    2: .standard(proto: "comment_id_context"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Clients_PostIdContext?
+        if let current = self.contentID {
+          try decoder.handleConflictingOneOf()
+          if case .postIDContext(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.contentID = .postIDContext(v)}
+      }()
+      case 2: try {
+        var v: Clients_CommentIdContext?
+        if let current = self.contentID {
+          try decoder.handleConflictingOneOf()
+          if case .commentIDContext(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.contentID = .commentIDContext(v)}
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every case branch when no optimizations are
+    // enabled. https://github.com/apple/swift-protobuf/issues/1034
+    switch self.contentID {
+    case .postIDContext?: try {
+      guard case .postIDContext(let v)? = self.contentID else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .commentIDContext?: try {
+      guard case .commentIDContext(let v)? = self.contentID else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_ContentDetails, rhs: Clients_ContentDetails) -> Bool {
+    if lhs.contentID != rhs.contentID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Clients_GroupHistoryPayload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GroupHistoryPayload"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "member_details"),
+    2: .standard(proto: "content_details"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.memberDetails) }()
+      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.contentDetails) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.memberDetails.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.memberDetails, fieldNumber: 1)
+    }
+    if !self.contentDetails.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.contentDetails, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Clients_GroupHistoryPayload, rhs: Clients_GroupHistoryPayload) -> Bool {
+    if lhs.memberDetails != rhs.memberDetails {return false}
+    if lhs.contentDetails != rhs.contentDetails {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

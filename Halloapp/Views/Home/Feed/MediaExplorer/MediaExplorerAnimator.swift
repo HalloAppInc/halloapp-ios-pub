@@ -14,7 +14,7 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
     weak var delegate: MediaExplorerTransitionDelegate?
     weak var delegateExplorer: MediaExplorerController?
 
-    private weak var media: MediaExplorerMedia?
+    private var media: MediaExplorerMedia?
     private let originIndex: Int?
     private let explorerIndex: Int
     private let presenting: Bool
@@ -137,9 +137,7 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
 
         transitionContext.containerView.setNeedsLayout()
 
-        UIView.animate(withDuration: transitionDuration(using: nil), animations: { [weak self] in
-            guard let self = self else { return }
-
+        UIView.animate(withDuration: transitionDuration(using: nil), animations: {
             transitionView.frame.size = transitionViewFinalSize
             transitionView.center = transitionViewFinalCenter
 
@@ -148,8 +146,7 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
             } else {
                 fromView?.alpha = 0.0
             }
-        }) { [weak self] _ in
-            guard let self = self else { return }
+        }) { _ in
             let success = !transitionContext.transitionWasCancelled
 
             if self.presenting && !success {

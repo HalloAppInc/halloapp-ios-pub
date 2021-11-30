@@ -13,6 +13,12 @@ import Photos
 import UIKit
 import SwiftUI
 
+private extension Localizations {
+    static var newPost: String {
+        NSLocalizedString("post.controller.picker.title", value: "New Post", comment: "Title for the picker screen.")
+    }
+}
+
 enum NewPostMediaSource {
     case library
     case camera
@@ -149,6 +155,7 @@ final class NewPostViewController: UIViewController {
                 self.didFinishPickingMedia()
             }
         }
+        pickerController.title = Localizations.newPost
         
         return UINavigationController(rootViewController: pickerController)
     }

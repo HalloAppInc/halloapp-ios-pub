@@ -45,6 +45,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let mediaUploader: MediaUploader
     private let imageServer = ImageServer()
 
+    private var contentInFlight: Set<String> = []
+
     init(service: HalloService, contactStore: ContactStoreMain, userData: UserData) {
         self.service = service
         self.contactStore = contactStore
@@ -2589,13 +2591,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func send(comment: FeedPostComment) {
-        DDLogInfo("FeedData/send-comment/commentID: \(comment.id) begin")
+        DDLogInfo("FeedData/send-comment/commentID: \(comment.id)")
         let commentId = comment.id
         let groupId = comment.post.groupId
+
+        guard !contentInFlight.contains(commentId) else {
+            DDLogInfo("FeedData/send-comment/commentID: \(comment.id) already-in-flight")
+            return
+        }
+        DDLogInfo("FeedData/send-comment/commentID: \(comment.id) begin")
+        contentInFlight.insert(commentId)
+
         service.publishComment(comment.commentData, groupId: groupId) { result in
             switch result {
             case .success(let timestamp):
                 DDLogInfo("FeedData/send-comment/commentID: \(comment.id) success")
+                self.contentInFlight.remove(commentId)
                 self.updateFeedPostComment(with: commentId) { (feedComment) in
                     feedComment.timestamp = timestamp
                     feedComment.status = .sent
@@ -2605,19 +2616,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             case .failure(let error):
                 DDLogError("FeedData/send-comment/commentID: \(comment.id) error \(error)")
+                self.contentInFlight.remove(commentId)
                 // TODO: Track this state more precisely. Even if this attempt was a definite failure, a previous attempt may have succeeded.
                 if error.isKnownFailure {
                     self.updateFeedPostComment(with: commentId) { (feedComment) in
                         feedComment.status = .sendError
                         MainAppContext.shared.endBackgroundTask(feedComment.id)
                     }
-                    // TODO: murali@: we might end up in a loop constantly retrying.
-//                    switch error {
-//                    case .audienceHashMismatch:
-//                        self.resend(commentWithId: commentId)
-//                    default:
-//                        break
-//                    }
                 }
             }
         }
@@ -2638,9 +2643,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         let postId = post.id
+
+        guard !contentInFlight.contains(postId) else {
+            DDLogInfo("FeedData/send-post/postID: \(postId) already-in-flight")
+            return
+        }
+        DDLogInfo("FeedData/send-post/postID: \(postId) begin")
+        contentInFlight.insert(postId)
+
         service.publishPost(post.postData, feed: feed) { result in
             switch result {
             case .success(let timestamp):
+                DDLogInfo("FeedData/send-post/postID: \(postId) success")
+                self.contentInFlight.remove(postId)
                 self.updateFeedPost(with: postId) { (feedPost) in
                     feedPost.timestamp = timestamp
                     feedPost.status = .sent
@@ -2649,6 +2664,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
 
             case .failure(let error):
+                DDLogError("FeedData/send-post/postID: \(postId) error \(error)")
+                self.contentInFlight.remove(postId)
                 // TODO: Track this state more precisely. Even if this attempt was a definite failure, a previous attempt may have succeeded.
                 if error.isKnownFailure {
                     self.updateFeedPost(with: postId) { (feedPost) in
@@ -2656,12 +2673,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                         MainAppContext.shared.endBackgroundTask(postId)
                     }
-//                    switch error {
-//                    case .audienceHashMismatch:
-//                        self.retryPosting(postId: postId)
-//                    default:
-//                        break
-//                    }
                 }
             }
         }
@@ -3016,9 +3027,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             ImageServer.clearProgress(for: feedComment.id)
             self.mediaUploader.clearTasks(withGroupID: feedComment.id)
             if numberOfFailedUploads > 0 {
-                self.updateFeedPost(with: feedComment.post.id) { (feedPost) in
-                    feedPost.status = .sendError
-                }
+                self.updateFeedPostComment(with: feedComment.id, block: { (feedComment) in
+                    feedComment.status = .sendError
+                })
             } else {
                 // TODO(murali@): one way to avoid looking up the object from the database is to keep an updated in-memory version of the comment.
                 self.performSeriallyOnBackgroundContext { (managedObjectContext) in

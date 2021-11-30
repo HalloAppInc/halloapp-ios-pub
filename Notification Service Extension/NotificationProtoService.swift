@@ -11,6 +11,7 @@ import CocoaLumberjackSwift
 import Combine
 import Core
 import SwiftProtobuf
+import UserNotifications
 
 final class NotificationProtoService: ProtoServiceCore {
 
@@ -23,9 +24,15 @@ final class NotificationProtoService: ProtoServiceCore {
     }()
     // List of notifications presented: used to update notification content after downloading media.
     private var pendingNotificationContent = [String: UNNotificationContent]()
+    private var pendingRetractNotificationIds: [String] = []
 
     public required init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = false) {
         super.init(credentials: credentials, passiveMode: passiveMode, automaticallyReconnect: automaticallyReconnect)
+        self.cancellableSet.insert(
+            didDisconnect.sink { [weak self] in
+                self?.downloadManager.suspendMediaDownloads()
+                self?.processRetractNotifications()
+            })
     }
 
     override func performOnConnect() {
@@ -221,7 +228,11 @@ final class NotificationProtoService: ProtoServiceCore {
             dataStore.saveServerMsg(notificationMetadata: metadata)
 
         case .chatMessageRetract, .feedCommentRetract, .feedPostRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .groupChatMessageRetract:
+            // removeNotification if available.
             removeNotification(id: metadata.contentId)
+            // eitherway store it to clean it up further at the end.
+            pendingRetractNotificationIds.append(metadata.contentId)
+            // save these messages to be processed by the main app.
             dataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
 
         default:
@@ -240,10 +251,12 @@ final class NotificationProtoService: ProtoServiceCore {
                 DDLogError("NotificationExtension/processPostDataAndInvokeHandler/failed to get postData, contentId: \(metadata.contentId)")
                 return
             }
-            self.presentPostNotification(for: metadata, using: postData)
+            let notificationContent = self.extractNotificationContent(for: metadata, using: postData)
             if let firstMediaItem = sharedFeedPost.orderedMedia.first as? SharedMedia {
                 let downloadTask = self.startDownloading(media: firstMediaItem)
                 downloadTask?.feedMediaObjectId = firstMediaItem.objectID
+            } else {
+                self.presentNotification(for: metadata.contentId, with: notificationContent)
             }
         }
     }
@@ -393,11 +406,14 @@ final class NotificationProtoService: ProtoServiceCore {
             DDLogError("DecryptionError/decryptChat/failed to get chat content, messageId: \(messageId)")
             return
         }
-        presentChatNotification(for: metadata, using: chatContent)
+
+        let notificationContent = extractNotificationContent(for: metadata, using: chatContent)
         if let firstMediaItem = chatMessage.orderedMedia.first as? SharedMedia {
             let downloadTask = startDownloading(media: firstMediaItem)
             downloadTask?.feedMediaObjectId = firstMediaItem.objectID
             DDLogInfo("NotificationExtension/decryptChat/downloadingMedia/messageId \(messageId), downloadTask: \(String(describing: downloadTask?.id))")
+        } else {
+            presentNotification(for: metadata.contentId, with: notificationContent)
         }
     }
 
@@ -467,12 +483,34 @@ final class NotificationProtoService: ProtoServiceCore {
 
     // MARK: Present or Update Notifications
 
-    private func presentNotification(for metadata: NotificationMetadata, with attachments: [UNNotificationAttachment] = []) {
+    private func extractNotificationContent(for metadata: NotificationMetadata, using postData: PostData) -> UNMutableNotificationContent {
+        let notificationContent = UNMutableNotificationContent()
+        notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
+        notificationContent.populateFeedPostBody(from: postData, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
+        notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
+        notificationContent.sound = UNNotificationSound.default
+        notificationContent.userInfo[NotificationMetadata.contentTypeKey] = metadata.contentType.rawValue
+        self.pendingNotificationContent[metadata.contentId] = notificationContent
+        return notificationContent
+    }
+
+    private func extractNotificationContent(for metadata: NotificationMetadata, using chatContent: ChatContent) -> UNMutableNotificationContent {
+        let notificationContent = UNMutableNotificationContent()
+        notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
+        notificationContent.populateChatBody(from: chatContent, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
+        notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
+        notificationContent.sound = UNNotificationSound.default
+        notificationContent.userInfo[NotificationMetadata.contentTypeKey] = metadata.contentType.rawValue
+        self.pendingNotificationContent[metadata.contentId] = notificationContent
+        return notificationContent
+    }
+
+    // Used to present contact/inviter notifications.
+    private func presentNotification(for metadata: NotificationMetadata) {
         runIfNotificationWasNotPresented(for: metadata.contentId) { [self] in
             DDLogDebug("ProtoService/presentNotification")
             let notificationContent = UNMutableNotificationContent()
             notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
-            notificationContent.attachments = attachments
             notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
             notificationContent.sound = UNNotificationSound.default
             self.pendingNotificationContent[metadata.contentId] = notificationContent
@@ -483,24 +521,8 @@ final class NotificationProtoService: ProtoServiceCore {
         }
     }
 
-    private func presentPostNotification(for metadata: NotificationMetadata, using postData: PostData, with attachments: [UNNotificationAttachment] = []) {
-        runIfNotificationWasNotPresented(for: metadata.contentId) { [self] in
-            DDLogDebug("ProtoService/presentPostNotification")
-            let notificationContent = UNMutableNotificationContent()
-            notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
-            notificationContent.populateFeedPostBody(from: postData, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
-            notificationContent.attachments = attachments
-            notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
-            notificationContent.sound = UNNotificationSound.default
-            self.pendingNotificationContent[metadata.contentId] = notificationContent
-
-            let notificationCenter = UNUserNotificationCenter.current()
-            notificationCenter.add(UNNotificationRequest(identifier: metadata.contentId, content: notificationContent, trigger: nil))
-            recordPresentingNotification(for: metadata.contentId, type: metadata.contentType.rawValue)
-        }
-    }
-
-    private func presentCommentNotification(for metadata: NotificationMetadata, using commentData: CommentData, with attachments: [UNNotificationAttachment] = []) {
+    // Used to present comment notifications.
+    private func presentCommentNotification(for metadata: NotificationMetadata, using commentData: CommentData) {
         let isUserMentioned = commentData.orderedMentions.contains(where: { mention in
             mention.userID == AppContext.shared.userData.userId
         })
@@ -510,7 +532,6 @@ final class NotificationProtoService: ProtoServiceCore {
                 let notificationContent = UNMutableNotificationContent()
                 notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
                 notificationContent.populateFeedCommentBody(from: commentData, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
-                notificationContent.attachments = attachments
                 notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
                 notificationContent.sound = UNNotificationSound.default
                 self.pendingNotificationContent[metadata.contentId] = notificationContent
@@ -524,42 +545,39 @@ final class NotificationProtoService: ProtoServiceCore {
         }
     }
 
-    private func presentChatNotification(for metadata: NotificationMetadata, using chatContent: ChatContent, with attachments: [UNNotificationAttachment] = []) {
-        runIfNotificationWasNotPresented(for: metadata.contentId) { [self] in
-            DDLogDebug("ProtoService/presentChatNotification")
-            let notificationContent = UNMutableNotificationContent()
-            notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
-            notificationContent.populateChatBody(from: chatContent, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
-            notificationContent.attachments = attachments
-            notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
-            notificationContent.sound = UNNotificationSound.default
-            self.pendingNotificationContent[metadata.contentId] = notificationContent
-
-            let notificationCenter = UNUserNotificationCenter.current()
-            notificationCenter.add(UNNotificationRequest(identifier: metadata.contentId, content: notificationContent, trigger: nil))
-            recordPresentingNotification(for: metadata.contentId, type: metadata.contentType.rawValue)
-        }
-    }
-
-    private func updateNotification(for identifier: String, content: UNNotificationContent, with attachments: [UNNotificationAttachment] = []) {
-        DispatchQueue.main.async {
-            DDLogDebug("ProtoService/updateNotification")
+    // Used to present post/chat notifications.
+    private func presentNotification(for identifier: String, with content: UNNotificationContent, using attachments: [UNNotificationAttachment] = []) {
+        runIfNotificationWasNotPresented(for: identifier) { [self] in
+            DDLogDebug("ProtoService/presentNotification/\(identifier)")
             let notificationContent = UNMutableNotificationContent()
             notificationContent.title = content.title
             notificationContent.subtitle = content.subtitle
             notificationContent.body = content.body
             notificationContent.attachments = attachments
             notificationContent.userInfo = content.userInfo
+            notificationContent.sound = UNNotificationSound.default
             notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
+            let contentTypeRaw = content.userInfo[NotificationMetadata.contentTypeKey] as? String ?? "unknown"
 
             let notificationCenter = UNUserNotificationCenter.current()
             notificationCenter.add(UNNotificationRequest(identifier: identifier, content: notificationContent, trigger: nil))
+            recordPresentingNotification(for: identifier, type: contentTypeRaw)
         }
     }
 
     private func removeNotification(id identifier: String) {
-        DispatchQueue.main.async {
+        // Remove notifications after a couple of seconds.
+        // Allows us more time to remove any notifications that had media to download.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            DDLogInfo("ProtoService/removeNotification/id: \(identifier)")
             UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
+        }
+    }
+
+    private func processRetractNotifications() {
+        DDLogInfo("ProtoService/processRetractNotifications")
+        pendingRetractNotificationIds.forEach { contentId in
+            removeNotification(id: contentId)
         }
     }
 }
@@ -598,24 +616,34 @@ extension NotificationProtoService: FeedDownloadManagerDelegate {
     func feedDownloadManager(_ downloadManager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
         DDLogInfo("ProtoService/media/download/finished \(task.id)")
 
-        if let error = task.error {
-            DDLogError("ProtoService/media/download/error \(error)")
-            return
-        }
-
-        let fileURL = downloadManager.fileURL(forRelativeFilePath: task.decryptedFilePath!)
-        // Attach media to notification.
-        let attachment: UNNotificationAttachment
-        do {
-            attachment = try UNNotificationAttachment(identifier: task.id, url: fileURL, options: nil)
-        } catch {
-            DDLogError("ProtoService/media/attachment-create/error \(error)")
-            return
-        }
-
         // Copy downloaded media to shared file storage and update db with path to the media.
         if let objectId = task.feedMediaObjectId,
            let feedMediaItem = try? dataStore.sharedMediaObject(forObjectId: objectId) {
+
+            if let error = task.error {
+                DDLogError("ProtoService/media/download/error \(error)")
+                // Try to present something to the user.
+                if let contentId = feedMediaItem.contentOwnerID,
+                   let content = pendingNotificationContent[contentId] {
+                    presentNotification(for: contentId, with: content, using: [])
+                }
+                return
+            }
+
+            let fileURL = downloadManager.fileURL(forRelativeFilePath: task.decryptedFilePath!)
+            // Attach media to notification.
+            let attachment: UNNotificationAttachment
+            do {
+                attachment = try UNNotificationAttachment(identifier: task.id, url: fileURL, options: nil)
+            } catch {
+                DDLogError("ProtoService/media/attachment-create/error \(error)")
+                // Try to present something to the user.
+                if let contentId = feedMediaItem.contentOwnerID,
+                   let content = pendingNotificationContent[contentId] {
+                    presentNotification(for: contentId, with: content, using: [])
+                }
+                return
+            }
 
             let filename = fileURL.deletingPathExtension().lastPathComponent
             let relativeFilePath = SharedDataStore.relativeFilePath(forFilename: filename, mediaType: feedMediaItem.type)
@@ -623,7 +651,7 @@ extension NotificationProtoService: FeedDownloadManagerDelegate {
                 // Try and include this media item in the notification now.
                 if let contentId = feedMediaItem.contentOwnerID,
                    let content = pendingNotificationContent[contentId] {
-                    updateNotification(for: contentId, content: content, with: [attachment])
+                    presentNotification(for: contentId, with: content, using: [attachment])
                 }
                 let destinationUrl = dataStore.fileURL(forRelativeFilePath: relativeFilePath)
                 SharedDataStore.preparePathForWriting(destinationUrl)
