@@ -533,6 +533,8 @@ extension KeyStore {
                     memberSenderState.currentChainIndex = Int32(chainIndex)
                     memberSenderState.messageKeys = nil
                     memberSenderState.groupSessionKeyBundle = groupSessionKeyBundle
+                    // Update pendingUserIds only when we update our own senderState.
+                    groupSessionKeyBundle.pendingUserIds = groupKeyBundle.pendingUids
                     senderStates.insert(memberSenderState)
                 }
             } else {
@@ -543,7 +545,6 @@ extension KeyStore {
 
             groupSessionKeyBundle.groupId = groupID
             groupSessionKeyBundle.state = state
-            groupSessionKeyBundle.pendingUserIds = groupKeyBundle.pendingUids
             groupSessionKeyBundle.audienceHash = outgoingSession?.audienceHash
             groupSessionKeyBundle.privateSignatureKey = outgoingSession?.privateSigningKey
             groupSessionKeyBundle.senderStates = senderStates.isEmpty ? nil : senderStates
