@@ -1787,8 +1787,6 @@ public struct Server_HistoryResend {
 
   public var id: String = String()
 
-  public var senderUid: Int64 = 0
-
   public var payload: Data = Data()
 
   /// Encrypted payload using the group feed channel.
@@ -3082,6 +3080,15 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .iceCandidate(newValue)}
   }
 
+  /// only for server use
+  public var marketingAlert: Server_MarketingAlert {
+    get {
+      if case .marketingAlert(let v)? = _storage._payload {return v}
+      return Server_MarketingAlert()
+    }
+    set {_uniqueStorage()._payload = .marketingAlert(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -3128,6 +3135,8 @@ public struct Server_Msg {
     case answerCall(Server_AnswerCall)
     case endCall(Server_EndCall)
     case iceCandidate(Server_IceCandidate)
+    /// only for server use
+    case marketingAlert(Server_MarketingAlert)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -3261,6 +3270,10 @@ public struct Server_Msg {
       }()
       case (.iceCandidate, .iceCandidate): return {
         guard case .iceCandidate(let l) = lhs, case .iceCandidate(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.marketingAlert, .marketingAlert): return {
+        guard case .marketingAlert(let l) = lhs, case .marketingAlert(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -4053,7 +4066,7 @@ public struct Server_GroupFeedRerequest {
 
   public var gid: String = String()
 
-  /// Post id or Comment id.
+  /// Post id or Comment id or HistoryResend id
   public var id: String = String()
 
   public var rerequestType: Server_GroupFeedRerequest.RerequestType = .payload
@@ -5425,6 +5438,16 @@ extension Server_ClientOtpResponse.Reason: CaseIterable {
 #endif  // swift(>=4.2)
 
 public struct Server_WakeUp {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Server_MarketingAlert {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -7840,7 +7863,6 @@ extension Server_HistoryResend: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "gid"),
     2: .same(proto: "id"),
-    3: .standard(proto: "sender_uid"),
     4: .same(proto: "payload"),
     5: .standard(proto: "enc_payload"),
     6: .standard(proto: "sender_state_bundles"),
@@ -7856,7 +7878,6 @@ extension Server_HistoryResend: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.gid) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      case 3: try { try decoder.decodeSingularInt64Field(value: &self.senderUid) }()
       case 4: try { try decoder.decodeSingularBytesField(value: &self.payload) }()
       case 5: try { try decoder.decodeSingularBytesField(value: &self.encPayload) }()
       case 6: try { try decoder.decodeRepeatedMessageField(value: &self.senderStateBundles) }()
@@ -7873,9 +7894,6 @@ extension Server_HistoryResend: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     }
     if !self.id.isEmpty {
       try visitor.visitSingularStringField(value: self.id, fieldNumber: 2)
-    }
-    if self.senderUid != 0 {
-      try visitor.visitSingularInt64Field(value: self.senderUid, fieldNumber: 3)
     }
     if !self.payload.isEmpty {
       try visitor.visitSingularBytesField(value: self.payload, fieldNumber: 4)
@@ -7898,7 +7916,6 @@ extension Server_HistoryResend: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
   public static func ==(lhs: Server_HistoryResend, rhs: Server_HistoryResend) -> Bool {
     if lhs.gid != rhs.gid {return false}
     if lhs.id != rhs.id {return false}
-    if lhs.senderUid != rhs.senderUid {return false}
     if lhs.payload != rhs.payload {return false}
     if lhs.encPayload != rhs.encPayload {return false}
     if lhs.senderStateBundles != rhs.senderStateBundles {return false}
@@ -9144,6 +9161,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     36: .standard(proto: "answer_call"),
     37: .standard(proto: "end_call"),
     38: .standard(proto: "ice_candidate"),
+    39: .standard(proto: "marketing_alert"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -9481,6 +9499,15 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
           try decoder.decodeSingularMessageField(value: &v)
           if let v = v {_storage._payload = .iceCandidate(v)}
         }()
+        case 39: try {
+          var v: Server_MarketingAlert?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .marketingAlert(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .marketingAlert(v)}
+        }()
         default: break
         }
       }
@@ -9650,6 +9677,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .iceCandidate?: try {
         guard case .iceCandidate(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 38)
+      }()
+      case .marketingAlert?: try {
+        guard case .marketingAlert(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 39)
       }()
       default: break
       }
@@ -12007,6 +12038,25 @@ extension Server_WakeUp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   }
 
   public static func ==(lhs: Server_WakeUp, rhs: Server_WakeUp) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_MarketingAlert: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".MarketingAlert"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let _ = try decoder.nextFieldNumber() {
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_MarketingAlert, rhs: Server_MarketingAlert) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

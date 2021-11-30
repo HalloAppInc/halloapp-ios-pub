@@ -167,6 +167,14 @@ public struct Server_EventData {
     set {_uniqueStorage()._edata = .groupDecryptionReport(newValue)}
   }
 
+  public var call: Server_Call {
+    get {
+      if case .call(let v)? = _storage._edata {return v}
+      return Server_Call()
+    }
+    set {_uniqueStorage()._edata = .call(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Edata: Equatable {
@@ -178,6 +186,7 @@ public struct Server_EventData {
     case permissions(Server_Permissions)
     case mediaObjectDownload(Server_MediaObjectDownload)
     case groupDecryptionReport(Server_GroupDecryptionReport)
+    case call(Server_Call)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_EventData.OneOf_Edata, rhs: Server_EventData.OneOf_Edata) -> Bool {
@@ -215,6 +224,10 @@ public struct Server_EventData {
       }()
       case (.groupDecryptionReport, .groupDecryptionReport): return {
         guard case .groupDecryptionReport(let l) = lhs, case .groupDecryptionReport(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.call, .call): return {
+        guard case .call(let l) = lhs, case .call(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -1021,6 +1034,169 @@ extension Server_Permissions.Status: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_Call {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var callID: String = String()
+
+  public var peerUid: UInt64 = 0
+
+  public var type: Server_Call.CallType = .unknownType
+
+  public var direction: Server_Call.CallDirection = .unknownDirection
+
+  /// true if the call was answered
+  public var answered: Bool = false
+
+  /// true if the webrtc connects successful
+  public var connected: Bool = false
+
+  /// number of ms this call was in the in-call state
+  public var durationMs: UInt64 = 0
+
+  /// string representation of the end call reason as defined in the EndCall.Reason
+  public var endCallReason: String = String()
+
+  /// true if the end call happened locally, or false if the end call was received remotely
+  public var localEndCall: Bool = false
+
+  /// wifi or cellular
+  public var networkType: Server_Call.NetworkType = .unknownNetwork
+
+  /// json serialized version of the result of peer_connection.get_stats at the end of
+  public var webrtcStats: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum CallType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownType // = 0
+    case audio // = 1
+    case video // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownType
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownType
+      case 1: self = .audio
+      case 2: self = .video
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownType: return 0
+      case .audio: return 1
+      case .video: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum CallDirection: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownDirection // = 0
+    case outgoing // = 1
+    case incoming // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownDirection
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownDirection
+      case 1: self = .outgoing
+      case 2: self = .incoming
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownDirection: return 0
+      case .outgoing: return 1
+      case .incoming: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum NetworkType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownNetwork // = 0
+    case wifi // = 1
+    case cellular // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownNetwork
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownNetwork
+      case 1: self = .wifi
+      case 2: self = .cellular
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownNetwork: return 0
+      case .wifi: return 1
+      case .cellular: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_Call.CallType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_Call.CallType] = [
+    .unknownType,
+    .audio,
+    .video,
+  ]
+}
+
+extension Server_Call.CallDirection: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_Call.CallDirection] = [
+    .unknownDirection,
+    .outgoing,
+    .incoming,
+  ]
+}
+
+extension Server_Call.NetworkType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_Call.NetworkType] = [
+    .unknownNetwork,
+    .wifi,
+    .cellular,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "server"
@@ -1049,6 +1225,7 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     15: .same(proto: "permissions"),
     16: .standard(proto: "media_object_download"),
     17: .standard(proto: "group_decryption_report"),
+    18: .same(proto: "call"),
   ]
 
   fileprivate class _StorageClass {
@@ -1165,6 +1342,15 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
           try decoder.decodeSingularMessageField(value: &v)
           if let v = v {_storage._edata = .groupDecryptionReport(v)}
         }()
+        case 18: try {
+          var v: Server_Call?
+          if let current = _storage._edata {
+            try decoder.handleConflictingOneOf()
+            if case .call(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._edata = .call(v)}
+        }()
         default: break
         }
       }
@@ -1223,6 +1409,10 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       case .groupDecryptionReport?: try {
         guard case .groupDecryptionReport(let v)? = _storage._edata else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
+      }()
+      case .call?: try {
+        guard case .call(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
       }()
       case nil: break
       }
@@ -1898,5 +2088,121 @@ extension Server_Permissions.Status: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "ALLOWED"),
     1: .same(proto: "DENIED"),
+  ]
+}
+
+extension Server_Call: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Call"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "call_id"),
+    2: .standard(proto: "peer_uid"),
+    3: .same(proto: "type"),
+    4: .same(proto: "direction"),
+    5: .same(proto: "answered"),
+    6: .same(proto: "connected"),
+    7: .standard(proto: "duration_ms"),
+    9: .standard(proto: "end_call_reason"),
+    10: .standard(proto: "local_end_call"),
+    11: .standard(proto: "network_type"),
+    20: .standard(proto: "webrtc_stats"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.callID) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.peerUid) }()
+      case 3: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      case 4: try { try decoder.decodeSingularEnumField(value: &self.direction) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.answered) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self.connected) }()
+      case 7: try { try decoder.decodeSingularUInt64Field(value: &self.durationMs) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self.endCallReason) }()
+      case 10: try { try decoder.decodeSingularBoolField(value: &self.localEndCall) }()
+      case 11: try { try decoder.decodeSingularEnumField(value: &self.networkType) }()
+      case 20: try { try decoder.decodeSingularStringField(value: &self.webrtcStats) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.callID.isEmpty {
+      try visitor.visitSingularStringField(value: self.callID, fieldNumber: 1)
+    }
+    if self.peerUid != 0 {
+      try visitor.visitSingularUInt64Field(value: self.peerUid, fieldNumber: 2)
+    }
+    if self.type != .unknownType {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 3)
+    }
+    if self.direction != .unknownDirection {
+      try visitor.visitSingularEnumField(value: self.direction, fieldNumber: 4)
+    }
+    if self.answered != false {
+      try visitor.visitSingularBoolField(value: self.answered, fieldNumber: 5)
+    }
+    if self.connected != false {
+      try visitor.visitSingularBoolField(value: self.connected, fieldNumber: 6)
+    }
+    if self.durationMs != 0 {
+      try visitor.visitSingularUInt64Field(value: self.durationMs, fieldNumber: 7)
+    }
+    if !self.endCallReason.isEmpty {
+      try visitor.visitSingularStringField(value: self.endCallReason, fieldNumber: 9)
+    }
+    if self.localEndCall != false {
+      try visitor.visitSingularBoolField(value: self.localEndCall, fieldNumber: 10)
+    }
+    if self.networkType != .unknownNetwork {
+      try visitor.visitSingularEnumField(value: self.networkType, fieldNumber: 11)
+    }
+    if !self.webrtcStats.isEmpty {
+      try visitor.visitSingularStringField(value: self.webrtcStats, fieldNumber: 20)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_Call, rhs: Server_Call) -> Bool {
+    if lhs.callID != rhs.callID {return false}
+    if lhs.peerUid != rhs.peerUid {return false}
+    if lhs.type != rhs.type {return false}
+    if lhs.direction != rhs.direction {return false}
+    if lhs.answered != rhs.answered {return false}
+    if lhs.connected != rhs.connected {return false}
+    if lhs.durationMs != rhs.durationMs {return false}
+    if lhs.endCallReason != rhs.endCallReason {return false}
+    if lhs.localEndCall != rhs.localEndCall {return false}
+    if lhs.networkType != rhs.networkType {return false}
+    if lhs.webrtcStats != rhs.webrtcStats {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_Call.CallType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_TYPE"),
+    1: .same(proto: "AUDIO"),
+    2: .same(proto: "VIDEO"),
+  ]
+}
+
+extension Server_Call.CallDirection: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_DIRECTION"),
+    1: .same(proto: "OUTGOING"),
+    2: .same(proto: "INCOMING"),
+  ]
+}
+
+extension Server_Call.NetworkType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_NETWORK"),
+    1: .same(proto: "WIFI"),
+    2: .same(proto: "CELLULAR"),
   ]
 }
