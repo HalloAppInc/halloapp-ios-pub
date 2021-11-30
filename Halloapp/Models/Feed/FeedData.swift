@@ -284,7 +284,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     continue
                 }
                 switch postData.content {
-                case .album, .text, .retracted:
+                case .album, .text, .retracted, .voiceNote:
                     DDLogInfo("FeedData/processUnsupportedItems/posts/migrating [\(post.id)]")
                 case .unsupported:
                     DDLogInfo("FeedData/processUnsupportedItems/posts/skipping [still unsupported] [\(post.id)]")
@@ -794,7 +794,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.timestamp = xmppPost.timestamp
 
             switch xmppPost.content {
-            case .album, .text:
+            case .album, .text, .voiceNote:
                 // Mark our own posts as seen in case server sends us old posts following re-registration
                 if feedPost.userId == userData.userId {
                     feedPost.status = .seen

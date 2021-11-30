@@ -17,6 +17,7 @@ public enum PostContent {
     case album(MentionText, [FeedMediaData])
     case retracted
     case unsupported(Data)
+    case voiceNote(FeedMediaData)
 }
 
 // It is a bit confusing to use this in some places and other status in some places.
@@ -43,7 +44,7 @@ public struct PostData {
 
     public var text: String? {
         switch content {
-        case .retracted, .unsupported:
+        case .retracted, .unsupported, .voiceNote:
             return nil
         case .text(let mentionText, _):
             return mentionText.collapsedText
@@ -56,6 +57,8 @@ public struct PostData {
         switch content {
         case .album(_, let media):
             return media
+        case .voiceNote(let mediaItem):
+            return [mediaItem]
         case .retracted, .text, .unsupported:
             return []
         }
@@ -64,7 +67,7 @@ public struct PostData {
     public var orderedMentions: [FeedMentionProtocol] {
         let mentions: [Int: MentionedUser] = {
             switch content {
-            case .retracted, .unsupported:
+            case .retracted, .unsupported, .voiceNote:
                 return [:]
             case .album(let mentionText, _):
                 return mentionText.mentions
@@ -81,7 +84,7 @@ public struct PostData {
     
     public var linkPreviewData: [LinkPreviewProtocol] {
         switch content {
-        case .retracted, .unsupported, .album:
+        case .retracted, .unsupported, .album, .voiceNote:
             return []
         case .text(_, let linkPreviewData):
             return linkPreviewData
@@ -107,6 +110,8 @@ public struct PostData {
             return MediaCounters()
         case .retracted, .unsupported:
             return MediaCounters()
+        case .voiceNote:
+            return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1)
         }
     }
 
@@ -157,13 +162,26 @@ public struct PostData {
                     }
                     media.append(mediaData)
                 }
+                if album.hasVoiceNote {
+                    if let mediaData = FeedMediaData(id: "\(postId)-voicenote", clientVoiceNote: album.voiceNote) {
+                        media.append(mediaData)
+                    } else {
+                        foundUnsupportedMedia = true
+                    }
+                }
                 if foundUnsupportedMedia {
                     DDLogError("PostData/initFromServerPost/error unrecognized media")
                     return .unsupported(payload)
                 } else {
                     return .album(album.text.mentionText, media)
                 }
-            case .voiceNote(_), .none:
+            case .voiceNote(let voiceNote):
+                guard let media = FeedMediaData(id: "\(postId)-voicenote", clientVoiceNote: voiceNote) else {
+                    DDLogError("PostData/initFromServerPost/error unrecognized media")
+                    return .unsupported(payload)
+                }
+                return .voiceNote(media)
+            case .none:
                 return .unsupported(payload)
             }
 

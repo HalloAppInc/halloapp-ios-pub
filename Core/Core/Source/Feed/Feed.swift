@@ -392,7 +392,22 @@ public extension PostData {
             var album = Clients_Album()
             album.media = media.compactMap { $0.albumMedia }
             album.text = Clients_Text(mentionText: mentionText)
+
+            if let voiceNoteMediaItem = media.first(where: { $0.type == .audio }) {
+                var voiceNote = Clients_VoiceNote()
+                if let audio = voiceNoteMediaItem.protoResource {
+                    voiceNote.audio = audio
+                }
+                album.voiceNote = voiceNote
+            }
+
             container.post = .album(album)
+        case .voiceNote(let mediaItem):
+            var voiceNote = Clients_VoiceNote()
+            if let audio = mediaItem.protoResource {
+                voiceNote.audio = audio
+            }
+            container.post = .voiceNote(voiceNote)
         case .retracted, .unsupported:
             break
         }
