@@ -887,11 +887,11 @@ extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
             cachedCellHeights[displayItem] = cellHeight
             return CGSize(width: cellWidth, height: cellHeight)
         case .welcome:
-            let contentWidth = cellWidth - collectionView.layoutMargins.left - collectionView.layoutMargins.right
-            return CGSize(width: contentWidth, height: FeedWelcomeCell().height()) // size does not seem to affect cell?
+            let contentWidth = cellWidth
+            return CGSize(width: contentWidth, height: FeedWelcomeCell().height())
         case .groupWelcome:
-            let contentWidth = cellWidth - collectionView.layoutMargins.left - collectionView.layoutMargins.right
-            return CGSize(width: contentWidth, height: 320) // size does not seem to affect cell?
+            let contentWidth = cellWidth
+            return CGSize(width: contentWidth, height: GroupFeedWelcomeCell().height())
         }
     }
 }

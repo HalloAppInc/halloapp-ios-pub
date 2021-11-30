@@ -405,18 +405,6 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         voiceNoteView.pause()
     }
 
-    func highlight() {
-        UIView.animate(withDuration: 1.0, animations: {
-            self.contentView.backgroundColor = .systemYellow
-        })
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            UIView.animate(withDuration: 1.0, animations: {
-                self.contentView.backgroundColor = .feedBackground
-            })
-        }
-    }
-    
     // MARK: Link Preview Row
     private lazy var linkPreviewRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ chatLinkPreviewView ])

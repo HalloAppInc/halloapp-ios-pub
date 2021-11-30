@@ -17,14 +17,14 @@ class FeedWelcomeCell: UICollectionViewCell {
 
     var openInvite: (() -> ())?
     var closeWelcomePost: (() -> ())?
-    
+
     public func configure(showCloseButton: Bool) {
         closeButtonColumn.isHidden = !showCloseButton
     }
 
     public func height() -> CGFloat {
         let size = bodyLabel.getSize(width: contentView.bounds.size.width)
-        return size.height + 240
+        return size.height + 300
     }
 
     private lazy var maxWidthConstraint: NSLayoutConstraint = {

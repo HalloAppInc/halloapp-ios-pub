@@ -33,15 +33,25 @@ class MsgViewCell: UITableViewCell {
         dateColumn.isHidden = true
         dateLabel.text = nil
     }
-    
+
+    func highlight() {
+        UIView.animate(withDuration: 0.5, animations: {
+            self.contentView.backgroundColor = .systemGray4
+        })
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            UIView.animate(withDuration: 0.5, animations: {
+                self.contentView.backgroundColor = .primaryBg
+            })
+        }
+    }
+
     func addDateRow(timestamp: Date?) {
         guard let timestamp = timestamp else { return }
         dateColumn.isHidden = false
         dateLabel.text = timestamp.chatMsgGroupingTimestamp()
     }
-    
-    // MARK:
-    
+
     lazy var dateColumn: UIStackView = {
         let view = UIStackView(arrangedSubviews: [dateWrapper])
         view.axis = .vertical
@@ -56,9 +66,8 @@ class MsgViewCell: UITableViewCell {
                 
         return view
     }()
-    
-    lazy var dateWrapper: UIStackView = {
 
+    lazy var dateWrapper: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ dateLabel ])
         view.axis = .horizontal
         view.alignment = .center

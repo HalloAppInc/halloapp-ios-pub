@@ -30,6 +30,16 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         }
     }
 
+    public func configure(groupID: GroupID, showCloseButton: Bool = false) {
+        self.groupID = groupID
+        closeButtonColumn.isHidden = !showCloseButton
+        refreshInviteLinkLabel()
+    }
+    
+    public func height() -> CGFloat {
+        return 320
+    }
+
     private lazy var maxWidthConstraint: NSLayoutConstraint = {
         widthAnchor.constraint(equalToConstant: maxWidth)
     }()
@@ -86,12 +96,6 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         backgroundPanelView.isShadowHidden = traitCollection.userInterfaceStyle == .dark
     }
 
-    func configure(groupID: GroupID, showCloseButton: Bool = false) {
-        self.groupID = groupID
-        closeButtonColumn.isHidden = !showCloseButton
-        refreshInviteLinkLabel()
-    }
-
     private func setup() {
         backgroundColor = .clear
         preservesSuperviewLayoutMargins = true
@@ -100,7 +104,7 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.constrain(to: self)
 
-        contentView.heightAnchor.constraint(equalToConstant: 320).isActive = true
+        contentView.heightAnchor.constraint(equalToConstant: height()).isActive = true
 
         // Background
         backgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
