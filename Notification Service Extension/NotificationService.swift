@@ -26,6 +26,7 @@ class NotificationService: UNNotificationServiceExtension  {
 
     // NSE can run upto 30 seconds in most cases and 10 seconds should usually be good enough.
     let extensionRunTimeSec = 25.0
+    let finalCleanupRunTimeSec = 3.0
     var contentHandler: ((UNNotificationContent) -> Void)!
     private var service: CoreService? = nil
     private func recordPushEvent(requestID: String, messageID: String?) {
@@ -60,8 +61,10 @@ class NotificationService: UNNotificationServiceExtension  {
         DispatchQueue.main.asyncAfter(deadline: .now() + extensionRunTimeSec) { [self] in
             DDLogInfo("disconnect now")
             service?.disconnect()
-            DDLogInfo("Invoking completion handler now")
-            contentHandler(UNNotificationContent())
+            DispatchQueue.main.asyncAfter(deadline: .now() + finalCleanupRunTimeSec) {
+                DDLogInfo("Invoking completion handler now")
+                contentHandler(UNNotificationContent())
+            }
         }
     }
 
