@@ -224,6 +224,7 @@ class Call {
         DDLogInfo("Call/\(callID)/end/reason: \(reason)/begin")
         callQueue.async { [self] in
             service.endCall(id: callID, to: peerUserID, reason: reason)
+            // TODO: send call report to the server.
             webRTCClient.end()
             state = .inactive
             DDLogInfo("Call/\(callID)/end/success")
@@ -327,6 +328,7 @@ class Call {
     func didReceiveEndCall() {
         DDLogInfo("Call/\(callID)/didReceiveEndCall/begin")
         callQueue.async { [self] in
+            // TODO: send call report to the server.
             webRTCClient.end()
             state = .inactive
             DDLogInfo("Call/\(callID)/didReceiveEndCall/success")
@@ -338,6 +340,16 @@ class Call {
         callQueue.async { [self] in
             state = .ringing
             DDLogInfo("Call/\(callID)/didReceiveCallRinging/success")
+        }
+    }
+
+    func logPeerConnectionStats() {
+        callQueue.async { [self] in
+            webRTCClient.fetchPeerConnectionStats() { reports in
+                reports.forEach { report in
+                    DDLogInfo("Call/\(callID)/logPeerConnectionStats/report: \(report.debugDescription)")
+                }
+            }
         }
     }
 

@@ -203,6 +203,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         callDetailsMap.removeAll()
         cancelTimer?.cancel()
         cancelTimer = nil
+        activeCall?.logPeerConnectionStats()
         activeCall?.end(reason: .systemError)
         activeCall = nil
         callViewDelegate?.callEnded()
@@ -214,6 +215,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         }
         cancelTimer?.cancel()
         cancelTimer = nil
+        activeCall?.logPeerConnectionStats()
         activeCall?.end(reason: reason)
         activeCall = nil
         callViewDelegate?.callEnded()
@@ -239,6 +241,9 @@ final class CallManager: NSObject, CXProviderDelegate {
                 guard let self = self else { return }
                 self.callDurationSec += 1
                 self.callViewDelegate?.callDurationChanged(seconds: self.callDurationSec)
+                if self.callDurationSec % 10 == 0 {
+                    self.activeCall?.logPeerConnectionStats()
+                }
             }
         }
     }
@@ -533,6 +538,7 @@ extension CallManager: HalloCallDelegate {
         let callID = endCall.callID
         if activeCallID == callID {
             reportCallEnded(id: callID)
+            activeCall?.logPeerConnectionStats()
             activeCall?.didReceiveEndCall()
             activeCall = nil
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
