@@ -218,16 +218,12 @@ open class AppContext {
     required public init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
         let appGroupLogsDirectory = Self.sharedDirectoryURL
             .appendingPathComponent("Library", isDirectory: true)
-            .appendingPathComponent("Caches", isDirectory: true)
+            .appendingPathComponent("Application Support", isDirectory: true)
             .appendingPathComponent("Logs", isDirectory: true)
         let fileLogger = DDFileLogger(logFileManager: LogFileManager(logsDirectory: appGroupLogsDirectory.path))
         fileLogger.rollingFrequency = TimeInterval(60*60*24)
         fileLogger.doNotReuseLogFiles = true
         fileLogger.logFileManager.maximumNumberOfLogFiles = 400
-        // It looks like CocoaLumberJack cleans up old log files that are greater than logFilesDiskQuota in size after rolling.
-        // default value seems to be 20MB - which should be enough for us.
-        // but disabling the cleanup logic to see if it fixes the issue.
-        fileLogger.logFileManager.logFilesDiskQuota = 0
         fileLogger.logFormatter = FileLogFormatter()
         DDLog.add(fileLogger)
         self.fileLogger = fileLogger
@@ -285,6 +281,10 @@ open class AppContext {
         // Log errors to firebase
         errorLogger = logger
         #endif
+
+        DispatchQueue.global(qos: .background).async {
+            self.migrateLogFilesIfNeeded()
+        }
     }
 
     static func phoneNumberKitMetadataCallback() throws -> Data? {
@@ -304,5 +304,39 @@ open class AppContext {
         let serialID = userDefaults.integer(forKey: "chatMessageSerialId") + 1
         userDefaults.set(serialID, forKey: "chatMessageSerialId")
         return Int32(serialID)
+    }
+
+    // Moves log files from Library/Caches to Library/Application Support
+    private func migrateLogFilesIfNeeded() {
+        let legacyLogDirectory = Self.sharedDirectoryURL
+            .appendingPathComponent("Library", isDirectory: true)
+            .appendingPathComponent("Caches", isDirectory: true)
+            .appendingPathComponent("Logs", isDirectory: true)
+        let logFiles = try? FileManager.default.contentsOfDirectory(at: legacyLogDirectory,
+                                                                    includingPropertiesForKeys: [])
+        guard let logFiles = logFiles, !logFiles.isEmpty else {
+            return
+        }
+
+        let logDirectory = URL(fileURLWithPath: fileLogger.logFileManager.logsDirectory)
+
+        logFiles.forEach { fromURL in
+            let toURL = logDirectory.appendingPathComponent(fromURL.lastPathComponent)
+            do {
+                try FileManager.default.moveItem(at: fromURL, to: toURL)
+                DDLogInfo("Moved log file from [\(fromURL)] to [\(toURL)]")
+            }
+            catch {
+                DDLogError("Failed to move log file from [\(fromURL)] to [\(toURL)]")
+            }
+        }
+
+        do {
+            try FileManager.default.removeItem(at: legacyLogDirectory)
+            DDLogInfo("Deleted legacy log directory")
+        }
+        catch {
+            DDLogError("Failed to delete legacy log directory")
+        }
     }
 }
