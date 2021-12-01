@@ -18,7 +18,22 @@ class DataStore: NotificationServiceExtensionDataStore {
             let userId = notificationMetadata.fromId
             let postId = notificationMetadata.contentId
 
-            DDLogInfo("DataStore/post/\(postId)/create")
+            let fetchRequest: NSFetchRequest<SharedFeedPost> = SharedFeedPost.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id == %@", postId)
+            do {
+                let existingPost = try managedObjectContext.fetch(fetchRequest).first
+                if let sharedExistingPost = existingPost,
+                   sharedExistingPost.status == .received {
+                    DDLogInfo("NotificationExtension/DataStore/duplicate-post/id=[\(postId)]")
+                    // post was already processed and stored, so just return
+                    completion(sharedExistingPost)
+                    return
+                }
+            } catch {
+                DDLogError("NotificationExtension/DataStore/feedPosts/error  [\(error)]")
+            }
+
+            DDLogInfo("NotificationExtension/DataStore/post/\(postId)/create")
 
             let feedPost = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedPost", into: managedObjectContext) as! SharedFeedPost
             feedPost.id = postId
@@ -111,6 +126,27 @@ class DataStore: NotificationServiceExtensionDataStore {
                 return
             }
             let parentCommentId = notificationMetadata.parentId?.isEmpty ?? true ? nil : notificationMetadata.parentId
+
+            // TODO: If this function was called twice on the same comment
+            // We would end up inserting multiple media items on the same comment.
+            // We have a unique-key constraint on the contentId of the comment but not on the media items.
+            // We should have an id for the media item: which is (contentId-index) and use this as the key everywhere.
+            // That should prevent duplicates being inserted everywhere in the main app and all the extensions.
+            // Check with team on this?
+            let fetchRequest: NSFetchRequest<SharedFeedComment> = SharedFeedComment.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id == %@", commentId)
+            do {
+                let existingComment = try managedObjectContext.fetch(fetchRequest).first
+                if let sharedExistingComment = existingComment,
+                   sharedExistingComment.status == .received {
+                    DDLogInfo("NotificationExtension/DataStore/duplicate-comment/id=[\(commentId)]  postId=[\(postId)]")
+                    // comment was already processed and stored, so just return
+                    completion(sharedExistingComment)
+                    return
+                }
+            } catch {
+                DDLogError("SharedDataStore/feedPosts/error  [\(error)]")
+            }
 
             // Create comment
             DDLogInfo("NotificationExtension/DataStore/new-comment/create id=[\(commentId)]  postId=[\(postId)]")

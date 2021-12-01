@@ -22,7 +22,13 @@ fileprivate let userDefaultsKeyForRequestLogs = "serverRequestedLogs"
 
 final class ProtoService: ProtoServiceCore {
 
-    var readyToHandleCallMessages = false
+    var readyToHandleCallMessages = false {
+        didSet {
+            if readyToHandleCallMessages {
+                handlePendingCallMessages()
+            }
+        }
+    }
     var pendingCallMessages = [CallID: [Server_Msg]]()
 
     public required init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = true) {
@@ -889,7 +895,6 @@ final class ProtoService: ProtoServiceCore {
         case .endOfQueue:
             DDLogInfo("proto/didReceive/\(msg.id)/endOfQueue")
             readyToHandleCallMessages = true
-            handlePendingCallMessages()
         case .errorStanza(let error):
             DDLogError("proto/didReceive/\(msg.id) received message with error \(error)")
         case .inviteeNotice:

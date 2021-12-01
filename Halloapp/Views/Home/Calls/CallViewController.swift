@@ -161,6 +161,10 @@ class CallViewController: UIViewController {
         super.viewWillAppear(animated)
     }
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .portrait
+    }
+
     private func getCallStatusText() -> String {
         if isOutgoing {
             return callStatus + " " + peerPhoneNumber + "..."

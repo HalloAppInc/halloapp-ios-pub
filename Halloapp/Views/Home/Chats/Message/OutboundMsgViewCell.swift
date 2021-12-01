@@ -338,7 +338,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
         view.translatesAutoresizingMaskIntoConstraints = false
 
-        let height = timeAndStatusLabel.font.pointSize + 8
+        let height = timeAndStatusLabel.font.pointSize + 4
         view.widthAnchor.constraint(equalToConstant: height).isActive = true
         view.heightAnchor.constraint(equalTo: view.widthAnchor).isActive = true
         return view
@@ -421,18 +421,6 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
     func pauseVoiceNote() {
         voiceNoteView.pause()
-    }
-    
-    func highlight() {
-        UIView.animate(withDuration: 1.0, animations: {
-            self.contentView.backgroundColor = .systemYellow
-        })
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            UIView.animate(withDuration: 1.0, animations: {
-                self.contentView.backgroundColor = .feedBackground
-            })
-        }
     }
 
     // MARK: Link Preivew Row

@@ -49,4 +49,12 @@ extension Localizations {
         NSLocalizedString("server.voicecall.verification", value: "Your HalloApp verification code is", comment: "text in the voice call sent with verification code")
     }
 
+    static var serverMarketingTitle: String {
+        NSLocalizedString("server.marketing.title", value: "Hallo there!", comment: "title of the marketing alert sent to users")
+    }
+
+    static var serverMarketingBody: String {
+        NSLocalizedString("server.marketing.body", value: "Invite your friends to enjoy HalloApp!", comment: "body of the marketing alert sent to users")
+    }
+
 }

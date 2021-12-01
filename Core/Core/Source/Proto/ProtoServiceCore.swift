@@ -652,7 +652,7 @@ extension ProtoServiceCore: CoreService {
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: error, itemType: .comment))
                     completion(.failure(.malformedRequest))
                 case .success(let iqPayload):
-                    DDLogError("ProtoServiceCore/publishCommentInternal/\(comment.id)/makePublishPostPayload/success")
+                    DDLogError("ProtoServiceCore/publishCommentInternal/\(comment.id)/makePublishCommentPayload/success")
                     AppContext.shared.eventMonitor.count(.groupEncryption(error: nil, itemType: .comment))
                     let request = ProtoRequest<Server_Iq.OneOf_Payload>(
                         iqPacket: .iqPacket(type: .set, payload: iqPayload),

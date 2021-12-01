@@ -9,6 +9,7 @@
 import Alamofire
 import CocoaLumberjackSwift
 import Core
+import Combine
 import UserNotifications
 
 class NotificationService: UNNotificationServiceExtension  {
@@ -29,6 +30,7 @@ class NotificationService: UNNotificationServiceExtension  {
     let finalCleanupRunTimeSec = 3.0
     var contentHandler: ((UNNotificationContent) -> Void)!
     private var service: CoreService? = nil
+    private var cancellableSet = Set<AnyCancellable>()
     private func recordPushEvent(requestID: String, messageID: String?) {
         let timestamp = Date()
         DDLogInfo("NotificationService/recordPushEvent/requestId: \(requestID), timestamp: \(timestamp)")
@@ -47,6 +49,15 @@ class NotificationService: UNNotificationServiceExtension  {
         Self.initializeAppContext
         service = AppExtensionContext.shared.coreService
         service?.startConnectingIfNecessary()
+        if let coreService = service {
+            self.cancellableSet.insert(
+                coreService.didDisconnect.sink { [weak self] in
+                    guard let self = self else { return }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + self.finalCleanupRunTimeSec) {
+                        self.terminateNseAndInvokeHandler()
+                    }
+                })
+        }
 
         DDLogInfo("didReceiveRequest/begin processing \(request)")
 
@@ -63,8 +74,15 @@ class NotificationService: UNNotificationServiceExtension  {
             service?.disconnect()
             DispatchQueue.main.asyncAfter(deadline: .now() + finalCleanupRunTimeSec) {
                 DDLogInfo("Invoking completion handler now")
-                contentHandler(UNNotificationContent())
+                terminateNseAndInvokeHandler()
             }
+        }
+    }
+
+    private func terminateNseAndInvokeHandler() {
+        if let contentHandler = contentHandler {
+            DDLogInfo("Invoking contentHandler now")
+            contentHandler(UNNotificationContent())
         }
     }
 
@@ -74,10 +92,8 @@ class NotificationService: UNNotificationServiceExtension  {
         DDLogWarn("timeWillExpire")
         DispatchQueue.main.async { [self] in
             service?.disconnectImmediately()
-            if let contentHandler = contentHandler {
-                DDLogInfo("Invoking completion handler now")
-                contentHandler(UNNotificationContent())
-            }
+            DDLogInfo("Invoking completion handler now")
+            terminateNseAndInvokeHandler()
         }
     }
 
