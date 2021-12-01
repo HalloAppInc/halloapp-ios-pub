@@ -784,9 +784,6 @@
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Umožnili jste HalloApp přístup k vybranému počtu fotek a videí.";
 
-/* Initial picker screen title. The default source of picker photos */
-"picker.default.title" = "Pořízené fotografie";
-
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Zkuste to prosím znovu nebo vyberte jinou fotku či video.";
 

@@ -658,6 +658,21 @@
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "لطفاً‌ نظر یا توضیحات مشکل را در جایگاه بالا بنویسید.\n\n@Version %1$@ - %2$\n@%3$";
 
+/* Button to dismiss the alert. */
+"home.calls.button.exit" = "تأیید";
+
+/* Text shown to users on call failure. */
+"home.calls.fail.text" = "ببخشید، لطفاً بعداً امتحان کنید.";
+
+/* Title of failed call screen alert. */
+"home.calls.fail.title" = "خطا درتماس.";
+
+/* Text shown to users trying to open the call screen. */
+"home.calls.notice.text" = "تماس فعال در حال حاضر ندارید.";
+
+/* Title of call screen alert. */
+"home.calls.notice.title" = "فاقد تماس فعال";
+
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "خروج";
 
@@ -906,9 +921,6 @@
 
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "شما به هالواپ اجازه دسترسی به عکس‌ها و ویدیوهای انتخاب شده داده‌اید.";
-
-/* Initial picker screen title. The default source of picker photos */
-"picker.default.title" = "عکس‌های دوربین";
 
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "لطفاً‌ دوباره امتحان کنید یا عکس یا ویدیوی دیگری انتخاب کنید.";

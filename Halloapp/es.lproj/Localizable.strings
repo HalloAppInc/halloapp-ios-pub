@@ -658,6 +658,21 @@
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "\n\n\nPor favor deja un comentario o una descripción del problema en el espacio de arriba. \n\nVersión %1$@ - %2$@\n%3$@";
 
+/* Button to dismiss the alert. */
+"home.calls.button.exit" = "OK";
+
+/* Text shown to users on call failure. */
+"home.calls.fail.text" = "Lo siento, inténtalo de nuevo más tarde.";
+
+/* Title of failed call screen alert. */
+"home.calls.fail.title" = "Falló intentando llamar.";
+
+/* Text shown to users trying to open the call screen. */
+"home.calls.notice.text" = "No tienes una llamada activa en este momento.";
+
+/* Title of call screen alert. */
+"home.calls.notice.title" = "No hay llamadas activas";
+
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Salir";
 
@@ -906,9 +921,6 @@
 
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Has dado a HalloApp acceso a un seleccionado número de fotos y videos";
-
-/* Initial picker screen title. The default source of picker photos */
-"picker.default.title" = "Rollo de la cámara";
 
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Intenta de nuevo o selecciona un video o una foto diferente.";

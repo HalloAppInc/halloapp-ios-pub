@@ -901,9 +901,6 @@
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Aplikacja HalloApp dostała od Ciebie dostęp do wybranej liczby zdjęć i filmów.";
 
-/* Initial picker screen title. The default source of picker photos */
-"picker.default.title" = "Rolka z aparatu";
-
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Prosimy spróbować ponownie lub wybrać inne zdjęcie bądź film.";
 

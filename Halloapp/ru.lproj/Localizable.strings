@@ -655,6 +655,21 @@
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "Оставьте отзыв или описание проблемы в поле выше. \n\nВерсия %1$@ — %2$@\n%3$@";
 
+/* Button to dismiss the alert. */
+"home.calls.button.exit" = "ОК";
+
+/* Text shown to users on call failure. */
+"home.calls.fail.text" = "Извините, попробуйте еще раз позже.";
+
+/* Title of failed call screen alert. */
+"home.calls.fail.title" = "Звонок не состоялся.";
+
+/* Text shown to users trying to open the call screen. */
+"home.calls.notice.text" = "На данный момент у вас нет активного звонка.";
+
+/* Title of call screen alert. */
+"home.calls.notice.title" = "Нет Активных Звонков";
+
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Выйти";
 
@@ -823,6 +838,9 @@
 /* Displayed in place of deleted feed posts. */
 "n.posts.deleted" = "Сообщения %@ удалены";
 
+/* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
+"new.group.members.empty.placeholder" = "Тут появятся ваши контакты, которые пользуют HalloApp";
+
 /* Alert text shown when max group size is reached when selecting/adding group members */
 "new.group.members.max.size.alert" = "Максимальный размер группы %d";
 
@@ -901,9 +919,6 @@
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Вы предоставили HalloApp доступ к выбранному количеству фото и видео.";
 
-/* Initial picker screen title. The default source of picker photos */
-"picker.default.title" = "Фотопленка";
-
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Попробуйте снова или выберите другое фото или видео.";
 
@@ -924,6 +939,9 @@
 
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "picker.media.n.limit";
+
+/* Title for the picker screen. */
+"post.controller.picker.title" = "Новые Сообщения";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Это сообщение было удалено";
@@ -1074,6 +1092,9 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "Код безопасности для %@ проверен успешно!";
+
+/* body of the marketing alert sent to users */
+"server.marketing.body" = "Пригласите друзей, чтобы они пользавали HalloApp!";
 
 /* fallback text in notification for a new comment */
 "server.new.comment" = "Новый комментарий";
@@ -1263,6 +1284,9 @@
 
 /* Title for the Comments screen. */
 "title.comments" = "Комментарии";
+
+/* Title for the picker screen. */
+"title.comments.picker" = "Новый Комментарий ";
 
 /* Second tab in the main app interface. */
 "title.groups" = "Группы";

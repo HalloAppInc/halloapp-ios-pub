@@ -907,9 +907,6 @@
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "HalloApp'e, belirli sayıda fotoğraf ve videoya erişimi için izin verdin.";
 
-/* Initial picker screen title. The default source of picker photos */
-"picker.default.title" = "Film rulosu";
-
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Lütfen tekrar dene veya farklı fotoğraf ya da video seç.";
 
