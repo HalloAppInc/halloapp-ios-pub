@@ -865,9 +865,6 @@
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Kamu telah memberi HalloApp akses ke jumlah foto dan video terpilih.";
 
-/* Initial picker screen title. The default source of picker photos */
-"picker.default.title" = "Rol Kamera";
-
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Harap coba kembali atau pilih foto atau video berbeda.";
 

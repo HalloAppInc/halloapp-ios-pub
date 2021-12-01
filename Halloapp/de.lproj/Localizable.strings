@@ -359,7 +359,7 @@
 "CONNECTION" = "VERBINDUNG";
 
 /* Shown when user denies contacts permission */
-"contacts.access.denied" = "Erlaube HalloApp den Zugriff auf deine Kontakte, um Updates lesen oder versenden zu können";
+"contacts.access.denied" = "Erlaube HalloApp den Zugriff auf deine Kontakte, damit du Updates senden und empfangen kannst";
 
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Um dir zu helfen, den Kontakt zu deinen Freunden und deiner Familie herzustellen, erlaube HalloApp den Zugriff auf deine Kontakte.";
@@ -494,7 +494,7 @@
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit Freunden und Familie in einem digitalen Raum ohne Werbung, Marken, Likes und Influencer zu verbinden.\n\nHalloApp ist für dich und die, die dir nahe stehen - ganz privat. Lade deine wahren Freunde ein, um loszulegen!";
+"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit deinen Freunden und deiner Familie in einem digitalen Raum ohne Werbung, Marken, Likes und Influencer zu verbinden.\n\nHalloApp ist für dich und die, die dir nahe stehen - ganz privat. Lade deine wahren Freunde ein, um loszulegen!";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Willkommen bei HalloApp, ein digitaler Raum für echte Beziehungen ✨";
@@ -654,6 +654,21 @@
 
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "\n\nBitte oberhalb dein Feedback oder eine Problembeschreibung eingeben.\n\nVersion %1$@ - %2$@\n%3$@";
+
+/* Button to dismiss the alert. */
+"home.calls.button.exit" = "OK";
+
+/* Text shown to users on call failure. */
+"home.calls.fail.text" = "Bitte versuche es später noch einmal.";
+
+/* Title of failed call screen alert. */
+"home.calls.fail.title" = "Der Anruf konnte nicht getätigt werden.";
+
+/* Text shown to users trying to open the call screen. */
+"home.calls.notice.text" = "Du hast momentan keinen aktiven Anruf.";
+
+/* Title of call screen alert. */
+"home.calls.notice.title" = "Keine aktiven Anrufe";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Beenden";
@@ -904,9 +919,6 @@
 /* Message shown only limited access to media. */
 "picker.access.limited.message" = "Du hast HalloApp den Zugriff auf eine bestimmte Anzahl von Fotos und Videos gewährt.";
 
-/* Initial picker screen title. The default source of picker photos */
-"picker.default.title" = "Kamerarolle";
-
 /* Alert message in media picker when unable to load media file. */
 "picker.media.fail.message" = "Versuch es bitte noch einmal oder wähle ein anderes Foto oder Video aus.";
 
@@ -927,6 +939,9 @@
 
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "picker.media.n.limit";
+
+/* Title for the picker screen. */
+"post.controller.picker.title" = "Neuer Beitrag";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Dieser Beitrag wurde gelöscht";
@@ -1077,6 +1092,12 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "Die Sicherheitsnummer für %@ wurde erfolgreich verifiziert!";
+
+/* body of the marketing alert sent to users */
+"server.marketing.body" = "Lade deine Freunde zu HalloApp ein!";
+
+/* title of the marketing alert sent to users */
+"server.marketing.title" = "Hallo!";
 
 /* fallback text in notification for a new comment */
 "server.new.comment" = "Neuer Kommentar";
@@ -1266,6 +1287,9 @@
 
 /* Title for the Comments screen. */
 "title.comments" = "Kommentare";
+
+/* Title for the picker screen. */
+"title.comments.picker" = "Neuer Kommentar";
 
 /* Second tab in the main app interface. */
 "title.groups" = "Gruppen";
