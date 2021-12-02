@@ -271,7 +271,7 @@ final class GroupWhisperSession {
                 switch task {
                 case .encryption(_, let completion):
                     guard setupAttempts < 3 else {
-                        DDLogInfo("GroupWhisperSession/\(groupID)/execute/encryption outbound setup failed \(setupAttempts) times")
+                        DDLogError("GroupWhisperSession/\(groupID)/execute/encryption outbound setup failed \(setupAttempts) times")
                         completion(.failure(.missingKeyBundle))
                         return
                     }
@@ -292,7 +292,7 @@ final class GroupWhisperSession {
                     DDLogInfo("GroupWhisperSession/\(groupID)/execute/updateAudienceHash - ignoring")
                 case .fetchSenderState(let completion):
                     guard setupAttempts < 3 else {
-                        DDLogInfo("GroupWhisperSession/\(groupID)/execute/fetchSenderState outbound setup failed \(setupAttempts) times")
+                        DDLogError("GroupWhisperSession/\(groupID)/execute/fetchSenderState outbound setup failed \(setupAttempts) times")
                         completion(.failure(.missingKeyBundle))
                         return
                     }
@@ -353,7 +353,7 @@ final class GroupWhisperSession {
             groupKeyBundle.pendingUids.append(contentsOf: userIds)
             updateState(to: .ready(keyBundle: groupKeyBundle), saveToKeyStore: true)
         default:
-            DDLogError("GroupWhisperSession/executeRemoveMembers/\(groupID)/Invalid state")
+            DDLogError("GroupWhisperSession/executeAddMembers/\(groupID)/Invalid state")
             return
         }
         executeUpdateAudienceHash()
@@ -575,6 +575,10 @@ final class GroupWhisperSession {
     }
 
     private func executeUpdateAudienceHash() {
+        // Currently, we always try to update our hash exactly once.
+        // If this request fails for some reason: then we move-on and
+        // correct our hash next time when we get rejected by the server.
+        // TODO: We could try having a limit (say 3 times): similar to setting up outbound keys.
         let attemptNumber = 1 + (state.failedUpdateHashAttempts ?? 0)
         switch state {
         case .empty, .retrievingKeys, .awaitingSetup, .updatingHash:
@@ -614,8 +618,8 @@ final class GroupWhisperSession {
                         self.updateState(to: .awaitingSetup(attempts: 0, incomingSession: groupKeyBundle.incomingSession ?? GroupIncomingSession(senderStates: [:])), saveToKeyStore: true)
                     }
                 } else {
-                    DDLogError("GroupWhisperSession/executeUpdateAudienceHash/\(self.groupID)/audienceHash is missing")
-                    self.updateState(to: .updatingHash(attempts: attemptNumber, keyBundle: self.state.keyBundle))
+                    DDLogError("GroupWhisperSession/executeUpdateAudienceHash/\(self.groupID)/updatingHash - failed, so moving on!")
+                    self.updateState(to: .ready(keyBundle: groupKeyBundle))
                 }
 
                 self.executeTasks()
