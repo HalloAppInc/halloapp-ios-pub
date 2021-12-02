@@ -1366,6 +1366,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return true
         }
 
+        // Notify when comment contains you as one of the mentions.
+        let isUserMentioned = comment.mentions?.contains(where: { mention in
+            mention.userID == selfId
+        })
+        if isUserMentioned == true {
+            return true
+        }
+
         // Do not notify about all other comments.
         return false
     }
