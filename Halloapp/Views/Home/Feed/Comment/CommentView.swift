@@ -298,10 +298,15 @@ class CommentView: UIView {
                 }
 
                 if media[0].fileURL == nil {
+                    voiceCommentView.state = .loading
+
                     mediaStatusCancellable = media[0].mediaStatusDidChange.sink { [weak self] mediaItem in
                         guard let self = self else { return }
                         guard let url = mediaItem.fileURL else { return }
                         self.voiceCommentView.url = url
+
+                        let isOwn = feedPostComment.userId == MainAppContext.shared.userData.userId
+                        self.voiceCommentView.state = feedPostComment.status == .played || isOwn ? .played : .normal
                     }
                 }
             } else {
@@ -661,10 +666,10 @@ extension CommentView: AudioViewDelegate {
 
     func audioViewDidStartPlaying(_ view: AudioView) {
         guard let commentId = feedPostCommentID else { return }
+        voiceCommentView.state = .played
         MainAppContext.shared.feedData.markCommentAsPlayed(commentId: commentId)
     }
 
     func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
-        voiceCommentView.state = .played
     }
 }

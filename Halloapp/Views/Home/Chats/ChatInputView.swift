@@ -1609,6 +1609,10 @@ extension ChatInputView: AudioRecorderDelegate {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.recordVoiceNoteControl.hide()
+            self.voiceNoteTime.isHidden = true
+            self.textView.isHidden = false
+            self.placeholder.isHidden = !self.textView.text.isEmpty
+            self.updatePostButtons()
             self.delegate?.chatInputViewMicrophoneAccessDenied(self)
         }
     }
