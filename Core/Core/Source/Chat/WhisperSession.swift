@@ -8,6 +8,7 @@
 
 import CocoaLumberjackSwift
 import Foundation
+import Combine
 
 private enum WhisperTask {
     case encryption(Data, EncryptionCompletion)
@@ -27,6 +28,27 @@ public final class WhisperSession {
         if let (keyBundle, messageKeys) = loadFromKeyStore() {
             self.state = .ready(keyBundle, messageKeys)
         }
+
+        // This should solve issues when client tries sending messages when facing connection problems.
+        // We retry setup requests immediately and we could fail all 3times.
+        // But we would not retry even after connection succeeds.
+        // This would now reset our state to retry setup requests again.
+        // That way: messages will be sent eventually.
+        self.cancellableSet.insert(
+            self.service.didConnect.sink { [weak self] in
+                DDLogInfo("WhisperSession/onConnect")
+                guard let self = self else { return }
+                self.sessionQueue.async {
+                    switch self.state {
+                    case .awaitingSetup:
+                        DDLogInfo("WhisperSession/reset-setup-attempts")
+                        self.state = .awaitingSetup(attempts: 0)
+                    default:
+                        break
+                    }
+                }
+            }
+        )
     }
 
     public func encrypt(
@@ -209,6 +231,7 @@ public final class WhisperSession {
     private let service: CoreService
     private let keyStore: KeyStore
     private let userID: UserID
+    private var cancellableSet: Set<AnyCancellable> = []
 
     private lazy var sessionQueue = { DispatchQueue(label: "com.halloapp.whisper-\(userID)", qos: .userInitiated) }()
     private var pendingTasks = [WhisperTask]()
@@ -402,10 +425,8 @@ public final class WhisperSession {
                 }
 
                 // if the client is facing connection issues - then we retry immediately for 3 times and then give up after failing.
-                // we should ideally wait until we connect and try again on the next connection.
-                // our service will now anyways discard and wont send anymore messages to this recipient after we fail 3 times.
-                // on the next connection - we'll retry sending all messages to this recipient.
-                // that way - we sort of ensure that messages are sent in-order to the recipient.
+                // however: we now reset our number of attempts: so we'll retry sending these messages again on the next connection.
+                // messages are always sent in-order to the recipient.
                 self.executeTasks()
             }
         }
