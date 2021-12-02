@@ -33,6 +33,10 @@ private extension Localizations {
     static var shareLogs: String {
         NSLocalizedString("profile.help.share.logs", value: "Share Logs", comment: "Item in Profile > Help screen.")
     }
+
+    static var calls: String {
+        NSLocalizedString("profile.help.calls", value: "Calls", comment: "Item in Profile > Calls screen.")
+    }
 }
 
 class HelpViewController: UITableViewController {
@@ -71,7 +75,7 @@ class HelpViewController: UITableViewController {
     private let cellPP = SettingsTableViewCell(text: Localizations.privacyPolicy)
     private let cellFeedback = SettingsTableViewCell(text: Localizations.feedback)
     private let cellShareLogs = SettingsTableViewCell(text: Localizations.shareLogs)
-    private let cellCalls = SettingsTableViewCell(text: "Calls")
+    private let cellCalls = SettingsTableViewCell(text: Localizations.calls)
 
 
     // MARK: View Controller
