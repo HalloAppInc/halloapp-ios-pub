@@ -493,44 +493,52 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         return collectionView
     }
 
-    private func makeFetchedResultsController(_ media: ChatMedia) -> NSFetchedResultsController<ChatMedia> {
+    private func request(with media: ChatMedia, limitToMessage: Bool = false) -> NSFetchRequest<ChatMedia> {
         let request: NSFetchRequest<ChatMedia> = ChatMedia.fetchRequest()
-        request.fetchBatchSize = 5
 
         if let message = media.message {
-            request.predicate = .init(format: "(message.fromUserId = %@ AND message.toUserId = %@) || (message.toUserId = %@ && message.fromUserId = %@)", message.fromUserId, message.toUserId, message.fromUserId, message.toUserId)
+            let base = """
+                ((message.fromUserId = %@ AND message.toUserId = %@) || (message.toUserId = %@ && message.fromUserId = %@)) &&
+                (typeValue == 0 || typeValue == 1)
+            """
+
+            if limitToMessage {
+                request.predicate = NSPredicate(format: base + " && message.timestamp < %@", message.fromUserId, message.toUserId, message.fromUserId, message.toUserId, message.timestamp! as NSDate)
+            } else {
+                request.predicate = NSPredicate(format: base, message.fromUserId, message.toUserId, message.fromUserId, message.toUserId)
+            }
+
             request.sortDescriptors = [
                 NSSortDescriptor(key: "message.timestamp", ascending: true),
                 NSSortDescriptor(keyPath: \ChatMedia.order, ascending: true),
             ]
         } else if let message = media.groupMessage {
-            request.predicate = .init(format: "groupMessage.groupId = %@", message.groupId)
+            let base = "groupMessage.groupId = %@"
+
+            if limitToMessage {
+                request.predicate = NSPredicate(format: base + " && groupMessage.timestamp < %@", message.groupId, message.timestamp! as NSDate)
+            } else {
+                request.predicate = NSPredicate(format: base, message.groupId)
+            }
+
             request.sortDescriptors = [
                 NSSortDescriptor(key: "groupMessage.timestamp", ascending: true),
                 NSSortDescriptor(keyPath: \ChatMedia.order, ascending: true),
             ]
         }
+
+        return request
+    }
+
+    private func makeFetchedResultsController(_ media: ChatMedia) -> NSFetchedResultsController<ChatMedia> {
+        let request = request(with: media)
+        request.fetchBatchSize = 5
 
         return NSFetchedResultsController(fetchRequest: request, managedObjectContext: MainAppContext.shared.chatData.viewContext, sectionNameKeyPath: nil, cacheName: nil)
     }
 
     private func computePosition(for media: ChatMedia) -> Int {
-        let request: NSFetchRequest<ChatMedia> = ChatMedia.fetchRequest()
-
-        if let message = media.message {
-            request.predicate = .init(format: "((message.fromUserId = %@ AND message.toUserId = %@) || (message.toUserId = %@ && message.fromUserId = %@)) && message.timestamp < %@", message.fromUserId, message.toUserId, message.fromUserId, message.toUserId, message.timestamp! as NSDate)
-            request.sortDescriptors = [
-                NSSortDescriptor(key: "message.timestamp", ascending: true),
-                NSSortDescriptor(keyPath: \ChatMedia.order, ascending: true),
-            ]
-        } else if let message = media.groupMessage {
-            request.predicate = .init(format: "groupMessage.groupId = %@ && groupMessage.timestamp < %@", message.groupId, message.timestamp! as NSDate)
-            request.sortDescriptors = [
-                NSSortDescriptor(key: "groupMessage.timestamp", ascending: true),
-                NSSortDescriptor(keyPath: \ChatMedia.order, ascending: true),
-            ]
-        }
-
+        let request = request(with: media, limitToMessage: true)
         let preceding = try? MainAppContext.shared.chatData.viewContext.count(for: request)
 
         return (preceding ?? 0) + max(0, media.index)

@@ -18,7 +18,7 @@ protocol AudioViewDelegate: AnyObject {
 }
 
 enum AudioViewState {
-    case normal, played
+    case normal, played, loading
 }
 
 class AudioView : UIStackView {
@@ -145,6 +145,15 @@ class AudioView : UIStackView {
         return slider
     } ()
 
+    private lazy var loadingIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        indicator.widthAnchor.constraint(equalToConstant: 20).isActive = true
+        indicator.heightAnchor.constraint(equalToConstant: 20).isActive = true
+
+        return indicator
+    } ()
+
     private var isPlayerAtTheEnd: Bool {
         guard let player = player else { return false }
         guard let duration = player.currentItem?.asset.duration else { return false }
@@ -165,6 +174,7 @@ class AudioView : UIStackView {
         spacing = 12
         isLayoutMarginsRelativeArrangement = true
 
+        addArrangedSubview(loadingIndicator)
         addArrangedSubview(playButton)
         addArrangedSubview(slider)
 
@@ -243,6 +253,14 @@ class AudioView : UIStackView {
     }
 
     private func updateControls() {
+        if state == .loading {
+            loadingIndicator.startAnimating()
+            playButton.isHidden = true
+        } else {
+            loadingIndicator.stopAnimating()
+            playButton.isHidden = false
+        }
+
         guard let player = player else { return }
         playButton.setImage(player.rate > 0 ? pauseIcon : playIcon, for: .normal)
         slider.setThumbImage(thumbIcon, for: .normal)
@@ -257,7 +275,7 @@ class AudioView : UIStackView {
         let current = player.currentTime()
         slider.setValue(isPlayerAtTheEnd && player.rate == 0 ? 0 : Float(current.seconds / duration.seconds), animated: false)
 
-        let formatted = TimeInterval(player.rate > 0 ? current.seconds : duration.seconds).formatted
+        let formatted = TimeInterval(player.rate > 0 ? (duration.seconds - current.seconds) : duration.seconds).formatted
         delegate?.audioView(self, at: formatted)
     }
 

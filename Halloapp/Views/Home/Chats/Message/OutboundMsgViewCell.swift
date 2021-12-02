@@ -584,7 +584,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             voiceNoteView.delegate = self
             voiceNoteView.state = .played
 
-            if voiceNoteView.url != url {
+            if voiceNoteView.url != url && !voiceNoteView.isPlaying {
                 voiceNoteTimeLabel.text = "0:00"
                 voiceNoteView.url = url
             }

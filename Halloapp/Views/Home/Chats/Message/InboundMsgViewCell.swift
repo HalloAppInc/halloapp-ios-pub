@@ -572,10 +572,18 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         let isVoiceNote = media?.count == 1 && media?.first?.type == .audio
 
         if isVoiceNote, let item = media?.first {
-            let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(item.relativeFilePath ?? "", isDirectory: false)
+            var url: URL? = nil
+            if let path = item.relativeFilePath {
+                url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(path, isDirectory: false)
+            }
 
             voiceNoteView.delegate = self
-            voiceNoteView.state = isPlayed ? .played : .normal
+
+            if url == nil {
+                voiceNoteView.state = .loading
+            } else {
+                voiceNoteView.state = isPlayed ? .played : .normal
+            }
 
             if voiceNoteView.url != url {
                 voiceNoteTimeLabel.text = "0:00"
@@ -814,12 +822,11 @@ extension InboundMsgViewCell: AudioViewDelegate {
 
     func audioViewDidStartPlaying(_ view: AudioView) {
         guard let messageID = messageID else { return }
+        voiceNoteView.state = .played
         MainAppContext.shared.chatData.markPlayedMessage(for: messageID)
     }
 
     func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
-        voiceNoteView.state = .played
-
         guard completed else { return }
         guard let messageID = messageID else { return }
         delegate?.inboundMsgViewCell(self, didCompleteVoiceNote: messageID)
