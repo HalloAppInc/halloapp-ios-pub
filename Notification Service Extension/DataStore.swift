@@ -15,6 +15,9 @@ class DataStore: NotificationServiceExtensionDataStore {
     func save(postData: PostData?, status: SharedFeedPost.Status, notificationMetadata: NotificationMetadata, completion: @escaping (SharedFeedPost) -> ()) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
 
+            // set a merge policy so that we dont end up with duplicate feedposts.
+            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
             let userId = notificationMetadata.fromId
             let postId = notificationMetadata.contentId
 
@@ -22,10 +25,16 @@ class DataStore: NotificationServiceExtensionDataStore {
             fetchRequest.predicate = NSPredicate(format: "id == %@", postId)
             do {
                 let existingPost = try managedObjectContext.fetch(fetchRequest).first
-                if let sharedExistingPost = existingPost,
-                   sharedExistingPost.status == .received {
-                    DDLogInfo("NotificationExtension/DataStore/duplicate-post/id=[\(postId)]")
-                    // post was already processed and stored, so just return
+                if let sharedExistingPost = existingPost {
+                    if sharedExistingPost.status == .received {
+                        DDLogInfo("NotificationExtension/DataStore/duplicate-post/id=[\(postId)]")
+                        // post was already processed and stored, so just return
+                    } else {
+                        DDLogInfo("NotificationExtension/DataStore/update-post/id=[\(postId)]")
+                        // post fallback to unencrypted content: just update status now, save and return
+                        sharedExistingPost.status = status
+                        self.save(managedObjectContext)
+                    }
                     completion(sharedExistingPost)
                     return
                 }
@@ -117,7 +126,9 @@ class DataStore: NotificationServiceExtensionDataStore {
     
     func save(commentData: CommentData?, status: SharedFeedComment.Status, notificationMetadata: NotificationMetadata, completion: @escaping (SharedFeedComment) -> ()) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
-        
+
+            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
             // Extract info from parameters
             let userId = notificationMetadata.fromId
             let commentId = notificationMetadata.contentId
@@ -137,10 +148,16 @@ class DataStore: NotificationServiceExtensionDataStore {
             fetchRequest.predicate = NSPredicate(format: "id == %@", commentId)
             do {
                 let existingComment = try managedObjectContext.fetch(fetchRequest).first
-                if let sharedExistingComment = existingComment,
-                   sharedExistingComment.status == .received {
-                    DDLogInfo("NotificationExtension/DataStore/duplicate-comment/id=[\(commentId)]  postId=[\(postId)]")
-                    // comment was already processed and stored, so just return
+                if let sharedExistingComment = existingComment {
+                    if sharedExistingComment.status == .received {
+                        DDLogInfo("NotificationExtension/DataStore/duplicate-comment/id=[\(commentId)]  postId=[\(postId)]")
+                        // comment was already processed and stored, so just return
+                    } else {
+                        DDLogInfo("NotificationExtension/DataStore/update-comment/id=[\(commentId)]  postId=[\(postId)]")
+                        // comment fallback to unencrypted content: just update status now, save and return
+                        sharedExistingComment.status = status
+                        self.save(managedObjectContext)
+                    }
                     completion(sharedExistingComment)
                     return
                 }
@@ -206,7 +223,6 @@ class DataStore: NotificationServiceExtensionDataStore {
                 feedComment.rawData = nil
             }
 
-            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             self.save(managedObjectContext)
 
             completion(feedComment)
