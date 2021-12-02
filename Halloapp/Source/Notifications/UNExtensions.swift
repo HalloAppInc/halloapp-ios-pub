@@ -41,7 +41,7 @@ extension UNMutableNotificationContent {
             body = metadata.body
             // encode and store metadata - this will be used to handle user response on the notification.
             userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
-            DDLogInfo("UNExtensions/populate updated title: \(title), subtitle: \(subtitle), body: \(body)")
+            DDLogInfo("UNExtensions/populate updated content")
         } else {
             DDLogError("UNExtensions/populate Could not populate content")
         }
@@ -52,7 +52,7 @@ extension UNMutableNotificationContent {
         body = metadata.body
         // encode and store metadata - this will be used to handle user response on the notification.
         userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
-        DDLogInfo("UNExtensions/populateChatBody updated title: \(title), subtitle: \(subtitle), body: \(body)")
+        DDLogInfo("UNExtensions/populateChatBody updated content")
     }
 
     func populateFeedPostBody(from postData: PostData, using metadata: NotificationMetadata, contactStore: ContactStore) {
@@ -61,7 +61,7 @@ extension UNMutableNotificationContent {
         body = metadata.body
         // encode and store metadata - this will be used to handle user response on the notification.
         userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
-        DDLogInfo("UNExtensions/populateFeedPostBody updated title: \(title), subtitle: \(subtitle), body: \(body)")
+        DDLogInfo("UNExtensions/populateFeedPostBody updated content")
     }
 
     func populateFeedCommentBody(from commentData: CommentData, using metadata: NotificationMetadata, contactStore: ContactStore) {
@@ -69,7 +69,7 @@ extension UNMutableNotificationContent {
         body = metadata.body
         // encode and store metadata - this will be used to handle user response on the notification.
         userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
-        DDLogInfo("UNExtensions/populateFeedCommentBody updated title: \(title), subtitle: \(subtitle), body: \(body)")
+        DDLogInfo("UNExtensions/populateFeedCommentBody updated content")
     }
 
 }
@@ -96,7 +96,6 @@ extension UNUserNotificationCenter {
 
             var identifiersToRemove: [String] = []
             for notification in notifications {
-                DDLogDebug("Notification/removeDelivered load from \(notification.request.identifier)")
                 guard let metadata = NotificationMetadata.load(from: notification.request) else { continue }
                 if predicate(metadata) {
                     DDLogDebug("Notification/removeDelivered \(notification.request.identifier) will be removed")
@@ -105,7 +104,6 @@ extension UNUserNotificationCenter {
             }
 
             if !identifiersToRemove.isEmpty {
-                DDLogInfo("Notification/removeDelivered/\(identifiersToRemove.count)")
                 self.removeDeliveredNotifications(withIdentifiers: identifiersToRemove)
             }
         }
