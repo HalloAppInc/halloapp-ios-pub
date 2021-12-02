@@ -210,7 +210,15 @@ open class KeyStore {
     }
     
     public func messageKeyBundle(for userId: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> MessageKeyBundle? {
-        let bundles = messageKeyBundles(predicate: NSPredicate(format: "userId == %@", userId), in: managedObjectContext)
+        var bundles: [MessageKeyBundle] = []
+        let predicate = NSPredicate(format: "userId == %@", userId)
+        if let managedObjectContext = managedObjectContext {
+            bundles = messageKeyBundles(predicate: predicate, in: managedObjectContext)
+        } else {
+            performOnBackgroundContextAndWait { context in
+                bundles = messageKeyBundles(predicate: predicate, in: context)
+            }
+        }
         if bundles.count > 1 {
             DDLogError("KeyStore/messageKeyBundle/error multiple-bundles-for-user [\(bundles.count)]")
         }
