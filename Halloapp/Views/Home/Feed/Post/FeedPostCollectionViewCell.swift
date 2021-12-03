@@ -126,11 +126,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         footerView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(footerView)
 
-        // Lower constraint priority to avoid unsatisfiable constraints situation when UITableViewCell's height is 44 during early table view layout passes.
-        let footerViewBottomConstraint = footerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -LayoutConstants.backgroundPanelViewOutsetV - LayoutConstants.interCardSpacing / 2)
-        footerViewBottomConstraint.priority = .defaultHigh
-        
-        contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 5)
+        contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor)
         contentTopConstraint?.isActive = true
 
         contentView.addConstraints([
@@ -147,7 +143,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
             footerView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
             footerView.topAnchor.constraint(equalTo: itemContentView.bottomAnchor),
             footerView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
-            footerViewBottomConstraint
+            footerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -LayoutConstants.backgroundPanelViewOutsetV - LayoutConstants.interCardSpacing / 2)
         ])
 
         // Separator in the footer view needs to be extended past view bounds to be the same width as background "card".
@@ -260,14 +256,14 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
             guard let self = self else { return }
             self.delegate?.feedPostCollectionViewCell(self, didChangeMediaIndex: index)
         }
-        
-        if post.media?.count ?? 0 > 0 {
-            contentTopConstraint?.constant = 5
-        } else {
-            contentTopConstraint?.constant = 0
-        }
-        
+
+        contentTopConstraint?.constant = Self.contentTopSpacing(forPost: post)
+
         footerView.configure(with: post, contentWidth: contentWidth)
+    }
+
+    static func contentTopSpacing(forPost post: FeedPost) -> CGFloat {
+        return post.media?.isEmpty ?? true ? 0 : 5
     }
 
     // MARK: Height computation
@@ -276,7 +272,9 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         let headerHeight = Self.headerHeight(forPost: post, contentWidth: contentWidth, showGroupName: showGroupName)
         let contentHeight = Self.contentHeight(forPost: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
         let footerHeight = Self.footerHeight(forPost: post, contentWidth: contentWidth)
-        return headerHeight + contentHeight + footerHeight + 2 * LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing
+        let contentSpacing = Self.contentTopSpacing(forPost: post)
+        let outerMarginHeight = 2 * LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing
+        return headerHeight + contentSpacing + contentHeight + footerHeight + outerMarginHeight
     }
 
     private static let sizingHeader = FeedItemHeaderView()
