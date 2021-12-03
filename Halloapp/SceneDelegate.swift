@@ -209,6 +209,10 @@ extension SceneDelegate: UIWindowSceneDelegate {
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
         MainAppContext.shared.contactStore.reloadContactsIfNecessary()
+
+        // Check pasteboard for group invite link on first launch in the ievent user
+        // installed app via group invite link.
+        checkPasteboardForGroupInviteLinkIfNecessary()
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
@@ -277,6 +281,21 @@ extension SceneDelegate: UIWindowSceneDelegate {
         if let intent = userActivity.interaction?.intent {
             MainAppContext.shared.didTapIntent.send(intent)
         }
+    }
+
+    private func checkPasteboardForGroupInviteLinkIfNecessary() {
+        let isNotFirstLaunch = AppContext.shared.userDefaults.bool(forKey: "notFirstLaunchKey")
+        if !isNotFirstLaunch && UIPasteboard.general.hasURLs {
+            DDLogInfo("application/scene/parseURLInPasteBoard")
+            guard let url = UIPasteboard.general.urls?.first else { return }
+            guard let inviteToken = ChatData.parseInviteURL(url: url) else { return }
+            DDLogInfo("application/scene/parseURLInPasteBoard/url \(url)")
+            processGroupInviteToken(inviteToken)
+        }
+        if let groupInviteToken = MainAppContext.shared.userData.groupInviteToken {
+            processGroupInviteToken(groupInviteToken)
+        }
+        AppContext.shared.userDefaults.set(true, forKey: "notFirstLaunchKey")
     }
 }
 
