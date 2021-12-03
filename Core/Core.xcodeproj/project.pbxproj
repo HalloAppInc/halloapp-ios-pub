@@ -54,7 +54,6 @@
 		68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */; };
 		68A64E8624D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */; };
 		68B5851D26C1D8800055FB66 /* CryptoData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B5851C26C1D8800055FB66 /* CryptoData.swift */; };
-		68BB0047268A776600425EEB /* CocoaAsyncSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 68BB0046268A776600425EEB /* CocoaAsyncSocket */; };
 		68BB004C268A7A1800425EEB /* CocoaLumberjackSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 68BB004B268A7A1800425EEB /* CocoaLumberjackSwift */; };
 		68BB004E268A7A1800425EEB /* CocoaLumberjack in Frameworks */ = {isa = PBXBuildFile; productRef = 68BB004D268A7A1800425EEB /* CocoaLumberjack */; };
 		68CC420E25B8C254001513C5 /* DiscreteEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CC420D25B8C254001513C5 /* DiscreteEvent.swift */; };
@@ -271,7 +270,6 @@
 				76E5152F24A1761E003F1273 /* Alamofire in Frameworks */,
 				768124222486CF8E008C5216 /* PhoneNumberKit in Frameworks */,
 				7681242B2486D4E6008C5216 /* CryptoSwift in Frameworks */,
-				68BB0047268A776600425EEB /* CocoaAsyncSocket in Frameworks */,
 				ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */,
 				7681240D24861634008C5216 /* SwiftProtobuf in Frameworks */,
 				68BB004E268A7A1800425EEB /* CocoaLumberjack in Frameworks */,
@@ -667,7 +665,6 @@
 				7681242A2486D4E6008C5216 /* CryptoSwift */,
 				76E5152E24A1761E003F1273 /* Alamofire */,
 				686A1033259152F100F7B53F /* SwiftNoise */,
-				68BB0046268A776600425EEB /* CocoaAsyncSocket */,
 				68BB004B268A7A1800425EEB /* CocoaLumberjackSwift */,
 				68BB004D268A7A1800425EEB /* CocoaLumberjack */,
 				6841289726A80CB20000DCE4 /* FirebaseCrashlytics */,
@@ -706,7 +703,6 @@
 				768124292486D4E6008C5216 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
 				76E5152D24A1761E003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */,
-				68BB0045268A776600425EEB /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */,
 				68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */,
 				6841289626A80CB20000DCE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
@@ -1198,14 +1194,6 @@
 				revision = 4fd493ae25cb74e65a2ac2d7635a73a4f2af67a4;
 			};
 		};
-		68BB0045268A776600425EEB /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/robbiehanson/CocoaAsyncSocket";
-			requirement = {
-				kind = exactVersion;
-				version = 7.6.5;
-			};
-		};
 		68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/CocoaLumberjack/CocoaLumberjack";
@@ -1258,11 +1246,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */;
 			productName = SwiftNoise;
-		};
-		68BB0046268A776600425EEB /* CocoaAsyncSocket */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 68BB0045268A776600425EEB /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */;
-			productName = CocoaAsyncSocket;
 		};
 		68BB004B268A7A1800425EEB /* CocoaLumberjackSwift */ = {
 			isa = XCSwiftPackageProductDependency;

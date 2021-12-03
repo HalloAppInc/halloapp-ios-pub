@@ -22,7 +22,7 @@ public protocol RegistrationManager: AnyObject {
 
 public final class DefaultRegistrationManager: RegistrationManager {
 
-    public init(registrationService: RegistrationService = DefaultRegistrationService()) {
+    public init(registrationService: RegistrationService) {
         self.registrationService = registrationService
     }
 

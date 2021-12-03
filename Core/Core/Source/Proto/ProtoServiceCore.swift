@@ -177,7 +177,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         connectionState = .disconnecting
         switch stream {
         case .noise(let noise):
-            noise.disconnect(afterSending: true)
+            noise.disconnect()
         case .none:
             break
         }

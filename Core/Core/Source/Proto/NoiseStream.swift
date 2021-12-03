@@ -6,8 +6,8 @@
 //  Copyright © 2020 Hallo App, Inc. All rights reserved.
 //
 
-import CocoaAsyncSocket
 import CocoaLumberjackSwift
+import Network
 import Sodium
 import SwiftNoise
 
@@ -29,6 +29,7 @@ public protocol NoiseDelegate: AnyObject {
 }
 
 public enum NoiseStreamError: Error {
+    case handshakeFailure
     case packetDecryptionFailure
 }
 
@@ -43,36 +44,97 @@ public final class NoiseStream: NSObject {
     {
         self.noiseKeys = noiseKeys
         self.serverStaticKey = serverStaticKey
-        self.socket = GCDAsyncSocket()
         self.delegate = delegate
 
         super.init()
-
-        socket.delegate = self
-        socket.delegateQueue = socketQueue
     }
 
     public func connect(host: String, port: UInt16) {
-        guard isReadyToConnect else {
-            DDLogError("noise/connect/error not-ready")
-            return
-        }
-        do {
-            DDLogInfo("noise/connect [\(host):\(port)] timeout: \(tcpTimeout)")
-            try socket.connect(toHost: host, onPort: port, withTimeout: tcpTimeout)
-            state = .connecting
-        } catch {
-            DDLogError("noise/connect/error [\(error)]")
-        }
+        endpoint = NWEndpoint.hostPort(
+            host: NWEndpoint.Host(host),
+            port: NWEndpoint.Port(integerLiteral: port))
+        connectToEndpoint()
     }
 
-    public func disconnect(afterSending: Bool = false) {
-        DDLogInfo("noise/disconnect [afterSending=\(afterSending)]")
+    public func connectToEndpoint() {
+        guard let endpoint = endpoint else {
+            DDLogError("noise/connectToEndpoint/error [no-endpoint-defined]")
+            return
+        }
+        guard isReadyToConnect else {
+            DDLogError("noise/connectToEndpoint/error [not-ready]")
+            return
+        }
+
+        let tcp = NWProtocolTCP.Options()
+        tcp.noDelay = true // Disable Nagle's algorithm
+        tcp.connectionTimeout = Int(tcpTimeout)
+        tcp.enableKeepalive = true
+        tcp.keepaliveIdle = 2
+        tcp.keepaliveCount = 2
+        tcp.keepaliveInterval = 2
+
+        let params = NWParameters(tls: nil, tcp: tcp)
+        let connectionID = UUID().uuidString
+
+        let connection = NWConnection(to: endpoint, using: params)
+        connection.stateUpdateHandler = { [weak self] state in
+            guard let self = self else { return }
+            guard connectionID == self.connectionID else {
+                DDLogInfo("noise/connection/state/ignoring (old connection) [\(state)]")
+                return
+            }
+            DDLogInfo("noise/connection/state [\(state)]")
+            switch state {
+            case .ready:
+                self.socketBuffer = nil
+                self.startHandshake()
+            case .waiting(let error):
+                DDLogInfo("noise/connection/waiting [\(error.debugDescription)]")
+            case .failed(let error):
+                DDLogInfo("noise/connection/failed [\(error.debugDescription)]")
+                self.state = .disconnected
+                self.connection = nil
+            case .cancelled:
+                self.state = .disconnected
+                self.connection = nil
+            default:
+                // Ignore other states
+                break
+            }
+        }
+
+        connection.betterPathUpdateHandler = { [weak self] isBetterPathAvailable in
+            guard let self = self, isBetterPathAvailable else { return }
+            guard connectionID == self.connectionID else {
+                DDLogInfo("noise/connection/better-path-available/ignoring (old connection)")
+                return
+            }
+            switch self.state {
+            case .disconnected, .connected:
+                // TODO: Don't drop old connection until we've established new connection.
+                DDLogInfo("noise/connection/better-path-available/reconnect")
+                self.reconnect()
+            case .disconnecting, .connecting, .authorizing, .handshake:
+                DDLogInfo("noise/connection/better-path-available/ignoring [\(self.state)]")
+            }
+        }
+
+        self.connection?.cancel()
+        self.connection = connection
+        self.connectionID = connectionID
+        self.state = .connecting
+
+        connection.start(queue: socketQueue)
+    }
+
+    public func disconnect() {
+        DDLogInfo("noise/disconnect")
         state = .disconnecting
-        if afterSending {
-            socket.disconnectAfterWriting()
+        if let connection = connection {
+            connection.cancel()
         } else {
-            socket.disconnect()
+            state = .disconnected
         }
     }
 
@@ -105,19 +167,19 @@ public final class NoiseStream: NSObject {
     private func disconnectWithError(_ error: NoiseStreamError) {
         AppContext.shared.errorLogger?.logError(error)
 
-        // Shut down socket immediately without transitioning to `disconnecting` state.
+        // Cancel connection immediately without transitioning to `disconnecting` state.
         // This will prompt service to treat it as any other socket error and reconnect.
-        socket.disconnect()
+
+        if let connection = connection {
+            connection.forceCancel()
+        } else {
+            state = .disconnected
+        }
     }
 
     private func reconnect() {
-        guard let host = socket.connectedHost else {
-            DDLogError("noise/reconnect/error not connected")
-            return
-        }
-        let port = socket.connectedPort
+        shouldReconnectImmediately = true
         disconnect()
-        connect(host: host, port: port)
     }
 
     private func sendNoiseMessage(_ content: Data, type: Server_NoiseMessage.MessageType, timeout: TimeInterval? = 8, header: Data? = nil) {
@@ -145,12 +207,12 @@ public final class NoiseStream: NSObject {
     }
 
     private func writeToSocket(_ data: Data, header: Data? = nil) {
+        let length = data.count
+        guard length < 2<<24 else {
+            DDLogError("noise/writeToSocket/error data exceeds max packet size")
+            return
+        }
         let finalData: Data = {
-            let length = data.count
-            guard length < 2<<24 else {
-                DDLogError("noise/writeToSocket/error data exceeds max packet size")
-                return Data()
-            }
             let lengthHeader = Data(withUnsafeBytes(of: Int32(length).bigEndian, Array.init))
             guard let header = header else {
                 return lengthHeader + data
@@ -163,7 +225,25 @@ public final class NoiseStream: NSObject {
             DDLogWarn("noise/writeToSocket/warning sending \(data.count) bytes. consider coalescing packets as Nagle's is disabled")
         }
 
-        socket.write(finalData, withTimeout: -1, tag: SocketTag.writeStream.rawValue)
+        connection?.send(content: finalData, completion: .contentProcessed { error in
+
+            // NB: The server encodes the entire packet, but we'd like to only encode a prefix of the data.
+            //     In order for our result to be a prefix of the server encoding, we should encode a multiple of 6 bits (Base64 stores 6 digits per digit).
+            let base64String = data.prefix(24).base64EncodedString() + (length > 24 ? "..." : "")
+            if let error = error {
+                if let header = header {
+                    DDLogError("noise/writeToSocket/error [\(error.debugDescription)] [header: \(header.base64EncodedString())] [packet-size: \(length)] [\(base64String)]")
+                } else {
+                    DDLogError("noise/writeToSocket/error [\(error.debugDescription)] [packet-size: \(length)] [\(base64String)]")
+                }
+            } else {
+                if let header = header {
+                    DDLogInfo("noise/writeToSocket/sent [header: \(header.base64EncodedString())] [packet-size: \(length)] [\(base64String)]")
+                } else {
+                    DDLogInfo("noise/writeToSocket/sent [packet-size: \(length)] [\(base64String)]")
+                }
+            }
+        })
     }
 
     private func startHandshake() {
@@ -226,7 +306,7 @@ public final class NoiseStream: NSObject {
         }
 
         // Start reading
-        socket.readData(withTimeout: -1, tag: SocketTag.readStream.rawValue)
+        listen()
     }
 
     private func continueHandshake(_ noiseMessage: Server_NoiseMessage) {
@@ -382,10 +462,23 @@ public final class NoiseStream: NSObject {
         switch state {
         case .authorizing, .handshake:
             DDLogInfo("noise/handshake/failed")
-            socket.disconnect()
-            state = .disconnected
+            disconnectWithError(.handshakeFailure)
         case .connecting, .connected, .disconnected, .disconnecting:
             DDLogInfo("noise/handshake/could-not-fail [state=\(state)]")
+        }
+    }
+
+    private func listen() {
+        connection?.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] (data, _, _, error) in
+            if let error = error {
+                DDLogError("noise/listen/receive/error [\(error.debugDescription)]")
+            }
+            if let data = data {
+                self?.receive(data)
+                self?.listen()
+            } else {
+                DDLogError("noise/listen/receive/error [no-data]")
+            }
         }
     }
 
@@ -435,11 +528,12 @@ public final class NoiseStream: NSObject {
                     if delegate.receivedConnectionResponse(decryptedData) {
                         state = .connected(send, recv)
                     } else {
-                        state = .disconnected
+                        DDLogInfo("noise/receive/authorizing/connection-not-successful")
+                        disconnect()
                     }
                 } else {
-                    // no delegate!
-                    state = .disconnected
+                    DDLogError("noise/receive/error [no-delegate]")
+                    disconnect()
                 }
             case .connected(_, let recv):
                 guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: packetData) else {
@@ -456,9 +550,13 @@ public final class NoiseStream: NSObject {
         socketBuffer = offset < buffer.count ? buffer.subdata(in: offset..<buffer.count) : nil
     }
 
-    private let socket: GCDAsyncSocket
     private let socketQueue = DispatchQueue(label: "hallo.noise", qos: .userInitiated)
     private var socketBuffer: Data?
+
+    private var endpoint: NWEndpoint?
+    private var connection: NWConnection?
+    private var shouldReconnectImmediately = false
+    private var connectionID = ""
 
     private let noiseKeys: NoiseKeys
     private var clientEphemeralKeys: NoiseKeys?
@@ -477,6 +575,13 @@ public final class NoiseStream: NSObject {
                 delegate?.updateConnectionState(.connecting)
             case .disconnected:
                 delegate?.updateConnectionState(.notConnected)
+                if shouldReconnectImmediately {
+                    shouldReconnectImmediately = false
+                    // New connection was not receiving data without this delay, not sure why it's needed.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        self.connectToEndpoint()
+                    }
+                }
             case .disconnecting:
                 delegate?.updateConnectionState(.disconnecting)
             case .authorizing, .handshake:
@@ -484,85 +589,6 @@ public final class NoiseStream: NSObject {
                 break
             }
         }
-    }
-}
-
-// MARK: GCDAsyncSocketDelegate
-
-extension NoiseStream: GCDAsyncSocketDelegate {
-    public func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) {
-        DDLogInfo("noise/socket-did-connect")
-
-        self.socket.perform {
-            // adapted from https://groups.google.com/g/cocoaasyncsocket/c/DtkL7zd68wE/m/MAxYy994gdgJ
-            var flag: Int = 1
-            let result: Int32 = setsockopt(self.socket.socketFD(), IPPROTO_TCP, TCP_NODELAY, &flag, 32)
-            if result != 0 {
-                DDLogError("noise/socket couldn't set TCP_NODELAY flag (couldn't disable nagle)")
-            } else {
-                DDLogInfo("noise/socket TCP_NODELAY flag is set (nagle is disabled)")
-            }
-        }
-
-        socketBuffer = nil
-        startHandshake()
-    }
-
-    public func socket(_ sock: GCDAsyncSocket, didReceive trust: SecTrust, completionHandler: @escaping (Bool) -> Void) {
-        DDLogInfo("noise/socket-did-receive-trust")
-    }
-
-    public func socket(_ sock: GCDAsyncSocket, didAcceptNewSocket newSocket: GCDAsyncSocket) {
-        DDLogInfo("noise/socket-did-accept")
-    }
-
-    public func socket(_ sock: GCDAsyncSocket, didReadPartialDataOfLength partialLength: UInt, tag: Int) {
-        DDLogInfo("noise/socket-did-read-partial")
-    }
-
-    public func socket(_ sock: GCDAsyncSocket, didWritePartialDataOfLength partialLength: UInt, tag: Int) {
-        DDLogInfo("noise/socket-did-write-partial")
-    }
-
-    public func socket(_ sock: GCDAsyncSocket, shouldTimeoutReadWithTag tag: Int, elapsed: TimeInterval, bytesDone length: UInt) -> TimeInterval {
-        DDLogInfo("noise/socket-read-timeout")
-        return 0
-    }
-
-    public func socket(_ sock: GCDAsyncSocket, shouldTimeoutWriteWithTag tag: Int, elapsed: TimeInterval, bytesDone length: UInt) -> TimeInterval {
-        DDLogInfo("noise/socket-write-timeout")
-        return 0
-    }
-
-    public func socketDidSecure(_ sock: GCDAsyncSocket) {
-        DDLogInfo("noise/socket-did-secure")
-    }
-
-    public func socketDidDisconnect(_ sock: GCDAsyncSocket, withError error: Error?) {
-        if let error = error {
-            DDLogError("noise/socket-did-disconnect/error \(error)")
-        } else {
-            DDLogInfo("noise/socket-did-disconnect")
-        }
-        state = .disconnected
-    }
-
-    public func socket(_ sock: GCDAsyncSocket, didConnectTo url: URL) {
-        DDLogInfo("noise/socket-did-connect/\(url)")
-    }
-
-    public func socketDidCloseReadStream(_ sock: GCDAsyncSocket) {
-        DDLogInfo("noise/socket-did-close-read-stream")
-    }
-
-    public func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
-        receive(data)
-
-        // Continue reading
-        sock.readData(withTimeout: -1, tag: SocketTag.readStream.rawValue)
-    }
-
-    public func socket(_ sock: GCDAsyncSocket, didWriteDataWithTag tag: Int) {
     }
 }
 
@@ -609,15 +635,4 @@ private extension NoiseKeys {
             secretKey: Data(x25519Keys.secretKey)
         )
     }
-}
-
-// MARK: - SocketTag
-
-private enum SocketTag: Int {
-    case readStart = 100
-    case readStream = 101
-    case writeStart = 200
-    case writeStop = 201
-    case writeStream = 202
-    case writeReceipt = 203
 }

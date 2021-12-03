@@ -34,7 +34,11 @@ class SceneDelegate: UIResponder {
             return InitializingViewController()
 
         case .registration:
-            return VerificationViewController(registrationManager: makeRegistrationManager())
+            guard let registrationManager = makeRegistrationManager() else {
+                DDLogError("SceneDelegate/viewController/registration/error [no-registration-manager]")
+                return nil
+            }
+            return VerificationViewController(registrationManager: registrationManager)
 
         case .mainInterface:
             return HomeViewController()
@@ -75,10 +79,10 @@ class SceneDelegate: UIResponder {
         }
     }
 
-    private func makeRegistrationManager() -> RegistrationManager {
+    private func makeRegistrationManager() -> RegistrationManager? {
         guard let noiseKeys = MainAppContext.shared.userData.loggedOutNoiseKeys else {
             DDLogError("SceneDelegate/makeRegistrationManager/error [no-noise-keys]")
-            return DefaultRegistrationManager()
+            return nil
         }
         let noiseService = NoiseRegistrationService(noiseKeys: noiseKeys)
         return DefaultRegistrationManager(registrationService: noiseService)
