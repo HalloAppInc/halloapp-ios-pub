@@ -54,7 +54,6 @@
 		68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */; };
 		68A64E8624D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */; };
 		68B5851D26C1D8800055FB66 /* CryptoData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B5851C26C1D8800055FB66 /* CryptoData.swift */; };
-		68BB0047268A776600425EEB /* CocoaAsyncSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 68BB0046268A776600425EEB /* CocoaAsyncSocket */; };
 		68BB004C268A7A1800425EEB /* CocoaLumberjackSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 68BB004B268A7A1800425EEB /* CocoaLumberjackSwift */; };
 		68BB004E268A7A1800425EEB /* CocoaLumberjack in Frameworks */ = {isa = PBXBuildFile; productRef = 68BB004D268A7A1800425EEB /* CocoaLumberjack */; };
 		68CC420E25B8C254001513C5 /* DiscreteEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CC420D25B8C254001513C5 /* DiscreteEvent.swift */; };
@@ -68,6 +67,8 @@
 		68F935BD252BED9A00FA6E75 /* EventMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935BB252BED9900FA6E75 /* EventMonitor.swift */; };
 		68F9361C252E759200FA6E75 /* CommonEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F9361B252E759200FA6E75 /* CommonEvents.swift */; };
 		6A00887F264B3D6200A2353D /* PersistentHistoryTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A00887E264B3D6200A2353D /* PersistentHistoryTracker.swift */; };
+		6A05AC29275996D900AD8853 /* SharedDataMigration.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6A05AC28275996D900AD8853 /* SharedDataMigration.xcmappingmodel */; };
+		6A05AC2B2759977C00AD8853 /* SharedChatMessageMigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A05AC2A2759977C00AD8853 /* SharedChatMessageMigrationPolicy.swift */; };
 		6A087B952745722F00BC337B /* PushNotifications.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 6A087B932745722F00BC337B /* PushNotifications.xcdatamodeld */; };
 		6A1B25272630BD0600D8BC60 /* CrashlyticsLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1B25262630BD0600D8BC60 /* CrashlyticsLogger.swift */; };
 		6A3630B7260AA3AE0032DB5B /* SharedFeedComment+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A3630B6260AA3AE0032DB5B /* SharedFeedComment+CoreDataProperties.swift */; };
@@ -196,6 +197,9 @@
 		68F935BB252BED9900FA6E75 /* EventMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventMonitor.swift; sourceTree = "<group>"; };
 		68F9361B252E759200FA6E75 /* CommonEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonEvents.swift; sourceTree = "<group>"; };
 		6A00887E264B3D6200A2353D /* PersistentHistoryTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentHistoryTracker.swift; sourceTree = "<group>"; };
+		6A05AC272759964900AD8853 /* SharedDataModel2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SharedDataModel2.xcdatamodel; sourceTree = "<group>"; };
+		6A05AC28275996D900AD8853 /* SharedDataMigration.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = SharedDataMigration.xcmappingmodel; sourceTree = "<group>"; };
+		6A05AC2A2759977C00AD8853 /* SharedChatMessageMigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedChatMessageMigrationPolicy.swift; sourceTree = "<group>"; };
 		6A087B942745722F00BC337B /* PushNotifications.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PushNotifications.xcdatamodel; sourceTree = "<group>"; };
 		6A1B25262630BD0600D8BC60 /* CrashlyticsLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsLogger.swift; sourceTree = "<group>"; };
 		6A3630B6260AA3AE0032DB5B /* SharedFeedComment+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedComment+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -271,7 +275,6 @@
 				76E5152F24A1761E003F1273 /* Alamofire in Frameworks */,
 				768124222486CF8E008C5216 /* PhoneNumberKit in Frameworks */,
 				7681242B2486D4E6008C5216 /* CryptoSwift in Frameworks */,
-				68BB0047268A776600425EEB /* CocoaAsyncSocket in Frameworks */,
 				ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */,
 				7681240D24861634008C5216 /* SwiftProtobuf in Frameworks */,
 				68BB004E268A7A1800425EEB /* CocoaLumberjack in Frameworks */,
@@ -317,6 +320,7 @@
 				24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */,
 				24AA69D724DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift */,
 				249028A724C5E01B0019C4D5 /* SharedData.xcdatamodeld */,
+				6A05AC28275996D900AD8853 /* SharedDataMigration.xcmappingmodel */,
 				68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */,
 				68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */,
 				6AE2FEA226071AB300F7A5B7 /* SharedFeedPost+CoreDataClass.swift */,
@@ -325,6 +329,7 @@
 				6A3630B9260AA3C20032DB5B /* SharedFeedComment+CoreDataClass.swift */,
 				321A701627050582005603B8 /* SharedFeedLinkPreview+CoreDataClass.swift */,
 				321A7018270505A9005603B8 /* SharedFeedLinkPreview+CoreDataProperties.swift */,
+				6A05AC2A2759977C00AD8853 /* SharedChatMessageMigrationPolicy.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -667,7 +672,6 @@
 				7681242A2486D4E6008C5216 /* CryptoSwift */,
 				76E5152E24A1761E003F1273 /* Alamofire */,
 				686A1033259152F100F7B53F /* SwiftNoise */,
-				68BB0046268A776600425EEB /* CocoaAsyncSocket */,
 				68BB004B268A7A1800425EEB /* CocoaLumberjackSwift */,
 				68BB004D268A7A1800425EEB /* CocoaLumberjack */,
 				6841289726A80CB20000DCE4 /* FirebaseCrashlytics */,
@@ -706,7 +710,6 @@
 				768124292486D4E6008C5216 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
 				76E5152D24A1761E003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */,
-				68BB0045268A776600425EEB /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */,
 				68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */,
 				6841289626A80CB20000DCE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
@@ -818,6 +821,7 @@
 				68D2915525096F9400AF5061 /* Mentions.swift in Sources */,
 				EAAE7B5224DD2C3000946B77 /* MessageKey+CoreDataProperties.swift in Sources */,
 				F8DFCD8F262F0F6E003F850F /* GroupList.swift in Sources */,
+				6A05AC29275996D900AD8853 /* SharedDataMigration.xcmappingmodel in Sources */,
 				EAAE7B4E24DD2C3000946B77 /* SignedPreKey+CoreDataProperties.swift in Sources */,
 				68F935BD252BED9A00FA6E75 /* EventMonitor.swift in Sources */,
 				EAAE7B4C24DD2C3000946B77 /* MessageKeyBundle+CoreDataProperties.swift in Sources */,
@@ -839,6 +843,7 @@
 				768123FB2486107E008C5216 /* ContactStore.swift in Sources */,
 				6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */,
 				68CC824126CDB21A00C6E87C /* GroupWhisperSession.swift in Sources */,
+				6A05AC2B2759977C00AD8853 /* SharedChatMessageMigrationPolicy.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
 				F86919E226397F0C00B01306 /* UIImageView.swift in Sources */,
 				68D4BBB6266150DE009D2266 /* PacketID.swift in Sources */,
@@ -1198,14 +1203,6 @@
 				revision = 4fd493ae25cb74e65a2ac2d7635a73a4f2af67a4;
 			};
 		};
-		68BB0045268A776600425EEB /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/robbiehanson/CocoaAsyncSocket";
-			requirement = {
-				kind = exactVersion;
-				version = 7.6.5;
-			};
-		};
 		68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/CocoaLumberjack/CocoaLumberjack";
@@ -1259,11 +1256,6 @@
 			package = 686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */;
 			productName = SwiftNoise;
 		};
-		68BB0046268A776600425EEB /* CocoaAsyncSocket */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 68BB0045268A776600425EEB /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */;
-			productName = CocoaAsyncSocket;
-		};
 		68BB004B268A7A1800425EEB /* CocoaLumberjackSwift */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */;
@@ -1310,9 +1302,10 @@
 		249028A724C5E01B0019C4D5 /* SharedData.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				6A05AC272759964900AD8853 /* SharedDataModel2.xcdatamodel */,
 				249028A824C5E01B0019C4D5 /* SharedDataModel.xcdatamodel */,
 			);
-			currentVersion = 249028A824C5E01B0019C4D5 /* SharedDataModel.xcdatamodel */;
+			currentVersion = 6A05AC272759964900AD8853 /* SharedDataModel2.xcdatamodel */;
 			path = SharedData.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

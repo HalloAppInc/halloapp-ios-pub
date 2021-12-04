@@ -995,6 +995,7 @@ final class ProtoService: ProtoServiceCore {
                 }
             }
         }
+        pendingCallMessages.removeAll()
     }
 
     // MARK: Avatar

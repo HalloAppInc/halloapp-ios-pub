@@ -27,7 +27,7 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
     var state: State?
     var registrationManager: RegistrationManager?
 
-    init(registrationManager: RegistrationManager = DefaultRegistrationManager()) {
+    init(registrationManager: RegistrationManager) {
         self.registrationManager = registrationManager
         super.init(nibName: nil, bundle: nil)
 

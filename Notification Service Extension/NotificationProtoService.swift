@@ -468,8 +468,47 @@ final class NotificationProtoService: ProtoServiceCore {
     // Process Chats - ack/rerequest/download media if necessary.
     private func processChat(chatMessage: SharedChatMessage, container: Clients_ChatContainer?, metadata: NotificationMetadata) {
         let messageId = metadata.messageId
-        // send pending acks for any pending chat messages
-        sendPendingAcksAndRerequests(dataStore: dataStore)
+
+        // Send rerequest and ack for the message as necessary.
+        switch chatMessage.status {
+        case .decryptionError:
+            // We must first rerequest messages and then ack them.
+            if let failedEphemeralKey = chatMessage.ephemeralKey, let serverMsgPb = chatMessage.serverMsgPb {
+                do {
+                    let serverMsg = try Server_Msg(serializedData: serverMsgPb)
+                    rerequestMessage(serverMsg, failedEphemeralKey: failedEphemeralKey) { [weak self] result in
+                        guard let self = self else { return }
+                        switch result {
+                        case .success(_):
+                            DDLogInfo("NotificationExtension/processChat/sendRerequest/success sent rerequest, messageId: \(messageId)")
+                            self.dataStore.updateMessageStatus(for: messageId, status: .rerequesting)
+                            self.sendAck(messageID: messageId)
+                        case .failure(let error):
+                            DDLogError("NotificationExtension/processChat/sendRerequest/failure sending rerequest, messageId: \(messageId), error: \(error)")
+                        }
+                    }
+                } catch {
+                    DDLogError("NotificationExtension/processChat/sendRerequest/Unable to initialize Server_Msg")
+                }
+            } else {
+                DDLogError("NotificationExtension/processChat/error: missing rerequest data, messageId: \(messageId)")
+                sendAck(messageID: messageId)
+            }
+        case .received:
+            sendAck(messageId: messageId) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success(_):
+                    DDLogInfo("NotificationExtension/processChat/sendAck/success sent ack, messageId: \(messageId)")
+                    self.dataStore.updateMessageStatus(for: messageId, status: .acked)
+                case .failure(let error):
+                    DDLogError("NotificationExtension/processChat/sendAck/failure sending ack, messageId: \(messageId), error: \(error)")
+                }
+            }
+        default:
+            DDLogError("NotificationExtension/processChat/invalid status: \(chatMessage.status)/messageId: \(messageId)")
+        }
+
         // If we failed to get decrypted chat content successfully - then just return!
         guard let chatContent = container?.chatContent else {
             DDLogError("DecryptionError/decryptChat/failed to get chat content, messageId: \(messageId)")
@@ -483,59 +522,6 @@ final class NotificationProtoService: ProtoServiceCore {
             DDLogInfo("NotificationExtension/decryptChat/downloadingMedia/messageId \(messageId), downloadTask: \(String(describing: downloadTask?.id))")
         } else {
             presentNotification(for: metadata.contentId, with: notificationContent)
-        }
-    }
-
-    // Send acks and rerequests for all pending chat messages.
-    private func sendPendingAcksAndRerequests(dataStore: DataStore) {
-        // We must first rerequest messages and then ack them.
-
-        // We rerequest messages with status = .decryptionError
-        dataStore.getChatMessagesToRerequest() { [self] sharedChatMessagesToRerequest in
-            sharedChatMessagesToRerequest.forEach{ sharedChatMessage in
-                let msgId = sharedChatMessage.id
-                if let failedEphemeralKey = sharedChatMessage.ephemeralKey, let serverMsgPb = sharedChatMessage.serverMsgPb {
-                    do {
-                        let serverMsg = try Server_Msg(serializedData: serverMsgPb)
-                        rerequestMessage(serverMsg, failedEphemeralKey: failedEphemeralKey) { result in
-                            switch result {
-                            case .success(_):
-                                DDLogInfo("sendRerequest/success sent rerequest, msgId: \(msgId)")
-                                dataStore.updateMessageStatus(for: msgId, status: .rerequesting)
-                            case .failure(let error):
-                                DDLogError("sendRerequest/failure sending rerequest, msgId: \(msgId), error: \(error)")
-                            }
-                        }
-                    } catch {
-                        DDLogError("sendRerequest/Unable to initialize Server_Msg")
-                    }
-                }
-            }
-        }
-
-        // We ack messages only that are successfully decrypted or successfully rerequested.
-        dataStore.getChatMessagesToAck() { [self] sharedChatMessagesToAck in
-            sharedChatMessagesToAck.forEach{ sharedChatMessage in
-                let msgId = sharedChatMessage.id
-                sendAck(messageId: msgId) { result in
-                    let finalStatus: SharedChatMessage.Status
-                    switch sharedChatMessage.status {
-                    case .received:
-                        finalStatus = .acked
-                    case .rerequesting:
-                        finalStatus = .rerequesting
-                    case .acked, .sendError, .sent, .none, .decryptionError:
-                        return
-                    }
-                    switch result {
-                    case .success(_):
-                        DDLogInfo("sendAck/success sent ack, msgId: \(msgId)")
-                        dataStore.updateMessageStatus(for: msgId, status: finalStatus)
-                    case .failure(let error):
-                        DDLogError("sendAck/failure sending ack, msgId: \(msgId), error: \(error)")
-                    }
-                }
-            }
         }
     }
 

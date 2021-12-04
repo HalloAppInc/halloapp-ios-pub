@@ -3262,8 +3262,9 @@ extension ChatData {
     }
     
     private func presentOneToOneBanner(for xmppChatMessage: ChatMessageProtocol) {
-        DDLogDebug("ChatData/presentOneToOneBanner")
+        DDLogDebug("ChatData/presentOneToOneBanner/checking")
         let userID = xmppChatMessage.fromUserId
+        let messageID = xmppChatMessage.id
         
         let name = contactStore.fullName(for: userID)
         
@@ -3290,8 +3291,9 @@ extension ChatData {
         case .unsupported(_):
             body = ""
         }
-        
-        Banner.show(title: title, body: body, userID: userID, using: MainAppContext.shared.avatarStore)
+        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: messageID) {
+            Banner.show(title: title, body: body, userID: userID, using: MainAppContext.shared.avatarStore)
+        }
     }
     
     private func presentLocalOneToOneNotifications(for xmppChatMessage: ChatMessageProtocol) {
@@ -4466,17 +4468,19 @@ extension ChatData {
     }
 
     private func presentGroupAddBanner(for xmppGroup: XMPPGroup) {
-        DDLogDebug("ChatData/presentGroupAddBanner/id \(xmppGroup.groupId)")
+        DDLogDebug("ChatData/presentGroupAddBanner/id \(xmppGroup.groupId)/checking")
         let groupID = xmppGroup.groupId
         guard let userID = xmppGroup.sender else { return }
+        guard let messageID = xmppGroup.messageId else { return }
         let groupName = xmppGroup.name
-
         let name = contactStore.fullName(for: userID)
 
         let title = "\(name) @ \(groupName)"
         let body = Localizations.groupsAddNotificationBody
 
-        Banner.show(title: title, body: body, groupID: groupID, using: MainAppContext.shared.avatarStore)
+        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: messageID) {
+            Banner.show(title: title, body: body, groupID: groupID, using: MainAppContext.shared.avatarStore)
+        }
     }
 
     private func presentLocalGroupAddNotifications(for xmppGroup: XMPPGroup) {

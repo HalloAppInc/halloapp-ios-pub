@@ -275,7 +275,7 @@ class DataStore: ShareExtensionDataStore {
             linkPreviews.insert(linkPreview)
             feedPost.linkPreviews = linkPreviews
         }
-
+        managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         save(managedObjectContext)
 
         // All this code is not great - we are using viewContext to perform all Coredata write operations here
@@ -396,6 +396,7 @@ class DataStore: ShareExtensionDataStore {
             linkPreviews.insert(linkPreview)
             chatMessage.linkPreviews = linkPreviews
         }
+        managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         save(managedObjectContext)
 
         // 2. Upload any media if necesary.
