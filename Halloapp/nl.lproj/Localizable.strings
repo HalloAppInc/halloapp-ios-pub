@@ -973,6 +973,9 @@
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Deblokkeren";
 
+/* Item in Profile > Calls screen. */
+"profile.help.calls" = "Oproepen";
+
 /* Item in Profile > Help screen. */
 "profile.help.faq" = "Veelgestelde Vragen";
 
