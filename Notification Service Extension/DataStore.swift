@@ -399,6 +399,7 @@ class DataStore: NotificationServiceExtensionDataStore {
                 break
             }
             DDLogInfo("saving message: \(messageId) - \(status)")
+            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             save(managedObjectContext)
             completion(chatMessage)
         }

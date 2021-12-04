@@ -16,6 +16,11 @@
         <attribute name="toUserId" attributeType="String"/>
         <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedFeedLinkPreview" inverseName="message" inverseEntity="SharedFeedLinkPreview"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="SharedMedia" inverseName="message" inverseEntity="SharedMedia"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <entity name="SharedFeedComment" representedClassName="SharedFeedComment" syncable="YES">
         <attribute name="id" optional="YES" attributeType="String"/>
