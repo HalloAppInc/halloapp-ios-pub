@@ -57,4 +57,12 @@ extension Localizations {
         NSLocalizedString("server.marketing.body", value: "Invite your friends to enjoy HalloApp!", comment: "body of the marketing alert sent to users")
     }
 
+    static var serverMarketingNewPostTitle: String {
+        NSLocalizedString("server.marketing.post.title", value: "Wondering what to share?", comment: "title of the marketing alert to encourage more posting")
+    }
+
+    static var serverMarketingNewPostBody: String {
+        NSLocalizedString("server.marketing.post.body", value: "What you’re doing right now might be interesting to your real friends.", comment: "body of the marketing alert to encourage more posting")
+    }
+
 }
