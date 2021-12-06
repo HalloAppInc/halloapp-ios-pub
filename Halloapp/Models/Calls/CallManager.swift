@@ -44,15 +44,18 @@ final class CallManager: NSObject, CXProviderDelegate {
     let callController = CXCallController()
     private let provider: CXProvider
     public var service: HalloService
+    private var startDate: Date? = nil
+    private var endDate: Date? = nil
     public var activeCall: Call? {
         didSet {
             if activeCall == nil {
-                callDurationSec = 0
                 callTimer?.invalidate()
                 callTimer = nil
                 cancelTimer?.cancel()
                 cancelTimer = nil
                 endReason = nil
+                startDate = nil
+                endDate = nil
             }
             isAnyCallActive.send(activeCall)
         }
@@ -61,7 +64,17 @@ final class CallManager: NSObject, CXProviderDelegate {
     public var rtcAudioSession: RTCAudioSession = RTCAudioSession.sharedInstance()
     private var cancelTimer: DispatchSourceTimer?
     private var callTimer: Timer?
-    private var callDurationSec: Int = 0
+    public var callDurationMs: Double {
+        get {
+            guard let startDate = startDate else {
+                return 0
+            }
+            guard let endDate = endDate else {
+                return Date().timeIntervalSince(startDate) * 1000
+            }
+            return endDate.timeIntervalSince(startDate) * 1000
+        }
+    }
     private var endReason: EndCallReason? = nil
     private var callRingtonePlayer: AVAudioPlayer?
 
@@ -204,6 +217,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         cancelTimer?.cancel()
         cancelTimer = nil
         activeCall?.logPeerConnectionStats()
+        endDate = Date()
         activeCall?.end(reason: .systemError)
         activeCall = nil
         callViewDelegate?.callEnded()
@@ -216,6 +230,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         cancelTimer?.cancel()
         cancelTimer = nil
         activeCall?.logPeerConnectionStats()
+        endDate = Date()
         activeCall?.end(reason: reason)
         activeCall = nil
         callViewDelegate?.callEnded()
@@ -237,11 +252,12 @@ final class CallManager: NSObject, CXProviderDelegate {
     private func startCallDurationTimer() {
         DDLogInfo("CallManager/startCallDurationTimer")
         DispatchQueue.main.async {
-            self.callTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
+            self.startDate = Date()
+            self.callTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] timer in
                 guard let self = self else { return }
-                self.callDurationSec += 1
-                self.callViewDelegate?.callDurationChanged(seconds: self.callDurationSec)
-                if self.callDurationSec % 10 == 0 {
+                let callDurationSec = Int(self.callDurationMs / 1000)
+                self.callViewDelegate?.callDurationChanged(seconds: callDurationSec)
+                if callDurationSec % 10 == 0 {
                     self.activeCall?.logPeerConnectionStats()
                 }
             }
@@ -539,6 +555,7 @@ extension CallManager: HalloCallDelegate {
         if activeCallID == callID {
             reportCallEnded(id: callID)
             activeCall?.logPeerConnectionStats()
+            endDate = Date()
             activeCall?.didReceiveEndCall()
             activeCall = nil
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")

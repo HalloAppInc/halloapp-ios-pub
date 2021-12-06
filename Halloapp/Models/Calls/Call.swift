@@ -12,6 +12,7 @@ import CocoaLumberjackSwift
 import WebRTC
 import CallKit
 import CryptoKit
+import Reachability
 
 public typealias CallID = String
 
@@ -36,6 +37,16 @@ public enum CallError: Error {
     case alreadyInCall
     case noActiveCall
 }
+
+public let importantStatKeys: Set = ["packetsReceived", "bytesReceived",
+                                  "packetsLost", "packetsDiscarded",
+                                  "packetsSent", "bytesSent",
+                                  "headerBytesSent", "headerBytesReceived",
+                                  "retransmittedBytesSent", "retransmittedPacketsSent",
+                                  "insertedSamplesForDeceleration", "jitter",
+                                  "jitterBufferDelay", "jitterBufferEmittedCount"]
+
+public let unwantedStatTypes: Set = ["codec", "certificate", "media-source", "candidate-pair", "local-candidate", "remote-candidate"]
 
 public enum EndCallReason: Int, Codable {
     case ended = 0
@@ -71,6 +82,30 @@ extension EndCallReason {
         case .connectionError:
             // TODO: update protobuf for connection error.
             return .systemError
+        }
+    }
+
+    var serverEndCallReasonStr: String {
+        switch self {
+        case .ended:
+            return "callEnd"
+        case .canceled:
+            return "cancel"
+        case .reject:
+            return "reject"
+        case .busy:
+            return "busy"
+        case .timeout:
+            return "timeout"
+        case .systemError:
+            return "systemError"
+        case .encryptionError:
+            return "encryptionFailed"
+        case .decryptionError:
+            return "decryptionFailed"
+        case .connectionError:
+            // TODO: update protobuf for connection error.
+            return "systemError"
         }
     }
 }
@@ -115,11 +150,18 @@ class Call {
     let callID: CallID
     let isOutgoing: Bool
     let peerUserID: UserID
+    var isAnswered: Bool = false
+    var isConnected: Bool = false
+    var isCallEndedLocally: Bool = false
     private var webRTCClient: WebRTCClient
     let service: HalloService = MainAppContext.shared.callManager.service
     private(set) var state: CallState = .inactive {
         didSet {
             stateDelegate?.stateChanged(oldState: oldValue, newState: state)
+            // state is set to active only when client answers or received an answer for the call.
+            if state == .active {
+                isAnswered = true
+            }
         }
     }
     private var callQueue = DispatchQueue(label: "com.halloapp.call", qos: .userInitiated)
@@ -223,8 +265,48 @@ class Call {
     func end(reason: EndCallReason) {
         DDLogInfo("Call/\(callID)/end/reason: \(reason)/begin")
         callQueue.async { [self] in
+            isCallEndedLocally = true
             service.endCall(id: callID, to: peerUserID, reason: reason)
-            // TODO: send call report to the server.
+
+            // Send call report to the server.
+            let direction = isOutgoing ? "outgoing" : "incoming"
+            let networkType = MainAppContext.shared.service.reachabilityConnectionType.lowercased()
+            DDLogInfo("Call/\(callID)/end/networkType: \(networkType)/checking")
+            webRTCClient.fetchPeerConnectionStats() { report in
+                let filteredReport = report.statistics.filter { (key, stats) in
+                    return !unwantedStatTypes.contains(stats.type)
+                }
+                let modifiedReport = filteredReport.mapValues { stats -> [String: Any] in
+                    return ["id": stats.id,
+                             "timestamp_us": stats.timestamp_us,
+                             "type": stats.type,
+                             "values": stats.values
+                            ]
+                }
+                do {
+                    let durationMs = MainAppContext.shared.callManager.callDurationMs
+                    let reasonStr = reason.serverEndCallReasonStr
+                    let webrtcStatsData = try JSONSerialization.data(withJSONObject: modifiedReport, options: [.prettyPrinted, .withoutEscapingSlashes])
+                    if let webrtcStatsString = String(data: webrtcStatsData, encoding: .utf8) {
+                        AppContext.shared.observeAndSave(event: .callReport(id: callID,
+                                                                           peerUserID: peerUserID,
+                                                                           type: "audio",
+                                                                           direction: direction,
+                                                                           networkType: networkType,
+                                                                           answered: isAnswered,
+                                                                           connected: isConnected,
+                                                                           duration_ms: Int(durationMs),
+                                                                           endCallReason: reasonStr,
+                                                                           localEndCall: isCallEndedLocally,
+                                                                           webrtcStats: webrtcStatsString))
+                    } else {
+                        DDLogError("Call/\(callID)/end/failed getting callReport data")
+                    }
+                } catch {
+                    DDLogError("Call/\(callID)/end/failed getting callReport data")
+                }
+            }
+
             webRTCClient.end()
             state = .inactive
             DDLogInfo("Call/\(callID)/end/success")
@@ -345,9 +427,16 @@ class Call {
 
     func logPeerConnectionStats() {
         callQueue.async { [self] in
-            webRTCClient.fetchPeerConnectionStats() { reports in
-                reports.forEach { report in
-                    DDLogInfo("Call/\(callID)/logPeerConnectionStats/report: \(report.debugDescription)")
+            webRTCClient.fetchPeerConnectionStats() { report in
+                report.statistics.forEach { (key, stats) in
+                    if stats.type == "inbound-rtp" || stats.type == "outbound-rtp" {
+                        var statString = stats.type + "/"
+                        let values = stats.values.filter { (statKey, statValue) in
+                            return importantStatKeys.contains(statKey)
+                        }
+                        statString += values.description
+                        DDLogInfo("Call/\(callID)/logPeerConnectionStats/report: \(statString)")
+                    }
                 }
             }
         }
@@ -408,6 +497,8 @@ extension Call: WebRTCClientDelegate {
             switch state {
             case .disconnected, .closed, .failed:
                 self.state = .disconnected
+            case .connected:
+                isConnected = true
             default:
                 break
             }

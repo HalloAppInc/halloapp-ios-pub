@@ -48,6 +48,7 @@ public protocol CoreService {
     var isConnected: Bool { get }
     var isDisconnected: Bool { get }
     var reachabilityState: ReachablilityState { get set }
+    var reachabilityConnectionType: String { get set }
     var isReachable: Bool { get }
     func startConnectingIfNecessary()
     func disconnectImmediately()

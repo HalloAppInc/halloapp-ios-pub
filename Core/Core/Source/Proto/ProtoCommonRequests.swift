@@ -288,6 +288,29 @@ private extension DiscreteEvent {
             report.timeTakenS = UInt32(timeTaken)
             return .groupDecryptionReport(report)
 
+        case .callReport(let id, let peerUserID, let type, let direction, let networkType, let answered, let connected, let duration_ms, let endCallReason, let localEndCall, let webrtcStats):
+            var callReport = Server_Call()
+            callReport.callID = id
+            callReport.peerUid = UInt64(peerUserID) ?? 0
+            if type == "audio" {
+                callReport.type = .audio
+            } else if type == "video" {
+                callReport.type = .video
+            }
+            callReport.direction = direction == "outgoing" ? .outgoing : .incoming
+            if networkType == "wifi" {
+                callReport.networkType = .wifi
+            } else if networkType == "cellular" {
+                callReport.networkType = .cellular
+            }
+            callReport.answered = answered
+            callReport.connected = connected
+            callReport.durationMs = UInt64(duration_ms)
+            callReport.endCallReason = endCallReason
+            callReport.localEndCall = localEndCall
+            callReport.webrtcStats = webrtcStats
+            return .call(callReport)
+
         }
     }
 }

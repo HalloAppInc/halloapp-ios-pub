@@ -47,6 +47,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
     
     public var reachabilityState: ReachablilityState = .reachable
+    public var reachabilityConnectionType: String = "unknown"
 
     public var isAppVersionKnownExpired = CurrentValueSubject<Bool, Never>(false)
     public var isAppVersionCloseToExpiry = CurrentValueSubject<Bool, Never>(false)

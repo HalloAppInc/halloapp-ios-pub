@@ -14,6 +14,7 @@ public enum DiscreteEvent {
     case pushReceived(id: String, timestamp: Date)
     case decryptionReport(id: String, result: String, clientVersion: String, sender: UserAgent, rerequestCount: Int, timeTaken: TimeInterval, isSilent: Bool)
     case groupDecryptionReport(id: String, gid: String, contentType: String, error: String, clientVersion: String, sender: UserAgent?, rerequestCount: Int, timeTaken: TimeInterval)
+    case callReport(id: String, peerUserID: UserID, type: String, direction: String, networkType: String, answered: Bool, connected: Bool, duration_ms: Int, endCallReason: String, localEndCall: Bool, webrtcStats: String)
 }
 
 extension DiscreteEvent: Codable {
@@ -60,6 +61,20 @@ extension DiscreteEvent: Codable {
             let rerequestCount = try container.decode(Int.self, forKey: .count)
             let timeTaken = try container.decode(TimeInterval.self, forKey: .duration)
             self = .groupDecryptionReport(id: id, gid: gid, contentType: contentType, error: error, clientVersion: clientVersion, sender: sender, rerequestCount: rerequestCount, timeTaken: timeTaken)
+        case .callReport:
+            let id = try container.decode(String.self, forKey: .id)
+            let peerUserID = try container.decode(String.self, forKey: .peerUserID)
+            let type = try container.decode(String.self, forKey: .type)
+            let direction = try container.decode(String.self, forKey: .direction)
+            let networkType = try container.decode(String.self, forKey: .networkType)
+            let answered = try container.decode(Bool.self, forKey: .answered)
+            let connected = try container.decode(Bool.self, forKey: .connected)
+            let duration_ms = try container.decode(Int.self, forKey: .duration)
+            let endCallReason = try container.decode(String.self, forKey: .endCallReason)
+            let localEndCall = try container.decode(Bool.self, forKey: .localEndCall)
+            let webrtcStats = try container.decode(String.self, forKey: .webrtcStats)
+            self = .callReport(id: id, peerUserID: peerUserID, type: type, direction: direction, networkType: networkType, answered: answered, connected: connected, duration_ms: duration_ms, endCallReason: endCallReason, localEndCall: localEndCall, webrtcStats: webrtcStats)
+
         }
     }
 
@@ -104,6 +119,19 @@ extension DiscreteEvent: Codable {
             try container.encode(sender, forKey: .sender)
             try container.encode(rerequestCount, forKey: .count)
             try container.encode(timeTaken, forKey: .duration)
+        case .callReport(let id, let peerUserID, let type, let direction, let networkType, let answered, let connected, let duration_ms, let endCallReason, let localEndCall, let webrtcStats):
+            try container.encode(EventType.callReport, forKey: .eventType)
+            try container.encode(id, forKey: .id)
+            try container.encode(peerUserID, forKey: .peerUserID)
+            try container.encode(type, forKey: .type)
+            try container.encode(direction, forKey: .direction)
+            try container.encode(networkType, forKey: .networkType)
+            try container.encode(answered, forKey: .answered)
+            try container.encode(connected, forKey: .connected)
+            try container.encode(duration_ms, forKey: .duration)
+            try container.encode(endCallReason, forKey: .endCallReason)
+            try container.encode(localEndCall, forKey: .localEndCall)
+            try container.encode(webrtcStats, forKey: .webrtcStats)
         }
     }
 
@@ -123,6 +151,15 @@ extension DiscreteEvent: Codable {
         case error
         case contentType
         case gid
+        case peerUserID
+        case type
+        case direction
+        case networkType
+        case answered
+        case connected
+        case endCallReason
+        case localEndCall
+        case webrtcStats
     }
 
     private enum EventType: String, Codable {
@@ -131,5 +168,6 @@ extension DiscreteEvent: Codable {
         case pushReceived
         case decryptionReport
         case groupDecryptionReport
+        case callReport
     }
 }

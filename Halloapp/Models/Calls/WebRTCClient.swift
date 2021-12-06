@@ -218,8 +218,10 @@ final class WebRTCClient: NSObject {
         return iceServers
     }
 
-    func fetchPeerConnectionStats(completion: @escaping ([RTCLegacyStatsReport]) -> Void) {
-        peerConnection.stats(for: nil, statsOutputLevel: .standard, completionHandler: completion)
+    func fetchPeerConnectionStats(completion: @escaping (RTCStatisticsReport) -> Void) {
+        peerConnection.statistics { report in
+            completion(report)
+        }
     }
 }
 

@@ -233,12 +233,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         reachability?.whenReachable = { reachability in
             DDLogInfo("appdelegate/Reachability/reachable/\(reachability.connection)")
             MainAppContext.shared.coreService.reachabilityState = .reachable
+            MainAppContext.shared.coreService.reachabilityConnectionType = reachability.connection.description
             MainAppContext.shared.coreService.startConnectingIfNecessary()
             MainAppContext.shared.feedData.resumeMediaDownloads()
         }
         reachability?.whenUnreachable = { reachability in
             DDLogInfo("appdelegate/Reachability/unreachable/\(reachability.connection)")
             MainAppContext.shared.coreService.reachabilityState = .unreachable
+            MainAppContext.shared.coreService.reachabilityConnectionType = reachability.connection.description
             MainAppContext.shared.feedData.suspendMediaDownloads()
         }
         do {
