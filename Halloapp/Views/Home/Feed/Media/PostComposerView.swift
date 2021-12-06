@@ -640,6 +640,7 @@ fileprivate struct PostComposerView: View {
                     ControlIconView(imageLabel: "ComposerAddMedia")
                 }.sheet(isPresented: $presentPicker) {
                     picker
+                        .edgesIgnoringSafeArea(.bottom)
                 }
 
                 Spacer()

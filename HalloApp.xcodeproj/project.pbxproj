@@ -356,7 +356,6 @@
 		F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */; };
 		F850677826A55DAC00A120EC /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F850677726A55DAC00A120EC /* AudioRecorder.swift */; };
 		F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F850677926A7FDDF00A120EC /* AudioView.swift */; };
-		F851E9512500E47300BC0FAA /* MediaPickerSnapshotManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */; };
 		F8606DD1257E7340006CD1A6 /* MediaExplorerVideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DD0257E7340006CD1A6 /* MediaExplorerVideoCell.swift */; };
 		F8606DD6257E7402006CD1A6 /* MediaExplorerImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DD5257E7402006CD1A6 /* MediaExplorerImageCell.swift */; };
 		F8606DDB257E7C2A006CD1A6 /* MediaExplorerAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DDA257E7C2A006CD1A6 /* MediaExplorerAnimator.swift */; };
@@ -369,6 +368,7 @@
 		F881ED76261B1F6F0013599F /* Upload+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = F881ED74261B1F6F0013599F /* Upload+CoreDataClass.swift */; };
 		F881ED77261B1F6F0013599F /* Upload+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = F881ED75261B1F6F0013599F /* Upload+CoreDataProperties.swift */; };
 		F88A5CD927145F0800DFA205 /* PostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88A5CD827145F0800DFA205 /* PostViewController.swift */; };
+		F88E5C95275A14D500290A89 /* MediaPickerPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88E5C94275A14D500290A89 /* MediaPickerPreview.swift */; };
 		F893C86F25E5213000068F00 /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893C86E25E5213000068F00 /* VideoView.swift */; };
 		F8B0F7612745785400235CCF /* ShareDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8B0F7602745785400235CCF /* ShareDataLoader.swift */; };
 		F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */; };
@@ -990,7 +990,6 @@
 		F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoEditViewController.swift; sourceTree = "<group>"; };
 		F850677726A55DAC00A120EC /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
 		F850677926A7FDDF00A120EC /* AudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioView.swift; sourceTree = "<group>"; };
-		F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerSnapshotManager.swift; sourceTree = "<group>"; };
 		F8606DD0257E7340006CD1A6 /* MediaExplorerVideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerVideoCell.swift; sourceTree = "<group>"; };
 		F8606DD5257E7402006CD1A6 /* MediaExplorerImageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerImageCell.swift; sourceTree = "<group>"; };
 		F8606DDA257E7C2A006CD1A6 /* MediaExplorerAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerAnimator.swift; sourceTree = "<group>"; };
@@ -1000,6 +999,7 @@
 		F881ED74261B1F6F0013599F /* Upload+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Upload+CoreDataClass.swift"; sourceTree = "<group>"; };
 		F881ED75261B1F6F0013599F /* Upload+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Upload+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		F88A5CD827145F0800DFA205 /* PostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostViewController.swift; sourceTree = "<group>"; };
+		F88E5C94275A14D500290A89 /* MediaPickerPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerPreview.swift; sourceTree = "<group>"; };
 		F893C86E25E5213000068F00 /* VideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
 		F8B0F7602745785400235CCF /* ShareDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareDataLoader.swift; sourceTree = "<group>"; };
 		F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaEditViewController.swift; sourceTree = "<group>"; };
@@ -1755,8 +1755,8 @@
 				F878427B24F6C0FB0040B723 /* MediaAlbumsViewController.swift */,
 				F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */,
 				F8E605492671F6A700DDEB2A /* MediaEdit.swift */,
-				F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */,
 				F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */,
+				F88E5C94275A14D500290A89 /* MediaPickerPreview.swift */,
 				EA0C315623EB97C800016EDB /* PostComposerView.swift */,
 				681E0DA924C8E0190073A03E /* NewPostViewController.swift */,
 				5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */,
@@ -2911,6 +2911,7 @@
 				32E60AFA271F510800D6A368 /* PostComposerLinkPreviewView.swift in Sources */,
 				E5CE660226B354EC0093944A /* SettingsArchiveViewController.swift in Sources */,
 				76B5B52C2501EE790055E712 /* NotificationMetadata.swift in Sources */,
+				F88E5C95275A14D500290A89 /* MediaPickerPreview.swift in Sources */,
 				76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */,
 				765EB4EB24D92404002FA5D9 /* SafariView.swift in Sources */,
 				685B76CC24E4A37600BF666A /* FloatingMenu.swift in Sources */,
@@ -2929,7 +2930,6 @@
 				68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */,
 				F881ED76261B1F6F0013599F /* Upload+CoreDataClass.swift in Sources */,
 				76538093243D4B33000AD9A1 /* FeedPost+CoreDataProperties.swift in Sources */,
-				F851E9512500E47300BC0FAA /* MediaPickerSnapshotManager.swift in Sources */,
 				76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */,
 				680FB661250C45C000CA5D40 /* OverlayView.swift in Sources */,
 				EABB650326D989B900367F44 /* UISearchBar.swift in Sources */,
