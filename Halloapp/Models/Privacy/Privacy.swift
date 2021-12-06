@@ -132,7 +132,7 @@ extension PrivacyList {
     static func name(forPrivacyListType privacyListType: PrivacyListType) -> String {
         switch privacyListType {
         case .all:
-            return NSLocalizedString("feed.privacy.list.all", value: "My Phone Contacts", comment: "Settings > Privacy > Posts: one of the possible setting values.")
+            return NSLocalizedString("feed.privacy.list.all", value: "My Contacts", comment: "Settings > Privacy > Posts: one of the possible setting values.")
         case .blacklist:
             return NSLocalizedString("feed.privacy.list.except", value: "My Contacts Except...", comment: "Settings > Privacy > Posts: one of the possible setting values.")
         case .whitelist:
@@ -141,6 +141,36 @@ extension PrivacyList {
             return "Muted" // not in use currently
         case .blocked:
             return NSLocalizedString("privacy.list.blocked", value: "Blocked", comment: "Settings > Privacy: Title for the list of blocked contact and also setting menu item.")
+        }
+    }
+
+    static func title(forPrivacyListType privacyListType: PrivacyListType) -> String? {
+        switch privacyListType {
+        case .all:
+            return name(forPrivacyListType: privacyListType)
+        case .blacklist:
+            return NSLocalizedString("feed.privacy.list.except.title", value: "Hide Posts From...", comment: "Title for the list when selecting contacts to not share with.")
+        case .whitelist:
+            return name(forPrivacyListType: privacyListType)
+        case .muted:
+            return name(forPrivacyListType: privacyListType)
+        case .blocked:
+            return name(forPrivacyListType: privacyListType)
+        }
+    }
+
+    static func details(forPrivacyListType privacyListType: PrivacyListType) -> String? {
+        switch privacyListType {
+        case .all:
+            return nil
+        case .blacklist:
+            return NSLocalizedString("feed.privacy.list.except.details", value: "Select who won't see this post", comment: "Header for the list when selecting contacts to not share with.")
+        case .whitelist:
+            return NSLocalizedString("feed.privacy.list.only.details", value: "Select who will see this post", comment: "Header for the list when selecting contacts to share with.")
+        case .muted:
+            return nil
+        case .blocked:
+            return nil
         }
     }
 
@@ -246,7 +276,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         }
         switch activeType {
         case .all:
-            shortFeedSetting = NSLocalizedString("feed.privacy.value.my.contacts", value: "My Phone Contacts", comment: "Possible Feed Privacy setting value.")
+            shortFeedSetting = NSLocalizedString("feed.privacy.value.my.contacts", value: "My Contacts", comment: "Possible Feed Privacy setting value.")
             longFeedSetting = shortFeedSetting
 
         case .whitelist:

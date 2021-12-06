@@ -683,6 +683,8 @@ extension GroupsListViewController: NewGroupMembersViewControllerDelegate {
     func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, didCreateGroup: GroupID) {
         let vc = GroupFeedViewController(groupId: didCreateGroup)
         vc.delegate = self
+        view.window?.rootViewController?.dismiss(animated: true, completion: nil)
+
         // skip animation to prevent user from having to see the groups list first
         navigationController?.pushViewController(vc, animated: false)
     }

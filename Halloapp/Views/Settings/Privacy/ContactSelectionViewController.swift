@@ -13,22 +13,24 @@ import UIKit
 let SelectableContactReuse = "SelectableContactReuse"
 
 final class ContactSelectionViewController: UIViewController {
+    static let rowHeight = CGFloat(54)
+
+    enum Style {
+        case `default`, destructive
+    }
 
     init(
         manager: ContactSelectionManager,
         title: String? = nil,
+        header: String? = nil,
         showSearch: Bool = true,
+        style: Style = .default,
         saveAction: ((Set<UserID>) -> Void)? = nil,
         dismissAction: (() -> Void)? = nil)
     {
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.backgroundColor = .primaryBg
-        collectionView.register(SelectableContactCell.self, forCellWithReuseIdentifier: SelectableContactReuse)
-
         searchController = {
             guard showSearch else { return nil }
-            let searchResultsController = ContactSelectionViewController(manager: manager, showSearch: false, dismissAction: nil)
+            let searchResultsController = ContactSelectionViewController(manager: manager, header: header, showSearch: false, dismissAction: nil)
             let searchController = UISearchController(searchResultsController: searchResultsController)
             searchController.searchResultsUpdater = searchResultsController
             searchController.searchBar.showsCancelButton = false
@@ -48,6 +50,8 @@ final class ContactSelectionViewController: UIViewController {
             return searchController
         }()
 
+        self.style = style
+        self.header = header
         self.manager = manager
         self.saveAction = saveAction
         self.dismissAction = dismissAction
@@ -76,8 +80,10 @@ final class ContactSelectionViewController: UIViewController {
 
         if saveAction != nil {
             navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(didTapDone))
+            navigationItem.rightBarButtonItem?.tintColor = .primaryBlue
         }
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(didTapCancel))
+        navigationItem.leftBarButtonItem?.tintColor = .primaryBlue
 
         view.addSubview(mainView)
         view.backgroundColor = UIColor.primaryBg
@@ -101,24 +107,66 @@ final class ContactSelectionViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 
-    override func viewDidLayoutSubviews() {
-        if itemWidth != view.bounds.width {
-            itemWidth = view.bounds.width
-        }
-    }
-
     lazy var dataSource: UICollectionViewDiffableDataSource<Int, SelectableContact> = {
-        UICollectionViewDiffableDataSource<Int, SelectableContact>(collectionView: collectionView) { [weak self] collectionView, indexPath, contact in
+        let source = UICollectionViewDiffableDataSource<Int, SelectableContact>(collectionView: collectionView) { [weak self] collectionView, indexPath, contact in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SelectableContactReuse, for: indexPath)
             if let self = self, let itemCell = cell as? SelectableContactCell {
-                itemCell.configure(with: contact, isSelected: self.manager.selectedUserIDs.contains(contact.userID))
+                itemCell.configure(with: contact, isSelected: self.manager.selectedUserIDs.contains(contact.userID), style: self.style)
             }
             return cell
         }
+
+        source.supplementaryViewProvider = { [weak self] (collectionView, kind, indexPath) in
+            let supplementaryView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: HeaderView.elementKind, for: indexPath)
+
+            if let self = self, let headerTitle = self.header, let headerView = supplementaryView as? HeaderView {
+                headerView.text = headerTitle
+            }
+
+            return supplementaryView
+        }
+
+        return source
     }()
 
+    private let style: Style
+    private let header: String?
     private let manager: ContactSelectionManager
-    private let collectionView: UICollectionView
+    private lazy var collectionView: UICollectionView = {
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(ContactSelectionViewController.rowHeight))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+
+        let backgroundDecoration = NSCollectionLayoutDecorationItem.background(elementKind: BackgroundDecorationView.elementKind)
+        backgroundDecoration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+
+        let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(44))
+        let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: HeaderView.elementKind, alignment: .top)
+
+        let section = NSCollectionLayoutSection(group: group)
+
+        if header != nil {
+            backgroundDecoration.contentInsets = NSDirectionalEdgeInsets(top: 44, leading: 16, bottom: 0, trailing: 16)
+            section.boundarySupplementaryItems = [sectionHeader]
+        }
+
+        section.decorationItems = [backgroundDecoration]
+        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+
+        let layout = UICollectionViewCompositionalLayout(section: section)
+        layout.register(BackgroundDecorationView.self, forDecorationViewOfKind: BackgroundDecorationView.elementKind)
+
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.backgroundColor = .primaryBg
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 0)
+        collectionView.register(SelectableContactCell.self, forCellWithReuseIdentifier: SelectableContactReuse)
+        collectionView.register(HeaderView.self, forSupplementaryViewOfKind: HeaderView.elementKind, withReuseIdentifier: HeaderView.elementKind)
+
+        return collectionView
+    }()
     private var searchController: UISearchController?
 
     private let saveAction: ((Set<UserID>) -> Void)?
@@ -251,17 +299,6 @@ final class ContactSelectionViewController: UIViewController {
         }
         animator.startAnimation()
     }
-
-    private var itemWidth: CGFloat = 0 {
-        didSet {
-            let layout = UICollectionViewFlowLayout()
-            let cellHeight = ContactSelectionView.forSizing.systemLayoutSizeFitting(CGSize(width: itemWidth, height: 0)).height
-            layout.itemSize = CGSize(width: itemWidth, height: cellHeight)
-            layout.minimumLineSpacing = 0
-            layout.minimumInteritemSpacing = 0
-            collectionView.setCollectionViewLayout(layout, animated: true)
-        }
-    }
 }
 
 extension ContactSelectionViewController: UICollectionViewDelegate {
@@ -284,11 +321,89 @@ extension ContactSelectionViewController: UISearchResultsUpdating {
     }
 }
 
+fileprivate class HeaderView: UICollectionReusableView {
+    static var elementKind: String {
+        return String(describing: HeaderView.self)
+    }
+
+    var text: String? {
+        get {
+            titleView.text
+        }
+        set {
+            titleView.text = newValue?.uppercased()
+        }
+    }
+
+    private lazy var titleView: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.textColor = .primaryBlackWhite.withAlphaComponent(0.5)
+
+        return label
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        addSubview(titleView)
+        titleView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        titleView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4).isActive = true
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+fileprivate class BackgroundDecorationView: UICollectionReusableView {
+    static var elementKind: String {
+        return String(describing: BackgroundDecorationView.self)
+    }
+
+    override var bounds: CGRect {
+        didSet {
+            configure()
+        }
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .feedPostBackground
+        layer.cornerRadius = 13
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func configure() {
+        for view in subviews {
+            view.removeFromSuperview()
+        }
+
+        let height = ContactSelectionViewController.rowHeight
+        let inset = CGFloat(16)
+        let color = UIColor.separator
+        let count = Int(bounds.height / height)
+
+        if count > 0 {
+            for i in 1..<count {
+                let position = height * CGFloat(i)
+                let separatorView = UIView(frame: CGRect(x: inset, y: position, width: bounds.width - inset, height: 1))
+                separatorView.backgroundColor = color
+
+                addSubview(separatorView)
+            }
+        }
+    }
+}
+
 final class SelectableContactCell: UICollectionViewCell {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        contentView.layoutMargins = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
         contentView.addSubview(contactView)
         contactView.translatesAutoresizingMaskIntoConstraints = false
         contactView.constrain(to: contentView)
@@ -298,8 +413,8 @@ final class SelectableContactCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(with contact: SelectableContact, isSelected: Bool) {
-        contactView.configure(with: contact, isSelected: isSelected)
+    func configure(with contact: SelectableContact, isSelected: Bool, style: ContactSelectionViewController.Style) {
+        contactView.configure(with: contact, isSelected: isSelected, style: style)
     }
 
     private let contactView = ContactSelectionView(frame: .zero)
@@ -312,20 +427,20 @@ final class ContactSelectionView: UIView {
 
         avatarView.translatesAutoresizingMaskIntoConstraints = false
 
-        nameLabel.setContentCompressionResistancePriority(.required, for: .vertical)
         nameLabel.font = .preferredFont(forTextStyle: .headline)
+        nameLabel.adjustsFontForContentSizeCategory = true
         nameLabel.textColor = .label
 
-        subtitleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
         subtitleLabel.font = .preferredFont(forTextStyle: .footnote)
+        subtitleLabel.adjustsFontForContentSizeCategory = true
         subtitleLabel.textColor = .secondaryLabel
 
         let labelStack = UIStackView(arrangedSubviews: [nameLabel, subtitleLabel])
         labelStack.translatesAutoresizingMaskIntoConstraints = false
         labelStack.axis = .vertical
-        labelStack.distribution = .fill
+        labelStack.distribution = .fillProportionally
         labelStack.alignment = .leading
-        labelStack.spacing = 3
+        labelStack.spacing = 0
 
         accessoryImageView.translatesAutoresizingMaskIntoConstraints = false
         accessoryImageView.tintColor = .lavaOrange
@@ -334,9 +449,10 @@ final class ContactSelectionView: UIView {
         addSubview(labelStack)
         addSubview(accessoryImageView)
 
-        let spacing: CGFloat = 8
+        let spacing: CGFloat = 13
 
-        avatarView.constrainMargins([.leading, .centerY], to: self)
+        avatarView.constrain(anchor: .centerY, to: self)
+        avatarView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16).isActive = true
         avatarView.heightAnchor.constraint(equalToConstant: 30).isActive = true
         avatarView.widthAnchor.constraint(equalToConstant: 30).isActive = true
         avatarView.topAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.topAnchor).isActive = true
@@ -348,7 +464,8 @@ final class ContactSelectionView: UIView {
         labelStack.bottomAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.bottomAnchor).isActive = true
 
         accessoryImageView.leadingAnchor.constraint(equalTo: labelStack.trailingAnchor, constant: spacing).isActive = true
-        accessoryImageView.constrainMargins([.trailing, .centerY], to: self)
+        accessoryImageView.constrain(anchor: .centerY, to: self)
+        accessoryImageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16).isActive = true
         accessoryImageView.topAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.topAnchor).isActive = true
         accessoryImageView.bottomAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.bottomAnchor).isActive = true
     }
@@ -357,18 +474,25 @@ final class ContactSelectionView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(with contact: SelectableContact, isSelected: Bool) {
+    func configure(with contact: SelectableContact, isSelected: Bool, style: ContactSelectionViewController.Style) {
         nameLabel.text = contact.name
         subtitleLabel.text = contact.phoneNumber ?? ""
         avatarView.configure(with: contact.userID, using: MainAppContext.shared.avatarStore)
         accessoryImageView.image = isSelected ? Self.checkmarkChecked : Self.checkmarkUnchecked
-    }
 
-    static var forSizing: ContactSelectionView {
-        let cell = ContactSelectionView()
-        cell.nameLabel.text = " "
-        cell.subtitleLabel.text = " "
-        return cell
+        if isSelected {
+            switch style {
+            case .`default`:
+                accessoryImageView.tintColor = .primaryBlue
+                accessoryImageView.image = Self.checkmarkChecked
+            case .destructive:
+                accessoryImageView.tintColor = .lavaOrange
+                accessoryImageView.image = Self.xmarkChecked
+            }
+        } else {
+            accessoryImageView.tintColor = .primaryBlackWhite.withAlphaComponent(0.2)
+            accessoryImageView.image = Self.checkmarkUnchecked
+        }
     }
 
     private let nameLabel = UILabel()
@@ -383,16 +507,27 @@ final class ContactSelectionView: UIView {
     private static var checkmarkChecked: UIImage {
         UIImage(systemName: "checkmark.circle.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25))!.withRenderingMode(.alwaysTemplate)
     }
+
+    private static var xmarkChecked: UIImage {
+        UIImage(systemName: "xmark.circle.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25))!.withRenderingMode(.alwaysTemplate)
+    }
 }
 
 extension ContactSelectionViewController {
-    static func forPrivacyList(_ privacyList: PrivacyList, in privacySettings: PrivacySettings, dismissAction: (() -> Void)?) -> ContactSelectionViewController {
+    static func forPrivacyList(_ privacyList: PrivacyList, in privacySettings: PrivacySettings, doneAction: (() -> Void)? = nil, dismissAction: (() -> Void)?) -> ContactSelectionViewController {
         return ContactSelectionViewController(
             manager: ContactSelectionManager(initialSelection: Set(privacyList.userIds)),
-            title: PrivacyList.name(forPrivacyListType: privacyList.type),
+            title: PrivacyList.title(forPrivacyListType: privacyList.type),
+            header: PrivacyList.details(forPrivacyListType: privacyList.type),
+            style: privacyList.type == .blacklist ? .destructive : .default,
             saveAction: { userIDs in
                 privacySettings.replaceUserIDs(in: privacyList, with: userIDs)
-                dismissAction?()
+
+                if let doneAction = doneAction {
+                    doneAction()
+                } else {
+                    dismissAction?()
+                }
             },
             dismissAction: dismissAction)
     }

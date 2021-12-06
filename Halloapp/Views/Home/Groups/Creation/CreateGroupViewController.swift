@@ -341,7 +341,6 @@ class CreateGroupViewController: UIViewController {
                 // some milliseconds are needed for core data's contexts to auto merge
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                     guard let self = self else { return }
-                    self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
                     self.delegate?.createGroupViewController(self, didCreateGroup: groupID)
                 }
             case .failure(let error):

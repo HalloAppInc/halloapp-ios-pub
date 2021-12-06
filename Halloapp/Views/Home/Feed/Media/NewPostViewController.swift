@@ -70,7 +70,7 @@ final class NewPostViewController: UIViewController {
 
     private let didFinish: ((Bool) -> Void)
     private var state: NewPostState
-    private let destination: FeedPostDestination
+    private var destination: FeedPostDestination
 
     private lazy var containedNavigationController = {
         return makeNavigationController()
@@ -106,17 +106,14 @@ final class NewPostViewController: UIViewController {
 
     private func makeComposerViewController() -> UIViewController {
         var configuration: PostComposerViewConfiguration = .userPost
-        var recipientName: String? = nil
+
         if case .groupFeed(let groupId) = destination {
             configuration = .groupPost(id: groupId)
-            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                recipientName = group.name
-            }
         }
+
         return PostComposerViewController(
             mediaToPost: state.pendingMedia,
             initialInput: state.pendingInput,
-            recipientName: recipientName,
             configuration: configuration,
             delegate: self)
     }
@@ -209,8 +206,18 @@ extension NewPostViewController: UIImagePickerControllerDelegate {
 extension NewPostViewController: UINavigationControllerDelegate {}
 
 extension NewPostViewController: PostComposerViewDelegate {
-    func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil) {
-        MainAppContext.shared.feedData.post(text: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: destination)
+    func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil) {
+
+        switch destination {
+        case .userFeed:
+            self.destination = .userFeed
+        case .groupFeed(let groupId):
+            self.destination = .groupFeed(groupId)
+        case .chat:
+            break
+        }
+
+        MainAppContext.shared.feedData.post(text: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: self.destination)
         cleanupAndFinish(didPost: true)
     }
 

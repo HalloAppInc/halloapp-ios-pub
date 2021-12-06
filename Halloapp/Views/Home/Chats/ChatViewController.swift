@@ -1100,8 +1100,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         let composerController = PostComposerViewController(
             mediaToPost: media,
             initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
-            recipientName: fromUserId != nil ? MainAppContext.shared.contactStore.fullName(for: fromUserId!) : nil,
-            configuration: .message,
+            configuration: .message(id: fromUserId),
             delegate: self)
         pickerController.present(UINavigationController(rootViewController: composerController), animated: false)
     }
@@ -1158,7 +1157,7 @@ extension ChatViewController: CNContactViewControllerDelegate {
 // MARK: PostComposerView Delegates
 extension ChatViewController: PostComposerViewDelegate {
 
-    func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil) {
+    func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil) {
         sendMessage(text: mentionText.trimmed().collapsedText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
         view.window?.rootViewController?.dismiss(animated: true, completion: nil)
     }
@@ -1477,8 +1476,7 @@ extension ChatViewController: ChatInputViewDelegate {
         let composerController = PostComposerViewController(
             mediaToPost: [media],
             initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
-            recipientName: fromUserId != nil ? MainAppContext.shared.contactStore.fullName(for: fromUserId!) : nil,
-            configuration: .message,
+            configuration: .message(id: fromUserId),
             delegate: self)
         present(UINavigationController(rootViewController: composerController), animated: false)
     }
