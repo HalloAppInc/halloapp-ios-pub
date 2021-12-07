@@ -298,15 +298,6 @@
 /* Placeholder text in text post composer screen. */
 "composer.placeholder.text.post" = "Napsat příspěvek";
 
-/* Send button title. */
-"composer.post.button.send" = "Poslat";
-
-/* Share button title. */
-"composer.post.button.share" = "Sdílet";
-
-/* Composer subtitle for group posts. */
-"composer.post.subtitle" = "Sdílení s %@";
-
 /* Composer New Post title. */
 "composer.post.title" = "Nový příspěvek";
 
