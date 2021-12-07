@@ -44,15 +44,18 @@ final class CallManager: NSObject, CXProviderDelegate {
     let callController = CXCallController()
     private let provider: CXProvider
     public var service: HalloService
+    private var startDate: Date? = nil
+    private var endDate: Date? = nil
     public var activeCall: Call? {
         didSet {
             if activeCall == nil {
-                callDurationSec = 0
                 callTimer?.invalidate()
                 callTimer = nil
                 cancelTimer?.cancel()
                 cancelTimer = nil
                 endReason = nil
+                startDate = nil
+                endDate = nil
             }
             isAnyCallActive.send(activeCall)
         }
@@ -61,7 +64,17 @@ final class CallManager: NSObject, CXProviderDelegate {
     public var rtcAudioSession: RTCAudioSession = RTCAudioSession.sharedInstance()
     private var cancelTimer: DispatchSourceTimer?
     private var callTimer: Timer?
-    private var callDurationSec: Int = 0
+    public var callDurationMs: Double {
+        get {
+            guard let startDate = startDate else {
+                return 0
+            }
+            guard let endDate = endDate else {
+                return Date().timeIntervalSince(startDate) * 1000
+            }
+            return endDate.timeIntervalSince(startDate) * 1000
+        }
+    }
     private var endReason: EndCallReason? = nil
     private var callRingtonePlayer: AVAudioPlayer?
 
@@ -107,7 +120,8 @@ final class CallManager: NSObject, CXProviderDelegate {
             callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID)
             let handle = handle(for: peerUserID)
             DDLogInfo("CallManager/startCall/create/callID: \(callID)/handleValue: \(handle.value)")
-            let startCallAction = CXStartCallAction(call: callID.callUUID, handle: handle)
+            var startCallAction = CXStartCallAction(call: callID.callUUID, handle: handle)
+            startCallAction.contactIdentifier = peerName(for: peerUserID)
             let transaction = CXTransaction()
             transaction.addAction(startCallAction)
             requestTransaction(transaction, completion: completion)
@@ -193,8 +207,13 @@ final class CallManager: NSObject, CXProviderDelegate {
     }
 
     private func handle(for peerUserID: UserID) -> CXHandle {
-        let handleValue = MainAppContext.shared.contactStore.fullNameIfAvailable(for: peerUserID, ownName: nil, showPushNumber: true) ?? Localizations.unknownContact
-        return CXHandle(type: .generic, value: handleValue)
+        let peerNumber = MainAppContext.shared.contactStore.pushNumber(peerUserID) ?? ""
+        let handle = CXHandle(type: .generic, value: peerNumber)
+        return handle
+    }
+
+    private func peerName(for peerUserID: UserID) -> String {
+        return MainAppContext.shared.contactStore.fullNameIfAvailable(for: peerUserID, ownName: nil, showPushNumber: true) ?? Localizations.unknownContact
     }
 
     private func resetState() {
@@ -204,6 +223,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         cancelTimer?.cancel()
         cancelTimer = nil
         activeCall?.logPeerConnectionStats()
+        endDate = Date()
         activeCall?.end(reason: .systemError)
         activeCall = nil
         callViewDelegate?.callEnded()
@@ -216,6 +236,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         cancelTimer?.cancel()
         cancelTimer = nil
         activeCall?.logPeerConnectionStats()
+        endDate = Date()
         activeCall?.end(reason: reason)
         activeCall = nil
         callViewDelegate?.callEnded()
@@ -237,11 +258,12 @@ final class CallManager: NSObject, CXProviderDelegate {
     private func startCallDurationTimer() {
         DDLogInfo("CallManager/startCallDurationTimer")
         DispatchQueue.main.async {
-            self.callTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
+            self.startDate = Date()
+            self.callTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] timer in
                 guard let self = self else { return }
-                self.callDurationSec += 1
-                self.callViewDelegate?.callDurationChanged(seconds: self.callDurationSec)
-                if self.callDurationSec % 10 == 0 {
+                let callDurationSec = Int(self.callDurationMs / 1000)
+                self.callViewDelegate?.callDurationChanged(seconds: callDurationSec)
+                if callDurationSec % 10 == 0 {
                     self.activeCall?.logPeerConnectionStats()
                 }
             }
@@ -377,6 +399,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         DDLogInfo("CallManager/reportIncomingCall/callID: \(callID)/peerUserID: \(peerUserID)")
         let update = CXCallUpdate()
         update.remoteHandle = handle(for: peerUserID)
+        update.localizedCallerName = peerName(for: peerUserID)
         provider.reportNewIncomingCall(with: callID.callUUID, update: update) { error in
             if let error = error {
                 DDLogError("CallManager/reportNewIncomingCall/callID: \(callID)/error: \(error)")
@@ -442,7 +465,8 @@ extension CallManager: HalloCallDelegate {
         let reportIncomingCallCompletion: (() -> Void) = {
             let encryptedData = EncryptedData(data: webrtcOffer.encPayload, identityKey: webrtcOffer.publicKey.isEmpty ? nil : webrtcOffer.publicKey, oneTimeKeyId: Int(webrtcOffer.oneTimePreKeyID))
             // TODO: Unify all these encryption and decryption api: easier to track counters.
-            AppContext.shared.messageCrypter.decrypt(encryptedData, from: peerUserID) { result in
+            AppContext.shared.messageCrypter.decrypt(encryptedData, from: peerUserID) { [weak self] result in
+                guard let self = self else { return }
                 switch result {
                 case .success(let decryptedData):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/decrypt/success")
@@ -460,13 +484,30 @@ extension CallManager: HalloCallDelegate {
                     }
                 case .failure(let failure):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/decrypt/failure: \(failure)")
+                    self.service.rerequestMessage(incomingCall.callID,
+                                                  senderID: peerUserID,
+                                                  failedEphemeralKey: failure.ephemeralKey,
+                                                  contentType: .call) { result in
+                        switch result {
+                        case .failure(let error):
+                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/rerequestMessage/failure: \(error)")
+                        case .success(_):
+                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/rerequestMessage/success")
+                        }
+                    }
                     self.endCall(reason: .decryptionError) { _ in }
                 }
             }
         }
 
         // Try to decrypt offer if no call is active and report to callkit provider.
-        if activeCallID == incomingCall.callID {
+        // Check if call is supported or if we have an active call already.
+        if incomingCall.callType != .audio {
+            // Reject non-audio calls for now.
+            // TODO: we need some sort of tombstone here eventually!
+            MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .videoUnsupportedError)
+            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason videoUnsupportedError")
+        } else if activeCallID == incomingCall.callID {
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID) duplicate packet")
         } else if activeCall != nil {
             MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
@@ -506,7 +547,18 @@ extension CallManager: HalloCallDelegate {
                     self.activeCall?.didReceiveAnswer(sdpInfo: String(data: decryptedData, encoding: .utf8)!)
                 case .failure(let failure):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/decrypt/failure: \(failure)")
-                    MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .decryptionError)
+                    self.service.rerequestMessage(answerCall.callID,
+                                                  senderID: peerUserID,
+                                                  failedEphemeralKey: failure.ephemeralKey,
+                                                  contentType: .call) { result in
+                        switch result {
+                        case .failure(let error):
+                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/rerequestMessage/failure: \(error)")
+                        case .success(_):
+                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/rerequestMessage/success")
+                        }
+                    }
+                    self.service.endCall(id: callID, to: peerUserID, reason: .decryptionError)
                 }
             }
         } else {
@@ -539,6 +591,7 @@ extension CallManager: HalloCallDelegate {
         if activeCallID == callID {
             reportCallEnded(id: callID)
             activeCall?.logPeerConnectionStats()
+            endDate = Date()
             activeCall?.didReceiveEndCall()
             activeCall = nil
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")

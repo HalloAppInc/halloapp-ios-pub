@@ -7,13 +7,19 @@ import SwiftUI
 import UIKit
 
 protocol PostComposerViewDelegate: AnyObject {
-    func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
+    func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
     func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia])
     func willDismissWithInput(mentionInput: MentionInput)
 }
 
+enum PostComposerDestination: Equatable {
+    case userFeed
+    case groupFeed(GroupID)
+    case chat(UserID?)
+}
+
 struct PostComposerViewConfiguration {
-    var titleMode: PostComposerViewController.TitleMode = .userPost
+    var destination: PostComposerDestination = .userFeed
     var mentionableUsers: [MentionableUser]
     var useTransparentNavigationBar = false
     var mediaCarouselMaxAspectRatio: CGFloat = 1.25
@@ -31,16 +37,16 @@ struct PostComposerViewConfiguration {
 
     static func groupPost(id groupID: GroupID) -> PostComposerViewConfiguration {
         PostComposerViewConfiguration(
-            titleMode: .groupPost,
+            destination: .groupFeed(groupID),
             mentionableUsers: Mentions.mentionableUsers(forGroupID: groupID),
             useTransparentNavigationBar: true,
             maxVideoLength: ServerProperties.maxFeedVideoDuration
         )
     }
 
-    static var message: PostComposerViewConfiguration {
+    static func message(id userId: UserID?) -> PostComposerViewConfiguration {
         PostComposerViewConfiguration(
-            titleMode: .message,
+            destination: .chat(userId),
             mentionableUsers: [],
             mediaCarouselMaxAspectRatio: 1.0,
             imageServerMaxAspectRatio: nil,
@@ -101,18 +107,26 @@ private extension Localizations {
     static var maxVideoLengthMessage: String {
         NSLocalizedString("composer.max.video.length.message", value: "Please select another video or tap the edit button.", comment: "Alert message in composer when a video is too long")
     }
+
+    static var newPostTitle: String {
+        NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
+    }
+
+    static var newMessageTitle: String {
+        NSLocalizedString("composer.message.title", value: "New Message", comment: "Composer New Message title.")
+    }
+
+    static func newMessageSubtitle(recipient: String) -> String {
+        let format = NSLocalizedString("composer.message.subtitle", value: "Sending to %@", comment: "Composer subtitle for messages.")
+        return String.localizedStringWithFormat(format, recipient)
+    }
+
+    static var tapToChange: String {
+        NSLocalizedString("composer.subtitle.cta", value: "Tap to change", comment: "Show the user that the title is tappable")
+    }
 }
 
 class PostComposerViewController: UIViewController {
-    enum TitleMode {
-        case userPost
-        case groupPost
-        case message
-    }
-
-    private let privacySettings = MainAppContext.shared.privacySettings
-    private var privacySubscription: AnyCancellable?
-
     let backIcon = UIImage(named: "NavbarBack")
     let closeIcon = UIImage(named: "NavbarClose")
 
@@ -124,12 +138,11 @@ class PostComposerViewController: UIViewController {
     private var link: GenericObservable<String>
     private var linkPreviewData: GenericObservable<LinkPreviewData?>
     private var linkPreviewImage: GenericObservable<UIImage?>
-    private var recipientName: String?
     private var shouldAutoPlay = GenericObservable(false)
     private var postComposerView: PostComposerView?
     private var shareButton: UIBarButtonItem!
     private let isMediaPost: Bool
-    private let configuration: PostComposerViewConfiguration
+    private var configuration: PostComposerViewConfiguration
     private weak var delegate: PostComposerViewDelegate?
 
     private var barState: NavigationBarState?
@@ -139,7 +152,6 @@ class PostComposerViewController: UIViewController {
     init(
         mediaToPost media: [PendingMedia],
         initialInput: MentionInput,
-        recipientName: String? = nil,
         configuration: PostComposerViewConfiguration,
         delegate: PostComposerViewDelegate)
     {
@@ -149,7 +161,6 @@ class PostComposerViewController: UIViewController {
         self.link = GenericObservable("")
         self.linkPreviewData = GenericObservable(nil)
         self.linkPreviewImage = GenericObservable(nil)
-        self.recipientName = recipientName
         self.configuration = configuration
         self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
@@ -190,6 +201,17 @@ class PostComposerViewController: UIViewController {
                 
                 self.present(editController, animated: true)
             },
+            changeDestination: { [weak self] completion in
+                guard let self = self else { return }
+
+                let controller = ChangeDestinationViewController(destination: self.configuration.destination) { controller, destination in
+                    controller.dismiss(animated: true)
+                    self.configuration.destination = destination
+                    completion(destination)
+                }
+
+                self.present(UINavigationController(rootViewController: controller), animated: true)
+            },
             goBack: { [weak self] in self?.backAction() },
             setReadyToShare: { [weak self] isReady in
                 self?.isReadyToShare = isReady
@@ -205,38 +227,20 @@ class PostComposerViewController: UIViewController {
         postComposerViewController.view.constrain(to: view)
         postComposerViewController.didMove(toParent: self)
 
-        let titleView = TitleView()
-        let shareTitle = NSLocalizedString("composer.post.button.share", value: "Share", comment: "Share button title.")
-        shareButton = UIBarButtonItem(title: shareTitle, style: .done, target: self, action: #selector(shareAction))
+        shareButton = UIBarButtonItem(title: "", style: .done, target: self, action: #selector(shareAction))
         shareButton.tintColor = .systemBlue
-        navigationItem.rightBarButtonItem = shareButton
-        navigationItem.rightBarButtonItem!.isEnabled = false
 
-        switch configuration.titleMode {
-        case .userPost:
-            titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
-            titleView.subtitleLabel.text = privacySettings.composerIndicator
-            privacySubscription = privacySettings.$composerIndicator.assign(to: \.text!, on: titleView.subtitleLabel)
-        case .groupPost:
-            titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
-            if let recipientName = recipientName {
-                let formatString = NSLocalizedString("composer.post.subtitle", value: "Sharing with %@", comment: "Composer subtitle for group posts.")
-                titleView.subtitleLabel.text = String.localizedStringWithFormat(formatString, recipientName)
-            } else {
-                titleView.isHidden = true
-            }
-        case .message:
-            titleView.titleLabel.text = NSLocalizedString("composer.message.title", value: "New Message", comment: "Composer New Message title.")
-            if let recipientName = recipientName {
-                let formatString = NSLocalizedString("composer.message.subtitle", value: "Sending to %@", comment: "Composer subtitle for messages.")
-                titleView.subtitleLabel.text = String.localizedStringWithFormat(formatString, recipientName)
-            } else {
-                titleView.isHidden = true
-            }
-            shareButton.title = NSLocalizedString("composer.post.button.send", value: "Send", comment: "Send button title.")
+        switch configuration.destination {
+        case .chat(_):
+            title = Localizations.newMessageTitle
+            shareButton.title = Localizations.buttonSend
+        default:
+            title = Localizations.newPostTitle
+            shareButton.title = Localizations.buttonShare
         }
 
-        navigationItem.titleView = titleView
+        navigationItem.rightBarButtonItem = shareButton
+        navigationItem.rightBarButtonItem!.isEnabled = false
         navigationItem.leftBarButtonItem =
             UIBarButtonItem(image: isMediaPost ? backIcon : closeIcon, style: .plain, target: self, action: #selector(backAction))
     }
@@ -293,7 +297,7 @@ class PostComposerViewController: UIViewController {
         // if no link preview or link preview not yet loaded, send without link preview.
         // if the link preview does not have an image... send immediately
         if link.value == "" || linkPreviewData.value == nil ||  linkPreviewImage.value == nil {
-            delegate?.composerDidTapShare(controller: self, mentionText: mentionText, media: mediaItems.value, linkPreviewData: linkPreviewData.value, linkPreviewMedia: nil)
+            delegate?.composerDidTapShare(controller: self, destination: configuration.destination, mentionText: mentionText, media: mediaItems.value, linkPreviewData: linkPreviewData.value, linkPreviewMedia: nil)
         } else {
             // if link preview has an image, load the image before sending.
             loadLinkPreviewImageAndShare(mentionText: mentionText)
@@ -305,13 +309,13 @@ class PostComposerViewController: UIViewController {
         let linkPreviewMedia = PendingMedia(type: .image)
         linkPreviewMedia.image = linkPreviewImage.value
         if linkPreviewMedia.ready.value {
-            self.delegate?.composerDidTapShare(controller: self, mentionText: mentionText, media: mediaItems.value, linkPreviewData: linkPreviewData.value, linkPreviewMedia: linkPreviewMedia)
+            self.delegate?.composerDidTapShare(controller: self, destination: configuration.destination, mentionText: mentionText, media: mediaItems.value, linkPreviewData: linkPreviewData.value, linkPreviewMedia: linkPreviewMedia)
         } else {
             self.cancellableSet.insert(
                 linkPreviewMedia.ready.sink { [weak self] ready in
                     guard let self = self else { return }
                     guard ready else { return }
-                    self.delegate?.composerDidTapShare(controller: self, mentionText: mentionText, media: self.mediaItems.value, linkPreviewData: self.linkPreviewData.value, linkPreviewMedia: linkPreviewMedia)
+                    self.delegate?.composerDidTapShare(controller: self, destination: self.configuration.destination, mentionText: mentionText, media: self.mediaItems.value, linkPreviewData: self.linkPreviewData.value, linkPreviewMedia: linkPreviewMedia)
                 }
             )
         }
@@ -346,58 +350,6 @@ class PostComposerViewController: UIViewController {
             }
         }
     }
-}
-
-fileprivate class TitleView: UIView {
-    public var isShowingTypingIndicator: Bool = false
-
-    override init(frame: CGRect){
-        super.init(frame: frame)
-        setup()
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-
-    func showChatState(with typingIndicatorStr: String?) {
-        let show: Bool = typingIndicatorStr != nil
-
-        subtitleLabel.isHidden = show
-        isShowingTypingIndicator = show
-    }
-
-    private func setup() {
-        let vStack = UIStackView(arrangedSubviews: [ titleLabel, subtitleLabel ])
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        vStack.alignment = .center
-        vStack.distribution = .fillProportionally
-        vStack.spacing = 0
-
-        addSubview(vStack)
-        vStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
-        vStack.topAnchor.constraint(equalTo: topAnchor).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
-        vStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
-    }
-
-    lazy var titleLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = .label
-        return label
-    }()
-
-    lazy var subtitleLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 13)
-        label.textColor = .secondaryLabel
-        label.lineBreakMode = .byTruncatingTail
-        return label
-    }()
 }
 
 fileprivate struct PostComposerLayoutConstants {
@@ -443,6 +395,7 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
     @ObservedObject private var isPosting = GenericObservable<Bool>(false)
     private let mentionableUsers: [MentionableUser]
+    private let changeDestination: (@escaping (PostComposerDestination) -> Void) -> Void
     private let crop: (Int, @escaping ([PendingMedia], Int, Bool) -> Void) -> Void
     private let goBack: () -> Void
     private let setReadyToShare: (Bool) -> Void
@@ -452,10 +405,12 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var currentPosition = GenericObservable(0)
     @ObservedObject private var postTextHeight = GenericObservable<CGFloat>(0)
     @ObservedObject private var postTextComputedHeight = GenericObservable<CGFloat>(0)
+    @ObservedObject private var privacySettings: PrivacySettings
     @State private var pendingMention: PendingMention? = nil
     @State private var keyboardHeight: CGFloat = 0
     @State private var presentPicker = false
     @State private var videoTooLong = false
+    @State private var destination: PostComposerDestination = .userFeed
     private var mediaItemsBinding = Binding.constant([PendingMedia]())
     private var mediaIsReadyBinding = Binding.constant(false)
     private var numberOfFailedItemsBinding = Binding.constant(0)
@@ -514,9 +469,11 @@ fileprivate struct PostComposerView: View {
         shouldAutoPlay: GenericObservable<Bool>,
         configuration: PostComposerViewConfiguration,
         crop: @escaping (Int, @escaping ([PendingMedia], Int, Bool) -> Void) -> Void,
+        changeDestination: @escaping (@escaping(PostComposerDestination) -> Void) -> Void,
         goBack: @escaping () -> Void,
         setReadyToShare: @escaping (Bool) -> Void)
     {
+        self.privacySettings = MainAppContext.shared.privacySettings
         self.mediaItems = mediaItems
         self.inputToPost = inputToPost
         self.link = link
@@ -526,9 +483,11 @@ fileprivate struct PostComposerView: View {
         self.shouldAutoPlay = shouldAutoPlay
         self.mediaCarouselMaxAspectRatio = configuration.mediaCarouselMaxAspectRatio
         self.maxVideoLength = configuration.maxVideoLength
+        self.changeDestination = changeDestination
         self.crop = crop
         self.goBack = goBack
         self.setReadyToShare = setReadyToShare
+        self._destination = State(initialValue: configuration.destination)
 
         readyToSharePublisher =
             Publishers.CombineLatest4(
@@ -616,6 +575,33 @@ fileprivate struct PostComposerView: View {
         return MediaCarouselView.preferredHeight(for: feedMediaItems, width: width - 4 * PostComposerLayoutConstants.horizontalPadding)
     }
 
+    private func changeDestinationButtonText() -> String {
+        switch destination {
+        case .userFeed:
+            return PrivacyList.name(forPrivacyListType: privacySettings.activeType ?? .all)
+        case .groupFeed(let groupId):
+            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+                return group.name
+            }
+        case .chat(let userId):
+            if let userId = userId {
+                let name = MainAppContext.shared.contactStore.fullName(for: userId)
+                return Localizations.newMessageSubtitle(recipient: name)
+            }
+        }
+
+        return ""
+    }
+
+    private func allowChangingDestination() -> Bool {
+        switch destination {
+        case .userFeed, .groupFeed:
+            return true
+        case .chat:
+            return false
+        }
+    }
+
     var picker: some View {
         Picker(mediaItems: mediaItemsBinding) { newMediaItems, cancel in
             presentPicker = false
@@ -640,6 +626,7 @@ fileprivate struct PostComposerView: View {
                     ControlIconView(imageLabel: "ComposerAddMedia")
                 }.sheet(isPresented: $presentPicker) {
                     picker
+                        .edgesIgnoringSafeArea(.bottom)
                 }
 
                 Spacer()
@@ -700,6 +687,29 @@ fileprivate struct PostComposerView: View {
     var body: some View {
         return GeometryReader { geometry in
             VStack(spacing: 0) {
+                Button(action: {
+                    changeDestination { destination in
+                        self.destination = destination
+                    }
+                }) {
+                    Text(changeDestinationButtonText())
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white)
+                        .offset(y: -1)
+
+                    if allowChangingDestination() {
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 14))
+                            .foregroundColor(.white)
+                    }
+                }
+                .frame(height: 25)
+                .padding(EdgeInsets(top: 0, leading: 11, bottom: 0, trailing: 11))
+                .background(Color.blue)
+                .cornerRadius(12)
+                .offset(y: -1)
+                .disabled(!allowChangingDestination())
+
                 GeometryReader { scrollGeometry in
                     ScrollView {
                         VStack {

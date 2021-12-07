@@ -163,7 +163,7 @@ public struct PostData {
                 } else {
                     return .album(album.text.mentionText, media)
                 }
-            case .none:
+            case .voiceNote(_), .none:
                 return .unsupported(payload)
             }
 

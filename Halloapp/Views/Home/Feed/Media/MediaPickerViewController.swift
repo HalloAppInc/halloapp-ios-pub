@@ -11,6 +11,7 @@ import Core
 import Foundation
 import PhotosUI
 import UIKit
+import AuthenticationServices
 
 private extension Localizations {
     static var photoAccessDeniedTitle: String {
@@ -77,7 +78,7 @@ fileprivate enum TransitionState {
 
 typealias MediaPickerViewControllerCallback = (MediaPickerViewController, [PendingMedia], Bool) -> Void
 
-class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PHPhotoLibraryChangeObserver, PickerViewCellDelegate, UIAdaptivePresentationControllerDelegate {
+class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
 
     private struct UserDefaultsKey {
         static let MediaPickerMode = "MediaPickerMode"
@@ -90,25 +91,37 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private let didFinish: MediaPickerViewControllerCallback
     private let camera: Bool
     private let filter: MediaPickerFilter
-    private let snapshotManager: MediaPickerSnapshotManager
-    private var dataSource: UICollectionViewDiffableDataSource<Int, PHAsset>!
-    private var collectionView: UICollectionView!
+    private var assets: PHFetchResult<PHAsset>?
     private var transitionLayout: UICollectionViewTransitionLayout?
     private var initialTransitionVelocity: CGFloat = 0
     private var transitionState: TransitionState = .ready
-    private var preview: UIView?
-    private var limitedAccessBubble: UIView!
+    private var preview: MediaPickerPreview?
     private var updatingSnapshot = false
     private var nextInProgress = false
     private var originalMedia: [PendingMedia] = []
+
+
+    private lazy var collectionView: UICollectionView = {
+        let collectionView = UICollectionView(frame: view.frame, collectionViewLayout: makeLayout())
+        collectionView.delegate = self
+        collectionView.backgroundColor = .feedBackground
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.allowsMultipleSelection = true
+        collectionView.register(AssetViewCell.self, forCellWithReuseIdentifier: AssetViewCell.reuseIdentifier)
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 50, right: 0)
+        collectionView.dataSource = self
+
+        return collectionView
+    }()
 
     private lazy var nextButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setTitle(Localizations.buttonNext, for: .normal)
-        button.backgroundColor = .primaryBlue
+        button.setBackgroundColor(.primaryBlue, for: .normal)
+        button.setBackgroundColor(.black.withAlphaComponent(0.19), for: .disabled)
         button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         button.layer.cornerRadius = 22
         button.layer.masksToBounds = true
 
@@ -121,19 +134,20 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }()
 
     private lazy var albumsButton: UIButton = {
-        let iconConfig = UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)
+        let iconConfig = UIImage.SymbolConfiguration(pointSize: 11, weight: .medium)
         let icon = UIImage(systemName: "chevron.down", withConfiguration: iconConfig)
+        let imageView = UIImageView(image: icon)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.tintColor = .black.withAlphaComponent(0.9)
 
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(icon, for: .normal)
-        button.semanticContentAttribute = .forceRightToLeft // Workaround to move the image on the right side
-        button.titleEdgeInsets.right = 10
-        button.contentHorizontalAlignment = .left
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        button.titleLabel?.font = .gothamFont(ofFixedSize: 16, weight: .medium)
+        button.setTitleColor(.black.withAlphaComponent(0.9), for: .normal)
 
-        button.widthAnchor.constraint(equalToConstant: 160).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        button.addSubview(imageView)
+        imageView.centerYAnchor.constraint(equalTo: button.centerYAnchor).isActive = true
+        imageView.leadingAnchor.constraint(equalTo: button.trailingAnchor, constant: 6).isActive = true
 
         button.addTarget(self, action: #selector(openAlbumsAction), for: .touchUpInside)
 
@@ -157,6 +171,56 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
 
         return container
     }()
+
+    private lazy var limitedAccessBubble: UIView = {
+        let bubble = UIView()
+        bubble.translatesAutoresizingMaskIntoConstraints = false
+        bubble.backgroundColor = .nux
+        bubble.layer.cornerRadius = 10
+        bubble.layer.shadowColor = UIColor.black.cgColor
+        bubble.layer.shadowOpacity = 0.25
+        bubble.layer.shadowRadius = 4
+        bubble.layer.shadowOffset = .init(width: 0, height: 4)
+        bubble.isHidden = true
+
+        let close = UIButton(type: .system)
+        close.translatesAutoresizingMaskIntoConstraints = false
+        close.setImage(UIImage(systemName: "xmark", withConfiguration: UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)), for: .normal)
+        close.tintColor = UIColor.white
+        close.alpha = 0.7
+        close.addTarget(self, action: #selector(closeLimitedAccessBuble), for: .touchUpInside)
+        bubble.addSubview(close)
+
+        let msg = UILabel()
+        msg.translatesAutoresizingMaskIntoConstraints = false
+        msg.text = Localizations.limitedAccessMessage
+        msg.textColor = UIColor.white
+        msg.numberOfLines = 0
+        bubble.addSubview(msg)
+
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle(Localizations.limitedAccessButton, for: .normal)
+        button.tintColor = UIColor.white
+        button.alpha = 0.7
+        button.addTarget(self, action: #selector(askForLimitedAccessUpdate), for: .touchUpInside)
+        bubble.addSubview(button)
+
+        NSLayoutConstraint.activate([
+            close.widthAnchor.constraint(equalToConstant: 13),
+            close.heightAnchor.constraint(equalToConstant: 13),
+            close.topAnchor.constraint(equalTo: bubble.topAnchor, constant: 8),
+            close.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -8),
+            msg.topAnchor.constraint(equalTo: close.bottomAnchor, constant: 4),
+            msg.leftAnchor.constraint(equalTo: bubble.leftAnchor, constant: 20),
+            msg.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -20),
+            button.topAnchor.constraint(equalTo: msg.bottomAnchor),
+            button.bottomAnchor.constraint(equalTo: bubble.bottomAnchor, constant: -8),
+            button.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -20),
+        ])
+
+        return bubble
+    }()
     
     init(filter: MediaPickerFilter = .all, multiselect: Bool = true, camera: Bool = false, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
         self.originalMedia.append(contentsOf: selected)
@@ -165,7 +229,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         self.camera = camera
         self.multiselect = multiselect
         self.filter = filter
-        self.snapshotManager = MediaPickerSnapshotManager(filter: filter)
 
         let modeRawValue = MainAppContext.shared.userDefaults.integer(forKey: UserDefaultsKey.MediaPickerMode)
         mode = MediaPickerMode(rawValue: modeRawValue) ?? .day
@@ -181,24 +244,28 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         super.viewDidLoad()
         
         setupNavigation()
-        collectionView = makeCollectionView(layout: makeLayout())
-        dataSource = makeDataSource(collectionView)
 
         view.addSubview(collectionView)
         view.addSubview(actionsContainerView)
+        view.addSubview(limitedAccessBubble)
 
         collectionView.constrain(to: view)
         actionsContainerView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         actionsContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         actionsContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-
-        limitedAccessBubble = makeLimitedAccessBubble()
+        limitedAccessBubble.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 20).isActive = true
+        limitedAccessBubble.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -20).isActive = true
+        limitedAccessBubble.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20).isActive = true
 
         setupZoom()
         setupPreviews()
 
         PHPhotoLibrary.shared().register(self)
         fetchAssets()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -213,10 +280,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         if !isFullscreen {
             navigationController.presentationController?.delegate = self
         }
-    }
-
-    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
-        cancelAction()
     }
 
     deinit {
@@ -257,93 +320,40 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             guard let self = self else { return }
             let recent = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil).firstObject
 
+            let assets: PHFetchResult<PHAsset>
             if let album = album ?? recent {
-                // Unable to filter album assets by type, will filter them in snapshot manager
-                self.snapshotManager.reset(with: PHAsset.fetchAssets(in: album, options: nil))
+                let options: PHFetchOptions?
+                switch self.filter {
+                case .all:
+                    options = nil
+                case .image:
+                    options = PHFetchOptions()
+                    options?.predicate = NSPredicate(format: "mediaType == %i", PHAssetMediaType.image.rawValue)
+                case .video:
+                    options = PHFetchOptions()
+                    options?.predicate = NSPredicate(format: "mediaType == %i", PHAssetMediaType.video.rawValue)
+                }
+
+                assets = PHAsset.fetchAssets(in: album, options: options)
             } else {
                 switch self.filter {
                 case .all:
-                    self.snapshotManager.reset(with: PHAsset.fetchAssets(with: nil))
+                    assets = PHAsset.fetchAssets(with: nil)
                 case .image:
-                    self.snapshotManager.reset(with: PHAsset.fetchAssets(with: .image, options: nil))
+                    assets = PHAsset.fetchAssets(with: .image, options: nil)
                 case .video:
-                    self.snapshotManager.reset(with: PHAsset.fetchAssets(with: .video, options: nil))
+                    assets = PHAsset.fetchAssets(with: .video, options: nil)
                 }
             }
             
-            let snapshot = self.snapshotManager.next()
-            
             DispatchQueue.main.async {
+                self.assets = assets
+                self.collectionView.reloadData()
+                self.scrollToBottom()
                 self.setupNavigation(album: (album ?? recent)?.localizedTitle)
-                self.dataSource.apply(snapshot)
                 self.showLimitedAccessBubbleIfNecessary()
             }
         }
-    }
-
-    func photoLibraryDidChange(_ changeInstance: PHChange) {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
-            guard let snapshot = self.snapshotManager.update(change: changeInstance) else { return }
-
-            DispatchQueue.main.async {
-                self.dataSource.apply(snapshot, animatingDifferences: true)
-            }
-        }
-    }
-
-    func makeLimitedAccessBubble() -> UIView {
-        let bubble = UIView()
-        bubble.translatesAutoresizingMaskIntoConstraints = false
-        bubble.backgroundColor = .nux
-        bubble.layer.cornerRadius = 10
-        bubble.layer.shadowColor = UIColor.black.cgColor
-        bubble.layer.shadowOpacity = 0.25
-        bubble.layer.shadowRadius = 4
-        bubble.layer.shadowOffset = .init(width: 0, height: 4)
-        bubble.isHidden = true
-        view.addSubview(bubble)
-
-        let close = UIButton(type: .system)
-        close.translatesAutoresizingMaskIntoConstraints = false
-        close.setImage(UIImage(systemName: "xmark", withConfiguration: UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)), for: .normal)
-        close.tintColor = UIColor.white
-        close.alpha = 0.7
-        close.addTarget(self, action: #selector(closeLimitedAccessBuble), for: .touchUpInside)
-        bubble.addSubview(close)
-
-        let msg = UILabel()
-        msg.translatesAutoresizingMaskIntoConstraints = false
-        msg.text = Localizations.limitedAccessMessage
-        msg.textColor = UIColor.white
-        msg.numberOfLines = 0
-        bubble.addSubview(msg)
-
-        let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitle(Localizations.limitedAccessButton, for: .normal)
-        button.tintColor = UIColor.white
-        button.alpha = 0.7
-        button.addTarget(self, action: #selector(askForLimitedAccessUpdate), for: .touchUpInside)
-        bubble.addSubview(button)
-
-        NSLayoutConstraint.activate([
-            bubble.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 20),
-            bubble.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -20),
-            bubble.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20),
-            close.widthAnchor.constraint(equalToConstant: 13),
-            close.heightAnchor.constraint(equalToConstant: 13),
-            close.topAnchor.constraint(equalTo: bubble.topAnchor, constant: 8),
-            close.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -8),
-            msg.topAnchor.constraint(equalTo: close.bottomAnchor, constant: 4),
-            msg.leftAnchor.constraint(equalTo: bubble.leftAnchor, constant: 20),
-            msg.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -20),
-            button.topAnchor.constraint(equalTo: msg.bottomAnchor),
-            button.bottomAnchor.constraint(equalTo: bubble.bottomAnchor, constant: -8),
-            button.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -20),
-        ])
-
-        return bubble
     }
 
     func showLimitedAccessBubbleIfNecessary() {
@@ -382,7 +392,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         let backIcon = UIImage(systemName: selected.count > 0 ? "xmark" : "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: backIcon, style: .plain, target: self, action: #selector(cancelAction))
 
-        nextButton.isHidden = !multiselect || selected.count == 0
+        nextButton.isHidden = !multiselect
+        nextButton.isEnabled = selected.count > 0
 
         var buttons = [UIBarButtonItem]()
         if camera {
@@ -461,127 +472,19 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
     
     @objc func onDisplayPreview(sender: UILongPressGestureRecognizer) {
-        if sender.state == .began {
-            let p = sender.location(in: collectionView)
-            guard let indexPath = collectionView.indexPathForItem(at: p) else { return }
-            guard let asset = dataSource.itemIdentifier(for: indexPath) else { return }
-            guard self.preview == nil else { return }
-            
-            let manager = PHImageManager.default()
-            
-            if asset.mediaType == .image {
-                let options = PHImageRequestOptions()
-                options.isSynchronous = true
-                options.isNetworkAccessAllowed = true
+        if sender.state == .began && preview == nil {
+            let location = sender.location(in: collectionView)
 
-                manager.requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFit, options: options) {[weak self] image, _ in
-                    guard let self = self else { return }
-                    guard let image = image else { return }
-                    guard self.preview == nil else { return }
-                    
-                    self.makeImagePreview(image)
-                    self.showPreview()
-                }
-            } else if asset.mediaType == .video {
-                let options = PHVideoRequestOptions()
-                options.isNetworkAccessAllowed = true
-                
-                manager.requestPlayerItem(forVideo: asset, options: options) {[weak self] playerItem, _ in
-                    guard let self = self else { return }
-                    guard let playerItem = playerItem else { return }
-                    guard self.preview == nil else { return }
-                    
-                    self.makeVideoPreview(playerItem)
-                    self.showPreview()
-                }
-            }
-        } else if self.preview != nil && sender.state == .ended {
-            hidePreview()
+            guard let indexPath = collectionView.indexPathForItem(at: location) else { return }
+            guard let asset = assets?[indexPath.row] else { return }
+            guard let window = view.window else { return }
+
+            preview = MediaPickerPreview(asset: asset, parent: window)
+            preview?.show()
+        } else if sender.state == .ended || sender.state == .cancelled {
+            preview?.hide()
+            preview = nil
         }
-    }
-    
-    private func makeImagePreview(_ image: UIImage) {
-        guard let window = view.window else { return }
-
-        let content = UIView()
-        content.translatesAutoresizingMaskIntoConstraints = false
-        content.backgroundColor = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.6)
-        window.addSubview(content)
-        
-        let iView = UIImageView()
-        iView.translatesAutoresizingMaskIntoConstraints = false
-        iView.contentMode = .scaleAspectFit
-        iView.layer.cornerRadius = 15
-        iView.clipsToBounds = true
-        iView.image = image
-        content.addSubview(iView)
-        
-        preview = content
-
-        let spacing = CGFloat(20)
-        let widthRatio = (view.bounds.width - 2 * spacing) / image.size.width
-        let heightRatio = (view.bounds.height - 2 * spacing) / image.size.height
-        let scale = min(widthRatio, heightRatio, 1)
-
-        NSLayoutConstraint.activate([
-            content.topAnchor.constraint(equalTo: window.topAnchor),
-            content.leftAnchor.constraint(equalTo: window.leftAnchor),
-            content.rightAnchor.constraint(equalTo: window.rightAnchor),
-            content.bottomAnchor.constraint(equalTo: window.bottomAnchor),
-            iView.centerXAnchor.constraint(equalTo: content.centerXAnchor),
-            iView.centerYAnchor.constraint(equalTo: content.centerYAnchor),
-            iView.widthAnchor.constraint(equalToConstant: image.size.width * scale),
-            iView.heightAnchor.constraint(equalToConstant: image.size.height * scale),
-        ])
-    }
-    
-    private func makeVideoPreview(_ item: AVPlayerItem) {
-        let content = UIView()
-        content.backgroundColor = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.4)
-        content.frame = view.bounds
-        
-        let player = AVPlayer(playerItem: item)
-        let playerView = PlayerPreviewView()
-        playerView.player = player
-        playerView.frame = view.bounds.insetBy(dx: 40, dy: 40)
-        content.addSubview(playerView)
-        
-        player.play()
-        
-        preview = content
-        view.window?.addSubview(content)
-    }
-    
-    private func showPreview() {
-        guard let preview = self.preview else { return }
-        
-        preview.alpha = 0
-        UIView.animate(withDuration: 0.3) {
-            preview.alpha = 1
-        }
-    }
-    
-    private func hidePreview() {
-        guard let preview = self.preview else { return }
-        self.preview = nil
-        
-        UIView.animate(withDuration: 0.3, animations: {
-            preview.alpha = 0
-        }, completion: { finished in
-            preview.removeFromSuperview()
-        })
-    }
-    
-    private func makeCollectionView(layout: UICollectionViewFlowLayout) -> UICollectionView {
-        let collectionView = UICollectionView(frame: view.frame, collectionViewLayout: layout)
-        collectionView.delegate = self
-        collectionView.backgroundColor = .feedBackground
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.allowsMultipleSelection = true
-        collectionView.register(AssetViewCell.self, forCellWithReuseIdentifier: AssetViewCell.reuseIdentifier)
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 50, right: 0)
-        
-        return collectionView
     }
     
     private func makeLayout() -> UICollectionViewFlowLayout {
@@ -590,30 +493,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         layout.minimumLineSpacing = 0
         
         return layout
-    }
-    
-    private func makeDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, PHAsset> {
-        let source = UICollectionViewDiffableDataSource<Int, PHAsset>(collectionView: collectionView) { [weak self] collectionView, indexPath, asset in
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AssetViewCell.reuseIdentifier, for: indexPath) as? AssetViewCell else {
-                return nil
-            }
-
-            cell.delegate = self
-            cell.asset = asset
-            cell.indexPath = indexPath
-
-            let options = PHImageRequestOptions()
-            options.isNetworkAccessAllowed = true
-            PHImageManager.default().requestImage(for: asset, targetSize: CGSize(width: 256, height: 256), contentMode: .aspectFill, options: options) { image, _ in
-                guard cell.asset?.localIdentifier == asset.localIdentifier else { return }
-                cell.image.image = image
-                cell.prepare()
-            }
-
-            return cell
-        }
-        
-        return source
     }
 
     @objc private func cameraAction() {
@@ -751,7 +630,12 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                                 }
                             }
                         } else {
-                            DDLogWarn("MediaPickerViewController/next/video Unable to fetch video")
+                            if let avasset = avasset {
+                                DDLogWarn("MediaPickerViewController/next/video Unknown video type \(String(describing: type(of: avasset)))")
+                            } else {
+                                DDLogWarn("MediaPickerViewController/next/video Missing video")
+                            }
+
                             media.error.send(PendingMediaError.loadingError)
                         }
                     }
@@ -798,11 +682,11 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             controller.dismiss(animated: true)
             
             if !cancel {
-                self.collectionView.scrollToItem(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
                 self.fetchAssets(album: album)
             }
         }
-        self.present(controller, animated: true)
+
+        present(controller, animated: true)
     }
 
     @objc private func closeLimitedAccessBuble() {
@@ -825,49 +709,15 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             self.present(sheet, animated: true)
         }
     }
-    
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard !updatingSnapshot else { return }
-        guard let row = collectionView.indexPathsForVisibleItems.last?.row else { return }
-        guard dataSource.snapshot().numberOfItems > 0 else { return }
-        
-        
-        if (Float(row) / Float(dataSource.snapshot().numberOfItems)) > 0.4 {
-            updatingSnapshot = true
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                guard let self = self else { return }
-                
-                let snapshot = self.snapshotManager.next()
-                
-                DispatchQueue.main.async {
-                    self.updatingSnapshot = false
-                    self.dataSource.apply(snapshot)
-                }
-            }
-        }
+
+    private func scrollToBottom(_ animated: Bool = false) {
+        guard let count = assets?.count, count > 0 else { return }
+        collectionView.scrollToItem(at: IndexPath(row: count - 1, section: 0), at: .bottom, animated: animated)
     }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        switch mode {
-        case .month:
-            let size = (UIScreen.main.bounds.width - 0.1) * 0.2
-            return CGSize(width: size, height: size)
-        case .day:
-            let size = UIScreen.main.bounds.width * 0.3333
-            return CGSize(width: size, height: size)
-        case .dayLarge where (indexPath.row % 5) < 2:
-            let size = UIScreen.main.bounds.width * 0.5
-            return CGSize(width: size, height: size * 1.27)
-        case .dayLarge:
-            let size = UIScreen.main.bounds.width * 0.3333
-            return CGSize(width: size, height: size * 1.42)
-        }
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 0
-    }
-    
+}
+
+// MARK: UICollectionViewDelegate
+extension MediaPickerViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         guard let cell = collectionView.cellForItem(at: indexPath) as? AssetViewCell else { return false }
         guard let asset = cell.asset else { return false }
@@ -883,10 +733,10 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         } else {
             select(collectionView, cell: cell, asset: asset)
         }
-        
+
         return false
     }
-    
+
     private func select(_ collectionView: UICollectionView, cell: AssetViewCell, asset: PHAsset) {
         if !multiselect {
             selected.append(asset)
@@ -900,7 +750,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         UIView.animateKeyframes(withDuration: 0.2, delay: 0, options: [], animations: {
             UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.5, animations: {
                 cell.image.layer.cornerRadius = 15
-                cell.image.transform = CGAffineTransform(scaleX: 0.7, y: 0.7)
+                cell.image.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
                 cell.prepareIndicator()
             })
 
@@ -911,7 +761,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             cell.prepare()
         })
     }
-    
+
     private func deselect(_ collectionView: UICollectionView, cell: AssetViewCell, asset: PHAsset) {
         guard let idx = self.selected.firstIndex(of: asset) else { return }
         selected.remove(at: idx)
@@ -936,40 +786,79 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
 }
 
-class PlayerPreviewView: UIView {
-    var player: AVPlayer? {
-        get {
-            return playerLayer.player
+// MARK: UICollectionViewDelegateFlowLayout
+extension MediaPickerViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        switch mode {
+        case .month:
+            let size = (UIScreen.main.bounds.width - 0.1) * 0.2
+            return CGSize(width: size, height: size)
+        case .day:
+            let size = UIScreen.main.bounds.width * 0.3333
+            return CGSize(width: size, height: size)
+        case .dayLarge where (indexPath.row % 5) < 2:
+            let size = UIScreen.main.bounds.width * 0.5
+            return CGSize(width: size, height: size * 1.27)
+        case .dayLarge:
+            let size = UIScreen.main.bounds.width * 0.3333
+            return CGSize(width: size, height: size * 1.42)
         }
-        set {
-            playerLayer.player = newValue
-            playerLayer.player?.currentItem?.addObserver(self, forKeyPath: "status", options: [], context: nil)
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+}
+
+// MARK: UICollectionViewDataSource
+extension MediaPickerViewController: UICollectionViewDataSource {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return 1
+    }
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return assets?.count ?? 0
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AssetViewCell.reuseIdentifier, for: indexPath)
+
+        if let cell = cell as? AssetViewCell, let asset = assets?[indexPath.row] {
+            cell.delegate = self
+            cell.asset = asset
+            cell.indexPath = indexPath
+
+            let options = PHImageRequestOptions()
+            options.isNetworkAccessAllowed = true
+            PHImageManager.default().requestImage(for: asset, targetSize: CGSize(width: 256, height: 256), contentMode: .aspectFill, options: options) { image, _ in
+                guard cell.asset?.localIdentifier == asset.localIdentifier else { return }
+                cell.image.image = image
+                cell.prepare()
+            }
+        }
+
+        return cell
+    }
+}
+
+// MARK: PHPhotoLibraryChangeObserver
+extension MediaPickerViewController: PHPhotoLibraryChangeObserver {
+    func photoLibraryDidChange(_ changeInstance: PHChange) {
+        guard let assets = self.assets else { return }
+        guard let details = changeInstance.changeDetails(for: assets) else { return }
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.assets = details.fetchResultAfterChanges
+            self.collectionView.reloadData()
         }
     }
-    
-    var playerLayer: AVPlayerLayer {
-        return layer as! AVPlayerLayer
-    }
-    
-    // Override UIView property
-    override static var layerClass: AnyClass {
-        return AVPlayerLayer.self
-    }
-    
-    private func makeVideoRounded() {
-        let maskLayer = CAShapeLayer()
-        maskLayer.path = UIBezierPath(roundedRect: playerLayer.videoRect, cornerRadius: 15).cgPath
-        playerLayer.mask = maskLayer
-    }
-    
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == "status" {
-            guard let status = playerLayer.player?.currentItem?.status, status == .readyToPlay else { return }
-            makeVideoRounded()
-            return
-        }
-        
-        super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+}
+
+// MARK: UIAdaptivePresentationControllerDelegate
+extension MediaPickerViewController: UIAdaptivePresentationControllerDelegate {
+    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        cancelAction()
     }
 }
 
@@ -994,7 +883,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
-        label.font = UIFont.gothamFont(ofFixedSize: 18, weight: .medium)
+        label.font = UIFont.gothamFont(ofFixedSize: 17.5, weight: .medium)
         label.textColor = .white
         label.layer.cornerRadius = 15
         label.layer.borderWidth = 3

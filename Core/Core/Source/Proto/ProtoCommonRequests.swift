@@ -99,7 +99,7 @@ public final class ProtoGetServerPropertiesRequest: ProtoRequest<ServerPropertie
 
 public final class ProtoMessageRerequest: ProtoRequest<Void> {
 
-    public init(messageID: String, fromUserID: UserID, toUserID: UserID, rerequestData: RerequestData, completion: @escaping Completion) {
+    public init(messageID: String, fromUserID: UserID, toUserID: UserID, contentType: Server_Rerequest.ContentType, rerequestData: RerequestData, completion: @escaping Completion) {
         var rerequest = Server_Rerequest()
         rerequest.id = messageID
         rerequest.identityKey = rerequestData.identityKey
@@ -107,6 +107,7 @@ public final class ProtoMessageRerequest: ProtoRequest<Void> {
         rerequest.oneTimePreKeyID = Int64(rerequestData.oneTimePreKeyID ?? 0)
         rerequest.sessionSetupEphemeralKey = rerequestData.sessionSetupEphemeralKey
         rerequest.messageEphemeralKey = rerequestData.messageEphemeralKey ?? Data()
+        rerequest.contentType = contentType
 
         super.init(
             iqPacket: .msgPacket(from: fromUserID, to: toUserID, type: .chat, payload: .rerequest(rerequest)),
@@ -287,6 +288,29 @@ private extension DiscreteEvent {
             report.rerequestCount = UInt32(rerequestCount)
             report.timeTakenS = UInt32(timeTaken)
             return .groupDecryptionReport(report)
+
+        case .callReport(let id, let peerUserID, let type, let direction, let networkType, let answered, let connected, let duration_ms, let endCallReason, let localEndCall, let webrtcStats):
+            var callReport = Server_Call()
+            callReport.callID = id
+            callReport.peerUid = UInt64(peerUserID) ?? 0
+            if type == "audio" {
+                callReport.type = .audio
+            } else if type == "video" {
+                callReport.type = .video
+            }
+            callReport.direction = direction == "outgoing" ? .outgoing : .incoming
+            if networkType == "wifi" {
+                callReport.networkType = .wifi
+            } else if networkType == "cellular" {
+                callReport.networkType = .cellular
+            }
+            callReport.answered = answered
+            callReport.connected = connected
+            callReport.durationMs = UInt64(duration_ms)
+            callReport.endCallReason = endCallReason
+            callReport.localEndCall = localEndCall
+            callReport.webrtcStats = webrtcStats
+            return .call(callReport)
 
         }
     }

@@ -47,6 +47,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
     
     public var reachabilityState: ReachablilityState = .reachable
+    public var reachabilityConnectionType: String = "unknown"
 
     public var isAppVersionKnownExpired = CurrentValueSubject<Bool, Never>(false)
     public var isAppVersionCloseToExpiry = CurrentValueSubject<Bool, Never>(false)
@@ -1475,13 +1476,16 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func rerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?, completion: @escaping ServiceRequestCompletion<Void>) {
-        guard let identityKey = AppContext.shared.keyStore.keyBundle()?.identityPublicEdKey else {
-            DDLogError("ProtoService/rerequestMessage/\(message.id)/error could not retrieve identity key")
+    public func rerequestMessage(_ messageID: String, senderID: UserID, failedEphemeralKey: Data?, contentType: Server_Rerequest.ContentType, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let fromUserID = credentials?.userID else {
+            DDLogError("proto/rerequestMessage/error no-user-id")
+            completion(.failure(.notConnected))
             return
         }
-
-        let fromUserID = UserID(message.fromUid)
+        guard let identityKey = AppContext.shared.keyStore.keyBundle()?.identityPublicEdKey else {
+            DDLogError("ProtoService/rerequestMessage/\(messageID)/error could not retrieve identity key")
+            return
+        }
 
         AppContext.shared.messageCrypter.sessionSetupInfoForRerequest(from: fromUserID) { setupInfo in
             let rerequestData = RerequestData(
@@ -1491,18 +1495,14 @@ extension ProtoServiceCore: CoreService {
                 sessionSetupEphemeralKey: setupInfo?.0 ?? Data(),
                 messageEphemeralKey: failedEphemeralKey)
 
-            DDLogInfo("ProtoService/rerequestMessage/\(message.id) rerequesting")
-            self.rerequestMessage(message.id, senderID: fromUserID, rerequestData: rerequestData, completion: completion)
+            DDLogInfo("ProtoService/rerequestMessage/\(messageID) rerequesting")
+            self.enqueue(request: ProtoMessageRerequest(messageID: messageID,
+                                                   fromUserID: fromUserID,
+                                                   toUserID: senderID,
+                                                   contentType: contentType,
+                                                   rerequestData: rerequestData,
+                                                   completion: completion))
         }
-    }
-
-    public func rerequestMessage(_ messageID: String, senderID: UserID, rerequestData: RerequestData, completion: @escaping ServiceRequestCompletion<Void>) {
-        guard let fromUserID = credentials?.userID else {
-            DDLogError("proto/rerequestMessage/error no-user-id")
-            completion(.failure(.notConnected))
-            return
-        }
-        enqueue(request: ProtoMessageRerequest(messageID: messageID, fromUserID: fromUserID, toUserID: senderID, rerequestData: rerequestData, completion: completion))
     }
 
     public func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>) {

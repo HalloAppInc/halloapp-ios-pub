@@ -45,7 +45,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>This lets you take photos and videos right from within HalloApp.</string>
 	<key>NSContactsUsageDescription</key>
-	<string>Upload your contacts to HalloApp's servers to see posts of your friends and let them see yours.</string>
+	<string>Upload your contacts to HalloApp&apos;s servers to see posts of your friends and let them see yours.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This lets you record videos with sound.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -53,6 +53,7 @@
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>INSendMessageIntent</string>
+		<string>INStartCallIntent</string>
 	</array>
 	<key>UIAppFonts</key>
 	<array>

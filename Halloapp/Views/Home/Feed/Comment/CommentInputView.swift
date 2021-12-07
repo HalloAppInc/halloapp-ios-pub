@@ -1047,8 +1047,10 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
                 }
               return
             }
-            self.invalidLinkPreviewUrl = nil
-            if let imageProvider = data.imageProvider {
+            // If image is not present, fallback on icon.
+            var imageProvider = (data.imageProvider != nil) ? data.imageProvider : data.iconProvider
+
+            if let imageProvider = imageProvider {
                 imageProvider.loadObject(ofClass: UIImage.self) { (image, error) in
                     DispatchQueue.main.async { [weak self] in
                         guard let self = self else { return }

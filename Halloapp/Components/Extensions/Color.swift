@@ -13,6 +13,14 @@ extension Color {
         Color("FeedBackground")
     }
 
+    static var feedPostBackground: Color {
+        Color("FeedPostBackground")
+    }
+
+    static var primaryBlackWhite: Color {
+        Color("PrimaryBlackWhite")
+    }
+
     static var lavaOrange: Color {
         Color("LavaOrange")
     }

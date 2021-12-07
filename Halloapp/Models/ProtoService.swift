@@ -448,24 +448,9 @@ final class ProtoService: ProtoServiceCore {
 
     private func updateStatusAndRerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?) {
         self.updateMessageStatus(id: message.id, status: .rerequested)
-        guard let identityKey = AppContext.shared.keyStore.keyBundle()?.identityPublicEdKey else {
-            DDLogError("ProtoService/rerequestMessage/\(message.id)/error could not retrieve identity key")
-            return
-        }
-
         let fromUserID = UserID(message.fromUid)
-
-        AppContext.shared.messageCrypter.sessionSetupInfoForRerequest(from: fromUserID) { setupInfo in
-            let rerequestData = RerequestData(
-                identityKey: identityKey,
-                signedPreKeyID: 0,
-                oneTimePreKeyID: setupInfo?.1,
-                sessionSetupEphemeralKey: setupInfo?.0 ?? Data(),
-                messageEphemeralKey: failedEphemeralKey)
-
-            DDLogInfo("ProtoService/rerequestMessage/\(message.id) rerequesting")
-            self.rerequestMessage(message.id, senderID: fromUserID, rerequestData: rerequestData) { _ in }
-        }
+        DDLogInfo("ProtoService/rerequestMessage/\(message.id) rerequesting")
+        rerequestMessage(message.id, senderID: fromUserID, failedEphemeralKey: failedEphemeralKey, contentType: .chat) { _ in }
     }
 
     override func didReceive(packet: Server_Packet) {
@@ -699,8 +684,8 @@ final class ProtoService: ProtoServiceCore {
                     sessionSetupEphemeralKey: rerequest.sessionSetupEphemeralKey,
                     messageEphemeralKey: rerequest.messageEphemeralKey),
                 from: userID)
-            DDLogInfo("proto/didReceive/\(msg.id)/rerequest/chat")
-            if let delegate = chatDelegate {
+            DDLogInfo("proto/didReceive/\(msg.id)/rerequest/contentType: \(rerequest.contentType)")
+            if let delegate = chatDelegate, rerequest.contentType == .chat {
                 delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID, ack: ack)
                 hasAckBeenDelegated = true
             }

@@ -48,4 +48,9 @@ public extension CountableEvent {
         extraDimensions["version"] = AppContext.appVersionForService
         return CountableEvent(namespace: "crypto", metric: "e2e_session", extraDimensions: extraDimensions)
     }
+
+    static func packetDecryption(duringHandshake: Bool) -> CountableEvent {
+        let extraDimensions = ["type": duringHandshake ? "handshake" : "stream"]
+        return CountableEvent(namespace: "noise", metric: "decryption_error", extraDimensions: extraDimensions)
+    }
 }

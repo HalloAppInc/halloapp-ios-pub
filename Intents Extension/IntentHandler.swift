@@ -8,7 +8,7 @@
 
 import Intents
 
-class IntentHandler: INExtension {
+class IntentHandler: INExtension, INStartCallIntentHandling {
     
     override func handler(for intent: INIntent) -> Any {
         // This is the default implementation.  If you want different objects to handle different intents,
@@ -17,4 +17,21 @@ class IntentHandler: INExtension {
         return self
     }
     
+
+    func handle(intent: INStartCallIntent, completion: @escaping (INStartCallIntentResponse) -> Void) {
+        let response: INStartCallIntentResponse
+        defer {
+            completion(response)
+        }
+
+        // Ensure there is a person handle
+        guard intent.contacts?.first?.personHandle != nil else {
+            response = INStartCallIntentResponse(code: .failure, userActivity: nil)
+            return
+        }
+
+        let userActivity = NSUserActivity(activityType: String(describing: INStartCallIntent.self))
+
+        response = INStartCallIntentResponse(code: .continueInApp, userActivity: userActivity)
+    }
 }

@@ -72,6 +72,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // remove appCrashKey value to indicate a clean termination (no crash)
         AppContext.shared.userDefaults.removeObject(forKey: appCrashKey)
         DDLogInfo("application/willTerminate/remove/appCrashKey")
+
+        AppContext.shared.stopReportingEvents()
         DDLogInfo("application/willTerminate")
     }
 
@@ -233,12 +235,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         reachability?.whenReachable = { reachability in
             DDLogInfo("appdelegate/Reachability/reachable/\(reachability.connection)")
             MainAppContext.shared.coreService.reachabilityState = .reachable
+            MainAppContext.shared.coreService.reachabilityConnectionType = reachability.connection.description
             MainAppContext.shared.coreService.startConnectingIfNecessary()
             MainAppContext.shared.feedData.resumeMediaDownloads()
         }
         reachability?.whenUnreachable = { reachability in
             DDLogInfo("appdelegate/Reachability/unreachable/\(reachability.connection)")
             MainAppContext.shared.coreService.reachabilityState = .unreachable
+            MainAppContext.shared.coreService.reachabilityConnectionType = reachability.connection.description
             MainAppContext.shared.feedData.suspendMediaDownloads()
         }
         do {

@@ -9,24 +9,28 @@
 import Core
 import SwiftUI
 
-private extension Localizations {
+public extension Localizations {
 
-    static var shareWithAllContacts: String {
+    static var feedPrivacyShareWithAllContacts: String {
         return NSLocalizedString("feed.privacy.descr.all",
-                                 value: "Share with all of your contacts",
+                                 value: "Share with all my contacts",
                                  comment: "Describes what 'All Contacts' feed privacy setting means.")
     }
 
-    static var shareWithContactsExcept: String {
+    static var feedPrivacyShareWithContactsExcept: String {
         return NSLocalizedString("feed.privacy.descr.except",
-                                 value: "Share with your contacts except people you select",
+                                 value: "Share with my contacts except people I select",
                                  comment: "Describes what 'All Contacts' feed privacy setting means.")
     }
 
-    static var shareWithSelected: String {
+    static var feedPrivacyShareWithSelected: String {
         return NSLocalizedString("feed.privacy.descr.only",
                                  value: "Only share with selected contacts",
                                  comment: "Describes what 'All Contacts' feed privacy setting means.")
+    }
+
+    static var header: String {
+        NSLocalizedString("feed.privacy.header", value: "Who will see my posts", comment: "Header describing what these options are for")
     }
 }
 
@@ -39,100 +43,138 @@ struct FeedPrivacyView: View {
 
     init(privacySettings: PrivacySettings) {
         self.privacySettings = privacySettings
-        UITableView.appearance(whenContainedInInstancesOf: [ UIHostingController<FeedPrivacyView>.self ]).backgroundColor = .feedBackground
     }
 
     var body: some View {
-        VStack {
+        ZStack {
+            Rectangle()
+                .fill(Color.feedBackground)
+                .edgesIgnoringSafeArea(.all)
 
-            if self.privacySettings.privacyListSyncError != nil {
-                HStack {
-                    Text(self.privacySettings.privacyListSyncError!)
-                        .foregroundColor(.white)
-                        .padding(.all)
-                        .frame(maxWidth: .infinity)
+            VStack(spacing: 0) {
+
+                if self.privacySettings.privacyListSyncError != nil {
+                    HStack {
+                        Text(self.privacySettings.privacyListSyncError!)
+                            .foregroundColor(.white)
+                            .padding(.all)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .background(Color.lavaOrange)
                 }
-                .background(Color.lavaOrange)
-            }
 
-            Form {
-                Section {
-                    Button(action: {
-                            self.selectAllContacts()
-                            self.shouldShowEnableContactPermissionView = !ContactStore.contactsAccessAuthorized
-                    }) {
-                        HStack {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(self.privacySettings.activeType == .all ? .lavaOrange : .clear)
+                Spacer()
+                    .frame(height: 15)
 
-                            VStack(alignment: .leading) {
-                                Text(PrivacyList.name(forPrivacyListType: .all))
-                                    .font(self.privacySettings.activeType == .all ? Font.body.bold() : Font.body)
+                Text(Localizations.header.uppercased())
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.primaryBlackWhite.opacity(0.5))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(EdgeInsets(top: 0, leading: 20, bottom: 7, trailing: 0))
 
-                                Text(Localizations.shareWithAllContacts)
-                                    .font(.footnote)
-                                    .foregroundColor(.secondary)
-                            }
+                Button(action: {
+                        self.selectAllContacts()
+                        self.shouldShowEnableContactPermissionView = !ContactStore.contactsAccessAuthorized
+                }) {
+                    HStack {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(self.privacySettings.activeType == .all ? .blue : .clear)
 
-                            Spacer()
+                        VStack(alignment: .leading) {
+                            Text(PrivacyList.name(forPrivacyListType: .all))
+                                .font(.body)
+
+                            Text(Localizations.feedPrivacyShareWithAllContacts)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
                         }
-                    }
-                    .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
-                    .sheet(isPresented: self.$shouldShowEnableContactPermissionView) {
-                        PrivacyPermissionDeniedView(dismissAction: { self.shouldShowEnableContactPermissionView = false })
-                    }
-                    Button(action: { self.isBlacklistScreenPresented = true }) {
-                        HStack {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(self.privacySettings.activeType == .blacklist ? .lavaOrange : .clear)
 
-                            VStack(alignment: .leading) {
-                                Text(PrivacyList.name(forPrivacyListType: .blacklist))
-                                    .font(self.privacySettings.activeType == .blacklist ? Font.body.bold() : Font.body)
-
-                                Text(self.privacySettings.activeType == .blacklist ? self.privacySettings.longFeedSetting : Localizations.shareWithContactsExcept)
-                                    .font(.footnote)
-                                    .foregroundColor(.secondary)
-                            }
-
-                            Spacer()
-                        }
-                    }
-                    .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
-                    .sheet(isPresented: self.$isBlacklistScreenPresented) {
-                        PrivacyListView(self.privacySettings.blacklist, dismissAction: { self.isBlacklistScreenPresented = false })
-                            .environmentObject(self.privacySettings)
-                            .edgesIgnoringSafeArea(.bottom)
-                    }
-
-                    Button(action: { self.isWhitelistScreenPresented = true }) {
-                        HStack {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(self.privacySettings.activeType == .whitelist ? .lavaOrange : .clear)
-
-                            VStack(alignment: .leading) {
-                                Text(PrivacyList.name(forPrivacyListType: .whitelist))
-                                    .font(self.privacySettings.activeType == .whitelist ? Font.body.bold() : Font.body)
-
-                                Text(self.privacySettings.activeType == .whitelist ? self.privacySettings.longFeedSetting : Localizations.shareWithSelected)
-                                    .font(.footnote)
-                                    .foregroundColor(.secondary)
-                            }
-
-                            Spacer()
-                        }
-                    }
-                    .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
-                    .sheet(isPresented: self.$isWhitelistScreenPresented) {
-                        PrivacyListView(self.privacySettings.whitelist, dismissAction: { self.isWhitelistScreenPresented = false })
-                            .environmentObject(self.privacySettings)
-                            .edgesIgnoringSafeArea(.bottom)
+                        Spacer()
                     }
                 }
+                .frame(height: 54)
+                .padding(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 10))
+                .background(Color.feedPostBackground)
+                .cornerRadius(13)
+                .padding(EdgeInsets(top: 0, leading: 16, bottom: 7, trailing: 16))
+                .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
+                .sheet(isPresented: self.$shouldShowEnableContactPermissionView) {
+                    PrivacyPermissionDeniedView(dismissAction: { self.shouldShowEnableContactPermissionView = false })
+                }
+
+                Button(action: { self.isBlacklistScreenPresented = true }) {
+                    HStack {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(self.privacySettings.activeType == .blacklist ? .blue : .clear)
+
+                        VStack(alignment: .leading) {
+                            Text(PrivacyList.name(forPrivacyListType: .blacklist))
+                                .font(.body)
+
+                            Text(self.privacySettings.activeType == .blacklist ? self.privacySettings.longFeedSetting : Localizations.feedPrivacyShareWithContactsExcept)
+                                .lineLimit(1)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .renderingMode(.template)
+                            .foregroundColor(.primaryBlackWhite.opacity(0.3))
+                    }
+                }
+                .frame(height: 54)
+                .padding(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 10))
+                .background(Color.feedPostBackground)
+                .cornerRadius(13)
+                .padding(EdgeInsets(top: 0, leading: 16, bottom: 7, trailing: 16))
+                .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
+                .sheet(isPresented: self.$isBlacklistScreenPresented) {
+                    PrivacyListView(self.privacySettings.blacklist, dismissAction: { self.isBlacklistScreenPresented = false })
+                        .environmentObject(self.privacySettings)
+                        .edgesIgnoringSafeArea(.bottom)
+                }
+
+                Button(action: { self.isWhitelistScreenPresented = true }) {
+                    HStack {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(self.privacySettings.activeType == .whitelist ? .blue : .clear)
+
+                        VStack(alignment: .leading) {
+                            Text(PrivacyList.name(forPrivacyListType: .whitelist))
+                                .font(.body)
+
+                            Text(self.privacySettings.activeType == .whitelist ? self.privacySettings.longFeedSetting : Localizations.feedPrivacyShareWithSelected)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .renderingMode(.template)
+                            .foregroundColor(.primaryBlackWhite.opacity(0.3))
+                    }
+                }
+                .frame(height: 54)
+                .padding(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 10))
+                .background(Color.feedPostBackground)
+                .cornerRadius(13)
+                .padding(EdgeInsets(top: 0, leading: 16, bottom: 7, trailing: 16))
+                .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
+                .sheet(isPresented: self.$isWhitelistScreenPresented) {
+                    PrivacyListView(self.privacySettings.whitelist, dismissAction: { self.isWhitelistScreenPresented = false })
+                        .environmentObject(self.privacySettings)
+                        .edgesIgnoringSafeArea(.bottom)
+                }
+
+                Spacer()
             }
         }
-        .background(Color.feedBackground)
-        .edgesIgnoringSafeArea(.bottom)
     }
 
     private func selectAllContacts() {

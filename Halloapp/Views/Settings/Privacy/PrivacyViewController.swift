@@ -53,7 +53,7 @@ class PrivacyViewController: UITableViewController {
     // MARK: View Controller
 
     init() {
-        super.init(style: .grouped)
+        super.init(style: .insetGrouped)
         title = Localizations.titlePrivacy
     }
 
@@ -110,6 +110,10 @@ class PrivacyViewController: UITableViewController {
             openBlockedContacts()
         }
 
+    }
+
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 54
     }
 
     // MARK: Settings

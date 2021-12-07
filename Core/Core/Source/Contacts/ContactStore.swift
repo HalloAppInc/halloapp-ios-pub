@@ -268,6 +268,21 @@ open class ContactStore {
         return pushNumberData.normalizedPhoneNumber
     }
 
+    open func userID(for normalizedPushNumber: UserID) -> UserID? {
+        let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPushNumber)
+        do {
+            let results = try viewContext.fetch(fetchRequest)
+            if results.count >= 2 {
+                DDLogError("contactStore/fetchUserID/fetched count=[\(results.count)]")
+            }
+            return results.first?.userID
+        }
+        catch {
+            fatalError("contactStore/fetchUserID/error [\(error)]")
+        }
+    }
+
     private static func fetchAllPushNumbersData(using managedObjectContext: NSManagedObjectContext) -> [UserID: PushNumberData] {
         let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
         do {
@@ -432,6 +447,18 @@ open class ContactStore {
     public func contact(withNormalizedPhone normalizedPhoneNumber: String) -> ABContact? {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPhoneNumber)
+        do {
+            let contacts = try viewContext.fetch(fetchRequest)
+            return contacts.first
+        }
+        catch {
+            fatalError("Unable to fetch contacts: \(error)")
+        }
+    }
+
+    public func contact(withIdentifier identifier: String) -> ABContact? {
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
         do {
             let contacts = try viewContext.fetch(fetchRequest)
             return contacts.first
