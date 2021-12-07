@@ -27,6 +27,7 @@ public struct ServerProperties {
         case isAudioCallsEnabled = "audio_calls"
         case isVideoCallsEnabled = "video_calls"
         case callWaitTimeoutSec = "call_wait_timeout"
+        case isflatCommentsEnabled = "flat_comments"
     }
 
     private struct UserDefaultsKey {
@@ -53,6 +54,7 @@ public struct ServerProperties {
         static let isAudioCallsEnabled = false
         static let isVideoCallsEnabled = false
         static let callWaitTimeoutSec = 60
+        static let isflatCommentsEnabled = false
     }
 
     // MARK: Storage
@@ -231,5 +233,9 @@ public struct ServerProperties {
 
     public static var callWaitTimeoutSec: Int {
         ServerProperties.integer(forKey: .callWaitTimeoutSec) ?? Defaults.callWaitTimeoutSec
+    }
+    
+    public static var isFlatCommentsEnabled: Bool {
+        ServerProperties.bool(forKey: .isflatCommentsEnabled) ?? Defaults.isflatCommentsEnabled
     }
 }
