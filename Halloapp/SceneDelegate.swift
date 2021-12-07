@@ -270,17 +270,76 @@ extension SceneDelegate: UIWindowSceneDelegate {
 
     // handles invite url while app is either in foreground or background
     func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
-        DDLogInfo("application/scene/continue")
-        if userActivity.activityType == NSUserActivityTypeBrowsingWeb {
+        DDLogInfo("application/scene/continue, type: \(userActivity.activityType)")
+        switch userActivity.activityType {
+        case NSUserActivityTypeBrowsingWeb:
             guard let incomingURL = userActivity.webpageURL else { return }
             guard let inviteToken = ChatData.parseInviteURL(url: incomingURL) else { return }
             DDLogInfo("application/scene/continue/incomingURL \(incomingURL)")
             processGroupInviteToken(inviteToken)
+
+        // TODO: Do we need to use this intent to pop up people for share-intents? maybe?
+        case "INStartAudioCallIntent", "INStartCallIntent":
+            // We always try to fetch the contactIdentifier first.
+            // Because user could be trying to make the call using siri (or) native-contacts app (or) native-calls app.
+            // We lookup the contact and its userID to start call.
+            // If that does not work: then we try using the phone number value.
+            // If it was a halloapp call - the handle value should be the normalized phone number.
+            // So we try to look up the userID using that phone number and then use that to start call.
+
+            let peerUserID: UserID?
+            if let contactIdentifier = userActivity.contactIdentifier {
+                let peerContact = MainAppContext.shared.contactStore.contact(withIdentifier: contactIdentifier)
+                peerUserID = peerContact?.userId
+            } else {
+                DDLogError("appdelegate/scene/continueUserActivity/contactIdentifier is nil - \(String(describing: userActivity.interaction?.intent))")
+                if let peerNumber = userActivity.phoneNumber {
+                    peerUserID = MainAppContext.shared.contactStore.userID(for: peerNumber)
+                } else {
+                    DDLogError("appdelegate/scene/continueUserActivity/peerNumber is nil - \(String(describing: userActivity.interaction?.intent))")
+                    return
+                }
+            }
+
+            guard let peerUserID = peerUserID else {
+                DDLogError("appdelegate/scene/continueUserActivity/empty peerUserID - \(String(describing: userActivity.interaction?.intent))")
+                return
+            }
+
+            DDLogInfo("appdelegate/scene/continueUserActivity/trying to startCall for: \(peerUserID)")
+            MainAppContext.shared.callManager.startCall(to: peerUserID) { [weak self] result in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success:
+                        DDLogInfo("appdelegate/scene/continueUserActivity/startCall/success")
+                    case .failure:
+                        DDLogInfo("appdelegate/scene/continueUserActivity/startCall/failure")
+                        // TODO: present a call failure screen here.
+                        let alert = self.getFailedCallAlertController()
+                        self.window?.rootViewController?.present(alert, animated: true, completion: nil)
+                    }
+                }
+            }
+
+        default:
+            DDLogInfo("application/scene/continue - unable to handle - type: \(userActivity.activityType)")
         }
-        
+
         if let intent = userActivity.interaction?.intent {
             MainAppContext.shared.didTapIntent.send(intent)
         }
+    }
+
+    private func getFailedCallAlertController() -> UIAlertController {
+        let alert = UIAlertController(
+            title: Localizations.failedCallTitle,
+            message: Localizations.failedCallNoticeText,
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonOk, style: .default, handler: { action in
+            DDLogInfo("SceneDelegate/failedCallAlertController/dismiss")
+        }))
+        return alert
     }
 
     private func checkPasteboardForGroupInviteLinkIfNecessary() {
@@ -326,4 +385,39 @@ private extension SceneDelegate {
         MainAppContext.shared.userData.groupInviteToken = inviteToken
         MainAppContext.shared.didGetGroupInviteToken.send()
     }
+}
+
+// MARK: Intents: Extend NSUserActivity
+
+protocol SupportedStartCallIntent {
+    var contacts: [INPerson]? { get }
+}
+
+extension INStartCallIntent: SupportedStartCallIntent {}
+
+// TODO: ios complains that this was deprecated: but this is the intent that ios invokes our app with.
+// weird: why they do it - did not find much online for this as of now?
+// We anyways made sure to support both for now.
+extension INStartAudioCallIntent: SupportedStartCallIntent {}
+
+extension NSUserActivity {
+
+    var phoneNumber: String? {
+        guard let startCallIntent = interaction?.intent as? SupportedStartCallIntent else {
+            DDLogError("NSUserActivity/handleValue is nil/intent: \(String(describing: interaction?.intent.description))")
+            return nil
+        }
+        DDLogInfo("NSUserActivity/handleValue/intent: \(String(describing: interaction?.intent.description))")
+        return startCallIntent.contacts?.first?.personHandle?.value
+    }
+
+    var contactIdentifier: String? {
+        guard let startCallIntent = interaction?.intent as? SupportedStartCallIntent else {
+            DDLogError("NSUserActivity/contactIdentifier is nil/intent: \(String(describing: interaction?.intent.description))")
+            return nil
+        }
+        DDLogInfo("NSUserActivity/contactIdentifier/intent: \(String(describing: interaction?.intent.description))")
+        return startCallIntent.contacts?.first?.contactIdentifier
+    }
+
 }
