@@ -116,7 +116,7 @@ public final class WhisperSession {
                     userID: self.userID,
                     inboundIdentityPublicEdKey: rerequestData.identityKey,
                     inboundEphemeralPublicKey: rerequestData.sessionSetupEphemeralKey,
-                    inboundEphemeralKeyID: 1,
+                    inboundEphemeralKeyID: 0,
                     oneTimeKeyID: rerequestData.oneTimePreKeyID,
                     previousChainLength: 0,
                     userKeys: userKeys)

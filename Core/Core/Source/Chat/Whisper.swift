@@ -353,7 +353,7 @@ final class Whisper {
 
                                   outboundEphemeralPrivateKey: outboundEphemeralPrivateKey,
                                   outboundEphemeralPublicKey: outboundEphemeralPublicKey,
-                                  outboundEphemeralKeyId: 1,
+                                  outboundEphemeralKeyId: 0,
                                   outboundChainKey: Data(outboundChainKey),
                                   outboundPreviousChainLength: 0,
                                   outboundChainIndex: 0,
@@ -454,7 +454,7 @@ final class Whisper {
 
                                   outboundEphemeralPrivateKey: outboundEphemeralPrivateKey,
                                   outboundEphemeralPublicKey: outboundEphemeralPublicKey,
-                                  outboundEphemeralKeyId: 1,
+                                  outboundEphemeralKeyId: 0,
                                   outboundChainKey: Data(outboundChainKey),
                                   outboundPreviousChainLength: 0,
                                   outboundChainIndex: 0)
@@ -528,7 +528,13 @@ final class Whisper {
         }
 
         if keyBundle.inboundEphemeralPublicKey == payload.ephemeralPublicKey {
-            DDLogInfo("WhisperSession/ratchetKeyBundle/newEphemeralKey/skipping [ephemeral keys match]")
+            if keyBundle.inboundEphemeralKeyId != payload.ephemeralKeyID {
+                // We have the right key but need to update the ID to match sender's state
+                DDLogInfo("WhisperSession/ratchetKeyBundle/newEphemeralKey/match [new key id] [\(keyBundle.inboundEphemeralKeyId)]->[\(payload.ephemeralKeyID)]")
+                newKeyBundle.inboundEphemeralKeyId = payload.ephemeralKeyID
+            } else {
+                DDLogInfo("WhisperSession/ratchetKeyBundle/newEphemeralKey/match [skipping]")
+            }
         } else {
             DDLogInfo("WhisperSession/ratchetKeyBundle/newEphemeralKey/updating")
 
