@@ -120,7 +120,8 @@ final class CallManager: NSObject, CXProviderDelegate {
             callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID)
             let handle = handle(for: peerUserID)
             DDLogInfo("CallManager/startCall/create/callID: \(callID)/handleValue: \(handle.value)")
-            let startCallAction = CXStartCallAction(call: callID.callUUID, handle: handle)
+            var startCallAction = CXStartCallAction(call: callID.callUUID, handle: handle)
+            startCallAction.contactIdentifier = peerName(for: peerUserID)
             let transaction = CXTransaction()
             transaction.addAction(startCallAction)
             requestTransaction(transaction, completion: completion)
@@ -206,8 +207,13 @@ final class CallManager: NSObject, CXProviderDelegate {
     }
 
     private func handle(for peerUserID: UserID) -> CXHandle {
-        let handleValue = MainAppContext.shared.contactStore.fullNameIfAvailable(for: peerUserID, ownName: nil, showPushNumber: true) ?? Localizations.unknownContact
-        return CXHandle(type: .generic, value: handleValue)
+        let peerNumber = MainAppContext.shared.contactStore.pushNumber(peerUserID) ?? ""
+        let handle = CXHandle(type: .generic, value: peerNumber)
+        return handle
+    }
+
+    private func peerName(for peerUserID: UserID) -> String {
+        return MainAppContext.shared.contactStore.fullNameIfAvailable(for: peerUserID, ownName: nil, showPushNumber: true) ?? Localizations.unknownContact
     }
 
     private func resetState() {
@@ -393,6 +399,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         DDLogInfo("CallManager/reportIncomingCall/callID: \(callID)/peerUserID: \(peerUserID)")
         let update = CXCallUpdate()
         update.remoteHandle = handle(for: peerUserID)
+        update.localizedCallerName = peerName(for: peerUserID)
         provider.reportNewIncomingCall(with: callID.callUUID, update: update) { error in
             if let error = error {
                 DDLogError("CallManager/reportNewIncomingCall/callID: \(callID)/error: \(error)")
