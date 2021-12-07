@@ -630,7 +630,12 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
                                 }
                             }
                         } else {
-                            DDLogWarn("MediaPickerViewController/next/video Unable to fetch video")
+                            if let avasset = avasset {
+                                DDLogWarn("MediaPickerViewController/next/video Unknown video type \(String(describing: type(of: avasset)))")
+                            } else {
+                                DDLogWarn("MediaPickerViewController/next/video Missing video")
+                            }
+
                             media.error.send(PendingMediaError.loadingError)
                         }
                     }
