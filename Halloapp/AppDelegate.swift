@@ -72,6 +72,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // remove appCrashKey value to indicate a clean termination (no crash)
         AppContext.shared.userDefaults.removeObject(forKey: appCrashKey)
         DDLogInfo("application/willTerminate/remove/appCrashKey")
+
+        AppContext.shared.stopReportingEvents()
         DDLogInfo("application/willTerminate")
     }
 

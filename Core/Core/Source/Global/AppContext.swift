@@ -85,15 +85,7 @@ open class AppContext {
     public let messageCrypter: MessageCrypter
     public let fileLogger: DDFileLogger
     public let phoneNumberFormatter = PhoneNumberKit(metadataCallback: AppContext.phoneNumberKitMetadataCallback)
-    public lazy var eventMonitor: EventMonitor = {
-        let monitor = EventMonitor()
-        do {
-            try monitor.loadReport(from: userDefaults)
-        } catch {
-            DDLogError("AppContext/EventMonitor/load/error \(error)")
-        }
-        return monitor
-    }()
+    public let eventMonitor = EventMonitor()
 
     public var coreService: CoreService
     public var errorLogger: ErrorLogger?
@@ -115,14 +107,20 @@ open class AppContext {
 
     // MARK: Event monitoring
 
-    public func startReportingEvents() {
+    /// Loads any saved events from user defaults and starts reporting at interval
+    public func startReportingEvents(atInterval interval: TimeInterval = 30) {
 
         guard eventMonitorTimer == nil else {
             DDLogInfo("AppContext/startReportingEvents already started")
             return
         }
 
-        let interval = TimeInterval(30)
+        do {
+            try eventMonitor.loadReport(from: userDefaults)
+        } catch {
+            DDLogError("AppContext/EventMonitor/load/error \(error)")
+        }
+
         DDLogInfo("AppContext/startReportingEvents [interval=\(interval)]")
 
         let timer = DispatchSource.makeTimerSource(flags: [], queue: .main)
@@ -134,10 +132,12 @@ open class AppContext {
         eventMonitorTimer = timer
     }
 
+    /// Cancels event reporting timer and saves unreported events to user defaults.
     public func stopReportingEvents() {
         DDLogInfo("AppContext/stopReportingEvents")
         eventMonitorTimer?.cancel()
         eventMonitorTimer = nil
+        eventMonitor.saveReport(to: userDefaults)
     }
 
     public func observeAndSave(event: DiscreteEvent) {

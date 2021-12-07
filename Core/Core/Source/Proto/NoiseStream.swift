@@ -164,8 +164,11 @@ public final class NoiseStream: NSObject {
 
     // MARK: Private
 
-    private func disconnectWithError(_ error: NoiseStreamError) {
+    private func disconnectWithError(_ error: NoiseStreamError, isDuringHandshake: Bool) {
         AppContext.shared.errorLogger?.logError(error)
+        if case .packetDecryptionFailure = error {
+            AppContext.shared.eventMonitor.count(.packetDecryption(duringHandshake: isDuringHandshake))
+        }
 
         // Cancel connection immediately without transitioning to `disconnecting` state.
         // This will prompt service to treat it as any other socket error and reconnect.
@@ -462,7 +465,7 @@ public final class NoiseStream: NSObject {
         switch state {
         case .authorizing, .handshake:
             DDLogInfo("noise/handshake/failed")
-            disconnectWithError(.handshakeFailure)
+            disconnectWithError(.handshakeFailure, isDuringHandshake: true)
         case .connecting, .connected, .disconnected, .disconnecting:
             DDLogInfo("noise/handshake/could-not-fail [state=\(state)]")
         }
@@ -520,7 +523,7 @@ public final class NoiseStream: NSObject {
             case .authorizing(let send, let recv):
                 guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: packetData) else {
                     DDLogError("noise/receive/error could not decrypt auth result [\(packetData.base64EncodedString())]")
-                    disconnectWithError(.packetDecryptionFailure)
+                    disconnectWithError(.packetDecryptionFailure, isDuringHandshake: true)
                     break
                 }
                 handshakeTimeoutTask?.cancel()
@@ -538,7 +541,7 @@ public final class NoiseStream: NSObject {
             case .connected(_, let recv):
                 guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: packetData) else {
                     DDLogError("noise/receive/error could not decrypt packet [\(packetData.base64EncodedString())]")
-                    disconnectWithError(.packetDecryptionFailure)
+                    disconnectWithError(.packetDecryptionFailure, isDuringHandshake: false)
                     break
                 }
                 delegate?.receivedPacketData(decryptedData)
