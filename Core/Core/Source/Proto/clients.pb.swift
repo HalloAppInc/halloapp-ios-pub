@@ -491,11 +491,20 @@ public struct Clients_PostContainer {
     set {post = .album(newValue)}
   }
 
+  public var voiceNote: Clients_VoiceNote {
+    get {
+      if case .voiceNote(let v)? = post {return v}
+      return Clients_VoiceNote()
+    }
+    set {post = .voiceNote(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Post: Equatable {
     case text(Clients_Text)
     case album(Clients_Album)
+    case voiceNote(Clients_VoiceNote)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Clients_PostContainer.OneOf_Post, rhs: Clients_PostContainer.OneOf_Post) -> Bool {
@@ -509,6 +518,10 @@ public struct Clients_PostContainer {
       }()
       case (.album, .album): return {
         guard case .album(let l) = lhs, case .album(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.voiceNote, .voiceNote): return {
+        guard case .voiceNote(let l) = lhs, case .voiceNote(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -868,11 +881,21 @@ public struct Clients_Album {
   /// Clears the value of `text`. Subsequent reads from it will return its default value.
   public mutating func clearText() {self._text = nil}
 
+  public var voiceNote: Clients_VoiceNote {
+    get {return _voiceNote ?? Clients_VoiceNote()}
+    set {_voiceNote = newValue}
+  }
+  /// Returns true if `voiceNote` has been explicitly set.
+  public var hasVoiceNote: Bool {return self._voiceNote != nil}
+  /// Clears the value of `voiceNote`. Subsequent reads from it will return its default value.
+  public mutating func clearVoiceNote() {self._voiceNote = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
   fileprivate var _text: Clients_Text? = nil
+  fileprivate var _voiceNote: Clients_VoiceNote? = nil
 }
 
 public struct Clients_SenderKey {
@@ -1847,6 +1870,7 @@ extension Clients_PostContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "text"),
     2: .same(proto: "album"),
+    3: .standard(proto: "voice_note"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1873,6 +1897,15 @@ extension Clients_PostContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.post = .album(v)}
       }()
+      case 3: try {
+        var v: Clients_VoiceNote?
+        if let current = self.post {
+          try decoder.handleConflictingOneOf()
+          if case .voiceNote(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.post = .voiceNote(v)}
+      }()
       default: break
       }
     }
@@ -1890,6 +1923,10 @@ extension Clients_PostContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     case .album?: try {
       guard case .album(let v)? = self.post else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .voiceNote?: try {
+      guard case .voiceNote(let v)? = self.post else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
     case nil: break
     }
@@ -2412,6 +2449,7 @@ extension Clients_Album: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "media"),
     2: .same(proto: "text"),
+    3: .standard(proto: "voice_note"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2422,6 +2460,7 @@ extension Clients_Album: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
       switch fieldNumber {
       case 1: try { try decoder.decodeRepeatedMessageField(value: &self.media) }()
       case 2: try { try decoder.decodeSingularMessageField(value: &self._text) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._voiceNote) }()
       default: break
       }
     }
@@ -2434,12 +2473,16 @@ extension Clients_Album: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     if let v = self._text {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }
+    if let v = self._voiceNote {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Clients_Album, rhs: Clients_Album) -> Bool {
     if lhs.media != rhs.media {return false}
     if lhs._text != rhs._text {return false}
+    if lhs._voiceNote != rhs._voiceNote {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
