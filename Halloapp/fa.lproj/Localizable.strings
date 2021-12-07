@@ -334,15 +334,6 @@
 /* Placeholder text in text post composer screen. */
 "composer.placeholder.text.post" = "نوشتن پست";
 
-/* Send button title. */
-"composer.post.button.send" = "ارسال";
-
-/* Share button title. */
-"composer.post.button.share" = "اشتراک گذاری";
-
-/* Composer subtitle for group posts. */
-"composer.post.subtitle" = "اشتراک گذاری به %@";
-
 /* Composer New Post title. */
 "composer.post.title" = "پست جدید";
 
@@ -354,6 +345,9 @@
 
 /* Feed Privacy indicator in post composer. */
 "composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
+
+/* Show the user that the title is tappable */
+"composer.subtitle.cta" = "برای تغییر کلیک کنید";
 
 /* No comment provided by engineer. */
 "CONNECTION" = "ارتباط";
@@ -469,14 +463,26 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "به اشتراک گذاشتن با مخاطب‌هایی که انتخاب کرده‌اید";
 
+/* Header describing what these options are for */
+"feed.privacy.header" = "کسانی که پست من را میبینند";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "مخاطب‌های تلفن";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "مخاطب‌ها به جز...";
 
+/* Header for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.details" = "انتخاب کسانی که پست شما را نمیبینند";
+
+/* Title for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.title" = "پست‌های من را پنهان کن از...";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "اشتراک گذاشتن با...";
+
+/* Header for the list when selecting contacts to share with. */
+"feed.privacy.list.only.details" = "انتخاب کسانی که پست شما را میبینند";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "مخاطب‌های تلفن";
@@ -943,6 +949,9 @@
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "picker.media.n.limit";
 
+/* Title for the picker screen. */
+"post.controller.picker.title" = "پست جدید";
+
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "این عکس حذف شده است";
 
@@ -951,6 +960,15 @@
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted.by.you" = "شما پست را حذف کرده‌اید";
+
+/* Header when selecting all or some contacts to share with */
+"post.privacy.header.contacts" = "کسانی که این پست را میبینند";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "به اشتراک گذاشتن فقط با یک گروه";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "به اشتراک گذاشتن با...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "مسدود شده‌ها";
@@ -969,6 +987,9 @@
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "رفع مسدودیت";
+
+/* Item in Profile > Calls screen. */
+"profile.help.calls" = "تماس‌ها";
 
 /* Item in Profile > Help screen. */
 "profile.help.faq" = "پرسش‌های متداول";
@@ -1092,6 +1113,12 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "کد امنیتی با موفقیت تأیید شد برای %@!";
+
+/* body of the marketing alert sent to users */
+"server.marketing.body" = "دوستانتان را دعوت کنید تا از هالواپ لذت ببرند!";
+
+/* title of the marketing alert sent to users */
+"server.marketing.title" = "سلام!";
 
 /* fallback text in notification for a new comment */
 "server.new.comment" = "نظر جدید";
@@ -1281,6 +1308,9 @@
 
 /* Title for the Comments screen. */
 "title.comments" = "نظر";
+
+/* Title for the picker screen. */
+"title.comments.picker" = "نظر جدید";
 
 /* Second tab in the main app interface. */
 "title.groups" = "گروه‌ها";

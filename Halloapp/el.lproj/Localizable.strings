@@ -295,15 +295,6 @@
 /* Placeholder text in text post composer screen. */
 "composer.placeholder.text.post" = "Σύνταξη δημοσίευσης";
 
-/* Send button title. */
-"composer.post.button.send" = "Αποστολή";
-
-/* Share button title. */
-"composer.post.button.share" = "Κοινοποίηση";
-
-/* Composer subtitle for group posts. */
-"composer.post.subtitle" = "Κοινοποίηση σε %@";
-
 /* Composer New Post title. */
 "composer.post.title" = "Νέα Δημοσίευση";
 

@@ -334,15 +334,6 @@
 /* Placeholder text in text post composer screen. */
 "composer.placeholder.text.post" = "Bir gönderi yaz";
 
-/* Send button title. */
-"composer.post.button.send" = "Gönder";
-
-/* Share button title. */
-"composer.post.button.share" = "Paylaş";
-
-/* Composer subtitle for group posts. */
-"composer.post.subtitle" = "%@ ile paylaşılıyor";
-
 /* Composer New Post title. */
 "composer.post.title" = "Yeni gönderi";
 
