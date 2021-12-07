@@ -58,6 +58,7 @@ public enum EndCallReason: Int, Codable {
     case decryptionError = 6
     case encryptionError = 7
     case connectionError = 8
+    case videoUnsupportedError = 9
 }
 
 extension EndCallReason {
@@ -80,8 +81,9 @@ extension EndCallReason {
         case .decryptionError:
             return .decryptionFailed
         case .connectionError:
-            // TODO: update protobuf for connection error.
-            return .systemError
+            return .connectionError
+        case .videoUnsupportedError:
+            return .videoUnsupported
         }
     }
 
@@ -104,8 +106,9 @@ extension EndCallReason {
         case .decryptionError:
             return "decryptionFailed"
         case .connectionError:
-            // TODO: update protobuf for connection error.
-            return "systemError"
+            return "connectionError"
+        case .videoUnsupportedError:
+            return "videoUnsupported"
         }
     }
 }

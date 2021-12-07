@@ -476,7 +476,8 @@ final class NotificationProtoService: ProtoServiceCore {
             if let failedEphemeralKey = chatMessage.ephemeralKey, let serverMsgPb = chatMessage.serverMsgPb {
                 do {
                     let serverMsg = try Server_Msg(serializedData: serverMsgPb)
-                    rerequestMessage(serverMsg, failedEphemeralKey: failedEphemeralKey) { [weak self] result in
+                    let fromUserID = UserID(serverMsg.fromUid)
+                    rerequestMessage(serverMsg.id, senderID: fromUserID, failedEphemeralKey: failedEphemeralKey, contentType: .chat) { [weak self] result in
                         guard let self = self else { return }
                         switch result {
                         case .success(_):

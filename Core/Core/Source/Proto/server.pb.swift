@@ -4077,7 +4077,7 @@ public struct Server_Rerequest {
   public enum ContentType: SwiftProtobuf.Enum {
     public typealias RawValue = Int
     case chat // = 0
-    case calls // = 1
+    case call // = 1
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -4087,7 +4087,7 @@ public struct Server_Rerequest {
     public init?(rawValue: Int) {
       switch rawValue {
       case 0: self = .chat
-      case 1: self = .calls
+      case 1: self = .call
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -4095,7 +4095,7 @@ public struct Server_Rerequest {
     public var rawValue: Int {
       switch self {
       case .chat: return 0
-      case .calls: return 1
+      case .call: return 1
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -4111,7 +4111,7 @@ extension Server_Rerequest.ContentType: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
   public static var allCases: [Server_Rerequest.ContentType] = [
     .chat,
-    .calls,
+    .call,
   ]
 }
 
@@ -10545,7 +10545,7 @@ extension Server_Rerequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
 extension Server_Rerequest.ContentType: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "CHAT"),
-    1: .same(proto: "CALLS"),
+    1: .same(proto: "CALL"),
   ]
 }
 

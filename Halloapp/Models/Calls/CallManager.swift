@@ -465,7 +465,8 @@ extension CallManager: HalloCallDelegate {
         let reportIncomingCallCompletion: (() -> Void) = {
             let encryptedData = EncryptedData(data: webrtcOffer.encPayload, identityKey: webrtcOffer.publicKey.isEmpty ? nil : webrtcOffer.publicKey, oneTimeKeyId: Int(webrtcOffer.oneTimePreKeyID))
             // TODO: Unify all these encryption and decryption api: easier to track counters.
-            AppContext.shared.messageCrypter.decrypt(encryptedData, from: peerUserID) { result in
+            AppContext.shared.messageCrypter.decrypt(encryptedData, from: peerUserID) { [weak self] result in
+                guard let self = self else { return }
                 switch result {
                 case .success(let decryptedData):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/decrypt/success")
@@ -483,13 +484,30 @@ extension CallManager: HalloCallDelegate {
                     }
                 case .failure(let failure):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/decrypt/failure: \(failure)")
+                    self.service.rerequestMessage(incomingCall.callID,
+                                                  senderID: peerUserID,
+                                                  failedEphemeralKey: failure.ephemeralKey,
+                                                  contentType: .call) { result in
+                        switch result {
+                        case .failure(let error):
+                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/rerequestMessage/failure: \(error)")
+                        case .success(_):
+                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/rerequestMessage/success")
+                        }
+                    }
                     self.endCall(reason: .decryptionError) { _ in }
                 }
             }
         }
 
         // Try to decrypt offer if no call is active and report to callkit provider.
-        if activeCallID == incomingCall.callID {
+        // Check if call is supported or if we have an active call already.
+        if incomingCall.callType != .audio {
+            // Reject non-audio calls for now.
+            // TODO: we need some sort of tombstone here eventually!
+            MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .videoUnsupportedError)
+            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason videoUnsupportedError")
+        } else if activeCallID == incomingCall.callID {
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID) duplicate packet")
         } else if activeCall != nil {
             MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
@@ -529,7 +547,18 @@ extension CallManager: HalloCallDelegate {
                     self.activeCall?.didReceiveAnswer(sdpInfo: String(data: decryptedData, encoding: .utf8)!)
                 case .failure(let failure):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/decrypt/failure: \(failure)")
-                    MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .decryptionError)
+                    self.service.rerequestMessage(answerCall.callID,
+                                                  senderID: peerUserID,
+                                                  failedEphemeralKey: failure.ephemeralKey,
+                                                  contentType: .call) { result in
+                        switch result {
+                        case .failure(let error):
+                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/rerequestMessage/failure: \(error)")
+                        case .success(_):
+                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveAnswerCall/rerequestMessage/success")
+                        }
+                    }
+                    self.service.endCall(id: callID, to: peerUserID, reason: .decryptionError)
                 }
             }
         } else {
