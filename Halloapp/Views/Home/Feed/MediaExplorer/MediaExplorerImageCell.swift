@@ -251,28 +251,30 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
         if sender.state == .began || sender.state == .changed {
             var translation = sender.translation(in: window)
 
-            if abs(translation.x) <= abs(translation.y) {
-                translation.x = 0
-            } else if abs(translation.x) > abs(translation.y) {
-                translation.y = 0
+            // when scrolling horizontally, if page changing has begun it has priority
+            if scrollView.contentOffset.x > originalOffset.x {
+                let translate = min(scrollView.contentOffset.x - originalOffset.x, translation.x)
+                scrollView.setContentOffset(CGPoint(x: scrollView.contentOffset.x - translate, y: scrollView.contentOffset.y), animated: false)
+                translation.x -= translate
+            } else if scrollView.contentOffset.x < originalOffset.x {
+                let translate = max(scrollView.contentOffset.x - originalOffset.x, translation.x)
+                scrollView.setContentOffset(CGPoint(x: scrollView.contentOffset.x - translate, y: scrollView.contentOffset.y), animated: false)
+                translation.x -= translate
             }
 
-            if scrollView.contentOffset.x == originalOffset.x {
-                if translation.x > 0 && minX < spaceBetweenPages {
-                    imageView.center.x += min(translation.x, spaceBetweenPages - minX)
-                    translation.x = max(translation.x - spaceBetweenPages + minX, 0)
-                } else if translation.x < 0 && maxX > contentView.bounds.maxX - spaceBetweenPages {
-                    imageView.center.x += max(translation.x, contentView.bounds.maxX - spaceBetweenPages - maxX)
-                    translation.x = min(translation.x - contentView.bounds.maxX + spaceBetweenPages + maxX, 0)
-                }
+            // translate horizontally up to the image border
+            if translation.x > 0 && minX < spaceBetweenPages {
+                imageView.center.x += min(translation.x, spaceBetweenPages - minX)
+                translation.x = max(translation.x - spaceBetweenPages + minX, 0)
+            } else if translation.x < 0 && maxX > contentView.bounds.maxX - spaceBetweenPages {
+                imageView.center.x += max(translation.x, contentView.bounds.maxX - spaceBetweenPages - maxX)
+                translation.x = min(translation.x - contentView.bounds.maxX + spaceBetweenPages + maxX, 0)
+            }
 
-                if translation.y > 0 && minY < 0 {
-                    imageView.center.y += min(translation.y, -minY)
-                    translation.y = max(translation.y + minY, 0)
-                } else if translation.y < 0 && maxY > contentView.bounds.maxY {
-                    imageView.center.y += max(translation.y, contentView.bounds.maxY - maxY)
-                    translation.y = min(translation.y - contentView.bounds.maxY + maxY, 0)
-                }
+            if translation.y > 0 && minY < 0 {
+                imageView.center.y += min(translation.y, -minY)
+            } else if translation.y < 0 && maxY > contentView.bounds.maxY {
+                imageView.center.y += max(translation.y, contentView.bounds.maxY - maxY)
             }
 
             if translation.x != 0 {
@@ -283,7 +285,7 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
         } else if sender.state == .ended {
             let velocity = sender.velocity(in: window)
 
-            if shouldScrollPage(velocity: velocity.x) {
+            if shouldScrollPage(velocity: abs(velocity.x) > abs(velocity.y) ? velocity.x : 0) {
                 scale = 1
                 animate(scale: scale, center: CGPoint(x: contentView.bounds.midX, y: contentView.bounds.midY))
                 scrollPage(velocity: velocity.x)
