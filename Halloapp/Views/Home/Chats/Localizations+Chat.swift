@@ -46,9 +46,9 @@ extension Localizations {
             name)
     }
     
-    static func threadListPreviewNewUserDefault(name: String) -> String {
+    static func threadListPreviewInvitedUserDefault(name: String) -> String {
         return String(
-            format: NSLocalizedString("thread.list.preview.new.user.default", value: "%@ is on HalloApp! 🎉", comment: "Default preview text shown for a symmetric contact who just joined Halloapp"),
+            format: NSLocalizedString("thread.list.preview.new.user.default", value: "%@ is on HalloApp🎉", comment: "Default preview text shown for a symmetric contact who just joined Halloapp"),
             name)
     }
     

@@ -132,6 +132,18 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         showInviteViewControllerIfNeeded()
 
+        // watch for any changes in the iOS address book (name changes, deletions) and reflect it immediately,
+        // especially in cases where the user is on the chats list screen and doing changes in the address book at the same time
+        // note: iOS sometimes sends out notifications for address book changes even when there isn't any and also sometimes multiple
+        // notifications for one change
+        cancellableSet.insert(MainAppContext.shared.contactStore.didAddressBookChange.sink { [weak self] in
+            DDLogInfo("ChatListViewController/sink/didAddressBookChange")
+            DispatchQueue.main.async { [weak self] in
+                MainAppContext.shared.chatData.pruneEmptyChatThreads()
+                self?.reloadData()
+            }
+        })
+
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] in
                 guard let self = self else { return }
@@ -172,7 +184,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("ChatListViewController/viewWillAppear")
         super.viewWillAppear(animated)
-        populateWithAllContacts()
         reloadData(animated: false)
     }
 
@@ -398,10 +409,12 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         dataSource?.defaultRowAnimation = .fade
 
-        dataSource?.apply(snapshot, animatingDifferences: animated)
+        if #available(iOS 15.0, *) {
+            dataSource?.applySnapshotUsingReloadData(snapshot)
+        } else {
+            dataSource?.apply(snapshot, animatingDifferences: animated)
+        }
     }
-
-    private var lastCheckedForNewContacts: Date?
 
     // MARK: Actions
 
@@ -413,19 +426,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     func isScrolledFromTop(by fromTop: CGFloat) -> Bool {
         return tableView.contentOffset.y < fromTop
-    }
-
-    private func populateWithAllContacts() {
-        var isTimeToCheck = true
-        if let lastCheckedForNewContacts = lastCheckedForNewContacts {
-            isTimeToCheck = abs(lastCheckedForNewContacts.timeIntervalSinceNow) >= Date.minutes(1)
-        }
-
-        if isTimeToCheck {
-            DDLogDebug("ChatListViewController/populateWithAllContacts")
-            MainAppContext.shared.chatData.populateThreadsWithAllContacts()
-            lastCheckedForNewContacts = Date()
-        }
     }
 
     private func updateVisibleCellsWithTypingIndicator() {
@@ -601,7 +601,7 @@ extension ChatListViewController: UISearchBarDelegate {
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         searchBar.setShowsCancelButton(true, animated: true)
         searchBar.setCancelButtonTitleIfNeeded()
-    }    
+    }
 }
 
 extension ChatListViewController: NewChatViewControllerDelegate {

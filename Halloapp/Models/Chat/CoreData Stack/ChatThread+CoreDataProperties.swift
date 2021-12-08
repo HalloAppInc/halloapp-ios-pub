@@ -47,6 +47,9 @@ extension ChatThread {
     @NSManaged var chatWithUserId: UserID?
     
     @NSManaged var title: String?
+    
+    // currently only used to show a specific preview for when a contact was invited by user and then accepts
+    // once set to true, flag does not need to be set to false
     @NSManaged var isNew: Bool
     
     @NSManaged var lastMsgId: String?

@@ -149,6 +149,8 @@ class ContactStoreMain: ContactStore {
     private let contactSerialQueue = DispatchQueue(label: "com.halloapp.contacts")
     private var cancellableSet: Set<AnyCancellable> = []
 
+    let didCompleteInitialSync = PassthroughSubject<Void, Never>()
+    let didAddressBookChange = PassthroughSubject<Void, Never>()
     let didDiscoverNewUsers = PassthroughSubject<[UserID], Never>()
 
     // MARK: Init
@@ -290,6 +292,8 @@ class ContactStoreMain: ContactStore {
                                             self.enableContactSync()
                                         }
                                     }
+                                    
+                                    self.didAddressBookChange.send()
                                 }
 
                                 DispatchQueue.main.async {

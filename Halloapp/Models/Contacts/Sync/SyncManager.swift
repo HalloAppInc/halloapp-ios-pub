@@ -297,7 +297,10 @@ class SyncManager {
             return
         }
 
-        contactStore.isInitialSyncCompleted = true
+        if !contactStore.isInitialSyncCompleted {
+            contactStore.isInitialSyncCompleted = true
+            MainAppContext.shared.contactStore.didCompleteInitialSync.send()
+        }
 
         // Clear deletes only on successful sync completion.
         pendingDeletes.subtract(processedDeletes)

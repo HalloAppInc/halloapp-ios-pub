@@ -58,11 +58,12 @@ class ThreadListCell: UITableViewCell {
 
     private func lastMessageText(for chatThread: ChatThread) -> NSMutableAttributedString {
         var defaultText = ""
-        if chatThread.type == .oneToOne && chatThread.lastMsgMediaType == .none && chatThread.chatWithUserId != MainAppContext.shared.userData.userId {
+        if chatThread.type == .oneToOne, let chatWithUserID = chatThread.chatWithUserId, chatThread.lastMsgMediaType == .none, chatThread.chatWithUserId != MainAppContext.shared.userData.userId {
+            let fullName = MainAppContext.shared.contactStore.fullName(for: chatWithUserID)
             if chatThread.isNew {
-                defaultText = Localizations.threadListPreviewNewUserDefault(name: chatThread.title ?? "")
+                defaultText = Localizations.threadListPreviewInvitedUserDefault(name: fullName)
             } else {
-                defaultText = Localizations.threadListPreviewAlreadyUserDefault(name: chatThread.title ?? "")
+                defaultText = Localizations.threadListPreviewAlreadyUserDefault(name: fullName)
             }
         }
 
@@ -203,10 +204,6 @@ class ThreadListCell: UITableViewCell {
             unreadCountView.label.text = String(chatThread.unreadCount)
             unreadCountView.label.insetsLayoutMarginsFromSafeArea = true
             unreadCountView.layoutMargins = UIEdgeInsets(top: 1, left: chatThread.unreadCount >= 10 ? 5 : 1, bottom: 1, right: chatThread.unreadCount >= 10 ? 5 : 1)
-            timeLabel.textColor = .systemBlue
-        } else if chatThread.isNew && chatThread.chatWithUserId != MainAppContext.shared.userData.userId {
-            unreadCountView.isHidden = false
-            unreadCountView.label.text = " "
             timeLabel.textColor = .systemBlue
         } else {
             unreadCountView.isHidden = true

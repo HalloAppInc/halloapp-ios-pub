@@ -400,15 +400,21 @@ class ChatData: ObservableObject {
             }
         )
 
-        cancellableSet.insert(
-            contactStore.didDiscoverNewUsers.sink { [weak self] (userIDs) in
-                DDLogInfo("ChatData/didDiscoverNewUsers/count: \(userIDs.count)")
-                var contactsDict = [UserID:String]()
-                userIDs.forEach {
-                    contactsDict[$0] = contactStore.fullName(for: $0)
-                }
-                self?.updateThreads(for: contactsDict, areNewUsers: true)
-            })
+        cancellableSet.insert(contactStore.didCompleteInitialSync.sink { [weak self] in
+            DDLogInfo("ChatData/sink/didCompleteInitialSync")
+            DispatchQueue.main.async { [weak self] in
+                self?.populateThreadsWithInitialRegisteredContacts()
+            }
+        })
+
+        cancellableSet.insert(contactStore.didDiscoverNewUsers.sink { [weak self] (userIDs) in
+            DDLogInfo("ChatData/sink/didDiscoverNewUsers/count: \(userIDs.count)")
+            var contactsDict = [UserID:String]()
+            userIDs.forEach {
+                contactsDict[$0] = contactStore.fullName(for: $0)
+            }
+            self?.updateThreadsWithDiscoveredUsers(for: contactsDict)
+        })
 
         cancellableSet.insert(
             userData.didLogIn.sink { [weak self] in
@@ -505,10 +511,10 @@ class ChatData: ObservableObject {
 
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            
+
             let model = self.persistentContainer.managedObjectModel
             let entities = model.entities
-           
+
             /* nb: batchdelete will not auto delete entities with a cascade delete rule for core data relationships but
                can result in not deleting an entity if there's a deny delete rule in place */
             for entity in entities {
@@ -541,67 +547,110 @@ class ChatData: ObservableObject {
                 DDLogError("ChatData/clearAllChatsAndMedia/clear/media/error [\(error)]")
             }
         }
-        
+
     }
 
-    func populateThreadsWithAllContacts() {
+    // should be called just once, when user have their contacts synced for the very first time
+    func populateThreadsWithInitialRegisteredContacts() {
         let contactStore = MainAppContext.shared.contactStore
         let contacts = contactStore.allRegisteredContacts(sorted: true)
-        DDLogInfo("ChatData/populateThreadsWithAllContacts/allInNetworkContacts: \(contacts.count)")
-        var contactsDict = [UserID:String]()
+        DDLogInfo("ChatData/populateThreadsWithInitialRegisteredContacts/num contacts: \(contacts.count)")
+        var userIDs = [UserID:String]()
         contacts.forEach {
             guard let userID = $0.userId else { return }
-            contactsDict[userID] = $0.fullName
+            userIDs[userID] = $0.fullName
         }
-        updateThreads(for: contactsDict, areNewUsers: false)
+        guard !userIDs.isEmpty else { return }
+
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            for (userId, fullName) in userIDs {
+                guard self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) == nil else { continue }
+                DDLogInfo("ChatData/populateThreadsWithInitialRegisteredContacts/contact/\(userId)")
+
+                // these chat threads will have no timestamps and be sorted alphabetically below ones that do
+                let chatThread = ChatThread(context: managedObjectContext)
+                chatThread.title = fullName
+                chatThread.chatWithUserId = userId
+                chatThread.lastMsgUserId = userId
+                chatThread.lastMsgText = nil
+                chatThread.unreadCount = 0
+                chatThread.isNew = false
+            }
+            self.save(managedObjectContext)
+        }
     }
 
-    func updateThreads(for userIDs: [UserID:String], areNewUsers: Bool) {
+    // newly discovered users can happen in two ways, both of which ends up with user B being displayed at the top
+    // 1. user A already have user B in address book and then user B joins HalloApp
+    // 2. user B is already in HalloApp and then user A adds user B to their address book
+    func updateThreadsWithDiscoveredUsers(for userIDs: [UserID:String]) {
         guard !userIDs.isEmpty else { return }
         let timestampForNewThreads = Date()
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
 
             for (userId, fullName) in userIDs {
-                if let chatThread = self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) {
-                    guard chatThread.lastMsgId == nil else { continue }
-                    if chatThread.title != fullName {
-                        DDLogDebug("ChatData/updateThreads/contact/rename \(userId)")
-                        self.updateChatThread(type: .oneToOne, for: userId) { (chatThread) in
-                            chatThread.title = fullName
-                        }
-                    }
-                } else {
-                    
-                    DDLogInfo("ChatData/updateThreads/contact/new \(userId)")
-                    let chatThread = ChatThread(context: managedObjectContext)
-                    chatThread.title = fullName
-                    chatThread.chatWithUserId = userId
-                    chatThread.lastMsgUserId = userId
-                    chatThread.lastMsgText = nil
-                    if areNewUsers {
-                        chatThread.lastMsgTimestamp = timestampForNewThreads
-                    }
-                    chatThread.unreadCount = 0
-                    chatThread.isNew = areNewUsers
-                }
-            }
+                guard self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) == nil else { continue }
 
-            // save updates
-            if managedObjectContext.hasChanges {
-                self.save(managedObjectContext)
+                DDLogInfo("ChatData/updateThreadsWithDiscoveredUsers/userID/\(userId)")
+                let chatThread = ChatThread(context: managedObjectContext)
+                chatThread.title = fullName
+                chatThread.chatWithUserId = userId
+                chatThread.lastMsgUserId = userId
+                chatThread.lastMsgText = nil
+                chatThread.lastMsgTimestamp = timestampForNewThreads
+                chatThread.unreadCount = 0
             }
+            self.save(managedObjectContext)
+        }
+    }
 
-            /* remove empty threads of users not in the address book */
+    // update preview with the celebration emoji since the user is invited
+    func updateThreadWithInvitedUserPreview(for userID: UserID) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            if let thread = self.chatThread(type: ChatType.oneToOne, id: userID, in: managedObjectContext) {
+                DDLogInfo("ChatData/updateThreadWithInvitedUserPreview/thread already exists, userID: \(userID)")
+                guard thread.lastMsgText == nil else { return } // skip if messages have already been exchanged
+                thread.isNew = true
+            } else {
+                DDLogInfo("ChatData/updateThreadWithInvitedUserPreview/new thread, userID: /\(userID)")
+                let fullName = MainAppContext.shared.contactStore.fullName(for: userID)
+                let chatThread = ChatThread(context: managedObjectContext)
+                chatThread.title = fullName
+                chatThread.chatWithUserId = userID
+                chatThread.lastMsgUserId = userID
+                chatThread.lastMsgText = nil
+                chatThread.lastMsgTimestamp = Date()
+                chatThread.unreadCount = 0
+                chatThread.isNew = true
+            }
+            self.save(managedObjectContext)
+        }
+    }
+
+    // remove empty chat threads of users who are not in the address book
+    public func pruneEmptyChatThreads() {
+        let contactStore = MainAppContext.shared.contactStore
+        let contacts = contactStore.allRegisteredContacts(sorted: true)
+        var userIDs = [UserID:String]()
+        contacts.forEach {
+            guard let userID = $0.userId else { return }
+            userIDs[userID] = $0.fullName
+        }
+        guard !userIDs.isEmpty else { return }
+
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             let emptyOneToOneChatThreads = self.emptyOneToOneChatThreads(in: managedObjectContext)
             emptyOneToOneChatThreads.forEach({
                 guard let chatWithUserID = $0.chatWithUserId else { return }
                 guard userIDs[chatWithUserID] == nil else { return }
-                DDLogInfo("ChatData/updateThreads/emptyOneToOneChatThreads/remove \(chatWithUserID)")
+                DDLogInfo("ChatData/pruneEmptyChatThreads/emptyOneToOneChatThreads/remove \(chatWithUserID)")
                 self.deleteChat(chatThreadId: chatWithUserID)
             })
 
-            // save deletes
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
@@ -1573,10 +1622,6 @@ extension ChatData {
             if let chatThread = self.chatThread(type: type, id: id, in: managedObjectContext) {
                 if chatThread.unreadCount != 0 {
                     chatThread.unreadCount = 0
-                }
-
-                if chatThread.isNew {
-                    chatThread.isNew = false
                 }
             }
             
@@ -2734,11 +2779,11 @@ extension ChatData {
             if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatThreadId, in: managedObjectContext) {
                 managedObjectContext.delete(chatThread)
             }
-            
+
             let fetchRequest = NSFetchRequest<ChatMessage>(entityName: ChatMessage.entity().name!)
             // TODO: eventually use a chatId instead of a confusing match
             fetchRequest.predicate = NSPredicate(format: "(fromUserId = %@ AND toUserId = %@) || (toUserId = %@ && fromUserId = %@)", chatThreadId, MainAppContext.shared.userData.userId, chatThreadId, AppContext.shared.userData.userId)
-            
+
             do {
                 let chatMessages = try managedObjectContext.fetch(fetchRequest)
                 DDLogInfo("ChatData/delete-messages/begin count=[\(chatMessages.count)]")
@@ -2753,15 +2798,14 @@ extension ChatData {
                 return
             }
             self.save(managedObjectContext)
-            
+
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                self.populateThreadsWithAllContacts()
                 self.updateUnreadChatsThreadCount()
             }
         }
     }
-    
+
     private func deleteChatMessageContent(in chatMessage: ChatMessage) {
         DDLogDebug("ChatData/deleteChatMessageContent/message \(chatMessage.id) ")
         
