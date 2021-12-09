@@ -92,6 +92,6 @@ extension InviteContact {
         self.normalizedPhoneNumber = number
         self.formattedPhoneNumber = abContact.phoneNumber ?? "+\(number)".formattedPhoneNumber
         self.userID = abContact.userId
-        self.friendCount = Int(abContact.numPotentialContacts)
+        self.friendCount = fullName.localizedCaseInsensitiveContains("spam") ? 0 : Int(abContact.numPotentialContacts)
     }
 }
