@@ -439,6 +439,8 @@ class ChatData: ObservableObject {
             }
         )
 
+        resetUnreadForDeletedSampleGroup()
+        
         performSeriallyOnBackgroundContext { [weak self] (context) in
             guard let self = self else { return }
             self.groupList.listenForChanges(using: context, userId: self.userData.userId)
@@ -1536,7 +1538,7 @@ class ChatData: ObservableObject {
             MainAppContext.shared.applicationIconBadgeNumber = badgeNum == -1 ? 1 : badgeNum + 1
         }
     }
-    
+
     // MARK: Helpers
     
     private func isAtChatListViewTop() -> Bool {
@@ -1550,6 +1552,20 @@ class ChatData: ObservableObject {
 
         return chatListViewController.isScrolledFromTop(by: 100)
     }
+
+    // temporary, fixes an issue prior to build 187 and can be removed after some time
+    // resets the unread count for sample group welcome posts in which the user deleted the group without clicking into it
+    private func resetUnreadForDeletedSampleGroup() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let sharedNUX = MainAppContext.shared.nux
+            if let sampleGroupID = sharedNUX.sampleGroupID(), self.chatGroup(groupId: sampleGroupID) == nil {
+                sharedNUX.markSampleGroupWelcomePostSeen()
+                self.updateUnreadThreadGroupsCount()
+            }
+        }
+    }
+
 }
 
 extension ChatData {
@@ -3893,8 +3909,10 @@ extension ChatData {
 
     // MARK: Group Core Data Deleting
     func deleteChatGroup(groupId: GroupID) {
+        DDLogInfo("ChatData/deleteChatGroup")
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
+
             // delete group
             if let chatGroup = self.chatGroup(groupId: groupId, in: managedObjectContext) {
                 if let members = chatGroup.members {
@@ -3902,7 +3920,7 @@ extension ChatData {
                         managedObjectContext.delete($0)
                     }
                 }
-                
+
                 managedObjectContext.delete(chatGroup)
             }
 
@@ -3910,16 +3928,15 @@ extension ChatData {
             if let chatThread = self.chatThread(type: .group, id: groupId, in: managedObjectContext) {
                 managedObjectContext.delete(chatThread)
             }
-            
+
             let fetchRequest = NSFetchRequest<ChatGroupMessage>(entityName: ChatGroupMessage.entity().name!)
 
             fetchRequest.predicate = NSPredicate(format: "groupId = %@", groupId)
 
             do {
                 let chatGroupMessages = try managedObjectContext.fetch(fetchRequest)
-                DDLogInfo("ChatData/group/delete-messages/begin count=[\(chatGroupMessages.count)]")
+                DDLogInfo("ChatData/deleteChatGroup/begin count=[\(chatGroupMessages.count)]")
                 chatGroupMessages.forEach {
-                    
                     self.deleteGroupMedia(in: $0)
 
                     // delete message receipts
@@ -3931,7 +3948,7 @@ extension ChatData {
                 }
             }
             catch {
-                DDLogError("ChatData/group/delete-messages/error  [\(error)]")
+                DDLogError("ChatData/deleteChatGroup/error  [\(error)]")
                 return
             }
 

@@ -192,14 +192,23 @@ final class NUX {
     func deleteWelcomePost(id: String) {
         guard let key = welcomePostsDict.first(where: {
             let welcomePost = $0.value as WelcomePost
-            guard welcomePost.type == .group else { return false }
+            guard [.sampleGroup, .group].contains(welcomePost.type) else { return false }
             return welcomePost.id == id ? true : false
         })?.key else {
             return
         }
-        DDLogInfo("NUX/deleteWelcomePost/\(id)")
-        welcomePostsDict.removeValue(forKey: key)
-        saveToUserDefaults()
+
+        // count sample group's welcome post as seen if user deletes sample group without clicking into it
+        // note: do not remove sample group since we will only create it once
+        if id == sampleGroupID() {
+            DDLogInfo("NUX/deleteWelcomePost/sampleGroup/groupID/\(id)")
+            markSampleGroupWelcomePostSeen()
+            MainAppContext.shared.chatData.updateUnreadThreadGroupsCount() // refresh bottom nav groups badge
+        } else {
+            DDLogInfo("NUX/deleteWelcomePost/groupID/\(id)")
+            welcomePostsDict.removeValue(forKey: key)
+            saveToUserDefaults()
+        }
     }
 
     private func saveToUserDefaults() {
