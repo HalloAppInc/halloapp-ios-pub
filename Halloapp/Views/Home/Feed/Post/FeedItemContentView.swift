@@ -563,7 +563,7 @@ final class FeedItemHeaderView: UIView {
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
         if showArchivedDate {
             let archivedDate = post.timestamp.addingTimeInterval(Date.days(30))
-            timestampLabel.text! += " • " + Localizations.feedPostArchivedTimestamp(time: archivedDate.shortDateFormat())
+            timestampLabel.text = (timestampLabel.text ?? "") + " • " + Localizations.feedPostArchivedTimestamp(time: archivedDate.shortDateFormat())
         }
 
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
