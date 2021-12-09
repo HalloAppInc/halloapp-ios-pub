@@ -51,14 +51,6 @@ private extension Localizations {
                           value:"Resend",
                           comment: "Title for the button in comment resend confirmation prompt.")
     }
-
-    static var micAccessDeniedTitle: String {
-        NSLocalizedString("comment.mic.access.denied.title", value: "Unable to access microphone", comment: "Alert title when missing microphone access")
-    }
-
-    static var micAccessDeniedMessage: String {
-        NSLocalizedString("comment.mic.access.denied.message", value: "To enable audio recording, please tap on Settings and then turn on Microphone", comment: "Alert message when missing microphone access")
-    }
 }
 
 class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetchedResultsControllerDelegate, TextLabelDelegate, UITableViewDataSource, UITableViewDelegate {

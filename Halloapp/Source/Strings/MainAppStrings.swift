@@ -69,6 +69,10 @@ extension Localizations {
     static var fabAccessibilityTextPost: String {
         NSLocalizedString("fab.accessibility.text", value: "Text", comment: "VoiceOver label for text post button in floating compose post menu in Home view.")
     }
+
+    static var fabAccessibilityVoiceNote: String {
+        NSLocalizedString("fab.accessibility.voice", value: "Voice Note", comment: "VoiceOver label for voice note button in floating compose post menu in Home view.")
+    }
     
     // MARK: Message Actions
 

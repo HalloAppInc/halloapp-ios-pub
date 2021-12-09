@@ -32,4 +32,20 @@ extension Color {
     static var cameraButton: Color {
         Color("CameraButton")
     }
+
+    static var audioComposerHelperText: Color {
+        Color("AudioComposerHelperText")
+    }
+
+    static var audioComposerTitleText: Color {
+        Color("AudioComposerTitleText")
+    }
+
+    static var audioComposerRecordButtonBackground: Color {
+        Color("AudioComposerRecordButtonBackground")
+    }
+
+    static var audioComposerRecordButtonForeground: Color {
+        Color("AudioComposerRecordButtonForeground")
+    }
 }

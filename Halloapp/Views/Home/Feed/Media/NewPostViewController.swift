@@ -23,6 +23,7 @@ enum NewPostMediaSource {
     case library
     case camera
     case noMedia
+    case voiceNote
 }
 
 struct NewPostState {
@@ -99,7 +100,7 @@ final class NewPostViewController: UIViewController {
             return makeMediaPickerViewControllerNew()
         case .camera:
             return UINavigationController(rootViewController: makeNewCameraViewController())
-        case .noMedia:
+        case .noMedia, .voiceNote:
             return UINavigationController(rootViewController: makeComposerViewController())
         }
     }
@@ -115,6 +116,7 @@ final class NewPostViewController: UIViewController {
             mediaToPost: state.pendingMedia,
             initialInput: state.pendingInput,
             configuration: configuration,
+            isInitiallyVoiceNotePost: state.mediaSource == .voiceNote,
             delegate: self)
     }
 
