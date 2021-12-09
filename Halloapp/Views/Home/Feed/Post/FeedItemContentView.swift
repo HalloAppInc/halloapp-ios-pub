@@ -111,6 +111,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     }
     var textWidthConstraint: NSLayoutConstraint?
 
+    private var audioView: PostAudioView?
     private var mediaView: MediaCarouselView?
     private var postLinkPreviewView: PostLinkPreviewView?
     private var mediaViewHeightConstraint: NSLayoutConstraint?
@@ -149,6 +150,16 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             }
         }
 
+        if let audioView = audioView {
+            if postId != post.id {
+                vStack.removeArrangedSubview(audioView)
+                audioView.removeFromSuperview()
+                self.audioView = nil
+            } else {
+                DDLogInfo("FeedItemContentView/reuse-audio-view post=[\(post.id)]")
+            }
+        }
+
         if let postLinkPreviewView = postLinkPreviewView {
             if postId != post.id {
                 vStack.removeArrangedSubview(postLinkPreviewView)
@@ -160,20 +171,22 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         }
 
         let media = MainAppContext.shared.feedData.media(for: post)
+        let imageAndVideoMedia = media.filter { [.image, .video].contains($0.type) }
+        let showMediaCarousel = !imageAndVideoMedia.isEmpty
 
         // Media
 
-        if !media.isEmpty {
-            let mediaViewHeight = MediaCarouselView.preferredHeight(for: media, width: contentWidth)
+        if showMediaCarousel {
+            let mediaViewHeight = MediaCarouselView.preferredHeight(for: imageAndVideoMedia, width: contentWidth)
             DDLogInfo("FeedItemContentView/media-view-height post=[\(post.id)] height=[\(mediaViewHeight)]")
             if let mediaView = mediaView {
                 mediaViewHeightConstraint?.constant = mediaViewHeight
-                mediaView.refreshData(media: media, index: displayData?.currentMediaIndex ?? 0)
+                mediaView.refreshData(media: imageAndVideoMedia, index: displayData?.currentMediaIndex ?? 0)
             } else {
                 // Create new media view
                 var mediaViewConfiguration = MediaCarouselViewConfiguration.default
                 mediaViewConfiguration.gutterWidth = gutterWidth
-                let mediaView = MediaCarouselView(media: media, initialIndex: displayData?.currentMediaIndex, configuration: mediaViewConfiguration)
+                let mediaView = MediaCarouselView(media: imageAndVideoMedia, initialIndex: displayData?.currentMediaIndex, configuration: mediaViewConfiguration)
                 mediaView.delegate = self
                 mediaViewHeightConstraint = mediaView.heightAnchor.constraint(equalToConstant: mediaViewHeight)
                 mediaViewHeightConstraint?.isActive = true
@@ -182,6 +195,25 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
                 self.mediaView = mediaView
             }
             mediaView?.isHidden = false
+        }
+
+        // Audio
+
+        if let audioMedia = media.first(where: { $0.type == .audio }) {
+            let audioView = audioView ?? PostAudioView(configuration: .feed)
+            self.audioView = audioView
+            audioView.delegate = self
+            let isOwnPost = post.userId == MainAppContext.shared.userData.userId
+            audioView.isSeen = post.status == .seen || isOwnPost
+            audioView.feedMedia = audioMedia
+
+            // Use the same top margin if the media carousel's page control is not displayed
+            audioView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: imageAndVideoMedia.count > 1 ? 8 : 20,
+                                                                         leading: 0,
+                                                                         bottom: 20,
+                                                                         trailing: 0)
+            vStack.insertArrangedSubview(audioView, at: showMediaCarousel ? 1 : 0)
+            audioView.isHidden = false
         }
 
         // Link preview
@@ -290,6 +322,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     func prepareForReuse() {
         mediaView?.isHidden = true
         postLinkPreviewView?.isHidden = true
+        audioView?.isHidden = true
     }
 
     func stopPlayback() {
@@ -353,6 +386,16 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     }
 }
 
+extension FeedItemContentView: PostAudioViewDelegate {
+
+    func postAudioView(_ postAudioView: PostAudioView, didUpdateIsPlayingTo isPlaying: Bool) {
+        guard isPlaying, let feedPost = feedPost else {
+            return
+        }
+        MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+        postAudioView.isSeen = true
+    }
+}
 
 final class FeedItemHeaderView: UIView {
 

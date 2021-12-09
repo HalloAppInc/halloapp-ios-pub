@@ -353,6 +353,7 @@
 		EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */; };
 		EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1D92334192000805FF9 /* HalloappTests.swift */; };
 		EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1E42334192000805FF9 /* HalloappUITests.swift */; };
+		F40F7C6B274C8159008144DE /* PostAudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C6A274C8158008144DE /* PostAudioView.swift */; };
 		F5E5842640950E619AA50E59 /* Pods_HalloAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6B5578700125D5FF5728637 /* Pods_HalloAppTests.framework */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
 		F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */; };
@@ -994,6 +995,7 @@
 		EAF3A1E02334192000805FF9 /* HalloAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HalloAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAF3A1E42334192000805FF9 /* HalloappUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloappUITests.swift; sourceTree = "<group>"; };
 		EAF3A1E62334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F40F7C6A274C8158008144DE /* PostAudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAudioView.swift; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
 		F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoEditViewController.swift; sourceTree = "<group>"; };
 		F850677726A55DAC00A120EC /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
@@ -1784,6 +1786,7 @@
 				F850677926A7FDDF00A120EC /* AudioView.swift */,
 				32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */,
 				F89589552732A58300874054 /* ChangeDestinationViewController.swift */,
+				F40F7C6A274C8158008144DE /* PostAudioView.swift */,
 			);
 			path = Media;
 			sourceTree = "<group>";
@@ -2871,6 +2874,7 @@
 				EA5975DE252D3CF600810F48 /* GroupMemberAvatars.swift in Sources */,
 				EAD944F724F73E4C004A27B1 /* GroupInfoViewController.swift in Sources */,
 				764F7751246226120063645A /* PostDashboardViewController.swift in Sources */,
+				F40F7C6B274C8159008144DE /* PostAudioView.swift in Sources */,
 				EAC6A4452721F57D00E5E12E /* FeedWelcomeCell.swift in Sources */,
 				764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */,
 				E5959702268E3F6500AA3BB9 /* DeleteAccountModel.swift in Sources */,
