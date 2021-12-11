@@ -5,6 +5,7 @@
 //  Created by Igor Solomennikov on 11/12/20.
 //  Copyright © 2020 HalloApp, Inc. All rights reserved.
 //
+
 import CocoaLumberjackSwift
 import Combine
 import Core
@@ -210,6 +211,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     }
 
     // MARK: FeedCollectionViewController Customization
+
     public func shouldOpenFeed(for userId: UserID) -> Bool {
         return true
     }
@@ -228,6 +230,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     }
 
     // MARK: Update
+
     private var loadedPostIDs = Set<FeedPostID>()
 
     // This works around an NSDiffableDataSource issue.
@@ -277,6 +280,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     }
 
     // MARK: Post Actions
+
     func showCommentsView(for postId: FeedPostID, highlighting commentId: FeedPostCommentID? = nil) {
         DDLogDebug("FeedCollectionViewController/showCommentsView/post: \(postId), comment: \(commentId ?? "")")
         let commentsViewController = CommentsViewController(feedPostId: postId)
@@ -351,6 +355,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     }
 
     // MARK: No Connection Banner
+
     private let noConnectionBanner = ConnectionBanner()
 
     private func setupNoConnectionBanner() {
@@ -407,6 +412,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     }
 
     // MARK: New Posts Indicator
+
     private let newPostsIndicator = NewPostsIndicator()
 
     private func showNewPostsIndicator() {
@@ -446,6 +452,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     }
 
     // MARK: Misc
+
     private func stopAllVideoPlayback() {
         guard isViewLoaded else {
             // Turns out viewWillDisappear might be called even if view isn't loaded.
