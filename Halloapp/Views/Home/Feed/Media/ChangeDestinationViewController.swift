@@ -56,14 +56,15 @@ class ChangeDestinationViewController: UIViewController {
     }()
 
     private lazy var collectionView: UICollectionView = {
-        let layout = UICollectionViewCompositionalLayout { (sectionIndex: Int, layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
+        let layout = UICollectionViewCompositionalLayout { [weak self] (sectionIndex: Int, layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
+            guard let self = self else { return nil }
 
             let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
             let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
             var groupHeight: NSCollectionLayoutDimension = .absolute(ContactSelectionViewController.rowHeight)
 
-            if sectionIndex == 0 {
+            if !self.isSearching && sectionIndex == 0 {
                 item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 7, trailing: 0)
                 groupHeight = .absolute(ContactSelectionViewController.rowHeight + 7)
             }
@@ -78,7 +79,7 @@ class ChangeDestinationViewController: UIViewController {
             section.boundarySupplementaryItems = [sectionHeader]
             section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
 
-            if sectionIndex == 1 {
+            if sectionIndex == 1 || self.isSearching {
                 let backgroundDecoration = NSCollectionLayoutDecorationItem.background(elementKind: BackgroundDecorationView.elementKind)
                 backgroundDecoration.contentInsets = NSDirectionalEdgeInsets(top: 44, leading: 16, bottom: 0, trailing: 16)
 
@@ -126,13 +127,17 @@ class ChangeDestinationViewController: UIViewController {
         return controller
     }()
 
+    private var isSearching: Bool {
+        !(searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces).isEmpty ?? true)
+    }
+
     private lazy var dataSource: UICollectionViewDiffableDataSource<Int, SelectableDestination> = {
         let source = UICollectionViewDiffableDataSource<Int, SelectableDestination>(collectionView: collectionView) { [weak self] collectionView, indexPath, selectableDestination in
             guard let self = self else {
                 return collectionView.dequeueReusableCell(withReuseIdentifier: ContactsCell.reuseIdentifier, for: indexPath)
             }
 
-            if indexPath.section == 0 {
+            if indexPath.section == 0 && !self.isSearching {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ContactsCell.reuseIdentifier, for: indexPath)
 
                 if let cell = cell as? ContactsCell {
@@ -183,7 +188,7 @@ class ChangeDestinationViewController: UIViewController {
             let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: HeaderView.elementKind, for: indexPath)
 
             if let self = self, let headerView = view as? HeaderView {
-                headerView.text = indexPath.section == 0 ? Localizations.contactsHeader : Localizations.groupsHeader
+                headerView.text = indexPath.section == 0 && !self.isSearching ? Localizations.contactsHeader : Localizations.groupsHeader
             }
 
             return view
@@ -262,47 +267,47 @@ class ChangeDestinationViewController: UIViewController {
     }
 
     @objc func backAction() {
+        if searchController.isActive {
+            dismiss(animated: true)
+        }
+
         completion(self, destination)
     }
 
     private func makeSnapshot(searchString: String? = nil) -> NSDiffableDataSourceSnapshot<Int, SelectableDestination> {
         var snapshot = NSDiffableDataSourceSnapshot<Int, SelectableDestination>()
-        let groupCount = fetchedResultsController.sections?.first?.numberOfObjects ?? 0
-
-        if groupCount == 0 {
-            snapshot.appendSections([0])
-        } else {
-            snapshot.appendSections([0, 1])
-        }
-
-        snapshot.appendItems([
-            SelectableDestination.allContacts,
-            SelectableDestination.blacklistContacts,
-            SelectableDestination.whitelistContacts,
-        ], toSection: 0)
-
-        var threads = fetchedResultsController.fetchedObjects ?? []
+        let threads = fetchedResultsController.fetchedObjects
 
         if let searchString = searchString?.trimmingCharacters(in: CharacterSet.whitespaces).lowercased(), !searchString.isEmpty {
+            snapshot.appendSections([1])
+
             let searchItems = searchString.components(separatedBy: " ")
+            threads?.forEach {
+                guard let groupId = $0.groupId, let title = $0.title else { return }
 
-            threads = threads.filter {
-                guard let title = $0.title?.lowercased() else { return false }
-
+                let titleLowercased = title.lowercased()
                 for item in searchItems {
-                    if title.contains(item) {
-                        return true
+                    if titleLowercased.contains(item) {
+                        snapshot.appendItems([SelectableDestination(id: groupId, title: title)], toSection: 1)
                     }
                 }
+            }
+        } else {
+            snapshot.appendSections([0])
+            snapshot.appendItems([
+                SelectableDestination.allContacts,
+                SelectableDestination.blacklistContacts,
+                SelectableDestination.whitelistContacts,
+            ], toSection: 0)
 
-                return false
+            if let threads = threads, threads.count > 0 {
+                snapshot.appendSections([1])
+                snapshot.appendItems(threads.compactMap {
+                    guard let groupId = $0.groupId, let title = $0.title else { return nil }
+                    return SelectableDestination(id: groupId, title: title)
+                }, toSection: 1)
             }
         }
-
-        snapshot.appendItems(threads.compactMap {
-            guard let groupId = $0.groupId, let title = $0.title else { return nil }
-            return SelectableDestination(id: groupId, title: title)
-        }, toSection: 1)
 
         return snapshot
     }
@@ -311,7 +316,7 @@ class ChangeDestinationViewController: UIViewController {
 // MARK: UICollectionViewDelegate
 extension ChangeDestinationViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if indexPath.section == 0 {
+        if indexPath.section == 0 && !isSearching {
             let privacySettings = MainAppContext.shared.privacySettings
 
             switch indexPath.row {
@@ -320,6 +325,10 @@ extension ChangeDestinationViewController: UICollectionViewDelegate {
                 destination = .userFeed
                 backAction()
             case 1:
+                if searchController.isActive {
+                    dismiss(animated: true)
+                }
+
                 let controller = ContactSelectionViewController.forPrivacyList(privacySettings.blacklist, in: privacySettings, doneAction: { [weak self] in
                     self?.dismiss(animated: false)
                     self?.destination = .userFeed
@@ -328,6 +337,10 @@ extension ChangeDestinationViewController: UICollectionViewDelegate {
 
                 present(UINavigationController(rootViewController: controller), animated: true)
             case 2:
+                if searchController.isActive {
+                    dismiss(animated: true)
+                }
+
                 let controller = ContactSelectionViewController.forPrivacyList(privacySettings.whitelist, in: privacySettings, doneAction: { [weak self] in
                     self?.dismiss(animated: false)
                     self?.destination = .userFeed
@@ -349,8 +362,10 @@ extension ChangeDestinationViewController: UICollectionViewDelegate {
 // MARK: UISearchBarDelegate
 extension ChangeDestinationViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        dataSource.apply(makeSnapshot())
-        collectionView.scrollToItem(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
+        DispatchQueue.main.async {
+            self.dataSource.apply(self.makeSnapshot())
+            self.collectionView.scrollToItem(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
+        }
     }
 }
 

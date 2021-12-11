@@ -566,6 +566,14 @@ final class ProtoService: ProtoServiceCore {
                     self.showContactNotification(for: msg)
                 }
             }
+
+            if pbContactList.type == .inviterNotice {
+                contacts.forEach {
+                    if let userID = $0.userid {
+                        MainAppContext.shared.chatData.updateThreadWithInvitedUserPreview(for: userID)
+                    }
+                }
+            }
         case .avatar(let pbAvatar):
             avatarDelegate?.service(self, didReceiveAvatarInfo: (userID: UserID(pbAvatar.uid), avatarID: pbAvatar.id))
         case .whisperKeys(let pbKeys):

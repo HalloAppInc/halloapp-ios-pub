@@ -498,7 +498,7 @@ extension Call: WebRTCClientDelegate {
         DDLogInfo("Call/\(callID)/WebRTCClientDelegate/didChangeConnectionState/begin")
         callQueue.async { [self] in
             switch state {
-            case .disconnected, .closed, .failed:
+            case .closed, .failed:
                 self.state = .disconnected
             case .connected:
                 isConnected = true

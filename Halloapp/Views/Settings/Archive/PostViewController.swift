@@ -65,7 +65,7 @@ class PostViewController: UIViewController {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.isDirectionalLockEnabled = true
         scrollView.bounces = true
-        scrollView.alwaysBounceVertical = true
+        scrollView.alwaysBounceVertical = false
         scrollView.contentInsetAdjustmentBehavior = .never
         scrollView.addGestureRecognizer(closingTapRecognizer)
         scrollView.delegate = self
@@ -102,15 +102,16 @@ class PostViewController: UIViewController {
 
         scrollView.contentInset = UIEdgeInsets(top: 52, left: 0, bottom: 0, right: 0)
         scrollView.constrain(to: view)
-        scrollView.contentLayoutGuide.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor, constant: -52).isActive = true
-        scrollView.contentLayoutGuide.heightAnchor.constraint(greaterThanOrEqualTo: postView.heightAnchor, constant: 48).isActive = true
-        scrollView.contentLayoutGuide.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor).isActive = true
-        scrollView.contentLayoutGuide.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor).isActive = true
 
         postView.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
-        postView.widthAnchor.constraint(equalToConstant: view.frame.width).isActive = true
-        postView.centerXAnchor.constraint(equalTo: scrollView.contentLayoutGuide.centerXAnchor).isActive = true
-        postView.centerYAnchor.constraint(equalTo: scrollView.contentLayoutGuide.centerYAnchor).isActive = true
+
+        NSLayoutConstraint.activate([
+            postView.widthAnchor.constraint(equalTo: view.widthAnchor),
+            postView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            postView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            postView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 48),
+            postView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+        ])
 
         let contentWidth = view.frame.width - view.layoutMargins.left - view.layoutMargins.right
         let gutterWidth = (1 - FeedPostCollectionViewCell.LayoutConstants.backgroundPanelHMarginRatio) * view.layoutMargins.left

@@ -115,12 +115,14 @@ class AudioRecorder {
         do {
             let recorder = try AVAudioRecorder(url: url, settings: settings)
             guard recorder.record() else {
+                stop(cancel: true)
                 return DDLogError("AudioRecorder/start: recorder failed to start")
             }
             isRecording = true
 
             self.recorder = recorder
         } catch {
+            stop(cancel: true)
             return DDLogError("AudioRecorder/start: recorder failed init [\(error)]")
         }
 
@@ -166,9 +168,9 @@ class AudioRecorder {
             sessionManager.respectSilenceMode {
                 AudioServicesPlayAlertSound(1111)
             }
-
-            delegate?.audioRecorderStopped(self)
         }
+
+        delegate?.audioRecorderStopped(self)
     }
 
     @objc func handleInterruption(notification: Notification) {
