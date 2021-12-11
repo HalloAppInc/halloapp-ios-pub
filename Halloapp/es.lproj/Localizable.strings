@@ -346,6 +346,9 @@
 /* Feed Privacy indicator in post composer. */
 "composer.privacy.value.n.selected" = "compositor.privacidad.valor.n.seleccionado";
 
+/* Show the user that the title is tappable */
+"composer.subtitle.cta" = "Toca para cambiar";
+
 /* No comment provided by engineer. */
 "CONNECTION" = "CONEXIÓN";
 
@@ -460,14 +463,26 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Compartir solo con los contactos seleccionados";
 
+/* Header describing what these options are for */
+"feed.privacy.header" = "Quién verá mis publicaciones";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Mis contactos de teléfono";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Mis contactos excepto ...";
 
+/* Header for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.details" = "Selecciona quién no verá esta publicaión";
+
+/* Title for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.title" = "Esconder publicaciones de...";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Solo compartir con...";
+
+/* Header for the list when selecting contacts to share with. */
+"feed.privacy.list.only.details" = "Selecciona quién verá esta publicación";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mis contactos de teléfono";
@@ -934,6 +949,9 @@
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "picker.media.n.limit";
 
+/* Title for the picker screen. */
+"post.controller.picker.title" = "Nueva publicación";
+
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Esta publicación ha sido eliminada";
 
@@ -942,6 +960,15 @@
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted.by.you" = "Eliminaste tu publicación";
+
+/* Header when selecting all or some contacts to share with */
+"post.privacy.header.contacts" = "Quién verá esta publicación";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "Compartir solo con un grupo";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "Compartir con...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Bloqueado";
@@ -960,6 +987,9 @@
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Desbloquear";
+
+/* Item in Profile > Calls screen. */
+"profile.help.calls" = "Llamadas";
 
 /* Item in Profile > Help screen. */
 "profile.help.faq" = "Preguntas frecuentes";
@@ -1083,6 +1113,18 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "¡Se ha verificado con éxito el número de seguridad de %@!";
+
+/* body of the marketing alert sent to users */
+"server.marketing.body" = "¡Invita a tus amigos para que disfruten de HalloApp!";
+
+/* body of the marketing alert to encourage more posting */
+"server.marketing.post.body" = "Lo que estás haciendo ahora podría interesar a tus amigos de verdad. ";
+
+/* title of the marketing alert to encourage more posting */
+"server.marketing.post.title" = "¿Te preguntas qué compartir?";
+
+/* title of the marketing alert sent to users */
+"server.marketing.title" = "¡Hola!";
 
 /* fallback text in notification for a new comment */
 "server.new.comment" = "Comentario nuevo";
@@ -1272,6 +1314,9 @@
 
 /* Title for the Comments screen. */
 "title.comments" = "Comentarios";
+
+/* Title for the picker screen. */
+"title.comments.picker" = "Nuevo comentario";
 
 /* Second tab in the main app interface. */
 "title.groups" = "Grupos";

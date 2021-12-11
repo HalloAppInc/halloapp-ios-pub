@@ -334,15 +334,6 @@
 /* Placeholder text in text post composer screen. */
 "composer.placeholder.text.post" = "Schrijf een post";
 
-/* Send button title. */
-"composer.post.button.send" = "Verzenden";
-
-/* Share button title. */
-"composer.post.button.share" = "Delen";
-
-/* Composer subtitle for group posts. */
-"composer.post.subtitle" = "Delen met %@";
-
 /* Composer New Post title. */
 "composer.post.title" = "Nieuwe Post";
 
@@ -354,6 +345,9 @@
 
 /* Feed Privacy indicator in post composer. */
 "composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
+
+/* Show the user that the title is tappable */
+"composer.subtitle.cta" = "Tik om te wijzigen";
 
 /* No comment provided by engineer. */
 "CONNECTION" = "VERBINDING";
@@ -461,13 +455,16 @@
 "feed.posting" = "Wordt geplaatst...";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Delen met al je contacten";
+"feed.privacy.descr.all" = "Delen met al mijn contacten";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Delen met je contacten behalve de personen die je selecteert";
+"feed.privacy.descr.except" = "Delen met mijn contacten behalve personen die ik selecteer";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Alleen delen met geselecteerde contacten";
+
+/* Header describing what these options are for */
+"feed.privacy.header" = "Wie kan mijn posts zien";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Mijn Contacten";
@@ -475,8 +472,17 @@
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Mijn Contacten, Behalve...";
 
+/* Header for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.details" = "Selecteer wie deze post niet kan zien";
+
+/* Title for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.title" = "Verberg Posts Voor...";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Alleen Delen Met...";
+
+/* Header for the list when selecting contacts to share with. */
+"feed.privacy.list.only.details" = "Selecteer wie deze post kan zien";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Mijn Contacten";
@@ -955,6 +961,15 @@
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted.by.you" = "Je hebt je post verwijderd";
 
+/* Header when selecting all or some contacts to share with */
+"post.privacy.header.contacts" = "Wie kan deze post zien";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "Alleen delen met een groep";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "Delen Met...";
+
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Geblokkeerd";
 
@@ -1101,6 +1116,12 @@
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Nodig je vrienden uit voor HalloApp!";
+
+/* body of the marketing alert to encourage more posting */
+"server.marketing.post.body" = "Wat je op dit moment aan het doen bent, is misschien wel interessant voor je echte vrienden.";
+
+/* title of the marketing alert to encourage more posting */
+"server.marketing.post.title" = "Vraag je je af wat te delen?";
 
 /* title of the marketing alert sent to users */
 "server.marketing.title" = "Hallo daar!";
@@ -1256,7 +1277,7 @@
 "thread.list.preview.already.user.default" = "%@ gebruikt HalloApp";
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
-"thread.list.preview.new.user.default" = "%@ gebruikt HalloApp! 🎉";
+"thread.list.preview.new.user.default" = "%@ gebruikt HalloApp🎉";
 
 /* Last seen timestamp: full date in short format and time */
 "timestamp.last.seen.date.at.time" = "Laatst gezien %1$@ om %2$@";

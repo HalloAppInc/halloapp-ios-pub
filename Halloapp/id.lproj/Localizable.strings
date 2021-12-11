@@ -328,15 +328,6 @@
 /* Placeholder text in text post composer screen. */
 "composer.placeholder.text.post" = "Menulis kiriman";
 
-/* Send button title. */
-"composer.post.button.send" = "Kirim";
-
-/* Share button title. */
-"composer.post.button.share" = "Bagi";
-
-/* Composer subtitle for group posts. */
-"composer.post.subtitle" = "Membagikan dengan %@";
-
 /* Composer New Post title. */
 "composer.post.title" = "Kiriman Baru";
 

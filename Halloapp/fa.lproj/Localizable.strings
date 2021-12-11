@@ -1117,6 +1117,12 @@
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "دوستانتان را دعوت کنید تا از هالواپ لذت ببرند!";
 
+/* body of the marketing alert to encourage more posting */
+"server.marketing.post.body" = "کاری که هم اکنون انجام میدهید ممکن است برای دوستانتان جالب باشد.";
+
+/* title of the marketing alert to encourage more posting */
+"server.marketing.post.title" = "مطمئن نیستید چه چیزی به اشتراک بگذارید؟";
+
 /* title of the marketing alert sent to users */
 "server.marketing.title" = "سلام!";
 

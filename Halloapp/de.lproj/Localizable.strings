@@ -334,15 +334,6 @@
 /* Placeholder text in text post composer screen. */
 "composer.placeholder.text.post" = "Einen Beitrag schreiben";
 
-/* Send button title. */
-"composer.post.button.send" = "Senden";
-
-/* Share button title. */
-"composer.post.button.share" = "Teilen";
-
-/* Composer subtitle for group posts. */
-"composer.post.subtitle" = "Mit %@ teilen";
-
 /* Composer New Post title. */
 "composer.post.title" = "Neuer Beitrag";
 
@@ -354,6 +345,9 @@
 
 /* Feed Privacy indicator in post composer. */
 "composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
+
+/* Show the user that the title is tappable */
+"composer.subtitle.cta" = "Zum Ändern hier tippen";
 
 /* No comment provided by engineer. */
 "CONNECTION" = "VERBINDUNG";
@@ -461,13 +455,16 @@
 "feed.posting" = "Beitrag wird geposted...";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Mit allen Kontakten teilen";
+"feed.privacy.descr.all" = "Mit all meinen Kontakten teilen";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Mit Kontakten teilen außer Ausgewählten";
+"feed.privacy.descr.except" = "Mit meinen Kontakten teilen außer Ausgewählten";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Nur mit ausgewählten Kontakten teilen";
+
+/* Header describing what these options are for */
+"feed.privacy.header" = "Wer sieht meine Beiträge";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Meine Kontakte";
@@ -475,8 +472,17 @@
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Meine Kontakte außer...";
 
+/* Header for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.details" = "Wähle aus, wer diesen Beitrag nicht sehen soll";
+
+/* Title for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.title" = "Beiträge ausblenden für...";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Nur teilen mit...";
+
+/* Header for the list when selecting contacts to share with. */
+"feed.privacy.list.only.details" = "Wähle aus, wer diesen Beitrag sehen soll";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Meine Kontakte";
@@ -494,7 +500,7 @@
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit deinen Freunden und deiner Familie in einem digitalen Raum ohne Werbung, Marken, Likes und Influencer zu verbinden.\n\nHalloApp ist für dich und die, die dir nahe stehen - ganz privat. Lade deine wahren Freunde ein, um loszulegen!";
+"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit deinen Freunden und deiner Familie in einem digitalen Raum ohne Werbung, Marken, Likes und Influencer zu verbinden.\n\nHalloApp ist für dich und die, die dir nahe stehen - ganz privat. Lade deine echten Freunde ein, um loszulegen!";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
 "feed.welcome.post.title" = "Willkommen bei HalloApp, ein digitaler Raum für echte Beziehungen ✨";
@@ -573,6 +579,9 @@
 
 /* Message text shown when you remove a group member */
 "group.event.removed.member.you" = "Du hast %1@ entfernt";
+
+/* Indicates how many members are in the group */
+"group.feed.n.members" = "group.feed.n.members";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
 "group.feed.welcome.post.body" = "Teile diesen Link mit Freunden und sie werden automatisch deiner Gruppe beitreten.";
@@ -952,6 +961,15 @@
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted.by.you" = "Du hast deinen Beitrag gelöscht";
 
+/* Header when selecting all or some contacts to share with */
+"post.privacy.header.contacts" = "Wer sieht diesen Beitrag";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "Nur mit einer Gruppe teilen";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "Teilen mit ...";
+
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Blockierte Kontakte";
 
@@ -969,6 +987,9 @@
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Freigeben";
+
+/* Item in Profile > Calls screen. */
+"profile.help.calls" = "Anrufe";
 
 /* Item in Profile > Help screen. */
 "profile.help.faq" = "FAQ";
@@ -1095,6 +1116,12 @@
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Lade deine Freunde zu HalloApp ein!";
+
+/* body of the marketing alert to encourage more posting */
+"server.marketing.post.body" = "Was du gerade machst, könnte deine echten Freunde interessieren.";
+
+/* title of the marketing alert to encourage more posting */
+"server.marketing.post.title" = "Fragst du dich, was du teilen könntest?";
 
 /* title of the marketing alert sent to users */
 "server.marketing.title" = "Hallo!";
@@ -1250,7 +1277,7 @@
 "thread.list.preview.already.user.default" = "%@ nutzt HalloApp";
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
-"thread.list.preview.new.user.default" = "%@ nutzt HalloApp! 🎉";
+"thread.list.preview.new.user.default" = "%@ nutzt HalloApp🎉";
 
 /* Last seen timestamp: full date in short format and time */
 "timestamp.last.seen.date.at.time" = "Zuletzt online %1$@ um %2$@";

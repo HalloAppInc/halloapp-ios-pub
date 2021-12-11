@@ -5,7 +5,6 @@
 //  Created by Nandini Shetty on 12/2/21.
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
-
 import UIKit
 
 class MessageViewCell: UICollectionViewCell {

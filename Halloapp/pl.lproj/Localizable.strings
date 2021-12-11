@@ -334,15 +334,6 @@
 /* Placeholder text in text post composer screen. */
 "composer.placeholder.text.post" = "Stwórz wpis";
 
-/* Send button title. */
-"composer.post.button.send" = "Wyślij";
-
-/* Share button title. */
-"composer.post.button.share" = "Udostępnij";
-
-/* Composer subtitle for group posts. */
-"composer.post.subtitle" = "Udostępnianie dla: %@";
-
 /* Composer New Post title. */
 "composer.post.title" = "Nowy wpis";
 

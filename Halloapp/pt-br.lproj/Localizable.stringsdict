@@ -5,7 +5,7 @@
 	<key>chat.n.users.typing</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%@ %#@n_users@</string>
+		<string>%@ %#@n_usuarios@</string>
 		<key>n_users</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
