@@ -37,6 +37,9 @@
 /* Message shown when a user first joins */
 "activity.center.welcome.item" = "Bem-vindo ao HalloApp!";
 
+/* Text label for action button to add the contact to the address book */
+"add.to.contact.book" = "Adicionar Contato";
+
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Sem ligação à internet";
 
@@ -49,11 +52,29 @@
 /* Translation of iPhone settings app. */
 "app.ios.settings" = "Configurações";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
+/* Placeholder text for when the archive is empty */
+"archive.empty.placeholder" = "Suas postagens serão arquivadas aqui após 30 dias";
+
+/* Archive navigation label */
+"archive.title.label" = "Arquivo";
+
+/* Label shown on the cancel action */
+"audio.control.cancel" = "deslize para cancelar";
+
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Sem ligação à internet";
 
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Adicionar";
+
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Cancelar";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "CANCELAR";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Continuar";
@@ -72,6 +93,9 @@
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "Instalar";
+
+/* Title for generic Invite button. */
+"button.invite" = "Convidar";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Saiba mais";
@@ -135,6 +159,9 @@
 
 /* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
 "chat.add.to.contacts.book.label" = "Para ver as publicações de %@ adicione o número dele(a) à sua lista de contatos. Toque para adicionar";
+
+/* Text shown at the top of the chat screen informing the user that the contact is blocked */
+"chat.blocked.contact.label" = "Este contato está bloqueado, toque para desbloquear";
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Criar novo grupo";
@@ -205,6 +232,9 @@
 /* Label for inviting friends */
 "chat.invite.friends" = "Convide amigos";
 
+/* Message text shown in a message that have audio media but no text */
+"chat.message.audio" = "Mensagem de voz";
+
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Esta mensagem foi apagada.";
 
@@ -222,6 +252,15 @@
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
 "chat.message.waiting" = "Aguardando pela mensagem. Isso pode demorar um pouco.";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Para habilitar a gravação de áudio, toque em Configurações e ligue o microfone";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "não foi possível acessar o microfone";
+
+/* Text below the contact's name when the contact is online in the Chat Screen */
+"chat.online.label" = "online";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "escrevendo...";
@@ -243,6 +282,12 @@
 
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "A apagar comentário";
+
+/* Alert message when missing microphone access */
+"comment.mic.access.denied.message" = "Para habilitar a gravação de áudio, toque em Configurações e ligue o microfone";
+
+/* Alert title when missing microphone access */
+"comment.mic.access.denied.title" = "Não foi possível acessar o microfone";
 
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "A publicar...";
@@ -289,15 +334,6 @@
 /* Placeholder text in text post composer screen. */
 "composer.placeholder.text.post" = "Faça uma publicação";
 
-/* Send button title. */
-"composer.post.button.send" = "Enviar";
-
-/* Share button title. */
-"composer.post.button.share" = "Partilhar";
-
-/* Composer subtitle for group posts. */
-"composer.post.subtitle" = "A partilhar com %@";
-
 /* Composer New Post title. */
 "composer.post.title" = "Nova publicação";
 
@@ -310,6 +346,9 @@
 /* Feed Privacy indicator in post composer. */
 "composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
 
+/* Show the user that the title is tappable */
+"composer.subtitle.cta" = "Toque para mudar";
+
 /* No comment provided by engineer. */
 "CONNECTION" = "LIGAÇÃO";
 
@@ -319,11 +358,29 @@
 /* Message requesting the user enable contacts permission */
 "contacts.permission.explanation" = "Para ajudá-lo a ligar-se com amigos e familiares, permita que o HalloApp aceda aos seus contatos.";
 
+/* Title for modal view when showing how to change contact permissions. */
+"contacts.permission.explanation.title" = "Contatos";
+
 /* Title for tutorial explaining how user can enable contacts permission */
 "contacts.permission.tutorial.title" = "Contatos";
 
+/* The default name given to new groups when the user is in Zero Zone (no contacts) */
+"create.group.default.name.my.new.group" = "Meu novo grupo";
+
+/* Text label for group description text box */
+"create.group.description.label" = "Descrição";
+
+/* Placeholder text shown inside the group description input box when it's empty */
+"create.group.description.placeholder" = "Adicione uma descrição (opcional)";
+
 /* Alert message telling the user to try creating the group again after an error */
 "create.group.error" = "Ocorreu um erro ao criar o grupo. Por favor, tente novamente";
+
+/* Placeholder text shown inside the group name input box when it's empty */
+"create.group.name.placeholder" = "Dê um nome ao seu grupo";
+
+/* Title of group creation screen */
+"create.group.title" = "Informação do Grupo";
 
 /* Title for generic delete button. */
 "Delete" = "Apagar";
@@ -385,6 +442,9 @@
 /* Text for feed notification displayed in Activity Center. */
 "feed.notification.replied.w.text" = "<$author$> respondeu: <$text$>";
 
+/* Archived date timestamp */
+"feed.post.archived.timestamp" = "Arquivado %@";
+
 /* Shown when post fails or is canceled. */
 "feed.post.failed" = "Falha ao publicar.";
 
@@ -403,14 +463,26 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Partilhar apenas com contatos selecionados";
 
+/* Header describing what these options are for */
+"feed.privacy.header" = "Quem verá minhas postagens";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Os meus contatos telefónicos";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Os meus contatos, exceto...";
 
+/* Header for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.details" = "Selecione quem não verá esta postagem";
+
+/* Title for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.title" = "Ocultar postagens de ...";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Partilhar apenas com...";
+
+/* Header for the list when selecting contacts to share with. */
+"feed.privacy.list.only.details" = "Selecione quem verá esta postagem";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Os meus contatos telefónicos";
@@ -427,17 +499,32 @@
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacidade.valor.n.selecionados";
 
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body" = "Use seu número de telefone para se conectar com amigos e familiares em um espaço sem anúncios, sem propagandas, sem curtidas e sem influenciadores.\n\nHalloApp é para você, e para aqueles mais próximos de você, em particular. Convide seus verdadeiros amigos para começar!";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title" = "Bem-vindo ao HalloApp, um espaço para relacionamentos reais ✨";
+
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Comentar";
 
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Responder";
 
+/* Placeholder text shown in group description input box when there's no description */
+"group.add.description" = "Adicionar descrição do grupo";
+
+/* Label shown above background selection row */
+"group.background.label" = "Fundo de tela";
+
 /* Label for choosing a color at the group background preview screen */
 "group.bg.pick.a.color.label" = "ESCOLHA UMA COR";
 
 /* Title of group background screen */
 "group.bg.title" = "Plano de fundo";
+
+/* Label shown above group description input box */
+"group.description.label" = "Descrição do Grupo";
 
 /* Message text shown with the user who added a group member */
 "group.event.added.member" = "%1$@ adicionou %2$@";
@@ -456,6 +543,12 @@
 
 /* Message text shown when you change the background */
 "group.event.changed.background.you" = "Alterou a cor de fundo";
+
+/* Message text shown with the user who changed the group description */
+"group.event.changed.description" = "%1@ mudou a descrição do grupo";
+
+/* Message text shown when you change the group description */
+"group.event.changed.description.you" = "Você mudou a descrição do grupo";
 
 /* Message text shown with the user who changed the group name */
 "group.event.changed.name" = "%1$@ mudou o nome do grupo para \"%2$@\"";
@@ -486,6 +579,15 @@
 
 /* Message text shown when you remove a group member */
 "group.event.removed.member.you" = "Removeu %1@";
+
+/* Indicates how many members are in the group */
+"group.feed.n.members" = "grupo.feed.n.membros";
+
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
+"group.feed.welcome.post.body" = "Compartilhe este link com amigos e eles se entrarão automaticamente no seu grupo.";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
+"group.feed.welcome.post.title" = "Convidar um amigo para o seu grupo";
 
 /* Action label for inviting others to join the group via link */
 "group.info.invite.to.group.via.link" = "Convidar para o grupo via link";
@@ -523,6 +625,9 @@
 /* Title of group invite screen */
 "group.invite.title" = "Convite de grupo";
 
+/* Label shown above group members list */
+"group.members.label" = "Membros";
+
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "O link de convite do grupo é inválido";
 
@@ -550,11 +655,29 @@
 /* Text shown when user is about to remove the group */
 "groups.list.remove.message" = "Tem certeza de que deseja apagar este grupo e o seu conteúdo do seu dispositivo?";
 
+/* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
+"groups.NUX.user.group.name" = "\n%@'s Grupo";
+
 /* A label on the header to indicate which person I have groups in common with */
 "groups.title" = "Com %@";
 
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "Por favor, deixe um comentário ou uma descrição do problema no espaço acima.\n\nVersão %1$@ - %2$@\n%3$@";
+
+/* Button to dismiss the alert. */
+"home.calls.button.exit" = "OK";
+
+/* Text shown to users on call failure. */
+"home.calls.fail.text" = "Desculpe, por favor tente novamente mais tarde.";
+
+/* Title of failed call screen alert. */
+"home.calls.fail.title" = "Falha ao fazer uma chamada.";
+
+/* Text shown to users trying to open the call screen. */
+"home.calls.notice.text" = "Você não tem nenhuma chamada ativa no momento.";
+
+/* Title of call screen alert. */
+"home.calls.notice.title" = "Nenhuma Chamada Ativa ";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Sair";
@@ -564,6 +687,9 @@
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Esta versão está desatualizada";
+
+/* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
+"invite.action.sheet.title" = "Convidar %@ por...";
 
 /* Displayed below contact name in contact list that is displayed when inviting someone to HalloApp. */
 "invite.already.halloapp.user" = "Já é um utilizador do HalloApp";
@@ -598,6 +724,12 @@
 /* Title for the screen that allows to select contact to invite. */
 "invite.title" = "Convidar";
 
+/* Title of cell at the top of the invite screen */
+"invite.via.link" = "Convidar por link";
+
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Buscar";
+
 /* Link text to open invite flow */
 "link.invite.friend" = "Convidar um amigo";
 
@@ -606,6 +738,9 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Atualize a sua aplicação.";
+
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Carregando visualização ...";
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Eu";
@@ -662,6 +797,9 @@
 "media.voiceover.button.flip" = "Virar";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
+"media.voiceover.button.mute" = "Mudo";
+
+/* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.rotate" = "Girar";
 
 /* Message action. Verb. */
@@ -706,6 +844,15 @@
 /* Indicates how many invites are remaining */
 "n.invites.remaining" = "n.invites.remaining";
 
+/* Displayed in place of deleted feed posts. */
+"n.posts.deleted" = "% @ postagens excluídas";
+
+/* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
+"new.group.members.empty.placeholder" = "Seus contatos que estão no HalloApp aparecerão aqui";
+
+/* Alert text shown when max group size is reached when selecting/adding group members */
+"new.group.members.max.size.alert" = "O tamanho máximo do grupo é %d";
+
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Já não está neste grupo";
 
@@ -724,6 +871,12 @@
 /* New post notification text when post is multiple videos without caption. */
 "notification.n.videos" = "notificação.n.vídeos";
 
+/* Title for the new comment notification. */
+"notification.new.comment" = "Comentário Novo";
+
+/* Content for contact notification. */
+"notification.new.contact.content" = "% @ agora está no HalloApp";
+
 /* Content for friend notification. */
 "notification.new.friend.content" = "%@ está agora no HalloApp";
 
@@ -738,6 +891,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 vídeo";
+
+/* New post notification text when post is a voice note. */
+"notification.voicenote" = "🎤 Mensagem de voz";
 
 /* Text for new user popup pointing at activity center icon */
 "nux.activity.center.icon" = "Hallo!";
@@ -793,6 +949,9 @@
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "picker.media.n.limit";
 
+/* Title for the picker screen. */
+"post.controller.picker.title" = "Nova Publicação";
+
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Esta publicaçāo foi apagada";
 
@@ -801,6 +960,15 @@
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted.by.you" = "Você excluiu sua postagem";
+
+/* Header when selecting all or some contacts to share with */
+"post.privacy.header.contacts" = "Quem verá esta postagem";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "Compartilhar apenas com um grupo";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "Compartilhar Com...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Bloqueado";
@@ -816,6 +984,12 @@
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Mensagem";
+
+/* Text for unblocking user under profile header */
+"profile.header.unblock.user" = "Desbloquear ";
+
+/* Item in Profile > Calls screen. */
+"profile.help.calls" = "Chamadas";
 
 /* Item in Profile > Help screen. */
 "profile.help.faq" = "Perguntas frequentes";
@@ -898,6 +1072,12 @@
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Instale o HalloApp para abrir %@";
 
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "Que pena!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "O número de telefone inserido é inválido. Por favor, cheque novamente.";
+
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Se seguiu um link de convite de grupo para se registar, por favor, abra o link novamente para finalizar o registo e entrar no grupo.";
 
@@ -933,6 +1113,18 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "Número de segurança de %@ verificado com sucesso!";
+
+/* body of the marketing alert sent to users */
+"server.marketing.body" = "Convide seus amigos para desfrutar do HalloApp!";
+
+/* body of the marketing alert to encourage more posting */
+"server.marketing.post.body" = "O que você está fazendo agora pode ser interessante para seus amigos de verdade.";
+
+/* title of the marketing alert to encourage more posting */
+"server.marketing.post.title" = "Quer saber o que compartilhar?";
+
+/* title of the marketing alert sent to users */
+"server.marketing.title" = "Hallo ai! ";
 
 /* fallback text in notification for a new comment */
 "server.new.comment" = "Novo comentário";
@@ -1045,6 +1237,9 @@
 /* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
 "settings.notifications.comments" = "Comentários";
 
+/* Instructions for enabling notifications permissions */
+"settings.notifications.disabled.instructions" = "Por favor, ative as notificações em Configurações.";
+
 /* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
 "settings.notifications.posts" = "Publicações";
 
@@ -1120,6 +1315,9 @@
 /* Title for the Comments screen. */
 "title.comments" = "Comentários";
 
+/* Title for the picker screen. */
+"title.comments.picker" = "Novo Comentário";
+
 /* Second tab in the main app interface. */
 "title.groups" = "Grupos";
 
@@ -1140,6 +1338,9 @@
 
 /* Fourth tab in the main app interface */
 "title.settings" = "Configurações";
+
+/* Row in Settings screen */
+"title.storage" = "Armazenamento";
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Visto por";
@@ -1164,6 +1365,9 @@
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Bloquear no HalloApp";
+
+/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
+"user.option.copy.phone.number" = "Copiar número de telefone";
 
 /* Option when user taps more on profile page */
 "user.option.unblock" = "Desbloquear no HalloApp";
