@@ -30,15 +30,14 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     private var fetchedResultsController: NSFetchedResultsController<FeedPostComment>?
 
     private lazy var collectionView: UICollectionView = {
-
-        let collectionView = UICollectionView(frame: self.view.bounds, collectionViewLayout: createLayout())
+        let collectionView = UICollectionView(frame: self.view.bounds, collectionViewLayout: UICollectionViewFlowLayout())
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.allowsSelection = false
         collectionView.contentInsetAdjustmentBehavior = .scrollableAxes
         collectionView.preservesSuperviewLayoutMargins = true
         collectionView.register(MessageViewCell.self, forCellWithReuseIdentifier: "MessageViewCell")
+        collectionView.register(MessageViewCell.self, forCellWithReuseIdentifier: "MessageViewCell")
         collectionView.delegate = self
-        collectionView.backgroundColor = UIColor.primaryBg
         return collectionView
     }()
 
@@ -53,9 +52,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.primaryBg
         view.addSubview(collectionView)
-        collectionView.constrainMargins([.top, .leading, .bottom, .trailing], to: view)
         if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
             configureUI(with: feedPost)
         }
@@ -107,17 +104,5 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                 }
                 return cell
             })
-    }
-    
-    private func createLayout() -> UICollectionViewCompositionalLayout {
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        group.interItemSpacing = .fixed(0)
-        let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 2
-        let layout = UICollectionViewCompositionalLayout(section: section)
-        return layout
     }
 }
