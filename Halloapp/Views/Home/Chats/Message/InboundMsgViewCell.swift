@@ -725,6 +725,9 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             mediaImageView.updateMedia(SliderMedia(image: image, type: .image, order: Int(media.order)))
         case .audio:
             voiceNoteView.url = url
+            if voiceNoteView.state == .loading, let status = media.message?.incomingStatus {
+                voiceNoteView.state = [.played, .sentPlayedReceipt].contains(status) ? .played : .normal
+            }
         }
     }
     
