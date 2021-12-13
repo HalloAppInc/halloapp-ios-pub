@@ -28,16 +28,16 @@ extension PostAudioViewDelegate {
 
 struct PostAudioViewConfiguration {
     fileprivate let showDeleteButton: Bool
-    fileprivate let useSecondaryBackgroundColor: Bool
+    fileprivate let backgroundColor: UIColor
 
     static let composer = PostAudioViewConfiguration(showDeleteButton: true,
-                                                     useSecondaryBackgroundColor: false)
+                                                     backgroundColor: .feedPostAudioPlayerBackground)
 
     static let feed = PostAudioViewConfiguration(showDeleteButton: false,
-                                                 useSecondaryBackgroundColor: false)
+                                                 backgroundColor: .feedPostAudioPlayerBackground)
 
     static let comments = PostAudioViewConfiguration(showDeleteButton: false,
-                                                     useSecondaryBackgroundColor: true)
+                                                     backgroundColor: .feedPostAudioPlayerCommentsBackground)
 }
 
 // MARK: PostAudioView
@@ -64,10 +64,10 @@ class PostAudioView: UIView {
         deleteButton.imageView?.contentMode = .center
         deleteButton.layer.cornerRadius = min(deleteButtonSize.width, deleteButtonSize.height) / 2
         deleteButton.layer.masksToBounds = true
-        deleteButton.setBackgroundColor(UIColor(red: 0.776, green: 0.776, blue: 0.769, alpha: 1), for: .normal)
+        deleteButton.setBackgroundColor(.audioComposerDeleteButtonBackground, for: .normal)
         let image = UIImage(systemName: "trash.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 14))
         deleteButton.setImage(image, for: .normal)
-        deleteButton.tintColor = .white
+        deleteButton.tintColor = .audioComposerDeleteButtonForeground
         deleteButton.translatesAutoresizingMaskIntoConstraints = false
         return deleteButton
     }()
@@ -81,7 +81,7 @@ class PostAudioView: UIView {
     private let timerLabel: UILabel = {
         let timerLabel = UILabel()
         timerLabel.font = .monospacedDigitSystemFont(ofSize: 16, weight: .medium)
-        timerLabel.textColor = .audioViewControlsPlayed
+        timerLabel.textColor = .feedPostAudioPlayerDurationText
         timerLabel.translatesAutoresizingMaskIntoConstraints = false
         return timerLabel
     }()
@@ -147,9 +147,7 @@ class PostAudioView: UIView {
 
         directionalLayoutMargins = .zero
 
-        backgroundView.backgroundColor = configuration.useSecondaryBackgroundColor ?
-            .white :
-            .feedPostAudioPlayerBackground
+        backgroundView.backgroundColor = configuration.backgroundColor
         addSubview(backgroundView)
 
         if configuration.showDeleteButton {
