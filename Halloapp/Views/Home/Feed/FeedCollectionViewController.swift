@@ -498,7 +498,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
         rectSize.height -= 220 // rough estimate for top/bottom bars and cell paddings
         rectOrigin.y += 120 // rough estimate for top bar and cell padding
-
         let visibleOnscreenRect = CGRect(origin: rectOrigin, size: rectSize)
         let result = cell.frame.intersects(visibleOnscreenRect)
         return result
