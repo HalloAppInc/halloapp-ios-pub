@@ -292,7 +292,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                 switch callServersResult {
                 case .success(let callServers):
                     let iceServers = WebRTCClient.getIceServers(stunServers: callServers.stunServers, turnServers: callServers.turnServers)
-                    self.activeCall = Call(id: details.callID, peerUserID: details.peerUserID, iceServers: iceServers, isOutgoing: true)
+                    self.activeCall = Call(id: details.callID, peerUserID: details.peerUserID, iceServers: iceServers, direction: .outgoing)
                     self.activeCall?.stateDelegate = self
                     DDLogInfo("CallManager/CXStartCallAction/callID: \(details.callID)/to: \(details.peerUserID)/iceServers success")
                     self.activeCall?.start { [weak self] success in

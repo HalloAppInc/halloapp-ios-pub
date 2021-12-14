@@ -26,6 +26,7 @@ public func initAppContext(_ appContextClass: AppContext.Type, serviceBuilder: S
 open class AppContext {
     // MARK: Constants
     private static let appGroupName = "group.com.halloapp.shared"
+    private static let mainStoreDatabaseFilename = "mainStore.sqlite"
     private static let contactsDatabaseFilename = "contacts.sqlite"
     private static let keysDatabaseFilename = "keys.sqlite"
     private static let cryptoStatsDatabaseFilename = "cryptoStats.sqlite"
@@ -103,6 +104,8 @@ open class AppContext {
         }
     }
 
+    public let mainDataStore: MainDataStore
+
     private var cancellableSet: Set<AnyCancellable> = []
 
     // MARK: Event monitoring
@@ -179,6 +182,10 @@ open class AppContext {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppContext.appGroupName)
     }()
 
+    static let mainStoreURL = {
+        sharedDirectoryURL.appendingPathComponent(AppContext.mainStoreDatabaseFilename)
+    }()
+
     static let contactStoreURL = {
         sharedDirectoryURL.appendingPathComponent(AppContext.contactsDatabaseFilename)
     }()
@@ -251,6 +258,7 @@ open class AppContext {
 
         userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL, isAppClip: Self.isAppClip)
         coreService = serviceBuilder(userData.credentials)
+        mainDataStore = MainDataStore(userData: userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
         privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)
         keyStore = KeyStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
