@@ -439,18 +439,26 @@ final class ProtoService: ProtoServiceCore {
         return false
     }
 
-    private func rerequestMessageIfNecessary(_ message: Server_Msg, failedEphemeralKey: Data?) {
+    private func rerequestMessageIfNecessary(_ message: Server_Msg, failedEphemeralKey: Data?, ack: (() -> Void)?) {
         // Dont rerequest messages that were already decrypted and saved.
         if !isMessageDecryptedAndSaved(msgId: message.id) {
-            updateStatusAndRerequestMessage(message, failedEphemeralKey: failedEphemeralKey)
+            updateStatusAndRerequestMessage(message, failedEphemeralKey: failedEphemeralKey, ack: ack)
         }
     }
 
-    private func updateStatusAndRerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?) {
+    private func updateStatusAndRerequestMessage(_ message: Server_Msg, failedEphemeralKey: Data?, ack: (() -> Void)?) {
         self.updateMessageStatus(id: message.id, status: .rerequested)
         let fromUserID = UserID(message.fromUid)
         DDLogInfo("ProtoService/rerequestMessage/\(message.id) rerequesting")
-        rerequestMessage(message.id, senderID: fromUserID, failedEphemeralKey: failedEphemeralKey, contentType: .chat) { _ in }
+        rerequestMessage(message.id, senderID: fromUserID, failedEphemeralKey: failedEphemeralKey, contentType: .chat) { result in
+            switch result {
+            case .success(_):
+                DDLogInfo("ProtoService/rerequestMessage/\(message.id)/success")
+                ack?()
+            case .failure(let error):
+                DDLogError("ProtoService/rerequestMessage/\(message.id)/failure, error: \(error)")
+            }
+        }
     }
 
     override func didReceive(packet: Server_Packet) {
@@ -632,7 +640,8 @@ final class ProtoService: ProtoServiceCore {
                 if let failure = decryptionFailure {
                     DDLogError("proto/didReceive/\(msg.id)/decrypt/error \(failure.error)")
                     AppContext.shared.errorLogger?.logError(failure.error)
-                    self.rerequestMessageIfNecessary(msg, failedEphemeralKey: failure.ephemeralKey)
+                    hasAckBeenDelegated = true
+                    self.rerequestMessageIfNecessary(msg, failedEphemeralKey: failure.ephemeralKey, ack: ack)
                 } else {
                     DDLogInfo("proto/didReceive/\(msg.id)/decrypt/success")
                 }
@@ -657,7 +666,8 @@ final class ProtoService: ProtoServiceCore {
                 if let failure = decryptionFailure {
                     DDLogError("proto/didReceive/\(msg.id)/silent-decrypt/error \(failure.error)")
                     AppContext.shared.errorLogger?.logError(failure.error)
-                    self.updateStatusAndRerequestMessage(msg, failedEphemeralKey: failure.ephemeralKey)
+                    hasAckBeenDelegated = true
+                    self.updateStatusAndRerequestMessage(msg, failedEphemeralKey: failure.ephemeralKey, ack: ack)
                 } else {
                     DDLogInfo("proto/didReceive/\(msg.id)/silent-decrypt/success")
                 }
