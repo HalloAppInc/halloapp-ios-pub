@@ -25,6 +25,10 @@ extension Color {
         Color("LavaOrange")
     }
 
+    static var primaryBlue: Color {
+        Color("PrimaryBlue")
+    }
+
     static var separator: Color {
         Color("Separator")
     }

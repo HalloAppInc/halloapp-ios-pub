@@ -681,22 +681,18 @@ fileprivate struct PostComposerView: View {
         }
     }
 
-    var sendButton: some View {
-        Button(action: {
+    var shareButton: some View {
+        ShareButton {
             guard !self.isPosting.value else { return }
+
+            if audioComposerRecorder.isRecording {
+                audioComposerRecorder.stopRecording(cancel: false)
+            }
+
             self.share()
-        }) {
-            Image("PostSend")
-                .renderingMode(.template)
-                .foregroundColor(.white)
-                .offset(x: 2)
-                .frame(width: PostComposerLayoutConstants.sendButtonHeight, height: PostComposerLayoutConstants.sendButtonHeight)
-                .background(
-                    RoundedRectangle(cornerRadius: 26)
-                        .fill(!isReadyToShare || isPosting.value ? Color.primaryBlackWhite.opacity(0.19) : Color.lavaOrange)
-                )
-                .disabled(!isReadyToShare || isPosting.value)
         }
+        .offset(x: 2)
+        .disabled(!isReadyToShare || isPosting.value)
     }
 
     var audioRecordingView: some View {
@@ -787,8 +783,7 @@ fileprivate struct PostComposerView: View {
                                     .padding(.leading, 10)
 
                                     Spacer()
-
-                                    sendButton
+                                    shareButton
                                 }
                                 .padding(12)
                             }
@@ -816,11 +811,49 @@ fileprivate struct PostComposerView: View {
 
             if mediaCount > 0 {
                 HStack(alignment: .bottom, spacing: 8) {
-                    postTextView
-                        .background(Color(.secondarySystemGroupedBackground))
-                        .cornerRadius(PostComposerLayoutConstants.postTextRadius)
+                    if audioComposerRecorder.voiceNote != nil {
+                        AudioComposerPlayer(configuration: .composerWithMedia, recorder: audioComposerRecorder)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        HStack(spacing: 0) {
+                            ZStack(alignment: .leading) {
+                                postTextView
+                                    // hide vs remove to maintain sizing
+                                    .opacity(audioComposerRecorder.recorderControlsExpanded ? 0 : 1)
+                                if audioComposerRecorder.recorderControlsExpanded {
+                                    HStack {
+                                        AudioPostComposerDurationView(time: audioComposerRecorder.duration)
+                                        // Maintain a solid background to hide "slide to cancel" text from recorder control
+                                            .padding(.horizontal, 4)
+                                            .background(Color(.secondarySystemGroupedBackground))
+                                            .padding(.leading, PostComposerLayoutConstants.postTextHorizontalPadding - 4)
+                                        Spacer()
+                                        if audioComposerRecorder.recorderControlsLocked {
+                                            Button {
+                                                audioComposerRecorder.stopRecording(cancel: false)
+                                            } label: {
+                                                Text(Localizations.buttonStop)
+                                                    .foregroundColor(.primaryBlue)
+                                            }
+                                            .padding(.leading, -6)
+                                            Spacer()
+                                        }
+                                    }
+                                }
+                            }
+                            .zIndex(1)
+                            if inputToPost.value.text.isEmpty, !audioComposerRecorder.recorderControlsLocked {
+                                AudioComposerRecorderControl(recorder: audioComposerRecorder)
+                                    .frame(width: 24, height: 24)
+                                    .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
+                            }
+                        }
+                        .background(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.postTextRadius)
+                                        .fill(Color(.secondarySystemGroupedBackground)))
+                        .compositingGroup()
                         .shadow(color: .black.opacity(self.colorScheme == .dark ? 0 : 0.04), radius: 2, y: 1)
-                    sendButton
+                    }
+                    shareButton
                         .offset(y: -2)
                 }
                 .padding(10)

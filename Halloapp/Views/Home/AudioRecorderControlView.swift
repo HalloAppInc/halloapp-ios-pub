@@ -23,7 +23,21 @@ protocol AudioRecorderControlViewDelegate: AnyObject {
 }
 
 class AudioRecorderControlView: UIView {
+
+    struct Configuration {
+        fileprivate let expandMaxSize: CGFloat
+        fileprivate let cancelButtonTranslationMultiplier: CGFloat
+
+        static let post = Configuration(expandMaxSize: 160,
+                                        cancelButtonTranslationMultiplier: 0.25)
+
+        static let comment = Configuration(expandMaxSize: 230,
+                                           cancelButtonTranslationMultiplier: 1)
+    }
+
     public weak var delegate: AudioRecorderControlViewDelegate?
+
+    private let configuration: Configuration
 
     private var lockButtonAnimator: UIViewPropertyAnimator?
 
@@ -40,7 +54,7 @@ class AudioRecorderControlView: UIView {
         let blurredEffectView = BlurView(effect: blurEffect, intensity: 0.5)
         blurredEffectView.translatesAutoresizingMaskIntoConstraints = false
         blurredEffectView.backgroundColor = UIColor(red: 143/255, green: 196/255, blue: 1, alpha: 0.3)
-        blurredEffectView.layer.cornerRadius = expandMaxSize / 2
+        blurredEffectView.layer.cornerRadius = configuration.expandMaxSize / 2
         blurredEffectView.layer.masksToBounds = true
         blurredEffectView.isUserInteractionEnabled = false
 
@@ -85,7 +99,8 @@ class AudioRecorderControlView: UIView {
 
     private lazy var leftArrow: UIView = {
         let config = UIImage.SymbolConfiguration(weight: .bold)
-        let arrow = UIImageView(image: UIImage(systemName: "chevron.left", withConfiguration: config)?.withTintColor(.primaryBlue))
+        let arrow = UIImageView(image: UIImage(systemName: "chevron.left", withConfiguration: config))
+        arrow.tintColor = .primaryBlue
         arrow.translatesAutoresizingMaskIntoConstraints = false
         arrow.contentMode = .scaleAspectFit
 
@@ -97,7 +112,8 @@ class AudioRecorderControlView: UIView {
 
     private lazy var topArrow: UIView = {
         let config = UIImage.SymbolConfiguration(weight: .bold)
-        let arrow = UIImageView(image: UIImage(systemName: "chevron.up", withConfiguration: config)?.withTintColor(.primaryBlue))
+        let arrow = UIImageView(image: UIImage(systemName: "chevron.up", withConfiguration: config))
+        arrow.tintColor = .primaryBlue
         arrow.translatesAutoresizingMaskIntoConstraints = false
         arrow.contentMode = .scaleAspectFit
 
@@ -110,7 +126,7 @@ class AudioRecorderControlView: UIView {
     private lazy var expandingContainer: UIView = {
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.layer.cornerRadius = expandMaxSize / 2
+        container.layer.cornerRadius = configuration.expandMaxSize / 2
         container.isHidden = true
 
         container.addSubview(blurredBackground)
@@ -155,13 +171,14 @@ class AudioRecorderControlView: UIView {
     private var startLocation: CGPoint = .zero
 
     private let expandMinSize: CGFloat = 40
-    private let expandMaxSize: CGFloat = 230
     private let actionOffset: CGFloat = -8
     private let actionInProgressThreshold: CGFloat = 20
     private let actionActivationThreshold: CGFloat = 90
     private let actionDoneThreshold: CGFloat = 105
 
-    init() {
+    init(configuration: Configuration) {
+        self.configuration = configuration
+
         super.init(frame: .zero)
 
         isUserInteractionEnabled = true
@@ -228,27 +245,27 @@ class AudioRecorderControlView: UIView {
                 lockButton.alpha = 1 - progress
 
                 stopLockButtonLevitation()
-                lockButtonVertical.constant = actionOffset - (expandMaxSize - expandMinSize) / 2 - diff
+                lockButtonVertical.constant = actionOffset - (configuration.expandMaxSize - expandMinSize) / 2 - diff
             } else if distanceY > actionInProgressThreshold {
                 let progress = diff / (actionActivationThreshold - actionInProgressThreshold)
                 cancelButton.alpha = 1 - progress
                 leftArrow.alpha = 1 - progress
                 topArrow.alpha = 1 - progress
-                expandingContainerWidth.constant = 190 * (1 - progress) + 40
-                expandingContainerHeight.constant = 190 * (1 - progress) + 40
+                expandingContainerWidth.constant = (configuration.expandMaxSize - expandMinSize) * (1 - progress) + expandMinSize
+                expandingContainerHeight.constant = (configuration.expandMaxSize - expandMinSize) * (1 - progress) + expandMinSize
                 expandingContainer.layer.cornerRadius = expandingContainerWidth.constant / 2
                 blurredBackground.layer.cornerRadius = expandingContainerWidth.constant / 2
                 lockButton.alpha = 1
 
                 stopLockButtonLevitation()
-                lockButtonVertical.constant = actionOffset - (expandMaxSize - expandingContainerWidth.constant) / 2 - diff
+                lockButtonVertical.constant = actionOffset - (configuration.expandMaxSize - expandingContainerWidth.constant) / 2 - diff
             } else {
                 isLockInProgress = false
                 cancelButton.alpha = 1
                 leftArrow.alpha = 1
                 topArrow.alpha = 1
-                expandingContainerWidth.constant = expandMaxSize
-                expandingContainerHeight.constant = expandMaxSize
+                expandingContainerWidth.constant = configuration.expandMaxSize
+                expandingContainerHeight.constant = configuration.expandMaxSize
                 lockButton.alpha = 1
                 lockButtonVertical.constant = actionOffset
 
@@ -268,7 +285,7 @@ class AudioRecorderControlView: UIView {
                 expandingContainerWidth.constant = expandMinSize
                 expandingContainerHeight.constant = expandMinSize
                 cancelButton.alpha = 1 - progress
-                cancelButtonHorizontal.constant = actionOffset - (expandMaxSize - expandMinSize) / 2 - diff
+                cancelButtonHorizontal.constant = actionOffset - (configuration.expandMaxSize - expandMinSize) / 2 - configuration.cancelButtonTranslationMultiplier * diff
 
                 stopLockButtonLevitation()
             } else if distanceX > actionInProgressThreshold {
@@ -276,21 +293,20 @@ class AudioRecorderControlView: UIView {
                 lockButton.alpha = 1 - progress
                 leftArrow.alpha = 1 - progress
                 topArrow.alpha = 1 - progress
-                expandingContainerWidth.constant = 190 * (1 - progress) + 40
-                expandingContainerHeight.constant = 190 * (1 - progress) + 40
+                expandingContainerWidth.constant = (configuration.expandMaxSize - expandMinSize) * (1 - progress) + expandMinSize
+                expandingContainerHeight.constant = (configuration.expandMaxSize - expandMinSize) * (1 - progress) + expandMinSize
                 expandingContainer.layer.cornerRadius = expandingContainerWidth.constant / 2
                 blurredBackground.layer.cornerRadius = expandingContainerWidth.constant / 2
                 cancelButton.alpha = 1
-                cancelButtonHorizontal.constant = actionOffset - (expandMaxSize - expandingContainerWidth.constant) / 2 - diff
-
+                cancelButtonHorizontal.constant = actionOffset - (configuration.expandMaxSize - expandingContainerWidth.constant) / 2 - configuration.cancelButtonTranslationMultiplier * diff
                 stopLockButtonLevitation()
             } else {
                 isCancelInProgress = false
                 lockButton.alpha = 1
                 leftArrow.alpha = 1
                 topArrow.alpha = 1
-                expandingContainerWidth.constant = expandMaxSize
-                expandingContainerHeight.constant = expandMaxSize
+                expandingContainerWidth.constant = configuration.expandMaxSize
+                expandingContainerHeight.constant = configuration.expandMaxSize
                 cancelButton.alpha = 1
                 cancelButtonHorizontal.constant = actionOffset
 
@@ -338,8 +354,8 @@ class AudioRecorderControlView: UIView {
         layoutIfNeeded()
 
         UIView.animate(withDuration: 0.3) {
-            self.expandingContainerWidth.constant = self.expandMaxSize
-            self.expandingContainerHeight.constant = self.expandMaxSize
+            self.expandingContainerWidth.constant = self.configuration.expandMaxSize
+            self.expandingContainerHeight.constant = self.configuration.expandMaxSize
             self.expandingContainer.layer.cornerRadius = self.expandingContainerWidth.constant / 2
             self.blurredBackground.layer.cornerRadius = self.expandingContainerWidth.constant / 2
             self.layoutIfNeeded()

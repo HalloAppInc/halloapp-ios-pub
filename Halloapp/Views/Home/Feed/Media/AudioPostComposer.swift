@@ -70,8 +70,7 @@ struct AudioPostComposer<MediaPicker: View>: View {
                     .font(.system(size: 16, weight: .regular))
                     .foregroundColor(.audioComposerTitleText)
                     .opacity(state != .recording ? 1 : 0)
-                DurationView(time: recorder.duration)
-                    .foregroundColor(.lavaOrange)
+                AudioPostComposerDurationView(time: recorder.duration)
                     .opacity(state == .recording ? 1 : 0)
             }
             .frame(height: 64)
@@ -82,26 +81,22 @@ struct AudioPostComposer<MediaPicker: View>: View {
                     // to the internal button so it can set accessibility(hidden)
                     isHidden: state == .recorded,
                     action: {
-                        let status = AVCaptureDevice.authorizationStatus(for: .audio)
-                        if !recorder.isRecording, [.denied, .restricted].contains(status) {
-                            showPermissionsAlert = true
+                        if recorder.isRecording {
+                            recorder.stopRecording(cancel: false)
                         } else {
-                            recorder.isRecording.toggle()
+                            if !recorder.hasMicPermission {
+                                showPermissionsAlert = true
+                            } else {
+                                recorder.startRecording()
+                            }
                         }
                     },
                     audioMeter: recorder.meter)
                     .padding(.top, 4)
                     .alert(isPresented: $showPermissionsAlert) {
-                        Alert(title: Text(Localizations.micAccessDeniedTitle),
-                              message: Text(Localizations.micAccessDeniedMessage),
-                              primaryButton: .default(Text(Localizations.settingsAppName), action: {
-                            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-                                UIApplication.shared.open(settingsURL)
-                            }
-                        }),
-                              secondaryButton: .cancel(Text(Localizations.buttonCancel)))
+                        AudioComposerRecorder.micPermissionsAlert
                     }
-                AudioComposerPlayer(recorder: recorder)
+                AudioComposerPlayer(configuration: .composer, recorder: recorder)
                     .padding(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
                     .opacity(state == .recorded ? 1 : 0)
                     .fixedSize(horizontal: false, vertical: true)
@@ -125,13 +120,7 @@ struct AudioPostComposer<MediaPicker: View>: View {
                 .padding(EdgeInsets(top: 0, leading: 24, bottom: 24, trailing: 0))
                 .opacity(state == .recorded ? 1 : 0)
                 Spacer()
-                Button(action: shareAction) {
-                    Image("icon_share")
-                        .foregroundColor(.white)
-                        .frame(width: 52, height: 52)
-                        .background(Circle())
-                        .accentColor(.lavaOrange)
-                }
+                ShareButton(action: shareAction)
                 .accessibility(label: Text(Localizations.shareRecordingA11yLabel))
                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 16))
                 .disabled(!isReadyToShare)
@@ -142,18 +131,17 @@ struct AudioPostComposer<MediaPicker: View>: View {
     }
 }
 
-fileprivate struct DurationView: View {
+struct AudioPostComposerDurationView: View {
 
     var time: String
 
     @State private var isAnimating = false
 
     var body: some View {
-        HStack {
+        HStack(spacing: 6) {
             Circle()
                 .fill()
                 .frame(width: 8, height: 8)
-                .padding(.trailing, 5)
                 .opacity(isAnimating ? 1 : 0.2)
                 .scaleEffect(isAnimating ? 1 : 0.8)
                 .animation(Animation.easeInOut(duration: 0.6).repeatForever())
@@ -163,6 +151,7 @@ fileprivate struct DurationView: View {
             Text(time)
                 .font(.system(size: 21, weight: .medium).monospacedDigit())
         }
+        .foregroundColor(.lavaOrange)
     }
 }
 
@@ -225,19 +214,42 @@ fileprivate struct RecordButton: View {
 
 class AudioComposerRecorder: NSObject, ObservableObject {
 
-    @Published var duration = 0.formatted
-    @Published var isRecording = false {
-        didSet {
-            if audioRecorder.isRecording != isRecording {
-                isRecording ? audioRecorder.start() : audioRecorder.stop(cancel: false)
-            }
-        }
-    }
+    @Published private(set) var duration = 0.formatted
+    @Published private(set) var isRecording = false
+
+    // Whether the inline recorder controls are locked to record
+    @Published var recorderControlsLocked = false
+
+    // Whether or not the inline recorder controls are expanded (ie, on touch down)
+    @Published var recorderControlsExpanded = false
 
     @Published var voiceNote: PendingMedia?
 
     var meter: CurrentValueSubject<(averagePower: Float, peakPower: Float), Never> {
         return audioRecorder.meter
+    }
+
+    var hasMicPermission: Bool {
+        return ![.denied, .restricted].contains(AVCaptureDevice.authorizationStatus(for: .audio))
+    }
+
+    fileprivate static var micPermissionsAlert: Alert {
+        Alert(title: Text(Localizations.micAccessDeniedTitle),
+              message: Text(Localizations.micAccessDeniedMessage),
+              primaryButton: .default(Text(Localizations.settingsAppName), action: {
+            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(settingsURL)
+            }
+        }),
+              secondaryButton: .cancel(Text(Localizations.buttonCancel)))
+    }
+
+    func startRecording() {
+        audioRecorder.start()
+    }
+
+    func stopRecording(cancel: Bool) {
+        audioRecorder.stop(cancel: cancel)
     }
 
     private lazy var audioRecorder: AudioRecorder = {
@@ -272,8 +284,10 @@ extension AudioComposerRecorder: AudioRecorderDelegate {
     private func stopRecordingAndSaveIfNeeded() {
         isRecording = false
         duration = 0.formatted
+        recorderControlsLocked = false
+        recorderControlsExpanded = false
 
-        guard let url = audioRecorder.saveVoicePost() else {
+        guard audioRecorder.url != nil, let url = audioRecorder.saveVoicePost() else {
             return
         }
 
@@ -287,12 +301,13 @@ extension AudioComposerRecorder: AudioRecorderDelegate {
 
 // MARK: - AudioComposerPlayer
 
-fileprivate struct AudioComposerPlayer: UIViewRepresentable {
+struct AudioComposerPlayer: UIViewRepresentable {
 
+    let configuration: PostAudioViewConfiguration
     @ObservedObject var recorder: AudioComposerRecorder
 
     func makeUIView(context: Context) -> PostAudioView {
-        let postAudioView = PostAudioView(configuration: .composer)
+        let postAudioView = PostAudioView(configuration: configuration)
         postAudioView.delegate = context.coordinator
         postAudioView.isSeen = true
         postAudioView.autoresizingMask = .flexibleWidth
@@ -320,3 +335,77 @@ fileprivate struct AudioComposerPlayer: UIViewRepresentable {
         }
     }
 }
+
+// MARK: - AudioComposerRecorderControlView
+
+struct AudioComposerRecorderControl: View {
+
+    @State private var showMicPermissionsAlert = false
+
+    @ObservedObject var recorder: AudioComposerRecorder
+
+    var body: some View {
+        AudioComposerRecorderControlView(recorder: recorder, showMicPermissionsAlert: $showMicPermissionsAlert)
+            .alert(isPresented: $showMicPermissionsAlert, content: {
+                AudioComposerRecorder.micPermissionsAlert
+            })
+            .onReceive(recorder.$recorderControlsExpanded) { expanded in
+                if expanded && !recorder.hasMicPermission {
+
+                    showMicPermissionsAlert = true
+                }
+            }
+    }
+}
+
+fileprivate struct AudioComposerRecorderControlView: UIViewRepresentable {
+
+    @ObservedObject var recorder: AudioComposerRecorder
+    @Binding var showMicPermissionsAlert: Bool
+
+    func makeUIView(context: Context) -> AudioRecorderControlView {
+        let controlView = AudioRecorderControlView(configuration: .post)
+        controlView.delegate = context.coordinator
+        return controlView
+    }
+
+    func updateUIView(_ uiView: AudioRecorderControlView, context: Context) {
+        if showMicPermissionsAlert {
+            uiView.hide()
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(self)
+    }
+
+    class Coordinator: NSObject, AudioRecorderControlViewDelegate {
+
+        private let controlView: AudioComposerRecorderControlView
+
+        init(_ controlView: AudioComposerRecorderControlView) {
+            self.controlView = controlView
+        }
+
+        func audioRecorderControlViewWillStart(_ view: AudioRecorderControlView) {
+            if controlView.recorder.hasMicPermission {
+                controlView.recorder.recorderControlsExpanded = true
+            } else {
+                controlView.showMicPermissionsAlert = true
+            }
+        }
+
+        func audioRecorderControlViewStarted(_ view: AudioRecorderControlView) {
+            controlView.recorder.startRecording()
+        }
+
+        func audioRecorderControlViewFinished(_ view: AudioRecorderControlView, cancel: Bool) {
+            controlView.recorder.stopRecording(cancel: cancel)
+        }
+
+        func audioRecorderControlViewLocked(_ view: AudioRecorderControlView) {
+            controlView.recorder.recorderControlsLocked = true
+        }
+    }
+}
+
