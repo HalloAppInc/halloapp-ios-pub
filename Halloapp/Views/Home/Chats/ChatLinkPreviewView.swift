@@ -133,6 +133,7 @@ class ChatLinkPreviewView: UIView {
 
     @objc private func previewTapped(sender: UITapGestureRecognizer) {
         if let url = chatLinkPreview?.url {
+            guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { return }
             UIApplication.shared.open(url)
         }
     }

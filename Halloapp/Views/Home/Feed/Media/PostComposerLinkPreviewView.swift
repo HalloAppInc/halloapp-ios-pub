@@ -138,7 +138,7 @@ class PostComposerLinkPreviewView: UIView {
                 self.linkView.leadingAnchor.constraint(equalTo: self.vStack.leadingAnchor).isActive = true
                 self.linkView.trailingAnchor.constraint(equalTo: self.vStack.trailingAnchor).isActive = true
 
-                self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
+                self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title ?? "", description: "", previewImages: [])
 
                 // If image is not present, fallback on icon.
                 if let imageProvider = data.imageProvider ?? data.iconProvider {
