@@ -917,8 +917,10 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
             return
         }
 
+        let numberOfLines = label.numberOfLines + 10
+
         var displayData = postDisplayData[postID] ?? FeedPostDisplayData()
-        displayData.isTextExpanded = true
+        displayData.textNumberOfLines = numberOfLines
         postDisplayData[postID] = displayData
 
         if let displayItem = self.feedDataSource.item(at: indexPath.item) {
@@ -927,7 +929,7 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
             cachedCellHeights.removeAll()
         }
 
-        label.numberOfLines = 0
+        label.numberOfLines = numberOfLines
         UIView.animate(withDuration: 0.35) {
             self.collectionView.collectionViewLayout.invalidateLayout()
             label.superview?.layoutIfNeeded()
