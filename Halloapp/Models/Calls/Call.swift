@@ -14,29 +14,6 @@ import CallKit
 import CryptoKit
 import Reachability
 
-public typealias CallID = String
-
-public enum CallType: Int, Codable {
-    case audio = 0
-    case video = 1
-}
-
-extension CallType {
-    var serverCallType: Server_CallType {
-        switch self {
-        case .audio:
-            return .audio
-        case .video:
-            return .video
-        }
-    }
-}
-
-public enum CallError: Error {
-    case systemError
-    case alreadyInCall
-    case noActiveCall
-}
 
 public let importantStatKeys: Set = ["packetsReceived", "bytesReceived",
                                   "packetsLost", "packetsDiscarded",
@@ -48,70 +25,6 @@ public let importantStatKeys: Set = ["packetsReceived", "bytesReceived",
 
 public let unwantedStatTypes: Set = ["codec", "certificate", "media-source", "candidate-pair", "local-candidate", "remote-candidate"]
 
-public enum EndCallReason: Int, Codable {
-    case ended = 0
-    case canceled = 1
-    case reject = 2
-    case busy = 3
-    case timeout = 4
-    case systemError = 5
-    case decryptionError = 6
-    case encryptionError = 7
-    case connectionError = 8
-    case videoUnsupportedError = 9
-}
-
-extension EndCallReason {
-    var serverEndCallReason: Server_EndCall.Reason {
-        switch self {
-        case .ended:
-            return .callEnd
-        case .canceled:
-            return .cancel
-        case .reject:
-            return .reject
-        case .busy:
-            return .busy
-        case .timeout:
-            return .timeout
-        case .systemError:
-            return .systemError
-        case .encryptionError:
-            return .encryptionFailed
-        case .decryptionError:
-            return .decryptionFailed
-        case .connectionError:
-            return .connectionError
-        case .videoUnsupportedError:
-            return .videoUnsupported
-        }
-    }
-
-    var serverEndCallReasonStr: String {
-        switch self {
-        case .ended:
-            return "callEnd"
-        case .canceled:
-            return "cancel"
-        case .reject:
-            return "reject"
-        case .busy:
-            return "busy"
-        case .timeout:
-            return "timeout"
-        case .systemError:
-            return "systemError"
-        case .encryptionError:
-            return "encryptionFailed"
-        case .decryptionError:
-            return "decryptionFailed"
-        case .connectionError:
-            return "connectionError"
-        case .videoUnsupportedError:
-            return "videoUnsupported"
-        }
-    }
-}
 
 public struct IceCandidateInfo {
     var sdpMid: String
@@ -122,24 +35,6 @@ public struct IceCandidateInfo {
 extension IceCandidateInfo {
     var rtcIceCandidate: RTCIceCandidate {
         return RTCIceCandidate(sdp: sdpInfo, sdpMLineIndex: sdpMLineIndex, sdpMid: sdpMid)
-    }
-}
-
-enum CallState {
-    case inactive
-    case connecting
-    case ringing
-    case active
-    case held
-    case disconnected
-}
-
-extension String {
-    var callUUID: UUID {
-        let hash = SHA256.hash(data: Data(self .utf8)).data
-        let truncatedHash = Array(hash.prefix(16))
-        let uuidString = NSUUID(uuidBytes: truncatedHash).uuidString
-        return UUID(uuidString: uuidString)!
     }
 }
 
@@ -164,6 +59,9 @@ class Call {
             // state is set to active only when client answers or received an answer for the call.
             if state == .active {
                 isAnswered = true
+                MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                    call.answered = true
+                }
             }
         }
     }
@@ -188,13 +86,14 @@ class Call {
     }
 
     // MARK: Initialization
-    init(id: CallID, peerUserID: UserID, iceServers: [RTCIceServer], isOutgoing: Bool = false) {
-        DDLogInfo("Call/init/id: \(id)/peerUserID: \(peerUserID)/iceServers: \(iceServers)/isOutgoing: \(isOutgoing)")
+    init(id: CallID, peerUserID: UserID, iceServers: [RTCIceServer], direction: CallDirection = .incoming) {
+        DDLogInfo("Call/init/id: \(id)/peerUserID: \(peerUserID)/iceServers: \(iceServers)/direction: \(direction)")
         self.callID = id
         self.peerUserID = peerUserID
-        self.isOutgoing = isOutgoing
+        self.isOutgoing = direction == .outgoing
         self.webRTCClient = WebRTCClient(iceServers: iceServers)
         webRTCClient.delegate = self
+        MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID, type: .audio, direction: direction)
     }
 
     // MARK: Local User Actions
@@ -288,6 +187,9 @@ class Call {
                 }
                 do {
                     let durationMs = MainAppContext.shared.callManager.callDurationMs
+                    MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                        call.durationMs = durationMs
+                    }
                     let reasonStr = reason.serverEndCallReasonStr
                     let webrtcStatsData = try JSONSerialization.data(withJSONObject: modifiedReport, options: [.prettyPrinted, .withoutEscapingSlashes])
                     if let webrtcStatsString = String(data: webrtcStatsData, encoding: .utf8) {

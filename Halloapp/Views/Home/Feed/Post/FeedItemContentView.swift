@@ -220,7 +220,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             textLabel.numberOfLines = 0
         } else if postContainsText {
             textContentView.isHidden = false
-            let isTextExpanded = displayData?.isTextExpanded ?? false
+            let defaultNumberOfLines = media.isEmpty ? 10 : 3
+            let numberOfLinesToShow = displayData?.textNumberOfLines ?? defaultNumberOfLines
 
             let postText = MainAppContext.shared.contactStore.textWithMentions(
                 postTextWithCryptoResult,
@@ -239,7 +240,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
                 textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(mentionNameFont)
             }
 
-            textLabel.numberOfLines = isTextExpanded ? 0 : media.isEmpty ? 10 : 3
+            textLabel.numberOfLines = numberOfLinesToShow
             // Adjust vertical margins around text.
             textContentView.layoutMargins.top = media.isEmpty ? 9 : 11
         } else {

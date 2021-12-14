@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19206" systemVersion="20G165" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Call" representedClassName="Call" syncable="YES">
+        <attribute name="answered" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="callID" attributeType="String"/>
+        <attribute name="directionValue" attributeType="String"/>
+        <attribute name="durationMs" attributeType="Double" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="peerUserID" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="typeValue" attributeType="String"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="callID"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <elements>
+        <element name="Call" positionX="-63" positionY="-18" width="128" height="134"/>
+    </elements>
+</model>

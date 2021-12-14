@@ -717,6 +717,11 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
 
     private static var videoURLToAutoplay: URL? = nil
 
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updatePlayerViewFrame()
+    }
+
     override func prepareForReuse() {
         super.prepareForReuse()
 

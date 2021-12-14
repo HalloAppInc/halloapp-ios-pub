@@ -880,7 +880,6 @@ class ChatData: ObservableObject {
 
                 _ = ChatMediaDownloader(url: url, progressHandler: { [weak self] progress in
                     guard let self = self else { return }
-                    let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
                     self.didGetLinkPreviewMediaDownloadProgress.send((linkPreviewId, Int(order), progress, med.relativeFilePath))
                 }, completion: { [weak self] (outputUrl) in
                     guard let self = self else { return }
@@ -1190,7 +1189,7 @@ class ChatData: ObservableObject {
                     (message.status == .received || message.status == .acked) {
                     DDLogInfo("ChatData/mergeSharedData/already-exists [\(messageId)] override failed decryption.")
                 } else {
-                    DDLogError("ChatData/mergeSharedData/already-exists [\(messageId)] dont override.")
+                    DDLogError("ChatData/mergeSharedData/already-exists [\(messageId)] dont override/status: \(existingChatmessage.incomingStatusValue)")
                     continue
                 }
             }
@@ -1261,7 +1260,7 @@ class ChatData: ObservableObject {
             switch chatContent {
             case .album(let text, _):
                 chatMessage.text = text
-            case .text(let text, let linkPreviewData):
+            case .text(let text, let _):
                 // TODO @dini merge linkPreviewData
                 chatMessage.text = text
             case .voiceNote(_):
@@ -1745,7 +1744,10 @@ extension ChatData {
     private func updateChatThreadStatus(type: ChatType, for id: String, messageId: String, block: @escaping (ChatThread) -> Void) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            guard let chatThread = self.chatThreadStatus(type: type, id: id, messageId: messageId, in: managedObjectContext) else { return }
+            guard let chatThread = self.chatThreadStatus(type: type, id: id, messageId: messageId, in: managedObjectContext) else {
+                DDLogError("ChatData/updateChatThreadStatus - missing")
+                return
+            }
             DDLogVerbose("ChatData/updateChatThreadStatus found lastMsgID: [\(messageId)] in threadID: [\(id)]")
             block(chatThread)
             if managedObjectContext.hasChanges {
@@ -1854,27 +1856,19 @@ extension ChatData {
     }
 
     private func processInboundChatRetractInBg(_ chatRetractInfo: ChatRetractInfo, in context: NSManagedObjectContext) {
-        backgroundProcessingQueue.asyncAfter(deadline: .now() + 1) {
-            self.retractMsgIfFound(chatRetractInfo: chatRetractInfo, attemptsLeft: 3, in: context)
+        backgroundProcessingQueue.async {
+            self.retractMsg(chatRetractInfo: chatRetractInfo, in: context)
         }
     }
 
-    private func retractMsgIfFound(chatRetractInfo: ChatRetractInfo, attemptsLeft: Int, in context: NSManagedObjectContext) {
-        guard attemptsLeft > 0 else { return }
-        DDLogInfo("ChatData/retractMsgIfFound/attemptsLeft: \(attemptsLeft)")
+    private func retractMsg(chatRetractInfo: ChatRetractInfo, in context: NSManagedObjectContext) {
+        DDLogInfo("ChatData/retractMsgIfFound/")
  
         switch chatRetractInfo.threadType {
         case .oneToOne:
-            if chatMessage(with: chatRetractInfo.messageID, in: context) != nil {
-                processInboundChatMessageRetract(from: chatRetractInfo.from, messageID: chatRetractInfo.messageID)
-                return
-            }
+            processInboundChatMessageRetract(from: chatRetractInfo.from, messageID: chatRetractInfo.messageID)
         default:
             return
-        }
-
-        backgroundProcessingQueue.asyncAfter(deadline: .now() + 3) { [weak self] in
-            self?.retractMsgIfFound(chatRetractInfo: chatRetractInfo, attemptsLeft: attemptsLeft - 1, in: context)
         }
     }
 }
@@ -2624,6 +2618,46 @@ extension ChatData {
     }
 
     // MARK: 1-1 Core Data Updating
+
+    private func createNewChatMessageIfMissing(from: UserID, messageID: String, status: ChatMessage.IncomingStatus) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self, self.chatMessage(with: messageID, in: managedObjectContext) == nil else {
+                return
+            }
+            DDLogWarn("ChatData/createNewChatMessageIfMissing/from: \(from)/messageID: \(messageID)/status: \(status)/messages might be out of order")
+            let timestamp = Date()
+            let chatMessage = ChatMessage(context: managedObjectContext)
+            chatMessage.id = messageID
+            chatMessage.fromUserId = from
+            chatMessage.toUserId = self.userData.userId
+            chatMessage.incomingStatus = status
+            chatMessage.outgoingStatus = .none
+            chatMessage.timestamp = timestamp
+            chatMessage.serverTimestamp = timestamp
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+
+    private func createNewChatThreadIfMissing(from: UserID, messageID: String, status: ChatThread.LastMsgStatus) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self, self.chatThreadStatus(type: .oneToOne, id: from, messageId: messageID, in: managedObjectContext) == nil else {
+                return
+            }
+            DDLogWarn("ChatData/createNewChatThreadIfMissing/from: \(from)/messageID: \(messageID)/status: \(status)/messages might be out of order")
+            let timestamp = Date()
+            let chatThread = ChatThread(context: managedObjectContext)
+            chatThread.lastMsgUserId = from
+            chatThread.lastMsgTimestamp = timestamp
+            chatThread.lastMsgStatus = status
+            chatThread.lastMsgText = nil
+            chatThread.lastMsgMediaType = .none
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
     
     private func updateChatMessage(with chatMessageId: String, block: @escaping (ChatMessage) -> (), performAfterSave: (() -> ())? = nil) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
@@ -2637,7 +2671,7 @@ extension ChatData {
                 DDLogError("ChatData/update-message/missing [\(chatMessageId)]")
                 return
             }
-            DDLogVerbose("ChatData/update-message [\(chatMessageId)]")
+            DDLogVerbose("ChatData/update-existing-message [\(chatMessageId)]")
             block(chatMessage)
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
@@ -2976,7 +3010,7 @@ extension ChatData {
         let chatMessage: ChatMessage = {
             guard let existingChatMessage = existingChatMessage else {
                 DDLogDebug("ChatData/process/new [\(xmppChatMessage.id)]")
-                return NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
+                return ChatMessage(context: managedObjectContext)
             }
             DDLogDebug("ChatData/process/updating rerequested message [\(xmppChatMessage.id)]")
             return existingChatMessage
@@ -3169,13 +3203,16 @@ extension ChatData {
     private func processInboundChatMessageRetract(from: UserID, messageID: String) {
         DDLogInfo("ChatData/processInboundChatMessageRetract")
 
+        createNewChatMessageIfMissing(from: from, messageID: messageID, status: .retracted)
+
         updateChatMessage(with: messageID) { [weak self] (chatMessage) in
             guard let self = self else { return }
-            
+
             chatMessage.incomingStatus = .retracted
-            
+
             self.deleteChatMessageContent(in: chatMessage)
 
+            self.createNewChatThreadIfMissing(from: from, messageID: messageID, status: .retracted)
             self.updateChatThreadStatus(type: .oneToOne, for: from, messageId: messageID) { (chatThread) in
                 chatThread.lastMsgStatus = .retracted
 

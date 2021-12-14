@@ -120,7 +120,7 @@ final class CallManager: NSObject, CXProviderDelegate {
             callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID)
             let handle = handle(for: peerUserID)
             DDLogInfo("CallManager/startCall/create/callID: \(callID)/handleValue: \(handle.value)")
-            var startCallAction = CXStartCallAction(call: callID.callUUID, handle: handle)
+            let startCallAction = CXStartCallAction(call: callID.callUUID, handle: handle)
             startCallAction.contactIdentifier = peerName(for: peerUserID)
             let transaction = CXTransaction()
             transaction.addAction(startCallAction)
@@ -292,7 +292,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                 switch callServersResult {
                 case .success(let callServers):
                     let iceServers = WebRTCClient.getIceServers(stunServers: callServers.stunServers, turnServers: callServers.turnServers)
-                    self.activeCall = Call(id: details.callID, peerUserID: details.peerUserID, iceServers: iceServers, isOutgoing: true)
+                    self.activeCall = Call(id: details.callID, peerUserID: details.peerUserID, iceServers: iceServers, direction: .outgoing)
                     self.activeCall?.stateDelegate = self
                     DDLogInfo("CallManager/CXStartCallAction/callID: \(details.callID)/to: \(details.peerUserID)/iceServers success")
                     self.activeCall?.start { [weak self] success in

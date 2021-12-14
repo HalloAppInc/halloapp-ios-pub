@@ -147,12 +147,15 @@ public final class WhisperSession {
         sessionQueue.async {
             switch self.state {
             case .ready(let keyBundle, _):
+                DDLogVerbose("WhisperSession/sessionSetupInfoForRerequest/state: ready")
                 // We have a new session, call completion immediately
                 dispatchedCompletion((keyBundle.outboundEphemeralPublicKey, Int(keyBundle.outboundOneTimePreKeyId)))
             case .awaitingSetup:
+                DDLogVerbose("WhisperSession/sessionSetupInfoForRerequest/state: awaitingSetup")
                 // First session setup attempt must have failed.
                 dispatchedCompletion(nil)
             case .retrievingKeys:
+                DDLogVerbose("WhisperSession/sessionSetupInfoForRerequest/state: retrievingKeys")
                 // Add this task to the queue
                 self.pendingTasks.append(.getSessionSetupInfoForRerequest(dispatchedCompletion))
             }

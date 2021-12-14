@@ -131,7 +131,6 @@ class PostComposerViewController: UIViewController {
     let closeIcon = UIImage(named: "NavbarClose")
 
     private var isPosting = false
-    private var isReadyToShare = false
 
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
@@ -140,7 +139,6 @@ class PostComposerViewController: UIViewController {
     private var linkPreviewImage: GenericObservable<UIImage?>
     private var shouldAutoPlay = GenericObservable(false)
     private var postComposerView: PostComposerView?
-    private var shareButton: UIBarButtonItem!
     private let isMediaPost: Bool
     private var configuration: PostComposerViewConfiguration
     private weak var delegate: PostComposerViewDelegate?
@@ -213,9 +211,16 @@ class PostComposerViewController: UIViewController {
                 self.present(UINavigationController(rootViewController: controller), animated: true)
             },
             goBack: { [weak self] in self?.backAction() },
-            setReadyToShare: { [weak self] isReady in
-                self?.isReadyToShare = isReady
-                self?.updateShareButton()
+            share: { [weak self] in
+                self?.isVideoLengthWithinLimit { [weak self] isWithinLimit in
+                    guard let self = self else { return }
+
+                    if isWithinLimit {
+                        self.share()
+                    } else {
+                        self.alertVideoLengthOverLimit()
+                    }
+                }
             }
         )
 
@@ -227,20 +232,13 @@ class PostComposerViewController: UIViewController {
         postComposerViewController.view.constrain(to: view)
         postComposerViewController.didMove(toParent: self)
 
-        shareButton = UIBarButtonItem(title: "", style: .done, target: self, action: #selector(shareAction))
-        shareButton.tintColor = .systemBlue
-
         switch configuration.destination {
         case .chat(_):
             title = Localizations.newMessageTitle
-            shareButton.title = Localizations.buttonSend
         default:
             title = Localizations.newPostTitle
-            shareButton.title = Localizations.buttonShare
         }
 
-        navigationItem.rightBarButtonItem = shareButton
-        navigationItem.rightBarButtonItem!.isEnabled = false
         navigationItem.leftBarButtonItem =
             UIBarButtonItem(image: isMediaPost ? backIcon : closeIcon, style: .plain, target: self, action: #selector(backAction))
     }
@@ -270,29 +268,12 @@ class PostComposerViewController: UIViewController {
         navigationController.navigationBar.backgroundColor = barState.backgroundColor
     }
 
-    @objc private func shareAction() {
-        isVideoLengthWithinLimit { [weak self] isWithinLimit in
-            guard let self = self else { return }
-
-            if isWithinLimit {
-                self.share()
-            } else {
-                self.alertVideoLengthOverLimit()
-            }
-        }
-    }
-
     @objc private func backAction() {
         delegate?.composerDidTapBack(controller: self, media: self.mediaItems.value)
     }
 
-    private func updateShareButton() {
-        navigationItem.rightBarButtonItem?.isEnabled = isReadyToShare && !isPosting
-    }
-
     private func share() {
         isPosting = true
-        updateShareButton()
         let mentionText = MentionText(expandedText: inputToPost.value.text, mentionRanges: inputToPost.value.mentions).trimmed()
         // if no link preview or link preview not yet loaded, send without link preview.
         // if the link preview does not have an image... send immediately
@@ -361,13 +342,13 @@ fileprivate struct PostComposerLayoutConstants {
     static let controlSize: CGFloat = 36
     static let backgroundRadius: CGFloat = 20
 
-    static let postTextHorizontalPadding = horizontalPadding + 12
-    static let postTextVerticalPadding = verticalPadding + 4
+    static let postTextHorizontalPadding: CGFloat = 16
+    static let postTextVerticalPadding: CGFloat = 10
 
-    static let postTextNoMediaMinHeight: CGFloat = 265 - postTextVerticalPadding
-    static let postTextUnfocusedMinHeight: CGFloat = 100 - postTextVerticalPadding
-    static let postTextFocusedMinHeight: CGFloat = 80 - postTextVerticalPadding
-    static let postTextMaxHeight: CGFloat = 250
+    static let postTextNoMediaMinHeight: CGFloat = 265 - 2 * postTextVerticalPadding
+    static let postTextWithMeidaHeight: CGFloat = 52 - 2 * postTextVerticalPadding
+    static let postTextMaxHeight: CGFloat = 118 - 2 * postTextVerticalPadding
+    static let postTextRadius: CGFloat = 26
     static let postLinkPreviewHeight: CGFloat = 250
 
     static let fontSize: CGFloat = 16
@@ -398,7 +379,7 @@ fileprivate struct PostComposerView: View {
     private let changeDestination: (@escaping (PostComposerDestination) -> Void) -> Void
     private let crop: (Int, @escaping ([PendingMedia], Int, Bool) -> Void) -> Void
     private let goBack: () -> Void
-    private let setReadyToShare: (Bool) -> Void
+    private let share: () -> Void
 
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject private var mediaState = ObservableMediaState()
@@ -407,10 +388,10 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var postTextComputedHeight = GenericObservable<CGFloat>(0)
     @ObservedObject private var privacySettings: PrivacySettings
     @State private var pendingMention: PendingMention? = nil
-    @State private var keyboardHeight: CGFloat = 0
     @State private var presentPicker = false
     @State private var videoTooLong = false
     @State private var destination: PostComposerDestination = .userFeed
+    @State private var isReadyToShare = false
     private var mediaItemsBinding = Binding.constant([PendingMedia]())
     private var mediaIsReadyBinding = Binding.constant(false)
     private var numberOfFailedItemsBinding = Binding.constant(0)
@@ -418,23 +399,6 @@ fileprivate struct PostComposerView: View {
     private var linkPreviewDataBinding = Binding.constant([LinkPreviewData]())
     private var linkPreviewImageBinding = Binding.constant(UIImage())
     private var shouldAutoPlayBinding = Binding.constant(false)
-
-    private var keyboardHeightPublisher: AnyPublisher<CGFloat, Never> =
-        Publishers.Merge3(
-            NotificationCenter.default
-                .publisher(for: UIResponder.keyboardWillShowNotification)
-                .compactMap { $0.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect }
-                .map { $0.height },
-            NotificationCenter.default
-                .publisher(for: UIResponder.keyboardWillChangeFrameNotification)
-                .compactMap { $0.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect }
-                .map { $0.height },
-            NotificationCenter.default
-                .publisher(for: UIResponder.keyboardWillHideNotification)
-                .map { _ in CGFloat(0) }
-        )
-        .removeDuplicates()
-        .eraseToAnyPublisher()
 
     private var readyToSharePublisher: AnyPublisher<Bool, Never>!
     private var pageChangedPublisher: AnyPublisher<Bool, Never>!
@@ -471,8 +435,8 @@ fileprivate struct PostComposerView: View {
         crop: @escaping (Int, @escaping ([PendingMedia], Int, Bool) -> Void) -> Void,
         changeDestination: @escaping (@escaping(PostComposerDestination) -> Void) -> Void,
         goBack: @escaping () -> Void,
-        setReadyToShare: @escaping (Bool) -> Void)
-    {
+        share: @escaping () -> Void
+    ) {
         self.privacySettings = MainAppContext.shared.privacySettings
         self.mediaItems = mediaItems
         self.inputToPost = inputToPost
@@ -486,7 +450,7 @@ fileprivate struct PostComposerView: View {
         self.changeDestination = changeDestination
         self.crop = crop
         self.goBack = goBack
-        self.setReadyToShare = setReadyToShare
+        self.share = share
         self._destination = State(initialValue: configuration.destination)
 
         readyToSharePublisher =
@@ -507,17 +471,15 @@ fileprivate struct PostComposerView: View {
             currentPosition.$value.removeDuplicates().map { _ in return true }.eraseToAnyPublisher()
 
         postTextComputedHeight.value = PostComposerView.computePostHeight(
-            itemsCount: self.mediaItems.value.count, keyboardHeight: 0, postTextHeight: postTextHeight.value, link: link.value)
+            itemsCount: self.mediaItems.value.count, postTextHeight: postTextHeight.value, link: link.value)
 
         postTextComputedHeightPublisher =
-            Publishers.CombineLatest3(
+            Publishers.CombineLatest(
                 self.mediaItems.$value,
-                self.keyboardHeightPublisher,
                 self.postTextHeight.$value
             )
-            .map { (mediaItems, keyboardHeight, postTextHeight) -> CGFloat in
-                return PostComposerView.computePostHeight(
-                    itemsCount: mediaItems.count, keyboardHeight: keyboardHeight, postTextHeight: postTextHeight, link: link.value)
+            .map { (mediaItems, postTextHeight) -> CGFloat in
+                return PostComposerView.computePostHeight(itemsCount: mediaItems.count, postTextHeight: postTextHeight, link: link.value)
             }
             .removeDuplicates()
             .eraseToAnyPublisher()
@@ -558,14 +520,13 @@ fileprivate struct PostComposerView: View {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to:nil, from:nil, for:nil)
     }
 
-    private static func computePostHeight(itemsCount: Int, keyboardHeight: CGFloat, postTextHeight: CGFloat, link: String) -> CGFloat {
+    private static func computePostHeight(itemsCount: Int, postTextHeight: CGFloat, link: String) -> CGFloat {
         var minPostHeight = PostComposerLayoutConstants.postTextNoMediaMinHeight
         if link != "" {
             minPostHeight = PostComposerLayoutConstants.postTextNoMediaMinHeight - PostComposerLayoutConstants.postLinkPreviewHeight
         }
         if itemsCount > 0 {
-            minPostHeight = keyboardHeight > 0 ?
-                PostComposerLayoutConstants.postTextFocusedMinHeight : PostComposerLayoutConstants.postTextUnfocusedMinHeight
+            minPostHeight = PostComposerLayoutConstants.postTextWithMeidaHeight
         }
         let maxPostHeight = itemsCount > 0 ? PostComposerLayoutConstants.postTextMaxHeight : CGFloat.infinity
         return min(maxPostHeight, max(minPostHeight, postTextHeight))
@@ -621,26 +582,24 @@ fileprivate struct PostComposerView: View {
 
     var controls: some View {
         HStack {
-            if keyboardHeight == 0 {
-                Button(action: addMedia) {
-                    ControlIconView(imageLabel: "ComposerAddMedia")
-                }.sheet(isPresented: $presentPicker) {
-                    picker
-                        .edgesIgnoringSafeArea(.bottom)
-                }
+            Button(action: addMedia) {
+                ControlIconView(imageLabel: "ComposerAddMedia")
+            }.sheet(isPresented: $presentPicker) {
+                picker
+                    .edgesIgnoringSafeArea(.bottom)
+            }
 
-                Spacer()
+            Spacer()
 
-                Button(action: deleteMedia) {
-                    ControlIconView(imageLabel: "ComposerDeleteMedia")
-                }
+            Button(action: deleteMedia) {
+                ControlIconView(imageLabel: "ComposerDeleteMedia")
+            }
 
-                if mediaState.isReady && showCropButton {
-                    Button(action: cropMedia) {
-                        ControlIconView(imageLabel: "ComposerCropMedia")
-                    }
-                    .padding(.leading, PostComposerLayoutConstants.controlXSpacing)
+            if mediaState.isReady && showCropButton {
+                Button(action: cropMedia) {
+                    ControlIconView(imageLabel: "ComposerCropMedia")
                 }
+                .padding(.leading, PostComposerLayoutConstants.controlXSpacing)
             }
         }
         .padding(.horizontal, PostComposerLayoutConstants.controlSpacing)
@@ -654,10 +613,10 @@ fileprivate struct PostComposerView: View {
                     Text(mediaCount > 0 ? Localizations.writeDescription : Localizations.writePost)
                         .font(Font(PostComposerLayoutConstants.getFontSize(
                             textSize: inputToPost.value.text.count, isPostWithMedia: mediaCount > 0)))
-                        .foregroundColor(Color.primary.opacity(0.5))
-                        .padding(.top, 8)
+                        .foregroundColor(Color.primary.opacity(0.4))
+                        .padding(.top, mediaCount > 0 ? 0 : 8)
                         .padding(.leading, 4)
-                        .frame(height: postTextComputedHeight.value, alignment: .topLeading)
+                        .frame(height: postTextComputedHeight.value, alignment: mediaCount > 0 ? .leading : .topLeading)
                 }
                 TextView(
                     mediaItems: mediaItemsBinding,
@@ -669,10 +628,9 @@ fileprivate struct PostComposerView: View {
                     shouldFocusOnLoad: mediaCount == 0)
                     .frame(height: postTextComputedHeight.value)
             }
-            .background(Color(mediaCount == 0 ? .secondarySystemGroupedBackground : .clear))
             .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
             .padding(.vertical, PostComposerLayoutConstants.postTextVerticalPadding)
-            .background(Color(mediaCount > 0 ? .secondarySystemGroupedBackground : .clear))
+
             if self.link.value != "" && self.mediaCount == 0 {
                 LinkPreview(link: linkBinding, linkPreviewData: linkPreviewData, linkPreviewImage: linkPreviewImage)
                     .frame(height: PostComposerLayoutConstants.postLinkPreviewHeight, alignment: .bottom)
@@ -684,120 +642,147 @@ fileprivate struct PostComposerView: View {
         }
     }
 
+    var sendButton: some View {
+        Button(action: {
+            guard !self.isPosting.value else { return }
+            self.share()
+        }) {
+            Image("PostSend")
+                .renderingMode(.template)
+                .foregroundColor(.white)
+                .offset(x: 2)
+                .frame(width: 52, height: 52)
+                .background(
+                    RoundedRectangle(cornerRadius: 26)
+                        .fill(!isReadyToShare || isPosting.value ? Color.primaryBlackWhite.opacity(0.19) : Color.lavaOrange)
+                )
+                .disabled(!isReadyToShare || isPosting.value)
+        }
+    }
+
     var body: some View {
-        return GeometryReader { geometry in
-            VStack(spacing: 0) {
-                Button(action: {
-                    changeDestination { destination in
-                        self.destination = destination
-                    }
-                }) {
-                    Text(changeDestinationButtonText())
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
-                        .offset(y: -1)
-
-                    if allowChangingDestination() {
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 14))
-                            .foregroundColor(.white)
-                    }
+        VStack(spacing: 0) {
+            Button(action: {
+                changeDestination { destination in
+                    self.destination = destination
                 }
-                .frame(height: 25)
-                .padding(EdgeInsets(top: 0, leading: 11, bottom: 0, trailing: 11))
-                .background(Color.blue)
-                .cornerRadius(12)
-                .offset(y: -1)
-                .disabled(!allowChangingDestination())
+            }) {
+                Text(changeDestinationButtonText())
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+                    .offset(y: -1)
 
-                GeometryReader { scrollGeometry in
-                    ScrollView {
-                        VStack {
-                            VStack (alignment: .center) {
-                                if self.mediaCount > 0 {
-                                    ZStack(alignment: .bottom) {
-                                        MediaPreviewSlider(
-                                            mediaItems: self.mediaItemsBinding,
-                                            shouldAutoPlay: self.shouldAutoPlayBinding,
-                                            currentPosition: self.currentPosition)
-                                        .frame(height: self.getMediaSliderHeight(width: scrollGeometry.size.width), alignment: .center)
+                if allowChangingDestination() {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 14))
+                        .foregroundColor(.white)
+                }
+            }
+            .frame(height: 25)
+            .padding(EdgeInsets(top: 0, leading: 11, bottom: 0, trailing: 11))
+            .background(Color.blue)
+            .cornerRadius(12)
+            .offset(y: -1)
+            .disabled(!allowChangingDestination())
 
-                                        self.controls
-                                    }
-                                    .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
-                                    .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
+            GeometryReader { scrollGeometry in
+                ScrollView {
+                    VStack {
+                        VStack (alignment: .center) {
+                            if self.mediaCount > 0 {
+                                ZStack(alignment: .bottom) {
+                                    MediaPreviewSlider(
+                                        mediaItems: self.mediaItemsBinding,
+                                        shouldAutoPlay: self.shouldAutoPlayBinding,
+                                        currentPosition: self.currentPosition)
+                                    .frame(height: self.getMediaSliderHeight(width: scrollGeometry.size.width), alignment: .center)
 
-                                    if self.mediaState.numberOfFailedItems > 0 {
-                                        Text(Localizations.mediaPrepareFailed(self.mediaState.numberOfFailedItems))
-                                            .multilineTextAlignment(.center)
-                                            .foregroundColor(.red)
-                                            .padding(.horizontal)
-                                            .padding(.bottom, 10)
-                                    } else if videoTooLong {
-                                        Text(Localizations.maxVideoLengthTitle(maxVideoLength))
-                                            .multilineTextAlignment(.center)
-                                            .foregroundColor(.red)
-                                            .padding(.horizontal)
-                                            .padding(.bottom, 4)
-                                        Text(Localizations.maxVideoLengthMessage)
-                                            .multilineTextAlignment(.center)
-                                            .foregroundColor(.red)
-                                            .padding(.horizontal)
-                                            .padding(.bottom, 10)
-                                    }
-                                } else {
-                                    self.postTextView
+                                    self.controls
                                 }
-                            }
-                            .clipShape(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius))
-                            .background(
-                                RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius)
-                                    .fill(Color(.secondarySystemGroupedBackground))
-                                    .shadow(color: Color.black.opacity(self.colorScheme == .dark ? 0 : 0.08), radius: 8, y: 8))
-                            .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
-                            .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
-                            .onReceive(self.readyToSharePublisher) { self.setReadyToShare($0) }
-                            .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
-                            .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
-                            .onReceive(self.postTextComputedHeightPublisher) { self.postTextComputedHeight.value = $0 }
-                            .onReceive(longestVideoLengthPublisher) {
-                                guard let length = $0 else {
-                                    videoTooLong = false
-                                    return
+                                .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
+                                .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
+
+                                if self.mediaState.numberOfFailedItems > 0 {
+                                    Text(Localizations.mediaPrepareFailed(self.mediaState.numberOfFailedItems))
+                                        .multilineTextAlignment(.center)
+                                        .foregroundColor(.red)
+                                        .padding(.horizontal)
+                                        .padding(.bottom, 10)
+                                } else if videoTooLong {
+                                    Text(Localizations.maxVideoLengthTitle(maxVideoLength))
+                                        .multilineTextAlignment(.center)
+                                        .foregroundColor(.red)
+                                        .padding(.horizontal)
+                                        .padding(.bottom, 4)
+                                    Text(Localizations.maxVideoLengthMessage)
+                                        .multilineTextAlignment(.center)
+                                        .foregroundColor(.red)
+                                        .padding(.horizontal)
+                                        .padding(.bottom, 10)
                                 }
-                                videoTooLong = length > maxVideoLength
-                            }
-                            .onReceive(mediaReadyPublisher) { _ in
-                                mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
-                            }
-                            .onReceive(mediaErrorPublisher) { _ in
-                                mediaState.numberOfFailedItems += 1
-                            }
-                            .onAppear {
-                                mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
+                            } else {
+                                postTextView
+
+                                HStack {
+                                    Spacer()
+                                    sendButton
+                                }
+                                .padding(12)
                             }
                         }
-                        .frame(minHeight: scrollGeometry.size.height)
+                        .clipShape(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius))
                         .background(
-                            YOffsetGetter(coordinateSpace: .named(PostComposerLayoutConstants.mainScrollCoordinateSpace))
-                                .onPreferenceChange(YOffsetPreferenceKey.self, perform: {
-                                    if $0 > 0, #available(iOS 14.0, *) { // top overscroll, before iOS 14 the reported offset seems inaccurrate
-                                        PostComposerView.stopTextEdit()
-                                    }
-                                })
-                        )
+                            RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius)
+                                .fill(Color(.secondarySystemGroupedBackground))
+                                .shadow(color: Color.black.opacity(self.colorScheme == .dark ? 0 : 0.08), radius: 8, y: 8))
+                        .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
+                        .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
                     }
-                    .coordinateSpace(name: PostComposerLayoutConstants.mainScrollCoordinateSpace)
+                    .frame(minHeight: scrollGeometry.size.height)
+                    .background(
+                        YOffsetGetter(coordinateSpace: .named(PostComposerLayoutConstants.mainScrollCoordinateSpace))
+                            .onPreferenceChange(YOffsetPreferenceKey.self, perform: {
+                                if $0 > 0, #available(iOS 14.0, *) { // top overscroll, before iOS 14 the reported offset seems inaccurrate
+                                    PostComposerView.stopTextEdit()
+                                }
+                            })
+                    )
                 }
-
-                if self.mediaCount > 0 {
-                    self.postTextView
-                }
-
-                Spacer().frame(height: keyboardHeight)
+                .coordinateSpace(name: PostComposerLayoutConstants.mainScrollCoordinateSpace)
             }
-            .background(Color.feedBackground)
-            .edgesIgnoringSafeArea(.bottom)
+
+            if mediaCount > 0 {
+                HStack(alignment: .bottom, spacing: 8) {
+                    postTextView
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .cornerRadius(PostComposerLayoutConstants.postTextRadius)
+                        .shadow(color: .black.opacity(self.colorScheme == .dark ? 0 : 0.04), radius: 2, y: 1)
+                    sendButton
+                        .offset(y: -2)
+                }
+                .padding(10)
+            }
+        }
+        .frame(maxHeight: .infinity)
+        .background(Color.feedBackground)
+        .onReceive(self.readyToSharePublisher) { isReadyToShare = $0 }
+        .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
+        .onReceive(self.postTextComputedHeightPublisher) { self.postTextComputedHeight.value = $0 }
+        .onReceive(longestVideoLengthPublisher) {
+            guard let length = $0 else {
+                videoTooLong = false
+                return
+            }
+            videoTooLong = length > maxVideoLength
+        }
+        .onReceive(mediaReadyPublisher) { _ in
+            mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
+        }
+        .onReceive(mediaErrorPublisher) { _ in
+            mediaState.numberOfFailedItems += 1
+        }
+        .onAppear {
+            mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
         }
     }
 
@@ -896,7 +881,6 @@ fileprivate struct TextView: UIViewRepresentable {
             textSize: input.value.text.count, isPostWithMedia: mediaItems.count > 0)
         textView.textColor = Constants.textViewTextColor
         textView.text = input.value.text
-        textView.textContainerInset.bottom = PostComposerLayoutConstants.postTextVerticalPadding
         return textView
     }
 

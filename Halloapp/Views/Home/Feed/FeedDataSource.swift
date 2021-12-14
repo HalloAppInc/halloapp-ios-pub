@@ -249,8 +249,8 @@ enum FeedDisplayItem: Hashable, Equatable {
 }
 
 struct FeedPostDisplayData: Equatable {
-    var currentMediaIndex: Int? = nil
-    var isTextExpanded = false
+    var currentMediaIndex: Int?
+    var textNumberOfLines: Int?
 }
 
 struct FeedEvent: Hashable, Equatable {
