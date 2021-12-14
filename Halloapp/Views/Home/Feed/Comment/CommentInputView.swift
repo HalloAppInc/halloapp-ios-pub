@@ -1048,9 +1048,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
               return
             }
             // If image is not present, fallback on icon.
-            var imageProvider = (data.imageProvider != nil) ? data.imageProvider : data.iconProvider
-
-            if let imageProvider = imageProvider {
+            if let imageProvider = data.imageProvider ?? data.iconProvider {
                 imageProvider.loadObject(ofClass: UIImage.self) { (image, error) in
                     DispatchQueue.main.async { [weak self] in
                         guard let self = self else { return }

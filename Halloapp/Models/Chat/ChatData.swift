@@ -880,7 +880,6 @@ class ChatData: ObservableObject {
 
                 _ = ChatMediaDownloader(url: url, progressHandler: { [weak self] progress in
                     guard let self = self else { return }
-                    let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
                     self.didGetLinkPreviewMediaDownloadProgress.send((linkPreviewId, Int(order), progress, med.relativeFilePath))
                 }, completion: { [weak self] (outputUrl) in
                     guard let self = self else { return }
@@ -1261,7 +1260,7 @@ class ChatData: ObservableObject {
             switch chatContent {
             case .album(let text, _):
                 chatMessage.text = text
-            case .text(let text, let linkPreviewData):
+            case .text(let text, let _):
                 // TODO @dini merge linkPreviewData
                 chatMessage.text = text
             case .voiceNote(_):

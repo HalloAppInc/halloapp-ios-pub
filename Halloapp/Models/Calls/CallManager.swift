@@ -120,7 +120,7 @@ final class CallManager: NSObject, CXProviderDelegate {
             callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID)
             let handle = handle(for: peerUserID)
             DDLogInfo("CallManager/startCall/create/callID: \(callID)/handleValue: \(handle.value)")
-            var startCallAction = CXStartCallAction(call: callID.callUUID, handle: handle)
+            let startCallAction = CXStartCallAction(call: callID.callUUID, handle: handle)
             startCallAction.contactIdentifier = peerName(for: peerUserID)
             let transaction = CXTransaction()
             transaction.addAction(startCallAction)
