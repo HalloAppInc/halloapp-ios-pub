@@ -1260,7 +1260,7 @@ class ChatData: ObservableObject {
             switch chatContent {
             case .album(let text, _):
                 chatMessage.text = text
-            case .text(let text, let _):
+            case .text(let text, _):
                 // TODO @dini merge linkPreviewData
                 chatMessage.text = text
             case .voiceNote(_):
