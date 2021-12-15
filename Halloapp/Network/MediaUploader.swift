@@ -296,6 +296,9 @@ final class MediaUploader {
     }
 
     func upload(media mediaItem: MediaUploadable, groupId: String, didGetURLs: @escaping (MediaURLInfo) -> (), completion: @escaping Completion) {
+        // on reconnection stuck we try to resend stuck media items, but they might already have a task scheduled for retry
+        guard nil == (tasks(forGroupId: groupId).first { $0.index == mediaItem.index }) else { return }
+
         let fileURL = resolveMediaPath(mediaItem.encryptedFilePath!)
         let task = Task(groupId: groupId, mediaUrls: mediaItem.urlInfo, index: Int(mediaItem.index), fileURL: fileURL, didGetUrls: didGetURLs, completion: completion)
         // Task might fail immediately so make sure it's added before being started.
