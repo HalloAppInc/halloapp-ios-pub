@@ -81,6 +81,7 @@
 		6A6BBAEF2767A2930063E8BC /* Call+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6BBAED2767A2930063E8BC /* Call+CoreDataClass.swift */; };
 		6A6BBAF02767A2930063E8BC /* Call+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6BBAEE2767A2930063E8BC /* Call+CoreDataProperties.swift */; };
 		6A6BBAF22767A4B10063E8BC /* MainDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6BBAF12767A4B10063E8BC /* MainDataStore.swift */; };
+		6A6BBAFF276925CE0063E8BC /* NotificationSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6BBAFE276925CE0063E8BC /* NotificationSettings.swift */; };
 		6A958D7D270764E6007C89C6 /* SenderStateBundle+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A958D77270764E6007C89C6 /* SenderStateBundle+CoreDataClass.swift */; };
 		6A958D7E270764E6007C89C6 /* SenderStateBundle+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A958D78270764E6007C89C6 /* SenderStateBundle+CoreDataProperties.swift */; };
 		6A958D7F270764E6007C89C6 /* GroupMessageKey+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A958D79270764E6007C89C6 /* GroupMessageKey+CoreDataClass.swift */; };
@@ -217,6 +218,7 @@
 		6A6BBAED2767A2930063E8BC /* Call+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Call+CoreDataClass.swift"; sourceTree = "<group>"; };
 		6A6BBAEE2767A2930063E8BC /* Call+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Call+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6A6BBAF12767A4B10063E8BC /* MainDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainDataStore.swift; sourceTree = "<group>"; };
+		6A6BBAFE276925CE0063E8BC /* NotificationSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettings.swift; sourceTree = "<group>"; };
 		6A958D77270764E6007C89C6 /* SenderStateBundle+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SenderStateBundle+CoreDataClass.swift"; path = "Core/Source/Chat/SenderStateBundle+CoreDataClass.swift"; sourceTree = "<group>"; };
 		6A958D78270764E6007C89C6 /* SenderStateBundle+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SenderStateBundle+CoreDataProperties.swift"; path = "Core/Source/Chat/SenderStateBundle+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6A958D79270764E6007C89C6 /* GroupMessageKey+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "GroupMessageKey+CoreDataClass.swift"; path = "Core/Source/Chat/GroupMessageKey+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -404,6 +406,7 @@
 				6A5729762745885500E02BAC /* NotificationStatus+CoreDataProperties.swift */,
 				6A087B932745722F00BC337B /* PushNotifications.xcdatamodeld */,
 				6A5729792745C51100E02BAC /* NotificationStore.swift */,
+				6A6BBAFE276925CE0063E8BC /* NotificationSettings.swift */,
 			);
 			path = Notifications;
 			sourceTree = "<group>";
@@ -912,6 +915,7 @@
 				768123F724861068008C5216 /* ABContact+CoreDataProperties.swift in Sources */,
 				EAAE7B3724DCD98C00946B77 /* Keys.xcdatamodeld in Sources */,
 				249028AB24C5E0600019C4D5 /* SharedDataStore.swift in Sources */,
+				6A6BBAFF276925CE0063E8BC /* NotificationSettings.swift in Sources */,
 				6A00887F264B3D6200A2353D /* PersistentHistoryTracker.swift in Sources */,
 				EAAE7B4D24DD2C3000946B77 /* SignedPreKey+CoreDataClass.swift in Sources */,
 				249028A224C5DFDE0019C4D5 /* Media+CoreDataProperties.swift in Sources */,

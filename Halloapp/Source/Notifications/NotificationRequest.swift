@@ -33,13 +33,31 @@ final class NotificationRequest {
                     DDLogError("NotificationRequest/createAndShow/postData is empty")
                     break
                 }
+                guard NotificationSettings.current.isPostsEnabled else {
+                    DDLogInfo("NotificationRequest/createAndShow/postData - skip due to userPreferences")
+                    return
+                }
                 notificationContent.populateFeedPostBody(from: postData, using: metadata, contactStore: MainAppContext.shared.contactStore)
             case .groupFeedComment:
                 guard let commentData = metadata.commentData() else {
                     DDLogError("NotificationRequest/createAndShow/commentData is empty")
                     break
                 }
+                guard NotificationSettings.current.isCommentsEnabled else {
+                    DDLogInfo("NotificationRequest/createAndShow/commentData - skip due to userPreferences")
+                    return
+                }
                 notificationContent.populateFeedCommentBody(from: commentData, using: metadata, contactStore: MainAppContext.shared.contactStore)
+            case .feedPost:
+                guard NotificationSettings.current.isPostsEnabled else {
+                    DDLogInfo("NotificationRequest/createAndShow/postData - skip due to userPreferences")
+                    return
+                }
+            case .feedComment:
+                guard NotificationSettings.current.isCommentsEnabled else {
+                    DDLogInfo("NotificationRequest/createAndShow/commentData - skip due to userPreferences")
+                    return
+                }
             default:
                 break
             }
