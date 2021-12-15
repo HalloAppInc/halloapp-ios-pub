@@ -67,6 +67,12 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Bijwerken";
 
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Om audio op te nemen, tik op Instellingen en zet Microfoon aan";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Kan geen toegang krijgen tot microfoon";
+
 /* Title for generic delete button. */
 "Delete" = "Verwijderen";
 

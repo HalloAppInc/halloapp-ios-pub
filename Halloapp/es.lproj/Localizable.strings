@@ -283,12 +283,6 @@
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Eliminar comentario";
 
-/* Alert message when missing microphone access */
-"comment.mic.access.denied.message" = "Para capacitar el grabado de audio, por favor ve a Configuración y activa el micrófono";
-
-/* Alert title when missing microphone access */
-"comment.mic.access.denied.title" = " No se puede acceder al micrófono";
-
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Publicando...";
 

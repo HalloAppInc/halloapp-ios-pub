@@ -277,12 +277,6 @@
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Menghapus komentar";
 
-/* Alert message when missing microphone access */
-"comment.mic.access.denied.message" = "Untuk mengaktifkan rekaman audio, silakan ketuk Pengaturan dan kemudian nyalakan Mikrofon";
-
-/* Alert title when missing microphone access */
-"comment.mic.access.denied.title" = "Tidak dapat mengakses mikrofon";
-
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Mengirimkan...";
 
