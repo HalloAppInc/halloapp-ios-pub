@@ -23,11 +23,33 @@ enum AudioViewState {
 
 class AudioView : UIStackView {
 
+    struct Configuration {
+        let playIcon: UIImage
+        let pauseIcon: UIImage
+        let playPauseButtonSize: CGSize
+        let thumbDiameter: CGFloat
+
+        static let post = Configuration(playIcon: UIImage(systemName: "play.fill",
+                                                          withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))!,
+                                        pauseIcon: UIImage(systemName: "pause.fill",
+                                                           withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))!,
+                                        playPauseButtonSize: CGSize(width: 32, height: 32),
+                                        thumbDiameter: 12)
+
+        static let comment = Configuration(playIcon: UIImage(systemName: "play.fill",
+                                                             withConfiguration: UIImage.SymbolConfiguration(pointSize: 24))!,
+                                           pauseIcon: UIImage(systemName: "pause.fill",
+                                                              withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))!,
+                                           playPauseButtonSize: CGSize(width: 20, height: 20),
+                                           thumbDiameter: 10)
+
+    }
+
     weak var delegate: AudioViewDelegate?
 
     var state: AudioViewState = .normal {
         didSet {
-            updateControls()
+            updateState()
         }
     }
 
@@ -44,9 +66,10 @@ class AudioView : UIStackView {
     }
 
     var isPlaying: Bool {
-        guard let rate = player?.rate else { return false }
-        return rate > 0
+        return player?.rate ?? 0 > 0
     }
+
+    private let configuration: Configuration
 
     private var rateObservation: NSKeyValueObservation?
     private var timeObservation: Any?
@@ -63,7 +86,7 @@ class AudioView : UIStackView {
 
             rateObservation = player.observe(\.rate, options: [.old, .new]) { [weak self] (player, change) in
                 guard let self = self else { return }
-                self.updateControls()
+                self.updateIsPlaying()
                 self.updateProgress()
 
                 if change.oldValue == 1 && change.newValue == 0 {
@@ -79,58 +102,43 @@ class AudioView : UIStackView {
                 self.updateProgress()
             }
 
-            updateControls()
+            updateIsPlaying()
             updateProgress()
         }
     }
 
-    private var playIcon: UIImage {
-        let config = UIImage.SymbolConfiguration(pointSize: 24)
-        let iconColor: UIColor = state == .played ? .audioViewControlsPlayed : .primaryBlue
-        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
-
-        return icon
-    }
-
-    private var pauseIcon: UIImage {
-        let config = UIImage.SymbolConfiguration(pointSize: 20)
-        let icon = UIImage(systemName: "pause.fill", withConfiguration: config)!.withTintColor(.audioViewControlsPlayed, renderingMode: .alwaysOriginal)
-
-        return icon
-    }
-
     private var thumbIcon: UIImage {
-        let iconColor: UIColor = state == .played ? .audioViewControlsPlayed : .primaryBlue
-        let radius: CGFloat = 16
-        let thumb = UIView(frame: CGRect(x: 0, y: radius / 2, width: radius, height: radius))
-        thumb.backgroundColor = iconColor
-        thumb.layer.borderWidth = 0.4
-        thumb.layer.borderColor = UIColor.darkGray.cgColor
-        thumb.layer.cornerRadius = radius / 2
-
-        return UIGraphicsImageRenderer(bounds: thumb.bounds).image { thumb.layer.render(in: $0.cgContext) }
+        let diameter = configuration.thumbDiameter
+        let bounds = CGRect(x: 0, y: diameter / 2, width: diameter, height: diameter)
+        return UIGraphicsImageRenderer(bounds: bounds).image { context in
+            UIBezierPath(ovalIn: context.format.bounds).fill()
+        }.withRenderingMode(.alwaysTemplate)
     }
 
     // The play button is small. This one has bigger hit area to make it easier for tapping.
     private class PlayButton: UIButton {
         override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-            return bounds.insetBy(dx: -24, dy: -24).contains(point)
+            return bounds.insetBy(dx: min(0, bounds.width - 44),
+                                  dy: min(0, bounds.height - 44)).contains(point)
         }
     }
 
     // improves hit rate
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        return bounds.insetBy(dx: -24, dy: -24).contains(point)
+        return super.point(inside: point, with: event) || playPauseButton.point(inside: convert(point, to: playPauseButton),
+                                                                                with: event)
     }
 
-    private lazy var playButton: UIButton = {
+    private lazy var playPauseButton: UIButton = {
         let btn = PlayButton(type: .system)
+        btn.imageView?.contentMode = .center
         btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.setImage(playIcon, for: .normal)
-        btn.addTarget(self, action: #selector(onPlayButtonTap), for: [.touchUpInside, .touchUpOutside])
-        btn.widthAnchor.constraint(equalToConstant: 20).isActive = true
-        btn.heightAnchor.constraint(equalToConstant: 20).isActive = true
-
+        btn.setImage(configuration.playIcon, for: .normal)
+        btn.addTarget(self, action: #selector(onPlayButtonTap), for: .touchUpInside)
+        NSLayoutConstraint.activate([
+            btn.widthAnchor.constraint(equalToConstant: configuration.playPauseButtonSize.width),
+            btn.heightAnchor.constraint(equalToConstant: configuration.playPauseButtonSize.height),
+        ])
         return btn
     } ()
 
@@ -140,8 +148,6 @@ class AudioView : UIStackView {
         slider.setThumbImage(thumbIcon, for: .normal)
         slider.addTarget(self, action: #selector(onSliderValueUpdate), for: .valueChanged)
         slider.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        slider.minimumTrackTintColor = .audioViewControlsPlayed
-
         return slider
     } ()
 
@@ -166,7 +172,8 @@ class AudioView : UIStackView {
         return duration.seconds - player.currentTime().seconds < playerEndThreshold
     }
 
-    init() {
+    init(configuration: Configuration) {
+        self.configuration = configuration
         super.init(frame: .zero)
 
         axis = .horizontal
@@ -175,7 +182,7 @@ class AudioView : UIStackView {
         isLayoutMarginsRelativeArrangement = true
 
         addArrangedSubview(loadingIndicator)
-        addArrangedSubview(playButton)
+        addArrangedSubview(playPauseButton)
         addArrangedSubview(slider)
 
         mediaPlaybackCancellable = MainAppContext.shared.mediaDidStartPlaying.sink { [weak self] playingUrl in
@@ -189,11 +196,22 @@ class AudioView : UIStackView {
                        selector: #selector(proximityChanged),
                        name: UIDevice.proximityStateDidChangeNotification,
                        object: nil)
+
+        updateState()
+    }
+
+    convenience init() {
+        self.init(configuration: .comment)
     }
 
     convenience init(url: URL) {
         self.init()
         self.url = url
+    }
+
+    @available(*, unavailable)
+    init(arrangedSubviews: [UIView]) {
+        fatalError("init(arrangedSubviews:) has not been implemented")
     }
 
     required init(coder: NSCoder) {
@@ -252,19 +270,29 @@ class AudioView : UIStackView {
         UIApplication.shared.isIdleTimerDisabled = false
     }
 
-    private func updateControls() {
+    private func updateIsPlaying() {
+        playPauseButton.setImage(isPlaying ? configuration.pauseIcon : configuration.playIcon, for: .normal)
+    }
+
+    private func updateState() {
+        let controlColor: UIColor
+        switch state {
+        case .normal:
+            controlColor = .primaryBlue
+        case .played, .loading:
+            controlColor = .audioViewControlsPlayed
+        }
+        playPauseButton.tintColor = controlColor
+        slider.minimumTrackTintColor = controlColor
+        slider.tintColor = controlColor
+
         if state == .loading {
             loadingIndicator.startAnimating()
-            playButton.isHidden = true
+            playPauseButton.isHidden = true
         } else {
             loadingIndicator.stopAnimating()
-            playButton.isHidden = false
+            playPauseButton.isHidden = false
         }
-
-        guard let player = player else { return }
-        playButton.setImage(player.rate > 0 ? pauseIcon : playIcon, for: .normal)
-        slider.setThumbImage(thumbIcon, for: .normal)
-        slider.minimumTrackTintColor = state == .played ? .audioViewControlsPlayed : .primaryBlue
     }
 
     private func updateProgress() {

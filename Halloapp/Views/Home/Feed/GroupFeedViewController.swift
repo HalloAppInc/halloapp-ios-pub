@@ -258,25 +258,33 @@ class GroupFeedViewController: FeedCollectionViewController {
     // MARK: New post
 
     private lazy var floatingMenu: FloatingMenu = {
-        FloatingMenu(
+        var expandedButtons: [FloatingMenuButton] = [
+            .standardActionButton(
+                iconTemplate: UIImage(named: "icon_fab_compose_image")?.withRenderingMode(.alwaysTemplate),
+                accessibilityLabel: Localizations.fabAccessibilityPhotoLibrary,
+                action: { [weak self] in self?.presentNewPostViewController(source: .library) }),
+            .standardActionButton(
+                iconTemplate: UIImage(named: "icon_fab_compose_text")?.withRenderingMode(.alwaysTemplate),
+                accessibilityLabel: Localizations.fabAccessibilityTextPost,
+                action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
+            .standardActionButton(
+                iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
+                accessibilityLabel: Localizations.fabAccessibilityCamera,
+                action: { [weak self] in self?.presentNewPostViewController(source: .camera) }),
+        ]
+
+        if ServerProperties.isVoicePostsEnabled {
+            expandedButtons.insert(.standardActionButton(
+                iconTemplate: UIImage(named: "icon_fab_compose_voice")?.withRenderingMode(.alwaysTemplate),
+                accessibilityLabel: Localizations.fabAccessibilityVoiceNote,
+                action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) }), at: 1)
+        }
+
+        return FloatingMenu(
             permanentButton: .rotatingToggleButton(
                 collapsedIconTemplate: UIImage(named: "icon_fab_compose_post")?.withRenderingMode(.alwaysTemplate),
                 expandedRotation: 45),
-            expandedButtons: [
-                .standardActionButton(
-                    iconTemplate: UIImage(named: "icon_fab_compose_image")?.withRenderingMode(.alwaysTemplate),
-                    accessibilityLabel: Localizations.fabAccessibilityPhotoLibrary,
-                    action: { [weak self] in self?.presentNewPostViewController(source: .library) }),
-                .standardActionButton(
-                    iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
-                    accessibilityLabel: Localizations.fabAccessibilityCamera,
-                    action: { [weak self] in self?.presentNewPostViewController(source: .camera) }),
-                .standardActionButton(
-                    iconTemplate: UIImage(named: "icon_fab_compose_text")?.withRenderingMode(.alwaysTemplate),
-                    accessibilityLabel: Localizations.fabAccessibilityTextPost,
-                    action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
-            ]
-        )
+            expandedButtons: expandedButtons)
     }()
 
     private func updateFloatingActionMenu() {

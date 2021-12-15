@@ -9,6 +9,7 @@
 import CocoaLumberjackSwift
 import Combine
 import Foundation
+import Core
 
 class NotificationSettings: ObservableObject {
 
@@ -20,9 +21,33 @@ class NotificationSettings: ObservableObject {
     }
 
     private init() {
-        UserDefaults.standard.register(defaults: [ UserDefaultsKeys.postsEnabled: true, UserDefaultsKeys.commentsEnabled: true ])
-        isPostsEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.postsEnabled)
-        isCommentsEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.commentsEnabled)
+        NotificationSettings.migrateSettings()
+        MainAppContext.shared.userDefaults.register(defaults: [ NotificationUserDefaultKeys.postsEnabled: true, NotificationUserDefaultKeys.commentsEnabled: true ])
+        isPostsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.postsEnabled)
+        isCommentsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.commentsEnabled)
+        DDLogInfo("NotificationSettings/values: \(isPostsEnabled): \(isCommentsEnabled)")
+    }
+
+    static func migrateSettings() {
+        guard UserDefaults.standard.value(forKey: NotificationUserDefaultKeys.postsEnabled) != nil else {
+            DDLogInfo("NotificationSettings/migrateSettings/skip")
+            return
+        }
+        DDLogInfo("NotificationSettings/migrateSettings/begin")
+        let postsEnabled = UserDefaults.standard.bool(forKey: NotificationUserDefaultKeys.postsEnabled)
+        let commentsEnabled = UserDefaults.standard.bool(forKey: NotificationUserDefaultKeys.commentsEnabled)
+        let isSynchronized = UserDefaults.standard.bool(forKey: NotificationUserDefaultKeys.isSynchronized)
+
+        MainAppContext.shared.userDefaults.register(defaults: [ NotificationUserDefaultKeys.postsEnabled: true, NotificationUserDefaultKeys.commentsEnabled: true ])
+
+        MainAppContext.shared.userDefaults.set(postsEnabled, forKey: NotificationUserDefaultKeys.postsEnabled)
+        MainAppContext.shared.userDefaults.set(commentsEnabled, forKey: NotificationUserDefaultKeys.commentsEnabled)
+        MainAppContext.shared.userDefaults.set(isSynchronized, forKey: NotificationUserDefaultKeys.isSynchronized)
+
+        UserDefaults.standard.removeObject(forKey: NotificationUserDefaultKeys.postsEnabled)
+        UserDefaults.standard.removeObject(forKey: NotificationUserDefaultKeys.commentsEnabled)
+        UserDefaults.standard.removeObject(forKey: NotificationUserDefaultKeys.isSynchronized)
+        DDLogInfo("NotificationSettings/migrateSettings/success")
     }
 
     // MARK: Settings
@@ -30,8 +55,8 @@ class NotificationSettings: ObservableObject {
     var isPostsEnabled: Bool {
         didSet {
             if oldValue != isPostsEnabled {
-                UserDefaults.standard.set(isPostsEnabled, forKey: UserDefaultsKeys.postsEnabled)
-                UserDefaults.standard.set(false, forKey: UserDefaultsKeys.isSynchronized)
+                MainAppContext.shared.userDefaults.set(isPostsEnabled, forKey: NotificationUserDefaultKeys.postsEnabled)
+                MainAppContext.shared.userDefaults.set(false, forKey: NotificationUserDefaultKeys.isSynchronized)
                 sendConfigIfNecessary(using: MainAppContext.shared.service)
             }
         }
@@ -40,8 +65,8 @@ class NotificationSettings: ObservableObject {
     var isCommentsEnabled: Bool {
         didSet {
             if oldValue != isCommentsEnabled {
-                UserDefaults.standard.set(isCommentsEnabled, forKey: UserDefaultsKeys.commentsEnabled)
-                UserDefaults.standard.set(false, forKey: UserDefaultsKeys.isSynchronized)
+                MainAppContext.shared.userDefaults.set(isCommentsEnabled, forKey: NotificationUserDefaultKeys.commentsEnabled)
+                MainAppContext.shared.userDefaults.set(false, forKey: NotificationUserDefaultKeys.isSynchronized)
                 sendConfigIfNecessary(using: MainAppContext.shared.service)
             }
         }
@@ -50,12 +75,6 @@ class NotificationSettings: ObservableObject {
     // MARK: Synchronization
 
     private var isSyncInProgress = false
-
-    private struct UserDefaultsKeys {
-        static let isSynchronized = "NotificationSettings1"   // Bool
-        static let postsEnabled = "NotificationSettings2"     // Bool
-        static let commentsEnabled = "NotificationSettings3"  // Bool
-    }
 
     enum ConfigKey: String {
         case post
@@ -75,14 +94,15 @@ class NotificationSettings: ObservableObject {
             DDLogInfo("NotificationSettings/sync/ Already in progress")
             return
         }
-        let userDefaults = UserDefaults.standard
-        guard !userDefaults.bool(forKey: UserDefaultsKeys.isSynchronized) else {
+
+        guard let userDefaults = MainAppContext.shared.userDefaults,
+              !userDefaults.bool(forKey: NotificationUserDefaultKeys.isSynchronized) else {
             DDLogInfo("NotificationSettings/sync/ Not required")
             return
         }
 
         isSyncInProgress = true
-        userDefaults.set(true, forKey: UserDefaultsKeys.isSynchronized)
+        userDefaults.set(true, forKey: NotificationUserDefaultKeys.isSynchronized)
 
         service.updateNotificationSettings(currentConfig) { result in
             self.isSyncInProgress = false
@@ -98,7 +118,7 @@ class NotificationSettings: ObservableObject {
             case .failure(let error):
                 // Will be retried on connect.
                 DDLogError("NotificationSettings/sync/error [\(error)]]")
-                userDefaults.set(false, forKey: UserDefaultsKeys.isSynchronized)
+                userDefaults.set(false, forKey: NotificationUserDefaultKeys.isSynchronized)
             }
         }
     }

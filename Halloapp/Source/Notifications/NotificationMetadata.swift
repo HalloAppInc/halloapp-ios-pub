@@ -566,6 +566,9 @@ class NotificationMetadata: Codable {
                     body = "\(mediaIcon) \(body)"
                 }
             }
+        case .voiceNote:
+            subtitle = newPostString
+            body = ""
         case .none, .retracted, .unsupported(_):
             subtitle = ""
             body = newPostString

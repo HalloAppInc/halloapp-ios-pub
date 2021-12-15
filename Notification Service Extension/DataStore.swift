@@ -53,7 +53,7 @@ class DataStore: NotificationServiceExtensionDataStore {
             feedPost.timestamp = notificationMetadata.timestamp ?? Date()
 
             switch postData?.content {
-            case .album, .text, .retracted, .none:
+            case .album, .text, .retracted, .none, .voiceNote:
                 feedPost.rawData = nil
             case .unsupported(let data):
                 feedPost.rawData = data

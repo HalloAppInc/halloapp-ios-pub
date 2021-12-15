@@ -39,7 +39,7 @@ class CallViewController: UIViewController {
 
     private lazy var micButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(micOffImage, for: .normal)
+        button.setImage(micOnImage, for: .normal)
         button.addTarget(self, action: #selector(micButtonTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.widthAnchor.constraint(equalToConstant: 50).isActive = true
@@ -52,7 +52,7 @@ class CallViewController: UIViewController {
 
     private lazy var speakerButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(speakerOnImage, for: .normal)
+        button.setImage(speakerOffImage, for: .normal)
         button.addTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.widthAnchor.constraint(equalToConstant: 50).isActive = true
@@ -206,9 +206,9 @@ class CallViewController: UIViewController {
                     DDLogError("CallViewController/endCall/failed: \(error)")
                 case .success:
                     if self.muted {
-                        self.micButton.setImage(self.micOnImage, for: .normal)
-                    } else {
                         self.micButton.setImage(self.micOffImage, for: .normal)
+                    } else {
+                        self.micButton.setImage(self.micOnImage, for: .normal)
                     }
                 }
             }
@@ -226,9 +226,9 @@ class CallViewController: UIViewController {
                     DDLogError("CallViewController/endCall/failed: \(error)")
                 case .success:
                     if self.speakerOn {
-                        self.speakerButton.setImage(self.speakerOffImage, for: .normal)
-                    } else {
                         self.speakerButton.setImage(self.speakerOnImage, for: .normal)
+                    } else {
+                        self.speakerButton.setImage(self.speakerOffImage, for: .normal)
                     }
                 }
             }

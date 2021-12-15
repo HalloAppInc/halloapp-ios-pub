@@ -139,4 +139,14 @@ extension Localizations {
     static var loadingPreview: String {
         NSLocalizedString("loading.preview", value: "Loading Preview...", comment: "Displayed while waiting for link preview to load")
     }
+
+    // MARK: Audio Rermissions Alert
+
+    static var micAccessDeniedTitle: String {
+        NSLocalizedString("chat.mic.access.denied.title", value: "Unable to access microphone", comment: "Alert title when missing microphone access")
+    }
+
+    static var micAccessDeniedMessage: String {
+        NSLocalizedString("chat.mic.access.denied.message", value: "To enable audio recording, please tap on Settings and then turn on Microphone", comment: "Alert message when missing microphone access")
+    }
 }

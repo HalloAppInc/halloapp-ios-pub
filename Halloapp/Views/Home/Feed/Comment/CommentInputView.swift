@@ -1060,7 +1060,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
                         self.linkImageView.isHidden = false
                         self.linkPreviewTitleLabel.text = data.title
                         self.linkPreviewURLLabel.text = data.url?.host
-                        self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
+                        self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title ?? "", description: "", previewImages: [])
                     }
                 }
             } else {
@@ -1072,7 +1072,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
                     self.linkPreviewMediaView.isHidden = true
                     self.linkPreviewTitleLabel.text = data.title
                     self.linkPreviewURLLabel.text = data.url?.host
-                    self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
+                    self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title ?? "", description: "", previewImages: [])
                 }
             }
         }

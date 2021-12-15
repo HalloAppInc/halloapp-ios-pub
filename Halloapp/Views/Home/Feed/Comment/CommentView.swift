@@ -538,6 +538,8 @@ class CommentsTableHeaderView: UIView {
 
     private(set) var mediaView: MediaCarouselView?
 
+    private(set) var audioView: PostAudioView?
+
     let textLabel: TextLabel = {
         let label = TextLabel()
         return label
@@ -558,6 +560,8 @@ class CommentsTableHeaderView: UIView {
         vStack.spacing = 4
         return vStack
     }()
+
+    private var feedPost: FeedPost?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -600,6 +604,8 @@ class CommentsTableHeaderView: UIView {
     }
 
     func configure(withPost feedPost: FeedPost) {
+        self.feedPost = feedPost
+
         // Contact name
         contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId)
 
@@ -613,18 +619,33 @@ class CommentsTableHeaderView: UIView {
             let media = MainAppContext.shared.feedData.media(for: feedPost)
             MainAppContext.shared.feedData.loadImages(postID: feedPost.id)
 
-            var configuration = MediaCarouselViewConfiguration.minimal
-            configuration.downloadProgressViewSize = 24
-            let mediaView = MediaCarouselView(media: media, configuration: configuration)
-            mediaView.layoutMargins.top = 4
-            mediaView.layoutMargins.bottom = 4
-            mediaView.addConstraint({
-                let constraint = NSLayoutConstraint.init(item: mediaView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 55)
+            let imageAndVideoMedia = media.filter { [.image, .video].contains($0.type) }
+            if !imageAndVideoMedia.isEmpty {
+                var configuration = MediaCarouselViewConfiguration.minimal
+                configuration.downloadProgressViewSize = 24
+                let mediaView = MediaCarouselView(media: imageAndVideoMedia, configuration: configuration)
+                mediaView.layoutMargins.top = 4
+                mediaView.layoutMargins.bottom = 4
+                let constraint = mediaView.heightAnchor.constraint(equalToConstant: 55)
                 constraint.priority = .defaultHigh
-                return constraint
-            }())
-            vStack.insertArrangedSubview(mediaView, at: vStack.arrangedSubviews.count - 1)
-            self.mediaView = mediaView
+                constraint.isActive = true
+                vStack.insertArrangedSubview(mediaView, at: vStack.arrangedSubviews.count - 1)
+                self.mediaView = mediaView
+            }
+
+            // Audio
+            if let audioMedia = media.first(where: { $0.type == .audio }) {
+                let audioView = audioView ?? PostAudioView(configuration: .comments)
+                audioView.feedMedia = audioMedia
+                let isOwnPost = feedPost.userId == MainAppContext.shared.userData.userId
+                audioView.isSeen = feedPost.status == .seen || isOwnPost
+                vStack.insertArrangedSubview(audioView, at: max(vStack.arrangedSubviews.count - 1, 0))
+                self.audioView = audioView
+            } else if let audioView = audioView {
+                vStack.removeArrangedSubview(audioView)
+                audioView.removeFromSuperview()
+                self.audioView = nil
+            }
         }
 
         // Text
@@ -655,6 +676,18 @@ class CommentsTableHeaderView: UIView {
         
         // Avatar
         profilePictureButton.avatarView.configure(with: feedPost.userId, using: MainAppContext.shared.avatarStore)
+    }
+}
+
+// MARK: PostAudioViewDelegate
+extension CommentsTableHeaderView: PostAudioViewDelegate {
+
+    func postAudioView(_ postAudioView: PostAudioView, didUpdateIsPlayingTo isPlaying: Bool) {
+        guard isPlaying, let feedPost = feedPost else {
+            return
+        }
+        MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+        postAudioView.isSeen = true
     }
 }
 

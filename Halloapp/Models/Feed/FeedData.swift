@@ -284,7 +284,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     continue
                 }
                 switch postData.content {
-                case .album, .text, .retracted:
+                case .album, .text, .retracted, .voiceNote:
                     DDLogInfo("FeedData/processUnsupportedItems/posts/migrating [\(post.id)]")
                 case .unsupported:
                     DDLogInfo("FeedData/processUnsupportedItems/posts/skipping [still unsupported] [\(post.id)]")
@@ -794,7 +794,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.timestamp = xmppPost.timestamp
 
             switch xmppPost.content {
-            case .album, .text:
+            case .album, .text, .voiceNote:
                 // Mark our own posts as seen in case server sends us old posts following re-registration
                 if feedPost.userId == userData.userId {
                     feedPost.status = .seen
@@ -2514,7 +2514,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func handleRerequest(for contentID: String, from userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
+            guard let self = self else {
+                completion(.failure(.aborted))
+                return
+            }
 
             let resendAttempt = self.fetchResendAttempt(for: contentID, userID: userID, in: managedObjectContext)
             resendAttempt.retryCount += 1
@@ -2523,6 +2526,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogInfo("FeedData/fetchResendAttempt/contentID: \(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount)")
             guard rerequestCount <= 5 else {
                 DDLogError("FeedData/fetchResendAttempt/contentID: \(contentID)/userID: \(userID)/retryCount: \(rerequestCount) - aborting")
+                completion(.failure(.aborted))
                 return
             }
             self.save(managedObjectContext)
@@ -4060,9 +4064,9 @@ extension FeedData: HalloFeedDelegate {
                 DDLogError("FeedData/didRerequestGroupFeedItem/\(contentID)/error: \(error)/from: \(userID)")
             case .success:
                 DDLogInfo("FeedData/didRerequestGroupFeedItem/\(contentID)/success/from: \(userID)")
+                ack?()
             }
         }
-        ack?()
     }
 
     func halloService(_ halloService: HalloService, didReceiveFeedPayload payload: HalloServiceFeedPayload, ack: (() -> Void)?) {

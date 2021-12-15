@@ -7,6 +7,7 @@
 
 import AVFoundation
 import CocoaLumberjackSwift
+import Combine
 import Foundation
 
 protocol AudioRecorderDelegate: AnyObject {
@@ -27,8 +28,18 @@ class AudioRecorder {
 
     private var recorder: AVAudioRecorder?
     private var task: DispatchWorkItem?
-    private var timer: Timer?
+    private var displayLink: CADisplayLink?
     private let sessionManager = AudioSessionManager()
+    private var isMeteringEnabled = false {
+        didSet {
+            updateMeteringEnabled()
+        }
+    }
+
+    lazy var meter: CurrentValueSubject<(averagePower: Float, peakPower: Float), Never> = {
+        isMeteringEnabled = true
+        return CurrentValueSubject((-160, -160))
+    }()
 
     init() {
         let nc = NotificationCenter.default
@@ -47,7 +58,7 @@ class AudioRecorder {
     }
 
     deinit {
-        timer?.invalidate()
+        stopTimer()
         NotificationCenter.default.removeObserver(self)
         stop(cancel: true)
     }
@@ -121,6 +132,7 @@ class AudioRecorder {
             isRecording = true
 
             self.recorder = recorder
+            updateMeteringEnabled()
         } catch {
             stop(cancel: true)
             return DDLogError("AudioRecorder/start: recorder failed init [\(error)]")
@@ -135,16 +147,32 @@ class AudioRecorder {
     }
 
     private func startTimer() {
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {[weak self] _ in
-            guard let self = self else { return }
+        displayLink?.invalidate()
+        let displayLink = CADisplayLink(target: self, selector: #selector(updateTimer))
+        displayLink.add(to: .main, forMode: .common)
+        self.displayLink = displayLink
+    }
 
-            if let duration = self.recorder?.currentTime {
-                self.delegate?.audioRecorder(self, at: duration.formatted)
-            } else {
-                self.delegate?.audioRecorder(self, at: "0:00")
-            }
+    private func stopTimer() {
+        displayLink?.invalidate()
+    }
+
+    @objc private func updateTimer() {
+        if let duration = self.recorder?.currentTime {
+            self.delegate?.audioRecorder(self, at: duration.formatted)
+        } else {
+            self.delegate?.audioRecorder(self, at: "0:00")
         }
+
+        if isMeteringEnabled, let recorder = recorder {
+            recorder.updateMeters()
+            meter.send((averagePower: recorder.averagePower(forChannel: 0),
+                        peakPower: recorder.peakPower(forChannel: 0)))
+        }
+    }
+
+    private func updateMeteringEnabled() {
+        recorder?.isMeteringEnabled = isMeteringEnabled
     }
 
     func stop(cancel: Bool) {
@@ -152,7 +180,7 @@ class AudioRecorder {
             UIApplication.shared.isIdleTimerDisabled = false
         }
 
-        timer?.invalidate()
+        stopTimer()
         task?.cancel()
 
         if let recorder = self.recorder, recorder.isRecording || isRecording {
@@ -198,6 +226,10 @@ class AudioRecorder {
 
     class func voiceNote(from: String, to: String) -> URL? {
         return recording(withId: "voice-note-\(from)-\(to)")
+    }
+
+    func saveVoicePost() -> URL? {
+        return saveRecording(withId: "voice-post-\(UUID().uuidString)")
     }
 
     func saveRecording(withId id: String) -> URL? {

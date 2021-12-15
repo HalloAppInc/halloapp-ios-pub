@@ -1491,6 +1491,10 @@ extension Clients_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.feedPostID.isEmpty {
       try visitor.visitSingularStringField(value: self.feedPostID, fieldNumber: 1)
     }
@@ -1503,9 +1507,9 @@ extension Clients_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if !self.mentions.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.mentions, fieldNumber: 5)
     }
-    if let v = self._media {
+    try { if let v = self._media {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1733,39 +1737,55 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
       case 1: try { try decoder.decodeSingularMessageField(value: &self._context) }()
       case 2: try {
         var v: Clients_Text?
+        var hadOneofValue = false
         if let current = self.message {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .text(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.message = .text(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .text(v)
+        }
       }()
       case 3: try {
         var v: Clients_Album?
+        var hadOneofValue = false
         if let current = self.message {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .album(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.message = .album(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .album(v)
+        }
       }()
       case 4: try {
         var v: Clients_ContactCard?
+        var hadOneofValue = false
         if let current = self.message {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .contactCard(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.message = .contactCard(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .contactCard(v)
+        }
       }()
       case 5: try {
         var v: Clients_VoiceNote?
+        var hadOneofValue = false
         if let current = self.message {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .voiceNote(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.message = .voiceNote(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .voiceNote(v)
+        }
       }()
       default: break
       }
@@ -1773,12 +1793,13 @@ extension Clients_ChatContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._context {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
     // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every case branch when no optimizations are
-    // enabled. https://github.com/apple/swift-protobuf/issues/1034
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._context {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
     switch self.message {
     case .text?: try {
       guard case .text(let v)? = self.message else { preconditionFailure() }
@@ -1881,30 +1902,42 @@ extension Clients_PostContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
       switch fieldNumber {
       case 1: try {
         var v: Clients_Text?
+        var hadOneofValue = false
         if let current = self.post {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .text(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.post = .text(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.post = .text(v)
+        }
       }()
       case 2: try {
         var v: Clients_Album?
+        var hadOneofValue = false
         if let current = self.post {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .album(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.post = .album(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.post = .album(v)
+        }
       }()
       case 3: try {
         var v: Clients_VoiceNote?
+        var hadOneofValue = false
         if let current = self.post {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .voiceNote(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.post = .voiceNote(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.post = .voiceNote(v)
+        }
       }()
       default: break
       }
@@ -1913,8 +1946,9 @@ extension Clients_PostContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every case branch when no optimizations are
-    // enabled. https://github.com/apple/swift-protobuf/issues/1034
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     switch self.post {
     case .text?: try {
       guard case .text(let v)? = self.post else { preconditionFailure() }
@@ -1958,30 +1992,42 @@ extension Clients_CommentContainer: SwiftProtobuf.Message, SwiftProtobuf._Messag
       case 1: try { try decoder.decodeSingularMessageField(value: &self._context) }()
       case 2: try {
         var v: Clients_Text?
+        var hadOneofValue = false
         if let current = self.comment {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .text(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.comment = .text(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.comment = .text(v)
+        }
       }()
       case 3: try {
         var v: Clients_Album?
+        var hadOneofValue = false
         if let current = self.comment {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .album(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.comment = .album(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.comment = .album(v)
+        }
       }()
       case 4: try {
         var v: Clients_VoiceNote?
+        var hadOneofValue = false
         if let current = self.comment {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .voiceNote(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.comment = .voiceNote(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.comment = .voiceNote(v)
+        }
       }()
       default: break
       }
@@ -1989,12 +2035,13 @@ extension Clients_CommentContainer: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._context {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
     // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every case branch when no optimizations are
-    // enabled. https://github.com/apple/swift-protobuf/issues/1034
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._context {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
     switch self.comment {
     case .text?: try {
       guard case .text(let v)? = self.comment else { preconditionFailure() }
@@ -2121,24 +2168,28 @@ extension Clients_Container: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      if let v = _storage._post {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      try { if let v = _storage._post {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-      }
-      if let v = _storage._comment {
+      } }()
+      try { if let v = _storage._comment {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-      }
-      if let v = _storage._chatMessage {
+      } }()
+      try { if let v = _storage._chatMessage {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-      }
-      if let v = _storage._postContainer {
+      } }()
+      try { if let v = _storage._postContainer {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-      }
-      if let v = _storage._commentContainer {
+      } }()
+      try { if let v = _storage._commentContainer {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
-      }
-      if let v = _storage._chatContainer {
+      } }()
+      try { if let v = _storage._chatContainer {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-      }
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -2186,15 +2237,19 @@ extension Clients_Text: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.text.isEmpty {
       try visitor.visitSingularStringField(value: self.text, fieldNumber: 1)
     }
     if !self.mentions.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.mentions, fieldNumber: 2)
     }
-    if let v = self._link {
+    try { if let v = self._link {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2228,12 +2283,16 @@ extension Clients_ContactCard: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.contacts.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.contacts, fieldNumber: 1)
     }
-    if let v = self._text {
+    try { if let v = self._text {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2268,9 +2327,13 @@ extension Clients_Image: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._img {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._img {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
+    } }()
     if self.width != 0 {
       try visitor.visitSingularInt32Field(value: self.width, fieldNumber: 2)
     }
@@ -2358,18 +2421,22 @@ extension Clients_Video: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._video {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._video {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
+    } }()
     if self.width != 0 {
       try visitor.visitSingularInt32Field(value: self.width, fieldNumber: 2)
     }
     if self.height != 0 {
       try visitor.visitSingularInt32Field(value: self.height, fieldNumber: 3)
     }
-    if let v = self._streamingInfo {
+    try { if let v = self._streamingInfo {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2398,21 +2465,29 @@ extension Clients_AlbumMedia: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       switch fieldNumber {
       case 1: try {
         var v: Clients_Image?
+        var hadOneofValue = false
         if let current = self.media {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .image(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.media = .image(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.media = .image(v)
+        }
       }()
       case 2: try {
         var v: Clients_Video?
+        var hadOneofValue = false
         if let current = self.media {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .video(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.media = .video(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.media = .video(v)
+        }
       }()
       default: break
       }
@@ -2421,8 +2496,9 @@ extension Clients_AlbumMedia: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every case branch when no optimizations are
-    // enabled. https://github.com/apple/swift-protobuf/issues/1034
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     switch self.media {
     case .image?: try {
       guard case .image(let v)? = self.media else { preconditionFailure() }
@@ -2467,15 +2543,19 @@ extension Clients_Album: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.media.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.media, fieldNumber: 1)
     }
-    if let v = self._text {
+    try { if let v = self._text {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    }
-    if let v = self._voiceNote {
+    } }()
+    try { if let v = self._voiceNote {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2547,9 +2627,13 @@ extension Clients_SenderState: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._senderKey {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._senderKey {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
+    } }()
     if self.currentChainIndex != 0 {
       try visitor.visitSingularInt32Field(value: self.currentChainIndex, fieldNumber: 2)
     }
@@ -2579,22 +2663,28 @@ extension Clients_EncryptedPayload: SwiftProtobuf.Message, SwiftProtobuf._Messag
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try {
-        if self.payload != nil {try decoder.handleConflictingOneOf()}
         var v: Data?
         try decoder.decodeSingularBytesField(value: &v)
-        if let v = v {self.payload = .senderStateEncryptedPayload(v)}
+        if let v = v {
+          if self.payload != nil {try decoder.handleConflictingOneOf()}
+          self.payload = .senderStateEncryptedPayload(v)
+        }
       }()
       case 2: try {
-        if self.payload != nil {try decoder.handleConflictingOneOf()}
         var v: Data?
         try decoder.decodeSingularBytesField(value: &v)
-        if let v = v {self.payload = .oneToOneEncryptedPayload(v)}
+        if let v = v {
+          if self.payload != nil {try decoder.handleConflictingOneOf()}
+          self.payload = .oneToOneEncryptedPayload(v)
+        }
       }()
       case 3: try {
-        if self.payload != nil {try decoder.handleConflictingOneOf()}
         var v: Data?
         try decoder.decodeSingularBytesField(value: &v)
-        if let v = v {self.payload = .commentKeyEncryptedPayload(v)}
+        if let v = v {
+          if self.payload != nil {try decoder.handleConflictingOneOf()}
+          self.payload = .commentKeyEncryptedPayload(v)
+        }
       }()
       default: break
       }
@@ -2603,8 +2693,9 @@ extension Clients_EncryptedPayload: SwiftProtobuf.Message, SwiftProtobuf._Messag
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every case branch when no optimizations are
-    // enabled. https://github.com/apple/swift-protobuf/issues/1034
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     switch self.payload {
     case .senderStateEncryptedPayload?: try {
       guard case .senderStateEncryptedPayload(let v)? = self.payload else { preconditionFailure() }
@@ -2649,9 +2740,13 @@ extension Clients_VoiceNote: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._audio {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._audio {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2841,21 +2936,29 @@ extension Clients_ContentDetails: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       switch fieldNumber {
       case 1: try {
         var v: Clients_PostIdContext?
+        var hadOneofValue = false
         if let current = self.contentID {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .postIDContext(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.contentID = .postIDContext(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.contentID = .postIDContext(v)
+        }
       }()
       case 2: try {
         var v: Clients_CommentIdContext?
+        var hadOneofValue = false
         if let current = self.contentID {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .commentIDContext(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.contentID = .commentIDContext(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.contentID = .commentIDContext(v)
+        }
       }()
       default: break
       }
@@ -2864,8 +2967,9 @@ extension Clients_ContentDetails: SwiftProtobuf.Message, SwiftProtobuf._MessageI
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every case branch when no optimizations are
-    // enabled. https://github.com/apple/swift-protobuf/issues/1034
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     switch self.contentID {
     case .postIDContext?: try {
       guard case .postIDContext(let v)? = self.contentID else { preconditionFailure() }

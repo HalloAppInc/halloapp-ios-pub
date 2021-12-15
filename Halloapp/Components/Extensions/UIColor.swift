@@ -141,6 +141,10 @@ extension UIColor {
     class var linkPreviewPostBackground: UIColor {
         UIColor(named: "LinkPreviewPostBackground")!
     }
+
+    class var feedPostAudioPlayerBackground: UIColor {
+        UIColor(named: "FeedPostAudioPlayerBackground")!
+    }
     
     // MARK: Notifications
     

@@ -89,6 +89,10 @@ extension SharedFeedPost {
                 .sorted { $0.order < $1.order }
                 .map { FeedMediaData(from: $0) }
 
+            if media.count == 1, let mediaDataItem = mediaData.first, mediaDataItem.type == .audio {
+                return .voiceNote(mediaDataItem)
+            }
+
             return .album(mentionText, mediaData)
         } else {
             var linkPreviewData = [LinkPreviewData]()

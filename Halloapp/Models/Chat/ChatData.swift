@@ -1260,7 +1260,7 @@ class ChatData: ObservableObject {
             switch chatContent {
             case .album(let text, _):
                 chatMessage.text = text
-            case .text(let text, let _):
+            case .text(let text, _):
                 // TODO @dini merge linkPreviewData
                 chatMessage.text = text
             case .voiceNote(_):
@@ -2432,19 +2432,25 @@ extension ChatData {
         }
     }
 
-    private func handleRerequest(for messageID: String, from userID: UserID) {
+    private func handleRerequest(for messageID: String, from userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
+            guard let self = self else {
+                completion(.failure(.aborted))
+                return
+            }
             guard let chatMessage = self.chatMessage(with: messageID, in: managedObjectContext) else {
                 DDLogError("ChatData/handleRerequest/\(messageID)/error could not find message")
+                completion(.failure(.aborted))
                 return
             }
             guard userID == chatMessage.toUserId else {
                 DDLogError("ChatData/handleRerequest/\(messageID)/error user mismatch [original: \(chatMessage.toUserId)] [rerequest: \(userID)]")
+                completion(.failure(.aborted))
                 return
             }
             guard chatMessage.resendAttempts < 5 else {
                 DDLogInfo("ChatData/handleRerequest/\(messageID)/skipping (\(chatMessage.resendAttempts) resend attempts)")
+                completion(.failure(.aborted))
                 return
             }
             chatMessage.resendAttempts += 1
@@ -2452,6 +2458,7 @@ extension ChatData {
             let xmppChatMessage = XMPPChatMessage(chatMessage: chatMessage)
             self.backgroundProcessingQueue.async {
                 self.send(message: xmppChatMessage)
+                completion(.success(()))
             }
 
             self.save(managedObjectContext)
@@ -4618,8 +4625,15 @@ extension ChatData: HalloChatDelegate {
     func halloService(_ halloService: HalloService, didRerequestMessage messageID: String, from userID: UserID, ack: (() -> Void)?) {
         DDLogDebug("ChatData/didRerequestMessage [\(messageID)]")
 
-        handleRerequest(for: messageID, from: userID)
-        ack?()
+        handleRerequest(for: messageID, from: userID) { result in
+            switch result {
+            case .failure(let error):
+                DDLogError("ChatData/didRerequestMessage/\(messageID)/error: \(error)/from: \(userID)")
+            case .success:
+                DDLogInfo("ChatData/didRerequestMessage/\(messageID)/success/from: \(userID)")
+                ack?()
+            }
+        }
     }
 
     func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt) {

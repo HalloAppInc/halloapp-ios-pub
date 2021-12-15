@@ -142,6 +142,8 @@ class PostComposerViewController: UIViewController {
     private let isMediaPost: Bool
     private var configuration: PostComposerViewConfiguration
     private weak var delegate: PostComposerViewDelegate?
+    private let audioComposerRecorder = AudioComposerRecorder()
+    private let isInitiallyVoiceNotePost: Bool
 
     private var barState: NavigationBarState?
     
@@ -151,6 +153,7 @@ class PostComposerViewController: UIViewController {
         mediaToPost media: [PendingMedia],
         initialInput: MentionInput,
         configuration: PostComposerViewConfiguration,
+        isInitiallyVoiceNotePost: Bool,
         delegate: PostComposerViewDelegate)
     {
         self.mediaItems.value = media
@@ -160,6 +163,7 @@ class PostComposerViewController: UIViewController {
         self.linkPreviewData = GenericObservable(nil)
         self.linkPreviewImage = GenericObservable(nil)
         self.configuration = configuration
+        self.isInitiallyVoiceNotePost = isInitiallyVoiceNotePost
         self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
     }
@@ -177,6 +181,8 @@ class PostComposerViewController: UIViewController {
             link: link,
             linkPreviewData: linkPreviewData,
             linkPreviewImage: linkPreviewImage,
+            audioComposerRecorder: audioComposerRecorder,
+            isInitiallyVoiceNotePost: isInitiallyVoiceNotePost,
             mentionableUsers: configuration.mentionableUsers,
             shouldAutoPlay: shouldAutoPlay,
             configuration: configuration,
@@ -275,28 +281,34 @@ class PostComposerViewController: UIViewController {
     private func share() {
         isPosting = true
         let mentionText = MentionText(expandedText: inputToPost.value.text, mentionRanges: inputToPost.value.mentions).trimmed()
+
+        var allMediaItems = mediaItems.value
+        if let voiceNote = audioComposerRecorder.voiceNote {
+            allMediaItems.append(voiceNote)
+        }
+
         // if no link preview or link preview not yet loaded, send without link preview.
         // if the link preview does not have an image... send immediately
         if link.value == "" || linkPreviewData.value == nil ||  linkPreviewImage.value == nil {
-            delegate?.composerDidTapShare(controller: self, destination: configuration.destination, mentionText: mentionText, media: mediaItems.value, linkPreviewData: linkPreviewData.value, linkPreviewMedia: nil)
+            delegate?.composerDidTapShare(controller: self, destination: configuration.destination, mentionText: mentionText, media: allMediaItems, linkPreviewData: linkPreviewData.value, linkPreviewMedia: nil)
         } else {
             // if link preview has an image, load the image before sending.
-            loadLinkPreviewImageAndShare(mentionText: mentionText)
+            loadLinkPreviewImageAndShare(mentionText: mentionText, mediaItems: allMediaItems)
         }
     }
     
-    private func loadLinkPreviewImageAndShare(mentionText: MentionText) {
+    private func loadLinkPreviewImageAndShare(mentionText: MentionText, mediaItems: [PendingMedia]) {
         // Send link preview with image in it
         let linkPreviewMedia = PendingMedia(type: .image)
         linkPreviewMedia.image = linkPreviewImage.value
         if linkPreviewMedia.ready.value {
-            self.delegate?.composerDidTapShare(controller: self, destination: configuration.destination, mentionText: mentionText, media: mediaItems.value, linkPreviewData: linkPreviewData.value, linkPreviewMedia: linkPreviewMedia)
+            self.delegate?.composerDidTapShare(controller: self, destination: configuration.destination, mentionText: mentionText, media: mediaItems, linkPreviewData: linkPreviewData.value, linkPreviewMedia: linkPreviewMedia)
         } else {
             self.cancellableSet.insert(
                 linkPreviewMedia.ready.sink { [weak self] ready in
                     guard let self = self else { return }
                     guard ready else { return }
-                    self.delegate?.composerDidTapShare(controller: self, destination: self.configuration.destination, mentionText: mentionText, media: self.mediaItems.value, linkPreviewData: self.linkPreviewData.value, linkPreviewMedia: linkPreviewMedia)
+                    self.delegate?.composerDidTapShare(controller: self, destination: self.configuration.destination, mentionText: mentionText, media: mediaItems, linkPreviewData: self.linkPreviewData.value, linkPreviewMedia: linkPreviewMedia)
                 }
             )
         }
@@ -373,6 +385,8 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var link: GenericObservable<String>
     @ObservedObject private var linkPreviewData: GenericObservable<LinkPreviewData?>
     @ObservedObject private var linkPreviewImage: GenericObservable<UIImage?>
+    @ObservedObject private var audioComposerRecorder: AudioComposerRecorder
+    private let isInitiallyVoiceNotePost: Bool
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
     @ObservedObject private var isPosting = GenericObservable<Bool>(false)
     private let mentionableUsers: [MentionableUser]
@@ -429,6 +443,8 @@ fileprivate struct PostComposerView: View {
         link: GenericObservable<String>,
         linkPreviewData: GenericObservable<LinkPreviewData?>,
         linkPreviewImage: GenericObservable<UIImage?>,
+        audioComposerRecorder: AudioComposerRecorder,
+        isInitiallyVoiceNotePost: Bool,
         mentionableUsers: [MentionableUser],
         shouldAutoPlay: GenericObservable<Bool>,
         configuration: PostComposerViewConfiguration,
@@ -443,6 +459,8 @@ fileprivate struct PostComposerView: View {
         self.link = link
         self.linkPreviewData = linkPreviewData
         self.linkPreviewImage = linkPreviewImage
+        self.audioComposerRecorder = audioComposerRecorder
+        self.isInitiallyVoiceNotePost = isInitiallyVoiceNotePost
         self.mentionableUsers = mentionableUsers
         self.shouldAutoPlay = shouldAutoPlay
         self.mediaCarouselMaxAspectRatio = configuration.mediaCarouselMaxAspectRatio
@@ -453,16 +471,23 @@ fileprivate struct PostComposerView: View {
         self.share = share
         self._destination = State(initialValue: configuration.destination)
 
+        let mediaReadyAndNotFailedPublisher = Publishers.CombineLatest(mediaState.$isReady, mediaState.$numberOfFailedItems)
+            .map { (mediaIsReady, numberOfFailedUploads) in mediaIsReady && numberOfFailedUploads == 0 }
+
         readyToSharePublisher =
             Publishers.CombineLatest4(
-                self.mediaItems.$value,
-                self.mediaState.$isReady,
-                self.mediaState.$numberOfFailedItems,
-                self.inputToPost.$value
-            )
-            .map { (mediaItems, mediaIsReady, numberOfFailedUploads, inputValue) -> Bool in
-                return (mediaItems.count > 0 && mediaIsReady && numberOfFailedUploads == 0) ||
-                    (mediaItems.count == 0 && !inputValue.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                mediaItems.$value,
+                mediaReadyAndNotFailedPublisher,
+                inputToPost.$value,
+                audioComposerRecorder.$voiceNote
+            ).map { (mediaItems, mediaReady, inputValue, voiceNote) in
+                if mediaItems.count > 0 {
+                    return mediaReady
+                } else if voiceNote != nil {
+                    return true
+                } else {
+                    return !inputValue.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                }
             }
             .removeDuplicates()
             .eraseToAnyPublisher()
@@ -568,15 +593,28 @@ fileprivate struct PostComposerView: View {
             presentPicker = false
             guard !cancel else { return }
 
-            let newItemIndex = newMediaItems.firstIndex { newItem in
-                !mediaItems.value.contains { oldItem in
-                    newItem.asset == oldItem.asset
-                }
-            }
-            let lastAsset = mediaItems.value[currentPosition.value].asset
+            let oldMediaItems = mediaItems.value
             mediaItems.value = newMediaItems
-            currentPosition.value = newItemIndex ?? newMediaItems.firstIndex { $0.asset == lastAsset } ?? 0
-            mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
+            currentPosition.value = {
+                // Prefer to focus on the first newly added item
+                let oldMediaItemAssets = Set(oldMediaItems.map(\.asset))
+                if let idx = newMediaItems.firstIndex(where: { oldMediaItemAssets.contains($0.asset) }) {
+                    return idx
+                }
+
+                // Otherwise, try to restore focus to the same item
+                let previousIndex = currentPosition.value
+                if previousIndex < oldMediaItems.count {
+                    let lastAsset = oldMediaItems[previousIndex].asset
+                    if let idx = newMediaItems.firstIndex(where: { $0.asset == lastAsset }) {
+                        return idx
+                    }
+                }
+
+                // Fallback
+                return 0
+            }()
+            mediaState.isReady = mediaItems.value.allSatisfy { $0.ready.value }
         }
     }
 
@@ -660,6 +698,14 @@ fileprivate struct PostComposerView: View {
         }
     }
 
+    var audioRecordingView: some View {
+        return AudioPostComposer(recorder: audioComposerRecorder,
+                                 isReadyToShare: isReadyToShare,
+                                 shareAction: share,
+                                 presentMediaPicker: $presentPicker,
+                                 mediaPicker: { picker })
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             Button(action: {
@@ -720,6 +766,8 @@ fileprivate struct PostComposerView: View {
                                         .padding(.horizontal)
                                         .padding(.bottom, 10)
                                 }
+                            } else if isInitiallyVoiceNotePost {
+                                audioRecordingView
                             } else {
                                 postTextView
 

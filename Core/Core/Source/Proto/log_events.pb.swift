@@ -1272,84 +1272,120 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
         case 5: try { try decoder.decodeSingularStringField(value: &_storage._cc) }()
         case 10: try {
           var v: Server_MediaUpload?
+          var hadOneofValue = false
           if let current = _storage._edata {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .mediaUpload(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._edata = .mediaUpload(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .mediaUpload(v)
+          }
         }()
         case 11: try {
           var v: Server_MediaDownload?
+          var hadOneofValue = false
           if let current = _storage._edata {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .mediaDownload(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._edata = .mediaDownload(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .mediaDownload(v)
+          }
         }()
         case 12: try {
           var v: Server_MediaComposeLoad?
+          var hadOneofValue = false
           if let current = _storage._edata {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .mediaComposeLoad(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._edata = .mediaComposeLoad(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .mediaComposeLoad(v)
+          }
         }()
         case 13: try {
           var v: Server_PushReceived?
+          var hadOneofValue = false
           if let current = _storage._edata {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .pushReceived(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._edata = .pushReceived(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .pushReceived(v)
+          }
         }()
         case 14: try {
           var v: Server_DecryptionReport?
+          var hadOneofValue = false
           if let current = _storage._edata {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .decryptionReport(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._edata = .decryptionReport(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .decryptionReport(v)
+          }
         }()
         case 15: try {
           var v: Server_Permissions?
+          var hadOneofValue = false
           if let current = _storage._edata {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .permissions(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._edata = .permissions(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .permissions(v)
+          }
         }()
         case 16: try {
           var v: Server_MediaObjectDownload?
+          var hadOneofValue = false
           if let current = _storage._edata {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .mediaObjectDownload(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._edata = .mediaObjectDownload(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .mediaObjectDownload(v)
+          }
         }()
         case 17: try {
           var v: Server_GroupDecryptionReport?
+          var hadOneofValue = false
           if let current = _storage._edata {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .groupDecryptionReport(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._edata = .groupDecryptionReport(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .groupDecryptionReport(v)
+          }
         }()
         case 18: try {
           var v: Server_Call?
+          var hadOneofValue = false
           if let current = _storage._edata {
-            try decoder.handleConflictingOneOf()
+            hadOneofValue = true
             if case .call(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._edata = .call(v)}
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .call(v)
+          }
         }()
         default: break
         }
@@ -1359,6 +1395,10 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
       if _storage._uid != 0 {
         try visitor.visitSingularUInt64Field(value: _storage._uid, fieldNumber: 1)
       }
@@ -1374,9 +1414,6 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       if !_storage._cc.isEmpty {
         try visitor.visitSingularStringField(value: _storage._cc, fieldNumber: 5)
       }
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch _storage._edata {
       case .mediaUpload?: try {
         guard case .mediaUpload(let v)? = _storage._edata else { preconditionFailure() }

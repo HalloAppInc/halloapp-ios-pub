@@ -584,6 +584,10 @@ final class NotificationProtoService: ProtoServiceCore {
         })
         if metadata.messageTypeRawValue == Server_Msg.TypeEnum.headline.rawValue || isUserMentioned {
             runIfNotificationWasNotPresented(for: metadata.contentId) { [self] in
+                guard NotificationSettings.isCommentsEnabled else {
+                    DDLogDebug("ProtoService/CommentNotification - skip due to userPreferences")
+                    return
+                }
                 DDLogDebug("ProtoService/presentCommentNotification")
                 let notificationContent = UNMutableNotificationContent()
                 notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
@@ -604,6 +608,17 @@ final class NotificationProtoService: ProtoServiceCore {
     // Used to present post/chat notifications.
     private func presentNotification(for identifier: String, with content: UNNotificationContent, using attachments: [UNNotificationAttachment] = []) {
         runIfNotificationWasNotPresented(for: identifier) { [self] in
+            let contentTypeRaw = content.userInfo[NotificationMetadata.contentTypeKey] as? String ?? "unknown"
+            switch NotificationContentType.init(rawValue: contentTypeRaw) {
+            case .feedPost, .groupFeedPost:
+                guard NotificationSettings.isPostsEnabled else {
+                    DDLogDebug("ProtoService/PostNotification - skip due to userPreferences")
+                    return
+                }
+            default:
+                break
+            }
+
             DDLogDebug("ProtoService/presentNotification/\(identifier)")
             let notificationContent = UNMutableNotificationContent()
             notificationContent.title = content.title
@@ -613,7 +628,6 @@ final class NotificationProtoService: ProtoServiceCore {
             notificationContent.userInfo = content.userInfo
             notificationContent.sound = UNNotificationSound.default
             notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
-            let contentTypeRaw = content.userInfo[NotificationMetadata.contentTypeKey] as? String ?? "unknown"
 
             let notificationCenter = UNUserNotificationCenter.current()
             notificationCenter.add(UNNotificationRequest(identifier: identifier, content: notificationContent, trigger: nil))

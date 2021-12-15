@@ -1131,6 +1131,33 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func processGroupStanza(for groupStanza: Server_GroupStanza, in groupID: GroupID, completion: @escaping () -> Void) {
+        let newCompletion: () -> Void = { [weak self] in
+            guard let self = self else { return }
+            completion()
+            DispatchQueue.main.async {
+                self.groupStates[groupID] = .ready
+                self.executePendingWorkItems(for: groupID)
+            }
+        }
+
+        let work = DispatchWorkItem {
+            newCompletion()
+        }
+
+        DispatchQueue.main.async { [self] in
+            // Append task to pendingWorkItems and try to perform task.
+            if var pendingGroupWorkItems = pendingWorkItems[groupID] {
+                pendingGroupWorkItems.append(work)
+                self.pendingWorkItems[groupID] = pendingGroupWorkItems
+            } else {
+                pendingWorkItems[groupID] = [work]
+            }
+            executePendingWorkItems(for: groupID)
+        }
+    }
+
+
     public func decryptGroupFeedPayload(for item: Server_GroupFeedItem, in groupID: GroupID, completion: @escaping (FeedContent?, GroupDecryptionFailure?) -> Void) {
         let newCompletion: (FeedContent?, GroupDecryptionFailure?) -> Void = { [weak self] content, decryptionFailure in
             guard let self = self else { return }

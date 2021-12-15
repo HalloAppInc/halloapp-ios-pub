@@ -591,6 +591,7 @@ final class GroupWhisperSession {
 
         service.getGroupMemberIdentityKeys(groupID: groupID) { result in
             self.sessionQueue.async {
+                var members: [UserID] = []
                 // Initialize audience hash if possible
                 let audienceHash: Data? = {
                     switch result {
@@ -601,6 +602,7 @@ final class GroupWhisperSession {
                         var memberKeys: [UserID : Data] = [:]
                         for member in protoGroupStanza.members {
                             memberKeys[UserID(member.uid)] = member.identityKey
+                            members.append(UserID(member.uid))
                         }
                         DDLogInfo("GroupWhisperSession/executeUpdateAudienceHash/\(self.groupID)/computing now")
                         return Whisper.computeAudienceHash(memberKeys: memberKeys)
@@ -610,6 +612,17 @@ final class GroupWhisperSession {
                 var groupKeyBundle = self.state.keyBundle
                 if let hash = audienceHash {
                     if groupKeyBundle.outgoingSession != nil {
+                        // It is possible that group-membership also changed at this point.
+                        // So we should be sending our sender-state to some members if necessary.
+                        // Let us pre-emptively send it to all members from whom we dont have an incoming session.
+                        // This should help improve group-encryption when we have a lot of group-membership and posting activity going on.
+                        let currentPending = groupKeyBundle.pendingUids
+                        let oldMemberUids = groupKeyBundle.incomingSession?.senderStates.map { $0.key } ?? []
+                        let newPendingUids = members.filter { member in
+                            // return true only if we dont have an incoming sender state for this user.
+                            !oldMemberUids.contains(member)
+                        }
+                        groupKeyBundle.pendingUids = Array(Set(currentPending + newPendingUids))
                         groupKeyBundle.outgoingSession?.audienceHash = hash
                         DDLogInfo("GroupWhisperSession/executeUpdateAudienceHash/\(self.groupID)/success, audienceHash: \(hash.toHexString())")
                         self.updateState(to: .ready(keyBundle: groupKeyBundle), saveToKeyStore: true)

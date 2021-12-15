@@ -1101,6 +1101,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             mediaToPost: media,
             initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
             configuration: .message(id: fromUserId),
+            isInitiallyVoiceNotePost: false,
             delegate: self)
         pickerController.present(UINavigationController(rootViewController: composerController), animated: false)
     }
@@ -1477,6 +1478,7 @@ extension ChatViewController: ChatInputViewDelegate {
             mediaToPost: [media],
             initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
             configuration: .message(id: fromUserId),
+            isInitiallyVoiceNotePost: false,
             delegate: self)
         present(UINavigationController(rootViewController: composerController), animated: false)
     }
@@ -1903,14 +1905,6 @@ private extension Localizations {
                                        value: "To see posts from %@ add their number to your contact book.  Tap to add",
                                        comment: "Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book")
         return String(format: format, name)
-    }
-
-    static var micAccessDeniedTitle: String {
-        NSLocalizedString("chat.mic.access.denied.title", value: "Unable to access microphone", comment: "Alert title when missing microphone access")
-    }
-
-    static var micAccessDeniedMessage: String {
-        NSLocalizedString("chat.mic.access.denied.message", value: "To enable audio recording, please tap on Settings and then turn on Microphone", comment: "Alert message when missing microphone access")
     }
 }
 

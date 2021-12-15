@@ -177,7 +177,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }()
 
     init(media: [FeedMedia], index: Int, canSaveMedia: Bool) {
-        self.media = media.map { item in
+        self.media = media.filter({ $0.type != .audio }).map { item in
             let type: MediaExplorerMediaType = (item.type == .image ? .image : .video)
             let progress = MainAppContext.shared.feedData.downloadTask(for: item)?.downloadProgress.eraseToAnyPublisher()
 
