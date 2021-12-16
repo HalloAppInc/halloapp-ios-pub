@@ -110,6 +110,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         titleView.translatesAutoresizingMaskIntoConstraints = false
         titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 3, right: 0)
         titleView.update(with: fromUserId, status: UserPresenceType.none, lastSeen: nil)
+        titleView.checkIfUnknownContactWithPushNumber(userID: fromUserId)
         
         view.addSubview(tableView)
         tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
@@ -624,9 +625,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         var headerHeight: CGFloat = 90
         if isUserBlocked {
             headerHeight = 130
-        } else if !isUserInAddressBook {
-            headerHeight = 150
         }
+
         let chatHeaderView = ChatHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: headerHeight))
         chatHeaderView.configureOrRefresh(with: userID)
         chatHeaderView.delegate = self
@@ -635,8 +635,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         tableView.tableFooterView = nil
     }
 
-    private lazy var titleView: TitleView = {
-        let titleView = TitleView()
+    private lazy var titleView: ChatTitleView = {
+        let titleView = ChatTitleView()
         titleView.delegate = self
         titleView.translatesAutoresizingMaskIntoConstraints = false
         return titleView
@@ -717,6 +717,12 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             MainAppContext.shared.contactStore.setIsMessagingAccepted(userID: userID, isMessagingAccepted: true)
             self.unknownContactActionBanner.isHidden = true
             self.chatInputView.isHidden = false
+        }
+
+        view.addToContactBookAction = { [weak self] in
+            guard let self = self else { return }
+            guard let userID = self.fromUserId else { return }
+            MainAppContext.shared.contactStore.addUserToAddressBook(userID: userID, presentingVC: self)
         }
 
         view.blockAction = { [weak self] in
@@ -1260,8 +1266,8 @@ extension ChatViewController {
     }
 }
 
-extension ChatViewController: TitleViewDelegate {
-    fileprivate func titleView(_ titleView: TitleView) {
+extension ChatViewController: ChatTitleViewDelegate {
+    func chatTitleView(_ chatTitleView: ChatTitleView) {
         guard let userId = fromUserId else { return }
         let userViewController = UserFeedViewController(userId: userId)
         navigationController?.pushViewController(userViewController, animated: true)
@@ -1534,139 +1540,6 @@ fileprivate struct TrackedChatMessage {
     }
 }
 
-fileprivate protocol TitleViewDelegate: AnyObject {
-    func titleView(_ titleView: TitleView)
-}
-
-fileprivate class TitleView: UIView {
-    
-    weak var delegate: TitleViewDelegate?
-    
-    public var isShowingTypingIndicator: Bool = false
-    
-    override init(frame: CGRect){
-        super.init(frame: frame)
-        setup()
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-
-    private lazy var contactImageView: AvatarView = {
-        return AvatarView()
-    }()
-
-    func update(with fromUserId: String, status: UserPresenceType, lastSeen: Date?) {
-        setNameLabel(for: fromUserId)
-        
-        switch status {
-        case .away:
-            // prefer to show last seen over typing
-            if let lastSeen = lastSeen {
-                lastSeenLabel.text = lastSeen.lastSeenTimestamp()
-                typingLabel.isHidden = true
-                lastSeenLabel.isHidden = false
-            }
-        case .available:
-            // prefer to show typing over online
-            lastSeenLabel.isHidden = !isShowingTypingIndicator ? false : true
-            lastSeenLabel.text = Localizations.chatOnlineLabel
-        default:
-            lastSeenLabel.isHidden = true
-            lastSeenLabel.text = ""
-        }
-
-        contactImageView.configure(with: fromUserId, using: MainAppContext.shared.avatarStore)
-    }
-
-    func refreshName(for userID: String) {
-        setNameLabel(for: userID)
-    }
-
-    func showChatState(with typingIndicatorStr: String?) {
-        let showTyping: Bool = typingIndicatorStr != nil
-        
-        lastSeenLabel.isHidden = showTyping
-        typingLabel.isHidden = !showTyping
-        isShowingTypingIndicator = showTyping
-        
-        guard let typingStr = typingIndicatorStr else { return }
-        typingLabel.text = typingStr
-    }
-    
-    private func setNameLabel(for userID: UserID) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true)
-    }
-    
-    private func setup() {
-        let imageSize: CGFloat = 32
-        contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
-        contactImageView.heightAnchor.constraint(equalTo: contactImageView.widthAnchor).isActive = true
-        
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-
-        let hStack = UIStackView(arrangedSubviews: [ contactImageView, nameColumn ])
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.axis = .horizontal
-        hStack.alignment = .center
-        hStack.spacing = 10
-        
-        addSubview(hStack)
-        hStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoProfile))
-        isUserInteractionEnabled = true
-        addGestureRecognizer(tapGesture)
-    }
-
-    private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [nameLabel, lastSeenLabel, typingLabel])
-        view.axis = .vertical
-        view.spacing = 0
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
-    private lazy var nameLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.gothamFont(ofFixedSize: 17, weight: .medium)
-        label.textColor = .label
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private lazy var lastSeenLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 12)
-        label.textColor = .secondaryLabel
-        label.isHidden = true
-        return label
-    }()
-
-    private lazy var typingLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 12)
-        label.textColor = .secondaryLabel
-        label.isHidden = true
-        return label
-    }()
-
-    // MARK: actions
-
-    @objc func gotoProfile(_ sender: UIView) {
-        delegate?.titleView(self)
-    }
-}
-
 class UnselectableUITextView: UITextView {
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         guard let pos = closestPosition(to: point) else { return false }
@@ -1681,7 +1554,6 @@ class UnselectableUITextView: UITextView {
 protocol ChatHeaderViewDelegate: AnyObject {
     func chatHeaderViewOpenEncryptionBlog(_ chatHeaderView: ChatHeaderView)
     func chatHeaderViewUnblockContact(_ chatHeaderView: ChatHeaderView)
-    func chatHeaderViewAddToContactsBook(_ chatHeaderView: ChatHeaderView)
 }
 
 class ChatHeaderView: UIView {
@@ -1696,19 +1568,7 @@ class ChatHeaderView: UIView {
 
     public func configureOrRefresh(with userID: UserID) {
         let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
-        let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
-        let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userID) != nil
-
-        let showAddToContactsBubble = !isUserBlocked && !isContactInAddressBook && pushNumberExist
-
-        if showAddToContactsBubble {
-            if let pushNumber = MainAppContext.shared.contactStore.pushNumber(userID) {
-                addToContactsLabel.text = Localizations.chatAddToAddressBookLabel(pushNumber.formattedPhoneNumber)
-            }
-        }
-
         blockedContactBubbleColumn.isHidden = !isUserBlocked
-        addToContactsBubble.isHidden = !showAddToContactsBubble
     }
 
     private func setup() {
@@ -1720,7 +1580,7 @@ class ChatHeaderView: UIView {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        let view = UIStackView(arrangedSubviews: [ encryptionBubbleColumn, blockedContactBubbleColumn, addToContactsBubble, spacer] )
+        let view = UIStackView(arrangedSubviews: [ encryptionBubbleColumn, blockedContactBubbleColumn, spacer] )
 
         view.axis = .vertical
         view.alignment = .fill
@@ -1833,42 +1693,6 @@ class ChatHeaderView: UIView {
         return label
     }()
 
-    lazy var addToContactsBubble: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ addToContactsLabel ])
-        view.axis = .horizontal
-        view.alignment = .center
-
-        view.layoutMargins = UIEdgeInsets(top: 8, left: 15, bottom: 8, right: 15)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        let subView = UIView(frame: view.bounds)
-        subView.layer.cornerRadius = 10
-        subView.layer.masksToBounds = true
-        subView.clipsToBounds = true
-        subView.backgroundColor = UIColor.chatInfoBubbleBg
-        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.insertSubview(subView, at: 0)
-
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(addToContactsBook)))
-        view.isHidden = true
-        return view
-    }()
-
-    private lazy var addToContactsLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 4
-        label.textAlignment = .center
-        label.textColor = .chatInfoBubble
-        label.font = UIFont.systemFont(ofSize: 12)
-        label.adjustsFontForContentSizeCategory = true
-
-        label.translatesAutoresizingMaskIntoConstraints = false
-
-        return label
-    }()
-
     @objc private func openEncryptionBlog() {
         guard let delegate = delegate else { return }
         delegate.chatHeaderViewOpenEncryptionBlog(self)
@@ -1879,32 +1703,16 @@ class ChatHeaderView: UIView {
         delegate.chatHeaderViewUnblockContact(self)
     }
 
-    @objc private func addToContactsBook() {
-        guard let delegate = delegate else { return }
-        delegate.chatHeaderViewAddToContactsBook(self)
-    }
-
 }
 
 private extension Localizations {
 
-    static var chatOnlineLabel: String {
-        NSLocalizedString("chat.online.label", value: "online", comment: "Text below the contact's name when the contact is online in the Chat Screen")
-    }
-
     static var chatEncryptionLabel: String {
         NSLocalizedString("chat.encryption.label", value: "Chats are end-to-end encrypted and HalloApp does not have access to them. Tap to learn more.", comment: "Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted")
     }
-    
+
     static var chatBlockedContactLabel: String {
         NSLocalizedString("chat.blocked.contact.label", value: "Contact is blocked, tap to unblock", comment: "Text shown at the top of the chat screen informing the user that the contact is blocked")
     }
 
-    static func chatAddToAddressBookLabel(_ name: String) -> String {
-        let format = NSLocalizedString("chat.add.to.contacts.book.label",
-                                       value: "To see posts from %@ add their number to your contact book.  Tap to add",
-                                       comment: "Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book")
-        return String(format: format, name)
-    }
 }
-

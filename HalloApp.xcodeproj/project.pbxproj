@@ -347,6 +347,7 @@
 		EAD476F62458F03700EF8591 /* ChatMessage+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD476F02458F03700EF8591 /* ChatMessage+CoreDataClass.swift */; };
 		EAD476F72458F03700EF8591 /* ChatMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD476F12458F03700EF8591 /* ChatMessage+CoreDataProperties.swift */; };
 		EAD944F724F73E4C004A27B1 /* GroupInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD944F624F73E4C004A27B1 /* GroupInfoViewController.swift */; };
+		EAEE49DA276A76ED0042E654 /* ChatTitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAEE49D9276A76ED0042E654 /* ChatTitleView.swift */; };
 		EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C22334191E00805FF9 /* AppDelegate.swift */; };
 		EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */; };
 		EAF3A1C92334192000805FF9 /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */; };
@@ -984,6 +985,7 @@
 		EAD476F02458F03700EF8591 /* ChatMessage+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMessage+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAD476F12458F03700EF8591 /* ChatMessage+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMessage+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAD944F624F73E4C004A27B1 /* GroupInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInfoViewController.swift; sourceTree = "<group>"; };
+		EAEE49D9276A76ED0042E654 /* ChatTitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTitleView.swift; sourceTree = "<group>"; };
 		EAF3A1BF2334191E00805FF9 /* HalloApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAF3A1C22334191E00805FF9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -1759,6 +1761,7 @@
 				EAD476CC245513EF00EF8591 /* ChatListViewController.swift */,
 				EAA0799625AFC71600B384AB /* ThreadListCell.swift */,
 				EA3585742450BE3300E6E8AB /* ChatViewController.swift */,
+				EAEE49D9276A76ED0042E654 /* ChatTitleView.swift */,
 				EA6DE2CC25C3768C00C83001 /* GroupTitleView.swift */,
 				EA3585752450BE3300E6E8AB /* ChatInputView.swift */,
 				EA388C5B2520EB9500DEAB53 /* Banner.swift */,
@@ -2892,6 +2895,7 @@
 				EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */,
 				EAD476F32458F03700EF8591 /* ChatMedia+CoreDataProperties.swift in Sources */,
 				76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */,
+				EAEE49DA276A76ED0042E654 /* ChatTitleView.swift in Sources */,
 				EA73DF4025E88D9B0070875D /* NewPostsIndicator.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
 				E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */,
