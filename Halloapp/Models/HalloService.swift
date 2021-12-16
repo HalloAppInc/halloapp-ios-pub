@@ -69,7 +69,7 @@ protocol HalloService: CoreService {
     func changeGroupDescription(groupID: GroupID, description: String, completion: @escaping ServiceRequestCompletion<String>)
     func setGroupBackground(groupID: GroupID, background: Int32, completion: @escaping ServiceRequestCompletion<Void>)
     func exportDataStatus(isSetRequest: Bool, completion: @escaping ServiceRequestCompletion<Server_ExportData>)
-    func requestAccountDeletion(phoneNumber: String, completion: @escaping ServiceRequestCompletion<Void>)
+    func requestAccountDeletion(phoneNumber: String, feedback: String?, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Calls
     func getCallServers(id callID: CallID, for peerUserID: UserID, callType: CallType, completion: @escaping ServiceRequestCompletion<Server_GetCallServersResult>)

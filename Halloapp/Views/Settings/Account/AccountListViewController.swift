@@ -120,7 +120,7 @@ class SettingsAccountViewController: UITableViewController {
     }
     
     private func openDeleteView() {
-        let viewController = UIHostingController(rootView: DeleteAccountView())
+        let viewController = DeleteAccountViewController()
         viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }

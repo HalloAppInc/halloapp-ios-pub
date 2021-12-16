@@ -96,6 +96,10 @@ extension UIColor {
         UIColor(named: "AudioViewControlsPlayed")!
     }
 
+    class var placeholder: UIColor {
+        UIColor(named: "Placeholder")!
+    }
+
     // MARK: Feed
 
     class var feedBackground: UIColor {

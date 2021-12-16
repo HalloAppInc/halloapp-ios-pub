@@ -1494,9 +1494,9 @@ extension ProtoService: HalloService {
     func exportDataStatus(isSetRequest: Bool = false, completion: @escaping ServiceRequestCompletion<Server_ExportData>) {
         enqueue(request: ProtoGetDataExportStatusRequest(isSetRequest: isSetRequest, completion: completion))
     }
-    
-    func requestAccountDeletion(phoneNumber: String, completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoDeleteAccountRequest(phoneNumber: phoneNumber, completion: completion))
+
+    func requestAccountDeletion(phoneNumber: String, feedback: String?, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoDeleteAccountRequest(phoneNumber: phoneNumber, feedback: feedback, completion: completion))
     }
 
     func sendGroupChatMessage(_ message: HalloGroupChatMessage) {
