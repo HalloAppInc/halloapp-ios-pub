@@ -310,7 +310,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
     }
 
-    public func refreshData(media: [FeedMedia], index: Int) {
+    public func refreshData(media: [FeedMedia], index: Int, animated: Bool) {
         guard let dataSource = dataSource else { return }
 
         stopPlayback()
@@ -333,7 +333,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         let newIndex = max(0, min(index, self.media.count - 1))
         if newIndex != currentIndex {
             currentIndex = newIndex
-            setCurrentIndex(newIndex, animated: true)
+            setCurrentIndex(newIndex, animated: animated)
         } else if self.shouldAutoPlay {
             playCurrentVideo()
         }

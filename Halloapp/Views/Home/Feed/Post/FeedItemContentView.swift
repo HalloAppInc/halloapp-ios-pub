@@ -181,7 +181,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             DDLogInfo("FeedItemContentView/media-view-height post=[\(post.id)] height=[\(mediaViewHeight)]")
             if let mediaView = mediaView {
                 mediaViewHeightConstraint?.constant = mediaViewHeight
-                mediaView.refreshData(media: imageAndVideoMedia, index: displayData?.currentMediaIndex ?? 0)
+                mediaView.refreshData(media: imageAndVideoMedia, index: displayData?.currentMediaIndex ?? 0, animated: false)
             } else {
                 // Create new media view
                 var mediaViewConfiguration = MediaCarouselViewConfiguration.default
