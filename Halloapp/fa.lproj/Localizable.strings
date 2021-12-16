@@ -283,12 +283,6 @@
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "در حال حذف نظر";
 
-/* Alert message when missing microphone access */
-"comment.mic.access.denied.message" = "برای فعال کردن ضبط صدا، میکروفون را در تنظیمات فعال کنید";
-
-/* Alert title when missing microphone access */
-"comment.mic.access.denied.title" = "خطا در دسترسی به میکروفون";
-
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "در حال پست کردن...";
 

@@ -145,7 +145,27 @@ extension UIColor {
     class var feedPostAudioPlayerBackground: UIColor {
         UIColor(named: "FeedPostAudioPlayerBackground")!
     }
-    
+
+    class var feedPostAudioPlayerCommentsBackground: UIColor {
+        UIColor(named: "FeedPostAudioPlayerCommentsBackground")!
+    }
+
+    class var feedPostAudioPlayerControlColor: UIColor {
+        UIColor(named: "FeedPostAudioPlayerControlColor")!
+    }
+
+    class var feedPostAudioPlayerDurationText: UIColor {
+        UIColor(named: "FeedPostAudioPlayerDurationText")!
+    }
+
+    class var audioComposerDeleteButtonBackground: UIColor {
+        UIColor(named: "AudioComposerDeleteButtonBackground")!
+    }
+
+    class var audioComposerDeleteButtonForeground: UIColor {
+        UIColor(named: "AudioComposerDeleteButtonForeground")!
+    }
+
     // MARK: Notifications
     
     class var notificationBottomBarBackground: UIColor {

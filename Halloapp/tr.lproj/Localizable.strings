@@ -283,12 +283,6 @@
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Yorum siliniyor";
 
-/* Alert message when missing microphone access */
-"comment.mic.access.denied.message" = "Ses kaydını etkinleştirmek için lütfen Ayarlar'a git ve Mikrofon'u aç.";
-
-/* Alert title when missing microphone access */
-"comment.mic.access.denied.title" = "Mikrofon kullanılamıyor.";
-
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Paylaşılıyor...";
 
@@ -345,6 +339,9 @@
 
 /* Feed Privacy indicator in post composer. */
 "composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
+
+/* Show the user that the title is tappable */
+"composer.subtitle.cta" = "Değiştirmek için dokun";
 
 /* No comment provided by engineer. */
 "CONNECTION" = "BAĞLANTI";
@@ -460,14 +457,26 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Yalnızca seçtiğin kişilerle paylaş";
 
+/* Header describing what these options are for */
+"feed.privacy.header" = "Gönderimi kimler görebilir";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Rehberimdeki kişiler";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "... hariç kişilerim";
 
+/* Header for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.details" = "Bu gönderiyi kimlerin görmeyeceğini seçin";
+
+/* Title for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.title" = "Gönderileri şundan gizle: ";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Yalnızca ... kişisiyle paylaş";
+
+/* Header for the list when selecting contacts to share with. */
+"feed.privacy.list.only.details" = "Bu gönderiyi kimlerin göreceğini seçin";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Rehberimdeki kişiler";
@@ -648,6 +657,21 @@
 
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "\n\n\nLütfen yukarıya, yaşadığın sorunla ilgili bir açıklama veya geri bildirim yaz.\nSürüm %1$@ - %2$@\n%3$@";
+
+/* Button to dismiss the alert. */
+"home.calls.button.exit" = "Tamam";
+
+/* Text shown to users on call failure. */
+"home.calls.fail.text" = "Lütfen daha sonra dene.";
+
+/* Title of failed call screen alert. */
+"home.calls.fail.title" = "Arama yapılamadı.";
+
+/* Text shown to users trying to open the call screen. */
+"home.calls.notice.text" = "Şu anda aktif bir aramanız yok.";
+
+/* Title of call screen alert. */
+"home.calls.notice.title" = "Aktif arama yok.";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Çık";
@@ -919,6 +943,9 @@
 /* Message in media picker when selecting over limit. */
 "picker.media.n.limit" = "picker.media.n.limit";
 
+/* Title for the picker screen. */
+"post.controller.picker.title" = "Yeni gönderi";
+
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted" = "Bu gönderi silindi";
 
@@ -927,6 +954,15 @@
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted.by.you" = "Gönderini sildin";
+
+/* Header when selecting all or some contacts to share with */
+"post.privacy.header.contacts" = "Bu gönderiyi kimler görecek";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "Yalnızca bir grupla paylaş";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "Şununla paylaş:";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Engellendi";
@@ -945,6 +981,9 @@
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Engeli kaldır";
+
+/* Item in Profile > Calls screen. */
+"profile.help.calls" = "Aramalar";
 
 /* Item in Profile > Help screen. */
 "profile.help.faq" = "SSS";
@@ -1068,6 +1107,18 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "%@ için güvenlik numarası doğrulaması başarılı!";
+
+/* body of the marketing alert sent to users */
+"server.marketing.body" = "Arkadaşlarınızı HalloApp'in keyfini çıkarmaya davet edin!";
+
+/* body of the marketing alert to encourage more posting */
+"server.marketing.post.body" = "Şu anda yaptığınız şey gerçek arkadaşlarınız için ilginç olabilir.";
+
+/* title of the marketing alert to encourage more posting */
+"server.marketing.post.title" = "Ne paylaşacağınızı mı merak ediyorsunuz?";
+
+/* title of the marketing alert sent to users */
+"server.marketing.title" = "Hallo oradaki!";
 
 /* fallback text in notification for a new comment */
 "server.new.comment" = "Yeni yorum";
@@ -1257,6 +1308,9 @@
 
 /* Title for the Comments screen. */
 "title.comments" = "Yorumlar";
+
+/* Title for the picker screen. */
+"title.comments.picker" = "Yeni yorum";
 
 /* Second tab in the main app interface. */
 "title.groups" = "Gruplar";

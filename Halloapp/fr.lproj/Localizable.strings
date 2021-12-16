@@ -283,12 +283,6 @@
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Suppression d'un commentaire";
 
-/* Alert message when missing microphone access */
-"comment.mic.access.denied.message" = "Pour activer l'enregistrement audio, veuillez taper sur « Paramètres », puis activer « Microphone ».";
-
-/* Alert title when missing microphone access */
-"comment.mic.access.denied.title" = "Impossible d'accéder au microphone";
-
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Poster...";
 

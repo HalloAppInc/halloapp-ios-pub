@@ -279,13 +279,13 @@ open class AppContext {
             }
         )
 
+        #if !DEBUG
         FirebaseApp.configure()
         let logger = CrashlyticsLogger()
         logger.logFormatter = LogFormatter()
         DDLog.add(logger)
         // Add UserId to Crashlytics
         Crashlytics.crashlytics().setUserID(userData.userId)
-        #if !DEBUG
         // Log errors to firebase
         errorLogger = logger
         #endif

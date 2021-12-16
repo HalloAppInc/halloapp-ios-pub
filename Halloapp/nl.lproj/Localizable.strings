@@ -283,12 +283,6 @@
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Reactie wordt verwijderd";
 
-/* Alert message when missing microphone access */
-"comment.mic.access.denied.message" = "Om audio op te nemen, tik op Instellingen en zet Microfoon aan";
-
-/* Alert title when missing microphone access */
-"comment.mic.access.denied.title" = "Kan geen toegang krijgen tot microfoon";
-
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Wordt geplaatst...";
 
@@ -315,6 +309,24 @@
 
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "Er is een fout opgetreden tijdens het laden van deze post. Probeer het later opnieuw alsjeblieft.";
+
+/* Accessibility label for add images button */
+"composer.audio.a11y.addImages" = "Afbeeldingen toevoegen";
+
+/* Accessibility label for sharing a post */
+"composer.audio.a11y.shareRecording" = "Delen";
+
+/* Accessibility label for starting an audio recording */
+"composer.audio.a11y.startRecording" = "Opname starten";
+
+/* Accessibility label for stopping an audio recording */
+"composer.audio.a11y.stopRecording" = "Opname stoppen";
+
+/* Instructions for audio post composer */
+"composer.audio.instructions" = "Tik om op te nemen";
+
+/* Title for audio post composer */
+"composer.audio.title" = "Nieuw Audiobericht";
 
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "Selecteer alsjeblieft een andere video of tik op bewerken.";
@@ -396,6 +408,9 @@
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Tekst";
+
+/* VoiceOver label for voice note button in floating compose post menu in Home view. */
+"fab.accessibility.voice" = "Spraakbericht";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Wordt verwijderd...";
@@ -1121,7 +1136,7 @@
 "server.marketing.post.body" = "Wat je op dit moment aan het doen bent, is misschien wel interessant voor je echte vrienden.";
 
 /* title of the marketing alert to encourage more posting */
-"server.marketing.post.title" = "Vraag je je af wat te delen?";
+"server.marketing.post.title" = "Vraag je je af wat je kunt delen?";
 
 /* title of the marketing alert sent to users */
 "server.marketing.title" = "Hallo daar!";

@@ -283,12 +283,6 @@
 /* Text displayed in place of a comment that is currently being deleted. */
 "comment.deleting" = "Удаляем комментарий";
 
-/* Alert message when missing microphone access */
-"comment.mic.access.denied.message" = "Чтобы включить запись звука, нажмите Настройки и включите Микрофон";
-
-/* Alert title when missing microphone access */
-"comment.mic.access.denied.title" = "Не удалось получить доступ к микрофону";
-
 /* Text displayed in place of comment timestamp while comment is being posted. */
 "comment.posting" = "Публикуем...";
 

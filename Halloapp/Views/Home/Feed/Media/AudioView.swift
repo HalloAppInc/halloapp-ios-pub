@@ -27,6 +27,7 @@ class AudioView : UIStackView {
         let playIcon: UIImage
         let pauseIcon: UIImage
         let playPauseButtonSize: CGSize
+        let playedControlColor: UIColor
         let thumbDiameter: CGFloat
 
         static let post = Configuration(playIcon: UIImage(systemName: "play.fill",
@@ -34,15 +35,16 @@ class AudioView : UIStackView {
                                         pauseIcon: UIImage(systemName: "pause.fill",
                                                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))!,
                                         playPauseButtonSize: CGSize(width: 32, height: 32),
+                                        playedControlColor: UIColor.feedPostAudioPlayerControlColor,
                                         thumbDiameter: 12)
 
         static let comment = Configuration(playIcon: UIImage(systemName: "play.fill",
-                                                             withConfiguration: UIImage.SymbolConfiguration(pointSize: 24))!,
+                                                             withConfiguration: UIImage.SymbolConfiguration(pointSize: 16))!,
                                            pauseIcon: UIImage(systemName: "pause.fill",
-                                                              withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))!,
+                                                              withConfiguration: UIImage.SymbolConfiguration(pointSize: 16))!,
                                            playPauseButtonSize: CGSize(width: 20, height: 20),
+                                           playedControlColor: UIColor.audioViewControlsPlayed,
                                            thumbDiameter: 10)
-
     }
 
     weak var delegate: AudioViewDelegate?
@@ -280,7 +282,7 @@ class AudioView : UIStackView {
         case .normal:
             controlColor = .primaryBlue
         case .played, .loading:
-            controlColor = .audioViewControlsPlayed
+            controlColor = configuration.playedControlColor
         }
         playPauseButton.tintColor = controlColor
         slider.minimumTrackTintColor = controlColor
