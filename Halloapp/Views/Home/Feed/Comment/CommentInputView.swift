@@ -12,9 +12,11 @@ import Combine
 import Core
 import LinkPresentation
 import UIKit
+import CoreGraphics
 
 fileprivate protocol ContainerViewDelegate: AnyObject {
     func containerView(_ containerView: CommentInputView.ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat
+    func containerView(_ containerView: CommentInputView.ContainerView, didChangeBottomSafeAreaHeight safeAreaHeight: CGFloat)
     func currentLayoutWidth(for containerView: CommentInputView.ContainerView) -> CGFloat
 }
 
@@ -38,7 +40,9 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     // Only one of these should be active at a time
     private var mentionPickerTopConstraint: NSLayoutConstraint?
     private var vStackTopConstraint: NSLayoutConstraint?
-    
+
+    private var bottomConstraint: NSLayoutConstraint?
+
     private var textViewHeight: NSLayoutConstraint?
     private var textView1LineHeight: CGFloat = 0
     private var textView5LineHeight: CGFloat = 0
@@ -75,6 +79,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     class ContainerView: UIView {
         fileprivate weak var delegate: ContainerViewDelegate?
 
+        fileprivate let windowSafeAreaInsets = UIApplication.shared.windows[0].safeAreaInsets
+
         override init(frame: CGRect) {
             super.init(frame: frame)
         }
@@ -85,13 +91,19 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
         override func safeAreaInsetsDidChange() {
             super.safeAreaInsetsDidChange()
-            self.invalidateIntrinsicContentSize()
+
+            // NB: Safe area bounces around and causes an infinite loop when slowly dismissing keyboard: https://github.com/MessageKit/MessageKit/issues/349
+            let isCloseToWindowSafeArea = abs(windowSafeAreaInsets.bottom - safeAreaInsets.bottom) < 2
+            let safeAreaToReport = isCloseToWindowSafeArea ? windowSafeAreaInsets.bottom : 0
+            delegate?.containerView(self, didChangeBottomSafeAreaHeight: safeAreaToReport)
+
+            invalidateIntrinsicContentSize()
         }
 
         override var intrinsicContentSize: CGSize {
             get {
                 let width = self.delegate!.currentLayoutWidth(for: self)
-                let height = self.preferredHeight(for: width) + self.safeAreaInsets.bottom
+                let height = self.preferredHeight(for: width) + safeAreaInsets.bottom
                 return CGSize(width: width, height: height)
             }
         }
@@ -574,7 +586,9 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.contentView.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor).isActive = true
         self.contentView.topAnchor.constraint(equalTo: self.containerView.topAnchor).isActive = true
         self.contentView.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor).isActive = true
-        self.contentView.bottomAnchor.constraint(equalTo: self.containerView.safeAreaLayoutGuide.bottomAnchor).isActive = true
+
+        bottomConstraint = self.contentView.bottomAnchor.constraint(equalTo: self.containerView.bottomAnchor, constant: 0)
+        bottomConstraint?.isActive = true
 
 
         // Input field wrapper
@@ -1466,8 +1480,14 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         setBorder()
     }
 
+    // MARK: ContainerViewDelegate
+
     func containerView(_ containerView: ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat {
         return self.preferredHeight(for: layoutWidth)
+    }
+
+    func containerView(_ containerView: ContainerView, didChangeBottomSafeAreaHeight safeAreaHeight: CGFloat) {
+        bottomConstraint?.constant = -safeAreaHeight
     }
 
     func currentLayoutWidth(for containerView: ContainerView) -> CGFloat {
