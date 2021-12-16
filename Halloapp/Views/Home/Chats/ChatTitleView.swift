@@ -20,7 +20,7 @@ class ChatTitleView: UIView {
     public var isShowingTypingIndicator: Bool = false
 
     private var isUnknownContactWithPushNumber: Bool = false
-    
+
     override init(frame: CGRect){
         super.init(frame: frame)
         setup()
@@ -68,7 +68,10 @@ class ChatTitleView: UIView {
 
         isUnknownContactWithPushNumber = !isUserBlocked && !isContactInAddressBook && pushNumberExist
 
-        guard isUnknownContactWithPushNumber else { return }
+        guard isUnknownContactWithPushNumber else {
+            phoneLabel.isHidden = true
+            return
+        }
 
         if let pushNumber = MainAppContext.shared.contactStore.pushNumber(userID) {
             lastSeenLabel.isHidden = true
