@@ -209,7 +209,9 @@ final class WebRTCClient: NSObject {
         for stunServer in stunServers {
             urls.append("stun:" + stunServer.host + ":" + String(stunServer.port))
         }
-        iceServers.append(RTCIceServer(urlStrings: urls))
+        if !urls.isEmpty {
+            iceServers.append(RTCIceServer(urlStrings: urls))
+        }
         for turnServer in turnServers {
             let url = "turn:" +  turnServer.host + ":" + String(turnServer.port)
             let iceServer = RTCIceServer(urlStrings: [url], username: turnServer.username, credential: turnServer.password)
