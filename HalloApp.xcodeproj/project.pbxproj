@@ -113,6 +113,7 @@
 		68B5C232264DC710004C7939 /* QRCodeScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B5C231264DC710004C7939 /* QRCodeScannerViewController.swift */; };
 		68C8264B251A77A000BB8F3A /* NUX.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C8264A251A77A000BB8F3A /* NUX.swift */; };
 		68CCB16726964851007015FA /* InitializingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CCB16626964851007015FA /* InitializingViewController.swift */; };
+		68CCE7AD275FDE8200C39B70 /* RootViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CCE7AC275FDE8200C39B70 /* RootViewController.swift */; };
 		68CD603425E463FA0056D13E /* ConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CD603325E463FA0056D13E /* ConnectionBanner.swift */; };
 		68CFF38F2551FF6F009B0D81 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */; };
 		68D2915125096F0700AF5061 /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
@@ -737,6 +738,7 @@
 		68C8264A251A77A000BB8F3A /* NUX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NUX.swift; sourceTree = "<group>"; };
 		68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.external beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.external beta.xcconfig"; sourceTree = "<group>"; };
 		68CCB16626964851007015FA /* InitializingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitializingViewController.swift; sourceTree = "<group>"; };
+		68CCE7AC275FDE8200C39B70 /* RootViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootViewController.swift; sourceTree = "<group>"; };
 		68CD603325E463FA0056D13E /* ConnectionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionBanner.swift; sourceTree = "<group>"; };
 		68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Localizations+Registration.swift"; sourceTree = "<group>"; };
 		68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiredVersionViewController.swift; sourceTree = "<group>"; };
@@ -1851,6 +1853,7 @@
 				EA880C3A2368EE3C008965CF /* Registration */,
 				764AB41B24A6BE1900D4E354 /* Settings */,
 				32C83FBE268FDC7D00BEB4F5 /* UpdateContactsPermissionView.swift */,
+				68CCE7AC275FDE8200C39B70 /* RootViewController.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -2973,6 +2976,7 @@
 				EAA424FE24ECF1480025CBBE /* ChatGroup+CoreDataClass.swift in Sources */,
 				6829F78724D0A62800207F6B /* UserFeedViewController.swift in Sources */,
 				EABDC977253424E1005FE00A /* InboundMsgViewCell.swift in Sources */,
+				68CCE7AD275FDE8200C39B70 /* RootViewController.swift in Sources */,
 				EABDCEDB2697825C009053C7 /* UnknownContactActionBanner.swift in Sources */,
 				762EDBDD244E5A7800986617 /* HomeViewController.swift in Sources */,
 				764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */,
