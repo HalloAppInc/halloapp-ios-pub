@@ -38,7 +38,7 @@
 "activity.center.welcome.item" = "Welkom op HalloApp!";
 
 /* Text label for action button to add the contact to the address book */
-"add.to.contact.book" = "Toevoegen aan mijn Contacten";
+"add.to.contact.book" = "Toevoegen aan mijn Contactenlijst";
 
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Geen Internetverbinding";
@@ -157,8 +157,8 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Initialisatiefout";
 
-/* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
-"chat.add.to.contacts.book.label" = "Om posts te zien van %@, moet je het telefoonnummer toevoegen aan je contactenlijst. Tik om toe te voegen";
+/* No comment provided by engineer. */
+"Cancel" = "Annuleren";
 
 /* Text shown at the top of the chat screen informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Contact is geblokkeerd, tik om te deblokkeren";
@@ -311,16 +311,16 @@
 "comments.post.loading.failed" = "Er is een fout opgetreden tijdens het laden van deze post. Probeer het later opnieuw alsjeblieft.";
 
 /* Accessibility label for add images button */
-"composer.audio.a11y.addImages" = "Afbeeldingen toevoegen";
+"composer.audio.a11y.addImages" = "Afbeeldingen Toevoegen";
 
 /* Accessibility label for sharing a post */
 "composer.audio.a11y.shareRecording" = "Delen";
 
 /* Accessibility label for starting an audio recording */
-"composer.audio.a11y.startRecording" = "Opname starten";
+"composer.audio.a11y.startRecording" = "Opname Starten";
 
 /* Accessibility label for stopping an audio recording */
-"composer.audio.a11y.stopRecording" = "Opname stoppen";
+"composer.audio.a11y.stopRecording" = "Opname Stoppen";
 
 /* Instructions for audio post composer */
 "composer.audio.instructions" = "Tik om op te nemen";
@@ -1183,11 +1183,17 @@
 /* Action that will occur when users delete their account */
 "settings.account.delete.bullet3" = "Je chatgeschiedenis van je telefoon verwijderen";
 
+/* Button to continue to the next step of deleting account after warning */
+"settings.account.delete.continue.title" = "Doorgaan";
+
 /* Label telling the user that their account has been deleted */
 "settings.account.delete.deleted" = "Account Is Verwijderd";
 
 /* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
 "settings.account.delete.error" = "Er is een fout opgetreden tijdens het verwijderen van je account. Zorg ervoor dat je telefoonnummer juist is.";
+
+/* Text field label asking for feedback before deleting account */
+"settings.account.delete.feedback.prompt" = "Heb je feedback voor HalloApp's team? (Optioneel)";
 
 /* Label above list of things that will happen if they delete their account */
 "settings.account.delete.header" = "Het verwijderen van je account zal:";
@@ -1195,8 +1201,11 @@
 /* Alert message telling the user that account deletion is irreversible */
 "settings.account.delete.irreversible.label" = "Deze actie kan niet ongedaan worden gemaakt";
 
-/* Text field placeholder telling the user that their phone number should go into the field */
-"settings.account.delete.phone.number" = "Je Telefoonnummer";
+/* Text field placeholder for collecting feedback before deleing account */
+"settings.account.delete.phone.number.placeholder" = "Feedback";
+
+/* Text field label for account deletion phone number */
+"settings.account.delete.phone.number.prompt" = "Voer je telefoonnummer in om te bevestigen";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
 "settings.account.delete.spinner.replacement" = "Wachten op antwoord van de server";
@@ -1370,7 +1379,10 @@
 "unknown.contact" = "Onbekend Contact";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
-"unknown.contact.accept.to.message" = "Bericht Accepteren Om Te Reageren";
+"unknown.contact.accept.to.message" = "Bericht Accepteren";
+
+/* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
+"unknown.contact.not.in.contact.book" = "Deze afzender staat niet in je contactenlijst.";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Blokkeren";

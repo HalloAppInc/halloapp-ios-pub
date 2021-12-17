@@ -157,9 +157,6 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Ошибка инициализации";
 
-/* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
-"chat.add.to.contacts.book.label" = "Чтобы увидеть сообщения от %@, добавьте номер в свою контактную книгу. Нажмите, чтобы добавить";
-
 /* Text shown at the top of the chat screen informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Контакт заблокирован, коснитесь, чтобы разблокировать";
 
@@ -1134,9 +1131,6 @@
 
 /* Alert message telling the user that account deletion is irreversible */
 "settings.account.delete.irreversible.label" = "Это действие необратимо";
-
-/* Text field placeholder telling the user that their phone number should go into the field */
-"settings.account.delete.phone.number" = "Ваш номер телефона";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
 "settings.account.delete.spinner.replacement" = "Ожидание ответа сервера";

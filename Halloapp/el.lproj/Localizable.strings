@@ -139,9 +139,6 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Σφάλμα Αρχικοποίησης";
 
-/* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
-"chat.add.to.contacts.book.label" = "Για να δείτε δημοσιεύσεις από %@ προσθέστε τον αριθμό τους στο βιβλίο επαφών σας. Πατήστε για προσθήκη";
-
 /* Label for creating a new group */
 "chat.create.new.group" = "Δημιουργία Νέας Ομάδας";
 
@@ -990,9 +987,6 @@
 
 /* Alert message telling the user that account deletion is irreversible */
 "settings.account.delete.irreversible.label" = "Αυτή η ενέργεια είναι μη αναστρέψιμη";
-
-/* Text field placeholder telling the user that their phone number should go into the field */
-"settings.account.delete.phone.number" = "Ο Αριθμός Τηλεφώνου Σας";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
 "settings.account.delete.spinner.replacement" = "Αναμονή απόκρισης διακομιστή";
