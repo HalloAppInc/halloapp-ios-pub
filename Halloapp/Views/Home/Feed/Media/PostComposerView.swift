@@ -768,7 +768,11 @@ fileprivate struct PostComposerView: View {
                             } else {
                                 ScrollView {
                                     postTextView
-                                }.frame(maxHeight: PostComposerLayoutConstants.postTextNoMediaMinHeight + PostComposerLayoutConstants.sendButtonHeight)
+                                }
+                                .frame(maxHeight: min(
+                                    PostComposerLayoutConstants.postTextNoMediaMinHeight + PostComposerLayoutConstants.sendButtonHeight,
+                                    scrollGeometry.size.height - 2 * PostComposerLayoutConstants.sendButtonHeight
+                                ))
 
                                 HStack {
                                     Button(action: addMedia) {
