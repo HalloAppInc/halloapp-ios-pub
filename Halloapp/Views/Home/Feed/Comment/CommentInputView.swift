@@ -441,7 +441,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }()
 
     private lazy var recordVoiceNoteControl: AudioRecorderControlView = {
-        let controlView = AudioRecorderControlView()
+        let controlView = AudioRecorderControlView(configuration: .comment)
         controlView.translatesAutoresizingMaskIntoConstraints = false
         controlView.layer.zPosition = 1
 
