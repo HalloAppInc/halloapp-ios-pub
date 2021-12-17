@@ -128,6 +128,7 @@ final class NotificationProtoService: ProtoServiceCore {
                 DDLogError("NotificationMetadata/init/msg - unable to serialize it.")
                 return
             }
+            pendingCallMessages.removeAll()
             reportIncomingCall(serverMsgPb: serverMsgPb)
         }
     }
