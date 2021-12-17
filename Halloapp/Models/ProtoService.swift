@@ -915,14 +915,19 @@ final class ProtoService: ProtoServiceCore {
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
 
         case .incomingCall(let incomingCall):
-            if !readyToHandleCallMessages {
-                DDLogInfo("proto/didReceive/\(msg.id)/incomingCall/\(incomingCall.callID)/addedToPending")
-                var pendingMsgs = pendingCallMessages[incomingCall.callID] ?? []
-                pendingMsgs.append(msg)
-                pendingCallMessages[incomingCall.callID] = pendingMsgs
-            } else {
+            // If incomingCall is not late - then start ringing immediately.
+            // Else - we need to record this as a missed call.
+            if !incomingCall.isTooLate {
                 DDLogInfo("proto/didReceive/\(msg.id)/incomingCall/\(incomingCall.callID)")
                 callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveIncomingCall: incomingCall)
+                readyToHandleCallMessages = true
+            } else {
+                DDLogInfo("proto/didReceive/\(msg.id)/incomingCall/\(incomingCall.callID)/missedCall")
+                guard let callType = incomingCall.callType.callType else {
+                    DDLogError("proto/didReceive/\(msg.id)/incomingCall/\(incomingCall.callID)/invalid CallType")
+                    return
+                }
+                MainAppContext.shared.mainDataStore.saveMissedCall(callID: incomingCall.callID, peerUserID: UserID(msg.fromUid), type: callType)
             }
 
         case .answerCall(let answerCall):

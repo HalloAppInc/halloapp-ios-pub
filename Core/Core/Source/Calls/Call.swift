@@ -35,6 +35,16 @@ extension CallType {
     }
 }
 
+extension Server_CallType {
+    public var callType: CallType? {
+        switch self {
+        case .audio: return .audio
+        case .video: return .video
+        default: return nil
+        }
+    }
+}
+
 public enum CallError: Error {
     case systemError
     case alreadyInCall
@@ -121,5 +131,13 @@ extension String {
         let truncatedHash = Array(hash.prefix(16))
         let uuidString = NSUUID(uuidBytes: truncatedHash).uuidString
         return UUID(uuidString: uuidString)!
+    }
+}
+
+extension Server_IncomingCall {
+    public var isTooLate: Bool {
+        // If the serverTimestamp is later than callWaitTimeout seconds: typically 60seconds from the original timestamp.
+        // This call is late and should be considered as a missed call.
+        return (serverSentTsMs - timestampMs) > ServerProperties.callWaitTimeoutSec * 1000
     }
 }

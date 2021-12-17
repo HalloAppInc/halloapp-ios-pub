@@ -126,11 +126,16 @@ open class MainDataStore {
             call.answered = false
             call.durationMs = 0.0
 
+            managedObjectContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
             self.save(managedObjectContext)
             DispatchQueue.main.async {
                 completion?(call)
             }
         }
+    }
+
+    public func saveMissedCall(callID: CallID, peerUserID: UserID, type: CallType, completion: ((Call) -> Void)? = nil) {
+        saveCall(callID: callID, peerUserID: peerUserID, type: type, direction: .incoming, completion: completion)
     }
 
     public func updateCall(with callID: CallID, block: @escaping (Call) -> Void) {
