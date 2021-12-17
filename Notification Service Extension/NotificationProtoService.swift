@@ -26,14 +26,11 @@ final class NotificationProtoService: ProtoServiceCore {
     // List of notifications presented: used to update notification content after downloading media.
     private var pendingNotificationContent = [String: UNNotificationContent]()
     private var pendingRetractNotificationIds: [String] = []
-    private var pendingCallMessages: [Server_Msg] = []
-    private var readyToHandleCallMessages = false
 
     public required init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = false) {
         super.init(credentials: credentials, passiveMode: passiveMode, automaticallyReconnect: automaticallyReconnect)
         self.cancellableSet.insert(
             didDisconnect.sink { [weak self] in
-                self?.readyToHandleCallMessages = false
                 self?.downloadManager.suspendMediaDownloads()
                 self?.processRetractNotifications()
             })
@@ -118,20 +115,6 @@ final class NotificationProtoService: ProtoServiceCore {
 
     // MARK: Calls
 
-    private func processPendingCallMsgs() {
-        DDLogInfo("NotificationProtoService/processPendingCallMsgs/count: \(pendingCallMessages.count)")
-        if let incomingCallServerMsg = pendingCallMessages.first {
-            let serverMsgPb: Data
-            do {
-                serverMsgPb = try incomingCallServerMsg.serializedData()
-            } catch {
-                DDLogError("NotificationMetadata/init/msg - unable to serialize it.")
-                return
-            }
-            reportIncomingCall(serverMsgPb: serverMsgPb)
-        }
-    }
-
     private func reportIncomingCall(serverMsgPb: Data) {
         disconnectImmediately()
         // might have to add an artificial delay here to handle cleanup.
@@ -175,29 +158,16 @@ final class NotificationProtoService: ProtoServiceCore {
 
         switch msg.payload {
         case .endOfQueue(_):
-            readyToHandleCallMessages = true
-            processPendingCallMsgs()
             return
-        case .incomingCall:
-            // If nse is ready to handle call messages.
+        case .incomingCall(let incomingCall):
+            // If incomingCall is not too late then
             // abort everything and just report the call to the main app.
-            // else hold this message to process and report after eoq.
+            // else just save and move-on.
             dataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
-            if readyToHandleCallMessages {
+            if !incomingCall.isTooLate {
                 reportIncomingCall(serverMsgPb: serverMsgPb)
-            } else {
-                pendingCallMessages.append(msg)
             }
             return
-        case .endCall(let endCall):
-            _ = pendingCallMessages.filter {
-                switch $0.payload {
-                case .incomingCall(let incomingCall):
-                    return endCall.callID != incomingCall.callID
-                default:
-                    return true
-                }
-            }
         default:
             break
         }

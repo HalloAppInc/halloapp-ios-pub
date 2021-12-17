@@ -427,10 +427,12 @@ final class ProtoGetDataExportStatusRequest: ProtoRequest<Server_ExportData> {
 }
 
 final class ProtoDeleteAccountRequest: ProtoRequest<Void> {
-    init(phoneNumber: String, completion: @escaping Completion) {
+    init(phoneNumber: String, feedback: String?, completion: @escaping Completion) {
         var payload = Server_DeleteAccount()
         payload.phone = phoneNumber
-        
+        if let feedback = feedback, !feedback.isEmpty {
+            payload.feedback = feedback
+        }
         let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .deleteAccount(payload))
         
         super.init(iqPacket: iqPacket, transform: { _ in .success(()) }, completion: completion)

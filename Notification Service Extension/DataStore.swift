@@ -102,7 +102,7 @@ class DataStore: NotificationServiceExtensionDataStore {
                     switch feedPostMedia.type {
                     case .image: return .image
                     case .video: return .video
-                    default: return nil
+                    case .audio: return .audio
                     }}() else { continue }
                 let media = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
                 media.type = mediaType

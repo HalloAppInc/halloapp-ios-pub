@@ -15,50 +15,17 @@ import UIKit
 class SceneDelegate: UIResponder {
 
     var window: UIWindow?
+    var rootViewController = RootViewController()
+
+    var callWindow: UIWindow?
+    var callViewController: CallViewController?
 
     private var cancellables = Set<AnyCancellable>()
-
-    enum UserInterfaceState {
-        case expiredVersion
-        case initializing
-        case registration
-        case mainInterface
-        case call
-    }
-
-    private var userInterfaceState: UserInterfaceState?
-
-    private func viewController(forUserInterfaceState state: UserInterfaceState) -> UIViewController? {
-        switch state {
-        case .initializing:
-            return InitializingViewController()
-
-        case .registration:
-            guard let registrationManager = makeRegistrationManager() else {
-                DDLogError("SceneDelegate/viewController/registration/error [no-registration-manager]")
-                return nil
-            }
-            return VerificationViewController(registrationManager: registrationManager)
-
-        case .mainInterface:
-            return HomeViewController()
-
-        case .expiredVersion:
-            return ExpiredVersionViewController()
-
-        case .call:
-            return makeCallViewController()
-        }
-    }
 
     private func state(isLoggedIn: Bool? = nil, isAppVersionKnownExpired: Bool? = nil) -> UserInterfaceState
     {
         if isAppVersionKnownExpired ?? MainAppContext.shared.coreService.isAppVersionKnownExpired.value {
             return .expiredVersion
-        }
-
-        if isInCallUI {
-            return .call
         }
 
         if isLoggedIn ?? MainAppContext.shared.userData.isLoggedIn {
@@ -71,35 +38,47 @@ class SceneDelegate: UIResponder {
     }
 
     private func transition(to newState: UserInterfaceState) {
-        guard newState != userInterfaceState else { return }
-        DDLogInfo("SceneDelegate/transition [\(newState)]")
-        userInterfaceState = newState
-        if let viewController = viewController(forUserInterfaceState: newState) {
-            window?.rootViewController = viewController
-        }
+        rootViewController.transition(to: newState)
     }
 
-    private func makeRegistrationManager() -> RegistrationManager? {
-        guard let noiseKeys = MainAppContext.shared.userData.loggedOutNoiseKeys else {
-            DDLogError("SceneDelegate/makeRegistrationManager/error [no-noise-keys]")
-            return nil
+    private func hideCallViewController() {
+        guard let window = window, let callWindow = callWindow else {
+            return
         }
-        let noiseService = NoiseRegistrationService(noiseKeys: noiseKeys)
-        return DefaultRegistrationManager(registrationService: noiseService)
+
+        UIView.animate(
+            withDuration: 0.3,
+            animations:  {
+                callWindow.alpha = 0
+            },
+            completion: { _ in
+                window.makeKeyAndVisible()
+                callWindow.windowScene = nil
+                self.callWindow = nil
+                self.callViewController = nil
+            })
     }
 
-    private var isInCallUI = false {
-        didSet {
-            if isInCallUI != oldValue {
-                transition(to: state())
-            }
+    private func showCallViewController(for call: Call, completion: (() -> Void)? = nil) {
+        guard let window = window else { return }
+
+        let callViewController = CallViewController(peerUserID: call.peerUserID, isOutgoing: call.isOutgoing) { [weak self] in
+            self?.hideCallViewController()
         }
-    }
-    private func makeCallViewController() -> CallViewController {
-        // TODO: SceneDelegate shouldn't worry about these details.
-        let peerUserID = MainAppContext.shared.callManager.peerUserID ?? ""
-        let isOutgoing = MainAppContext.shared.callManager.isOutgoing ?? false
-        return CallViewController(peerUserID: peerUserID, isOutgoing: isOutgoing)
+
+        let callWindow = UIWindow(frame: window.frame)
+        callWindow.windowScene = window.windowScene
+        callWindow.rootViewController = callViewController
+        callWindow.alpha = 0
+        callWindow.makeKeyAndVisible()
+
+        UIView.animate(
+            withDuration: 0.3,
+            animations: { callWindow.alpha = 1 },
+            completion: { _ in completion?() })
+
+        self.callWindow = callWindow
+        self.callViewController = callViewController
     }
 
 }
@@ -114,6 +93,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
             if let tintColor = UIColor(named: "Tint") {
                 window.tintColor = tintColor
             }
+            window.rootViewController = rootViewController
             self.window = window
             window.makeKeyAndVisible()
         }
@@ -167,9 +147,21 @@ extension SceneDelegate: UIWindowSceneDelegate {
                         }
                     }
 
-                    self.isInCallUI = call != nil
+                    if let call = call {
+                        // Show fullscreen call window and add call bar to root VC while it's hidden
+                        self.showCallViewController(for: call) {
+                            self.rootViewController.updateCallUI(with: call, animated: false)
+                        }
+                    } else {
+                        // Animate call bar out if visible or hide it immediately if root VC is hidden
+                        self.rootViewController.updateCallUI(with: call, animated: self.callViewController == nil)
+                        self.hideCallViewController()
+                    }
                 }
         })
+
+        MainAppContext.shared.callManager.callViewDelegate = self
+        rootViewController.delegate = self
         
         // explicitly call delegates for group invites for first app start up
         // wait a second or so for app to connect
@@ -343,8 +335,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
     }
 
     private func checkPasteboardForGroupInviteLinkIfNecessary() {
-        let isNotFirstLaunch = AppContext.shared.userDefaults.bool(forKey: "notFirstLaunchKey")
-        if !isNotFirstLaunch && UIPasteboard.general.hasURLs {
+        if UIPasteboard.general.hasURLs {
             DDLogInfo("application/scene/parseURLInPasteBoard")
             guard let url = UIPasteboard.general.urls?.first else { return }
             guard let inviteToken = ChatData.parseInviteURL(url: url) else { return }
@@ -354,7 +345,39 @@ extension SceneDelegate: UIWindowSceneDelegate {
         if let groupInviteToken = MainAppContext.shared.userData.groupInviteToken {
             processGroupInviteToken(groupInviteToken)
         }
-        AppContext.shared.userDefaults.set(true, forKey: "notFirstLaunchKey")
+    }
+}
+
+extension SceneDelegate: RootViewControllerDelegate {
+    func didTapCallBar() {
+        guard let call = MainAppContext.shared.callManager.activeCall else {
+            DDLogError("SceneDelegate/didTapCallBar/error [no-call]")
+            return
+        }
+        showCallViewController(for: call)
+    }
+}
+
+extension SceneDelegate: CallViewDelegate {
+    func callStarted() {
+        callViewController?.callStarted()
+    }
+
+    func callRinging() {
+        callViewController?.callRinging()
+    }
+
+    func callActive() {
+        callViewController?.callActive()
+    }
+
+    func callDurationChanged(seconds: Int) {
+        callViewController?.callDurationChanged(seconds: seconds)
+        rootViewController.updateCallDuration(seconds: seconds)
+    }
+
+    func callEnded() {
+        callViewController?.callEnded()
     }
 }
 

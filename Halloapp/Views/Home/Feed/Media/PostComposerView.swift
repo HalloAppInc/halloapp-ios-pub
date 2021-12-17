@@ -1168,7 +1168,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         uiView.shouldAutoPlay = shouldAutoPlay
 
         if context.coordinator.apply(media: mediaItems) {
-            uiView.refreshData(media: feedMediaItems, index: currentPosition.value)
+            uiView.refreshData(media: feedMediaItems, index: currentPosition.value, animated: true)
         }
     }
 

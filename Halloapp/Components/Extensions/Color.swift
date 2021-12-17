@@ -48,4 +48,24 @@ extension Color {
     static var audioComposerRecordButtonForeground: Color {
         Color("AudioComposerRecordButtonForeground")
     }
+
+    static var deleteAccountContinueButtonBackground: Color {
+        Color("DeleteAccountContinueButtonBackground")
+    }
+
+    static var deleteAccountFieldBackground: Color {
+        Color("DeleteAccountFieldBackground")
+    }
+
+    static var deleteAccountHelperText: Color {
+        Color("DeleteAccountHelperText")
+    }
+
+    static var deleteAccountBackground: Color {
+        Color("DeleteAccountBackground")
+    }
+
+    static var nux: Color {
+        Color("NUX")
+    }
 }

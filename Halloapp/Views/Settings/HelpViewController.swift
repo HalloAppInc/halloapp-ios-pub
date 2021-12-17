@@ -178,13 +178,13 @@ class HelpViewController: UITableViewController {
 
     private func openCalls() {
         DDLogInfo("HelpViewController/openCalls")
-        if MainAppContext.shared.callManager.activeCall != nil,
-           let peerUserID = MainAppContext.shared.callManager.peerUserID,
-           let isOutgoing = MainAppContext.shared.callManager.isOutgoing {
-            DDLogInfo("HelpViewController/opening call screen")
-            let viewController = CallViewController(peerUserID: peerUserID, isOutgoing: isOutgoing)
-            viewController.hidesBottomBarWhenPushed = true
-            navigationController?.pushViewController(viewController, animated: true)
+        if MainAppContext.shared.callManager.activeCall != nil {
+            if let rootVC = view.window?.rootViewController as? RootViewController {
+                DDLogInfo("HelpViewController/opening call screen")
+                rootVC.delegate?.didTapCallBar()
+            } else {
+                DDLogError("HelpViewController/error [unable to open call screen]")
+            }
         } else {
             let alert = self.getNoCallsAlertController()
             self.present(alert, animated: true)

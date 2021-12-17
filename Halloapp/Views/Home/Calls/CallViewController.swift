@@ -26,6 +26,15 @@ class CallViewController: UIViewController {
     let speakerOffImage = UIImage(systemName: "speaker.slash.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline))
     let speakerOnImage = UIImage(systemName: "speaker.wave.3.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline))
     let endCallImage = UIImage(systemName: "phone.down.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline))
+    let backImage = UIImage(named: "NavbarBack")?.imageFlippedForRightToLeftLayoutDirection()
+
+    private lazy var backButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(didTapBack), for: [.touchUpInside])
+        button.setImage(backImage, for: .normal)
+        return button
+    }()
 
     private lazy var callStatusLabel: UILabel = {
         let callStatusLabel = UILabel()
@@ -85,6 +94,7 @@ class CallViewController: UIViewController {
         }
     }
     private let callManager: CallManager
+    private let backAction: (() -> Void)?
     private var isOutgoing: Bool
     private var isCallActive: Bool {
         get {
@@ -92,16 +102,13 @@ class CallViewController: UIViewController {
         }
     }
 
-    init(peerUserID: UserID, isOutgoing: Bool = false) {
+    init(peerUserID: UserID, isOutgoing: Bool, backAction: (() -> Void)?) {
         DDLogInfo("CallViewController/init/peerUserID: \(peerUserID)/isOutgoing: \(isOutgoing)")
         self.peerUserID = peerUserID
         self.callManager = MainAppContext.shared.callManager
         self.isOutgoing = isOutgoing
+        self.backAction = backAction
         super.init(nibName: nil, bundle: nil)
-
-        // Set callViewDelegate to self.
-        MainAppContext.shared.callManager.callViewDelegate = self
-
     }
 
     required init?(coder: NSCoder) {
@@ -111,7 +118,8 @@ class CallViewController: UIViewController {
     override func viewDidLoad() {
         DDLogInfo("CallViewController/viewDidLoad")
         super.viewDidLoad()
-        self.view.backgroundColor = .feedBackground
+        view.backgroundColor = .feedBackground
+        view.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
 
         let avatarView = AvatarView()
         avatarView.configure(with: peerUserID, using: MainAppContext.shared.avatarStore)
@@ -120,40 +128,51 @@ class CallViewController: UIViewController {
         avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
 
         // Action Buttons related stack view
-        let horizontalView = UIStackView()
-        horizontalView.axis = .horizontal
-        horizontalView.distribution  = .equalSpacing
-        horizontalView.alignment = UIStackView.Alignment.center
-        horizontalView.spacing   = 45.0
-        horizontalView.addArrangedSubview(micButton)
-        horizontalView.addArrangedSubview(speakerButton)
-        horizontalView.addArrangedSubview(endCallButton)
+        let buttonPanel = UIStackView()
+        buttonPanel.translatesAutoresizingMaskIntoConstraints = false
+        buttonPanel.axis = .horizontal
+        buttonPanel.distribution  = .equalSpacing
+        buttonPanel.alignment = UIStackView.Alignment.center
+        buttonPanel.spacing   = 45.0
+        buttonPanel.addArrangedSubview(micButton)
+        buttonPanel.addArrangedSubview(speakerButton)
+        buttonPanel.addArrangedSubview(endCallButton)
 
         // Text Label
         let peerNameLabel = UILabel()
-        peerNameLabel.widthAnchor.constraint(equalToConstant: self.view.frame.width).isActive = true
-        peerNameLabel.heightAnchor.constraint(equalToConstant: 35.0).isActive = true
-        peerNameLabel.text  = MainAppContext.shared.contactStore.fullName(for: peerUserID, showPushNumber: true)
+        peerNameLabel.text = MainAppContext.shared.contactStore.fullName(for: peerUserID, showPushNumber: true)
         peerNameLabel.font = UIFont.boldSystemFont(ofSize: 35.0)
+        peerNameLabel.adjustsFontSizeToFitWidth = true
         peerNameLabel.textAlignment = .center
 
         // Full stack view: contains all the components
-        let fullCallView   = UIStackView(arrangedSubviews: [peerNameLabel, callStatusLabel, avatarView, horizontalView])
+        let fullCallView   = UIStackView(arrangedSubviews: [peerNameLabel, callStatusLabel, avatarView, buttonPanel])
         fullCallView.axis  = .vertical
         fullCallView.distribution  = .fillProportionally
         fullCallView.alignment = .center
         fullCallView.spacing   = 16.0
         fullCallView.translatesAutoresizingMaskIntoConstraints = false
-        // TODO: add call duration timer here.
 
         fullCallView.setCustomSpacing(35, after: callStatusLabel)
         fullCallView.setCustomSpacing(185, after: avatarView)
 
-        self.view.addSubview(fullCallView)
+        view.addSubview(fullCallView)
 
-        // Center this stack view on the screen.
-        fullCallView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
-        fullCallView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
+        fullCallView.constrainMargins([.leading, .trailing], to: view)
+
+        if backAction == nil {
+            // Center the call view
+            fullCallView.constrain([.centerY], to: view)
+        } else {
+            view.addSubview(backButton)
+            backButton.constrainMargins([.top, .leading], to: view)
+            backButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
+            backButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
+
+            // Center the call view if possible (but make sure it's below the back button)
+            fullCallView.constrain([.centerY], to: view, priority: .defaultHigh)
+            fullCallView.topAnchor.constraint(greaterThanOrEqualTo: backButton.bottomAnchor).isActive = true
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -250,6 +269,10 @@ class CallViewController: UIViewController {
             }
         }
     }
+
+    @objc func didTapBack() {
+        backAction?()
+    }
 }
 
 extension CallViewController: CallViewDelegate {
@@ -276,10 +299,5 @@ extension CallViewController: CallViewDelegate {
     }
 
     func callEnded() {
-        DDLogInfo("CallViewController/callEnded/dismissView")
-        DispatchQueue.main.async {
-            self.navigationController?.popViewController(animated: true)
-            self.dismiss(animated: true, completion: nil)
-        }
     }
 }
