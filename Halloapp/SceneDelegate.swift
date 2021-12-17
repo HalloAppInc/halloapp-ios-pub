@@ -335,8 +335,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
     }
 
     private func checkPasteboardForGroupInviteLinkIfNecessary() {
-        let isNotFirstLaunch = AppContext.shared.userDefaults.bool(forKey: "notFirstLaunchKey")
-        if !isNotFirstLaunch && UIPasteboard.general.hasURLs {
+        if UIPasteboard.general.hasURLs {
             DDLogInfo("application/scene/parseURLInPasteBoard")
             guard let url = UIPasteboard.general.urls?.first else { return }
             guard let inviteToken = ChatData.parseInviteURL(url: url) else { return }
@@ -346,7 +345,6 @@ extension SceneDelegate: UIWindowSceneDelegate {
         if let groupInviteToken = MainAppContext.shared.userData.groupInviteToken {
             processGroupInviteToken(groupInviteToken)
         }
-        AppContext.shared.userDefaults.set(true, forKey: "notFirstLaunchKey")
     }
 }
 
