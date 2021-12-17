@@ -505,7 +505,6 @@ extension CommentView: TextLabelDelegate {
         case .link:
             if let url = link.result?.url {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                    guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { return }
                     UIApplication.shared.open(url, options: [:])
                 }
             }
