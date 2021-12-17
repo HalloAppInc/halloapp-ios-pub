@@ -357,8 +357,9 @@ fileprivate struct PostComposerLayoutConstants {
     static let postTextHorizontalPadding: CGFloat = 16
     static let postTextVerticalPadding: CGFloat = 10
 
+    static let sendButtonHeight: CGFloat = 52
     static let postTextNoMediaMinHeight: CGFloat = 265 - 2 * postTextVerticalPadding
-    static let postTextWithMeidaHeight: CGFloat = 52 - 2 * postTextVerticalPadding
+    static let postTextWithMeidaHeight: CGFloat = sendButtonHeight - 2 * postTextVerticalPadding
     static let postTextMaxHeight: CGFloat = 118 - 2 * postTextVerticalPadding
     static let postTextRadius: CGFloat = 26
     static let postLinkPreviewHeight: CGFloat = 250
@@ -689,7 +690,7 @@ fileprivate struct PostComposerView: View {
                 .renderingMode(.template)
                 .foregroundColor(.white)
                 .offset(x: 2)
-                .frame(width: 52, height: 52)
+                .frame(width: PostComposerLayoutConstants.sendButtonHeight, height: PostComposerLayoutConstants.sendButtonHeight)
                 .background(
                     RoundedRectangle(cornerRadius: 26)
                         .fill(!isReadyToShare || isPosting.value ? Color.primaryBlackWhite.opacity(0.19) : Color.lavaOrange)
@@ -769,10 +770,24 @@ fileprivate struct PostComposerView: View {
                             } else if isInitiallyVoiceNotePost {
                                 audioRecordingView
                             } else {
-                                postTextView
+                                ScrollView {
+                                    postTextView
+                                }.frame(maxHeight: PostComposerLayoutConstants.postTextNoMediaMinHeight + PostComposerLayoutConstants.sendButtonHeight)
 
                                 HStack {
+                                    Button(action: addMedia) {
+                                        Image("icon_add_photo")
+                                            .renderingMode(.template)
+                                            .foregroundColor(.blue)
+                                    }
+                                    .sheet(isPresented: $presentPicker) {
+                                        picker
+                                            .edgesIgnoringSafeArea(.bottom)
+                                    }
+                                    .padding(.leading, 10)
+
                                     Spacer()
+
                                     sendButton
                                 }
                                 .padding(12)
