@@ -537,6 +537,45 @@ class CommentsTableHeaderView: UIView {
         return label
     }()
 
+    private let groupNameLabel: UILabel = {
+        let label = UILabel()
+        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+        label.font = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: fontDescriptor.pointSize - 1)
+        label.textColor = .label
+        label.isHidden = true
+        return label
+    }()
+
+    private lazy var groupIndicatorLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .label
+        label.textAlignment = .natural
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isHidden = true
+
+        let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate).imageFlippedForRightToLeftLayoutDirection()
+        let groupIndicatorColor = UIColor(named: "GroupNameArrow") ?? .label
+
+        if let groupIndicator = groupIndicatorImage, let font = label.font {
+            let iconAttachment = NSTextAttachment(image: groupIndicator)
+            let attrText = NSMutableAttributedString(attachment: iconAttachment)
+            attrText.addAttributes([.font: font, .foregroundColor: groupIndicatorColor], range: NSRange(location: 0, length: attrText.length))
+            label.attributedText = attrText
+        }
+        return label
+    }()
+
+    private lazy var userAndGroupNameRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [contactNameLabel, groupIndicatorLabel, groupNameLabel, UIView()])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .horizontal
+        view.spacing = 5
+        return view
+    }()
+
     private(set) var mediaView: MediaCarouselView?
 
     private(set) var audioView: PostAudioView?
@@ -579,7 +618,7 @@ class CommentsTableHeaderView: UIView {
 
         self.addSubview(profilePictureButton)
 
-        vStack.addArrangedSubview(contactNameLabel)
+        vStack.addArrangedSubview(userAndGroupNameRow)
         vStack.addArrangedSubview(timestampLabel)
         self.addSubview(vStack)
 
@@ -610,6 +649,14 @@ class CommentsTableHeaderView: UIView {
         // Contact name
         contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId)
 
+        if let groupId = feedPost.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+            groupNameLabel.text = group.name
+            groupNameLabel.isHidden = false
+            groupIndicatorLabel.isHidden = false
+        } else {
+            groupNameLabel.isHidden = true
+            groupIndicatorLabel.isHidden = true
+        }
         // Media
         if let mediaView = mediaView {
             vStack.removeArrangedSubview(mediaView)
