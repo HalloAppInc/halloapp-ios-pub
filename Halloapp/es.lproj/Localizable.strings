@@ -157,8 +157,8 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Error al inicializar";
 
-/* Text shown at the top of the chat screen for contacts not in the user's address book that say the contact can be added to the address book */
-"chat.add.to.contacts.book.label" = "Para ver publicaiones de %@, añade su número de teléfono a tu agenda. Toca para agregar";
+/* No comment provided by engineer. */
+"Cancel" = "Cancelar";
 
 /* Text shown at the top of the chat screen informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "El contacto está bloqueado, toca para desbloquear";
@@ -310,6 +310,24 @@
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "Se produjo un error al cargar la publicación. Inténtalo de nuevo más tarde.";
 
+/* Accessibility label for add images button */
+"composer.audio.a11y.addImages" = "Agregar imágenes";
+
+/* Accessibility label for sharing a post */
+"composer.audio.a11y.shareRecording" = "Compartir";
+
+/* Accessibility label for starting an audio recording */
+"composer.audio.a11y.startRecording" = "Empezar a grabar";
+
+/* Accessibility label for stopping an audio recording */
+"composer.audio.a11y.stopRecording" = "Parar de grabar";
+
+/* Instructions for audio post composer */
+"composer.audio.instructions" = "Toca para grabar";
+
+/* Title for audio post composer */
+"composer.audio.title" = "Nueva publicación de audio";
+
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "Por favor seleccione otro video o toque el botón para editar.";
 
@@ -390,6 +408,9 @@
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Enviar mensaje de texto";
+
+/* VoiceOver label for voice note button in floating compose post menu in Home view. */
+"fab.accessibility.voice" = "Nota de voz";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Eliminando...";
@@ -1162,11 +1183,17 @@
 /* Action that will occur when users delete their account */
 "settings.account.delete.bullet3" = "Eliminar tu historial de mensajería en este teléfono";
 
+/* Button to continue to the next step of deleting account after warning */
+"settings.account.delete.continue.title" = "Continuar";
+
 /* Label telling the user that their account has been deleted */
 "settings.account.delete.deleted" = "Cuenta eliminada";
 
 /* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
 "settings.account.delete.error" = "Hubo un error eliminando tu cuenta. Por favor, revisa que tu número de teléfono esté escrito correctamente.";
+
+/* Text field label asking for feedback before deleting account */
+"settings.account.delete.feedback.prompt" = "¿Algún comentario para el equipo de HalloApp?";
 
 /* Label above list of things that will happen if they delete their account */
 "settings.account.delete.header" = "Eliminar tu cuenta hará:";
@@ -1174,8 +1201,11 @@
 /* Alert message telling the user that account deletion is irreversible */
 "settings.account.delete.irreversible.label" = "Esta acción es irreversible";
 
-/* Text field placeholder telling the user that their phone number should go into the field */
-"settings.account.delete.phone.number" = "Tu número de teléfono";
+/* Text field placeholder for collecting feedback before deleing account */
+"settings.account.delete.phone.number.placeholder" = "Comentarios";
+
+/* Text field label for account deletion phone number */
+"settings.account.delete.phone.number.prompt" = "Escriba su número de teléfono para confirmar";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
 "settings.account.delete.spinner.replacement" = "Esperando respuesta del servidor";
@@ -1350,6 +1380,9 @@
 
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Acepta el mensaje para responder";
+
+/* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
+"unknown.contact.not.in.contact.book" = "Este remitente no está en tu lista de contactos";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Bloquear";
