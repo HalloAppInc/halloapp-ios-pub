@@ -117,14 +117,13 @@ struct AudioPostComposer<MediaPicker: View>: View {
                 .sheet(isPresented: $presentMediaPicker) {
                     mediaPicker()
                 }
-                .padding(EdgeInsets(top: 0, leading: 24, bottom: 24, trailing: 0))
                 .opacity(state == .recorded ? 1 : 0)
                 Spacer()
                 ShareButton(action: shareAction)
                 .accessibility(label: Text(Localizations.shareRecordingA11yLabel))
-                .padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 16))
                 .disabled(!isReadyToShare)
             }
+            .padding(EdgeInsets(top: 0, leading: 24, bottom: 16, trailing: 16))
         }
         .animation(.default)
         .fixedSize(horizontal: false, vertical: true)

@@ -8,7 +8,7 @@ import UIKit
 
 protocol PostComposerViewDelegate: AnyObject {
     func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
-    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia])
+    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia], voiceNote: PendingMedia?)
     func willDismissWithInput(mentionInput: MentionInput)
 }
 
@@ -154,6 +154,7 @@ class PostComposerViewController: UIViewController {
         initialInput: MentionInput,
         configuration: PostComposerViewConfiguration,
         isInitiallyVoiceNotePost: Bool,
+        voiceNote: PendingMedia?,
         delegate: PostComposerViewDelegate)
     {
         self.mediaItems.value = media
@@ -164,6 +165,7 @@ class PostComposerViewController: UIViewController {
         self.linkPreviewImage = GenericObservable(nil)
         self.configuration = configuration
         self.isInitiallyVoiceNotePost = isInitiallyVoiceNotePost
+        audioComposerRecorder.voiceNote = voiceNote
         self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
     }
@@ -275,7 +277,9 @@ class PostComposerViewController: UIViewController {
     }
 
     @objc private func backAction() {
-        delegate?.composerDidTapBack(controller: self, media: self.mediaItems.value)
+        delegate?.composerDidTapBack(controller: self,
+                                     media: mediaItems.value,
+                                     voiceNote: audioComposerRecorder.voiceNote)
     }
 
     private func share() {
@@ -703,6 +707,19 @@ fileprivate struct PostComposerView: View {
                                  mediaPicker: { picker })
     }
 
+    var voiceNotesEnabled: Bool {
+        guard ServerProperties.isVoicePostsEnabled else {
+            return false
+        }
+
+        switch destination {
+        case .userFeed, .groupFeed:
+            return true
+        case .chat:
+            return false
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             Button(action: {
@@ -763,7 +780,7 @@ fileprivate struct PostComposerView: View {
                                         .padding(.horizontal)
                                         .padding(.bottom, 10)
                                 }
-                            } else if isInitiallyVoiceNotePost {
+                            } else if isInitiallyVoiceNotePost || audioComposerRecorder.voiceNote != nil {
                                 audioRecordingView
                             } else {
                                 ScrollView {
@@ -846,7 +863,7 @@ fileprivate struct PostComposerView: View {
                                 }
                             }
                             .zIndex(1)
-                            if inputToPost.value.text.isEmpty, !audioComposerRecorder.recorderControlsLocked, ServerProperties.isVoicePostsEnabled {
+                            if voiceNotesEnabled, inputToPost.value.text.isEmpty, !audioComposerRecorder.recorderControlsLocked {
                                 AudioComposerRecorderControl(recorder: audioComposerRecorder)
                                     .frame(width: 24, height: 24)
                                     .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
@@ -856,6 +873,7 @@ fileprivate struct PostComposerView: View {
                                         .fill(Color(.secondarySystemGroupedBackground)))
                         .compositingGroup()
                         .shadow(color: .black.opacity(self.colorScheme == .dark ? 0 : 0.04), radius: 2, y: 1)
+                        .zIndex(1)
                     }
                     shareButton
                         .offset(y: -2)
@@ -906,7 +924,7 @@ fileprivate struct PostComposerView: View {
 
     private func deleteMedia() {
         mediaItems.remove(index: currentPosition.value)
-        if (mediaCount == 0) {
+        if mediaCount == 0, audioComposerRecorder.voiceNote == nil {
             goBack()
         }
     }

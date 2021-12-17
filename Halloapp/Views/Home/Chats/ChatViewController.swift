@@ -1108,6 +1108,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
             configuration: .message(id: fromUserId),
             isInitiallyVoiceNotePost: false,
+            voiceNote: nil,
             delegate: self)
         pickerController.present(UINavigationController(rootViewController: composerController), animated: false)
     }
@@ -1169,7 +1170,7 @@ extension ChatViewController: PostComposerViewDelegate {
         view.window?.rootViewController?.dismiss(animated: true, completion: nil)
     }
 
-    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia]) {
+    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia], voiceNote: PendingMedia?) {
         controller.dismiss(animated: false)
 
         let presentedVC = self.presentedViewController
@@ -1485,6 +1486,7 @@ extension ChatViewController: ChatInputViewDelegate {
             initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
             configuration: .message(id: fromUserId),
             isInitiallyVoiceNotePost: false,
+            voiceNote: nil,
             delegate: self)
         present(UINavigationController(rootViewController: composerController), animated: false)
     }

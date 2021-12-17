@@ -86,6 +86,10 @@ extension Localizations {
         NSLocalizedString("button.not.now", value: "Not Now", comment: "Title for generic Not Now button. Mostly used to complete some modal flow.")
     }
 
+    static var buttonDiscard: String {
+        NSLocalizedString("media.button.discard", value: "Discard", comment: "Button title. Refers to discarding photo/video edits in media composer.")
+    }
+
     static var buttonGoToSettings: String {
         NSLocalizedString("button.go.to.settings", value: "Go to Settings", comment: "Title for button that will take user to iOS settings (e.g., to enable some permission we need).")
     }

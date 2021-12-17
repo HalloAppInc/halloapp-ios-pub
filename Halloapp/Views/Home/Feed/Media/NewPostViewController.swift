@@ -17,6 +17,18 @@ private extension Localizations {
     static var newPost: String {
         NSLocalizedString("post.controller.picker.title", value: "New Post", comment: "Title for the picker screen.")
     }
+
+    static var voiceNoteDeleteWarningTitle: String {
+        NSLocalizedString("composer.deletevoicenote.title",
+                          value: "Discard Post?",
+                          comment: "Title for alert when closing the post composer with a voice note")
+    }
+
+    static var voiceNoteDeleteWarningMessage: String {
+        NSLocalizedString("composer.deletevoicenote.message",
+                          value: "Voice recording will not be saved if you discard this post.",
+                          comment: "Show the user that the title is tappable")
+    }
 }
 
 enum NewPostMediaSource {
@@ -30,6 +42,7 @@ struct NewPostState {
     var pendingMedia = [PendingMedia]()
     var mediaSource = NewPostMediaSource.noMedia
     var pendingInput = MentionInput(text: "", mentions: MentionRangeMap(), selectedRange: NSRange())
+    var pendingVoiceNote: PendingMedia?
 
     var isPostComposerCancellable: Bool {
         // We can only return to the library picker (UIImagePickerController freezes after choosing an image 🙄).
@@ -78,7 +91,28 @@ final class NewPostViewController: UIViewController {
     }()
 
     private func cleanupAndFinish(didPost: Bool = false) {
-        for media in state.pendingMedia {
+        // Display warning about deleting voice note
+        if !didPost, state.pendingVoiceNote != nil {
+            let alert = UIAlertController(title: Localizations.voiceNoteDeleteWarningTitle,
+                                          message: Localizations.voiceNoteDeleteWarningMessage,
+                                          preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+            alert.addAction(UIAlertAction(title: Localizations.buttonDiscard, style: .destructive, handler: { [weak self] _ in
+                guard let self = self else {
+                    return
+                }
+                self.state.pendingVoiceNote = nil
+                self.cleanupAndFinish()
+            }))
+            present(alert, animated: true)
+            return
+        }
+
+        var allMedia = state.pendingMedia
+        if let voiceNote = state.pendingVoiceNote {
+            allMedia.append(voiceNote)
+        }
+        for media in allMedia {
             guard let encryptedFileURL = media.encryptedFileUrl else { continue }
             do {
                 try FileManager.default.removeItem(at: encryptedFileURL)
@@ -117,6 +151,7 @@ final class NewPostViewController: UIViewController {
             initialInput: state.pendingInput,
             configuration: configuration,
             isInitiallyVoiceNotePost: state.mediaSource == .voiceNote,
+            voiceNote: state.pendingVoiceNote,
             delegate: self)
     }
 
@@ -223,7 +258,8 @@ extension NewPostViewController: PostComposerViewDelegate {
         cleanupAndFinish(didPost: true)
     }
 
-    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia]) {
+    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia], voiceNote: PendingMedia?) {
+        state.pendingVoiceNote = voiceNote
         containedNavigationController.popViewController(animated: true)
         switch state.mediaSource {
         case .library:
