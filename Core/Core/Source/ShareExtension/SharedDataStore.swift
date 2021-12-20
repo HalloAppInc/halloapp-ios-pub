@@ -29,7 +29,7 @@ open class SharedDataStore {
     public final lazy var persistentContainer: NSPersistentContainer! = {
         let storeDescription = NSPersistentStoreDescription(url: Self.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
-        storeDescription.setOption(NSNumber(booleanLiteral: false), forKey: NSInferMappingModelAutomaticallyOption)
+        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
         storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
         storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")

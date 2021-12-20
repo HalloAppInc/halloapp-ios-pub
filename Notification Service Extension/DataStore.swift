@@ -318,6 +318,25 @@ class DataStore: NotificationServiceExtensionDataStore {
         performSeriallyOnBackgroundContext { [self] (managedObjectContext) in
 
             let messageId = metadata.contentId
+
+            // TODO: Need for shared container.
+            // Check to make sure we don't overwrite existing chat message in the database.
+            let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id == %@", messageId)
+            do {
+                let existingMessage = try managedObjectContext.fetch(fetchRequest).first
+                if let sharedExistingMessage = existingMessage {
+                    if sharedExistingMessage.status == .received {
+                        DDLogInfo("NotificationExtension/DataStore/duplicate-message/id=[\(messageId)]/processed successfully")
+                        // message was already processed and stored, so just return
+                        completion(sharedExistingMessage)
+                        return
+                    }
+                }
+            } catch {
+                DDLogError("NotificationExtension/SharedDataStore/message/error  [\(error)]")
+            }
+
             DDLogInfo("NotificationExtension/SharedDataStore/message/\(messageId)/created")
 
             // TODO(murali@): add a field for retryCount of this message if necessary.
