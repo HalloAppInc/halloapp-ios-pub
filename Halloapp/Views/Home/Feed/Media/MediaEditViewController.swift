@@ -35,10 +35,6 @@ private extension Localizations {
         NSLocalizedString("media.discard.confirmation", value: "Would you like to discard your edits?", comment: "Confirmation prompt in media composer.")
     }
 
-    static var buttonDiscard: String {
-        NSLocalizedString("media.button.discard", value: "Discard", comment: "Button title. Refers to discarding photo/video edits in media composer.")
-    }
-
     static var buttonReset: String {
         NSLocalizedString("media.button.reset", value: "Reset", comment: "Button title. Refers to resetting photo / video to original version.")
     }

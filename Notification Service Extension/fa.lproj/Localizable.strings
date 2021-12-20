@@ -61,6 +61,9 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "به اشتراک گذاشتن";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "توقف";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "به روز رسانی";
 

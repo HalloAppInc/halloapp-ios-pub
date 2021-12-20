@@ -658,22 +658,11 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
             }
         }
     }
-    
-    @objc private func cancelAction() {
-        if selected.count > 0 {
-            selected.removeAll()
-            
-            for cell in collectionView.visibleCells {
-                guard let cell = cell as? AssetViewCell else { continue }
-                cell.prepare()
-            }
-            
-            updateNavigationButtons()
-        }
 
+    @objc private func cancelAction() {
         didFinish(self, [], true)
     }
-    
+
     @objc private func openAlbumsAction() {
         let controller = MediaAlbumsViewController() {[weak self] controller, album, cancel in
             guard let self = self else { return }
