@@ -846,7 +846,7 @@ fileprivate struct PostComposerView: View {
                                 }
                             }
                             .zIndex(1)
-                            if inputToPost.value.text.isEmpty, !audioComposerRecorder.recorderControlsLocked {
+                            if inputToPost.value.text.isEmpty, !audioComposerRecorder.recorderControlsLocked, ServerProperties.isVoicePostsEnabled {
                                 AudioComposerRecorderControl(recorder: audioComposerRecorder)
                                     .frame(width: 24, height: 24)
                                     .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
