@@ -11,8 +11,9 @@ import Combine
 import Contacts
 import ContactsUI
 import Core
-import UIKit
+import Foundation
 import Intents
+import UIKit
 
 class HomeViewController: UITabBarController {
 
@@ -32,26 +33,6 @@ class HomeViewController: UITabBarController {
         self.commonSetup()
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-
-        makeTabBarLabelsFullWidth()
-    }
-
-    private func makeTabBarLabelsFullWidth() {
-
-        // Make labels full width to avoid truncation
-        // ("Einstellungen" isn't being sized correctly when we apply a custom font)
-
-        tabBar.traverseViewHierarchyDepthFirst { view in
-            if let label = view as? UILabel, let superview = label.superview {
-                label.frame = CGRect(x: 0, y: label.frame.minY, width: superview.bounds.width, height: label.bounds.height)
-                label.autoresizingMask = .flexibleWidth
-                label.textAlignment = .center
-            }
-        }
-    }
-
     private func commonSetup() {
         self.delegate = self
 
@@ -64,8 +45,9 @@ class HomeViewController: UITabBarController {
 
         // need to set UITabBarItem in addition to appearance as the very first load does not respect appearance (for font)
         let fontAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 9.5, weight: .semibold),
-                                NSAttributedString.Key.kern: 0.01,
-                                NSAttributedString.Key.foregroundColor: UIColor.tabBar] as [NSAttributedString.Key : Any]
+                              NSAttributedString.Key.kern: 0.01,
+                              NSAttributedString.Key.paragraphStyle: NSParagraphStyle.default,
+                              NSAttributedString.Key.foregroundColor: UIColor.tabBar] as [NSAttributedString.Key: Any]
         UITabBarItem.appearance().setTitleTextAttributes(fontAttributes, for: .normal)
         
         let appearance = UITabBarAppearance()
@@ -437,7 +419,6 @@ extension HomeViewController: UITabBarControllerDelegate {
                 viewController.scrollToTop(animated: true)
             }
         }
-        makeTabBarLabelsFullWidth()
         return true
     }
 
