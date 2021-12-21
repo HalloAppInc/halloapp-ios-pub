@@ -88,5 +88,9 @@ extension String {
         return chunks
     }
 
+    public func withNonBreakingSpaces() -> String {
+        return replacingOccurrences(of: " ", with: "\u{00a0}")
+    }
+
     public var utf16Extent: NSRange { NSRange(location: 0, length: (self as NSString).length) }
 }

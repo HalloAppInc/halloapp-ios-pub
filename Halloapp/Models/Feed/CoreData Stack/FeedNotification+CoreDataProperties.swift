@@ -179,7 +179,7 @@ extension FeedNotification {
 
             result.addAttribute(.foregroundColor, value: UIColor.label, range: NSRange(location: 0, length: result.length))
 
-            let timestampString = NSAttributedString(string: " \(self.formattedTimestamp)", attributes: [ .font: baseFont, .foregroundColor: UIColor.secondaryLabel ])
+            let timestampString = NSAttributedString(string: " \(self.formattedTimestamp.withNonBreakingSpaces())", attributes: [ .font: baseFont, .foregroundColor: UIColor.secondaryLabel ])
             result.append(timestampString)
 
             return result
