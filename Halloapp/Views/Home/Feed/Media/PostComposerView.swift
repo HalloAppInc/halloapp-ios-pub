@@ -623,32 +623,6 @@ fileprivate struct PostComposerView: View {
         }
     }
 
-    var controls: some View {
-        HStack {
-            Button(action: addMedia) {
-                ControlIconView(imageLabel: "ComposerAddMedia")
-            }.sheet(isPresented: $presentPicker) {
-                picker
-                    .edgesIgnoringSafeArea(.bottom)
-            }
-
-            Spacer()
-
-            Button(action: deleteMedia) {
-                ControlIconView(imageLabel: "ComposerDeleteMedia")
-            }
-
-            if mediaState.isReady && showCropButton {
-                Button(action: cropMedia) {
-                    ControlIconView(imageLabel: "ComposerCropMedia")
-                }
-                .padding(.leading, PostComposerLayoutConstants.controlXSpacing)
-            }
-        }
-        .padding(.horizontal, PostComposerLayoutConstants.controlSpacing)
-        .offset(y: -controlYOffset)
-    }
-
     var postTextView: some View {
         VStack(spacing: 0) {
             ZStack (alignment: .topLeading) {
@@ -703,8 +677,7 @@ fileprivate struct PostComposerView: View {
         return AudioPostComposer(recorder: audioComposerRecorder,
                                  isReadyToShare: isReadyToShare,
                                  shareAction: share,
-                                 presentMediaPicker: $presentPicker,
-                                 mediaPicker: { picker })
+                                 presentMediaPicker: $presentPicker)
     }
 
     var voiceNotesEnabled: Bool {
@@ -754,10 +727,12 @@ fileprivate struct PostComposerView: View {
                                     MediaPreviewSlider(
                                         mediaItems: self.mediaItemsBinding,
                                         shouldAutoPlay: self.shouldAutoPlayBinding,
-                                        currentPosition: self.currentPosition)
+                                        presentMediaPicker: $presentPicker,
+                                        currentPosition: self.currentPosition,
+                                        onDelete: deleteMedia,
+                                        onCrop: cropMedia
+                                    )
                                     .frame(height: self.getMediaSliderHeight(width: scrollGeometry.size.width), alignment: .center)
-
-                                    self.controls
                                 }
                                 .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
                                 .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
@@ -792,14 +767,10 @@ fileprivate struct PostComposerView: View {
                                 ))
 
                                 HStack {
-                                    Button(action: addMedia) {
+                                    Button(action: { presentPicker = true }) {
                                         Image("icon_add_photo")
                                             .renderingMode(.template)
                                             .foregroundColor(.blue)
-                                    }
-                                    .sheet(isPresented: $presentPicker) {
-                                        picker
-                                            .edgesIgnoringSafeArea(.bottom)
                                     }
                                     .padding(.leading, 10)
 
@@ -810,10 +781,13 @@ fileprivate struct PostComposerView: View {
                             }
                         }
                         .clipShape(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius))
-                        .background(
-                            RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius)
+                        .background(self.mediaCount == 0 ?
+                            AnyView(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius)
                                 .fill(Color(.secondarySystemGroupedBackground))
                                 .shadow(color: Color.black.opacity(self.colorScheme == .dark ? 0 : 0.08), radius: 8, y: 8))
+                            :
+                            AnyView(Rectangle().fill(Color.clear))
+                        )
                         .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
                         .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
                     }
@@ -883,6 +857,9 @@ fileprivate struct PostComposerView: View {
         }
         .frame(maxHeight: .infinity)
         .background(Color.feedBackground)
+        .sheet(isPresented: $presentPicker) {
+            picker.edgesIgnoringSafeArea(.bottom)
+        }
         .onReceive(self.readyToSharePublisher) { isReadyToShare = $0 }
         .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
         .onReceive(self.postTextComputedHeightPublisher) { self.postTextComputedHeight.value = $0 }
@@ -902,10 +879,6 @@ fileprivate struct PostComposerView: View {
         .onAppear {
             mediaState.isReady = self.mediaItems.value.allSatisfy { $0.ready.value }
         }
-    }
-
-    private func addMedia() {
-        presentPicker = true
     }
 
     private func cropMedia() {
@@ -1213,7 +1186,10 @@ fileprivate struct LinkPreview: UIViewRepresentable {
 fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     @Binding var mediaItems: [PendingMedia]
     @Binding var shouldAutoPlay: Bool
+    @Binding var presentMediaPicker: Bool
     var currentPosition: GenericObservable<Int>
+    let onDelete: () -> Void
+    let onCrop: () -> Void
 
     private var feedMediaItems: [FeedMedia] {
         mediaItems.map { FeedMedia($0, feedPostId: "") }
@@ -1225,6 +1201,56 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
 
         var configuration = MediaCarouselViewConfiguration.composer
         configuration.gutterWidth = PostComposerLayoutConstants.horizontalPadding
+        configuration.supplementaryViewsProvider = { index in
+            let deleteButton = UIButton(type: .custom)
+            deleteButton.translatesAutoresizingMaskIntoConstraints = false
+            deleteButton.setImage(UIImage(named: "ComposerDeleteMedia")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+            deleteButton.setBackgroundColor(.composerButton, for: .normal)
+            deleteButton.layer.cornerRadius = PostComposerLayoutConstants.controlRadius
+            deleteButton.clipsToBounds = true
+            deleteButton.addTarget(context.coordinator, action: #selector(context.coordinator.deleteAction), for: .touchUpInside)
+            NSLayoutConstraint.activate([
+                deleteButton.widthAnchor.constraint(equalToConstant: PostComposerLayoutConstants.controlSize),
+                deleteButton.heightAnchor.constraint(equalToConstant: PostComposerLayoutConstants.controlSize)
+            ])
+
+            let cropButton = UIButton(type: .custom)
+            cropButton.translatesAutoresizingMaskIntoConstraints = false
+            cropButton.setImage(UIImage(named: "ComposerCropMedia")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+            cropButton.setBackgroundColor(.composerButton, for: .normal)
+            cropButton.layer.cornerRadius = PostComposerLayoutConstants.controlRadius
+            cropButton.clipsToBounds = true
+            cropButton.addTarget(context.coordinator, action: #selector(context.coordinator.cropAction), for: .touchUpInside)
+            NSLayoutConstraint.activate([
+                cropButton.widthAnchor.constraint(equalToConstant: PostComposerLayoutConstants.controlSize),
+                cropButton.heightAnchor.constraint(equalToConstant: PostComposerLayoutConstants.controlSize)
+            ])
+
+            let stack = UIStackView(arrangedSubviews: [deleteButton, cropButton])
+            stack.translatesAutoresizingMaskIntoConstraints = false
+            stack.axis = .horizontal
+            stack.spacing = PostComposerLayoutConstants.controlXSpacing
+            stack.isLayoutMarginsRelativeArrangement = true
+            stack.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: PostComposerLayoutConstants.controlSpacing, right: PostComposerLayoutConstants.controlSpacing)
+
+            return [MediaCarouselSupplementaryItem(anchors: [.bottom, .trailing], view: stack)]
+        }
+        configuration.pageControlViewsProvider = { numberOfPages in
+            let imageConf = UIImage.SymbolConfiguration(pointSize: 27)
+            let image = UIImage(systemName: "plus.circle.fill", withConfiguration: imageConf)
+            let moreButton = UIButton(type: .custom)
+            moreButton.translatesAutoresizingMaskIntoConstraints = false
+            moreButton.setImage(image?.withTintColor(.systemGray3, renderingMode: .alwaysOriginal), for: .normal)
+            moreButton.widthAnchor.constraint(equalToConstant: 32).isActive = true
+            moreButton.heightAnchor.constraint(equalToConstant: 32).isActive = true
+            moreButton.addTarget(context.coordinator, action: #selector(context.coordinator.moreAction), for: .touchUpInside)
+
+            if numberOfPages < 10 {
+                return [MediaCarouselSupplementaryItem(anchors: [.trailing], view: moreButton)]
+            }
+
+            return []
+        }
 
         let carouselView = MediaCarouselView(media: feedMediaItems, configuration: configuration)
         carouselView.delegate = context.coordinator
@@ -1250,7 +1276,6 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         private struct MediaState: Equatable {
             public var order: Int
             public var type: FeedMediaType
-            public var image: UIImage?
             public var originalVideoURL: URL?
             public var fileURL: URL?
             public var asset: PHAsset?
@@ -1260,7 +1285,6 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
             init(media: PendingMedia) {
                 order = media.order
                 type = media.type
-                image = media.image
                 originalVideoURL = media.originalVideoURL
                 fileURL = media.fileURL
                 asset = media.asset
@@ -1313,6 +1337,18 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
 
         func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
 
+        }
+
+        @objc func moreAction() {
+            parent.presentMediaPicker = true
+        }
+
+        @objc func deleteAction() {
+            parent.onDelete()
+        }
+
+        @objc func cropAction() {
+            parent.onCrop()
         }
     }
 }

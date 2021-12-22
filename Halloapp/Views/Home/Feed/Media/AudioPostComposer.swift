@@ -44,13 +44,12 @@ fileprivate enum AudioPostComposerState {
     case ready, recording, recorded
 }
 
-struct AudioPostComposer<MediaPicker: View>: View {
+struct AudioPostComposer: View {
 
     @ObservedObject var recorder: AudioComposerRecorder
     var isReadyToShare: Bool
     var shareAction: (() -> Void)
     @Binding var presentMediaPicker: Bool
-    @ViewBuilder var mediaPicker: () -> MediaPicker
     @State private var showPermissionsAlert = false
 
     private var state: AudioPostComposerState {
@@ -114,9 +113,6 @@ struct AudioPostComposer<MediaPicker: View>: View {
                 }
                 .accessibility(label: Text(Localizations.addImagesA11yLabel))
                 .accessibility(hidden: state != .recorded)
-                .sheet(isPresented: $presentMediaPicker) {
-                    mediaPicker()
-                }
                 .opacity(state == .recorded ? 1 : 0)
                 Spacer()
                 ShareButton(action: shareAction)

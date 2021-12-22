@@ -138,12 +138,12 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
         let icon = UIImage(systemName: "chevron.down", withConfiguration: iconConfig)
         let imageView = UIImageView(image: icon)
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.tintColor = .black.withAlphaComponent(0.9)
+        imageView.tintColor = .primaryBlackWhite.withAlphaComponent(0.9)
 
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.titleLabel?.font = .gothamFont(ofFixedSize: 16, weight: .medium)
-        button.setTitleColor(.black.withAlphaComponent(0.9), for: .normal)
+        button.setTitleColor(.primaryBlackWhite.withAlphaComponent(0.9), for: .normal)
 
         button.addSubview(imageView)
         imageView.centerYAnchor.constraint(equalTo: button.centerYAnchor).isActive = true

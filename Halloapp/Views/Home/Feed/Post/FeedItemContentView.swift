@@ -539,12 +539,11 @@ final class FeedItemHeaderView: UIView {
         wrapperView.addSubview(button)
         wrapperView.translatesAutoresizingMaskIntoConstraints = false
 
-        button.constrain([.top, .bottom], to: wrapperView)
+        button.constrain([.top, .bottom, .trailing], to: wrapperView)
         button.heightAnchor.constraint(equalToConstant: 18 + moreButtonPadding).isActive = true
 
         button.contentHorizontalAlignment = .trailing
-        button.contentVerticalAlignment = .top
-        button.imageEdgeInsets = UIEdgeInsets(top: 3, left: 0, bottom: 0, right: 0)
+        button.imageEdgeInsets = UIEdgeInsets(top: -5, left: 0, bottom: 5, right: 0)
 
         wrapperView.widthAnchor.constraint(equalToConstant: moreButtonWidth + moreButtonPadding).isActive = true
 
