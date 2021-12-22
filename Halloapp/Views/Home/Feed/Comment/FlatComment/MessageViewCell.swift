@@ -5,14 +5,17 @@
 //  Created by Nandini Shetty on 12/2/21.
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
-import UIKit
+import Combine
 import Core
+import UIKit
 
 protocol MessageViewDelegate: AnyObject {
     func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
 }
 
 class MessageViewCell: UICollectionViewCell {
+    private var audioMediaStatusCancellable: AnyCancellable?
+
     var MaxWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.8 }
     var MinWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.5 }
     var MediaViewDimention: CGFloat { return contentView.bounds.width * 0.7 }
@@ -37,6 +40,13 @@ class MessageViewCell: UICollectionViewCell {
         }
     }
 
+    var hasAudio: Bool = false {
+        didSet {
+            audioView.isHidden = !hasAudio
+            audioTimeLabel.isHidden = !hasAudio
+        }
+    }
+
     private lazy var messageRow: UIStackView = {
         let hStack = UIStackView(arrangedSubviews: [ nameTextTimeRow ])
         hStack.axis = .horizontal
@@ -50,7 +60,7 @@ class MessageViewCell: UICollectionViewCell {
     }()
 
     private lazy var nameTextTimeRow: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ nameRow, mediaCarouselView, textView, timeRow ])
+        let vStack = UIStackView(arrangedSubviews: [ nameRow, audioView, mediaCarouselView, textView, timeRow ])
         vStack.axis = .vertical
         vStack.alignment = .fill
         vStack.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -76,9 +86,12 @@ class MessageViewCell: UICollectionViewCell {
     }()
 
     private lazy var timeRow: UIStackView = {
+        let leadingSpacer = UIView()
+        leadingSpacer.translatesAutoresizingMaskIntoConstraints = false
+        leadingSpacer.widthAnchor.constraint(equalToConstant: 30).isActive = true
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
-        let view = UIStackView(arrangedSubviews: [ spacer, timeLabel ])
+        let view = UIStackView(arrangedSubviews: [ leadingSpacer, audioTimeLabel, spacer, timeLabel ])
         view.axis = .horizontal
         view.spacing = 0
         view.isLayoutMarginsRelativeArrangement = true
@@ -86,13 +99,12 @@ class MessageViewCell: UICollectionViewCell {
     }()
 
     // MARK: Name Row
+
     private lazy var nameRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ nameLabel ])
         view.axis = .vertical
         view.spacing = 0
         view.isLayoutMarginsRelativeArrangement = true
-        // this left inset is to align the name with the text inset.
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 0)
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -118,6 +130,8 @@ class MessageViewCell: UICollectionViewCell {
         textView.isUserInteractionEnabled = true
         textView.dataDetectorTypes = .link
         textView.textContainerInset = UIEdgeInsets.zero
+        // TODO: Issue 1672 - Remove this negative inset
+        textView.textContainerInset = UIEdgeInsets(top: 0, left: -5, bottom: 0, right: 0)
         textView.backgroundColor = .clear
         textView.font = UIFont.preferredFont(forTextStyle: .subheadline)
         textView.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
@@ -137,7 +151,30 @@ class MessageViewCell: UICollectionViewCell {
         return mediaCarouselView
     }()
 
+    // MARK: Audio Media
+
+    private lazy var audioView: AudioView = {
+        let audioView = AudioView()
+        audioView.isHidden = true
+        audioView.translatesAutoresizingMaskIntoConstraints = false
+        audioView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        audioView.delegate = self
+        return audioView
+    }()
+
+    private lazy var audioTimeLabel: UILabel = {
+        let label = UILabel()
+        label.isHidden = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .caption2)
+        label.textColor = UIColor.chatTime
+
+        return label
+    }()
+
     // MARK: Time
+
     private lazy var timeLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
@@ -183,6 +220,7 @@ class MessageViewCell: UICollectionViewCell {
     }
 
     func configureWithComment(comment: FeedPostComment) {
+        audioMediaStatusCancellable?.cancel()
         feedPostCommentID = comment.id
         timeLabel.text = comment.timestamp.chatTimestamp()
         setNameLabel(for: comment.userId)
@@ -193,13 +231,7 @@ class MessageViewCell: UICollectionViewCell {
     
     // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
     private func configureCell(isOwnMessage: Bool) {
-        if !mediaCarouselView.isHidden {
-            mediaWidthConstraint.priority = UILayoutPriority.defaultHigh
-            mediaHeightConstraint.priority = UILayoutPriority.defaultHigh
-        } else {
-            mediaWidthConstraint.priority = UILayoutPriority.defaultLow
-            mediaHeightConstraint.priority = UILayoutPriority.defaultLow
-        }
+        updateMediaConstraints()
         if isOwnMessage {
             bubbleView.backgroundColor = UIColor.chatOwnBubbleBg
             textView.textColor = UIColor.chatOwnMsg
@@ -212,6 +244,17 @@ class MessageViewCell: UICollectionViewCell {
             nameRow.isHidden = false
             rightAlignedConstraint.priority = UILayoutPriority(1)
             leftAlignedConstraint.priority = UILayoutPriority(800)
+        }
+    }
+
+    private func updateMediaConstraints() {
+        mediaWidthConstraint.priority = UILayoutPriority.defaultLow
+        mediaHeightConstraint.priority = UILayoutPriority.defaultLow
+        if hasMedia || hasAudio {
+            mediaWidthConstraint.priority = UILayoutPriority.defaultHigh
+        }
+        if hasMedia {
+            mediaHeightConstraint.priority = UILayoutPriority.defaultHigh
         }
     }
 
@@ -231,17 +274,58 @@ class MessageViewCell: UICollectionViewCell {
     private func configureMedia(comment: FeedPostComment) {
         guard let commentMedia = comment.media, commentMedia.count > 0 else {
             hasMedia = false
+            hasAudio = false
             return
         }
         guard let media = MainAppContext.shared.feedData.media(commentID: comment.id) else {
             hasMedia = false
+            hasAudio = false
             return
         }
-        hasMedia = true
         // Download any pending media, comes in handy for media coming in while user is viewing comments
         MainAppContext.shared.feedData.downloadMedia(in: [comment])
         MainAppContext.shared.feedData.loadImages(commentID: comment.id)
+        // Check for voice note
+        if commentHasAudio(media: media) {
+            configureAudio(comment: comment, audioMedia: media[0])
+            return
+        }
+        hasMedia = true
         mediaCarouselView.configureMediaCarousel(media: media)
+    }
+
+    private func commentHasAudio(media: [FeedMedia]) -> Bool {
+        if media.count == 1 && media[0].type == .audio {
+            hasAudio = true
+        } else {
+            hasAudio = false
+        }
+        return hasAudio
+    }
+
+    func configureAudio(comment: FeedPostComment, audioMedia: FeedMedia) {
+        if audioView.url != audioMedia.fileURL {
+            audioTimeLabel.text = "0:00"
+            audioView.url = audioMedia.fileURL
+        }
+
+        if !audioView.isPlaying {
+            let isOwn = comment.userId == MainAppContext.shared.userData.userId
+            audioView.state = comment.status == .played || isOwn ? .played : .normal
+        }
+
+        if audioMedia.fileURL == nil {
+            audioView.state = .loading
+
+            audioMediaStatusCancellable = audioMedia.mediaStatusDidChange.sink { [weak self] mediaItem in
+                guard let self = self else { return }
+                guard let url = mediaItem.fileURL else { return }
+                self.audioView.url = url
+
+                let isOwn = comment.userId == MainAppContext.shared.userData.userId
+                self.audioView.state = comment.status == .played || isOwn ? .played : .normal
+            }
+        }
     }
 }
 
@@ -260,5 +344,19 @@ extension MessageViewCell: MediaCarouselViewDelegate {
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
+    }
+}
+
+// MARK: AudioViewDelegate
+extension MessageViewCell: AudioViewDelegate {
+    func audioView(_ view: AudioView, at time: String) {
+        audioTimeLabel.text = time
+    }
+    func audioViewDidStartPlaying(_ view: AudioView) {
+        guard let commentId = feedPostCommentID else { return }
+        audioView.state = .played
+        MainAppContext.shared.feedData.markCommentAsPlayed(commentId: commentId)
+    }
+    func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
     }
 }
