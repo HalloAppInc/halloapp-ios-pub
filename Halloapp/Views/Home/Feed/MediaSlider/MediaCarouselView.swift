@@ -321,6 +321,12 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         collectionView.addGestureRecognizer(zoomRecognizer)
     }
 
+    func configureMediaCarousel(media: [FeedMedia], initialIndex: Int? = nil) {
+        self.media = media
+        self.mediaIndexToScrollToInLayoutSubviews = initialIndex
+        commonInit()
+    }
+
     private func updatePageControl() {
         pageControl.numberOfPages = media.count
 
