@@ -80,7 +80,7 @@ public final class NoiseRegistrationService: RegistrationService {
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
-                    completion(.failure(RegistrationErrorResponse(error: error as! VerificationCodeRequestError)))
+                    completion(.failure(RegistrationErrorResponse(error: error)))
                 }
             }
         }
