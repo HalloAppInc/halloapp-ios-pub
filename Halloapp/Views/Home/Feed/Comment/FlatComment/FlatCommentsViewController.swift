@@ -64,6 +64,10 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         // Setup the diffable data source so it can be used for first fetch of data
         collectionView.dataSource = dataSource
         initFetchedResultsController()
+        // Initiate download of media that were not yet downloaded. TODO Ask if this is needed
+        if let comments = fetchedResultsController?.fetchedObjects {
+            MainAppContext.shared.feedData.downloadMedia(in: comments)
+        }
     }
     
     private func initFetchedResultsController() {
@@ -103,6 +107,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                     for: indexPath)
                 if let itemCell = cell as? MessageViewCell {
                     itemCell.configureWithComment(comment: comment)
+                    itemCell.delegate = self
                 }
                 return cell
             })
@@ -117,5 +122,18 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         section.interGroupSpacing = 5
         let layout = UICollectionViewCompositionalLayout(section: section)
         return layout
+    }
+}
+
+extension FlatCommentsViewController: MessageViewDelegate {
+    func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int) {
+        var canSavePost = false
+        if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            canSavePost = post.canSaveMedia
+        }
+        guard let media = MainAppContext.shared.feedData.media(commentID: feedPostCommentID) else { return }
+        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
+        controller.delegate = view
+        present(controller, animated: true)
     }
 }
