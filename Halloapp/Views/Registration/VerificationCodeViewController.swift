@@ -310,7 +310,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
                 }
 
             case .failure(let errorResponse):
-                switch errorResponse.error {
+                switch errorResponse.error as? VerificationCodeRequestError {
                     case .notInvited:
                         let alert = UIAlertController(
                             title: Localizations.registrationInviteOnlyTitle,
@@ -343,7 +343,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
                         if let retryDelay = errorResponse.retryDelay {
                             self.setRetryTimers(retryDelay: retryDelay)
                         }
-                    default:
+                    case .smsFailure, .requestCreationError, .malformedResponse, .none:
                         DispatchQueue.main.async {
                             self.state = .requestError
                         }

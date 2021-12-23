@@ -22,7 +22,7 @@ public struct RegistrationResponse {
 }
 
 public struct RegistrationErrorResponse: Error {
-    public var error: VerificationCodeRequestError
+    public var error: Error
     public var retryDelay: TimeInterval?
 }
 public enum VerificationCodeRequestError: String, Error, RawRepresentable {
