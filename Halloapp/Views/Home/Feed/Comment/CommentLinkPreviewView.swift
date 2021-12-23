@@ -18,20 +18,23 @@ class CommentLinkPreviewView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        commonInit()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+        commonInit()
     }
 
-    init(feedLinkPreview: FeedLinkPreview) {
-        super.init(frame: .zero)
+    func configure(feedLinkPreview: FeedLinkPreview) {
         if feedLinkPreview.media != nil {
             let media = MainAppContext.shared.feedData.media(feedLinkPreviewID: feedLinkPreview.id)
             self.media = media?.first
         }
         self.feedLinkPreview  = feedLinkPreview
-        commonInit()
+        titleLabel.text = feedLinkPreview.title
+        urlLabel.text = feedLinkPreview.url?.host
+        configureMedia()
     }
 
     private lazy var placeholderImageView: UIImageView = {
@@ -53,8 +56,8 @@ class CommentLinkPreviewView: UIView {
         mediaView.translatesAutoresizingMaskIntoConstraints = false
         mediaView.contentMode = .scaleAspectFill
         mediaView.clipsToBounds = true
-        mediaView.widthAnchor.constraint(equalToConstant: 100).isActive = true
-        mediaView.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        mediaView.widthAnchor.constraint(equalToConstant: 75).isActive = true
+        mediaView.heightAnchor.constraint(equalToConstant: 75).isActive = true
         return mediaView
     }()
 
@@ -123,14 +126,9 @@ class CommentLinkPreviewView: UIView {
 
     private func commonInit() {
         preservesSuperviewLayoutMargins = true
-        guard let feedLinkPreview = feedLinkPreview else { return }
-
-        titleLabel.text = feedLinkPreview.title
-        urlLabel.text = feedLinkPreview.url?.host
-        configureMedia()
         self.addSubview(hStack)
 
-        hStack.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        hStack.heightAnchor.constraint(equalToConstant: 75).isActive = true
         hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
         hStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
