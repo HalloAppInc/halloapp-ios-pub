@@ -227,6 +227,10 @@ class PostAudioView: UIView {
     @objc func didTapDelete() {
         delegate?.postAudioViewDidRequestDeletion(self)
     }
+
+    func pause() {
+        audioView.pause()
+    }
 }
 
 extension PostAudioView: AudioViewDelegate {

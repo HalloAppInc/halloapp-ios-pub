@@ -58,54 +58,30 @@ class AudioView : UIStackView {
     var url: URL? {
         didSet {
             pause()
-
-            if let url = self.url {
-                player = AVPlayer(url: url)
-            } else {
-                player = nil
-            }
+            player = url.flatMap { try? AVAudioPlayer(contentsOf: $0) }
         }
     }
 
     var isPlaying: Bool {
-        return player?.rate ?? 0 > 0
+        return player?.isPlaying ?? false
     }
 
     private let configuration: Configuration
 
-    private var rateObservation: NSKeyValueObservation?
-    private var timeObservation: Any?
     private var mediaPlaybackCancellable: AnyCancellable?
-    private var sessionManager = AudioSessionManager()
+    private var isSeeking = false
+    private var wasPlayingBeforeSeek = false
+    private var audioSession: AudioSession?
+    private var displayLink: CADisplayLink? {
+        willSet {
+            displayLink?.invalidate()
+        }
+    }
 
-    private var player: AVPlayer? {
+    private var player: AVAudioPlayer? {
         didSet {
-            rateObservation = nil
-            timeObservation = nil
-
-            guard let player = player else { return }
-            player.seek(to: .zero)
-
-            rateObservation = player.observe(\.rate, options: [.old, .new]) { [weak self] (player, change) in
-                guard let self = self else { return }
-                self.updateIsPlaying()
-                self.updateProgress()
-
-                if change.oldValue == 1 && change.newValue == 0 {
-                    self.delegate?.audioViewDidEndPlaying(self, completed: self.isPlayerAtTheEnd)
-                    self.pause()
-                }
-            }
-
-            let interval = CMTime(value: 1, timescale: 60)
-            timeObservation = player.addPeriodicTimeObserver(forInterval: interval, queue: DispatchQueue.main) { [weak self] time in
-                guard let self = self else { return }
-                guard player.rate > 0 else { return }
-                self.updateProgress()
-            }
-
-            updateIsPlaying()
-            updateProgress()
+            player?.delegate = self
+            updateProgress(currentTime: 0)
         }
     }
 
@@ -148,7 +124,11 @@ class AudioView : UIStackView {
         let slider = UISlider()
         slider.translatesAutoresizingMaskIntoConstraints = false
         slider.setThumbImage(thumbIcon, for: .normal)
-        slider.addTarget(self, action: #selector(onSliderValueUpdate), for: .valueChanged)
+        slider.addTarget(self, action: #selector(onSliderTouchDown), for: .touchDown)
+        slider.addTarget(self, action: #selector(onSliderValueChanged), for: .valueChanged)
+        slider.addTarget(self, action: #selector(onSliderTouchUp), for: .touchUpInside)
+        slider.addTarget(self, action: #selector(onSliderTouchUp), for: .touchUpOutside)
+        slider.addTarget(self, action: #selector(onSliderTouchUp), for: .touchCancel)
         slider.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return slider
     } ()
@@ -156,22 +136,18 @@ class AudioView : UIStackView {
     private lazy var loadingIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .medium)
         indicator.translatesAutoresizingMaskIntoConstraints = false
-        indicator.widthAnchor.constraint(equalToConstant: 20).isActive = true
-        indicator.heightAnchor.constraint(equalToConstant: 20).isActive = true
-
+        NSLayoutConstraint.activate([
+            indicator.widthAnchor.constraint(equalToConstant: 20),
+            indicator.heightAnchor.constraint(equalToConstant: 20),
+        ])
         return indicator
     } ()
 
     private var isPlayerAtTheEnd: Bool {
-        guard let player = player else { return false }
-        guard let duration = player.currentItem?.asset.duration else { return false }
-        guard duration.isNumeric else { return false }
-
-        // When a voice note ends 'player.currentTime()' should be equal to the duration
-        // but sometimes it is a little bit less and sometimes a little bit more.
-        // By observation it is usually within 30 milliseconds.
-        let playerEndThreshold = 0.03
-        return duration.seconds - player.currentTime().seconds < playerEndThreshold
+        guard let player = player else {
+            return false
+        }
+        return abs(player.duration - player.currentTime) < 0.03
     }
 
     init(configuration: Configuration) {
@@ -192,12 +168,6 @@ class AudioView : UIStackView {
             guard self.url != playingUrl else { return }
             self.pause()
         }
-
-        let nc = NotificationCenter.default
-        nc.addObserver(self,
-                       selector: #selector(proximityChanged),
-                       name: UIDevice.proximityStateDidChangeNotification,
-                       object: nil)
 
         updateState()
     }
@@ -223,53 +193,38 @@ class AudioView : UIStackView {
     deinit {
         pause()
         player = nil
-    }
-
-    @objc func proximityChanged() {
-        do {
-            if UIDevice.current.proximityState {
-                try AVAudioSession.sharedInstance().overrideOutputAudioPort(.none)
-            } else {
-                try AVAudioSession.sharedInstance().overrideOutputAudioPort(.speaker)
-            }
-        } catch {
-            return DDLogError("AudioView/proximityChanged: output port [\(error)]")
-        }
+        displayLink?.invalidate()
     }
 
     func play() {
-        guard let player = player else { return }
-        guard let duration = player.currentItem?.duration else { return }
-        guard duration.isNumeric else { return }
+        guard let player = player else {
+            return
+        }
 
         if isPlayerAtTheEnd {
-            player.seek(to: .zero)
+            player.currentTime = 0
         }
+
+        audioSession = AudioSession(category: .play)
+        AudioSessionManager.beginSession(audioSession)
 
         MainAppContext.shared.mediaDidStartPlaying.send(url)
-        UIApplication.shared.isIdleTimerDisabled = true
-        UIDevice.current.isProximityMonitoringEnabled = true
 
-        sessionManager.save()
-
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playAndRecord)
-            if !UIDevice.current.proximityState {
-                try AVAudioSession.sharedInstance().overrideOutputAudioPort(.speaker)
-            }
-        } catch {
-            return DDLogError("AudioView/play: audio session [\(error)]")
-        }
+        let displayLink = CADisplayLink(target: self, selector: #selector(onTimeUpdate))
+        displayLink.add(to: .main, forMode: .common)
+        self.displayLink = displayLink
 
         player.play()
+        updateIsPlaying()
         delegate?.audioViewDidStartPlaying(self)
     }
 
     func pause() {
         player?.pause()
-        sessionManager.restore()
-        UIDevice.current.isProximityMonitoringEnabled = false
-        UIApplication.shared.isIdleTimerDisabled = false
+        updateIsPlaying()
+        displayLink = nil
+        AudioSessionManager.endSession(audioSession)
+        delegate?.audioViewDidEndPlaying(self, completed: false)
     }
 
     private func updateIsPlaying() {
@@ -297,37 +252,77 @@ class AudioView : UIStackView {
         }
     }
 
-    private func updateProgress() {
-        guard let player = player else { return }
-        guard let duration = player.currentItem?.asset.duration else { return }
-        guard duration.isNumeric else { return }
-
-        let current = player.currentTime()
-        slider.setValue(isPlayerAtTheEnd && player.rate == 0 ? 0 : Float(current.seconds / duration.seconds), animated: false)
-
-        let formatted = TimeInterval(player.rate > 0 ? (duration.seconds - current.seconds) : duration.seconds).formatted
-        delegate?.audioView(self, at: formatted)
-    }
-
-    @objc private func onSliderValueUpdate() {
-        guard let player = player else { return }
-        guard let duration = player.currentItem?.duration else { return }
-        guard duration.isNumeric else { return }
-
-        if player.rate > 0 {
-            pause()
+    private func updateProgress(currentTime: TimeInterval) {
+        guard let player = player else {
+            return
         }
 
-        player.seek(to: CMTime(seconds: duration.seconds * Double(slider.value), preferredTimescale: duration.timescale))
+        let duration = player.duration
+
+        if !isSeeking {
+            slider.value = duration > 0 ? Float(currentTime / duration) : 0
+        }
+
+        delegate?.audioView(self, at: TimeInterval(duration - currentTime).formatted)
+    }
+
+
+// MARK: - Event Handling
+
+    @objc private func onSliderTouchDown() {
+        isSeeking = true
+
+        if isPlaying {
+            wasPlayingBeforeSeek = true
+            // directly call play / pause while seeking to avoid cancelling audio session
+            player?.pause()
+            updateIsPlaying()
+        }
+    }
+
+    @objc private func onSliderValueChanged() {
+        guard let player = player else {
+            return
+        }
+
+        let current = player.duration * TimeInterval(slider.value)
+        player.currentTime = current
+        updateProgress(currentTime: current)
+
+    }
+
+    @objc private func onSliderTouchUp() {
+        isSeeking = false
+
+        if wasPlayingBeforeSeek {
+            wasPlayingBeforeSeek = false
+            player?.play()
+            updateIsPlaying()
+        }
     }
 
     @objc private func onPlayButtonTap() {
-        guard let player = player else { return }
+        isPlaying ? pause() : play()
+    }
 
-        if player.rate > 0 {
-            pause()
-        } else {
-            play()
+    @objc private func onTimeUpdate() {
+        updateProgress(currentTime: player?.currentTime ?? 0)
+    }
+}
+
+extension AudioView: AVAudioPlayerDelegate {
+
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        updateIsPlaying()
+        player.currentTime = 0
+        AudioSessionManager.endSession(audioSession)
+        delegate?.audioViewDidEndPlaying(self, completed: flag)
+    }
+
+    func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
+        guard let error = error else {
+            return
         }
+        DDLogError("AudioView/audioPlayerDecodeErrorDidOccur: \(error)")
     }
 }
