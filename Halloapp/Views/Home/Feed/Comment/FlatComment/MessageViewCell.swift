@@ -47,6 +47,12 @@ class MessageViewCell: UICollectionViewCell {
         }
     }
 
+    var hasLinkPreview: Bool = false {
+        didSet {
+            linkPreviewView.isHidden = !hasLinkPreview
+        }
+    }
+
     private lazy var messageRow: UIStackView = {
         let hStack = UIStackView(arrangedSubviews: [ nameTextTimeRow ])
         hStack.axis = .horizontal
@@ -60,7 +66,7 @@ class MessageViewCell: UICollectionViewCell {
     }()
 
     private lazy var nameTextTimeRow: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ nameRow, audioView, mediaCarouselView, textView, timeRow ])
+        let vStack = UIStackView(arrangedSubviews: [ nameRow, linkPreviewView, audioView, mediaCarouselView, textView, timeRow ])
         vStack.axis = .vertical
         vStack.alignment = .fill
         vStack.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -162,6 +168,15 @@ class MessageViewCell: UICollectionViewCell {
         return audioView
     }()
 
+    // MARK: Link Preview
+
+    private lazy var linkPreviewView: CommentLinkPreviewView = {
+        let linkPreviewView = CommentLinkPreviewView(frame: .zero)
+        linkPreviewView.translatesAutoresizingMaskIntoConstraints = false
+        linkPreviewView.isHidden = true
+        return linkPreviewView
+    }()
+
     private lazy var audioTimeLabel: UILabel = {
         let label = UILabel()
         label.isHidden = true
@@ -226,6 +241,7 @@ class MessageViewCell: UICollectionViewCell {
         setNameLabel(for: comment.userId)
         configureText(comment: comment)
         configureMedia(comment: comment)
+        configureLinkPreviewView(comment: comment)
         configureCell(isOwnMessage: comment.userId == MainAppContext.shared.userData.userId)
     }
     
@@ -326,6 +342,16 @@ class MessageViewCell: UICollectionViewCell {
                 self.audioView.state = comment.status == .played || isOwn ? .played : .normal
             }
         }
+    }
+
+    func configureLinkPreviewView(comment: FeedPostComment) {
+        guard let feedLinkPreviews = comment.linkPreviews, let feedLinkPreview = feedLinkPreviews.first else {
+            hasLinkPreview = false
+            return
+        }
+        hasLinkPreview = true
+        MainAppContext.shared.feedData.loadImages(feedLinkPreviewID: feedLinkPreview.id)
+        linkPreviewView.configure(feedLinkPreview: feedLinkPreview)
     }
 }
 
