@@ -11,7 +11,7 @@ import Combine
 import Foundation
 
 protocol AudioRecorderDelegate: AnyObject {
-    func audioRecorderMicrphoneAccessDenied(_ recorder: AudioRecorder)
+    func audioRecorderMicrophoneAccessDenied(_ recorder: AudioRecorder)
     func audioRecorderStarted(_ recorder: AudioRecorder)
     func audioRecorderStopped(_ recorder: AudioRecorder)
     func audioRecorderInterrupted(_ recorder: AudioRecorder)
@@ -29,7 +29,8 @@ class AudioRecorder {
     private var recorder: AVAudioRecorder?
     private var task: DispatchWorkItem?
     private var displayLink: CADisplayLink?
-    private let sessionManager = AudioSessionManager()
+    private var audioSession: AudioSession?
+    private var pendingRecord: (() -> Void)?
     private var isMeteringEnabled = false {
         didSet {
             updateMeteringEnabled()
@@ -64,48 +65,47 @@ class AudioRecorder {
     }
 
     func start() {
-        authorize { [weak self] granted in
-            guard let self = self else { return }
+        let isAuthorized: Bool
+        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        case .authorized:
+            isAuthorized = true
+        case .denied, .restricted:
+            isAuthorized = false
+            delegate?.audioRecorderMicrophoneAccessDenied(self)
+        case .notDetermined:
+            isAuthorized = false
+            delegate?.audioRecorderStopped(self)
+            AVCaptureDevice.requestAccess(for: .audio, completionHandler: { _ in })
+        default:
+            isAuthorized = false
+            delegate?.audioRecorderMicrophoneAccessDenied(self)
+            DDLogError("AudioRecorder/authorize unknown AVAuthorizationStatus")
+        }
 
-            if granted {
-                // stop any audio or video currently playing
-                MainAppContext.shared.mediaDidStartPlaying.send(nil)
+        guard isAuthorized else {
+            return
+        }
 
-                self.sessionManager.respectSilenceMode {
-                    AudioServicesPlayAlertSound(1110)
-                }
+        isRecording = true
+        delegate?.audioRecorderStarted(self)
 
-                // 300ms to avoid recording the start sound
-                self.task?.cancel()
-                self.task = DispatchWorkItem {
-                    self.task = nil
-                    self.sessionManager.save()
-                    self.record()
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300), execute: self.task!)
-            } else {
-                self.delegate?.audioRecorderMicrphoneAccessDenied(self)
+        audioSession = AudioSession(category: .record)
+        AudioSessionManager.beginSession(audioSession)
+
+        // stop any audio or video currently playing
+        MainAppContext.shared.mediaDidStartPlaying.send(nil)
+
+        pendingRecord = record
+
+        AudioServicesPlayAlertSoundWithCompletion(1110) { [weak self] in
+            DispatchQueue.main.async {
+                self?.pendingRecord?()
             }
         }
     }
 
-    private func authorize(action: @escaping (Bool) -> ()) {
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
-        case .authorized:
-            action(true)
-        case .denied, .restricted:
-            action(false)
-        case .notDetermined:
-            delegate?.audioRecorderStopped(self)
-            AVCaptureDevice.requestAccess(for: .audio, completionHandler: { _ in })
-        default:
-            DDLogError("AudioRecorder/authorize unknown AVAuthorizationStatus")
-            action(false)
-        }
-    }
-
     private func record() {
-        if let recorder = self.recorder, recorder.isRecording {
+        if let recorder = recorder, recorder.isRecording {
             stop(cancel: true)
         }
 
@@ -129,7 +129,6 @@ class AudioRecorder {
                 stop(cancel: true)
                 return DDLogError("AudioRecorder/start: recorder failed to start")
             }
-            isRecording = true
 
             self.recorder = recorder
             updateMeteringEnabled()
@@ -138,12 +137,7 @@ class AudioRecorder {
             return DDLogError("AudioRecorder/start: recorder failed init [\(error)]")
         }
 
-        DispatchQueue.main.async {
-            UIApplication.shared.isIdleTimerDisabled = true
-        }
-
         startTimer()
-        delegate?.audioRecorderStarted(self)
     }
 
     private func startTimer() {
@@ -176,26 +170,19 @@ class AudioRecorder {
     }
 
     func stop(cancel: Bool) {
-        DispatchQueue.main.async {
-            UIApplication.shared.isIdleTimerDisabled = false
-        }
-
         stopTimer()
-        task?.cancel()
+        pendingRecord = nil
+        isRecording = false
 
-        if let recorder = self.recorder, recorder.isRecording || isRecording {
-            isRecording = false
-
+        if let recorder = self.recorder, recorder.isRecording {
             recorder.stop()
-            sessionManager.restore()
+            AudioSessionManager.endSession(audioSession)
 
             if cancel {
                 recorder.deleteRecording()
             }
 
-            sessionManager.respectSilenceMode {
-                AudioServicesPlayAlertSound(1111)
-            }
+            AudioServicesPlayAlertSound(1111)
         }
 
         delegate?.audioRecorderStopped(self)
