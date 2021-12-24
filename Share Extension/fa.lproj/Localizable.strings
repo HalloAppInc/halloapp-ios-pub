@@ -91,6 +91,9 @@
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "من";
 
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "لغو";
+
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "به شبکه دوست‌های واقعی من در هالواپ بپیوندید. لینک دانلود رایگان halloapp.com/dl";
 

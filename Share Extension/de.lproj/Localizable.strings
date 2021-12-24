@@ -61,8 +61,17 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Teilen";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Stopp";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Aktualisieren";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Für Audioaufnahmen bitte in den Einstellungen das Mikrofon aktivieren";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Zugriff auf das Mikrofon nicht möglich";
 
 /* Title for generic delete button. */
 "Delete" = "Löschen";
@@ -81,6 +90,9 @@
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ich";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Verwerfen";
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Mach mit bei meinem HalloApp-Netzwerk für echte Beziehungen! Kostenlos herunterladen auf halloapp.com/dl";

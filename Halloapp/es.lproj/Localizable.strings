@@ -124,6 +124,9 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Compartir";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Parar";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Actualizar";
 
@@ -327,6 +330,12 @@
 
 /* Title for audio post composer */
 "composer.audio.title" = "Nueva publicación de audio";
+
+/* Show the user that the title is tappable */
+"composer.deletevoicenote.message" = "Grabación de voz no se guardará si eliminas esta publicación.";
+
+/* Title for alert when closing the post composer with a voice note */
+"composer.deletevoicenote.title" = "¿Eliminar publicación?";
 
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "Por favor seleccione otro video o toque el botón para editar.";

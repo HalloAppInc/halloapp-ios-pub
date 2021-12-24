@@ -103,6 +103,9 @@
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "من";
 
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "لغو";
+
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "یک کد دریافت خواهید کرد.\nممکن است اپراتور شما نرخی تحمیل کند.";
 

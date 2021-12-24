@@ -331,6 +331,12 @@
 /* Title for audio post composer */
 "composer.audio.title" = "Nieuw Audiobericht";
 
+/* Show the user that the title is tappable */
+"composer.deletevoicenote.message" = "Spraakopname wordt niet opgeslagen als je deze post weggooit.";
+
+/* Title for alert when closing the post composer with a voice note */
+"composer.deletevoicenote.title" = "Post Weggooien?";
+
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "Selecteer alsjeblieft een andere video of tik op bewerken.";
 
