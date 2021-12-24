@@ -64,8 +64,17 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Поделиться";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Остановить";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Обновлить";
+
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Чтобы записывать звук, нажмите «Настройки» и затем включите микрофон";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Нет доступа к микрофону";
 
 /* Title for generic delete button. */
 "Delete" = "Удалить";
@@ -93,6 +102,9 @@
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Я";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Отменить";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Вы получите код подтверждения.\nМогут применяться тарифы оператора.";

@@ -94,6 +94,9 @@
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "من";
 
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "لغو";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "نظر نوشت: %@";
 

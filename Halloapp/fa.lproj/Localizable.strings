@@ -331,6 +331,12 @@
 /* Title for audio post composer */
 "composer.audio.title" = "پست صوتی جدید";
 
+/* Show the user that the title is tappable */
+"composer.deletevoicenote.message" = "ضبط صدا ذخیره نمیشود اگر این پست را لغو کنید.";
+
+/* Title for alert when closing the post composer with a voice note */
+"composer.deletevoicenote.title" = "لغو پست؟";
+
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "لطفاً‌ ویدیوی دیگری انتخاب کنید یا گزینه ویرایش را انتخاب کنید.";
 

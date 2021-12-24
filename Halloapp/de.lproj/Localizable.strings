@@ -124,6 +124,9 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Teilen";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Stopp";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Update";
 
@@ -156,6 +159,9 @@
 
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Initialisierungsfehler";
+
+/* No comment provided by engineer. */
+"Cancel" = "Abbrechen";
 
 /* Text shown at the top of the chat screen informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Der Kontakt ist gesperrt, zur Freigabe hier tippen";
@@ -200,7 +206,7 @@
 "chat.group.info.make.group.admin" = "Zum Gruppen-Admin machen";
 
 /* Text for menu option of messaging user */
-"chat.group.info.message.user" = "Nachricht erstellen";
+"chat.group.info.message.user" = "Nachricht senden";
 
 /* Text label shown when the user is not a member of the group */
 "chat.group.info.not.a.member.label" = "Du bist kein Mitglied dieser Gruppe";
@@ -251,10 +257,10 @@
 "chat.message.waiting" = "Auf Nachrichteneingang wird gewartet. Dies kann eine Weile dauern.";
 
 /* Alert message when missing microphone access */
-"chat.mic.access.denied.message" = "Für die Audioaufnahme bitte auf Einstellungen tippen, um das Mikrofon zu aktivieren";
+"chat.mic.access.denied.message" = "Für Audioaufnahmen bitte in den Einstellungen das Mikrofon aktivieren";
 
 /* Alert title when missing microphone access */
-"chat.mic.access.denied.title" = "Auf das Mikrofon kann nicht zugegriffen werden";
+"chat.mic.access.denied.title" = "Zugriff auf das Mikrofon nicht möglich";
 
 /* Text below the contact's name when the contact is online in the Chat Screen */
 "chat.online.label" = "online";
@@ -306,6 +312,30 @@
 
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "Beim Laden dieses Beitrags ist ein Fehler aufgetreten. Bitte versuche es später noch einmal.";
+
+/* Accessibility label for add images button */
+"composer.audio.a11y.addImages" = "Bilder hinzufügen";
+
+/* Accessibility label for sharing a post */
+"composer.audio.a11y.shareRecording" = "Teilen";
+
+/* Accessibility label for starting an audio recording */
+"composer.audio.a11y.startRecording" = "Aufnahme starten";
+
+/* Accessibility label for stopping an audio recording */
+"composer.audio.a11y.stopRecording" = "Aufnahme stoppen";
+
+/* Instructions for audio post composer */
+"composer.audio.instructions" = "Zum Aufnehmen tippen";
+
+/* Title for audio post composer */
+"composer.audio.title" = "Neuer Audiobeitrag";
+
+/* Show the user that the title is tappable */
+"composer.deletevoicenote.message" = "Die Sprachnotiz wird nicht gespeichert, wenn du diesen Beitrag verwirfst.";
+
+/* Title for alert when closing the post composer with a voice note */
+"composer.deletevoicenote.title" = "Beitrag verwerfen?";
 
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "Bitte wähle ein anderes Video aus oder tippe auf bearbeiten.";
@@ -387,6 +417,9 @@
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Text";
+
+/* VoiceOver label for voice note button in floating compose post menu in Home view. */
+"fab.accessibility.voice" = "Sprachnotiz";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "wird gelöscht...";
@@ -1159,17 +1192,29 @@
 /* Action that will occur when users delete their account */
 "settings.account.delete.bullet3" = "Deinen Chatverlauf auf diesem Gerät löschen";
 
+/* Button to continue to the next step of deleting account after warning */
+"settings.account.delete.continue.title" = "Weiter";
+
 /* Label telling the user that their account has been deleted */
 "settings.account.delete.deleted" = "Account wurde gelöscht";
 
 /* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
 "settings.account.delete.error" = "Beim Löschen deines Accounts ist ein Fehler aufgetreten. Bitte deine Handynummer überprüfen.";
 
+/* Text field label asking for feedback before deleting account */
+"settings.account.delete.feedback.prompt" = "Hast du Feedback für das Team von HalloApp? (optional)";
+
 /* Label above list of things that will happen if they delete their account */
 "settings.account.delete.header" = "Das Löschen deines Accounts wird:";
 
 /* Alert message telling the user that account deletion is irreversible */
 "settings.account.delete.irreversible.label" = "Dieser Vorgang kann nicht rückgängig gemacht werden";
+
+/* Text field placeholder for collecting feedback before deleing account */
+"settings.account.delete.phone.number.placeholder" = "Feedback";
+
+/* Text field label for account deletion phone number */
+"settings.account.delete.phone.number.prompt" = "Zur Bestätigung bitte deine Handynummer eingeben";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
 "settings.account.delete.spinner.replacement" = "Auf Serverantwort wird gewartet";
@@ -1343,7 +1388,10 @@
 "unknown.contact" = "Kontakt unbekannt";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
-"unknown.contact.accept.to.message" = "Nachricht annehmen, um zu antworten";
+"unknown.contact.accept.to.message" = "Nachricht annehmen";
+
+/* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
+"unknown.contact.not.in.contact.book" = "Dieser Absender ist nicht in deinen Kontakten.";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Blocken";

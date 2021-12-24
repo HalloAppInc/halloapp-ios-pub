@@ -124,6 +124,9 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Поделиться";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Остановить";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Обновить";
 
@@ -156,6 +159,9 @@
 
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Ошибка инициализации";
+
+/* No comment provided by engineer. */
+"Cancel" = "Отмена";
 
 /* Text shown at the top of the chat screen informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Контакт заблокирован, коснитесь, чтобы разблокировать";
@@ -307,6 +313,30 @@
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "При попытке загрузить эту публикацию произошла ошибка. Попробуйте снова позже.";
 
+/* Accessibility label for add images button */
+"composer.audio.a11y.addImages" = "Добавить изображения";
+
+/* Accessibility label for sharing a post */
+"composer.audio.a11y.shareRecording" = "Поделиться";
+
+/* Accessibility label for starting an audio recording */
+"composer.audio.a11y.startRecording" = "Начать запись";
+
+/* Accessibility label for stopping an audio recording */
+"composer.audio.a11y.stopRecording" = "Остановить запись";
+
+/* Instructions for audio post composer */
+"composer.audio.instructions" = "Нажмите, чтобы начать запись";
+
+/* Title for audio post composer */
+"composer.audio.title" = "Новая аудиозапись";
+
+/* Show the user that the title is tappable */
+"composer.deletevoicenote.message" = "Голосовая запись не будет сохранена, если вы откажетесь от этого поста.";
+
+/* Title for alert when closing the post composer with a voice note */
+"composer.deletevoicenote.title" = "Отменить пост?";
+
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "Выберите другое видео или коснитесь кнопки редактирования.";
 
@@ -336,6 +366,9 @@
 
 /* Feed Privacy indicator in post composer. */
 "composer.privacy.value.n.selected" = "composer.privacy.value.n.selected";
+
+/* Show the user that the title is tappable */
+"composer.subtitle.cta" = "Нажмите, чтобы изменить";
 
 /* No comment provided by engineer. */
 "CONNECTION" = "ПОДКЛЮЧЕНИЕ";
@@ -384,6 +417,9 @@
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Текст";
+
+/* VoiceOver label for voice note button in floating compose post menu in Home view. */
+"fab.accessibility.voice" = "Голосовая заметка";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Удаляем...";
@@ -451,14 +487,26 @@
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Делиться только с выбранными контактами";
 
+/* Header describing what these options are for */
+"feed.privacy.header" = "Кто увидит мои посты";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.all" = "Мои телефонные контакты";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Мои контакты, за исключением...";
 
+/* Header for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.details" = "Выберите, кто не увидит этот пост";
+
+/* Title for the list when selecting contacts to not share with. */
+"feed.privacy.list.except.title" = "Скрыть посты от ...";
+
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.only" = "Делиться только с...";
+
+/* Header for the list when selecting contacts to share with. */
+"feed.privacy.list.only.details" = "Выберите, кто увидит этот пост";
 
 /* Possible Feed Privacy setting value. */
 "feed.privacy.value.my.contacts" = "Мои телефонные контакты";
@@ -555,6 +603,9 @@
 
 /* Message text shown when you remove a group member */
 "group.event.removed.member.you" = "Ты удалил(-а) %1@";
+
+/* Indicates how many members are in the group */
+"group.feed.n.members" = "group.feed.n.members";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their group feed, in their newly created group */
 "group.feed.welcome.post.body" = "Поделитесь этой ссылкой с друзьями, и они автоматически присоединятся к вашей группе.";
@@ -934,6 +985,15 @@
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted.by.you" = "Вы удалили свой пост";
 
+/* Header when selecting all or some contacts to share with */
+"post.privacy.header.contacts" = "Кто увидит этот пост";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "Поделиться только с группой";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "Поделиться с ...";
+
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Заблокирован";
 
@@ -951,6 +1011,9 @@
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Разблокировать";
+
+/* Item in Profile > Calls screen. */
+"profile.help.calls" = "Звонки";
 
 /* Item in Profile > Help screen. */
 "profile.help.faq" = "Часто задаваемые вопросы";
@@ -1078,6 +1141,15 @@
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Пригласите друзей, чтобы они пользавали HalloApp!";
 
+/* body of the marketing alert to encourage more posting */
+"server.marketing.post.body" = "То, чем вы занимаетесь сейчас, может быть интересно вашим настоящим друзьям.";
+
+/* title of the marketing alert to encourage more posting */
+"server.marketing.post.title" = "Чем поделиться?";
+
+/* title of the marketing alert sent to users */
+"server.marketing.title" = "Алло всем!";
+
 /* fallback text in notification for a new comment */
 "server.new.comment" = "Новый комментарий";
 
@@ -1120,17 +1192,29 @@
 /* Action that will occur when users delete their account */
 "settings.account.delete.bullet3" = "Удалить историю сообщений на этом телефоне";
 
+/* Button to continue to the next step of deleting account after warning */
+"settings.account.delete.continue.title" = "Продолжать";
+
 /* Label telling the user that their account has been deleted */
 "settings.account.delete.deleted" = "Аккаунт удален";
 
 /* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
 "settings.account.delete.error" = "При удалении вашего аккаунта произошла ошибка. Пожалуйста, убедитесь, что ваш номер телефона указан верно.";
 
+/* Text field label asking for feedback before deleting account */
+"settings.account.delete.feedback.prompt" = "Есть ли отзывы для команды HalloApp? (По желанию)";
+
 /* Label above list of things that will happen if they delete their account */
 "settings.account.delete.header" = "При удалении вашего аккаунта:";
 
 /* Alert message telling the user that account deletion is irreversible */
 "settings.account.delete.irreversible.label" = "Это действие необратимо";
+
+/* Text field placeholder for collecting feedback before deleing account */
+"settings.account.delete.phone.number.placeholder" = "Отзывы";
+
+/* Text field label for account deletion phone number */
+"settings.account.delete.phone.number.prompt" = "Чтобы подтвердить, введите номер телефона";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
 "settings.account.delete.spinner.replacement" = "Ожидание ответа сервера";
@@ -1305,6 +1389,9 @@
 
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Примите сообщение, чтобы ответить";
+
+/* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
+"unknown.contact.not.in.contact.book" = "Этого номера нет в вашей контактной книге.";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Блокировать";

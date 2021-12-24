@@ -64,6 +64,9 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Compartir";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Parar";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Actualizar";
 
@@ -99,6 +102,9 @@
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Yo";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Descartar";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Recibirás un código de verificación.\nPueden aplicarse las tarifas del operador.";
