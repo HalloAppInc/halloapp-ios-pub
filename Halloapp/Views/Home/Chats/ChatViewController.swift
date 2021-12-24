@@ -292,14 +292,17 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 DDLogInfo("ChatViewController/didDiscoverNewUsers/update name if necessary")
                 guard let self = self else { return }
                 guard let userID = self.fromUserId else { return }
-                if newUserIDs.contains(userID) {
-                    self.titleView.refreshName(for: userID)
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    if newUserIDs.contains(userID) {
+                        self.titleView.refreshName(for: userID)
+                    }
+                    if let headerView = self.tableView.tableHeaderView as? ChatHeaderView {
+                        headerView.configureOrRefresh(with: userID)
+                    }
+                    self.chatInputView.isHidden = false
+                    self.unknownContactActionBanner.isHidden = true
                 }
-                if let headerView = self.tableView.tableHeaderView as? ChatHeaderView {
-                    headerView.configureOrRefresh(with: userID)
-                }
-                self.chatInputView.isHidden = false
-                self.unknownContactActionBanner.isHidden = true
             }
         )
 
