@@ -49,33 +49,9 @@ struct DeleteAccountView: View {
                 Spacer()
                 switch model.status {
                 case .warning:
-                    ExplanationView()
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(.deleteAccountHelperText)
+                    explanation
                 case .confirm:
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(Localizations.phoneNumberPrompt)
-                            .font(.system(size: 16, weight: .regular))
-                            .foregroundColor(.deleteAccountHelperText)
-                        DeleteAccountPhoneNumberTextField(phoneNumber: $model.phoneNumber)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .background(RoundedRectangle(cornerRadius: 5).fill(Color.deleteAccountFieldBackground))
-                            .shadow(color: .black.opacity(0.15), radius: 0, x: 0, y: 0.5)
-                            .padding(.bottom, 32)
-                        Text(Localizations.feedbackPrompt)
-                            .font(.system(size: 16, weight: .regular))
-                            .foregroundColor(.deleteAccountHelperText)
-                        DeleteAccountTextView(text: $model.feedback,
-                                              placeholder: Localizations.feedbackPlaceholder)
-                            .background(RoundedRectangle(cornerRadius: 5).fill(Color.deleteAccountFieldBackground))
-                            .shadow(color: .black.opacity(0.15), radius: 0, x: 0, y: 0.5)
-                            .frame(maxHeight:  90)
-                    }
-                    .alert(isPresented: $model.isShowingErrorMessage) {
-                        Alert(title: Text(Localizations.deletionError))
-                    }
+                    phoneNumberForm
                 case .waitingForResponse:
                     if #available(iOS 14, *) {
                         ProgressView()
@@ -92,35 +68,9 @@ struct DeleteAccountView: View {
 
                 if [.warning, .confirm].contains(model.status) {
                     if model.status == .warning {
-                        Button {
-                            withAnimation {
-                                model.status = .confirm
-                            }
-                        } label: {
-                            Text(Localizations.continueAction)
-                                .padding(12)
-                                .frame(minWidth: 170)
-                                .foregroundColor(.white)
-                                .background(Capsule())
-                                .accentColor(.deleteAccountContinueButtonBackground)
-                        }
+                        continueButton
                     } else if model.status == .confirm {
-                        Button(action: { isShowingConfirmationAlert = true }) {
-                            Text(Localizations.deleteAccountAction)
-                                .padding(12)
-                                .frame(minWidth: 170)
-                                .foregroundColor(.white)
-                                .background(Capsule())
-                                .accentColor(.lavaOrange)
-                        }
-                        .disabled(model.phoneNumber.isEmpty)
-                        .alert(isPresented: $isShowingConfirmationAlert, content: {
-                            Alert(title: Text(Localizations.deleteAccountAction),
-                                  message: Text(Localizations.irreversibleLabel),
-                                  primaryButton: .destructive(Text(Localizations.buttonDelete),
-                                                              action: model.requestAccountDeletion),
-                                  secondaryButton: .cancel({ model.phoneNumber = "" }))
-                        })
+                        confirmButton
                     }
 
                     Button(action: model.cancel) {
@@ -148,23 +98,82 @@ struct DeleteAccountView: View {
         }
     }
 
-    private struct ExplanationView: View {
+    private var phoneNumberForm: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(Localizations.phoneNumberPrompt)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.deleteAccountHelperText)
+            DeleteAccountPhoneNumberTextField(phoneNumber: $model.phoneNumber)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .fixedSize(horizontal: false, vertical: true)
+                .background(RoundedRectangle(cornerRadius: 5).fill(Color.deleteAccountFieldBackground))
+                .shadow(color: .black.opacity(0.15), radius: 0, x: 0, y: 0.5)
+                .padding(.bottom, 32)
+            Text(Localizations.feedbackPrompt)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.deleteAccountHelperText)
+            DeleteAccountTextView(text: $model.feedback,
+                                  placeholder: Localizations.feedbackPlaceholder)
+                .background(RoundedRectangle(cornerRadius: 5).fill(Color.deleteAccountFieldBackground))
+                .shadow(color: .black.opacity(0.15), radius: 0, x: 0, y: 0.5)
+                .frame(maxHeight:  90)
+        }
+        .alert(isPresented: $model.isShowingErrorMessage) {
+            Alert(title: Text(Localizations.deletionError))
+        }
+    }
 
-        private let accountDeletionActions: [String] = [
+    private var explanation: some View {
+        let accountDeletionActions: [String] = [
             Localizations.deletingAccountLabel1,
             Localizations.deletingAccountLabel2,
             Localizations.deletingAccountLabel3
         ]
 
-        var body: some View {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(Localizations.deletingAccountHeaderLabel)
-                ForEach(accountDeletionActions, id: \.self) { action in
-                    Text("• \(action)")
-                        .padding(.leading, 6)
-                }
+        return VStack(alignment: .leading, spacing: 2) {
+            Text(Localizations.deletingAccountHeaderLabel)
+            ForEach(accountDeletionActions, id: \.self) { action in
+                Text("• \(action)")
+                    .padding(.leading, 6)
             }
         }
+        .font(.system(size: 16, weight: .regular))
+        .foregroundColor(.deleteAccountHelperText)
+    }
+
+    private var continueButton: some View {
+        Button {
+            withAnimation {
+                model.status = .confirm
+            }
+        } label: {
+            Text(Localizations.continueAction)
+                .padding(12)
+                .frame(minWidth: 170)
+                .foregroundColor(.white)
+                .background(Capsule())
+                .accentColor(.deleteAccountContinueButtonBackground)
+        }
+    }
+
+    private var confirmButton: some View {
+        Button(action: { isShowingConfirmationAlert = true }) {
+            Text(Localizations.deleteAccountAction)
+                .padding(12)
+                .frame(minWidth: 170)
+                .foregroundColor(.white)
+                .background(Capsule())
+                .accentColor(.lavaOrange)
+        }
+        .disabled(model.phoneNumber.isEmpty)
+        .alert(isPresented: $isShowingConfirmationAlert, content: {
+            Alert(title: Text(Localizations.deleteAccountAction),
+                  message: Text(Localizations.irreversibleLabel),
+                  primaryButton: .destructive(Text(Localizations.buttonDelete),
+                                              action: model.requestAccountDeletion),
+                  secondaryButton: .cancel({ model.phoneNumber = "" }))
+        })
     }
 }
 

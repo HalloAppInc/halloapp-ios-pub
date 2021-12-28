@@ -166,11 +166,11 @@ extension SceneDelegate: UIWindowSceneDelegate {
         // explicitly call delegates for group invites for first app start up
         // wait a second or so for app to connect
         if let userActivity = connectionOptions.userActivities.first {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
                 self.scene(scene, continue: userActivity)
             }
         } else {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
                 self.scene(scene, openURLContexts: connectionOptions.urlContexts)
             }
         }

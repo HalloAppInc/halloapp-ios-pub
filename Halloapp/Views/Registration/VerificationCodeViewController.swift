@@ -238,16 +238,16 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
             errorLabel.alpha = 0
         }
 
-        let canEnterText = state == .enteringCode || state == .invalidCode || state == .requestError
+        let canEnterText = [.enteringCode, .invalidCode, .requestError].contains(state)
         textFieldCode.isEnabled = canEnterText
         if (canEnterText) {
             self.textFieldCode.becomeFirstResponder()
         }
 
-        let canRequestNewCodeByVoice = (state == .enteringCode && Date() > retryAvailableDate) || state == .invalidCode || state == .requestError
+        let canRequestNewCodeByVoice = (state == .enteringCode && Date() > retryAvailableDate) || [.invalidCode, .requestError].contains(state)
         buttonRetryCodeByVoiceRequest.isEnabled = canRequestNewCodeByVoice
 
-        let isWaiting = state == .requestingCode || state == .validatingCode
+        let isWaiting = [.requestingCode, .validatingCode].contains(state)
         if (isWaiting) {
             progressTimer = Timer.scheduledTimer(timeInterval: 0.001, target: self, selector: #selector(setWaitingProgress), userInfo: nil, repeats: true)
             progressBar.isHidden = false

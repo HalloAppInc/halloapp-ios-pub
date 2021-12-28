@@ -199,14 +199,14 @@ extension AvatarView {
 
         let isSquare = squareSize > 0
 
-        let radiusRatio: CGFloat = 16/52
+        let radiusRatio = CGFloat(16) / CGFloat(52)
 
         let borderRadius:CGFloat = {
             switch squareSize {
             case 1...50:
                 return 11
             default:
-                return CGFloat(squareSize)*radiusRatio
+                return squareSize * radiusRatio
             }
         }()
 

@@ -12,41 +12,6 @@ import CoreGraphics
 import SwiftUI
 
 extension UIImage {
-    public func aspectRatioCropped(heightToWidthRatio ratio: CGFloat) -> UIImage? {
-        guard let cgImage = self.cgImage else { return nil }
-
-        let degree90Orientations: [UIImage.Orientation] = [.left, .leftMirrored, .right, .rightMirrored]
-        let hasDegree90Orientation = degree90Orientations.contains(imageOrientation)
-        DDLogDebug("UIImage/aspectRatioCropped cgImage size: \(cgImage.width) \(cgImage.height) is90Degree: \(hasDegree90Orientation)")
-
-        var croppingRect = CGRect(x: 0, y: 0, width: cgImage.width, height: cgImage.height)
-        if !hasDegree90Orientation {
-            if CGFloat(cgImage.height) > ratio * CGFloat(cgImage.width) {
-                let croppedHeight = Int((ratio * CGFloat(cgImage.width)).rounded())
-                let yStart = (cgImage.height - croppedHeight) / 2
-                croppingRect = CGRect(x: 0, y: yStart, width: cgImage.width, height: croppedHeight)
-            } else if CGFloat(cgImage.height) < ratio * CGFloat(cgImage.width) {
-                let croppedWidth = Int((CGFloat(cgImage.height) / ratio).rounded())
-                let xStart = (cgImage.width - croppedWidth) / 2
-                croppingRect = CGRect(x: xStart, y: 0, width: croppedWidth, height: cgImage.height)
-            }
-        } else if hasDegree90Orientation {
-            if CGFloat(cgImage.width) > ratio * CGFloat(cgImage.height) {
-                let croppedWidth = Int((ratio * CGFloat(cgImage.height)).rounded())
-                let xStart = (cgImage.width - croppedWidth) / 2
-                croppingRect = CGRect(x: xStart, y: 0, width: croppedWidth, height: cgImage.height)
-            } else if CGFloat(cgImage.width) < ratio * CGFloat(cgImage.height) {
-                let croppedHeight = Int((CGFloat(cgImage.width) / ratio).rounded())
-                let yStart = (cgImage.height - croppedHeight) / 2
-                croppingRect = CGRect(x: 0, y: yStart, width: cgImage.width, height: croppedHeight)
-            }
-        }
-
-        DDLogDebug("UIImage/aspectRatioCropped crop rect: \(croppingRect)")
-        guard let cgImageResult = cgImage.cropping(to: croppingRect) else { return nil }
-        DDLogDebug("UIImage/aspectRatioCropped cropped size: \(cgImageResult.width) \(cgImageResult.height)")
-        return UIImage(cgImage: cgImageResult, scale: scale, orientation: imageOrientation)
-    }
 
     public func fastResized(to size: CGSize) -> UIImage? {
         if AppContext.shared.isAppExtension {
@@ -162,15 +127,16 @@ extension UIImage {
         let scaleX: CGFloat
         let scaleY: CGFloat
         let targetRect: CGRect
+        let imageSize = CGSize(width: image.width, height: image.height)
 
         switch self.imageOrientation {
         case .left, .right:
-            scaleX = size.width / CGFloat(image.height)
-            scaleY = size.height / CGFloat(image.width)
+            scaleX = size.width / imageSize.height
+            scaleY = size.height / imageSize.width
             targetRect = CGRect(x: 0, y: 0, width: size.height, height: size.width)
         default:
-            scaleX = size.width / CGFloat(image.width)
-            scaleY = size.height / CGFloat(image.height)
+            scaleX = size.width / imageSize.width
+            scaleY = size.height / imageSize.height
             targetRect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         }
 
@@ -190,7 +156,7 @@ extension UIImage {
         }
 
         // Round the target size here to make sure the image is drawn without misaligned issue.
-        var targetSize = CGSize(width: targetSize.width.rounded(), height: targetSize.height.rounded())
+        var targetSize = CGSize(width: round(targetSize.width), height: round(targetSize.height))
 
         guard self.size.width != 0 && self.size.height != 0 && targetSize.width != 0 && targetSize.height != 0 else { return nil }
 
@@ -201,9 +167,9 @@ extension UIImage {
         case .scaleAspectFit:
             let scaleFactor = min(scaleX, scaleY)
             if scaleX > scaleY {
-                targetSize.width = (scaleFactor * imageSize.width).rounded()
+                targetSize.width = round(scaleFactor * imageSize.width)
             } else {
-                targetSize.height = (scaleFactor * imageSize.height).rounded()
+                targetSize.height = round(scaleFactor * imageSize.height)
             }
             scaleX = scaleFactor
             scaleY = scaleFactor

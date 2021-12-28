@@ -10,39 +10,31 @@ import UIKit
 extension UIImageView {
     /// Sets a mask on the layer in order to round image corners based on current bounds. Assumes image has already been set and `contentMode` is `scaleAspectFit`.
     public func roundCorner(_ radius: CGFloat) {
-        guard let image = image else { return }
-        let boundsScale = bounds.size.width / bounds.size.height
-        let imageScale = image.size.width / image.size.height
-
-        var rect: CGRect = bounds
-
-        if boundsScale > imageScale {
-            rect.size.width =  rect.size.height * imageScale
-            rect.origin.x = (bounds.size.width - rect.size.width) / 2
-        } else {
-            rect.size.height = rect.size.width / imageScale
-            rect.origin.y = (bounds.size.height - rect.size.height) / 2
-        }
+        guard let imageRect = getImageRect() else { return }
 
         let mask = CAShapeLayer()
-        mask.path = UIBezierPath(roundedRect: rect, cornerRadius: radius).cgPath
+        mask.path = UIBezierPath(roundedRect: imageRect, cornerRadius: radius).cgPath
         layer.mask = mask
     }
 
     public func getImageRect() -> CGRect? {
         guard let image = image else { return nil }
-        let boundsScale = bounds.size.width / bounds.size.height
-        let imageScale = image.size.width / image.size.height
+        let viewSize = bounds.size
+        let imageSize = image.size
+        let boundsScale = viewSize.width / viewSize.height
+        let imageScale = imageSize.width / imageSize.height
 
-        var rect: CGRect = bounds
+        var imageRect = bounds
 
         if boundsScale > imageScale {
-            rect.size.width =  rect.size.height * imageScale
-            rect.origin.x = (bounds.size.width - rect.size.width) / 2
+            let width = viewSize.height * imageScale
+            imageRect.size.width = width
+            imageRect.origin.x = (viewSize.width - width) / CGFloat(2)
         } else {
-            rect.size.height = rect.size.width / imageScale
-            rect.origin.y = (bounds.size.height - rect.size.height) / 2
+            let height = viewSize.width / imageScale
+            imageRect.size.height = height
+            imageRect.origin.y = (viewSize.height - height) / CGFloat(2)
         }
-        return rect
+        return imageRect
     }
 }

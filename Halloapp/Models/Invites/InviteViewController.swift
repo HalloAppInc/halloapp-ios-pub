@@ -600,7 +600,6 @@ final class ActionCellView: UIView {
         button.setTitle(title, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
         button.setTitleColor(UIColor.primaryBlue, for: .normal)
-        button.centerVerticallyWithPadding(padding: 3)
         return button
     }
 }
@@ -785,18 +784,6 @@ final class InviteCellView: UIView {
         cell.nameLabel.text = " "
         cell.subtitleLabel.text = " \n \n "
         return cell
-    }
-
-    static func makeActionButton(image: UIImage?, title: String) -> UIButton {
-        let button = UIButton()
-        button.setImage(image, for: .normal)
-        button.setTitle(title, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 9)
-        button.setTitleColor(.secondaryLabel, for: .normal)
-        let width = max(button.titleLabel?.intrinsicContentSize.width ?? 0, image?.size.width ?? 0)
-        button.widthAnchor.constraint(equalToConstant: width).isActive = true
-        button.centerVerticallyWithPadding(padding: 3)
-        return button
     }
 }
 

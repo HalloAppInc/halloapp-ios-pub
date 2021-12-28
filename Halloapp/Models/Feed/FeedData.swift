@@ -1858,17 +1858,52 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.media?.forEach { feedPostMedia in
                 // Status could be "downloading" if download has previously started
                 // but the app was terminated before the download has finished.
-                if feedPostMedia.url != nil && (feedPostMedia.status == .none || feedPostMedia.status == .downloading || feedPostMedia.status == .downloadError) {
-                    let (taskAdded, task) = downloadManager.downloadMedia(for: feedPostMedia)
+                guard feedPostMedia.url != nil, [.none, .downloading, .downloadError].contains(feedPostMedia.status) else {
+                    return
+                }
+                let (taskAdded, task) = downloadManager.downloadMedia(for: feedPostMedia)
+                if taskAdded {
+                    switch feedPostMedia.type {
+                    case .image: photosDownloaded += 1
+                    case .video: videosDownloaded += 1
+                    case .audio: audiosDownloaded += 1
+                    }
+                    if startTime == nil {
+                        startTime = Date()
+                        DDLogInfo("FeedData/downloadMedia/post/\(feedPost.id)/starting")
+                    }
+                    postDownloadGroup.enter()
+                    var isDownloadInProgress = true
+                    cancellableSet.insert(task.downloadProgress.sink() { progress in
+                        if isDownloadInProgress && progress == 1 {
+                            totalDownloadSize += task.fileSize ?? 0
+                            isDownloadInProgress = false
+                            postDownloadGroup.leave()
+                        }
+                    })
+
+                    task.feedMediaObjectId = feedPostMedia.objectID
+                    feedPostMedia.status = .downloading
+                    downloadStarted = true
+                    // Add the mediaItem to a list - so that we can reload and update their UI.
+                    mediaItems.append((feedPost.id, Int(feedPostMedia.order)))
+                }
+            }
+            feedPost.linkPreviews?.forEach { linkPreview in
+                linkPreview.media?.forEach { linkPreviewMedia in
+                    guard linkPreviewMedia.url != nil, [.none, .downloading, .downloadError].contains(linkPreviewMedia.status) else {
+                        return
+                    }
+                    let (taskAdded, task) = downloadManager.downloadMedia(for: linkPreviewMedia)
                     if taskAdded {
-                        switch feedPostMedia.type {
+                        switch linkPreviewMedia.type {
                         case .image: photosDownloaded += 1
                         case .video: videosDownloaded += 1
                         case .audio: audiosDownloaded += 1
                         }
                         if startTime == nil {
                             startTime = Date()
-                            DDLogInfo("FeedData/downloadMedia/post/\(feedPost.id)/starting")
+                            DDLogInfo("FeedData/downloadMedia/post/linkPreview/post: \(feedPost.id)/link: \(String(describing: linkPreview.url)) starting")
                         }
                         postDownloadGroup.enter()
                         var isDownloadInProgress = true
@@ -1880,44 +1915,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                             }
                         })
 
-                        task.feedMediaObjectId = feedPostMedia.objectID
-                        feedPostMedia.status = .downloading
+                        task.feedMediaObjectId = linkPreviewMedia.objectID
+                        linkPreviewMedia.status = .downloading
                         downloadStarted = true
                         // Add the mediaItem to a list - so that we can reload and update their UI.
-                        mediaItems.append((feedPost.id, Int(feedPostMedia.order)))
-                    }
-                }
-            }
-            feedPost.linkPreviews?.forEach { linkPreview in
-                linkPreview.media?.forEach { linkPreviewMedia in
-                    if linkPreviewMedia.url != nil && (linkPreviewMedia.status == .none || linkPreviewMedia.status == .downloading || linkPreviewMedia.status == .downloadError) {
-                        let (taskAdded, task) = downloadManager.downloadMedia(for: linkPreviewMedia)
-                        if taskAdded {
-                            switch linkPreviewMedia.type {
-                            case .image: photosDownloaded += 1
-                            case .video: videosDownloaded += 1
-                            case .audio: audiosDownloaded += 1
-                            }
-                            if startTime == nil {
-                                startTime = Date()
-                                DDLogInfo("FeedData/downloadMedia/post/linkPreview/post: \(feedPost.id)/link: \(String(describing: linkPreview.url)) starting")
-                            }
-                            postDownloadGroup.enter()
-                            var isDownloadInProgress = true
-                            cancellableSet.insert(task.downloadProgress.sink() { progress in
-                                if isDownloadInProgress && progress == 1 {
-                                    totalDownloadSize += task.fileSize ?? 0
-                                    isDownloadInProgress = false
-                                    postDownloadGroup.leave()
-                                }
-                            })
-
-                            task.feedMediaObjectId = linkPreviewMedia.objectID
-                            linkPreviewMedia.status = .downloading
-                            downloadStarted = true
-                            // Add the mediaItem to a list - so that we can reload and update their UI.
-                            mediaItems.append((feedPost.id, Int(linkPreviewMedia.order)))
-                        }
+                        mediaItems.append((feedPost.id, Int(linkPreviewMedia.order)))
                     }
                 }
             }
@@ -1972,7 +1974,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     var audiosDownloaded = 0
                     var totalDownloadSize = 0
 
-                    if media.url != nil && (media.status == .none || media.status == .downloading || media.status == .downloadError) {
+                    if media.url != nil, [.none, .downloading, .downloadError].contains(media.status) {
                         let(taskAdded, task) = downloadManager.downloadMedia(for: media)
                         if taskAdded {
                             switch media.type
@@ -2024,13 +2026,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
             feedComment.linkPreviews?.forEach { linkPreview in
                 linkPreview.media?.forEach { linkPreviewMedia in
-                    if linkPreviewMedia.url != nil && (linkPreviewMedia.status == .none || linkPreviewMedia.status == .downloading || linkPreviewMedia.status == .downloadError) {
-                        let (taskAdded, task) = downloadManager.downloadMedia(for: linkPreviewMedia)
-                        if taskAdded {
-                            task.feedMediaObjectId = linkPreviewMedia.objectID
-                            linkPreviewMedia.status = .downloading
-                            downloadStarted = true
-                        }
+                    guard linkPreviewMedia.url != nil, [.none, .downloading, .downloadError].contains(linkPreviewMedia.status) else {
+                        return
+                    }
+                    let (taskAdded, task) = downloadManager.downloadMedia(for: linkPreviewMedia)
+                    if taskAdded {
+                        task.feedMediaObjectId = linkPreviewMedia.objectID
+                        linkPreviewMedia.status = .downloading
+                        downloadStarted = true
                     }
                 }
             }
@@ -2737,7 +2740,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         MainAppContext.shared.beginBackgroundTask(postId)
 
         // Either all media has already been uploaded or post does not contain media.
-        guard let mediaItemsToUpload = feedPost.media?.filter({ $0.status == .none || $0.status == .uploading || $0.status == .uploadError }), !mediaItemsToUpload.isEmpty else {
+        guard let mediaItemsToUpload = feedPost.media?.filter({ [.none, .uploading, .uploadError].contains($0.status) }), !mediaItemsToUpload.isEmpty else {
             send(post: feedPost)
             return
         }
@@ -2765,7 +2768,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
             DDLogDebug("FeedData/process-mediaItem: \(postId)/\(mediaItem.order), index: \(mediaIndex)")
-            if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty && mediaItem.key.isEmpty {
+            if let relativeFilePath = mediaItem.relativeFilePath, mediaItem.sha256.isEmpty, mediaItem.key.isEmpty {
                 let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
@@ -2820,12 +2823,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         return
                     }
                     self.send(post: feedPost)
+                    let numPhotos = mediaItemsToUpload.filter { $0.type == .image }.count
+                    let numVideos = mediaItemsToUpload.filter { $0.type == .video }.count
                     AppContext.shared.eventMonitor.observe(
                         .mediaUpload(
                             postID: postId,
                             duration: Date().timeIntervalSince(startTime),
-                            numPhotos: mediaItemsToUpload.filter { $0.type == .image }.count,
-                            numVideos: mediaItemsToUpload.filter { $0.type == .video }.count,
+                            numPhotos: numPhotos,
+                            numVideos: numVideos,
                             totalSize: totalUploadSize))
                 }
             }
@@ -2955,7 +2960,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             MainAppContext.shared.beginBackgroundTask(feedComment.id)
 
-            guard let mediaItemsToUpload = feedComment.media?.filter({ $0.status == .none || $0.status == .uploading || $0.status == .uploadError }), !mediaItemsToUpload.isEmpty else {
+            guard let mediaItemsToUpload = feedComment.media?.filter({ [.none, .uploading, .uploadError].contains($0.status) }), !mediaItemsToUpload.isEmpty else {
                 self.performSeriallyOnBackgroundContext { (managedObjectContext) in
                     guard let feedComment = self.feedComment(with: feedComment.id, in: managedObjectContext) else {
                         DDLogError("FeedData/missing-comment [\(feedComment.id)]")
@@ -3750,7 +3755,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         for post in posts {
             // Skip existing posts that have been decrypted successfully, else process these shared posts.
             if let existingPost = existingPosts[post.id] {
-                if existingPost.status == .rerequesting && (post.status == .received || post.status == .acked) {
+                if existingPost.status == .rerequesting, [.received, .acked].contains(post.status) {
                     DDLogInfo("FeedData/merge-data/already-exists [\(post.id)] override failed decryption.")
                 } else {
                     DDLogError("FeedData/merge-data/duplicate (pre-existing) [\(post.id)]")
@@ -3946,7 +3951,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Skip existing comments that have been decrypted successfully, else process these shared comments.
         if let existingComment = feedComment(with: sharedComment.id, in: managedObjectContext) {
-            if existingComment.status == .rerequesting && (sharedComment.status == .received || sharedComment.status == .acked) {
+            if existingComment.status == .rerequesting, [.received, .acked].contains(sharedComment.status) {
                 DDLogInfo("FeedData/mergeComment/already-exists [\(sharedComment.id)] override failed decryption.")
             } else {
                 DDLogError("FeedData/mergeComment/duplicate (pre-existing) [\(sharedComment.id)]")

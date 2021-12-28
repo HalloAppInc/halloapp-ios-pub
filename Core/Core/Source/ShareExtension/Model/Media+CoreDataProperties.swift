@@ -52,7 +52,9 @@ extension SharedMedia {
     @NSManaged private var height: Float
     public var size: CGSize {
         get {
-            return CGSize(width: CGFloat(width), height: CGFloat(height))
+            let width = CGFloat(width)
+            let height = CGFloat(height)
+            return CGSize(width: width, height: height)
         }
         set {
             width = Float(newValue.width)

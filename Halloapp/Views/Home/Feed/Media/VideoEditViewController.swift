@@ -239,14 +239,19 @@ class VideoEditViewController : UIViewController {
         guard interval.isNumeric else { return }
 
         playbackObserverToken = player.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 60), queue: .main) { [weak self] time in
-            guard let self = self else { return }
-            guard player.rate > 0 else { return }
+            guard let self = self, player.rate > 0 else { return }
 
-            let left = (self.rangeView.frame.width - self.rangeView.handleRadius) * self.media.start + self.rangeView.handleRadius - 1
-            let right = (self.rangeView.frame.width - self.rangeView.handleRadius) * self.media.end - 1
-            let current = (player.currentTime().seconds - self.startTime.seconds) / (self.endTime.seconds - self.startTime.seconds)
+            let currentTime = CGFloat(player.currentTime().seconds)
+            let startTime = CGFloat(self.startTime.seconds)
+            let endTime = CGFloat(self.endTime.seconds)
+            let handleRadius = self.rangeView.handleRadius
+            let availableWidth = self.rangeView.frame.width - handleRadius
 
-            self.playbackPosition.constant = (right - left) * min(max(current, 0), 1) + left
+            let left = availableWidth * self.media.start + handleRadius - 1.0
+            let right = availableWidth * self.media.end - 1.0
+            let current = (currentTime - startTime) / (endTime - startTime)
+
+            self.playbackPosition.constant = (right - left) * min(max(current, 0.0), 1.0) + left
         }
     }
 

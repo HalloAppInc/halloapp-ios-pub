@@ -267,7 +267,7 @@ public final class CryptoData {
 
     private let persistentStoreURL: URL
     private let queue = DispatchQueue(label: "com.halloapp.crypto-stats")
-    private let deadline = TimeInterval(24*60*60) // 24 hour deadline
+    private let deadline = TimeInterval(86400) // 24*60*60, 24 hour deadline
 
     private var reportTimer: DispatchSourceTimer?
 

@@ -143,24 +143,26 @@ class ChangeDestinationViewController: UIViewController {
                 if let cell = cell as? ContactsCell {
                     let privacySettings = MainAppContext.shared.privacySettings
 
+                    let isDestinationUserFeed = self.destination == .userFeed
+                    let activePrivacyListType = privacySettings.activeType
                     switch indexPath.row {
                     case 0:
                         cell.configure(
                             title: PrivacyList.name(forPrivacyListType: .all),
                             subtitle: Localizations.feedPrivacyShareWithAllContacts,
-                            isSelected: self.destination == .userFeed && privacySettings.activeType == .all,
+                            isSelected: isDestinationUserFeed && activePrivacyListType == .all,
                             hasNext: false)
                     case 1:
                         cell.configure(
                             title: PrivacyList.name(forPrivacyListType: .blacklist),
-                            subtitle: privacySettings.activeType == .blacklist ? privacySettings.longFeedSetting : Localizations.feedPrivacyShareWithContactsExcept,
-                            isSelected: self.destination == .userFeed && privacySettings.activeType == .blacklist,
+                            subtitle: activePrivacyListType == .blacklist ? privacySettings.longFeedSetting : Localizations.feedPrivacyShareWithContactsExcept,
+                            isSelected: isDestinationUserFeed && activePrivacyListType == .blacklist,
                             hasNext: true)
                     case 2:
                         cell.configure(
                             title: PrivacyList.name(forPrivacyListType: .whitelist),
-                            subtitle: privacySettings.activeType == .whitelist ? privacySettings.longFeedSetting : Localizations.feedPrivacyShareWithSelected,
-                            isSelected: self.destination == .userFeed && privacySettings.activeType == .whitelist,
+                            subtitle: activePrivacyListType == .whitelist ? privacySettings.longFeedSetting : Localizations.feedPrivacyShareWithSelected,
+                            isSelected: isDestinationUserFeed && activePrivacyListType == .whitelist,
                             hasNext: true)
                     default:
                         break

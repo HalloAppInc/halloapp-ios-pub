@@ -1185,8 +1185,7 @@ class ChatData: ObservableObject {
             DDLogInfo("ChatData/mergeSharedData/message/\(messageId)")
 
             if let existingChatmessage = chatMessage(with: messageId, in: managedObjectContext) {
-                if existingChatmessage.incomingStatus == .rerequesting &&
-                    (message.status == .received || message.status == .acked) {
+                if existingChatmessage.incomingStatus == .rerequesting, [.received, .acked].contains(message.status) {
                     DDLogInfo("ChatData/mergeSharedData/already-exists [\(messageId)] override failed decryption.")
                 } else {
                     DDLogError("ChatData/mergeSharedData/already-exists [\(messageId)] dont override/status: \(existingChatmessage.incomingStatusValue)")
@@ -1255,7 +1254,7 @@ class ChatData: ObservableObject {
                 continue
             }
             // Check if the message is an incoming message.
-            let isIncomingMsg = message.status == .received || message.status == .acked
+            let isIncomingMsg = [.received, .acked].contains(message.status)
 
             switch chatContent {
             case .album(let text, _):

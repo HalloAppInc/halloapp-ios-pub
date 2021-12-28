@@ -127,7 +127,7 @@ class PillView: ShapeView {
     }
 
     private func reloadPath() {
-        let radius = min(bounds.height / 2, bounds.width / 2).rounded()
+        let radius = round(min(bounds.height, bounds.width) / CGFloat(2))
         path = UIBezierPath(roundedRect: bounds, cornerRadius: radius)
     }
 }
@@ -162,7 +162,7 @@ class RingView: ShapeView {
     }
 
     private func reloadPath() {
-        let radius = min(bounds.height / 2, bounds.width / 2) - 0.5*lineWidth
+        let radius = (min(bounds.height, bounds.width) - lineWidth) / CGFloat(2)
         path = UIBezierPath(arcCenter: center, radius: radius, startAngle: 0, endAngle: 2*CGFloat.pi, clockwise: true)
     }
 

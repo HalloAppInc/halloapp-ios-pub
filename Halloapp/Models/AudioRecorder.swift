@@ -21,6 +21,11 @@ protocol AudioRecorderDelegate: AnyObject {
 class AudioRecorder {
     private static let fileNamePrefix = "audio-recording-"
 
+    // keep recordings up to 48 hours
+    private class var recordingExpiryDate: Date {
+        return Date().addingTimeInterval(Date.hours(-48))
+    }
+
     public weak var delegate: AudioRecorderDelegate?
     public var url: URL? { recorder?.url }
     private(set) var isRecording = false
@@ -244,7 +249,7 @@ class AudioRecorder {
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
 
         do {
-            let limit = Date().addingTimeInterval(-TimeInterval(60 * 60 * 48))
+            let limit = Self.recordingExpiryDate
             let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
 
             // keep recordings up to 48 hours
@@ -260,8 +265,7 @@ class AudioRecorder {
     }
 
     private func removeOldRecordings() {
-        // keep recordings up to 48 hours
-        let limit = Date().addingTimeInterval(-TimeInterval(60 * 60 * 48))
+        let limit = Self.recordingExpiryDate
 
         do {
             let contents = try FileManager.default.contentsOfDirectory(at: FileManager.default.temporaryDirectory, includingPropertiesForKeys: [.creationDateKey], options: .skipsHiddenFiles)

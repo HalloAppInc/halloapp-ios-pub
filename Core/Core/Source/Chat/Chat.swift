@@ -358,7 +358,8 @@ public struct XMPPChatMedia {
     public init?(protoMedia: Clients_Media) {
         guard let type = ChatMessageMediaType(clientsMediaType: protoMedia.type) else { return nil }
         guard let url = URL(string: protoMedia.downloadURL) else { return nil }
-        let width = CGFloat(protoMedia.width), height = CGFloat(protoMedia.height)
+        let width = CGFloat(protoMedia.width)
+        let height = CGFloat(protoMedia.height)
         guard (width > 0 && height > 0) || type == .audio  else { return nil }
 
         self.url = url
