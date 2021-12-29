@@ -2,3 +2,5 @@
 Pods/
 xcuserdata/
 *.swp
+# fastlane specific
+**/fastlane/report.xml

@@ -1,0 +1,67 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+default_platform(:ios)
+
+opt_out_usage
+
+before_all do |lane|
+  ensure_env_vars(env_vars: ['APPLE_ID'])
+end
+
+platform :ios do
+  lane :update_build_number do
+    build_number = get_build_number(xcodeproj: "HalloApp.xcodeproj").to_i + 1
+    increment_build_number(
+      build_number: build_number,
+      xcodeproj: "Core/Core.xcodeproj",
+      skip_info_plist: true
+    )
+    increment_build_number(
+      build_number: build_number,
+      xcodeproj: "HalloApp.xcodeproj",
+      skip_info_plist: true
+    )
+  end
+
+  lane :new_build do
+    import_localizations
+    build
+    update_build_number
+  end
+
+  lane :build do
+    build_app(
+      scheme: 'Halloapp',
+      export_method: "app-store",
+      include_bitcode: true,
+      include_symbols: true,
+      skip_profile_detection: true,
+      xcargs: "-allowProvisioningUpdates")
+  end
+
+  lane :upload_symbols do
+    ensure_env_vars(env_vars: ['SENTRY_AUTH_TOKEN'])
+    download_dsyms(version: 'latest')
+    upload_symbols_to_crashlytics(gsp_path: 'HalloApp/GoogleService-Info.plist', binary_path: 'scripts/upload-symbols-to-crashlytics')
+    sentry_upload_dsym(auth_token: ENV['SENTRY_AUTH_TOKEN'], org_slug: 'halloapp', project_slug: 'halloapp-ios')
+    clean_build_artifacts
+  end
+
+  # ensure that jq is installed before running `brew install jq`
+  lane :import_localizations do
+    ensure_env_vars(env_vars: ['POEDITOR_API_TOKEN'])
+    Dir.chdir("..") do
+      sh('scripts/localize.sh', '-t', ENV['POEDITOR_API_TOKEN'])
+    end
+  end
+end

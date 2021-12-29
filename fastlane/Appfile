@@ -1,0 +1,2 @@
+app_identifier "com.halloapp.hallo"
+apple_id ENV["APPLE_ID"]
