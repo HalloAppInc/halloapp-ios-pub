@@ -136,6 +136,8 @@
 		EAAE7B5224DD2C3000946B77 /* MessageKey+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4824DD2C3000946B77 /* MessageKey+CoreDataProperties.swift */; };
 		EAF47E0A251D80930056196F /* GroupAvatar+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF47E08251D80930056196F /* GroupAvatar+CoreDataClass.swift */; };
 		EAF47E0B251D80930056196F /* GroupAvatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF47E09251D80930056196F /* GroupAvatar+CoreDataProperties.swift */; };
+		F49D1950277BA3400004BD30 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F49D194F277BA3400004BD30 /* Sentry */; };
+		F483CDD0277BF203004C48EA /* SentryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F483CDCF277BF203004C48EA /* SentryLogger.swift */; };
 		F86919E226397F0C00B01306 /* UIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86919E126397F0C00B01306 /* UIImageView.swift */; };
 		F8DFCD8F262F0F6E003F850F /* GroupList.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCD8E262F0F6E003F850F /* GroupList.swift */; };
 /* End PBXBuildFile section */
@@ -271,6 +273,7 @@
 		EAAE7B4824DD2C3000946B77 /* MessageKey+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageKey+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAF47E08251D80930056196F /* GroupAvatar+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupAvatar+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAF47E09251D80930056196F /* GroupAvatar+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupAvatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		F483CDCF277BF203004C48EA /* SentryLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentryLogger.swift; sourceTree = "<group>"; };
 		F86919E126397F0C00B01306 /* UIImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageView.swift; sourceTree = "<group>"; };
 		F8DFCD8E262F0F6E003F850F /* GroupList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupList.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -285,6 +288,7 @@
 				7681242B2486D4E6008C5216 /* CryptoSwift in Frameworks */,
 				ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */,
 				7681240D24861634008C5216 /* SwiftProtobuf in Frameworks */,
+				F49D1950277BA3400004BD30 /* Sentry in Frameworks */,
 				68BB004E268A7A1800425EEB /* CocoaLumberjack in Frameworks */,
 				6841289826A80CB20000DCE4 /* FirebaseCrashlytics in Frameworks */,
 				68BB004C268A7A1800425EEB /* CocoaLumberjackSwift in Frameworks */,
@@ -528,6 +532,7 @@
 				768123D12485DBE2008C5216 /* LogFormatter.swift */,
 				7656F93124BCE66500F00AF7 /* LogFileManager.swift */,
 				6A1B25262630BD0600D8BC60 /* CrashlyticsLogger.swift */,
+				F483CDCF277BF203004C48EA /* SentryLogger.swift */,
 			);
 			path = Logging;
 			sourceTree = "<group>";
@@ -703,6 +708,7 @@
 				68BB004B268A7A1800425EEB /* CocoaLumberjackSwift */,
 				68BB004D268A7A1800425EEB /* CocoaLumberjack */,
 				6841289726A80CB20000DCE4 /* FirebaseCrashlytics */,
+				F49D194F277BA3400004BD30 /* Sentry */,
 			);
 			productName = Core;
 			productReference = 768123B82485D9C7008C5216 /* Core.framework */;
@@ -740,6 +746,7 @@
 				686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */,
 				68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */,
 				6841289626A80CB20000DCE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				F49D194E277BA33F0004BD30 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			productRefGroup = 768123B92485D9C7008C5216 /* Products */;
 			projectDirPath = "";
@@ -884,6 +891,7 @@
 				68101F2C25CDE7CA005CD704 /* Keys.swift in Sources */,
 				68D64BFC25EEE220000AB07C /* Whisper.swift in Sources */,
 				681811D325E9AB6D00F9126C /* MessageCrypter.swift in Sources */,
+				F483CDD0277BF203004C48EA /* SentryLogger.swift in Sources */,
 				246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */,
 				76608ECD24EC2B5100DD61C3 /* Chat.swift in Sources */,
 				68A64E8224D22E5500F40F1F /* NSRange.swift in Sources */,
@@ -1275,6 +1283,14 @@
 				version = 5.4.1;
 			};
 		};
+		F49D194E277BA33F0004BD30 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1317,6 +1333,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 76E5152D24A1761E003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
+		};
+		F49D194F277BA3400004BD30 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F49D194E277BA33F0004BD30 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
 		};
 /* End XCSwiftPackageProductDependency section */
 
