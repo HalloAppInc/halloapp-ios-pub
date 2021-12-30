@@ -154,8 +154,21 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     static private let cellReuseIdentifierVideo = "MediaCarouselCellVideo"
     static private let cellReuseIdentifierEmpty = "MediaCarouselCellEmpty"
 
+    private class MediaCarouselCollectionViewLayout: UICollectionViewFlowLayout {
+
+        override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
+            return collectionView?.bounds.size != newBounds.size
+        }
+
+        override func invalidationContext(forBoundsChange newBounds: CGRect) -> UICollectionViewLayoutInvalidationContext {
+            let invalidationContext = UICollectionViewFlowLayoutInvalidationContext()
+            invalidationContext.invalidateFlowLayoutDelegateMetrics = true
+            return invalidationContext
+        }
+    }
+
     private lazy var collectionView: UICollectionView = {
-        let layout = UICollectionViewFlowLayout()
+        let layout = MediaCarouselCollectionViewLayout()
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
         layout.itemSize = UICollectionViewFlowLayout.automaticSize
         layout.minimumInteritemSpacing = 0

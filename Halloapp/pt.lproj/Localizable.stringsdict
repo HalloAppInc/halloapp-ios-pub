@@ -199,7 +199,7 @@
 	<key>picker.media.n.limit</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@max_photos@</string>
+		<string>%#@max_fotos@</string>
 		<key>max_photos</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>

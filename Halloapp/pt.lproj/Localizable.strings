@@ -383,7 +383,7 @@
 "contacts.permission.explanation.title" = "Contatos";
 
 /* Title for tutorial explaining how user can enable contacts permission */
-"contacts.permission.tutorial.title" = "Contatos";
+"contacts.permission.tutorial.title" = "Como ativar “Contatos”";
 
 /* The default name given to new groups when the user is in Zero Zone (no contacts) */
 "create.group.default.name.my.new.group" = "Meu novo grupo";
@@ -479,10 +479,10 @@
 "feed.posting" = "A publicar...";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Partilhar com todos os seus contatos";
+"feed.privacy.descr.all" = "Compartilhar com todos os seus contatos";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.except" = "Partilhar com os seus contatos, exceto com pessoas que selecionar";
+"feed.privacy.descr.except" = "Compartilhar com os seus contatos, exceto com pessoas selecionadas";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.only" = "Partilhar apenas com contatos selecionados";
@@ -491,7 +491,7 @@
 "feed.privacy.header" = "Quem verá minhas postagens";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
-"feed.privacy.list.all" = "Os meus contatos telefónicos";
+"feed.privacy.list.all" = "Meus Contatos";
 
 /* Settings > Privacy > Posts: one of the possible setting values. */
 "feed.privacy.list.except" = "Os meus contatos, exceto...";
@@ -509,7 +509,7 @@
 "feed.privacy.list.only.details" = "Selecione quem verá esta postagem";
 
 /* Possible Feed Privacy setting value. */
-"feed.privacy.value.my.contacts" = "Os meus contatos telefónicos";
+"feed.privacy.value.my.contacts" = "Meus Contatos";
 
 /* Possible Feed Privacy setting value. Can be longer. */
 "feed.privacy.value.n.contacts.excluded" = "feed.privacidade.valor.n.contatos.excluídos";
@@ -533,7 +533,7 @@
 "feedpost.button.comment" = "Comentar";
 
 /* Button under someoneelse's post. Verb. */
-"feedpost.button.reply" = "Responder";
+"feedpost.button.reply" = "Responder em privado";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Adicionar descrição do grupo";
@@ -665,7 +665,7 @@
 "group.preview.join.error.title" = "Não é possível entrar no grupo";
 
 /* Label for joining group action */
-"group.preview.join.group" = "ENTRAR NO GRUPO";
+"group.preview.join.group" = "Participar do Grupo";
 
 /* Text shown to tell user the group title is tappable */
 "group.title.tap.for.info" = "Toque aqui para obter informações do grupo";
@@ -746,7 +746,7 @@
 "invite.text.specific" = "Ei %1$@, tenho um convite para se juntar a mim no HalloApp — uma rede de relacionamento real para aqueles mais próximos de mim. Use %2$@ para se registar. Obtenha-o em https://halloapp.com/dl";
 
 /* Title for the screen that allows to select contact to invite. */
-"invite.title" = "Convidar";
+"invite.title" = "Convidar Amigos";
 
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "Convidar por link";
@@ -812,7 +812,7 @@
 "media.save.not.saved" = "A foto não pôde ser guardada";
 
 /* Label indicating that media was successfully saved to the camera roll */
-"media.save.saved" = "Guardado";
+"media.save.saved" = "Salvos na Galeria de Fotos ";
 
 /* Accessibility label for X (Close) button in media editor. */
 "media.voiceover.button.close" = "Fechar";
@@ -977,7 +977,7 @@
 "post.controller.picker.title" = "Nova Publicação";
 
 /* Displayed in place of a deleted feed post. */
-"post.has.been.deleted" = "Esta publicaçāo foi apagada";
+"post.has.been.deleted" = "Esta publicaçāo foi removida";
 
 /* Displayed in place of a deleted feed post. */
 "post.has.been.deleted.by.author" = "%@ apagou a sua publicaçāo";
@@ -1283,7 +1283,7 @@
 "settings.privacy.posts" = "Publicações";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Junte-se a mim no HalloApp. Faça download gratuitamente em halloapp.com/dl";
+"settings.share.text" = "Junte-se à minha rede de relacionamento real no HalloApp. Baixe gratuitamente em halloapp.com/dl";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Adicionar à lista de leitura";
@@ -1388,7 +1388,7 @@
 "unknown.contact" = "Contato desconhecido";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
-"unknown.contact.accept.to.message" = "Aceitar mensagem para responder";
+"unknown.contact.accept.to.message" = "Aceitar Mensagem de contato desconhecido ";
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Este usuário não está em sua lista de contatos.";
