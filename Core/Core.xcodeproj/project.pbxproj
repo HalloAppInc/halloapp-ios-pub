@@ -118,7 +118,6 @@
 		76E5152F24A1761E003F1273 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 76E5152E24A1761E003F1273 /* Alamofire */; };
 		76E5153824A18171003F1273 /* Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E5153724A18171003F1273 /* Digest.swift */; };
 		76F45E0024D226D300EFA301 /* ServerProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F45DFF24D226D300EFA301 /* ServerProperties.swift */; };
-		ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3156278C2E59CE6580A649AA /* Pods_Core.framework */; };
 		E59596ED268D1E6200AA3BB9 /* server.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59596EC268D1E6200AA3BB9 /* server.pb.swift */; };
 		EA5A7AD3258B30BE0019BDDB /* UIDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5A7AD2258B30BE0019BDDB /* UIDevice.swift */; };
 		EAAE7B3724DCD98C00946B77 /* Keys.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B3524DCD98C00946B77 /* Keys.xcdatamodeld */; };
@@ -136,8 +135,10 @@
 		EAAE7B5224DD2C3000946B77 /* MessageKey+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4824DD2C3000946B77 /* MessageKey+CoreDataProperties.swift */; };
 		EAF47E0A251D80930056196F /* GroupAvatar+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF47E08251D80930056196F /* GroupAvatar+CoreDataClass.swift */; };
 		EAF47E0B251D80930056196F /* GroupAvatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF47E09251D80930056196F /* GroupAvatar+CoreDataProperties.swift */; };
-		F49D1950277BA3400004BD30 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F49D194F277BA3400004BD30 /* Sentry */; };
+		F4215B9E277D4B2500C37FD6 /* Sodium.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4215B9D277D4B2500C37FD6 /* Sodium.swift */; };
+		F47C3079277D475E007DC248 /* Sodium in Frameworks */ = {isa = PBXBuildFile; productRef = F47C3078277D475E007DC248 /* Sodium */; };
 		F483CDD0277BF203004C48EA /* SentryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F483CDCF277BF203004C48EA /* SentryLogger.swift */; };
+		F49D1950277BA3400004BD30 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F49D194F277BA3400004BD30 /* Sentry */; };
 		F86919E226397F0C00B01306 /* UIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86919E126397F0C00B01306 /* UIImageView.swift */; };
 		F8DFCD8F262F0F6E003F850F /* GroupList.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCD8E262F0F6E003F850F /* GroupList.swift */; };
 /* End PBXBuildFile section */
@@ -155,7 +156,6 @@
 		24AA69D724DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedChatMessage+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedChatMessage+CoreDataClass.swift"; sourceTree = "<group>"; };
 		24D743C624AEA821001111BF /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
-		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		321A700A2704E527005603B8 /* LinkPreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreviewData.swift; sourceTree = "<group>"; };
 		321A700C2704E562005603B8 /* Proto+LinkPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Proto+LinkPreview.swift"; sourceTree = "<group>"; };
 		321A701627050582005603B8 /* SharedFeedLinkPreview+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedLinkPreview+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -164,8 +164,6 @@
 		327334EE2672A2EA006E31E5 /* RegistrationService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegistrationService.swift; sourceTree = "<group>"; };
 		327334EF2672A2EA006E31E5 /* RegistrationManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegistrationManager.swift; sourceTree = "<group>"; };
 		327334F22672A5C3006E31E5 /* Locale.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Locale.swift; sourceTree = "<group>"; };
-		4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.release.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.release.xcconfig"; sourceTree = "<group>"; };
-		5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.debug.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.debug.xcconfig"; sourceTree = "<group>"; };
 		68101F2B25CDE7CA005CD704 /* Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keys.swift; sourceTree = "<group>"; };
 		681811D225E9AB6D00F9126C /* MessageCrypter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCrypter.swift; sourceTree = "<group>"; };
 		681811D525E9ABB300F9126C /* WhisperSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperSession.swift; sourceTree = "<group>"; };
@@ -254,8 +252,6 @@
 		76E5153524A180B9003F1273 /* CryptoKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoKit.framework; path = System/Library/Frameworks/CryptoKit.framework; sourceTree = SDKROOT; };
 		76E5153724A18171003F1273 /* Digest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Digest.swift; sourceTree = "<group>"; };
 		76F45DFF24D226D300EFA301 /* ServerProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProperties.swift; sourceTree = "<group>"; };
-		A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.external beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.external beta.xcconfig"; sourceTree = "<group>"; };
-		C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.internal beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.internal beta.xcconfig"; sourceTree = "<group>"; };
 		E59596EC268D1E6200AA3BB9 /* server.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = server.pb.swift; sourceTree = "<group>"; };
 		EA5A7AD2258B30BE0019BDDB /* UIDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIDevice.swift; sourceTree = "<group>"; };
 		EAAE7B3624DCD98C00946B77 /* Keys.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Keys.xcdatamodel; sourceTree = "<group>"; };
@@ -273,6 +269,7 @@
 		EAAE7B4824DD2C3000946B77 /* MessageKey+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageKey+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAF47E08251D80930056196F /* GroupAvatar+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupAvatar+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAF47E09251D80930056196F /* GroupAvatar+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupAvatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		F4215B9D277D4B2500C37FD6 /* Sodium.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sodium.swift; sourceTree = "<group>"; };
 		F483CDCF277BF203004C48EA /* SentryLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentryLogger.swift; sourceTree = "<group>"; };
 		F86919E126397F0C00B01306 /* UIImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageView.swift; sourceTree = "<group>"; };
 		F8DFCD8E262F0F6E003F850F /* GroupList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupList.swift; sourceTree = "<group>"; };
@@ -286,13 +283,13 @@
 				76E5152F24A1761E003F1273 /* Alamofire in Frameworks */,
 				768124222486CF8E008C5216 /* PhoneNumberKit in Frameworks */,
 				7681242B2486D4E6008C5216 /* CryptoSwift in Frameworks */,
-				ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */,
 				7681240D24861634008C5216 /* SwiftProtobuf in Frameworks */,
 				F49D1950277BA3400004BD30 /* Sentry in Frameworks */,
 				68BB004E268A7A1800425EEB /* CocoaLumberjack in Frameworks */,
 				6841289826A80CB20000DCE4 /* FirebaseCrashlytics in Frameworks */,
 				68BB004C268A7A1800425EEB /* CocoaLumberjackSwift in Frameworks */,
 				686A1034259152F100F7B53F /* SwiftNoise in Frameworks */,
+				F47C3079277D475E007DC248 /* Sodium in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -361,18 +358,6 @@
 				68416B5E26D4798D00C9C593 /* NoiseRegistrationService.swift */,
 			);
 			path = Registration;
-			sourceTree = "<group>";
-		};
-		65D497413B5EACBECD8FBCC7 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */,
-				4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */,
-				C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */,
-				A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */,
-			);
-			name = Pods;
-			path = ../Pods;
 			sourceTree = "<group>";
 		};
 		688D8A1C24ED976900258BB9 /* Mentions */ = {
@@ -472,7 +457,6 @@
 				686A10392591539E00F7B53F /* swift-noise-protocol */,
 				768123BA2485D9C7008C5216 /* Core */,
 				768123B92485D9C7008C5216 /* Products */,
-				65D497413B5EACBECD8FBCC7 /* Pods */,
 				7904EFB5FE9F0DA682540C44 /* Frameworks */,
 			);
 			sourceTree = "<group>";
@@ -620,6 +604,7 @@
 				76E00DF024F786A100E06252 /* Data.swift */,
 				EA5A7AD2258B30BE0019BDDB /* UIDevice.swift */,
 				F86919E126397F0C00B01306 /* UIImageView.swift */,
+				F4215B9D277D4B2500C37FD6 /* Sodium.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -628,7 +613,6 @@
 			isa = PBXGroup;
 			children = (
 				76E5153524A180B9003F1273 /* CryptoKit.framework */,
-				3156278C2E59CE6580A649AA /* Pods_Core.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -688,7 +672,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 768123C02485D9C7008C5216 /* Build configuration list for PBXNativeTarget "Core" */;
 			buildPhases = (
-				32195E68F9DABA17E1A67228 /* [CP] Check Pods Manifest.lock */,
 				768123B32485D9C7008C5216 /* Headers */,
 				768123B42485D9C7008C5216 /* Sources */,
 				768123B52485D9C7008C5216 /* Frameworks */,
@@ -709,6 +692,7 @@
 				68BB004D268A7A1800425EEB /* CocoaLumberjack */,
 				6841289726A80CB20000DCE4 /* FirebaseCrashlytics */,
 				F49D194F277BA3400004BD30 /* Sentry */,
+				F47C3078277D475E007DC248 /* Sodium */,
 			);
 			productName = Core;
 			productReference = 768123B82485D9C7008C5216 /* Core.framework */;
@@ -747,6 +731,7 @@
 				68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */,
 				6841289626A80CB20000DCE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				F49D194E277BA33F0004BD30 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
+				F47C3077277D475E007DC248 /* XCRemoteSwiftPackageReference "swift-sodium" */,
 			);
 			productRefGroup = 768123B92485D9C7008C5216 /* Products */;
 			projectDirPath = "";
@@ -766,31 +751,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		32195E68F9DABA17E1A67228 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Core-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		768123B42485D9C7008C5216 /* Sources */ = {
@@ -861,6 +821,7 @@
 				F8DFCD8F262F0F6E003F850F /* GroupList.swift in Sources */,
 				6A6BBAF22767A4B10063E8BC /* MainDataStore.swift in Sources */,
 				EAAE7B4E24DD2C3000946B77 /* SignedPreKey+CoreDataProperties.swift in Sources */,
+				F4215B9E277D4B2500C37FD6 /* Sodium.swift in Sources */,
 				68F935BD252BED9A00FA6E75 /* EventMonitor.swift in Sources */,
 				EAAE7B4C24DD2C3000946B77 /* MessageKeyBundle+CoreDataProperties.swift in Sources */,
 				EA5A7AD3258B30BE0019BDDB /* UIDevice.swift in Sources */,
@@ -1052,7 +1013,6 @@
 		};
 		768123C12485D9C7008C5216 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
@@ -1083,7 +1043,6 @@
 		};
 		768123C22485D9C7008C5216 /* Internal Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
@@ -1173,7 +1132,6 @@
 		};
 		76F43F37248B20F700D47920 /* External Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
@@ -1232,7 +1190,7 @@
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
 			requirement = {
 				kind = exactVersion;
-				version = 8.5.0;
+				version = 8.10.0;
 			};
 		};
 		686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */ = {
@@ -1240,7 +1198,7 @@
 			repositoryURL = "https://github.com/samueltangz/swift-noise-protocol.git";
 			requirement = {
 				kind = revision;
-				revision = 4fd493ae25cb74e65a2ac2d7635a73a4f2af67a4;
+				revision = 88208be166a6101402bf898d7eb477c35c49d00b;
 			};
 		};
 		68BB004A268A7A1800425EEB /* XCRemoteSwiftPackageReference "CocoaLumberjack" */ = {
@@ -1248,20 +1206,20 @@
 			repositoryURL = "https://github.com/CocoaLumberjack/CocoaLumberjack";
 			requirement = {
 				kind = exactVersion;
-				version = 3.7.2;
+				version = 3.7.4;
 			};
 		};
 		7681240B24861634008C5216 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:apple/swift-protobuf.git";
+			repositoryURL = "https://github.com/apple/swift-protobuf.git";
 			requirement = {
 				kind = exactVersion;
-				version = 1.17.0;
+				version = 1.18.0;
 			};
 		};
 		768124202486CF8E008C5216 /* XCRemoteSwiftPackageReference "PhoneNumberKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:marmelroy/PhoneNumberKit.git";
+			repositoryURL = "https://github.com/marmelroy/PhoneNumberKit.git";
 			requirement = {
 				kind = exactVersion;
 				version = 3.3.3;
@@ -1269,26 +1227,34 @@
 		};
 		768124292486D4E6008C5216 /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:krzyzanowskim/CryptoSwift.git";
+			repositoryURL = "https://github.com/krzyzanowskim/CryptoSwift.git";
 			requirement = {
-				kind = revision;
-				revision = 5669f222e46c8134fb1f399c745fa6882b43532e;
+				kind = exactVersion;
+				version = 1.4.2;
 			};
 		};
 		76E5152D24A1761E003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:Alamofire/Alamofire.git";
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
 			requirement = {
 				kind = exactVersion;
-				version = 5.4.1;
+				version = 5.5.0;
+			};
+		};
+		F47C3077277D475E007DC248 /* XCRemoteSwiftPackageReference "swift-sodium" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jedisct1/swift-sodium";
+			requirement = {
+				kind = exactVersion;
+				version = 0.9.1;
 			};
 		};
 		F49D194E277BA33F0004BD30 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 7.0.0;
+				kind = exactVersion;
+				version = 7.8.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -1333,6 +1299,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 76E5152D24A1761E003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
+		};
+		F47C3078277D475E007DC248 /* Sodium */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F47C3077277D475E007DC248 /* XCRemoteSwiftPackageReference "swift-sodium" */;
+			productName = Sodium;
 		};
 		F49D194F277BA3400004BD30 /* Sentry */ = {
 			isa = XCSwiftPackageProductDependency;
