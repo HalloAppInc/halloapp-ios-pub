@@ -85,6 +85,26 @@ class Call {
         return state == .active
     }
 
+    var isReadyToProcessRemoteIceCandidates: Bool {
+        // state will be changed to 'active' after we received an 'answerCall' packet successfully.
+        // state will be changed to 'ringing' after we received an 'startCall' packet successfully.
+        if isOutgoing {
+            return state == .active
+        } else {
+            return state == .ringing
+        }
+    }
+
+    var isReadyToSendLocalIceCandidates: Bool {
+        // state will be changed to 'connecting' after we send a 'startCall' packet successfully.
+        // state will be changed to 'active' after we send an 'answerCall' packet successfully.
+        if isOutgoing {
+            return state == .connecting
+        } else {
+            return state == .active
+        }
+    }
+
     // MARK: Initialization
     init(id: CallID, peerUserID: UserID, iceServers: [RTCIceServer], direction: CallDirection = .incoming) {
         DDLogInfo("Call/init/id: \(id)/peerUserID: \(peerUserID)/iceServers: \(iceServers)/direction: \(direction)")
@@ -149,6 +169,7 @@ class Call {
                     case .success:
                         state = .active
                         DDLogInfo("Call/\(callID)/answer/success")
+                        processPendingLocalIceCandidates()
                         DispatchQueue.main.async {
                             completion(true)
                         }
@@ -257,6 +278,7 @@ class Call {
                                 completion: @escaping ((_ success: Bool) -> Void)) {
         DDLogInfo("Call/\(callID)/didReceiveIncomingCall/begin")
         callQueue.async { [self] in
+            state = .connecting
             service.sendCallRinging(id: callID, to: peerUserID)
             webRTCClient.updateIceServers(stunServers: stunServers, turnServers: turnServers)
             webRTCClient.set(remoteSdp: RTCSessionDescription(type: .offer, sdp: sdpInfo)) { error in
@@ -267,7 +289,7 @@ class Call {
                     }
                 } else {
                     DDLogInfo("Call/\(callID)/didReceiveIncomingCall/success")
-                    state = .connecting
+                    state = .ringing
                     processPendingRemoteIceCandidateInfo()
                     DispatchQueue.main.async {
                         completion(true)
@@ -296,7 +318,8 @@ class Call {
         let iceCandidateInfo = IceCandidateInfo(sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex, sdpInfo: sdpInfo)
         DDLogInfo("Call/\(callID)/didReceiveRemoteIceInfo/\(sdpInfo)-\(sdpMLineIndex)-\(sdpMid)/begin")
         callQueue.async { [self] in
-            if state != .connecting && state != .active {
+            // We need to hold remote ice candidates until we ready to process them.
+            if isReadyToProcessRemoteIceCandidates {
                 DDLogInfo("Call/\(callID)/didReceiveRemoteIceInfo/queue this to pendingRemoteIceCandidates")
                 pendingRemoteIceCandidates.append(iceCandidateInfo)
             } else {
@@ -385,8 +408,8 @@ extension Call: WebRTCClientDelegate {
         callQueue.async { [self] in
             if let sdpMid = candidate.sdpMid {
                 let iceCandidateInfo = IceCandidateInfo(sdpMid: sdpMid, sdpMLineIndex: candidate.sdpMLineIndex, sdpInfo: candidate.sdp)
-                if state == .inactive {
-                    // Hold ice candidates until we sent a startCall packet successfully.
+                // We need to hold ice candidates until we send a startCall or answerCall packet successfully.
+                if isReadyToSendLocalIceCandidates {
                     pendingLocalIceCandidates.append(iceCandidateInfo)
                     DDLogInfo("Call/\(callID)/WebRTCClientDelegate/didDiscoverLocalCandidate/queue this to pendingLocalIceCandidates")
                 } else {
