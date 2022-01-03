@@ -319,7 +319,7 @@ class Call {
         DDLogInfo("Call/\(callID)/didReceiveRemoteIceInfo/\(sdpInfo)-\(sdpMLineIndex)-\(sdpMid)/begin")
         callQueue.async { [self] in
             // We need to hold remote ice candidates until we ready to process them.
-            if isReadyToProcessRemoteIceCandidates {
+            if !isReadyToProcessRemoteIceCandidates {
                 DDLogInfo("Call/\(callID)/didReceiveRemoteIceInfo/queue this to pendingRemoteIceCandidates")
                 pendingRemoteIceCandidates.append(iceCandidateInfo)
             } else {
@@ -409,7 +409,7 @@ extension Call: WebRTCClientDelegate {
             if let sdpMid = candidate.sdpMid {
                 let iceCandidateInfo = IceCandidateInfo(sdpMid: sdpMid, sdpMLineIndex: candidate.sdpMLineIndex, sdpInfo: candidate.sdp)
                 // We need to hold ice candidates until we send a startCall or answerCall packet successfully.
-                if isReadyToSendLocalIceCandidates {
+                if !isReadyToSendLocalIceCandidates {
                     pendingLocalIceCandidates.append(iceCandidateInfo)
                     DDLogInfo("Call/\(callID)/WebRTCClientDelegate/didDiscoverLocalCandidate/queue this to pendingLocalIceCandidates")
                 } else {
