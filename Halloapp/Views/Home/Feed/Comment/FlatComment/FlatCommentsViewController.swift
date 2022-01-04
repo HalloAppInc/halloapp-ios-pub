@@ -26,7 +26,35 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }
     }
 
-    private lazy var dataSource = makeDataSource()
+    private var feedPost: FeedPost?
+
+    private lazy var dataSource: CommentDataSource = {
+        let dataSource = CommentDataSource(
+            collectionView: collectionView,
+            cellProvider: { [weak self] (collectionView, indexPath, comment) -> UICollectionViewCell? in
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: FlatCommentsViewController.messageViewCellReuseIdentifier,
+                    for: indexPath)
+                if let itemCell = cell as? MessageViewCell {
+                    itemCell.configureWithComment(comment: comment)
+                }
+                return cell
+            })
+        // Setup comment header view
+        dataSource.supplementaryViewProvider = {[weak self] ( view, kind, index) in
+            let headerView = view.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: MessageCommentHeaderView.elementKind, for: index)
+            if let messageCommentHeaderView = headerView as? MessageCommentHeaderView, let self = self, let feedPost = self.feedPost {
+                messageCommentHeaderView.configure(withPost: feedPost)
+                messageCommentHeaderView.delegate = self
+                return messageCommentHeaderView
+            } else {
+                // TODO(@dini) add post loading here
+                DDLogInfo("FlatCommentsViewController/configureHeader/header info not available")
+            }
+        }
+        return dataSource
+    }()
+
     private var fetchedResultsController: NSFetchedResultsController<FeedPostComment>?
 
     private lazy var collectionView: UICollectionView = {
@@ -36,13 +64,15 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         collectionView.allowsSelection = false
         collectionView.contentInsetAdjustmentBehavior = .scrollableAxes
         collectionView.preservesSuperviewLayoutMargins = true
-        collectionView.register(MessageViewCell.self, forCellWithReuseIdentifier: "MessageViewCell")
+        collectionView.register(MessageViewCell.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageViewCellReuseIdentifier)
+        collectionView.register(MessageCommentHeaderView.self, forSupplementaryViewOfKind: MessageCommentHeaderView.elementKind, withReuseIdentifier: MessageCommentHeaderView.elementKind)
         collectionView.delegate = self
         return collectionView
     }()
 
     init(feedPostId: FeedPostID) {
         self.feedPostId = feedPostId
+        self.feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -55,7 +85,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         view.backgroundColor = UIColor.primaryBg
         view.addSubview(collectionView)
         collectionView.constrainMargins([.top, .leading, .bottom, .trailing], to: view)
-        if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+        if let feedPost = feedPost {
             configureUI(with: feedPost)
         }
     }
@@ -97,31 +127,68 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         snapshot.appendItems(comments, toSection: .main)
         dataSource.apply(snapshot, animatingDifferences: true)
     }
-    
-    private func makeDataSource() -> CommentDataSource {
-        return CommentDataSource(
-            collectionView: collectionView,
-            cellProvider: { (collectionView, indexPath, comment) -> UICollectionViewCell? in
-                let cell = collectionView.dequeueReusableCell(
-                    withReuseIdentifier: FlatCommentsViewController.messageViewCellReuseIdentifier,
-                    for: indexPath)
-                if let itemCell = cell as? MessageViewCell {
-                    itemCell.configureWithComment(comment: comment)
-                    itemCell.delegate = self
-                }
-                return cell
-            })
-    }
-    
+
     private func createLayout() -> UICollectionViewCompositionalLayout {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+
+        let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
+        let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: MessageCommentHeaderView.elementKind, alignment: .top)
+
         let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 5
+        section.boundarySupplementaryItems = [sectionHeader]
+
+        section.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0)
         let layout = UICollectionViewCompositionalLayout(section: section)
         return layout
+    }
+
+    // MARK: UI Actions
+
+    @objc private func showUserFeedForPostAuthor() {
+        if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            showUserFeed(for: feedPost.userId)
+        }
+    }
+    
+    @objc private func showGroupFeed(groupId: GroupID) {
+        guard let feedPost = self.feedPost, let groupId = feedPost.groupId else { return }
+        guard MainAppContext.shared.chatData.chatGroup(groupId: groupId) != nil else { return }
+        let vc = GroupFeedViewController(groupId: groupId)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
+    private func showUserFeed(for userID: UserID) {
+        let userViewController = UserFeedViewController(userId: userID)
+        self.navigationController?.pushViewController(userViewController, animated: true)
+    }
+}
+
+extension FlatCommentsViewController: MessageCommentHeaderViewDelegate {
+
+    func messageCommentHeaderView(_ view: MessageCommentHeaderView, didTapGroupWithID groupId: GroupID) {
+        showGroupFeed(groupId: groupId)
+    }
+
+    func messageCommentHeaderView(_ view: MessageCommentHeaderView, didTapProfilePictureUserId userId: UserID) {
+        showUserFeed(for: userId)
+    }
+
+    func messageCommentHeaderView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
+        guard let media = MainAppContext.shared.feedData.media(postID: feedPostId) else { return }
+
+        var canSavePost = false
+
+        if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            canSavePost = post.canSaveMedia
+        }
+
+        let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
+        controller.delegate = view
+        present(controller, animated: true)
     }
 }
 
