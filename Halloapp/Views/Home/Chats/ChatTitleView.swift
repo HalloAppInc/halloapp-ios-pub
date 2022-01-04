@@ -62,22 +62,25 @@ class ChatTitleView: UIView {
     }
 
     func checkIfUnknownContactWithPushNumber(userID: UserID) {
-        let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
-        let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
-        let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userID) != nil
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
+            let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
+            let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userID) != nil
 
-        isUnknownContactWithPushNumber = !isUserBlocked && !isContactInAddressBook && pushNumberExist
+            self.isUnknownContactWithPushNumber = !isUserBlocked && !isContactInAddressBook && pushNumberExist
 
-        guard isUnknownContactWithPushNumber else {
-            phoneLabel.isHidden = true
-            return
-        }
+            guard self.isUnknownContactWithPushNumber else {
+                self.phoneLabel.isHidden = true
+                return
+            }
 
-        if let pushNumber = MainAppContext.shared.contactStore.pushNumber(userID) {
-            lastSeenLabel.isHidden = true
-            typingLabel.isHidden = true
-            phoneLabel.isHidden = false
-            phoneLabel.text = pushNumber.formattedPhoneNumber
+            if let pushNumber = MainAppContext.shared.contactStore.pushNumber(userID) {
+                self.lastSeenLabel.isHidden = true
+                self.typingLabel.isHidden = true
+                self.phoneLabel.isHidden = false
+                self.phoneLabel.text = pushNumber.formattedPhoneNumber
+            }
         }
     }
 
