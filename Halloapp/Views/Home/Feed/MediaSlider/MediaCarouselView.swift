@@ -333,6 +333,12 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         let zoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(zoomAction))
         collectionView.addGestureRecognizer(zoomRecognizer)
     }
+    
+    func configureMediaCarousel(media: [FeedMedia], initialIndex: Int? = nil) {
+        self.media = media
+        self.mediaIndexToScrollToInLayoutSubviews = initialIndex
+        commonInit()
+    }
 
     func configureMediaCarousel(media: [FeedMedia], initialIndex: Int? = nil) {
         self.media = media
