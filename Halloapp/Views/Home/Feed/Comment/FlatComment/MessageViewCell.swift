@@ -9,6 +9,13 @@ import Combine
 import Core
 import UIKit
 
+private extension Localizations {
+
+    static var commentDeleted: String {
+        NSLocalizedString("comment.deleted", value: "This comment has been deleted", comment: "Text displayed in place of deleted comment.")
+    }
+}
+
 protocol MessageViewDelegate: AnyObject {
     func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
 }
@@ -239,10 +246,24 @@ class MessageViewCell: UICollectionViewCell {
         feedPostCommentID = comment.id
         timeLabel.text = comment.timestamp.chatTimestamp()
         setNameLabel(for: comment.userId)
+        // Set up retracted comment
+        if comment.status == .retracted || comment.status == .retracting {
+            configureCell(isOwnMessage: comment.userId == MainAppContext.shared.userData.userId)
+            configureRetractedComment()
+            return
+        }
         configureText(comment: comment)
         configureMedia(comment: comment)
         configureLinkPreviewView(comment: comment)
         configureCell(isOwnMessage: comment.userId == MainAppContext.shared.userData.userId)
+    }
+
+    private func configureRetractedComment() {
+        hasText = true
+        hasMedia = false
+        hasAudio = false
+        textView.text = Localizations.commentDeleted
+        textView.textColor = UIColor.chatTime
     }
     
     // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
