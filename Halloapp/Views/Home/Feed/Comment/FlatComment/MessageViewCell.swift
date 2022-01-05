@@ -60,6 +60,12 @@ class MessageViewCell: UICollectionViewCell {
         }
     }
 
+    var hasQuotedComment: Bool = false {
+        didSet {
+            quotedMessageView.isHidden = !hasQuotedComment
+        }
+    }
+
     private lazy var messageRow: UIStackView = {
         let hStack = UIStackView(arrangedSubviews: [ nameTextTimeRow ])
         hStack.axis = .horizontal
@@ -73,7 +79,7 @@ class MessageViewCell: UICollectionViewCell {
     }()
 
     private lazy var nameTextTimeRow: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ nameRow, linkPreviewView, audioView, mediaCarouselView, textView, timeRow ])
+        let vStack = UIStackView(arrangedSubviews: [ nameRow, quotedMessageView, linkPreviewView, audioView, mediaCarouselView, textView, timeRow ])
         vStack.axis = .vertical
         vStack.alignment = .fill
         vStack.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -142,7 +148,6 @@ class MessageViewCell: UICollectionViewCell {
         textView.isSelectable = true
         textView.isUserInteractionEnabled = true
         textView.dataDetectorTypes = .link
-        textView.textContainerInset = UIEdgeInsets.zero
         // TODO: Issue 1672 - Remove this negative inset
         textView.textContainerInset = UIEdgeInsets(top: 0, left: -5, bottom: 0, right: 0)
         textView.backgroundColor = .clear
@@ -207,6 +212,14 @@ class MessageViewCell: UICollectionViewCell {
         label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         return label
     }()
+    
+    // MARK: Quoted Message
+    
+    private lazy var quotedMessageView: QuotedMessageCellView = {
+        let quotedMessageView = QuotedMessageCellView()
+        quotedMessageView.translatesAutoresizingMaskIntoConstraints = false
+        return quotedMessageView
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -244,6 +257,7 @@ class MessageViewCell: UICollectionViewCell {
     func configureWithComment(comment: FeedPostComment) {
         audioMediaStatusCancellable?.cancel()
         feedPostCommentID = comment.id
+        configureQuotedComment(comment: comment)
         timeLabel.text = comment.timestamp.chatTimestamp()
         setNameLabel(for: comment.userId)
         // Set up retracted comment
@@ -306,6 +320,15 @@ class MessageViewCell: UICollectionViewCell {
             return
         }
         hasText = false
+    }
+
+    private func configureQuotedComment(comment: FeedPostComment) {
+        if let parentComment = comment.parent {
+            quotedMessageView.configureWithComment(comment: parentComment)
+            hasQuotedComment = true
+        } else {
+            hasQuotedComment = false
+        }
     }
 
     private func configureMedia(comment: FeedPostComment) {
