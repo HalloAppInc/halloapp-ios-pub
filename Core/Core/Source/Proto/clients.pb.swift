@@ -1104,6 +1104,8 @@ public struct Clients_ContentDetails {
     set {contentID = .commentIDContext(newValue)}
   }
 
+  public var contentHash: Data = Data()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_ContentID: Equatable {
@@ -2926,6 +2928,7 @@ extension Clients_ContentDetails: SwiftProtobuf.Message, SwiftProtobuf._MessageI
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "post_id_context"),
     2: .standard(proto: "comment_id_context"),
+    3: .standard(proto: "content_hash"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2960,6 +2963,7 @@ extension Clients_ContentDetails: SwiftProtobuf.Message, SwiftProtobuf._MessageI
           self.contentID = .commentIDContext(v)
         }
       }()
+      case 3: try { try decoder.decodeSingularBytesField(value: &self.contentHash) }()
       default: break
       }
     }
@@ -2981,11 +2985,15 @@ extension Clients_ContentDetails: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     }()
     case nil: break
     }
+    if !self.contentHash.isEmpty {
+      try visitor.visitSingularBytesField(value: self.contentHash, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Clients_ContentDetails, rhs: Clients_ContentDetails) -> Bool {
     if lhs.contentID != rhs.contentID {return false}
+    if lhs.contentHash != rhs.contentHash {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
