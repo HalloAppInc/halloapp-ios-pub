@@ -5,6 +5,7 @@
 //  Created by Nandini Shetty on 12/2/21.
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
+import CocoaLumberjackSwift
 import Combine
 import Core
 import UIKit
@@ -43,7 +44,7 @@ class MessageViewCell: UICollectionViewCell {
 
     var hasText: Bool = false  {
         didSet {
-            textView.isHidden = !hasText
+            textLabel.isHidden = !hasText
         }
     }
 
@@ -79,7 +80,7 @@ class MessageViewCell: UICollectionViewCell {
     }()
 
     private lazy var nameTextTimeRow: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ nameRow, quotedMessageView, linkPreviewView, audioView, mediaCarouselView, textView, timeRow ])
+        let vStack = UIStackView(arrangedSubviews: [ nameRow, quotedMessageView, linkPreviewView, audioView, mediaCarouselView, textLabel, timeRow ])
         vStack.axis = .vertical
         vStack.alignment = .fill
         vStack.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -141,21 +142,15 @@ class MessageViewCell: UICollectionViewCell {
         return label
     }()
 
-    private lazy var textView: UnselectableUITextView = {
-        let textView = UnselectableUITextView()
-        textView.isScrollEnabled = false
-        textView.isEditable = false
-        textView.isSelectable = true
-        textView.isUserInteractionEnabled = true
-        textView.dataDetectorTypes = .link
-        // TODO: Issue 1672 - Remove this negative inset
-        textView.textContainerInset = UIEdgeInsets(top: 0, left: -5, bottom: 0, right: 0)
-        textView.backgroundColor = .clear
-        textView.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        textView.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
-        textView.translatesAutoresizingMaskIntoConstraints = false
-        textView.isHidden = true
-        return textView
+    lazy var textLabel: TextLabel = {
+        let textLabel = TextLabel()
+        textLabel.isUserInteractionEnabled = true
+        textLabel.backgroundColor = .clear
+        textLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+        textLabel.isHidden = true
+        textLabel.numberOfLines = 0
+        return textLabel
     }()
 
     // MARK: Media
@@ -276,8 +271,8 @@ class MessageViewCell: UICollectionViewCell {
         hasText = true
         hasMedia = false
         hasAudio = false
-        textView.text = Localizations.commentDeleted
-        textView.textColor = UIColor.chatTime
+        textLabel.text = Localizations.commentDeleted
+        textLabel.textColor = UIColor.chatTime
     }
     
     // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
@@ -285,13 +280,13 @@ class MessageViewCell: UICollectionViewCell {
         updateMediaConstraints()
         if isOwnMessage {
             bubbleView.backgroundColor = UIColor.chatOwnBubbleBg
-            textView.textColor = UIColor.chatOwnMsg
+            textLabel.textColor = UIColor.chatOwnMsg
             nameRow.isHidden = true
             rightAlignedConstraint.priority = UILayoutPriority(800)
             leftAlignedConstraint.priority = UILayoutPriority(1)
         } else {
             bubbleView.backgroundColor = .secondarySystemGroupedBackground
-            textView.textColor = UIColor.primaryBlackWhite
+            textLabel.textColor = UIColor.primaryBlackWhite
             nameRow.isHidden = false
             rightAlignedConstraint.priority = UILayoutPriority(1)
             leftAlignedConstraint.priority = UILayoutPriority(800)
@@ -315,7 +310,17 @@ class MessageViewCell: UICollectionViewCell {
 
     private func configureText(comment: FeedPostComment) {
         if !comment.text.isEmpty  {
-            textView.text = comment.text
+            let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
+                comment.text,
+                mentions: Array(comment.mentions ?? Set()))
+
+            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+            let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
+            let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
+            if let attrText = textWithMentions?.with(font: font, color: .label) {
+                let ham = HAMarkdown(font: font, color: .label)
+                textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
+            }
             hasText = true
             return
         }
