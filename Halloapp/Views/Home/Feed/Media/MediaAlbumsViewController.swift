@@ -127,7 +127,7 @@ fileprivate struct AlbumsView: View {
             }
             
             Text(Localizations.albums)
-                .font(.gotham(fixedSize: 17, weight: .medium))
+                .font(.gotham(fixedSize: 16, weight: .medium))
         }
         .frame(height: 54)
     }
