@@ -50,6 +50,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             } else {
                 // TODO(@dini) add post loading here
                 DDLogInfo("FlatCommentsViewController/configureHeader/header info not available")
+                return headerView
             }
         }
         return dataSource

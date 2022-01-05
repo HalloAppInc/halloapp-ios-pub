@@ -905,14 +905,6 @@ final class ProtoService: ProtoServiceCore {
             readyToHandleCallMessages = true
         case .errorStanza(let error):
             DDLogError("proto/didReceive/\(msg.id) received message with error \(error)")
-        case .inviteeNotice:
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .historyResend:
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .homeFeedRerequest(_):
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .marketingAlert(_):
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
 
         case .incomingCall(let incomingCall):
             // If incomingCall is not late - then start ringing immediately.
@@ -971,6 +963,19 @@ final class ProtoService: ProtoServiceCore {
                 DDLogInfo("proto/didReceive/\(msg.id)/iceCandidate/\(iceCandidate.callID)")
                 callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveIceCandidate: iceCandidate)
             }
+
+        case .inviteeNotice:
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .historyResend:
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .homeFeedRerequest(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .marketingAlert(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .iceRestartOffer(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .iceRestartAnswer(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
 

@@ -256,7 +256,7 @@ class AudioComposerRecorder: NSObject, ObservableObject {
 
 extension AudioComposerRecorder: AudioRecorderDelegate {
 
-    func audioRecorderMicrphoneAccessDenied(_ recorder: AudioRecorder) {
+    func audioRecorderMicrophoneAccessDenied(_ recorder: AudioRecorder) {
         // no-op
     }
 

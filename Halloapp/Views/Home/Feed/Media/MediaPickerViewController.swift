@@ -115,15 +115,20 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
     }()
 
     private lazy var nextButton: UIButton = {
+        let attributedTitle = NSMutableAttributedString(string: Localizations.buttonNext)
+        attributedTitle.addAttribute(.kern, value: 0.5, range: NSRange(location: 0, length: Localizations.buttonNext.count))
+
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitle(Localizations.buttonNext, for: .normal)
+        button.setAttributedTitle(attributedTitle, for: .normal)
         button.setBackgroundColor(.primaryBlue, for: .normal)
         button.setBackgroundColor(.black.withAlphaComponent(0.19), for: .disabled)
         button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(.white.withAlphaComponent(0.5), for: .disabled)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         button.layer.cornerRadius = 22
         button.layer.masksToBounds = true
+        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 0, bottom: 0, right: 0)
 
         button.heightAnchor.constraint(equalToConstant: 44).isActive = true
         button.widthAnchor.constraint(equalToConstant: 90).isActive = true
@@ -134,20 +139,18 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
     }()
 
     private lazy var albumsButton: UIButton = {
-        let iconConfig = UIImage.SymbolConfiguration(pointSize: 11, weight: .medium)
+        let iconConfig = UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
         let icon = UIImage(systemName: "chevron.down", withConfiguration: iconConfig)
-        let imageView = UIImageView(image: icon)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.tintColor = .primaryBlackWhite.withAlphaComponent(0.9)
 
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.titleLabel?.font = .gothamFont(ofFixedSize: 16, weight: .medium)
         button.setTitleColor(.primaryBlackWhite.withAlphaComponent(0.9), for: .normal)
+        button.setImage(icon, for: .normal)
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
 
-        button.addSubview(imageView)
-        imageView.centerYAnchor.constraint(equalTo: button.centerYAnchor).isActive = true
-        imageView.leadingAnchor.constraint(equalTo: button.trailingAnchor, constant: 6).isActive = true
+        // keep image on the right & tappable
+        button.semanticContentAttribute = UIApplication.shared.userInterfaceLayoutDirection == .rightToLeft ? .forceLeftToRight : .forceRightToLeft
 
         button.addTarget(self, action: #selector(openAlbumsAction), for: .touchUpInside)
 
@@ -158,14 +161,14 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
         let effect = UIBlurEffect(style: .systemUltraThinMaterial)
         let container = BlurView(effect: effect, intensity: 0.5)
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = UIColor.voiceNoteInputField.withAlphaComponent(0.85)
+        container.backgroundColor = .feedBackground.withAlphaComponent(0.85)
 
         container.contentView.addSubview(albumsButton)
         container.contentView.addSubview(nextButton)
 
         container.heightAnchor.constraint(equalToConstant: 85).isActive = true
         albumsButton.centerYAnchor.constraint(equalTo: container.contentView.centerYAnchor, constant: -9).isActive = true
-        albumsButton.leadingAnchor.constraint(equalTo: container.contentView.leadingAnchor, constant: 18).isActive = true
+        albumsButton.leadingAnchor.constraint(equalTo: container.contentView.leadingAnchor, constant: 24).isActive = true
         nextButton.centerYAnchor.constraint(equalTo: container.contentView.centerYAnchor, constant: -9).isActive = true
         nextButton.trailingAnchor.constraint(equalTo: container.contentView.trailingAnchor, constant: -18).isActive = true
 
@@ -390,7 +393,7 @@ class MediaPickerViewController: UIViewController, PickerViewCellDelegate {
     
     private func updateNavigationButtons() {
         let backIcon = UIImage(systemName: selected.count > 0 ? "xmark" : "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: backIcon, style: .plain, target: self, action: #selector(cancelAction))
+        navigationItem.setLeftBarButton(UIBarButtonItem(image: backIcon, style: .plain, target: self, action: #selector(cancelAction)), animated: true)
 
         nextButton.isHidden = !multiselect
         nextButton.isEnabled = selected.count > 0
@@ -736,14 +739,14 @@ extension MediaPickerViewController: UICollectionViewDelegate {
         selected.append(asset)
         updateNavigationButtons()
 
-        UIView.animateKeyframes(withDuration: 0.2, delay: 0, options: [], animations: {
-            UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.5, animations: {
-                cell.image.layer.cornerRadius = 15
+        UIView.animateKeyframes(withDuration: 0.3, delay: 0, options: [], animations: {
+            UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.7, animations: {
+                cell.image.layer.cornerRadius = 20
                 cell.image.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
                 cell.prepareIndicator()
             })
 
-            UIView.addKeyframe(withRelativeStartTime: 0.5, relativeDuration: 0.5, animations: {
+            UIView.addKeyframe(withRelativeStartTime: 0.7, relativeDuration: 0.3, animations: {
                 cell.image.transform = CGAffineTransform.identity
             })
         }, completion: { _ in
@@ -756,14 +759,14 @@ extension MediaPickerViewController: UICollectionViewDelegate {
         selected.remove(at: idx)
         updateNavigationButtons()
 
-        UIView.animateKeyframes(withDuration: 0.2, delay: 0, options: [], animations: {
-            UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.5, animations: {
+        UIView.animateKeyframes(withDuration: 0.3, delay: 0, options: [], animations: {
+            UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.7, animations: {
                 cell.image.layer.cornerRadius = 0
                 cell.image.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
                 cell.prepareIndicator()
             })
 
-            UIView.addKeyframe(withRelativeStartTime: 0.5, relativeDuration: 0.5, animations: {
+            UIView.addKeyframe(withRelativeStartTime: 0.7, relativeDuration: 0.3, animations: {
                 cell.image.transform = CGAffineTransform.identity
             })
         }, completion: { _ in
@@ -868,20 +871,34 @@ fileprivate class AssetViewCell: UICollectionViewCell {
 
     private var activeConstraints = [NSLayoutConstraint]()
 
-    lazy var indicator: UILabel = {
+    lazy var indicatorLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
-        label.font = UIFont.gothamFont(ofFixedSize: 17.5, weight: .medium)
+        label.font = UIFont.gothamFont(ofFixedSize: 19, weight: .medium)
         label.textColor = .white
-        label.layer.cornerRadius = 15
-        label.layer.borderWidth = 3
-        label.layer.masksToBounds = true
-
-        label.widthAnchor.constraint(equalToConstant: 30).isActive = true
-        label.heightAnchor.constraint(equalToConstant: 30).isActive = true
 
         return label
+    }()
+
+    lazy var indicator: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.cornerRadius = 15
+        view.layer.borderWidth = 3
+        view.layer.masksToBounds = true
+
+        view.widthAnchor.constraint(equalToConstant: 30).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 30).isActive = true
+
+        view.addSubview(indicatorLabel)
+
+        NSLayoutConstraint.activate([
+            indicatorLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            indicatorLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 1),
+        ])
+
+        return view
     }()
     
     lazy var image: UIImageView = {
@@ -1002,11 +1019,23 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         if let asset = asset, let idx = delegate?.selected.firstIndex(of: asset) {
             indicator.layer.borderColor = UIColor.lavaOrange.cgColor
             indicator.backgroundColor = .lavaOrange
-            indicator.text = "\(1 + idx)"
+
+            let text = "\(1 + idx)"
+            if !indicatorLabel.isHidden && indicatorLabel.text != text {
+                UIView.transition(with: indicatorLabel,
+                                  duration: 0.25,
+                                  options: .transitionCrossDissolve,
+                                  animations: { [weak self] in
+                    self?.indicatorLabel.text = text
+                }, completion: nil)
+            } else {
+                indicatorLabel.text = text
+                indicatorLabel.isHidden = false
+            }
         } else {
             indicator.layer.borderColor = CGColor(srgbRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.7)
             indicator.backgroundColor = .clear
-            indicator.text = ""
+            indicatorLabel.isHidden = true
         }
 
         if let multiselect = delegate?.multiselect, !multiselect {

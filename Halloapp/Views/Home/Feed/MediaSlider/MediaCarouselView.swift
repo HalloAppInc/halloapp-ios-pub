@@ -225,14 +225,20 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         self.configuration = configuration
         self.mediaIndexToScrollToInLayoutSubviews = initialIndex
         super.init(frame: .zero)
-        commonInit()
+        setupView()
     }
 
     required init?(coder: NSCoder) {
         fatalError("Use init(media)")
     }
 
-    private func commonInit() {
+    func configureMediaCarousel(media: [FeedMedia], initialIndex: Int? = nil) {
+        self.media = media
+        self.mediaIndexToScrollToInLayoutSubviews = initialIndex
+        setupView()
+    }
+
+    private func setupView() {
         clipsToBounds = false
         isUserInteractionEnabled = true
         layoutMargins = .zero
@@ -332,18 +338,6 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
         let zoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(zoomAction))
         collectionView.addGestureRecognizer(zoomRecognizer)
-    }
-    
-    func configureMediaCarousel(media: [FeedMedia], initialIndex: Int? = nil) {
-        self.media = media
-        self.mediaIndexToScrollToInLayoutSubviews = initialIndex
-        commonInit()
-    }
-
-    func configureMediaCarousel(media: [FeedMedia], initialIndex: Int? = nil) {
-        self.media = media
-        self.mediaIndexToScrollToInLayoutSubviews = initialIndex
-        commonInit()
     }
 
     private func updatePageControl() {

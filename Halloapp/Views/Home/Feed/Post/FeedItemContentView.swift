@@ -329,6 +329,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         if let mediaView = mediaView {
             mediaView.stopPlayback()
         }
+        audioView?.pause()
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
