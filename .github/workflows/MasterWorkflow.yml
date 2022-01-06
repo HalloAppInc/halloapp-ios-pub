@@ -31,21 +31,6 @@ jobs:
             for ip in $(dig @8.8.8.8 github.com +short); do ssh-keyscan github.com,$ip; ssh-keyscan $ip; done 2>/dev/null >> ~/.ssh/known_hosts
             git config --global url."git@github.com:".insteadOf "https://github.com/"
         
-        # Load cached CocoaPods if the Podfile matches. Also creates end-of-script step to save the CocoaPods if the Podfile didn't match or wasn't cached
-      - name: Cache Pods
-        id: cache-pods
-        uses: actions/cache@v2
-        with:
-          path: Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
-            
-        # If the pods couldn't be loaded, then run `pod install` to fetch and build the `CocoaPods`
-      - name: Install CocoaPods
-        #if: steps.cache-pods.outputs.cache-hit != 'true'
-        run: pod install
-        
       - name: Cache Swift Packages
         id: cache-packages
         uses: actions/cache@v2
@@ -80,21 +65,6 @@ jobs:
       steps:
         - name: Checkout
           uses: actions/checkout@master
-
-          # Load cached CocoaPods if the Podfile matches. Also creates end-of-script step to save the CocoaPods if the Podfile didn't match or wasn't cached
-        - name: Cache Pods
-          id: cache-pods
-          uses: actions/cache@v2
-          with:
-            path: Pods
-            key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-            restore-keys: |
-              ${{ runner.os }}-pods-
-
-          # If the pods couldn't be loaded, then run `pod install` to fetch and build the `CocoaPods`
-        - name: Install CocoaPods
-          if: steps.cache-pods.outputs.cache-hit != 'true'
-          run: pod install
 
         - name: Cache Swift Packages
           id: cache-packages
@@ -137,21 +107,6 @@ jobs:
           run: |
             for ip in $(dig @8.8.8.8 github.com +short); do ssh-keyscan github.com,$ip; ssh-keyscan $ip; done 2>/dev/null >> ~/.ssh/known_hosts
             git config --global url."git@github.com:".insteadOf "https://github.com/"
-
-          # Load cached CocoaPods if the Podfile matches. Also creates end-of-script step to save the CocoaPods if the Podfile didn't match or wasn't cached
-        - name: Cache Pods
-          id: cache-pods
-          uses: actions/cache@v2
-          with:
-            path: Pods
-            key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-            restore-keys: |
-              ${{ runner.os }}-pods-
-
-          # If the pods couldn't be loaded, then run `pod install` to fetch and build the `CocoaPods`
-        - name: Install CocoaPods
-          if: steps.cache-pods.outputs.cache-hit != 'true'
-          run: pod install
 
         - name: Cache Swift Packages
           id: cache-packages
