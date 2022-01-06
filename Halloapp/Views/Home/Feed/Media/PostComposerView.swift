@@ -8,7 +8,7 @@ import UIKit
 
 protocol PostComposerViewDelegate: AnyObject {
     func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
-    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia], voiceNote: PendingMedia?)
+    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, media: [PendingMedia], voiceNote: PendingMedia?)
     func willDismissWithInput(mentionInput: MentionInput)
 }
 
@@ -286,6 +286,7 @@ class PostComposerViewController: UIViewController {
 
     @objc private func backAction() {
         delegate?.composerDidTapBack(controller: self,
+                                     destination: configuration.destination,
                                      media: mediaItems.value,
                                      voiceNote: audioComposerRecorder.voiceNote)
     }

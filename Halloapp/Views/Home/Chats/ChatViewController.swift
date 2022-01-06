@@ -1362,7 +1362,7 @@ extension ChatViewController: PostComposerViewDelegate {
         view.window?.rootViewController?.dismiss(animated: true, completion: nil)
     }
 
-    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia], voiceNote: PendingMedia?) {
+    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, media: [PendingMedia], voiceNote: PendingMedia?) {
         controller.dismiss(animated: false)
 
         let presentedVC = self.presentedViewController
