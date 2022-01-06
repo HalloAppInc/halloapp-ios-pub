@@ -65,6 +65,7 @@ fileprivate class GenericObservable<T>: ObservableObject {
 
 fileprivate class ObservableMediaItems: ObservableObject {
     @Published var value: [PendingMedia] = []
+    var invalidated = false
 
     func remove(index: Int) {
         if index < value.count {
@@ -287,7 +288,7 @@ class PostComposerViewController: UIViewController {
     @objc private func backAction() {
         delegate?.composerDidTapBack(controller: self,
                                      destination: configuration.destination,
-                                     media: mediaItems.value,
+                                     media: mediaItems.invalidated ? [] : mediaItems.value,
                                      voiceNote: audioComposerRecorder.voiceNote)
     }
 
@@ -920,9 +921,11 @@ fileprivate struct PostComposerView: View {
     }
 
     private func deleteMedia() {
-        mediaItems.remove(index: currentPosition.value)
-        if mediaCount == 0, audioComposerRecorder.voiceNote == nil {
+        if mediaCount == 1 && audioComposerRecorder.voiceNote == nil {
+            mediaItems.invalidated = true
             goBack()
+        } else {
+            mediaItems.remove(index: currentPosition.value)
         }
     }
 }
