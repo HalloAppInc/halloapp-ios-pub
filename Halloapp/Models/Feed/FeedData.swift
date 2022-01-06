@@ -930,6 +930,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedMedia.order = Int16(index)
                 feedMedia.sha256 = xmppMedia.sha256
                 feedMedia.post = feedPost
+                feedMedia.blobVersion = xmppMedia.blobVersion
+                feedMedia.chunkSize = xmppMedia.chunkSize
+                feedMedia.blobSize = xmppMedia.blobSize
             }
 
             newPosts.append(feedPost)
@@ -1136,6 +1139,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         feedCommentMedia.order = Int16(index)
                         feedCommentMedia.sha256 = xmppMedia.sha256
                         feedCommentMedia.comment = comment
+                        feedCommentMedia.blobVersion = xmppMedia.blobVersion
+                        feedCommentMedia.chunkSize = xmppMedia.chunkSize
+                        feedCommentMedia.blobSize = xmppMedia.blobSize
                     }
                 case .voiceNote(let media):
                     comment.text = ""
@@ -2250,7 +2256,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // TODO Nandini : check this for comment media
             if let path = feedPostMedia.relativeFilePath, let downloadUrl = feedPostMedia.url {
                 let fileUrl = MainAppContext.mediaDirectoryURL.appendingPathComponent(path, isDirectory: false)
-                MainAppContext.shared.mediaHashStore.update(url: fileUrl, key: feedPostMedia.key, sha256: feedPostMedia.sha256, downloadURL: downloadUrl)
+                MainAppContext.shared.mediaHashStore.update(url: fileUrl, blobVersion: feedPostMedia.blobVersion, key: feedPostMedia.key, sha256: feedPostMedia.sha256, downloadURL: downloadUrl)
             }
         }
     }
@@ -2352,6 +2358,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         feedPost.mentions = mentionSet
 
+        let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled && ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(feedPost.groupId ?? "")
+
         // Add post media.
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("FeedData/new-post/add-media [\(mediaItem.fileURL!)]")
@@ -2363,6 +2371,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedMedia.key = ""
             feedMedia.sha256 = ""
             feedMedia.order = Int16(index)
+            feedMedia.blobVersion = (mediaItem.type == .video && shouldStreamFeedVideo) ? .chunked : .default
             feedMedia.post = feedPost
 
             if let url = mediaItem.fileURL {
@@ -2879,7 +2888,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
-                ImageServer.shared.prepare(mediaItem.type, url: url, for: postId, index: Int(mediaIndex)) { [weak self] in
+                ImageServer.shared.prepare(mediaItem.type, url: url, for: postId, index: Int(mediaIndex), shouldStreamVideo: mediaItem.blobVersion == .chunked) { [weak self] in
                     guard let self = self else { return }
                     switch $0 {
                     case .success(let result):
@@ -2895,6 +2904,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                 media.size = result.size
                                 media.key = result.key
                                 media.sha256 = result.sha256
+                                media.chunkSize = result.chunkSize
+                                media.blobSize = result.blobSize
                                 media.relativeFilePath = path
                             }
                         }) {
@@ -2997,7 +3008,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
-                ImageServer.shared.prepare(mediaItemToUpload.type, url: url, for: feedLinkPreview.id, index: Int(mediaIndex)) { [weak self] in
+                ImageServer.shared.prepare(mediaItemToUpload.type, url: url, for: feedLinkPreview.id, index: Int(mediaIndex), shouldStreamVideo: false) { [weak self] in
                     guard let self = self else { return }
                     switch $0 {
                     case .success(let result):
@@ -3114,7 +3125,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                     let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
-                    ImageServer.shared.prepare(mediaItemToUpload.type, url: url, for: feedComment.id, index: Int(mediaIndex)) { [weak self] in
+                    ImageServer.shared.prepare(mediaItemToUpload.type, url: url, for: feedComment.id, index: Int(mediaIndex), shouldStreamVideo: mediaItemToUpload.blobVersion == .chunked) { [weak self] in
                         guard let self = self else { return }
                         switch $0 {
                         case .success(let result):
@@ -3130,6 +3141,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                     media.size = result.size
                                     media.key = result.key
                                     media.sha256 = result.sha256
+                                    media.chunkSize = result.chunkSize
+                                    media.blobSize = result.blobSize
                                     media.relativeFilePath = path
                                 }
                             }) {
@@ -3197,7 +3210,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         let processed = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
-        MainAppContext.shared.mediaHashStore.fetch(url: processed) { [weak self] upload in
+        MainAppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: postMedia.blobVersion) { [weak self] upload in
             guard let self = self else { return }
 
             // Lookup object from coredata again instead of passing around the object across threads.
@@ -3256,7 +3269,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                 media.sha256 = sha256
                             }
 
-                            MainAppContext.shared.mediaHashStore.update(url: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
+                            MainAppContext.shared.mediaHashStore.update(url: processed, blobVersion: media.blobVersion, key: media.key, sha256: media.sha256, downloadURL: media.url!)
                         case .failure(_):
                             media.status = .uploadError
                         }
@@ -3281,7 +3294,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         let processed = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
-        MainAppContext.shared.mediaHashStore.fetch(url: processed) { [weak self] upload in
+        MainAppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: postCommentMedia.blobVersion) { [weak self] upload in
             guard let self = self else { return }
 
             // Lookup object from coredata again instead of passing around the object across threads.
@@ -3339,7 +3352,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                 media.sha256 = sha256
                             }
 
-                            MainAppContext.shared.mediaHashStore.update(url: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
+                            MainAppContext.shared.mediaHashStore.update(url: processed, blobVersion: media.blobVersion, key: media.key, sha256: media.sha256, downloadURL: media.url!)
                         case .failure(_):
                             media.status = .uploadError
                         }
@@ -3364,7 +3377,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         let processed = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
-        MainAppContext.shared.mediaHashStore.fetch(url: processed) { [weak self] upload in
+        MainAppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: feedLinkPreviewMedia.blobVersion) { [weak self] upload in
             guard let self = self else { return }
 
             // Lookup object from coredata again instead of passing around the object across threads.
@@ -3422,7 +3435,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                 media.sha256 = sha256
                             }
 
-                            MainAppContext.shared.mediaHashStore.update(url: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
+                            MainAppContext.shared.mediaHashStore.update(url: processed, blobVersion: media.blobVersion, key: media.key, sha256: media.sha256, downloadURL: media.url!)
                         case .failure(_):
                             media.status = .uploadError
                         }
@@ -4006,6 +4019,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedMedia.key = media.key
                 feedMedia.order = media.order
                 feedMedia.sha256 = media.sha256
+                feedMedia.blobVersion = media.blobVersion
+                feedMedia.chunkSize = media.chunkSize
+                feedMedia.blobSize = media.blobSize
                 feedMedia.post = feedPost
 
                 // Copy media if there'a a local copy (outgoing posts or incoming posts with downloaded media).
@@ -4141,6 +4157,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedCommentMedia.key = mediaItem.key
             feedCommentMedia.order = mediaItem.order
             feedCommentMedia.sha256 = mediaItem.sha256
+            feedCommentMedia.blobVersion = mediaItem.blobVersion
+            feedCommentMedia.chunkSize = mediaItem.chunkSize
+            feedCommentMedia.blobSize = mediaItem.blobSize
             mediaItems.insert(feedCommentMedia)
         })
         // Create comment

@@ -116,7 +116,10 @@ extension FeedPostComment {
                     type: media.type,
                     size: media.size,
                     key: media.key,
-                    sha256: media.sha256)
+                    sha256: media.sha256,
+                    blobVersion: media.blobVersion,
+                    chunkSize: media.chunkSize,
+                    blobSize: media.blobSize)
                 mediaItems.append(mediaData)
             }
 

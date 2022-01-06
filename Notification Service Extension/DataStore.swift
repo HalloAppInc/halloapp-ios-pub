@@ -111,6 +111,9 @@ class DataStore: NotificationServiceExtensionDataStore {
                 media.size = feedPostMedia.size
                 media.key = feedPostMedia.key
                 media.sha256 = feedPostMedia.sha256
+                media.blobVersion = feedPostMedia.blobVersion
+                media.chunkSize = feedPostMedia.chunkSize
+                media.blobSize = feedPostMedia.blobSize
                 media.order = Int16(index)
                 postMedia.insert(media)
             }
@@ -201,6 +204,9 @@ class DataStore: NotificationServiceExtensionDataStore {
                     feedCommentMedia.order = Int16(index)
                     feedCommentMedia.sha256 = mediaItem.sha256
                     feedCommentMedia.comment = feedComment
+                    feedCommentMedia.blobVersion = mediaItem.blobVersion
+                    feedCommentMedia.chunkSize = mediaItem.chunkSize
+                    feedCommentMedia.blobSize = mediaItem.blobSize
                 }
                 feedComment.rawData = nil
             case .voiceNote(let media):
@@ -309,6 +315,9 @@ class DataStore: NotificationServiceExtensionDataStore {
         chatMedia.size = mediaData.size
         chatMedia.key = mediaData.key
         chatMedia.sha256 = mediaData.sha256
+        chatMedia.blobVersion = mediaData.blobVersion
+        chatMedia.chunkSize = mediaData.chunkSize
+        chatMedia.blobSize = mediaData.blobSize
         chatMedia.order = Int16(index)
 
         return chatMedia

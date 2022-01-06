@@ -53,6 +53,9 @@ extension XMPPChatMedia {
             type: chatMedia.type,
             size: chatMedia.size,
             key: chatMedia.key,
-            sha256: chatMedia.sha256)
+            sha256: chatMedia.sha256,
+            blobVersion: chatMedia.blobVersion,
+            chunkSize: chatMedia.chunkSize,
+            blobSize: chatMedia.blobSize)
     }
 }

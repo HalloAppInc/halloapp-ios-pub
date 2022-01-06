@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19574" systemVersion="21A559" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="SharedChatMessage" representedClassName="SharedChatMessage" syncable="YES">
+        <attribute name="clientChatMsgPb" optional="YES" attributeType="Binary"/>
+        <attribute name="decryptionError" optional="YES" attributeType="String"/>
+        <attribute name="ephemeralKey" optional="YES" attributeType="Binary"/>
+        <attribute name="fromUserId" attributeType="String"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="senderClientVersion" optional="YES" attributeType="String"/>
+        <attribute name="serialID" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="serverMsgPb" optional="YES" attributeType="Binary"/>
+        <attribute name="serverTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="toUserId" attributeType="String"/>
+        <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedFeedLinkPreview" inverseName="message" inverseEntity="SharedFeedLinkPreview"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="SharedMedia" inverseName="message" inverseEntity="SharedMedia"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="SharedFeedComment" representedClassName="SharedFeedComment" syncable="YES">
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="parentCommentId" optional="YES" attributeType="String"/>
+        <attribute name="postId" optional="YES" attributeType="String"/>
+        <attribute name="rawData" optional="YES" attributeType="Binary"/>
+        <attribute name="statusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userId" optional="YES" attributeType="String"/>
+        <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedFeedLinkPreview" inverseName="comment" inverseEntity="SharedFeedLinkPreview"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedMedia" inverseName="comment" inverseEntity="SharedMedia"/>
+        <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedFeedMention"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="SharedFeedLinkPreview" representedClassName="SharedFeedLinkPreview" syncable="YES">
+        <attribute name="desc" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="url" optional="YES" attributeType="URI"/>
+        <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedComment" inverseName="linkPreviews" inverseEntity="SharedFeedComment"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedMedia" inverseName="linkPreview" inverseEntity="SharedMedia"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedChatMessage" inverseName="linkPreviews" inverseEntity="SharedChatMessage"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedPost" inverseName="linkPreviews" inverseEntity="SharedFeedPost"/>
+    </entity>
+    <entity name="SharedFeedMention" representedClassName="SharedFeedMention" syncable="YES">
+        <attribute name="index" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="userID" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="SharedFeedPost" representedClassName="SharedFeedPost" syncable="YES">
+        <attribute name="audienceUserIds" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformer"/>
+        <attribute name="groupId" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="privacyListTypeValue" optional="YES" attributeType="String"/>
+        <attribute name="rawData" optional="YES" attributeType="Binary"/>
+        <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userId" attributeType="String"/>
+        <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedFeedLinkPreview" inverseName="post" inverseEntity="SharedFeedLinkPreview"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="SharedMedia" inverseName="post" inverseEntity="SharedMedia"/>
+        <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SharedFeedMention"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="SharedMedia" representedClassName="SharedMedia" syncable="YES">
+        <attribute name="blobSize" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="blobVersionValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="chunkSize" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="height" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="key" attributeType="String"/>
+        <attribute name="order" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="relativeFilePath" optional="YES" attributeType="String"/>
+        <attribute name="sha256" attributeType="String"/>
+        <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="typeValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="uploadUrl" optional="YES" attributeType="URI"/>
+        <attribute name="url" optional="YES" attributeType="URI"/>
+        <attribute name="width" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedComment" inverseName="media" inverseEntity="SharedFeedComment"/>
+        <relationship name="linkPreview" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedLinkPreview" inverseName="media" inverseEntity="SharedFeedLinkPreview"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedChatMessage" inverseName="media" inverseEntity="SharedChatMessage"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedPost" inverseName="media" inverseEntity="SharedFeedPost"/>
+    </entity>
+    <entity name="SharedServerMessage" representedClassName="SharedServerMessage" syncable="YES">
+        <attribute name="msg" optional="YES" attributeType="Binary"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <elements>
+        <element name="SharedChatMessage" positionX="-54" positionY="81" width="128" height="254"/>
+        <element name="SharedFeedComment" positionX="-45" positionY="99" width="128" height="194"/>
+        <element name="SharedFeedLinkPreview" positionX="-36" positionY="153" width="128" height="149"/>
+        <element name="SharedFeedMention" positionX="-54" positionY="81" width="128" height="88"/>
+        <element name="SharedFeedPost" positionX="-63" positionY="-18" width="128" height="209"/>
+        <element name="SharedMedia" positionX="-45" positionY="27" width="128" height="284"/>
+        <element name="SharedServerMessage" positionX="-45" positionY="108" width="128" height="73"/>
+    </elements>
+</model>

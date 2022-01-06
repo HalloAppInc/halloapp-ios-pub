@@ -793,6 +793,9 @@ class ChatData: ObservableObject {
                         return .audio
                     }
                 } ()
+                let blobVersion = med.blobVersion
+                let chunkSize = med.chunkSize
+                let blobSize = med.blobSize
             
                 // save attempts
                 self.updateChatMessage(with: messageId) { (chatMessage) in
@@ -822,13 +825,27 @@ class ChatData: ObservableObject {
 
                     var decryptedData: Data
                     do {
-                        decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
+                        switch blobVersion {
+                        case .chunked:
+                            let chunkedParameters = try ChunkedMediaParameters(blobSize: blobSize, chunkSize: chunkSize)
+                            decryptedData = Data(capacity: Int(chunkedParameters.estimatedPtSize))
+                            try ChunkedMediaCrypter.decryptChunkedMedia(
+                                mediaType: type,
+                                mediaKey: mediaKey,
+                                sha256Hash: sha256Hash,
+                                chunkedParameters: chunkedParameters,
+                                readChunkData: { chunkOffset, chunkSize in return encryptedData[chunkOffset..<chunkOffset + chunkSize] },
+                                writeChunkData: { chunkData, _ in decryptedData.append(chunkData)})
+
+                        case .default:
+                            decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
+                        }
                     } catch {
                         DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\(med.order)/could not decrypt media data")
                         return
                     }
 
-                    MainAppContext.shared.mediaHashStore.update(data: decryptedData, key: key, sha256: sha, downloadURL: url)
+                    MainAppContext.shared.mediaHashStore.update(data: decryptedData, blobVersion: blobVersion, key: key, sha256: sha, downloadURL: url)
 
                     let fileExtension: String = {
                         switch type {
@@ -972,7 +989,7 @@ class ChatData: ObservableObject {
                         return
                     }
 
-                    MainAppContext.shared.mediaHashStore.update(data: decryptedData, key: key, sha256: sha, downloadURL: url)
+                    MainAppContext.shared.mediaHashStore.update(data: decryptedData, blobVersion: .default, key: key, sha256: sha, downloadURL: url)
 
                     let fileExtension: String = {
                         switch type {
@@ -2315,7 +2332,7 @@ extension ChatData {
                     }
                 } ()
 
-                ImageServer.shared.prepare(type, url: url, for: msgID, index: Int(mediaIndex)) { [weak self] in
+                ImageServer.shared.prepare(type, url: url, for: msgID, index: Int(mediaIndex), shouldStreamVideo: false) { [weak self] in
                     guard let self = self else { return }
 
                     switch $0 {
@@ -2423,7 +2440,7 @@ extension ChatData {
         }
         let processed = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
 
-        MainAppContext.shared.mediaHashStore.fetch(url: processed) { [weak self] upload in
+        MainAppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: chatMedia.blobVersion) { [weak self] upload in
             guard let self = self else { return }
 
             // Lookup object from coredata again instead of passing around the object across threads.
@@ -2481,7 +2498,7 @@ extension ChatData {
                             media.sha256 = sha256
                         }
 
-                        MainAppContext.shared.mediaHashStore.update(url: processed, key: media.key, sha256: media.sha256, downloadURL: media.url!)
+                        MainAppContext.shared.mediaHashStore.update(url: processed, blobVersion: media.blobVersion, key: media.key, sha256: media.sha256, downloadURL: media.url!)
                     case .failure(_):
                         media.outgoingStatus = .error
                         media.numTries += 1

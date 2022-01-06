@@ -200,6 +200,9 @@ public protocol ChatMediaProtocol {
     var size: CGSize { get }
     var key: String { get }
     var sha256: String { get }
+    var blobVersion: BlobVersion { get }
+    var chunkSize: Int32 { get }
+    var blobSize: Int64 { get }
 }
 
 public extension ChatMediaProtocol {
@@ -231,6 +234,14 @@ public extension ChatMediaProtocol {
             media.encryptionKey = encryptionKey
             media.ciphertextHash = ciphertextHash
             media.downloadURL = url.absoluteString
+            media.blobVersion = {
+                switch blobVersion {
+                case .default: return .default
+                case .chunked: return .chunked
+                }
+            }()
+            media.chunkSize = chunkSize
+            media.blobSize = blobSize
             return media
         }
     }
@@ -283,6 +294,16 @@ public extension ChatMediaProtocol {
             vid.video = res
             vid.width = Int32(size.width)
             vid.height = Int32(size.height)
+            var streamingInfo = Clients_StreamingInfo()
+            streamingInfo.blobVersion = {
+                switch blobVersion {
+                case .default: return .default
+                case .chunked: return .chunked
+                }
+            }()
+            streamingInfo.chunkSize = chunkSize
+            streamingInfo.blobSize = blobSize
+            vid.streamingInfo = streamingInfo
             albumMedia.media = .video(vid)
         case .audio:
             return nil
@@ -355,13 +376,19 @@ public struct XMPPChatMedia {
     public var size: CGSize
     public var key: String
     public var sha256: String
+    public var blobVersion: BlobVersion
+    public var chunkSize: Int32
+    public var blobSize: Int64
 
-    public init(url: URL? = nil, type: ChatMessageMediaType, size: CGSize, key: String, sha256: String) {
+    public init(url: URL? = nil, type: ChatMessageMediaType, size: CGSize, key: String, sha256: String, blobVersion: BlobVersion, chunkSize: Int32, blobSize: Int64) {
         self.url = url
         self.type = type
         self.size = size
         self.key = key
         self.sha256 = sha256
+        self.blobVersion = blobVersion
+        self.chunkSize = chunkSize
+        self.blobSize = blobSize
     }
 
     public init?(protoMedia: Clients_Media) {
@@ -376,6 +403,14 @@ public struct XMPPChatMedia {
         self.size = CGSize(width: width, height: height)
         self.key = protoMedia.encryptionKey.base64EncodedString()
         self.sha256 = protoMedia.ciphertextHash.base64EncodedString()
+        self.blobVersion = {
+            switch protoMedia.blobVersion {
+            case .chunked: return .chunked
+            default: return .default
+            }
+        }()
+        self.chunkSize = protoMedia.chunkSize
+        self.blobSize = protoMedia.blobSize
     }
 
     public init?(albumMedia: Clients_AlbumMedia) {
@@ -392,6 +427,9 @@ public struct XMPPChatMedia {
             size = CGSize(width: width, height: height)
             key = image.img.encryptionKey.base64EncodedString()
             sha256 = image.img.ciphertextHash.base64EncodedString()
+            blobVersion = .default
+            chunkSize = 0
+            blobSize = 0
         case .video(let video):
             guard let downloadURL = URL(string: video.video.downloadURL) else { return nil }
             let width = CGFloat(video.width), height = CGFloat(video.height)
@@ -402,6 +440,14 @@ public struct XMPPChatMedia {
             size = CGSize(width: width, height: height)
             key = video.video.encryptionKey.base64EncodedString()
             sha256 = video.video.ciphertextHash.base64EncodedString()
+            blobVersion = {
+                switch video.streamingInfo.blobVersion {
+                case .chunked: return .chunked
+                default: return .default
+                }
+            }()
+            self.chunkSize = video.streamingInfo.chunkSize
+            self.blobSize = video.streamingInfo.blobSize
         }
     }
 
@@ -413,6 +459,9 @@ public struct XMPPChatMedia {
         size = .zero
         key = audio.encryptionKey.base64EncodedString()
         sha256 = audio.ciphertextHash.base64EncodedString()
+        blobVersion = .default
+        chunkSize = 0
+        blobSize = 0
     }
 }
 

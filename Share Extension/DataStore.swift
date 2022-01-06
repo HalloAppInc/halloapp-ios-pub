@@ -61,8 +61,9 @@ class DataStore: ShareExtensionDataStore {
                 let url = fileURL(forRelativeFilePath: relativeFilePath)
                 let path = Self.relativeFilePath(forFilename: UUID().uuidString + ".processed", mediaType: mediaItem.type)
                 let output = fileURL(forRelativeFilePath: path)
+                let shouldStreamVideo = mediaItem.blobVersion == .chunked
 
-                ImageServer.shared.prepare(mediaItem.type, url: url, for: mediaProcessingId, index: Int(mediaIndex)) { [weak self] in
+                ImageServer.shared.prepare(mediaItem.type, url: url, for: mediaProcessingId, index: Int(mediaIndex), shouldStreamVideo: shouldStreamVideo) { [weak self] in
                     guard let self = self else { return }
 
                     switch $0 {
@@ -73,6 +74,8 @@ class DataStore: ShareExtensionDataStore {
                         mediaItem.key = result.key
                         mediaItem.sha256 = result.sha256
                         mediaItem.relativeFilePath = path
+                        mediaItem.chunkSize = result.chunkSize
+                        mediaItem.blobSize = result.blobSize
                         self.save(managedObjectContext)
                         self.uploadMedia(mediaItem: mediaItem, postOrMessageOrLinkPreviewId: postOrMessageOrLinkPreviewId, in: managedObjectContext, completion: onUploadCompletion)
 
@@ -134,7 +137,7 @@ class DataStore: ShareExtensionDataStore {
             return completion(.failure(MediaUploadError.unknownError))
         }
         let processed = fileURL(forRelativeFilePath: relativeFilePath)
-        AppContext.shared.mediaHashStore.fetch(url: processed) { [weak self] upload in
+        AppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: mediaItem.blobVersion) { [weak self] upload in
             guard let self = self else { return }
             if let url = upload?.url {
                 DDLogInfo("Media \(processed) has been uploaded before at \(url).")
@@ -159,7 +162,7 @@ class DataStore: ShareExtensionDataStore {
                         mediaItem.key = key
                         mediaItem.sha256 = sha256
                     }
-                    AppExtensionContext.shared.mediaHashStore.update(url: processed, key: mediaItem.key, sha256: mediaItem.sha256, downloadURL: mediaItem.url!)
+                    AppExtensionContext.shared.mediaHashStore.update(url: processed, blobVersion: mediaItem.blobVersion, key: mediaItem.key, sha256: mediaItem.sha256, downloadURL: mediaItem.url!)
                 case .failure(let error):
                     DDLogError("SharedDataStore/uploadMedia/failed to upload media, error: \(error)")
                     mediaItem.status = .error
@@ -253,6 +256,11 @@ class DataStore: ShareExtensionDataStore {
             feedPost.groupId = group.id
             feedPost.audienceType = .group
             feedPost.audienceUserIds = group.users
+
+            let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled && ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(group.id)
+            if shouldStreamFeedVideo {
+                feedPost.media?.forEach({ $0.blobVersion = ($0.type == .video) ? .chunked : .default })
+            }
         } else {
             let postAudience = try! ShareExtensionContext.shared.privacySettings.currentFeedAudience()
             feedPost.audienceType = postAudience.audienceType

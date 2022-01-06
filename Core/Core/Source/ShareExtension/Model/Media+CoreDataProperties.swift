@@ -73,6 +73,18 @@ extension SharedMedia {
     @NSManaged public var message: SharedChatMessage?
     @NSManaged public var comment: SharedFeedComment?
     @NSManaged public var linkPreview: SharedFeedLinkPreview?
+
+    @NSManaged private var blobVersionValue: Int16
+    public var blobVersion: BlobVersion {
+        get {
+            return BlobVersion(rawValue: Int(self.blobVersionValue))!
+        }
+        set {
+            blobVersionValue = Int16(newValue.rawValue)
+        }
+    }
+    @NSManaged public var chunkSize: Int32
+    @NSManaged public var blobSize: Int64
 }
 
 extension SharedMedia: FeedMediaProtocol {

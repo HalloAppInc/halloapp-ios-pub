@@ -90,7 +90,7 @@ class ShareDataLoader {
         loadingGroup.notify(queue: DispatchQueue.main) {
             for item in self.media {
                 guard let url = item.fileURL else { return }
-                ImageServer.shared.prepare(item.type, url: url)
+                ImageServer.shared.prepare(item.type, url: url, shouldStreamVideo: false)
             }
 
             self.ready.send(true)

@@ -70,6 +70,18 @@ extension FeedPostMedia {
     @NSManaged public var key: String
     @NSManaged public var sha256: String
     @NSManaged public var order: Int16
+
+    @NSManaged private var blobVersionValue: Int16
+    public var blobVersion: BlobVersion {
+        get {
+            return BlobVersion(rawValue: Int(self.blobVersionValue))!
+        }
+        set {
+            blobVersionValue = Int16(newValue.rawValue)
+        }
+    }
+    @NSManaged public var chunkSize: Int32
+    @NSManaged public var blobSize: Int64
 }
 
 extension FeedPostMedia: MediaUploadable {
