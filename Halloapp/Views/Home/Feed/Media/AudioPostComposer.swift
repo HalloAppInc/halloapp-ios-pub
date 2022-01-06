@@ -50,6 +50,7 @@ struct AudioPostComposer: View {
     var isReadyToShare: Bool
     var shareAction: (() -> Void)
     @Binding var presentMediaPicker: Bool
+    @Binding var presentDeleteVoiceNote: Bool
     @State private var showPermissionsAlert = false
 
     private var state: AudioPostComposerState {
@@ -95,7 +96,7 @@ struct AudioPostComposer: View {
                     .alert(isPresented: $showPermissionsAlert) {
                         AudioComposerRecorder.micPermissionsAlert
                     }
-                AudioComposerPlayer(configuration: .composer, recorder: recorder)
+                AudioComposerPlayer(configuration: .composer, recorder: recorder, presentDeleteVoiceNote: $presentDeleteVoiceNote)
                     .padding(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
                     .opacity(state == .recorded ? 1 : 0)
                     .fixedSize(horizontal: false, vertical: true)
@@ -300,6 +301,7 @@ struct AudioComposerPlayer: UIViewRepresentable {
 
     let configuration: PostAudioViewConfiguration
     @ObservedObject var recorder: AudioComposerRecorder
+    @Binding var presentDeleteVoiceNote: Bool
 
     func makeUIView(context: Context) -> PostAudioView {
         let postAudioView = PostAudioView(configuration: configuration)
@@ -326,7 +328,7 @@ struct AudioComposerPlayer: UIViewRepresentable {
         }
 
         func postAudioViewDidRequestDeletion(_ postAudioView: PostAudioView) {
-            postAudioPlayer.recorder.voiceNote = nil
+            postAudioPlayer.presentDeleteVoiceNote = true
         }
     }
 }

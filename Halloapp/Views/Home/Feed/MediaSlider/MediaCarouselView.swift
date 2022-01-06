@@ -59,7 +59,7 @@ struct MediaCarouselSupplementaryItem {
 }
 
 fileprivate struct LayoutConstants {
-    static let pageControlSpacingTop: CGFloat = -4
+    static let pageControlSpacingTop: CGFloat = 6
     static let pageControlSpacingBottom: CGFloat = -12
 }
 
@@ -197,7 +197,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         let stack = UIStackView(arrangedSubviews: [])
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .horizontal
-        stack.spacing = 6
+        stack.spacing = 4
 
         return stack
     }()
@@ -491,7 +491,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         if configuration.isPagingEnabled {
             var size = bounds.size
             if pageControlStack.arrangedSubviews.count > 0 && size.height > Self.pageControlAreaHeight {
-                size.height -= Self.pageControlAreaHeight
+                size.height -= Self.pageControlAreaHeight + LayoutConstants.pageControlSpacingTop
             }
             return size
         } else {
