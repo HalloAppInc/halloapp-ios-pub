@@ -872,7 +872,7 @@ final class FeedItemFooterView: UIView {
                 facePileView.configure(with: post)
             }
         case .sending, .retracting:
-            showProgressView()
+            showProgressView(post)
             hideErrorView()
 
             if let count = post.media?.count, count > 0 {
@@ -938,11 +938,13 @@ final class FeedItemFooterView: UIView {
         return view
     }()
 
-    private func showProgressView() {
+    private func showProgressView(_ post: FeedPost) {
         if progressView.superview == nil {
             addSubview(progressView)
             progressView.constrain(to: buttonStack)
         }
+        
+        progressView.configure(with: post)
         progressView.isHidden = false
     }
 
@@ -1092,6 +1094,25 @@ class PostingProgressView: UIView {
         activityIndicatorView.translatesAutoresizingMaskIntoConstraints = false
         activityIndicatorView.centerXAnchor.constraint(equalTo: cancelButton.centerXAnchor).isActive = true
         activityIndicatorView.centerYAnchor.constraint(equalTo: cancelButton.centerYAnchor).isActive = true
+    }
+    
+    /**
+    Used to display the appropriate progress indicator when making a post.
+         
+    For posts that consist of *only* text, there will be no progress bar.
+    */
+    func configure(with post: FeedPost) {
+        let media = post.media
+        let isTextPost = media?.isEmpty ?? true
+
+        isIndeterminate = isTextPost
+
+        switch post.status {
+        case .retracting:
+            textLabel.text = Localizations.feedDeleting
+        default:
+            textLabel.text = Localizations.feedPosting
+        }
     }
 }
 
