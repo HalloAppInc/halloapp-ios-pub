@@ -120,6 +120,7 @@ public enum CallState {
     case inactive
     case connecting
     case ringing
+    case connected
     case active
     case held
     case disconnected

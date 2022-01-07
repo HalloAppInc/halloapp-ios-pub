@@ -18,6 +18,7 @@ import AVFoundation
 protocol CallViewDelegate: AnyObject {
     func callStarted()
     func callRinging()
+    func callConnected()
     func callActive()
     func callDurationChanged(seconds: Int)
     func callEnded()
@@ -622,6 +623,10 @@ extension CallManager: CallStateDelegate {
         case .ringing:
             // Update UI to show ringing status.
             callViewDelegate?.callRinging()
+
+        case .connected:
+            // Update UI to show connected status
+            callViewDelegate?.callConnected()
 
         case .active:
             stopCallRingtone()

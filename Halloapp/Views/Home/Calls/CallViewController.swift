@@ -286,6 +286,13 @@ extension CallViewController: CallViewDelegate {
         }
     }
 
+    func callConnected() {
+        callStatus = "connecting"
+        DispatchQueue.main.async {
+            self.updateCallStatusLabel()
+        }
+    }
+
     func callActive() {
         DispatchQueue.main.async {
             self.updateCallStatusLabel()
