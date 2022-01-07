@@ -371,7 +371,7 @@ fileprivate class BackgroundDecorationView: UICollectionReusableView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .feedPostBackground
-        layer.cornerRadius = 13
+        layer.cornerRadius = 10
     }
 
     required init?(coder: NSCoder) {
@@ -391,7 +391,7 @@ fileprivate class BackgroundDecorationView: UICollectionReusableView {
         if count > 0 {
             for i in 1..<count {
                 let position = height * CGFloat(i)
-                let separatorView = UIView(frame: CGRect(x: inset, y: position, width: bounds.width - inset, height: 1))
+                let separatorView = UIView(frame: CGRect(x: inset, y: position, width: bounds.width - inset, height: 0.5))
                 separatorView.backgroundColor = color
 
                 addSubview(separatorView)

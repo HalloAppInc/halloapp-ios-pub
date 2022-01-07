@@ -99,6 +99,7 @@ class ChangeDestinationViewController: UIViewController {
         collectionView.register(GroupCell.self, forCellWithReuseIdentifier: GroupCell.reuseIdentifier)
         collectionView.register(HeaderView.self, forSupplementaryViewOfKind: HeaderView.elementKind, withReuseIdentifier: HeaderView.elementKind)
         collectionView.delegate = self
+        collectionView.keyboardDismissMode = .onDrag
 
         return collectionView
     }()
@@ -110,7 +111,6 @@ class ChangeDestinationViewController: UIViewController {
     private lazy var leftBarButtonItem: UIBarButtonItem = {
         let image = UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
         let item = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(backAction))
-        item.tintColor = .primaryBlue
 
         return item
     }()
@@ -216,7 +216,7 @@ class ChangeDestinationViewController: UIViewController {
         isModalInPresentation = true
         view.backgroundColor = .primaryBg
 
-        navigationItem.title = Localizations.title
+        navigationItem.title = Localizations.titlePrivacy
         navigationItem.leftBarButtonItem = leftBarButtonItem
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
@@ -426,7 +426,7 @@ fileprivate class BackgroundDecorationView: UICollectionReusableView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .feedPostBackground
-        layer.cornerRadius = 13
+        layer.cornerRadius = 10
     }
 
     required init?(coder: NSCoder) {
@@ -446,7 +446,7 @@ fileprivate class BackgroundDecorationView: UICollectionReusableView {
         if count > 0 {
             for i in 1..<count {
                 let position = height * CGFloat(i)
-                let separatorView = UIView(frame: CGRect(x: inset, y: position, width: bounds.width - inset, height: 1))
+                let separatorView = UIView(frame: CGRect(x: inset, y: position, width: bounds.width - inset, height: 0.5))
                 separatorView.backgroundColor = color
 
                 addSubview(separatorView)
@@ -465,7 +465,7 @@ fileprivate class ContactsCell: UICollectionViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
         label.numberOfLines = 1
-        label.font = .preferredFont(forTextStyle: .body)
+        label.font = .systemFont(ofSize: 17, weight: .medium)
         label.adjustsFontForContentSizeCategory = true
         label.textColor = .label
 
@@ -486,7 +486,7 @@ fileprivate class ContactsCell: UICollectionViewCell {
     }()
 
     private lazy var nextView: UIView = {
-        let imageConf = UIImage.SymbolConfiguration(pointSize: 18, weight: .bold)
+        let imageConf = UIImage.SymbolConfiguration(pointSize: 18)
         let image = UIImage(systemName: "chevron.right", withConfiguration: imageConf)!.withRenderingMode(.alwaysTemplate)
         let imageView = UIImageView(image: image)
         imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -522,8 +522,16 @@ fileprivate class ContactsCell: UICollectionViewCell {
     }
 
     private func setup() {
-        backgroundColor = .feedPostBackground
-        layer.cornerRadius = 13
+        layer.cornerRadius = 10
+        layer.shadowRadius = 0
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.15
+        layer.shadowOffset = CGSize(width: 0, height: 0.5)
+        layer.masksToBounds = false
+
+        contentView.backgroundColor = .feedPostBackground
+        contentView.layer.cornerRadius = 10
+        contentView.layer.masksToBounds = true
 
         let vStack = UIStackView(arrangedSubviews: [ titleView, subtitleView ])
         vStack.translatesAutoresizingMaskIntoConstraints = false
@@ -531,7 +539,7 @@ fileprivate class ContactsCell: UICollectionViewCell {
         vStack.axis = .vertical
         vStack.alignment = .leading
         vStack.distribution = .fillProportionally
-        vStack.spacing = 0
+        vStack.spacing = 1
 
         let hStack = UIStackView(arrangedSubviews: [selectedView, vStack, nextView])
         hStack.translatesAutoresizingMaskIntoConstraints = false
@@ -575,7 +583,7 @@ fileprivate class GroupCell: UICollectionViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
         label.numberOfLines = 1
-        label.font = .preferredFont(forTextStyle: .body)
+        label.font = .systemFont(ofSize: 17, weight: .medium)
         label.textColor = .label
 
         return label
