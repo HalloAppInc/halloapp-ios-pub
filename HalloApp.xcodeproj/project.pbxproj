@@ -1,4 +1,3 @@
-
 // !$*UTF8*$!
 {
 	archiveVersion = 1;
@@ -70,8 +69,8 @@
 		32C83FCB2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FCA2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift */; };
 		32C83FDA2698171700BEB4F5 /* PrivacyPermissionDeniedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FD92698171700BEB4F5 /* PrivacyPermissionDeniedView.swift */; };
 		32E60AFA271F510800D6A368 /* PostComposerLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */; };
-		32ECB6E9277515DD004DABBA /* QuotedMessageCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */; };
 		32ECB6DB27725E2C004DABBA /* MessageCommentHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */; };
+		32ECB6E9277515DD004DABBA /* QuotedMessageCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */; };
 		32F8FB032748556200E52121 /* PostComposerLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */; };
 		33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */; };
 		5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */; };
@@ -580,8 +579,8 @@
 		32C83FD92698171700BEB4F5 /* PrivacyPermissionDeniedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPermissionDeniedView.swift; sourceTree = "<group>"; };
 		32E2481C270BB66200E0D12D /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerLinkPreviewView.swift; sourceTree = "<group>"; };
-		32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMessageCellView.swift; sourceTree = "<group>"; };
 		32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCommentHeaderView.swift; sourceTree = "<group>"; };
+		32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMessageCellView.swift; sourceTree = "<group>"; };
 		33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsInCommonViewController.swift; sourceTree = "<group>"; };
 		5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
 		5BF5D12224F5295300F272D8 /* CameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
