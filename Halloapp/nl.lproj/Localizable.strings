@@ -172,6 +172,9 @@
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Chats zijn end-to-end versleuteld en HalloApp heeft hiertoe geen toegang. Tik voor meer informatie.";
 
+/* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
+"chat.event.security.keys.changed" = "Beveiligingssleutels met %@ zijn gewijzigd";
+
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ neemt deel aan de groep via een uitnodigingslink";
 
@@ -331,11 +334,17 @@
 /* Title for audio post composer */
 "composer.audio.title" = "Nieuw Audiobericht";
 
+/* Title warning that a voice recording will be deleted */
+"composer.delete.recording.title" = "Spraakopname verwijderen?";
+
 /* Show the user that the title is tappable */
 "composer.deletevoicenote.message" = "Spraakopname wordt niet opgeslagen als je deze post weggooit.";
 
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Post Weggooien?";
+
+/* Label shown when only single media item selected */
+"composer.label.more" = "Meer toevoegen";
 
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "Selecteer alsjeblieft een andere video of tik op bewerken.";
