@@ -2940,6 +2940,8 @@ extension ChatData {
                     DDLogInfo("ChatData/handleIncomingWhisperMessage/updateWhisperSession/addToPending \(userID) in \(groupId)")
                     AppContext.shared.messageCrypter.addMembers(userIds: [userID], in: groupId)
                 }
+
+                self.recordNewChatEvent(userID: userID, type: .whisperKeysChange)
             }
         default:
             DDLogInfo("ChatData/handleIncomingWhisperMessage/ignore")
@@ -3426,6 +3428,23 @@ extension ChatData {
             }
         }
     }
+}
+
+// MARK: Chat Events
+extension ChatData {
+
+    private func recordNewChatEvent(userID: UserID, type: ChatEventType) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            DDLogInfo("ChatData/recordNewChatEvent/for: \(userID)")
+          
+            let chatEvent = ChatEvent(context: managedObjectContext)
+            chatEvent.userID = userID
+            chatEvent.type = type
+            chatEvent.timestamp = Date()
+            self?.save(managedObjectContext)
+        }
+    }
+    
 }
 
 extension ChatData {

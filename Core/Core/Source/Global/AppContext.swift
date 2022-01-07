@@ -14,6 +14,7 @@ import Foundation
 import PhoneNumberKit
 import FirebaseCore
 import FirebaseCrashlytics
+import Sentry
 
 fileprivate var sharedContext: AppContext?
 
@@ -288,6 +289,13 @@ open class AppContext {
         Crashlytics.crashlytics().setUserID(userData.userId)
         // Log errors to firebase
         errorLogger = logger
+
+        SentrySDK.start { options in
+            options.dsn = "https://ed03b5bdacbe4571927f8f2c93a45790@o473086.ingest.sentry.io/6126729"
+            options.maxBreadcrumbs = 500
+        }
+        SentrySDK.setUser(Sentry.User(userId: userData.userId))
+        DDLog.add(SentryLogger(logFormatter: LogFormatter()))
         #endif
 
         DispatchQueue.global(qos: .background).async {

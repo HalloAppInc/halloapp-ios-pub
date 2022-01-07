@@ -1,5 +1,4 @@
 //
-//  File.swift
 //  HalloApp
 //
 //  Created by Tony Jiang on 10/11/20.
@@ -14,6 +13,8 @@ import UIKit
 
 fileprivate struct Constants {
     static let QuotedMediaSize: CGFloat = 50
+    static let DefaultBubbleWrapperEdgeInsets: UIEdgeInsets = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
+    static let DefaultTextRowEdgeInsets: UIEdgeInsets = UIEdgeInsets(top: 10, left: 7, bottom: 7, right: 7)
 }
 
 protocol InboundMsgViewCellDelegate: AnyObject {
@@ -54,6 +55,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
     }
+
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func prepareForReuse() {
@@ -107,14 +109,14 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     }()
 
     private lazy var bubbleWrapper: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ quotedRow, nameRow, linkPreviewRow, mediaRow, textRow ])
+        let view = UIStackView(arrangedSubviews: [ quotedRow, linkPreviewRow, mediaRow, textRow ])
         view.axis = .vertical
         view.spacing = 0
         view.layer.cornerRadius = 20
         view.layer.masksToBounds = true
         view.clipsToBounds = true
         
-        view.layoutMargins = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
+        view.layoutMargins = Constants.DefaultBubbleWrapperEdgeInsets
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -129,19 +131,6 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         
         textRow.widthAnchor.constraint(greaterThanOrEqualToConstant: 40).isActive = true
 
-        return view
-    }()
-    
-    // MARK: Name Row
-    private lazy var nameRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel ])
-        view.axis = .vertical
-        view.spacing = 0
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 15, bottom: 5, right: 15)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.isHidden = true
         return view
     }()
     
@@ -182,6 +171,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+
         return label
     }()
     
@@ -315,7 +305,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.axis = .vertical
         view.alignment = .fill
         view.spacing = 1
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 7, bottom: 7, right: 7)
+        view.layoutMargins = Constants.DefaultTextRowEdgeInsets
         view.isLayoutMarginsRelativeArrangement = true
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -747,16 +737,11 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     // MARK: reuse
     
     func reset() {
-        messageID = nil
-        indexPath = nil
-        
         contentView.layoutMargins = UIEdgeInsets(top: 3, left: 18, bottom: 0, right: 18)
         contentView.backgroundColor = UIColor.primaryBg // need to reset since animation of highlighting can be ongoing when jumping
-        
-        nameRow.isHidden = true
-        nameLabel.text = ""
-        nameLabel.textColor = .secondaryLabel
-        
+
+        bubbleWrapper.layoutMargins = Constants.DefaultBubbleWrapperEdgeInsets
+
         quotedRow.subviews[1].backgroundColor = UIColor.chatOwnBubbleBg
         quotedRow.isHidden = true
         quotedNameLabel.textColor = UIColor.label
@@ -774,7 +759,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         // Reset of Link Previews
         linkPreviewRow.isHidden = true
 
-        textRow.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        textRow.layoutMargins = Constants.DefaultTextRowEdgeInsets
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
         textView.textColor = UIColor.primaryBlackWhite
         textView.attributedText = nil

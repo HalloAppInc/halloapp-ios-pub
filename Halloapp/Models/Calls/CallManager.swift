@@ -18,6 +18,7 @@ import AVFoundation
 protocol CallViewDelegate: AnyObject {
     func callStarted()
     func callRinging()
+    func callConnected()
     func callActive()
     func callDurationChanged(seconds: Int)
     func callEnded()
@@ -41,6 +42,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         return providerConfiguration
     }
 
+    private var delegateQueue = DispatchQueue(label: "com.halloapp.callManager.delegate", qos: .userInitiated)
     let callController = CXCallController()
     private let provider: CXProvider
     public var service: HalloService
@@ -500,31 +502,43 @@ extension CallManager: HalloCallDelegate {
             }
         }
 
-        // Try to decrypt offer if no call is active and report to callkit provider.
-        // Check if call is supported or if we have an active call already.
-        if incomingCall.callType != .audio {
-            // Reject non-audio calls for now.
-            // TODO: we need some sort of tombstone here eventually!
-            MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .videoUnsupportedError)
-            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason videoUnsupportedError")
-        } else if activeCallID == incomingCall.callID {
-            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID) duplicate packet")
-        } else if activeCall != nil {
-            MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
-            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason busy")
-        } else {
-            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID)/callUUID: \(callID.callUUID)")
-            callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID)
-            let iceServers = WebRTCClient.getIceServers(stunServers: incomingCall.stunServers, turnServers: incomingCall.turnServers)
-            activeCall = Call(id: callID, peerUserID: peerUserID, iceServers: iceServers)
-            activeCall?.stateDelegate = self
-            reportIncomingCall(id: callID, from: peerUserID) { error in
-                switch error {
-                case .success:
-                    DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/success")
-                    reportIncomingCallCompletion()
-                case .failure(let error):
-                    DDLogError("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/failed: \(error)")
+        // Lets run this async on a queue
+        // I noticed an edgecase where this delegate function was being called twice
+        // 1. first one is from the noise-queue which is when we receive a message,
+        // 2. second one is from the voip-push queue which happens when we receive a voip-push
+        // This is ideally not expected - because server knows if the client has an active connection or not (which could be nse or the main app).
+        // However - notification extension can't wake up the main app before 14.5.
+        // so currently server sends both voip-push and the message even when the client has a connection on ios < 14.5.
+        // this is done - to ensure that the voip-push wakes up the app in those cases in-case nse was active.
+        // Running this operation serially on the queue -- should sync things up and we will discard the second incomingCall packet.
+        // Things should work fine after that.
+        delegateQueue.sync {
+            // Try to decrypt offer if no call is active and report to callkit provider.
+            // Check if call is supported or if we have an active call already.
+            if incomingCall.callType != .audio {
+                // Reject non-audio calls for now.
+                // TODO: we need some sort of tombstone here eventually!
+                MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .videoUnsupportedError)
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason videoUnsupportedError")
+            } else if activeCallID == incomingCall.callID {
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID) duplicate packet")
+            } else if activeCall != nil {
+                MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason busy")
+            } else {
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID)/callUUID: \(callID.callUUID)")
+                callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID)
+                let iceServers = WebRTCClient.getIceServers(stunServers: incomingCall.stunServers, turnServers: incomingCall.turnServers)
+                activeCall = Call(id: callID, peerUserID: peerUserID, iceServers: iceServers)
+                activeCall?.stateDelegate = self
+                reportIncomingCall(id: callID, from: peerUserID) { error in
+                    switch error {
+                    case .success:
+                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/success")
+                        reportIncomingCallCompletion()
+                    case .failure(let error):
+                        DDLogError("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/failed: \(error)")
+                    }
                 }
             }
         }
@@ -622,6 +636,10 @@ extension CallManager: CallStateDelegate {
         case .ringing:
             // Update UI to show ringing status.
             callViewDelegate?.callRinging()
+
+        case .connected:
+            // Update UI to show connected status
+            callViewDelegate?.callConnected()
 
         case .active:
             stopCallRingtone()

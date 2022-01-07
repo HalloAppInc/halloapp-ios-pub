@@ -7,8 +7,6 @@
 //
 
 import CocoaLumberjackSwift
-import CryptoKit
-import Sodium
 
 public protocol RegistrationService {
     func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, RegistrationErrorResponse>) -> Void)

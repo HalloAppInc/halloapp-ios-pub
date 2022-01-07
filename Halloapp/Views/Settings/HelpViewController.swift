@@ -54,7 +54,6 @@ class HelpViewController: UITableViewController {
         case privacyPolicy
         case feedback
         case shareLogs
-        case calls
     }
 
     private class HelpTableViewDataSource: UITableViewDiffableDataSource<Section, Row> {
@@ -75,7 +74,6 @@ class HelpViewController: UITableViewController {
     private let cellPP = SettingsTableViewCell(text: Localizations.privacyPolicy)
     private let cellFeedback = SettingsTableViewCell(text: Localizations.feedback)
     private let cellShareLogs = SettingsTableViewCell(text: Localizations.shareLogs)
-    private let cellCalls = SettingsTableViewCell(text: Localizations.calls)
 
 
     // MARK: View Controller
@@ -103,7 +101,6 @@ class HelpViewController: UITableViewController {
             case .privacyPolicy: return self.cellPP
             case .feedback: return self.cellFeedback
             case .shareLogs: return self.cellShareLogs
-            case .calls: return self.cellCalls
             }
         })
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
@@ -116,7 +113,6 @@ class HelpViewController: UITableViewController {
         // Share Logs: Internal users or Mail unavailable.
         if ServerProperties.isInternalUser || !MFMailComposeViewController.canSendMail() {
             snapshot.appendItems([ .shareLogs ], toSection: .two)
-            snapshot.appendItems([ .calls ], toSection: .two)
         }
         dataSource.apply(snapshot, animatingDifferences: false)
     }
@@ -136,8 +132,6 @@ class HelpViewController: UITableViewController {
             sendLogs()
         case .shareLogs:
             shareLogs()
-        case .calls:
-            openCalls()
         }
     }
 
@@ -174,35 +168,6 @@ class HelpViewController: UITableViewController {
                 self.tableView.deselectRow(at: indexPath, animated: true)
             }
         }
-    }
-
-    private func openCalls() {
-        DDLogInfo("HelpViewController/openCalls")
-        if MainAppContext.shared.callManager.activeCall != nil {
-            if let rootVC = view.window?.rootViewController as? RootViewController {
-                DDLogInfo("HelpViewController/opening call screen")
-                rootVC.delegate?.didTapCallBar()
-            } else {
-                DDLogError("HelpViewController/error [unable to open call screen]")
-            }
-        } else {
-            let alert = self.getNoCallsAlertController()
-            self.present(alert, animated: true)
-        }
-        if let indexPath = self.dataSource.indexPath(for: .calls) {
-            self.tableView.deselectRow(at: indexPath, animated: true)
-        }
-    }
-
-    private func getNoCallsAlertController() -> UIAlertController {
-        let alert = UIAlertController(
-            title: Localizations.noCallsTitle,
-            message: Localizations.noCallsNoticeText,
-            preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: Localizations.buttonOk, style: .default, handler: { action in
-            self.dismiss(animated: true, completion: nil)
-        }))
-        return alert
     }
 }
 

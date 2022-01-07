@@ -8,7 +8,7 @@ import UIKit
 
 protocol PostComposerViewDelegate: AnyObject {
     func composerDidTapShare(controller: PostComposerViewController, destination: PostComposerDestination, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?)
-    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia], voiceNote: PendingMedia?)
+    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, media: [PendingMedia], voiceNote: PendingMedia?)
     func willDismissWithInput(mentionInput: MentionInput)
 }
 
@@ -123,6 +123,14 @@ private extension Localizations {
 
     static var tapToChange: String {
         NSLocalizedString("composer.subtitle.cta", value: "Tap to change", comment: "Show the user that the title is tappable")
+    }
+
+    static var addMore: String {
+        NSLocalizedString("composer.label.more", value: "Add more", comment: "Label shown when only single media item selected")
+    }
+
+    static var deleteVoiceRecordingTitle: String {
+        NSLocalizedString("composer.delete.recording.title", value: "Delete voice recording?", comment: "Title warning that a voice recording will be deleted")
     }
 }
 
@@ -278,6 +286,7 @@ class PostComposerViewController: UIViewController {
 
     @objc private func backAction() {
         delegate?.composerDidTapBack(controller: self,
+                                     destination: configuration.destination,
                                      media: mediaItems.value,
                                      voiceNote: audioComposerRecorder.voiceNote)
     }
@@ -408,6 +417,7 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var privacySettings: PrivacySettings
     @State private var pendingMention: PendingMention? = nil
     @State private var presentPicker = false
+    @State private var presentDeleteVoiceNote = false
     @State private var videoTooLong = false
     @State private var destination: PostComposerDestination = .userFeed
     @State private var isReadyToShare = false
@@ -677,7 +687,8 @@ fileprivate struct PostComposerView: View {
         return AudioPostComposer(recorder: audioComposerRecorder,
                                  isReadyToShare: isReadyToShare,
                                  shareAction: share,
-                                 presentMediaPicker: $presentPicker)
+                                 presentMediaPicker: $presentPicker,
+                                 presentDeleteVoiceNote: $presentDeleteVoiceNote)
     }
 
     var voiceNotesEnabled: Bool {
@@ -693,30 +704,34 @@ fileprivate struct PostComposerView: View {
         }
     }
 
-    var body: some View {
-        VStack(spacing: 0) {
-            Button(action: {
-                changeDestination { destination in
-                    self.destination = destination
-                }
-            }) {
-                Text(changeDestinationButtonText())
+    var changeDestinationButton: some View {
+        Button(action: {
+            changeDestination { destination in
+                self.destination = destination
+            }
+        }) {
+            Text(changeDestinationButtonText())
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(.white)
+                .offset(y: -1)
+
+            if allowChangingDestination() {
+                Image(systemName: "chevron.down")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.white)
-                    .offset(y: -1)
-
-                if allowChangingDestination() {
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 14))
-                        .foregroundColor(.white)
-                }
             }
-            .frame(height: 25)
-            .padding(EdgeInsets(top: 0, leading: 11, bottom: 0, trailing: 11))
-            .background(Color.blue)
-            .cornerRadius(12)
-            .offset(y: -1)
-            .disabled(!allowChangingDestination())
+        }
+        .frame(height: 25)
+        .padding(EdgeInsets(top: 1, leading: 11, bottom: 0, trailing: 11))
+        .background(Color.blue)
+        .cornerRadius(12)
+        .offset(y: -3)
+        .disabled(!allowChangingDestination())
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            changeDestinationButton
 
             GeometryReader { scrollGeometry in
                 ScrollView {
@@ -781,14 +796,14 @@ fileprivate struct PostComposerView: View {
                             }
                         }
                         .clipShape(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius))
-                        .background(self.mediaCount == 0 ?
+                        .background(mediaCount == 0 ?
                             AnyView(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius)
                                 .fill(Color(.secondarySystemGroupedBackground))
                                 .shadow(color: Color.black.opacity(self.colorScheme == .dark ? 0 : 0.08), radius: 8, y: 8))
                             :
                             AnyView(Rectangle().fill(Color.clear))
                         )
-                        .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
+                        .padding(.horizontal, mediaCount > 0 ? 0 : PostComposerLayoutConstants.horizontalPadding)
                         .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
                     }
                     .frame(minHeight: scrollGeometry.size.height)
@@ -807,7 +822,7 @@ fileprivate struct PostComposerView: View {
             if mediaCount > 0 {
                 HStack(alignment: .bottom, spacing: 8) {
                     if audioComposerRecorder.voiceNote != nil {
-                        AudioComposerPlayer(configuration: .composerWithMedia, recorder: audioComposerRecorder)
+                        AudioComposerPlayer(configuration: .composerWithMedia, recorder: audioComposerRecorder, presentDeleteVoiceNote: $presentDeleteVoiceNote)
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
                         HStack(spacing: 0) {
@@ -828,6 +843,7 @@ fileprivate struct PostComposerView: View {
                                                 audioComposerRecorder.stopRecording(cancel: false)
                                             } label: {
                                                 Text(Localizations.buttonStop)
+                                                    .font(.system(size: 17, weight: .medium))
                                                     .foregroundColor(.primaryBlue)
                                             }
                                             .padding(.leading, -6)
@@ -859,6 +875,14 @@ fileprivate struct PostComposerView: View {
         .background(Color.feedBackground)
         .sheet(isPresented: $presentPicker) {
             picker.edgesIgnoringSafeArea(.bottom)
+        }
+        .actionSheet(isPresented: $presentDeleteVoiceNote) {
+            ActionSheet(title: Text(Localizations.deleteVoiceRecordingTitle), message: nil, buttons: [
+                .destructive(Text(Localizations.buttonDelete), action: {
+                    audioComposerRecorder.voiceNote = nil
+                }),
+                .cancel(),
+            ])
         }
         .onReceive(self.readyToSharePublisher) { isReadyToShare = $0 }
         .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
@@ -970,6 +994,7 @@ fileprivate struct TextView: UIViewRepresentable {
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.font = PostComposerLayoutConstants.getFontSize(
             textSize: input.value.text.count, isPostWithMedia: mediaItems.count > 0)
+        textView.tintColor = .systemBlue
         textView.textColor = Constants.textViewTextColor
         textView.text = input.value.text
         return textView
@@ -1236,20 +1261,31 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
             return [MediaCarouselSupplementaryItem(anchors: [.bottom, .trailing], view: stack)]
         }
         configuration.pageControlViewsProvider = { numberOfPages in
-            let imageConf = UIImage.SymbolConfiguration(pointSize: 27)
-            let image = UIImage(systemName: "plus.circle.fill", withConfiguration: imageConf)
-            let moreButton = UIButton(type: .custom)
-            moreButton.translatesAutoresizingMaskIntoConstraints = false
-            moreButton.setImage(image?.withTintColor(.systemGray3, renderingMode: .alwaysOriginal), for: .normal)
-            moreButton.widthAnchor.constraint(equalToConstant: 32).isActive = true
-            moreButton.heightAnchor.constraint(equalToConstant: 32).isActive = true
-            moreButton.addTarget(context.coordinator, action: #selector(context.coordinator.moreAction), for: .touchUpInside)
+            var items: [MediaCarouselSupplementaryItem] = []
 
-            if numberOfPages < 10 {
-                return [MediaCarouselSupplementaryItem(anchors: [.trailing], view: moreButton)]
+            if numberOfPages == 1 {
+                let label = UILabel()
+                label.text = Localizations.addMore
+                label.font = .systemFont(ofSize: 14)
+                label.textColor = .primaryBlackWhite.withAlphaComponent(0.4)
+
+                items.append(MediaCarouselSupplementaryItem(anchors: [.trailing], view: label))
             }
 
-            return []
+            if numberOfPages < 10 {
+                let imageConf = UIImage.SymbolConfiguration(pointSize: 27)
+                let image = UIImage(systemName: "plus.circle.fill", withConfiguration: imageConf)
+                let moreButton = UIButton(type: .custom)
+                moreButton.translatesAutoresizingMaskIntoConstraints = false
+                moreButton.setImage(image?.withTintColor(.systemGray3, renderingMode: .alwaysOriginal), for: .normal)
+                moreButton.widthAnchor.constraint(equalToConstant: 32).isActive = true
+                moreButton.heightAnchor.constraint(equalToConstant: 32).isActive = true
+                moreButton.addTarget(context.coordinator, action: #selector(context.coordinator.moreAction), for: .touchUpInside)
+
+                items.append(MediaCarouselSupplementaryItem(anchors: [.trailing], view: moreButton))
+            }
+
+            return items
         }
 
         let carouselView = MediaCarouselView(media: feedMediaItems, configuration: configuration)

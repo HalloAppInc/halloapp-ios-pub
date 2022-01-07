@@ -11,7 +11,6 @@ import Core
 import CocoaLumberjackSwift
 import WebRTC
 import CallKit
-import CryptoKit
 import Reachability
 
 
@@ -55,12 +54,14 @@ class Call {
     let service: HalloService = MainAppContext.shared.callManager.service
     private(set) var state: CallState = .inactive {
         didSet {
-            stateDelegate?.stateChanged(oldState: oldValue, newState: state)
-            // state is set to active only when client answers or received an answer for the call.
-            if state == .active {
-                isAnswered = true
-                MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
-                    call.answered = true
+            callQueue.async { [self] in
+                stateDelegate?.stateChanged(oldState: oldValue, newState: state)
+                // state is set to connected only when client answers or received an answer for the call.
+                if state == .connected {
+                    isAnswered = true
+                    MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                        call.answered = true
+                    }
                 }
             }
         }
@@ -167,7 +168,7 @@ class Call {
                 service.answerCall(id: callID, to: peerUserID, payload: payload) { result in
                     switch result {
                     case .success:
-                        state = .active
+                        state = .connected
                         DDLogInfo("Call/\(callID)/answer/success")
                         processPendingLocalIceCandidates()
                         DispatchQueue.main.async {
@@ -307,7 +308,7 @@ class Call {
                     DDLogError("Call/\(callID)didReceiveAnswer/error: \(error.localizedDescription)")
                 } else {
                     DDLogInfo("Call/\(callID)/didReceiveAnswer/success")
-                    state = .active
+                    state = .connected
                     processPendingRemoteIceCandidateInfo()
                 }
             }
@@ -419,14 +420,17 @@ extension Call: WebRTCClientDelegate {
         }
     }
 
-    func webRTCClient(_ client: WebRTCClient, didChangeConnectionState state: RTCIceConnectionState) {
+    func webRTCClient(_ client: WebRTCClient, didChangeConnectionState iceState: RTCIceConnectionState) {
         DDLogInfo("Call/\(callID)/WebRTCClientDelegate/didChangeConnectionState/begin")
         callQueue.async { [self] in
-            switch state {
+            switch iceState {
             case .closed, .failed:
                 self.state = .disconnected
             case .connected:
                 isConnected = true
+                if self.state == .connected {
+                    self.state = .active
+                }
             default:
                 break
             }
