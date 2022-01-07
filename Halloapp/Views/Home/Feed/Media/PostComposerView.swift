@@ -860,6 +860,7 @@ fileprivate struct PostComposerView: View {
                                     .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
                             }
                         }
+                        .frame(minHeight: 60)
                         .background(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.postTextRadius)
                                         .fill(Color(.secondarySystemGroupedBackground)))
                         .compositingGroup()
