@@ -15,6 +15,8 @@ import UIKit
 
 fileprivate struct Constants {
     static let QuotedMediaSize: CGFloat = 50
+    static let DefaultBubbleWrapperEdgeInsets: UIEdgeInsets = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
+    static let DefaultTextRowEdgeInsets: UIEdgeInsets = UIEdgeInsets(top: 10, left: 7, bottom: 7, right: 7)
 }
 
 protocol OutboundMsgViewCellDelegate: AnyObject {
@@ -113,7 +115,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.layer.masksToBounds = true
         view.clipsToBounds = true
 
-        view.layoutMargins = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
+        view.layoutMargins = Constants.DefaultBubbleWrapperEdgeInsets
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -261,7 +263,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         view.alignment = .bottom
         view.spacing = 1
         
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 7, bottom: 7, right: 7)
+        view.layoutMargins = Constants.DefaultTextRowEdgeInsets
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -795,11 +797,10 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     // MARK: Reuse
     
     func reset() {
-        messageID = nil
-        indexPath = nil
-        
         contentView.layoutMargins = UIEdgeInsets(top: 3, left: 18, bottom: 0, right: 18)
         contentView.backgroundColor = UIColor.primaryBg // need to reset since animation of highlighting can be ongoing when jumping
+        
+        bubbleWrapper.layoutMargins = Constants.DefaultBubbleWrapperEdgeInsets
         
         quotedRow.subviews[1].backgroundColor = .secondarySystemGroupedBackground
         quotedRow.isHidden = true
@@ -815,9 +816,12 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         mediaRow.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         mediaImageView.isHidden = true
         
+        uploadProgressView.isHidden = true
+        
         // Reset of Link Previews
         linkPreviewRow.isHidden = true
 
+        textRow.layoutMargins = Constants.DefaultTextRowEdgeInsets
         textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
         textView.textColor = UIColor.chatOwnMsg
         textView.attributedText = nil

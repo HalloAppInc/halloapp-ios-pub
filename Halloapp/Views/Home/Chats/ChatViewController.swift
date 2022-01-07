@@ -18,12 +18,6 @@ fileprivate struct Constants {
     static let WidthOfMsgBubble:CGFloat = 0.8
 }
 
-fileprivate class ChatDataSource: UITableViewDiffableDataSource<Int, ChatMessage> {
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        return true
-    }
-}
-
 protocol ChatViewControllerDelegate: AnyObject {
     func chatViewController(_ chatViewController: ChatViewController, userActioned: Bool)
 }
@@ -42,6 +36,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     private var chatReplyMessageMediaIndex: Int32 = 0
 
     private var fetchedResultsController: NSFetchedResultsController<ChatMessage>?
+    private var chatEventFetchedResultsController: NSFetchedResultsController<ChatEvent>?
     private var dataSource: ChatDataSource?
 
     private var trackedChatMessages: [String: TrackedChatMessage] = [:]
@@ -49,6 +44,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     static private let sectionMain = 0
     static private let inboundMsgViewCellReuseIdentifier = "InboundMsgViewCell"
     static private let outboundMsgViewCellReuseIdentifier = "OutboundMsgViewCell"
+    static private let chatEventViewCellReuseIdentifier = "ChatEventViewCell"
 
     private let waitForCellTimeout: TimeInterval = 0.25
 
@@ -126,99 +122,100 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             self?.setupOrRefreshHeaderAndFooter()
         }
 
-        dataSource = ChatDataSource(tableView: tableView) { [weak self] tableView, indexPath, chatMessage in
-            guard let self = self else { return nil }
+        dataSource = ChatDataSource(tableView: tableView) { [weak self] (tableView, indexPath, row) in
+            guard let self = self else { return UITableViewCell() }
+            if indexPath.section == 0 {
+                switch row {
+                case .chatMsg(let chatMsgData):
+                    guard let chatMessage = self.fetchedResultsController?.optionalObject(at: chatMsgData.indexPath) as? ChatMessage else { return UITableViewCell() }
 
-            self.trackedChatMessages[chatMessage.id] = TrackedChatMessage(with: chatMessage)
-            
-            var isPreviousMsgSameSender = false
-            var isNextMsgSameSender = false
-            var isNextMsgSameTime = false
-            
-            var isNextMsgDifferentDay = false
-            
-            let previousRow = indexPath.row - 1
-            let nextRow = indexPath.row + 1
+                    self.trackedChatMessages[chatMessage.id] = TrackedChatMessage(with: chatMessage)
 
-            if previousRow >= 0 {
-                let previousIndexPath = IndexPath(row: previousRow, section: indexPath.section)
-                if let previousChatMessage = self.fetchedResultsController?.object(at: previousIndexPath) {
-                    if previousChatMessage.fromUserId == chatMessage.fromUserId {
-                        isPreviousMsgSameSender = true
+                    var isPreviousMsgSameSender = false
+                    var isNextMsgSameSender = false
+                    var isNextMsgSameTime = false
+
+                    var isNextMsgDifferentDay = false
+
+                    let previousRow = chatMsgData.indexPath.row - 1
+                    let nextRow = chatMsgData.indexPath.row + 1
+
+                    if previousRow >= 0 {
+                        let previousIndexPath = IndexPath(row: previousRow, section: chatMsgData.indexPath.section)
+                        if let previousChatMessage = self.fetchedResultsController?.optionalObject(at: previousIndexPath) as? ChatMessage {
+                            if previousChatMessage.fromUserId == chatMessage.fromUserId {
+                                isPreviousMsgSameSender = true
+                            }
+
+                            if let previousMsgTime = previousChatMessage.timestamp, let currentMsgTime = chatMessage.timestamp  {
+                                if !Calendar.current.isDate(previousMsgTime, inSameDayAs: currentMsgTime) {
+                                    isNextMsgDifferentDay = true
+                                }
+                            }
+                        }
+                    } else {
+                        isNextMsgDifferentDay = true
                     }
-                    
-                    if let previousMsgTime = previousChatMessage.timestamp, let currentMsgTime = chatMessage.timestamp  {
-                        if !Calendar.current.isDate(previousMsgTime, inSameDayAs: currentMsgTime) {
-                            isNextMsgDifferentDay = true
+
+                    if nextRow < tableView.numberOfRows(inSection: 0) {
+                        let nextIndexPath = IndexPath(row: nextRow, section: chatMsgData.indexPath.section)
+     
+                        if let nextChatMessage = self.fetchedResultsController?.optionalObject(at: nextIndexPath) as? ChatMessage {
+                            if nextChatMessage.fromUserId == chatMessage.fromUserId {
+                                isNextMsgSameSender = true
+                                if nextChatMessage.timestamp?.chatTimestamp() == chatMessage.timestamp?.chatTimestamp() {
+                                    isNextMsgSameTime = true
+                                }
+                            }
                         }
                     }
-                }
-            } else {
-                isNextMsgDifferentDay = true
-            }
 
-            if nextRow < tableView.numberOfRows(inSection: 0) {
-                let nextIndexPath = IndexPath(row: nextRow, section: indexPath.section)
-                if let nextChatMessage = self.fetchedResultsController?.object(at: nextIndexPath) {
-                    if nextChatMessage.fromUserId == chatMessage.fromUserId {
-                        isNextMsgSameSender = true
-                        if nextChatMessage.timestamp?.chatTimestamp() == chatMessage.timestamp?.chatTimestamp() {
-                            isNextMsgSameTime = true
+                   // TODO: refactor out/inbound cells and update params after ui stabilize
+
+                    if chatMessage.fromUserId == MainAppContext.shared.userData.userId {
+                        if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.outboundMsgViewCellReuseIdentifier, for: indexPath) as? OutboundMsgViewCell {
+                            cell.tableIndexPath = indexPath
+                            cell.indexPath = chatMsgData.indexPath
+                            cell.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
+
+                            if isNextMsgDifferentDay {
+                                cell.addDateRow(timestamp: chatMessage.timestamp)
+                            }
+
+                            cell.msgViewCellDelegate = self
+                            cell.delegate = self
+                            return cell
+                        }
+                    } else {
+                        if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.inboundMsgViewCellReuseIdentifier, for: indexPath) as? InboundMsgViewCell {
+                            cell.tableIndexPath = indexPath
+                            cell.indexPath = chatMsgData.indexPath
+                            cell.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
+
+                            if isNextMsgDifferentDay {
+                                cell.addDateRow(timestamp: chatMessage.timestamp)
+                            }
+
+                            cell.msgViewCellDelegate = self
+                            cell.delegate = self
+                            return cell
                         }
                     }
-                }
-            }
-            
-           //TODO: refactor out/inbound cells and update params after ui stabilize
-            
-            if chatMessage.fromUserId == MainAppContext.shared.userData.userId {
-                if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.outboundMsgViewCellReuseIdentifier, for: indexPath) as? OutboundMsgViewCell {
-                    cell.indexPath = indexPath
-                    cell.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
+                case .chatEvent(let chatEventData):
+                    guard let chatEvent = self.chatEventFetchedResultsController?.optionalObject(at: chatEventData.indexPath) as? ChatEvent else { break }
 
-                    if isNextMsgDifferentDay {
-                        cell.addDateRow(timestamp: chatMessage.timestamp)
+                    if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.chatEventViewCellReuseIdentifier, for: indexPath) as? ChatEventViewCell {
+                        cell.configure(userID: chatEvent.userID)
+                        return cell
                     }
-
-                    cell.msgViewCellDelegate = self
-                    cell.delegate = self
-                    return cell
-                }
-            } else {
-                if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.inboundMsgViewCellReuseIdentifier, for: indexPath) as? InboundMsgViewCell {
-                    cell.indexPath = indexPath
-                    cell.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
-
-                    if isNextMsgDifferentDay {
-                        cell.addDateRow(timestamp: chatMessage.timestamp)
-                    }
-
-                    cell.msgViewCellDelegate = self
-                    cell.delegate = self
-                    return cell
                 }
             }
             return UITableViewCell()
         }
 
-        let fetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "(fromUserId = %@ AND toUserId = %@) || (toUserId = %@ && fromUserId = %@)", self.fromUserId!, MainAppContext.shared.userData.userId, self.fromUserId!, AppContext.shared.userData.userId)
-        fetchRequest.sortDescriptors = [
-            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true),
-            NSSortDescriptor(keyPath: \ChatMessage.id, ascending: true) // if timestamps are the same, break tie
-        ]
-        
-        fetchedResultsController =
-            NSFetchedResultsController<ChatMessage>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext,
-                                                        sectionNameKeyPath: nil, cacheName: nil)
-        fetchedResultsController?.delegate = self
-        do {
-            try fetchedResultsController!.performFetch()
-            updateDataInMainQueue(animatingDifferences: false)
-
-        } catch {
-            return
-        }
+        setupChatMessageFetchedResultsController()
+        setupChatEventFetchedResultsController()
+        updateDataInMainQueue(animated: false)
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
         view.addGestureRecognizer(tapGesture)
@@ -236,7 +233,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 }
             }
         }
-        
+
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] status, ts in
                 DDLogInfo("ChatViewController/didGetCurrentChatPresence")
@@ -257,18 +254,18 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 }
             }
         )
-        
+
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetAChatMsg.sink { [weak self] (userID) in
                 guard let self = self else { return }
                 guard userID != self.fromUserId else { return }
-                
+
                 if self.currentUnseenChatThreadsList[userID] == nil {
                     self.currentUnseenChatThreadsList[userID] = 1
                 } else {
                     self.currentUnseenChatThreadsList[userID]? += 1
                 }
-                
+
                 DispatchQueue.main.async {
                     let total = self.currentUnseenChatThreadsList.count + self.currentUnseenGroupChatThreadsList.count
                     self.updateBackButtonUnreadCount(num: total)
@@ -324,7 +321,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         })
 
         configureTitleViewWithTypingIndicator()
-        
+
         loadChatDraft(id: fromUserId)
     }
 
@@ -438,13 +435,15 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         guard let numberOfObjects = fetchedResultsController?.sections?[nextIndexPath.section].numberOfObjects else { return }
         guard nextIndexPath.row < numberOfObjects else { return }
-        guard let nextChatMessage = fetchedResultsController?.object(at: nextIndexPath) else { return }
+        guard let nextChatMessage = fetchedResultsController?.optionalObject(at: nextIndexPath) as? ChatMessage else { return }
         guard nextChatMessage.media?.first?.type == .audio else { return }
 
-        tableView.scrollToRow(at: nextIndexPath, at: .middle, animated: true)
+        let chatMsgData = ChatMsgData(id: nextChatMessage.id, cellHeight: nextChatMessage.cellHeight, outgoingStatus: nextChatMessage.outgoingStatus, incomingStatus: nextChatMessage.incomingStatus, timestamp: nextChatMessage.timestamp, indexPath: nextIndexPath)
+        guard let nextTableIndexPath = dataSource?.indexPath(for: Row.chatMsg(chatMsgData)) else { return }
+        tableView.scrollToRow(at: nextTableIndexPath, at: .middle, animated: true)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + waitForCellTimeout) {
-            guard let cell = self.tableView.cellForRow(at: nextIndexPath) else { return }
+            guard let cell = self.tableView.cellForRow(at: nextTableIndexPath) else { return }
 
             if let cell = cell as? OutboundMsgViewCell {
                 cell.playVoiceNote()
@@ -453,14 +452,14 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             }
         }
     }
-    
+
     private func updateBackButtonUnreadCount(num: Int) {
         let backButton = UIBarButtonItem()
         backButton.title = num > 0 ? String(num) : " \u{00a0}"
 
         navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
     }
-    
+
     /// Saves the text currently in the `ChatInputView` into `UserDefaults` to be restored on the next time the user opens the view.
     /// - Parameter id: The UserID of the other user in the chat.
     private func saveChatDraft(id: UserID) {
@@ -655,6 +654,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         tableView.preservesSuperviewLayoutMargins = true
         tableView.register(InboundMsgViewCell.self, forCellReuseIdentifier: ChatViewController.inboundMsgViewCellReuseIdentifier)
         tableView.register(OutboundMsgViewCell.self, forCellReuseIdentifier: ChatViewController.outboundMsgViewCellReuseIdentifier)
+        tableView.register(ChatEventViewCell.self, forCellReuseIdentifier: ChatViewController.chatEventViewCellReuseIdentifier)
         tableView.delegate = self
         return tableView
     }()
@@ -795,7 +795,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
         return false
     }
-    
+
     private func findUpdatedMedia(for chatMessage: ChatMessage) -> ChatMedia? {
         guard chatMessage.fromUserId != MainAppContext.shared.userData.userId else { return nil }
         guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return nil }
@@ -809,56 +809,63 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
         return nil
     }
-    
+
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any,
                     at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        
-        switch type {
-        case .update:
-            DDLogDebug("ChatViewController/frc/update")
-            shouldUpdate = false
-            guard let chatMessage = anObject as? ChatMessage else { break }
-            guard let indexPath = indexPath else { break }
 
-            if isRetractStatusUpdate(for: chatMessage) {
-                DDLogDebug("ChatViewController/frc/update/inboundMessageStatusChange")
-                shouldUpdate = true
-            } else if isOutgoingMessageStatusUpdate(for: chatMessage) {
-                DDLogDebug("ChatViewController/frc/update/outgoingMessageStatusChange")
-                shouldUpdate = true
-            } else if isRerequestStatusUpdate(for: chatMessage) {
-                DDLogDebug("ChatViewController/frc/update/rerequestStatusUpdate")
-                shouldUpdate = true
-            }
+        switch controller {
+        case fetchedResultsController:
+            switch type {
+            case .update:
+                DDLogDebug("ChatViewController/frc/msg/update")
+                shouldUpdate = false
+                guard let chatMessage = anObject as? ChatMessage else { break }
 
-            // inbound message media changes, update directly
-            if let updatedChatMedia = findUpdatedMedia(for: chatMessage) {
-                guard let cell = self.tableView.cellForRow(at: indexPath) as? InboundMsgViewCell else { break }
-                DDLogDebug("ChatViewController/frc/update-cell-directly/updatedMedia")
-                cell.updateMedia(updatedChatMedia)
-            }
-
-            // iOS 15.0 datasource.apply either can't detect changes like status or will not apply changes
-            // so we do a manual reconfigure of those cells
-            // future task could be to revisit and refactor using a diffable struct instead of managed objects
-            if #available(iOS 15.0, *) {
-                guard shouldUpdate else {
-                    DDLogDebug("ChatViewController/frc/update/iOS15.0/reconfigureItems/skipping")
-                    break
+                if isRetractStatusUpdate(for: chatMessage) {
+                    DDLogDebug("ChatViewController/frc/msg/update/inboundMessageStatusChange")
+                    shouldUpdate = true
+                } else if isOutgoingMessageStatusUpdate(for: chatMessage) {
+                    DDLogDebug("ChatViewController/frc/msg/update/outgoingMessageStatusChange")
+                    shouldUpdate = true
+                } else if isRerequestStatusUpdate(for: chatMessage) {
+                    DDLogDebug("ChatViewController/frc/msg/update/rerequestStatusUpdate")
+                    shouldUpdate = true
                 }
-                guard let item = dataSource?.itemIdentifier(for: indexPath) else { break }
-                guard var newSnapshot = dataSource?.snapshot() else { break }
-                newSnapshot.reconfigureItems([item])
-                dataSource?.apply(newSnapshot, animatingDifferences: false)
+
+                // inbound message media changes, update directly
+                if let updatedChatMedia = findUpdatedMedia(for: chatMessage) {
+                    DDLogVerbose("ChatViewController/frc/msg/update/updatedChatMedia/update cell directly")
+                    guard let indexPath = indexPath else { break }
+
+                    // frc chatMessage have already changed, use trackedMsg to find item in the datasource
+                    guard let trackedMsg = trackedChatMessages[chatMessage.id] else { break }
+                    let chatMsgData = ChatMsgData(id: chatMessage.id, cellHeight: Int16(trackedMsg.cellHeight), outgoingStatus: trackedMsg.outgoingStatus, incomingStatus: trackedMsg.incomingStatus, timestamp: trackedMsg.timestamp, indexPath: indexPath)
+                    guard let tableIndexPath = dataSource?.indexPath(for: Row.chatMsg(chatMsgData)) else { break }
+                    guard let cell = tableView.cellForRow(at: tableIndexPath) as? InboundMsgViewCell else { break }
+                    cell.updateMedia(updatedChatMedia)
+                }
+            case .insert:
+                DDLogVerbose("ChatViewController/frc/msg/insert")
+                guard let chatMsg = anObject as? ChatMessage else { break }
+                shouldUpdate = true
+                shouldScrollToBottom = checkIfShouldScrollToBottom(chatMsg.fromUserId)
+            default:
+                break
             }
-        case .insert:
-            DDLogDebug("ChatViewController/frc/insert")
-            guard let chatMsg = anObject as? ChatMessage else { break }
-            shouldUpdate = true
-            shouldScrollToBottom = checkIfShouldScrollToBottom(chatMsg)
+        case fetchedResultsController:
+            switch type {
+            case .insert:
+                DDLogVerbose("ChatViewController/frc/event/insert")
+                guard let event = anObject as? ChatEvent else { break }
+                shouldUpdate = true
+                shouldScrollToBottom = checkIfShouldScrollToBottom(event.userID)
+            default:
+                break
+            }
         default:
             break
         }
+
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
@@ -872,22 +879,60 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private func updateData(animatingDifferences: Bool) {
         DispatchQueue.main.async {
-            self.updateDataInMainQueue(animatingDifferences: animatingDifferences)
+            self.updateDataInMainQueue(animated: animatingDifferences)
         }
     }
 
-    private func updateDataInMainQueue(animatingDifferences: Bool = true) {
-        guard let chatMessages = self.fetchedResultsController?.fetchedObjects else { return}
+    // room for improvement: instead of building out the entire snapshot each time for initial load and updates,
+    // updates can be in a separate function that use the pre-existing snapshot and update the changed items only
+    private func updateDataInMainQueue(animated: Bool = false) {
+        guard let chatMessages = fetchedResultsController?.fetchedObjects else { return }
+        guard let chatEvents = chatEventFetchedResultsController?.fetchedObjects else { return }
 
-        var diffableDataSourceSnapshot = NSDiffableDataSourceSnapshot<Int, ChatMessage>()
-        diffableDataSourceSnapshot.appendSections([ ChatViewController.sectionMain ])
-        diffableDataSourceSnapshot.appendItems(chatMessages)
+        var chatRows = [Row]()
 
-        dataSource?.apply(diffableDataSourceSnapshot, animatingDifferences: animatingDifferences) { [weak self] in
-            guard let self = self else { return }
-            guard self.shouldScrollToBottom else { return }
-            self.scrollToBottom(true)
-            self.shouldScrollToBottom = false
+        chatMessages.forEach { msg in
+            if let indexPath = fetchedResultsController?.indexPath(forObject: msg) {
+                let chatMsgData = ChatMsgData(id: msg.id, cellHeight: msg.cellHeight, outgoingStatus: msg.outgoingStatus, incomingStatus: msg.incomingStatus, timestamp: msg.timestamp, indexPath: indexPath)
+                chatRows.append(Row.chatMsg(chatMsgData))
+            }
+        }
+
+        chatEvents.forEach { event in
+            if let indexPath = chatEventFetchedResultsController?.indexPath(forObject: event) {
+                let chatEventData = ChatEventData(timestamp: event.timestamp, indexPath: indexPath)
+                chatRows.append(Row.chatEvent(chatEventData))
+            }
+        }
+
+        chatRows = chatRows.sorted {
+            let t1 = $0.chatMsg?.timestamp ?? $0.chatEvent?.timestamp ?? Date()
+            let t2 = $1.chatMsg?.timestamp ?? $1.chatEvent?.timestamp ?? Date()
+            return t1 < t2
+        }
+
+        /* apply snapshot */
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
+
+        snapshot.appendSections([ .chats ])
+        snapshot.appendItems(chatRows, toSection: .chats)
+
+        dataSource?.defaultRowAnimation = .fade
+
+        if #available(iOS 15.0, *) {
+            dataSource?.applySnapshotUsingReloadData(snapshot) { [weak self] in
+                guard let self = self else { return }
+                guard self.shouldScrollToBottom else { return }
+                self.scrollToBottom(true)
+                self.shouldScrollToBottom = false
+            }
+        } else {
+            dataSource?.apply(snapshot, animatingDifferences: animated) { [weak self] in
+                guard let self = self else { return }
+                guard self.shouldScrollToBottom else { return }
+                self.scrollToBottom(true)
+                self.shouldScrollToBottom = false
+            }
         }
     }
 
@@ -908,37 +953,25 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         navigationController?.viewControllers = viewControllers
     }
 
-    private func checkIfShouldScrollToBottom(_ chatMsg: ChatMessage) -> Bool {
+    private func checkIfShouldScrollToBottom(_ userID: UserID) -> Bool {
         var result = true
-        guard chatMsg.fromUserId != MainAppContext.shared.userData.userId else { return result }
-        
+        guard userID != MainAppContext.shared.userData.userId else { return result }
+
         if jumpButton.isHidden == false {
             result = false
             jumpButtonUnreadCount += 1
             jumpButtonUnreadCountLabel.text = String(jumpButtonUnreadCount)
         }
-        
+
         return result
     }
 
     private func scrollToBottom(_ animated: Bool = true) {
-        guard let dataSnapshot = self.dataSource?.snapshot() else { return }
-        let numberOfRows = dataSnapshot.numberOfItems(inSection: ChatViewController.sectionMain)
+        guard let dataSnapshot = dataSource?.snapshot() else { return }
+        let numberOfRows = dataSnapshot.numberOfItems(inSection: Section.chats)
         guard numberOfRows > 0 else { return }
         let indexPath = IndexPath(row: numberOfRows - 1, section: ChatViewController.sectionMain)
-
-        if animated {
-            let scrollPoint = CGPoint(x: 0, y: self.tableView.contentSize.height)
-            self.tableView.setContentOffset(scrollPoint, animated: true)
-            DispatchQueue.main.async {
-                // use our own animation because for some reason tableView's animation gets interrupted intermittently
-                UIView.animate(withDuration: 0.3, animations: {
-                    self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
-                })
-            }
-        } else {
-            self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
-        }
+        tableView.scrollToRow(at: indexPath, at: .bottom, animated: animated)
     }
 
     private func configureTitleViewWithTypingIndicator() {
@@ -967,18 +1000,17 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
     }
 
-    private func jumpToMsg(_ indexPath: IndexPath) {
+    private func jumpToMsg(tableIndexPath: IndexPath, indexPath: IndexPath) {
         guard let message = fetchedResultsController?.object(at: indexPath) else { return }
 
         guard let chatReplyMessageID = message.chatReplyMessageID else { return }
 
         guard let allMessages = fetchedResultsController?.fetchedObjects else { return }
         guard let replyMessage = allMessages.first(where: {$0.id == chatReplyMessageID}) else { return }
-
-        guard let index = allMessages.firstIndex(of: replyMessage) else { return }
-
-        let toIndexPath = IndexPath(row: index, section: ChatViewController.sectionMain)
-
+        
+        guard let replyMsgIndexPath = fetchedResultsController?.indexPath(forObject: replyMessage) else { return }
+        let chatMsgData = ChatMsgData(id: replyMessage.id, cellHeight: replyMessage.cellHeight, outgoingStatus: replyMessage.outgoingStatus, incomingStatus: replyMessage.incomingStatus, timestamp: replyMessage.timestamp, indexPath: replyMsgIndexPath)
+        guard let toIndexPath = dataSource?.indexPath(for: Row.chatMsg(chatMsgData)) else { return }
         tableView.scrollToRow(at: toIndexPath, at: .middle, animated: true)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + waitForCellTimeout) {
@@ -1121,7 +1153,163 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     }
 }
 
-// MARK: ChatHeaderViewDelegates
+// MARK: Chat Message FetchedResults
+fileprivate extension ChatViewController {
+
+    // room for improvements: fetchedcontrollers can be made more performant by fetching by offset instead of the entire table,
+    // but will require additional support for scrolling to the top, jumping to a message not fetched, and future search feature for a
+    // message not yet fetched
+    private func setupChatMessageFetchedResultsController() {
+        let fetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "(fromUserId = %@ AND toUserId = %@) || (toUserId = %@ && fromUserId = %@)", self.fromUserId!, MainAppContext.shared.userData.userId, self.fromUserId!, AppContext.shared.userData.userId)
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true),
+            NSSortDescriptor(keyPath: \ChatMessage.id, ascending: true) // if timestamps are the same, break tie
+        ]
+
+        fetchedResultsController = NSFetchedResultsController<ChatMessage>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController?.delegate = self
+        do {
+            try fetchedResultsController!.performFetch()
+        } catch {
+            return
+        }
+    }
+
+}
+
+// MARK: Chat Event FetchedResults
+fileprivate extension ChatViewController {
+
+    private func setupChatEventFetchedResultsController() {
+        guard let userID = fromUserId else { return }
+        let fetchRequest: NSFetchRequest<ChatEvent> = ChatEvent.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "userID = %@", userID) // remember to add event filter
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatEvent.timestamp, ascending: true)
+        ]
+
+        chatEventFetchedResultsController = NSFetchedResultsController<ChatEvent>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+        chatEventFetchedResultsController?.delegate = self
+        do {
+            try chatEventFetchedResultsController!.performFetch()
+        } catch {
+            return
+        }
+    }
+
+}
+
+fileprivate class ChatDataSource: UITableViewDiffableDataSource<Section, Row> {
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+}
+
+fileprivate enum Section: Hashable {
+    case chats
+}
+
+fileprivate enum Row: Hashable, Equatable {
+    case chatMsg(ChatMsgData)
+    case chatEvent(ChatEventData)
+
+    var chatMsg: ChatMsgData? {
+        switch self {
+        case .chatMsg(let chatMsgData): return chatMsgData
+        case .chatEvent: return nil
+        }
+    }
+
+    var chatEvent: ChatEventData? {
+        switch self {
+        case .chatMsg: return nil
+        case .chatEvent(let chatEventData): return chatEventData
+        }
+    }
+}
+
+fileprivate struct ChatMsgData {
+    let id: String
+    let cellHeight: Int16
+    let outgoingStatus: ChatMessage.OutgoingStatus
+    let incomingStatus: ChatMessage.IncomingStatus
+    var media: [TrackedChatMedia] = []
+    let timestamp: Date?
+    let indexPath: IndexPath
+}
+
+extension ChatMsgData : Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(outgoingStatus)
+        hasher.combine(incomingStatus)
+    }
+}
+
+extension ChatMsgData : Equatable {
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        return  lhs.id == rhs.id &&
+                lhs.cellHeight == rhs.cellHeight &&
+                lhs.outgoingStatus == rhs.outgoingStatus &&
+                lhs.incomingStatus == rhs.incomingStatus
+    }
+}
+
+fileprivate struct ChatEventData {
+    let timestamp: Date?
+    let indexPath: IndexPath
+}
+
+extension ChatEventData : Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(indexPath)
+    }
+}
+
+extension ChatEventData : Equatable {
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        return lhs.indexPath == rhs.indexPath
+    }
+}
+
+fileprivate struct TrackedChatMedia {
+    var relativeFilePath: String?
+    let order: Int
+
+    init(with chatMedia: ChatMedia) {
+        self.order = Int(chatMedia.order)
+        self.relativeFilePath = chatMedia.relativeFilePath
+    }
+}
+
+fileprivate struct TrackedChatMessage {
+    let id: String
+    let cellHeight: Int
+    let outgoingStatus: ChatMessage.OutgoingStatus
+    let incomingStatus: ChatMessage.IncomingStatus
+    var media: [TrackedChatMedia] = []
+    let timestamp: Date?
+
+    init(with chatMessage: ChatMessage) {
+        self.id = chatMessage.id
+        self.cellHeight = Int(chatMessage.cellHeight)
+        self.outgoingStatus = chatMessage.outgoingStatus
+        self.incomingStatus = chatMessage.incomingStatus
+        self.timestamp = chatMessage.timestamp
+
+        if let media = chatMessage.media {
+            for med in media {
+                self.media.append(TrackedChatMedia(with: med))
+            }
+        }
+        self.media.sort {
+            $0.order < $1.order
+        }
+    }
+}
+
+// MARK: ChatHeader Delegates
 extension ChatViewController: ChatHeaderViewDelegate {
 
     func chatHeaderViewOpenEncryptionBlog(_ chatHeaderView: ChatHeaderView) {
@@ -1159,6 +1347,7 @@ extension ChatViewController: ChatHeaderViewDelegate {
     }
 }
 
+// MARK: CNContact Delegates
 extension ChatViewController: CNContactViewControllerDelegate {
     func contactViewController(_ viewController: CNContactViewController, didCompleteWith contact: CNContact?) {
         navigationController?.popViewController(animated: true)
@@ -1194,35 +1383,32 @@ extension ChatViewController: PostComposerViewDelegate {
 extension ChatViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        guard let chatMessage = self.fetchedResultsController?.object(at: indexPath) else { return }
-        let height = Int(cell.bounds.height)
-       
-        if chatMessage.cellHeight != height {
-            DDLogDebug("ChatViewController/updateCellHeight/\(chatMessage.id) from \(chatMessage.cellHeight) to \(height)")
+        guard let dataSourceItem = dataSource?.itemIdentifier(for: indexPath) else { return }
+
+        switch dataSourceItem {
+        case .chatMsg(let chatMsgData):
+            guard let chatMessage = fetchedResultsController?.optionalObject(at: chatMsgData.indexPath) as? ChatMessage else { return }
+            let height = Int(cell.bounds.height)
+            guard chatMessage.cellHeight != height else { return }
+            DDLogVerbose("ChatViewController/willDisplay/updateCellHeight/\(chatMessage.id) from \(chatMessage.cellHeight) to \(height)")
             MainAppContext.shared.chatData.updateChatMessageCellHeight(for: chatMessage.id, with: height)
+        case .chatEvent: break
         }
     }
 
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
-        guard let chatMessage = self.fetchedResultsController?.object(at: indexPath) else { return 50 }
+        let defaultHeight:CGFloat = 50
+        guard let dataSourceItem = dataSource?.itemIdentifier(for: indexPath) else { return defaultHeight }
 
-        if chatMessage.cellHeight != 0 {
+        switch dataSourceItem {
+        case .chatMsg(let chatMsgData):
+            guard let chatMessage = fetchedResultsController?.optionalObject(at: chatMsgData.indexPath) else { break }
+            guard chatMessage.cellHeight != 0 else { break }
             return CGFloat(chatMessage.cellHeight)
+        case .chatEvent: break
         }
-        
-        let result:CGFloat = 50
-//        if chatMessage.quoted != nil {
-//            result += 100
-//        }
-//
-//        if chatMessage.media != nil {
-//            if !chatMessage.media!.isEmpty {
-//                result += 30
-//            }
-//        }
 
-//        DDLogDebug("ChatViewController/estimateCellHeight/\(chatMessage.id)")
-        return result
+        return defaultHeight
     }
 
     func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -1232,7 +1418,7 @@ extension ChatViewController: UITableViewDelegate {
             cell.pauseVoiceNote()
         }
     }
-    
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateJumpButtonVisibility()
     }
@@ -1270,6 +1456,7 @@ extension ChatViewController {
     }
 }
 
+// MARK: ChatTitle Delegates
 extension ChatViewController: ChatTitleViewDelegate {
     func chatTitleView(_ chatTitleView: ChatTitleView) {
         guard let userId = fromUserId else { return }
@@ -1282,13 +1469,14 @@ extension ChatViewController: ChatTitleViewDelegate {
 extension ChatViewController: InboundMsgViewCellDelegate {
 
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell) {
+        guard let tableIndexPath = inboundMsgViewCell.tableIndexPath else { return }
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
-        jumpToMsg(indexPath)
+        jumpToMsg(tableIndexPath: tableIndexPath, indexPath: indexPath)
     }
     
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
-        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+        guard let message = fetchedResultsController?.optionalObject(at: indexPath) as? ChatMessage else { return }
         guard message.media != nil else { return }
 
         presentMediaExplorer(media: message.orderedMedia, At: index, withDelegate: delegate)
@@ -1296,16 +1484,16 @@ extension ChatViewController: InboundMsgViewCellDelegate {
 
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewQuotedMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
-        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+        guard let message = fetchedResultsController?.optionalObject(at: indexPath) as? ChatMessage else { return }
         guard let quoted = message.quoted else { return }
         guard quoted.media != nil else { return }
 
         presentMediaExplorer(media: quoted.orderedMedia, At: index, withDelegate: delegate)
     }
-    
+
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didLongPressOn msgId: String) {
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
-        guard let chatMessage = fetchedResultsController?.object(at: indexPath) else { return }
+        guard let chatMessage = fetchedResultsController?.optionalObject(at: indexPath) as? ChatMessage else { return }
         
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
@@ -1343,15 +1531,16 @@ extension ChatViewController: InboundMsgViewCellDelegate {
 
 // MARK: OutboundMsgViewCell Delegates
 extension ChatViewController: OutboundMsgViewCellDelegate {
-    
+
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell) {
+        guard let tableIndexPath = outboundMsgViewCell.tableIndexPath else { return }
         guard let indexPath = outboundMsgViewCell.indexPath else { return }
-        jumpToMsg(indexPath)
+        jumpToMsg(tableIndexPath: tableIndexPath, indexPath: indexPath)
     }
-    
+
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         guard let indexPath = outboundMsgViewCell.indexPath else { return }
-        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+        guard let message = fetchedResultsController?.optionalObject(at: indexPath) as? ChatMessage else { return }
         guard message.media != nil else { return }
 
         presentMediaExplorer(media: message.orderedMedia, At: index, withDelegate: delegate)
@@ -1359,7 +1548,7 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
 
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewQuotedMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         guard let indexPath = outboundMsgViewCell.indexPath else { return }
-        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+        guard let message = fetchedResultsController?.optionalObject(at: indexPath) as? ChatMessage else { return }
         guard let quoted = message.quoted else { return }
         guard quoted.media != nil else { return }
 
@@ -1368,7 +1557,7 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
 
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, didLongPressOn msgId: String) {
         guard let indexPath = outboundMsgViewCell.indexPath else { return }
-        guard let chatMessage = fetchedResultsController?.object(at: indexPath) else { return }
+        guard let chatMessage = fetchedResultsController?.optionalObject(at: indexPath) as? ChatMessage else { return }
         
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
@@ -1408,11 +1597,12 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
     
 }
 
+// MARK: MsgView Delegates
 extension ChatViewController: MsgViewCellDelegate {
 
     func msgViewCell(_ msgViewCell: MsgViewCell, replyTo msgId: String) {
         guard let indexPath = msgViewCell.indexPath else { return }
-        guard let chatMessage = fetchedResultsController?.object(at: indexPath) else { return }
+        guard let chatMessage = fetchedResultsController?.optionalObject(at: indexPath) as? ChatMessage else { return }
 
         guard chatMessage.incomingStatus != .retracted else { return }
         guard ![.retracting, .retracted].contains(chatMessage.outgoingStatus) else { return }
@@ -1504,44 +1694,19 @@ extension ChatViewController: ChatInputViewDelegate {
 
         present(alert, animated: true)
     }
-    
+
     func chatInputView(_ inputView: ChatInputView, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?) {
         let text = mentionText.trimmed().collapsedText
         sendMessage(text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
     }
 }
 
-fileprivate struct TrackedChatMedia {
-    var relativeFilePath: String?
-    let order: Int
-
-    init(with chatMedia: ChatMedia) {
-        self.order = Int(chatMedia.order)
-        self.relativeFilePath = chatMedia.relativeFilePath
-    }
-}
-
-fileprivate struct TrackedChatMessage {
-    let id: String
-    let cellHeight: Int
-    let outgoingStatus: ChatMessage.OutgoingStatus
-    let incomingStatus: ChatMessage.IncomingStatus
-    var media: [TrackedChatMedia] = []
-
-    init(with chatMessage: ChatMessage) {
-        self.id = chatMessage.id
-        self.cellHeight = Int(chatMessage.cellHeight)
-        self.outgoingStatus = chatMessage.outgoingStatus
-        self.incomingStatus = chatMessage.incomingStatus
-
-        if let media = chatMessage.media {
-            for med in media {
-                self.media.append(TrackedChatMedia(with: med))
-            }
-        }
-        self.media.sort {
-            $0.order < $1.order
-        }
+fileprivate extension NSFetchedResultsController {
+    @objc func optionalObject(at indexPath: IndexPath) -> AnyObject? {
+        guard let sections = sections, sections.count > indexPath.section else { return nil }
+        let sectionInfo = sections[indexPath.section]
+        guard sectionInfo.numberOfObjects > indexPath.row else { return nil }
+        return object(at: indexPath)
     }
 }
 
@@ -1554,170 +1719,4 @@ class UnselectableUITextView: UITextView {
         let startIndex = offset(from: beginningOfDocument, to: range.start)
         return attributedText.attribute(.link, at: startIndex, effectiveRange: nil) != nil
     }
-}
-
-protocol ChatHeaderViewDelegate: AnyObject {
-    func chatHeaderViewOpenEncryptionBlog(_ chatHeaderView: ChatHeaderView)
-    func chatHeaderViewUnblockContact(_ chatHeaderView: ChatHeaderView)
-}
-
-class ChatHeaderView: UIView {
-    weak var delegate: ChatHeaderViewDelegate?
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setup()
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-
-    public func configureOrRefresh(with userID: UserID) {
-        let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
-        blockedContactBubbleColumn.isHidden = !isUserBlocked
-    }
-
-    private func setup() {
-        addSubview(mainColumn)
-        mainColumn.constrain(to: self)
-    }
-
-    private lazy var mainColumn: UIStackView = {
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-
-        let view = UIStackView(arrangedSubviews: [ encryptionBubbleColumn, blockedContactBubbleColumn, spacer] )
-
-        view.axis = .vertical
-        view.alignment = .fill
-        view.spacing = 20
-        view.setCustomSpacing(20, after: encryptionBubble)
-
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 20, bottom: 0, right: 20)
-        view.isLayoutMarginsRelativeArrangement = true
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
-    lazy var encryptionBubbleColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ encryptionBubble ])
-        view.axis = .vertical
-        view.alignment = .fill
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
-    lazy var encryptionBubble: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ lockImageView, encryptionLabel ])
-        view.axis = .horizontal
-        view.alignment = .center
-        view.spacing = 5
-
-        view.layoutMargins = UIEdgeInsets(top: 8, left: 15, bottom: 8, right: 15)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        let subView = UIView(frame: view.bounds)
-        subView.layer.cornerRadius = 10
-        subView.layer.masksToBounds = true
-        subView.clipsToBounds = true
-        subView.backgroundColor = UIColor.chatInfoBubbleBg
-        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.insertSubview(subView, at: 0)
-
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(openEncryptionBlog)))
-
-        return view
-    }()
-
-    private lazy var lockImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "settingsPrivacy")?.withRenderingMode(.alwaysTemplate))
-        imageView.tintColor = UIColor.chatInfoBubble
-
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.widthAnchor.constraint(equalToConstant: 18).isActive = true
-        imageView.widthAnchor.constraint(equalTo: imageView.heightAnchor).isActive = true
-        return imageView
-    }()
-
-    private lazy var encryptionLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 4
-        label.textAlignment = .center
-        label.textColor = .chatInfoBubble
-        label.font = UIFont.systemFont(ofSize: 12)
-        label.adjustsFontForContentSizeCategory = true
-        label.text = Localizations.chatEncryptionLabel
-        
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    lazy var blockedContactBubbleColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ blockedContactBubble ])
-        view.axis = .vertical
-        view.alignment = .center
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.isHidden = true
-        return view
-    }()
-
-    lazy var blockedContactBubble: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ blockedContactLabel ])
-        view.axis = .vertical
-        view.alignment = .center
-
-        view.layoutMargins = UIEdgeInsets(top: 8, left: 20, bottom: 8, right: 20)
-        view.isLayoutMarginsRelativeArrangement = true
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        let subView = UIView(frame: view.bounds)
-        subView.layer.cornerRadius = 10
-        subView.layer.masksToBounds = true
-        subView.clipsToBounds = true
-        subView.backgroundColor = UIColor.chatInfoBubbleBg
-        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.insertSubview(subView, at: 0)
-
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(unblockContact)))
-        return view
-    }()
-
-    private lazy var blockedContactLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 4
-        label.textAlignment = .center
-        label.textColor = .chatInfoBubble
-        label.font = UIFont.systemFont(ofSize: 12)
-        label.adjustsFontForContentSizeCategory = true
-        label.text = Localizations.chatBlockedContactLabel
-
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    @objc private func openEncryptionBlog() {
-        guard let delegate = delegate else { return }
-        delegate.chatHeaderViewOpenEncryptionBlog(self)
-    }
-
-    @objc private func unblockContact() {
-        guard let delegate = delegate else { return }
-        delegate.chatHeaderViewUnblockContact(self)
-    }
-
-}
-
-private extension Localizations {
-
-    static var chatEncryptionLabel: String {
-        NSLocalizedString("chat.encryption.label", value: "Chats are end-to-end encrypted and HalloApp does not have access to them. Tap to learn more.", comment: "Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted")
-    }
-
-    static var chatBlockedContactLabel: String {
-        NSLocalizedString("chat.blocked.contact.label", value: "Contact is blocked, tap to unblock", comment: "Text shown at the top of the chat screen informing the user that the contact is blocked")
-    }
-
 }
