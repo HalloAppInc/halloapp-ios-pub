@@ -8,23 +8,6 @@
 
 import Foundation
 
-public extension Clients_Container {
-    func mentionPushName(for userID: UserID) -> String? {
-        var mentions = [Clients_Mention]()
-        if hasPost {
-            mentions += post.mentions
-        }
-        if hasComment {
-            mentions += comment.mentions
-        }
-        if hasChatMessage {
-            mentions += chatMessage.mentions
-        }
-        
-        return mentions.first(where: { $0.userID == userID })?.name
-    }
-}
-
 public extension Clients_Text {
     var mentionText: MentionText {
         MentionText(collapsedText: text, mentions: mentionDictionary(from: mentions))

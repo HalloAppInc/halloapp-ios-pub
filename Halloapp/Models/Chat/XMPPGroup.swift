@@ -211,57 +211,43 @@ struct XMPPChatGroupMessage {
 
     // init inbound message
     init?(_ pbGroupChat: Server_GroupChat, id: String, retryCount: Int32) {
-        let protoChat: Clients_ChatMessage
-        if let protoContainer = try? Clients_Container(serializedData: pbGroupChat.payload),
-            protoContainer.hasChatMessage
-        {
-            // Binary protocol
-            protoChat = protoContainer.chatMessage
-        } else if let decodedData = Data(base64Encoded: pbGroupChat.payload),
-            let protoContainer = try? Clients_Container(serializedData: decodedData),
-            protoContainer.hasChatMessage
-        {
-            // Legacy Base64 protocol
-            protoChat = protoContainer.chatMessage
-        } else {
+        // TODO: Need to fix this to enable group-chat.
+        return nil
+
+//        self.id = id
+//        self.retryCount = retryCount
+//        self.groupId = pbGroupChat.gid
+//        self.groupName = pbGroupChat.name
+//        self.userId = UserID(pbGroupChat.senderUid)
+//        self.userName = pbGroupChat.senderName
+//        self.text = protoChat.text.isEmpty ? nil : protoChat.text
+//        self.mentions = protoChat.mentions.map { XMPPChatMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
+//        self.media = protoChat.media.compactMap { XMPPChatMedia(protoMedia: $0) }
+//        self.timestamp = Date(timeIntervalSince1970: TimeInterval(pbGroupChat.timestamp))
+//
+//        self.chatReplyMessageID = protoChat.chatReplyMessageID.isEmpty ? nil : protoChat.chatReplyMessageID
+//        self.chatReplyMessageSenderID = protoChat.chatReplyMessageSenderID.isEmpty ? nil : protoChat.chatReplyMessageSenderID
+//        self.chatReplyMessageMediaIndex = protoChat.chatReplyMessageMediaIndex
+    }
+
+    var protoContainer: Clients_Container? {
+        get {
+            // TODO: Fix this for groupChat.
             return nil
         }
-
-        self.id = id
-        self.retryCount = retryCount
-        self.groupId = pbGroupChat.gid
-        self.groupName = pbGroupChat.name
-        self.userId = UserID(pbGroupChat.senderUid)
-        self.userName = pbGroupChat.senderName
-        self.text = protoChat.text.isEmpty ? nil : protoChat.text
-        self.mentions = protoChat.mentions.map { XMPPChatMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
-        self.media = protoChat.media.compactMap { XMPPChatMedia(protoMedia: $0) }
-        self.timestamp = Date(timeIntervalSince1970: TimeInterval(pbGroupChat.timestamp))
-
-        self.chatReplyMessageID = protoChat.chatReplyMessageID.isEmpty ? nil : protoChat.chatReplyMessageID
-        self.chatReplyMessageSenderID = protoChat.chatReplyMessageSenderID.isEmpty ? nil : protoChat.chatReplyMessageSenderID
-        self.chatReplyMessageMediaIndex = protoChat.chatReplyMessageMediaIndex
     }
-
-    var protoContainer: Clients_Container {
-        get {
-            var protoChatMessage = Clients_ChatMessage()
-            if let text = text {
-                protoChatMessage.text = text
-            }
-
-            if let chatReplyMessageID = chatReplyMessageID, let chatReplyMessageSenderID = chatReplyMessageSenderID {
-                protoChatMessage.chatReplyMessageID = chatReplyMessageID
-                protoChatMessage.chatReplyMessageSenderID = chatReplyMessageSenderID
-                protoChatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
-            }
-            
-            protoChatMessage.media = orderedMedia.compactMap { $0.protoMessage }
-            protoChatMessage.mentions = orderedMentions.compactMap { $0.protoMention }
-            
-            var protoContainer = Clients_Container()
-            protoContainer.chatMessage = protoChatMessage
-            return protoContainer
-        }
-    }
+//
+//    var protoContainer: Clients_Container? {
+//        get {
+//            var ready = false
+//            var protoContainer = Clients_Container()
+//
+//            if let clientChatContainer = clientChatContainer {
+//                protoContainer.chatContainer = clientChatContainer
+//                ready = true
+//            }
+//
+//            return ready ? protoContainer : nil
+//        }
+//    }
 }
