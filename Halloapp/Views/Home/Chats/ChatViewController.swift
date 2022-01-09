@@ -1142,7 +1142,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             mediaToPost: media,
             initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
             configuration: .message(id: fromUserId),
-            isInitiallyVoiceNotePost: false,
+            initialPostType: .library,
             voiceNote: nil,
             delegate: self)
         pickerController.present(UINavigationController(rootViewController: composerController), animated: false)
@@ -1678,7 +1678,7 @@ extension ChatViewController: ChatInputViewDelegate {
             mediaToPost: [media],
             initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
             configuration: .message(id: fromUserId),
-            isInitiallyVoiceNotePost: false,
+            initialPostType: .library,
             voiceNote: nil,
             delegate: self)
         present(UINavigationController(rootViewController: composerController), animated: false)

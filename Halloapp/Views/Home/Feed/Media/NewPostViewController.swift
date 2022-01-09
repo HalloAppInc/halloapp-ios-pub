@@ -150,7 +150,7 @@ final class NewPostViewController: UIViewController {
             mediaToPost: state.pendingMedia,
             initialInput: state.pendingInput,
             configuration: configuration,
-            isInitiallyVoiceNotePost: state.mediaSource == .voiceNote,
+            initialPostType: state.mediaSource,
             voiceNote: state.pendingVoiceNote,
             delegate: self)
     }

@@ -152,7 +152,7 @@ class PostComposerViewController: UIViewController {
     private var configuration: PostComposerViewConfiguration
     private weak var delegate: PostComposerViewDelegate?
     private let audioComposerRecorder = AudioComposerRecorder()
-    private let isInitiallyVoiceNotePost: Bool
+    private let initialPostType: NewPostMediaSource
 
     private var barState: NavigationBarState?
     
@@ -162,7 +162,7 @@ class PostComposerViewController: UIViewController {
         mediaToPost media: [PendingMedia],
         initialInput: MentionInput,
         configuration: PostComposerViewConfiguration,
-        isInitiallyVoiceNotePost: Bool,
+        initialPostType: NewPostMediaSource,
         voiceNote: PendingMedia?,
         delegate: PostComposerViewDelegate)
     {
@@ -173,7 +173,7 @@ class PostComposerViewController: UIViewController {
         self.linkPreviewData = GenericObservable(nil)
         self.linkPreviewImage = GenericObservable(nil)
         self.configuration = configuration
-        self.isInitiallyVoiceNotePost = isInitiallyVoiceNotePost
+        self.initialPostType = initialPostType
         audioComposerRecorder.voiceNote = voiceNote
         self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
@@ -193,7 +193,7 @@ class PostComposerViewController: UIViewController {
             linkPreviewData: linkPreviewData,
             linkPreviewImage: linkPreviewImage,
             audioComposerRecorder: audioComposerRecorder,
-            isInitiallyVoiceNotePost: isInitiallyVoiceNotePost,
+            initialPostType: initialPostType,
             mentionableUsers: configuration.mentionableUsers,
             shouldAutoPlay: shouldAutoPlay,
             configuration: configuration,
@@ -401,7 +401,7 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var linkPreviewData: GenericObservable<LinkPreviewData?>
     @ObservedObject private var linkPreviewImage: GenericObservable<UIImage?>
     @ObservedObject private var audioComposerRecorder: AudioComposerRecorder
-    private let isInitiallyVoiceNotePost: Bool
+    private let initialPostType: NewPostMediaSource
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
     @ObservedObject private var isPosting = GenericObservable<Bool>(false)
     private let mentionableUsers: [MentionableUser]
@@ -460,7 +460,7 @@ fileprivate struct PostComposerView: View {
         linkPreviewData: GenericObservable<LinkPreviewData?>,
         linkPreviewImage: GenericObservable<UIImage?>,
         audioComposerRecorder: AudioComposerRecorder,
-        isInitiallyVoiceNotePost: Bool,
+        initialPostType: NewPostMediaSource,
         mentionableUsers: [MentionableUser],
         shouldAutoPlay: GenericObservable<Bool>,
         configuration: PostComposerViewConfiguration,
@@ -476,7 +476,7 @@ fileprivate struct PostComposerView: View {
         self.linkPreviewData = linkPreviewData
         self.linkPreviewImage = linkPreviewImage
         self.audioComposerRecorder = audioComposerRecorder
-        self.isInitiallyVoiceNotePost = isInitiallyVoiceNotePost
+        self.initialPostType = initialPostType
         self.mentionableUsers = mentionableUsers
         self.shouldAutoPlay = shouldAutoPlay
         self.mediaCarouselMaxAspectRatio = configuration.mediaCarouselMaxAspectRatio
@@ -771,7 +771,7 @@ fileprivate struct PostComposerView: View {
                                         .padding(.horizontal)
                                         .padding(.bottom, 10)
                                 }
-                            } else if isInitiallyVoiceNotePost || audioComposerRecorder.voiceNote != nil {
+                            } else if initialPostType == .voiceNote || audioComposerRecorder.voiceNote != nil {
                                 audioRecordingView
                             } else {
                                 ScrollView {
@@ -921,12 +921,24 @@ fileprivate struct PostComposerView: View {
     }
 
     private func deleteMedia() {
-        if mediaCount == 1 && audioComposerRecorder.voiceNote == nil {
+        if shouldGoBackAfterMediaDeletion() {
             mediaItems.invalidated = true
             goBack()
         } else {
             mediaItems.remove(index: currentPosition.value)
         }
+    }
+    
+    private func shouldGoBackAfterMediaDeletion() -> Bool {
+        guard mediaCount == 1, audioComposerRecorder.voiceNote == nil else {
+            return false
+        }
+        
+        /*
+         Don't want to go back if this composer started out as a text post
+         and its text view has text
+         */
+        return !(initialPostType == .noMedia && !inputToPost.value.text.isEmpty)
     }
 }
 
