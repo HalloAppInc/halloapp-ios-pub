@@ -273,7 +273,7 @@ extension FlatCommentsViewController: MessageViewDelegate {
 
 extension FeedPostComment {
   @objc var headerTime: String { get {
-    return timestamp.chatTimestamp(Date())
+    return timestamp.chatMsgGroupingTimestamp(Date())
   }
 }
 
