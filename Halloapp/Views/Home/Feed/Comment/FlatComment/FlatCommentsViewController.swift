@@ -159,14 +159,17 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
 
-        let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
-        let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: MessageCommentHeaderView.elementKind, alignment: .top)
-
         let section = NSCollectionLayoutSection(group: group)
-        section.boundarySupplementaryItems = [sectionHeader]
-
         section.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0)
+
+        // Setup the comment view header with post information as the global header of the collection view.
+        let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
+        let layoutHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: MessageCommentHeaderView.elementKind, alignment: .top)
+        let layoutConfig = UICollectionViewCompositionalLayoutConfiguration()
+        layoutConfig.boundarySupplementaryItems = [layoutHeader]
+
         let layout = UICollectionViewCompositionalLayout(section: section)
+        layout.configuration = layoutConfig
         return layout
     }
 
