@@ -47,6 +47,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                     for: indexPath)
                 if let itemCell = cell as? MessageViewCell {
                     itemCell.configureWithComment(comment: comment)
+                    itemCell.textLabel.delegate = self
                 }
                 return cell
             })
@@ -56,6 +57,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             if let messageCommentHeaderView = headerView as? MessageCommentHeaderView, let self = self, let feedPost = self.feedPost {
                 messageCommentHeaderView.configure(withPost: feedPost)
                 messageCommentHeaderView.delegate = self
+                messageCommentHeaderView.textLabel.delegate = self
                 return messageCommentHeaderView
             } else {
                 // TODO(@dini) add post loading here
@@ -243,6 +245,29 @@ extension FlatCommentsViewController: MessageViewDelegate {
         let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
         controller.delegate = view
         present(controller, animated: true)
+    }
+}
+
+extension FlatCommentsViewController: TextLabelDelegate {
+    func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
+        switch link.linkType {
+        case .link, .phoneNumber:
+            if let url = link.result?.url {
+                guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { break }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                    UIApplication.shared.open(url, options: [:])
+                }
+            }
+        case .userMention:
+            if let userID = link.userID {
+                showUserFeed(for: userID)
+            }
+        default:
+            break
+        }
+    }
+
+    func textLabelDidRequestToExpand(_ label: TextLabel) {
     }
 }
 
