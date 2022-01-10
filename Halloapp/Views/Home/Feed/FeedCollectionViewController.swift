@@ -197,6 +197,9 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     override func viewLayoutMarginsDidChange() {
         super.viewLayoutMarginsDidChange()
+        // NB: This function will get called when a presented view controller rotates. 
+        // We should skip recomputing cell heights in this scenario to avoid slowing down the animation.
+        guard presentedViewController == nil else { return }
         cachedCellHeights.removeAll()
         collectionView?.reloadData()
     }

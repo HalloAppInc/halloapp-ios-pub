@@ -6,14 +6,14 @@
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 import CocoaLumberjackSwift
+import Combine
 import Core
 import CoreData
 import UIKit
 
 private extension Localizations {
-
-    static var titleComments: String {
-        NSLocalizedString("title.comments", value: "Comments", comment: "Title for the Comments screen.")
+    static var newComment: String {
+        NSLocalizedString("title.comments.picker", value: "New Comment", comment: "Title for the picker screen.")
     }
 }
 
@@ -21,6 +21,9 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     typealias CommentDataSource = UICollectionViewDiffableDataSource<String, FeedPostComment>
     typealias CommentSnapshot = NSDiffableDataSourceSnapshot<String, FeedPostComment>
     static private let messageViewCellReuseIdentifier = "MessageViewCell"
+
+    private var mediaPickerController: MediaPickerViewController?
+    private var cancellableSet: Set<AnyCancellable> = []
 
     private var feedPostId: FeedPostID {
         didSet {
@@ -39,6 +42,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                     for: indexPath)
                 if let itemCell = cell as? MessageViewCell {
                     itemCell.configureWithComment(comment: comment)
+                    itemCell.textLabel.delegate = self
                 }
                 return cell
             })
@@ -87,10 +91,15 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         return collectionView
     }()
 
+    private lazy var mentionableUsers: [MentionableUser] = {
+        computeMentionableUsers()
+    }()
+
     init(feedPostId: FeedPostID) {
         self.feedPostId = feedPostId
         self.feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId)
         super.init(nibName: nil, bundle: nil)
+        self.hidesBottomBarWhenPushed = true
     }
     
     required init?(coder: NSCoder) {
@@ -106,8 +115,14 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         if let feedPost = feedPost {
             configureUI(with: feedPost)
         }
+        messageInputView.delegate = self
     }
-    
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.messageInputView.willAppear(in: self)
+    }
+
     private func configureUI(with feedPost: FeedPost) {
         // Setup the diffable data source so it can be used for first fetch of data
         collectionView.dataSource = dataSource
@@ -161,6 +176,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
 
+
         let sectionHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
         let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: sectionHeaderSize, elementKind: MessageTimeHeaderView.elementKind, alignment: .top)
         sectionHeader.pinToVisibleBounds = true
@@ -177,6 +193,10 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         let layout = UICollectionViewCompositionalLayout(section: section)
         layout.configuration = layoutConfig
         return layout
+    }
+
+    func computeMentionableUsers() -> [MentionableUser] {
+        return Mentions.mentionableUsers(forPostID: feedPostId)
     }
 
     // MARK: UI Actions
@@ -197,6 +217,21 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     private func showUserFeed(for userID: UserID) {
         let userViewController = UserFeedViewController(userId: userID)
         self.navigationController?.pushViewController(userViewController, animated: true)
+    }
+
+    // MARK: Input view
+
+    private let messageInputView: CommentInputView = CommentInputView(frame: .zero)
+
+    override var canBecomeFirstResponder: Bool {
+        get {
+            return true
+        }
+    }
+
+    override var inputAccessoryView: CommentInputView? {
+        self.messageInputView.setInputViewWidth(self.view.bounds.size.width)
+        return self.messageInputView
     }
 }
 
@@ -239,7 +274,126 @@ extension FlatCommentsViewController: MessageViewDelegate {
 }
 
 extension FeedPostComment {
-    @objc var headerTime: String { get {
-        return timestamp.chatTimestamp(Date())
-    }}
+  @objc var headerTime: String { get {
+    return timestamp.chatTimestamp(Date())
+  }
+}
+
+extension FlatCommentsViewController: TextLabelDelegate {
+    func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
+        switch link.linkType {
+        case .link, .phoneNumber:
+            if let url = link.result?.url {
+                guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { break }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                    UIApplication.shared.open(url, options: [:])
+                }
+            }
+        case .userMention:
+            if let userID = link.userID {
+                showUserFeed(for: userID)
+            }
+        default:
+            break
+        }
+    }
+
+    func textLabelDidRequestToExpand(_ label: TextLabel) {
+    }
+}
+
+extension FlatCommentsViewController: CommentInputViewDelegate {
+    func commentInputView(_ inputView: CommentInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
+    }
+
+    func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText, andMedia media: PendingMedia?, linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?) {
+        postComment(text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+    }
+
+    func commentInputView(_ inputView: CommentInputView, possibleMentionsForInput input: String) -> [MentionableUser] {
+        return mentionableUsers.filter { Mentions.isPotentialMatch(fullName: $0.fullName, input: input) }
+    }
+
+    func commentInputViewPickMedia(_ inputView: CommentInputView) {
+        presentMediaPicker()
+    }
+
+    func commentInputViewResetInputMedia(_ inputView: CommentInputView) {
+        messageInputView.removeMediaPanel()
+    }
+
+    func commentInputViewDidTapSelectedMedia(_ inputView: CommentInputView, mediaToEdit: PendingMedia) {
+        let editController = MediaEditViewController(mediaToEdit: [mediaToEdit], selected: nil) { [weak self] controller, media, selected, cancel in
+            controller.dismiss(animated: true)
+            self?.messageInputView.showMediaPanel(with: media[selected])
+        }.withNavigationController()
+        present(editController, animated: true)
+    }
+
+    func commentInputViewResetReplyContext(_ inputView: CommentInputView) {
+    }
+
+    func commentInputViewMicrophoneAccessDenied(_ inputView: CommentInputView) {
+        let alert = UIAlertController(title: Localizations.micAccessDeniedTitle, message: Localizations.micAccessDeniedMessage, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default, handler: { _ in
+            guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
+            UIApplication.shared.open(settingsUrl)
+        }))
+        present(alert, animated: true)
+    }
+
+    func commentInputView(_ inputView: CommentInputView, didInterruptRecorder recorder: AudioRecorder) {
+        guard let url = recorder.saveVoiceComment(for: feedPostId) else { return }
+        DispatchQueue.main.async {
+            self.messageInputView.show(voiceNote: url)
+        }
+    }
+
+    func presentMediaPicker() {
+        guard  mediaPickerController == nil else {
+            return
+        }
+        mediaPickerController = MediaPickerViewController(filter: .all, multiselect: false, camera: true) {[weak self] controller, media, cancel in
+            guard let self = self else { return }
+            guard let media = media.first, !cancel else {
+                DDLogInfo("CommentsView/media comment cancelled")
+                self.dismissMediaPicker(animated: true)
+                return
+            }
+            if media.ready.value {
+                self.messageInputView.showMediaPanel(with: media)
+            } else {
+                self.cancellableSet.insert(
+                    media.ready.sink { [weak self] ready in
+                        guard let self = self else { return }
+                        guard ready else { return }
+                        self.messageInputView.showMediaPanel(with: media)
+                    }
+                )
+            }
+
+            self.dismissMediaPicker(animated: true)
+            self.messageInputView.showKeyboard(from: self)
+        }
+        mediaPickerController?.title = Localizations.newComment
+
+        present(UINavigationController(rootViewController: mediaPickerController!), animated: true)
+    }
+
+    func dismissMediaPicker(animated: Bool) {
+        if mediaPickerController != nil && presentedViewController != nil {
+            dismiss(animated: true)
+        }
+        mediaPickerController = nil
+    }
+
+    func postComment(text: MentionText, media: PendingMedia?, linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?) {
+        var sendMedia: [PendingMedia] = []
+        if let media = media {
+            sendMedia.append(media)
+        }
+        MainAppContext.shared.feedData.post(comment: text, media: sendMedia, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: feedPostId, replyingTo: nil)
+        messageInputView.clear()
+    }
 }
