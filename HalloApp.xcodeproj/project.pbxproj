@@ -360,6 +360,8 @@
 		F4063F2F276836F50068B9ED /* ShareButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4063F2E276836F50068B9ED /* ShareButton.swift */; };
 		F40F7C6B274C8159008144DE /* PostAudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C6A274C8158008144DE /* PostAudioView.swift */; };
 		F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C8627570707008144DE /* AudioPostComposer.swift */; };
+		F4B91DDE278CF46B00DF70C1 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F4B91DDD278CF46B00DF70C1 /* Sentry */; };
+		F4B91DE2278CF83400DF70C1 /* SentryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B91DE1278CF83400DF70C1 /* SentryLogger.swift */; };
 		F4F157DA276AA39F002FDB9E /* DeleteAccountPhoneNumberTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */; };
 		F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
@@ -977,6 +979,7 @@
 		F4063F2E276836F50068B9ED /* ShareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareButton.swift; sourceTree = "<group>"; };
 		F40F7C6A274C8158008144DE /* PostAudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAudioView.swift; sourceTree = "<group>"; };
 		F40F7C8627570707008144DE /* AudioPostComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPostComposer.swift; sourceTree = "<group>"; };
+		F4B91DE1278CF83400DF70C1 /* SentryLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SentryLogger.swift; sourceTree = "<group>"; };
 		F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountPhoneNumberTextField.swift; sourceTree = "<group>"; };
 		F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountTextView.swift; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
@@ -1066,6 +1069,7 @@
 				68929F9F2734AD3C00F79288 /* MarkdownKit in Frameworks */,
 				685B509B25E075FE00F782F9 /* Reachability in Frameworks */,
 				761E9AAD2465E83900864AE9 /* Zip in Frameworks */,
+				F4B91DDE278CF46B00DF70C1 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1298,6 +1302,7 @@
 		761C6165242D896E0028AE19 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				F4B91DE0278CF82100DF70C1 /* Logger */,
 				7639BA2D251944400023850E /* Third Party */,
 				EABF312423EE1EDF0039B5A6 /* Extensions */,
 				761C6166242D89D70028AE19 /* Views */,
@@ -2028,6 +2033,14 @@
 			path = HalloappUITests;
 			sourceTree = "<group>";
 		};
+		F4B91DE0278CF82100DF70C1 /* Logger */ = {
+			isa = PBXGroup;
+			children = (
+				F4B91DE1278CF83400DF70C1 /* SentryLogger.swift */,
+			);
+			path = Logger;
+			sourceTree = "<group>";
+		};
 		F8606DCB257E7245006CD1A6 /* MediaExplorer */ = {
 			isa = PBXGroup;
 			children = (
@@ -2197,6 +2210,7 @@
 				685B509A25E075FE00F782F9 /* Reachability */,
 				68929F9E2734AD3B00F79288 /* MarkdownKit */,
 				6A081C50273C154600E9E29A /* WebRTC */,
+				F4B91DDD278CF46B00DF70C1 /* Sentry */,
 			);
 			productName = Halloapp;
 			productReference = EAF3A1BF2334191E00805FF9 /* HalloApp.app */;
@@ -2309,6 +2323,7 @@
 				685B509925E075FE00F782F9 /* XCRemoteSwiftPackageReference "Reachability" */,
 				68929F9D2734AD3B00F79288 /* XCRemoteSwiftPackageReference "MarkdownKit" */,
 				6A081C4F273C154600E9E29A /* XCRemoteSwiftPackageReference "WebRTC" */,
+				F4B91DDC278CF46A00DF70C1 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			productRefGroup = EAF3A1C02334191E00805FF9 /* Products */;
 			projectDirPath = "";
@@ -2658,6 +2673,7 @@
 				EA79AEF5260E5D5200F8184F /* GroupInviteViewController.swift in Sources */,
 				6A911F40270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataProperties.swift in Sources */,
 				EA1CEF5E2617964C00BC0C79 /* GroupInvitePreviewViewController.swift in Sources */,
+				F4B91DE2278CF83400DF70C1 /* SentryLogger.swift in Sources */,
 				6A911F3F270EAF62003DCB7A /* FeedItemResendAttempt+CoreDataClass.swift in Sources */,
 				EA0B9919249C205E00B05094 /* String.swift in Sources */,
 				76407DFC245CBAD40031F96A /* PhoneInputViewController.swift in Sources */,
@@ -4650,6 +4666,14 @@
 				version = 5.5.0;
 			};
 		};
+		F4B91DDC278CF46A00DF70C1 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
+			requirement = {
+				kind = exactVersion;
+				version = 7.8.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -4682,6 +4706,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */;
 			productName = Zip;
+		};
+		F4B91DDD278CF46B00DF70C1 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F4B91DDC278CF46A00DF70C1 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
 		};
 /* End XCSwiftPackageProductDependency section */
 
