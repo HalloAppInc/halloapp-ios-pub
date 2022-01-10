@@ -96,7 +96,8 @@ struct FeedPrivacyView: View {
                 .frame(height: 54)
                 .padding(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 10))
                 .background(Color.feedPostBackground)
-                .cornerRadius(13)
+                .cornerRadius(10)
+                .shadow(color: .black.opacity(0.15), radius: 0, x: 0, y: 0.5)
                 .padding(EdgeInsets(top: 0, leading: 16, bottom: 7, trailing: 16))
                 .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
                 .sheet(isPresented: self.$shouldShowEnableContactPermissionView) {
@@ -129,7 +130,8 @@ struct FeedPrivacyView: View {
                 .frame(height: 54)
                 .padding(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 10))
                 .background(Color.feedPostBackground)
-                .cornerRadius(13)
+                .cornerRadius(10)
+                .shadow(color: .black.opacity(0.15), radius: 0, x: 0, y: 0.5)
                 .padding(EdgeInsets(top: 0, leading: 16, bottom: 7, trailing: 16))
                 .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
                 .sheet(isPresented: self.$isBlacklistScreenPresented) {
@@ -163,7 +165,8 @@ struct FeedPrivacyView: View {
                 .frame(height: 54)
                 .padding(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 10))
                 .background(Color.feedPostBackground)
-                .cornerRadius(13)
+                .cornerRadius(10)
+                .shadow(color: .black.opacity(0.15), radius: 0, x: 0, y: 0.5)
                 .padding(EdgeInsets(top: 0, leading: 16, bottom: 7, trailing: 16))
                 .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
                 .sheet(isPresented: self.$isWhitelistScreenPresented) {

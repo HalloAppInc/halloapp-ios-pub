@@ -11,6 +11,7 @@ import CocoaLumberjackSwift
 import Core
 import CallKit
 import UIKit
+import MediaPlayer
 
 protocol CameraDelegate: AVCapturePhotoCaptureDelegate, AVCaptureFileOutputRecordingDelegate {
     func goBack() -> Void
@@ -74,8 +75,14 @@ extension Localizations {
 }
 
 class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
-    private static let volumeDidChangeNotificationName =
-        NSNotification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification")
+    private static let volumeDidChangeNotificationName: NSNotification.Name = {
+        var name = "AVSystemController_SystemVolumeDidChangeNotification"
+        if #available(iOS 15, *) {
+           name = "SystemVolumeDidChange"
+        }
+        
+        return NSNotification.Name(rawValue: name)
+    }()
     private static let volumeNotificationParameter = "AVSystemController_AudioVolumeNotificationParameter"
     private static let reasonNotificationParameter = "AVSystemController_AudioVolumeChangeReasonNotificationParameter"
     private static let explicitVolumeChangeReason = "ExplicitVolumeChange"
@@ -167,6 +174,12 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
         timerLabel.layer.shadowOffset = CGSize(width: 0, height: 0)
         timerLabel.layer.shadowOpacity = 0.4
         timerLabel.layer.shadowRadius = 2.0
+        
+        // needed otherwise volume notification won't arrive
+        // also hides the volume HUD when hardware buttons are pushed
+        let volumeView = MPVolumeView(frame: .zero)
+        volumeView.clipsToBounds = true
+        view.addSubview(volumeView)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -243,6 +256,28 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
            reason == CameraController.explicitVolumeChangeReason {
             DDLogInfo("CameraController/volumeDidChange \(volume) \(reason)")
             cameraDelegate.volumeButtonPressed()
+        } else if notification.description.contains(CameraController.explicitVolumeChangeReason) {
+            /*
+             For iOS 15+
+             
+             Given that our camera implementation is rather custom, we lose out on the
+             default functionality that is having the hardware volume button trigger the
+             camera's shutter. To not lose out on this feature we listen for volume change
+             notifications, verify that they're caused by hardware buttons, and then trigger
+             the shutter.
+        
+             This process has become trickier since iOS 15 as the already undocumented volume
+             notifications no longer contain a userInfo dictionary. Instead, the userInfo is
+             embedded in the notification's description string; here we scan that string to
+             verify a hardware push.
+             
+             Since this solution relies on undocumented behavior, it could easily break in
+             future OS versions.
+             */
+            DispatchQueue.main.async {
+                DDLogInfo("CameraController/volumeDidChange \(CameraController.explicitVolumeChangeReason)")
+                self.cameraDelegate.volumeButtonPressed()
+            }
         }
     }
 

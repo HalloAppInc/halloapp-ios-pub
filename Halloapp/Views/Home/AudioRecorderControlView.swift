@@ -53,7 +53,7 @@ class AudioRecorderControlView: UIView {
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let blurredEffectView = BlurView(effect: blurEffect, intensity: 0.5)
         blurredEffectView.translatesAutoresizingMaskIntoConstraints = false
-        blurredEffectView.backgroundColor = UIColor(red: 143/255, green: 196/255, blue: 1, alpha: 0.3)
+        blurredEffectView.backgroundColor = UIColor(red: 143/255, green: 196/255, blue: 1, alpha: 0.6)
         blurredEffectView.layer.cornerRadius = configuration.expandMaxSize / 2
         blurredEffectView.layer.masksToBounds = true
         blurredEffectView.isUserInteractionEnabled = false

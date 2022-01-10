@@ -367,6 +367,10 @@ extension SceneDelegate: CallViewDelegate {
         callViewController?.callRinging()
     }
 
+    func callConnected() {
+        callViewController?.callConnected()
+    }
+
     func callActive() {
         callViewController?.callActive()
     }

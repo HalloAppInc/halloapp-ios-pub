@@ -1638,7 +1638,7 @@ extension ChatInputView: AudioRecorderDelegate {
             self.cancelRecordingButton.isHidden = true
             self.voiceNoteTime.isHidden = true
             self.postVoiceNoteButton.isHidden = true
-            self.placeholder.isHidden = false
+            self.placeholder.isHidden = !self.textView.text.isEmpty
             self.textView.isHidden = false
             self.updatePostButtons()
         }

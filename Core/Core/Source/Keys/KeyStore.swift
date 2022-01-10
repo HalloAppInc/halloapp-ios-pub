@@ -8,10 +8,7 @@
 import CocoaLumberjackSwift
 import Combine
 import CoreData
-import CryptoKit
-import CryptoSwift
 import Foundation
-import Sodium
 
 // Delegate to notify changes to current in-memory sessions.
 public protocol KeyStoreDelegate: AnyObject {
@@ -541,8 +538,6 @@ extension KeyStore {
                     memberSenderState.currentChainIndex = Int32(chainIndex)
                     memberSenderState.messageKeys = nil
                     memberSenderState.groupSessionKeyBundle = groupSessionKeyBundle
-                    // Update pendingUserIds only when we update our own senderState.
-                    groupSessionKeyBundle.pendingUserIds = groupKeyBundle.pendingUids
                     senderStates.insert(memberSenderState)
                 }
             } else {
@@ -550,6 +545,11 @@ extension KeyStore {
                     managedObjectContext.delete(senderState)
                 }
             }
+
+            // Update pendingUserIds by taking union of both sets of pending uids: in-store vs in-memory.
+            let newPendingUids = groupKeyBundle.pendingUids
+            let oldPendingUids = groupSessionKeyBundle.pendingUserIds
+            groupSessionKeyBundle.pendingUserIds = Array(Set(oldPendingUids + newPendingUids)).filter{ $0 != ownUserId }
 
             groupSessionKeyBundle.groupId = groupID
             groupSessionKeyBundle.state = state

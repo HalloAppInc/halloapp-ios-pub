@@ -1,4 +1,3 @@
-
 // !$*UTF8*$!
 {
 	archiveVersion = 1;
@@ -9,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		146B93792405F40500768AC6 /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* Font.swift */; };
-		1574C89268C6C26E2539B753 /* Pods_Share_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0069D57E244BE25C44408E11 /* Pods_Share_Extension.framework */; };
 		24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */; };
 		24009E8E24B667FA00155DE2 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		24009EB824BE399F00155DE2 /* ShareComposerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24009EB724BE399F00155DE2 /* ShareComposerViewController.swift */; };
@@ -26,7 +24,6 @@
 		24AA69DC24DDC6DA00ED65CE /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */; };
 		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		24D743E824B3D504001111BF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
-		2918BD1FA51BFAD142F377E5 /* Pods_HalloAppClip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */; };
 		321A70112704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70102704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift */; };
 		321A70132704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70122704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift */; };
 		322DDDE52739A2A6006BE1E0 /* ChatLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 322DDDE42739A2A6006BE1E0 /* ChatLinkPreviewView.swift */; };
@@ -46,7 +43,6 @@
 		329E040A268247BD00C2D250 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 329E0408268247BD00C2D250 /* LaunchScreen.storyboard */; };
 		329E0416268247BE00C2D250 /* HalloAppClipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E0415268247BE00C2D250 /* HalloAppClipTests.swift */; };
 		329E0421268247BE00C2D250 /* HalloAppClipUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E0420268247BE00C2D250 /* HalloAppClipUITests.swift */; };
-		329E0425268247BE00C2D250 /* HalloAppClip.app in Embed App Clips */ = {isa = PBXBuildFile; fileRef = 329E03F8268247BC00C2D250 /* HalloAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		329E0434268247D400C2D250 /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
 		329E0435268247D400C2D250 /* Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		329E04372682481500C2D250 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */; };
@@ -72,11 +68,10 @@
 		32C83FCB2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FCA2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift */; };
 		32C83FDA2698171700BEB4F5 /* PrivacyPermissionDeniedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FD92698171700BEB4F5 /* PrivacyPermissionDeniedView.swift */; };
 		32E60AFA271F510800D6A368 /* PostComposerLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */; };
-		32ECB6E9277515DD004DABBA /* QuotedMessageCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */; };
 		32ECB6DB27725E2C004DABBA /* MessageCommentHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */; };
+		32ECB6E9277515DD004DABBA /* QuotedMessageCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */; };
 		32F8FB032748556200E52121 /* PostComposerLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */; };
 		33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */; };
-		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
 		5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */; };
 		5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF5D12224F5295300F272D8 /* CameraViewController.swift */; };
 		680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680528CC264F14B9001F6A57 /* SafetyNumber.swift */; };
@@ -255,7 +250,6 @@
 		76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */; };
 		76F43F2B2489BC4700D47920 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
-		94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */; };
 		E5230B1E267AABA60046A2EB /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5230B1D267AABA60046A2EB /* Intents.framework */; };
 		E5230B21267AABA60046A2EB /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5230B20267AABA60046A2EB /* IntentHandler.swift */; };
 		E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E5230B1C267AABA60046A2EB /* Intents Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -308,6 +302,7 @@
 		EA79AEF5260E5D5200F8184F /* GroupInviteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA79AEF4260E5D5200F8184F /* GroupInviteViewController.swift */; };
 		EA79C6FD2554E89400E0525F /* Localizations+Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */; };
 		EA7A386626782A4D0028F739 /* ActionTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7A386526782A4D0028F739 /* ActionTableViewCell.swift */; };
+		EA7B36442783C87100C82D2F /* ChatEventViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7B36432783C87100C82D2F /* ChatEventViewCell.swift */; };
 		EA7FBD1226546B5900CE1836 /* UITabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7FBD1126546B5900CE1836 /* UITabBarController.swift */; };
 		EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */; };
 		EA96D5B626689A0400F85731 /* GroupInviteQRViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA96D5B526689A0400F85731 /* GroupInviteQRViewController.swift */; };
@@ -352,6 +347,9 @@
 		EAD476F72458F03700EF8591 /* ChatMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD476F12458F03700EF8591 /* ChatMessage+CoreDataProperties.swift */; };
 		EAD944F724F73E4C004A27B1 /* GroupInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD944F624F73E4C004A27B1 /* GroupInfoViewController.swift */; };
 		EAEE49DA276A76ED0042E654 /* ChatTitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAEE49D9276A76ED0042E654 /* ChatTitleView.swift */; };
+		EAEE49E3276C13E10042E654 /* ChatHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAEE49E2276C13E10042E654 /* ChatHeaderView.swift */; };
+		EAEE49F0277153660042E654 /* ChatEvent+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAEE49EE277153660042E654 /* ChatEvent+CoreDataClass.swift */; };
+		EAEE49F1277153660042E654 /* ChatEvent+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAEE49EF277153660042E654 /* ChatEvent+CoreDataProperties.swift */; };
 		EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C22334191E00805FF9 /* AppDelegate.swift */; };
 		EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */; };
 		EAF3A1C92334192000805FF9 /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */; };
@@ -363,7 +361,6 @@
 		F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C8627570707008144DE /* AudioPostComposer.swift */; };
 		F4F157DA276AA39F002FDB9E /* DeleteAccountPhoneNumberTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */; };
 		F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */; };
-		F5E5842640950E619AA50E59 /* Pods_HalloAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6B5578700125D5FF5728637 /* Pods_HalloAppTests.framework */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
 		F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */; };
 		F850677826A55DAC00A120EC /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F850677726A55DAC00A120EC /* AudioRecorder.swift */; };
@@ -463,17 +460,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		329E0426268247BE00C2D250 /* Embed App Clips */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(CONTENTS_FOLDER_PATH)/AppClips";
-			dstSubfolderSpec = 16;
-			files = (
-				329E0425268247BE00C2D250 /* HalloAppClip.app in Embed App Clips */,
-			);
-			name = "Embed App Clips";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		329E0436268247D400C2D250 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -522,14 +508,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		0069D57E244BE25C44408E11 /* Pods_Share_Extension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Share_Extension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		0A10ECAA6E6D27E8228BF638 /* Pods-Halloapp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.debug.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.debug.xcconfig"; sourceTree = "<group>"; };
 		146B93782405F40500768AC6 /* Font.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Font.swift; sourceTree = "<group>"; };
-		1540AD8831BAFB670A3AB0B2 /* Pods-HalloAppTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppTests.debug.xcconfig"; path = "Target Support Files/Pods-HalloAppTests/Pods-HalloAppTests.debug.xcconfig"; sourceTree = "<group>"; };
-		16E780A4F8E1D17232E3BE88 /* Pods-HalloAppTests.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppTests.internal beta.xcconfig"; path = "Target Support Files/Pods-HalloAppTests/Pods-HalloAppTests.internal beta.xcconfig"; sourceTree = "<group>"; };
-		19EEB8C1053B72CEAD800A0C /* Pods-HalloApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.release.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.release.xcconfig"; sourceTree = "<group>"; };
-		1C655B82B6A97A2F685569DF /* Pods-Notification Service Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
-		230B2983774379C4ECCB29C8 /* Pods-HalloAppTests.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppTests.external beta.xcconfig"; path = "Target Support Files/Pods-HalloAppTests/Pods-HalloAppTests.external beta.xcconfig"; sourceTree = "<group>"; };
 		24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionContext.swift; sourceTree = "<group>"; };
 		24009E8F24B6690E00155DE2 /* Share Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Share Extension.entitlements"; sourceTree = "<group>"; };
 		24009EB724BE399F00155DE2 /* ShareComposerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareComposerViewController.swift; sourceTree = "<group>"; };
@@ -541,7 +520,6 @@
 		24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPChatMessage.swift; sourceTree = "<group>"; };
 		24D743D624B3D199001111BF /* Share Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Share Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24D743DD24B3D199001111BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		2762FD6E15286945AA56FCC7 /* Pods-HalloAppClip.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppClip.debug.xcconfig"; path = "Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip.debug.xcconfig"; sourceTree = "<group>"; };
 		321A700E2704FD3A005603B8 /* Feed5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed5.xcdatamodel; sourceTree = "<group>"; };
 		321A70102704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedLinkPreview+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		321A70122704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedLinkPreview+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -589,15 +567,11 @@
 		32C83FD92698171700BEB4F5 /* PrivacyPermissionDeniedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPermissionDeniedView.swift; sourceTree = "<group>"; };
 		32E2481C270BB66200E0D12D /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerLinkPreviewView.swift; sourceTree = "<group>"; };
-		32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMessageCellView.swift; sourceTree = "<group>"; };
 		32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCommentHeaderView.swift; sourceTree = "<group>"; };
+		32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMessageCellView.swift; sourceTree = "<group>"; };
 		33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsInCommonViewController.swift; sourceTree = "<group>"; };
-		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
-		3B784BE84F86CCDF62B0AAA2 /* Pods-Share Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.debug.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.debug.xcconfig"; sourceTree = "<group>"; };
-		477D47B0022D866E02A122DB /* Pods-Share Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
 		5BF5D12224F5295300F272D8 /* CameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
-		5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HalloAppClip.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		680528CC264F14B9001F6A57 /* SafetyNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyNumber.swift; sourceTree = "<group>"; };
 		6807C3FE26AFA7B500BA3586 /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6807C3FF26AFA7B500BA3586 /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -744,7 +718,6 @@
 		68BB38E026A7F94400C87D0F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = ru; path = ../HalloApp/ru.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		68BB38E126A7F94400C87D0F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		68C8264A251A77A000BB8F3A /* NUX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NUX.swift; sourceTree = "<group>"; };
-		68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.external beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.external beta.xcconfig"; sourceTree = "<group>"; };
 		68CCB16626964851007015FA /* InitializingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitializingViewController.swift; sourceTree = "<group>"; };
 		68CCE7AC275FDE8200C39B70 /* RootViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootViewController.swift; sourceTree = "<group>"; };
 		68CD603325E463FA0056D13E /* ConnectionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionBanner.swift; sourceTree = "<group>"; };
@@ -782,10 +755,8 @@
 		6ABBD24A2601DD990041B9ED /* Feed2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed2.xcdatamodel; sourceTree = "<group>"; };
 		6ABBD24F2601DE890041B9ED /* FeedMigration.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = FeedMigration.xcmappingmodel; sourceTree = "<group>"; };
 		6ABBD25E2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
-		6AC671D398B489F4D7779AC6 /* Pods-HalloAppClip.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppClip.internal beta.xcconfig"; path = "Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip.internal beta.xcconfig"; sourceTree = "<group>"; };
 		6AC68EF626399BAE0073CBE9 /* ServerStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStrings.swift; sourceTree = "<group>"; };
 		6AF7594C26F2BB110087078A /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		74296216C820A50656388247 /* Pods-Share Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VerificationCodeViewController.swift; path = HalloApp/Views/Registration/VerificationCodeViewController.swift; sourceTree = SOURCE_ROOT; };
 		761442C2245CF4FC00DD9D1A /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIColor.swift; path = HalloApp/Components/Extensions/UIColor.swift; sourceTree = SOURCE_ROOT; };
 		761442C4245D32C200DD9D1A /* UIDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIDevice.swift; path = HalloApp/Components/Extensions/UIDevice.swift; sourceTree = SOURCE_ROOT; };
@@ -893,17 +864,6 @@
 		76E81D27255E485F0068CD62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Notification Service Extension.entitlements"; sourceTree = "<group>"; };
 		76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactPickerViewController.swift; path = HalloApp/Components/Views/ContactPickerViewController.swift; sourceTree = SOURCE_ROOT; };
-		8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.debug.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.debug.xcconfig"; sourceTree = "<group>"; };
-		8596AA009E9E4E634053285A /* Pods-HalloAppClip.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloAppClip.external beta.xcconfig"; path = "Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip.external beta.xcconfig"; sourceTree = "<group>"; };
-		A55A3CED55D1C1A5A07E9733 /* Pods-Shared Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.external beta.xcconfig"; sourceTree = "<group>"; };
-		ABDAC4856BD6591F6BD9CDD9 /* Pods-Notification Service Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.debug.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.debug.xcconfig"; sourceTree = "<group>"; };
-		B6B5578700125D5FF5728637 /* Pods_HalloAppTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HalloAppTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		BA363FAE3CFCA6033B3815EB /* Pods-Shared Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.debug.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.debug.xcconfig"; sourceTree = "<group>"; };
-		BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Notification_Service_Extension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HalloApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CD26B1DB0D71EF2BBE67ADE9 /* Pods-HalloApp.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.internal beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.internal beta.xcconfig"; sourceTree = "<group>"; };
-		D0A0ED7F66A2EB2A804CC6EC /* Pods-Shared Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
-		DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */ = {isa = PBXFileReference; lastKnownFileType = file.intentdefinition; path = Intents.intentdefinition; sourceTree = "<group>"; };
 		E5230B1C267AABA60046A2EB /* Intents Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Intents Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5230B1D267AABA60046A2EB /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
@@ -953,6 +913,7 @@
 		EA79AEF4260E5D5200F8184F /* GroupInviteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteViewController.swift; sourceTree = "<group>"; };
 		EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Localizations+Chat.swift"; sourceTree = "<group>"; };
 		EA7A386526782A4D0028F739 /* ActionTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionTableViewCell.swift; sourceTree = "<group>"; };
+		EA7B36432783C87100C82D2F /* ChatEventViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatEventViewCell.swift; sourceTree = "<group>"; };
 		EA7FBD1126546B5900CE1836 /* UITabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITabBarController.swift; sourceTree = "<group>"; };
 		EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationViewController.swift; sourceTree = "<group>"; };
 		EA96D5B526689A0400F85731 /* GroupInviteQRViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteQRViewController.swift; sourceTree = "<group>"; };
@@ -996,6 +957,9 @@
 		EAD476F12458F03700EF8591 /* ChatMessage+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMessage+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAD944F624F73E4C004A27B1 /* GroupInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInfoViewController.swift; sourceTree = "<group>"; };
 		EAEE49D9276A76ED0042E654 /* ChatTitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTitleView.swift; sourceTree = "<group>"; };
+		EAEE49E2276C13E10042E654 /* ChatHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHeaderView.swift; sourceTree = "<group>"; };
+		EAEE49EE277153660042E654 /* ChatEvent+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatEvent+CoreDataClass.swift"; sourceTree = "<group>"; };
+		EAEE49EF277153660042E654 /* ChatEvent+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatEvent+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAF3A1BF2334191E00805FF9 /* HalloApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAF3A1C22334191E00805FF9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -1049,7 +1013,6 @@
 			files = (
 				24D743E824B3D504001111BF /* Core.framework in Frameworks */,
 				68929FA42734AD6B00F79288 /* MarkdownKit in Frameworks */,
-				1574C89268C6C26E2539B753 /* Pods_Share_Extension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1058,7 +1021,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				329E0434268247D400C2D250 /* Core.framework in Frameworks */,
-				2918BD1FA51BFAD142F377E5 /* Pods_HalloAppClip.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1082,7 +1044,6 @@
 			files = (
 				768123DE2485DFB1008C5216 /* Core.framework in Frameworks */,
 				68929FA22734AD6000F79288 /* MarkdownKit in Frameworks */,
-				94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1102,7 +1063,6 @@
 				6A081C51273C154600E9E29A /* WebRTC in Frameworks */,
 				68929F9F2734AD3C00F79288 /* MarkdownKit in Frameworks */,
 				685B509B25E075FE00F782F9 /* Reachability in Frameworks */,
-				49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */,
 				761E9AAD2465E83900864AE9 /* Zip in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1111,7 +1071,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F5E5842640950E619AA50E59 /* Pods_HalloAppTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1267,34 +1226,6 @@
 				329E044C26824B8900C2D250 /* VerificationViewController.swift */,
 			);
 			path = Registration;
-			sourceTree = "<group>";
-		};
-		58B000E2ED3FD4F3ACBF0837 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				0A10ECAA6E6D27E8228BF638 /* Pods-Halloapp.debug.xcconfig */,
-				368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */,
-				8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */,
-				19EEB8C1053B72CEAD800A0C /* Pods-HalloApp.release.xcconfig */,
-				CD26B1DB0D71EF2BBE67ADE9 /* Pods-HalloApp.internal beta.xcconfig */,
-				68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */,
-				ABDAC4856BD6591F6BD9CDD9 /* Pods-Notification Service Extension.debug.xcconfig */,
-				1C655B82B6A97A2F685569DF /* Pods-Notification Service Extension.internal beta.xcconfig */,
-				DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */,
-				BA363FAE3CFCA6033B3815EB /* Pods-Shared Extension.debug.xcconfig */,
-				D0A0ED7F66A2EB2A804CC6EC /* Pods-Shared Extension.internal beta.xcconfig */,
-				A55A3CED55D1C1A5A07E9733 /* Pods-Shared Extension.external beta.xcconfig */,
-				3B784BE84F86CCDF62B0AAA2 /* Pods-Share Extension.debug.xcconfig */,
-				477D47B0022D866E02A122DB /* Pods-Share Extension.internal beta.xcconfig */,
-				74296216C820A50656388247 /* Pods-Share Extension.external beta.xcconfig */,
-				1540AD8831BAFB670A3AB0B2 /* Pods-HalloAppTests.debug.xcconfig */,
-				16E780A4F8E1D17232E3BE88 /* Pods-HalloAppTests.internal beta.xcconfig */,
-				230B2983774379C4ECCB29C8 /* Pods-HalloAppTests.external beta.xcconfig */,
-				2762FD6E15286945AA56FCC7 /* Pods-HalloAppClip.debug.xcconfig */,
-				6AC671D398B489F4D7779AC6 /* Pods-HalloAppClip.internal beta.xcconfig */,
-				8596AA009E9E4E634053285A /* Pods-HalloAppClip.external beta.xcconfig */,
-			);
-			path = Pods;
 			sourceTree = "<group>";
 		};
 		68A64E8B24D33DEF00F40F1F /* Mentions */ = {
@@ -1579,12 +1510,7 @@
 			isa = PBXGroup;
 			children = (
 				768123AA2485D764008C5216 /* XMPPFramework.framework */,
-				C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */,
-				BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */,
-				0069D57E244BE25C44408E11 /* Pods_Share_Extension.framework */,
-				B6B5578700125D5FF5728637 /* Pods_HalloAppTests.framework */,
 				E5230B1D267AABA60046A2EB /* Intents.framework */,
-				5F7432531D561D1032F4856D /* Pods_HalloAppClip.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1704,6 +1630,7 @@
 				EA9B750E25A9003B00389A8E /* MsgViewCell.swift */,
 				EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */,
 				EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */,
+				EA7B36432783C87100C82D2F /* ChatEventViewCell.swift */,
 			);
 			path = Message;
 			sourceTree = "<group>";
@@ -1779,6 +1706,7 @@
 				EAA0799625AFC71600B384AB /* ThreadListCell.swift */,
 				EA3585742450BE3300E6E8AB /* ChatViewController.swift */,
 				EAEE49D9276A76ED0042E654 /* ChatTitleView.swift */,
+				EAEE49E2276C13E10042E654 /* ChatHeaderView.swift */,
 				EA6DE2CC25C3768C00C83001 /* GroupTitleView.swift */,
 				EA3585752450BE3300E6E8AB /* ChatInputView.swift */,
 				EA388C5B2520EB9500DEAB53 /* Banner.swift */,
@@ -2006,6 +1934,8 @@
 			children = (
 				EAD476F02458F03700EF8591 /* ChatMessage+CoreDataClass.swift */,
 				EAD476F12458F03700EF8591 /* ChatMessage+CoreDataProperties.swift */,
+				EAEE49EE277153660042E654 /* ChatEvent+CoreDataClass.swift */,
+				EAEE49EF277153660042E654 /* ChatEvent+CoreDataProperties.swift */,
 			);
 			path = OneToOne;
 			sourceTree = "<group>";
@@ -2032,7 +1962,6 @@
 				329E0414268247BE00C2D250 /* HalloAppClipTests */,
 				329E041F268247BE00C2D250 /* HalloAppClipUITests */,
 				EAF3A1C02334191E00805FF9 /* Products */,
-				58B000E2ED3FD4F3ACBF0837 /* Pods */,
 				8295BD88471C9D5DC2D30C41 /* Frameworks */,
 			);
 			sourceTree = "<group>";
@@ -2133,7 +2062,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 24D743E524B3D199001111BF /* Build configuration list for PBXNativeTarget "Share Extension" */;
 			buildPhases = (
-				4A631761CEA91087620E8C28 /* [CP] Check Pods Manifest.lock */,
 				24D743D224B3D199001111BF /* Sources */,
 				24D743D324B3D199001111BF /* Frameworks */,
 				24D743D424B3D199001111BF /* Resources */,
@@ -2154,12 +2082,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 329E0431268247BE00C2D250 /* Build configuration list for PBXNativeTarget "HalloAppClip" */;
 			buildPhases = (
-				B25A4B8C5FB4CA50F6307C3E /* [CP] Check Pods Manifest.lock */,
 				329E03F4268247BC00C2D250 /* Sources */,
 				329E03F5268247BC00C2D250 /* Frameworks */,
 				329E03F6268247BC00C2D250 /* Resources */,
 				329E0436268247D400C2D250 /* Embed Frameworks */,
-				8E72513E8AFF95BAA45372B7 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -2210,7 +2136,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7681239C2485A240008C5216 /* Build configuration list for PBXNativeTarget "Notification Service Extension" */;
 			buildPhases = (
-				C32CDB92CB1F0AF723764AA8 /* [CP] Check Pods Manifest.lock */,
 				768123902485A240008C5216 /* Sources */,
 				768123912485A240008C5216 /* Frameworks */,
 				768123922485A240008C5216 /* Resources */,
@@ -2249,14 +2174,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = EAF3A1E92334192000805FF9 /* Build configuration list for PBXNativeTarget "HalloApp" */;
 			buildPhases = (
-				A4AC85EF7BFDCB135FC900FF /* [CP] Check Pods Manifest.lock */,
 				EAF3A1BB2334191E00805FF9 /* Sources */,
 				EAF3A1BC2334191E00805FF9 /* Frameworks */,
 				EAF3A1BD2334191E00805FF9 /* Resources */,
-				D51A16EB7C89AD8DAF43C14C /* [CP] Embed Pods Frameworks */,
 				768123A02485A240008C5216 /* Embed App Extensions */,
 				768123CB2485D9F5008C5216 /* Embed Frameworks */,
-				329E0426268247BE00C2D250 /* Embed App Clips */,
 			);
 			buildRules = (
 			);
@@ -2281,7 +2203,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = EAF3A1EC2334192000805FF9 /* Build configuration list for PBXNativeTarget "HalloAppTests" */;
 			buildPhases = (
-				3018469CFFB529F7A0EA2706 /* [CP] Check Pods Manifest.lock */,
 				EAF3A1D12334192000805FF9 /* Sources */,
 				EAF3A1D22334192000805FF9 /* Frameworks */,
 				EAF3A1D32334192000805FF9 /* Resources */,
@@ -2529,153 +2450,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		3018469CFFB529F7A0EA2706 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-HalloAppTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		4A631761CEA91087620E8C28 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Share Extension-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		8E72513E8AFF95BAA45372B7 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-HalloAppClip/Pods-HalloAppClip-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		A4AC85EF7BFDCB135FC900FF /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-HalloApp-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		B25A4B8C5FB4CA50F6307C3E /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-HalloAppClip-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		C32CDB92CB1F0AF723764AA8 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Notification Service Extension-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		D51A16EB7C89AD8DAF43C14C /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-HalloApp/Pods-HalloApp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-HalloApp/Pods-HalloApp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-HalloApp/Pods-HalloApp-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		24D743D224B3D199001111BF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -2828,17 +2602,20 @@
 				EAD476F62458F03700EF8591 /* ChatMessage+CoreDataClass.swift in Sources */,
 				761C6168242D89F90028AE19 /* TextLabel.swift in Sources */,
 				E5AFB4C726BC5C74002CE127 /* FeedPostView.swift in Sources */,
+				EAEE49E3276C13E10042E654 /* ChatHeaderView.swift in Sources */,
 				32C83FCB2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift in Sources */,
 				32C83FDA2698171700BEB4F5 /* PrivacyPermissionDeniedView.swift in Sources */,
 				686CDFBC2548A6C200DB7266 /* RegistrationDemo.swift in Sources */,
 				6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */,
 				EA3585712450BE2900E6E8AB /* Chat.xcdatamodeld in Sources */,
 				EAA424FC24ECF1480025CBBE /* ChatGroupMessage+CoreDataClass.swift in Sources */,
+				EAEE49F0277153660042E654 /* ChatEvent+CoreDataClass.swift in Sources */,
 				33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */,
 				68F935C5252CD00800FA6E75 /* ChatMention+CoreDataClass.swift in Sources */,
 				EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */,
 				EAC6A4482723302100E5E12E /* GroupFeedWelcomeCell.swift in Sources */,
 				EAAF43992603F7720037F83D /* BlurView.swift in Sources */,
+				EAEE49F1277153660042E654 /* ChatEvent+CoreDataProperties.swift in Sources */,
 				761B3957241D815800858251 /* SyncManager.swift in Sources */,
 				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
 				24AA69D324DCC1B500ED65CE /* XMPPChatMessage.swift in Sources */,
@@ -2898,6 +2675,7 @@
 				E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */,
 				F850677826A55DAC00A120EC /* AudioRecorder.swift in Sources */,
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
+				EA7B36442783C87100C82D2F /* ChatEventViewCell.swift in Sources */,
 				F89589562732A58300874054 /* ChangeDestinationViewController.swift in Sources */,
 				76451C3A254795F500B9E268 /* MainAppStrings.swift in Sources */,
 				EA5975DE252D3CF600810F48 /* GroupMemberAvatars.swift in Sources */,
@@ -3358,11 +3136,10 @@
 /* Begin XCBuildConfiguration section */
 		24D743E124B3D199001111BF /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 3B784BE84F86CCDF62B0AAA2 /* Pods-Share Extension.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Share Extension/Info.plist";
@@ -3384,7 +3161,6 @@
 		};
 		24D743E224B3D199001111BF /* Internal Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 477D47B0022D866E02A122DB /* Pods-Share Extension.internal beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -3418,7 +3194,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3455,7 +3231,6 @@
 		};
 		24D743E324B3D199001111BF /* External Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 74296216C820A50656388247 /* Pods-Share Extension.external beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -3489,7 +3264,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3526,13 +3301,12 @@
 		};
 		329E0427268247BE00C2D250 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 2762FD6E15286945AA56FCC7 /* Pods-HalloAppClip.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = HalloAppClip/Info.plist;
@@ -3552,7 +3326,6 @@
 		};
 		329E0428268247BE00C2D250 /* Internal Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6AC671D398B489F4D7779AC6 /* Pods-HalloAppClip.internal beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -3589,7 +3362,7 @@
 				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3624,7 +3397,6 @@
 		};
 		329E0429268247BE00C2D250 /* External Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8596AA009E9E4E634053285A /* Pods-HalloAppClip.external beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -3661,7 +3433,7 @@
 				CODE_SIGN_ENTITLEMENTS = HalloAppClip/HalloAppClip.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4080,13 +3852,12 @@
 		};
 		761E9A9F246524E900864AE9 /* External Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -4105,7 +3876,6 @@
 		};
 		761E9AA0246524E900864AE9 /* External Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 230B2983774379C4ECCB29C8 /* Pods-HalloAppTests.external beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -4148,11 +3918,10 @@
 		};
 		7681239D2485A240008C5216 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = ABDAC4856BD6591F6BD9CDD9 /* Pods-Notification Service Extension.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Notification Service Extension/Info.plist";
@@ -4174,7 +3943,6 @@
 		};
 		7681239E2485A240008C5216 /* Internal Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1C655B82B6A97A2F685569DF /* Pods-Notification Service Extension.internal beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -4208,7 +3976,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4245,7 +4013,6 @@
 		};
 		7681239F2485A240008C5216 /* External Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -4279,7 +4046,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4318,7 +4085,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Intents Extension/Info.plist";
@@ -4373,7 +4140,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4443,7 +4210,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -4603,13 +4370,12 @@
 		};
 		EAF3A1EA2334192000805FF9 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -4628,13 +4394,12 @@
 		};
 		EAF3A1EB2334192000805FF9 /* Internal Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CD26B1DB0D71EF2BBE67ADE9 /* Pods-HalloApp.internal beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 197;
+				CURRENT_PROJECT_VERSION = 199;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -4653,7 +4418,6 @@
 		};
 		EAF3A1ED2334192000805FF9 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1540AD8831BAFB670A3AB0B2 /* Pods-HalloAppTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -4676,7 +4440,6 @@
 		};
 		EAF3A1EE2334192000805FF9 /* Internal Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 16E780A4F8E1D17232E3BE88 /* Pods-HalloAppTests.internal beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -4863,8 +4626,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stasel/WebRTC";
 			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 95.0.0;
+				kind = exactVersion;
+				version = 96.0.0;
 			};
 		};
 		761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */ = {
@@ -4877,10 +4640,10 @@
 		};
 		76E5153124A1770A003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:Alamofire/Alamofire.git";
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
 			requirement = {
 				kind = exactVersion;
-				version = 5.4.1;
+				version = 5.5.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

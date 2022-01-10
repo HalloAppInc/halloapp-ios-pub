@@ -16,6 +16,7 @@ protocol MsgViewCellDelegate: AnyObject {
 
 class MsgViewCell: UITableViewCell {
     weak var msgViewCellDelegate: MsgViewCellDelegate?
+    public var tableIndexPath: IndexPath? = nil
     public var indexPath: IndexPath? = nil
     public var messageID: String? = nil
 
@@ -30,6 +31,9 @@ class MsgViewCell: UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        messageID = nil
+        tableIndexPath = nil
+        indexPath = nil
         dateColumn.isHidden = true
         dateLabel.text = nil
     }

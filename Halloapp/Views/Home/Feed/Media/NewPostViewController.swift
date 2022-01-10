@@ -258,7 +258,7 @@ extension NewPostViewController: PostComposerViewDelegate {
         cleanupAndFinish(didPost: true)
     }
 
-    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia], voiceNote: PendingMedia?) {
+    func composerDidTapBack(controller: PostComposerViewController, destination: PostComposerDestination, media: [PendingMedia], voiceNote: PendingMedia?) {
         state.pendingVoiceNote = voiceNote
         containedNavigationController.popViewController(animated: true)
         switch state.mediaSource {
@@ -268,6 +268,15 @@ extension NewPostViewController: PostComposerViewDelegate {
             break
         default:
             cleanupAndFinish()
+        }
+
+        switch destination {
+        case .userFeed:
+            self.destination = .userFeed
+        case .groupFeed(let groupID):
+            self.destination = .groupFeed(groupID)
+        case .chat:
+            break
         }
     }
 

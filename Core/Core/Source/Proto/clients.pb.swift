@@ -244,79 +244,6 @@ public struct Clients_Contact {
   public init() {}
 }
 
-public struct Clients_Post {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var media: [Clients_Media] = []
-
-  public var text: String = String()
-
-  public var mentions: [Clients_Mention] = []
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-}
-
-public struct Clients_Comment {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var feedPostID: String = String()
-
-  public var parentCommentID: String = String()
-
-  public var text: String = String()
-
-  public var mentions: [Clients_Mention] = []
-
-  public var media: Clients_Media {
-    get {return _media ?? Clients_Media()}
-    set {_media = newValue}
-  }
-  /// Returns true if `media` has been explicitly set.
-  public var hasMedia: Bool {return self._media != nil}
-  /// Clears the value of `media`. Subsequent reads from it will return its default value.
-  public mutating func clearMedia() {self._media = nil}
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-
-  fileprivate var _media: Clients_Media? = nil
-}
-
-public struct Clients_ChatMessage {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var media: [Clients_Media] = []
-
-  public var text: String = String()
-
-  public var feedPostID: String = String()
-
-  public var feedPostMediaIndex: Int32 = 0
-
-  public var mentions: [Clients_Mention] = []
-
-  public var chatReplyMessageID: String = String()
-
-  public var chatReplyMessageMediaIndex: Int32 = 0
-
-  public var chatReplyMessageSenderID: String = String()
-
-  public var contacts: [Clients_Contact] = []
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-}
-
 public struct Clients_SignedPreKey {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -627,33 +554,6 @@ public struct Clients_Container {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
-
-  public var post: Clients_Post {
-    get {return _storage._post ?? Clients_Post()}
-    set {_uniqueStorage()._post = newValue}
-  }
-  /// Returns true if `post` has been explicitly set.
-  public var hasPost: Bool {return _storage._post != nil}
-  /// Clears the value of `post`. Subsequent reads from it will return its default value.
-  public mutating func clearPost() {_uniqueStorage()._post = nil}
-
-  public var comment: Clients_Comment {
-    get {return _storage._comment ?? Clients_Comment()}
-    set {_uniqueStorage()._comment = newValue}
-  }
-  /// Returns true if `comment` has been explicitly set.
-  public var hasComment: Bool {return _storage._comment != nil}
-  /// Clears the value of `comment`. Subsequent reads from it will return its default value.
-  public mutating func clearComment() {_uniqueStorage()._comment = nil}
-
-  public var chatMessage: Clients_ChatMessage {
-    get {return _storage._chatMessage ?? Clients_ChatMessage()}
-    set {_uniqueStorage()._chatMessage = newValue}
-  }
-  /// Returns true if `chatMessage` has been explicitly set.
-  public var hasChatMessage: Bool {return _storage._chatMessage != nil}
-  /// Clears the value of `chatMessage`. Subsequent reads from it will return its default value.
-  public mutating func clearChatMessage() {_uniqueStorage()._chatMessage = nil}
 
   public var postContainer: Clients_PostContainer {
     get {return _storage._postContainer ?? Clients_PostContainer()}
@@ -1422,190 +1322,6 @@ extension Clients_Contact: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
   }
 }
 
-extension Clients_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".Post"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "media"),
-    2: .same(proto: "text"),
-    3: .same(proto: "mentions"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.media) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.text) }()
-      case 3: try { try decoder.decodeRepeatedMessageField(value: &self.mentions) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.media.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.media, fieldNumber: 1)
-    }
-    if !self.text.isEmpty {
-      try visitor.visitSingularStringField(value: self.text, fieldNumber: 2)
-    }
-    if !self.mentions.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.mentions, fieldNumber: 3)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Clients_Post, rhs: Clients_Post) -> Bool {
-    if lhs.media != rhs.media {return false}
-    if lhs.text != rhs.text {return false}
-    if lhs.mentions != rhs.mentions {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Clients_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".Comment"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "feed_post_id"),
-    3: .standard(proto: "parent_comment_id"),
-    4: .same(proto: "text"),
-    5: .same(proto: "mentions"),
-    6: .same(proto: "media"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.feedPostID) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self.parentCommentID) }()
-      case 4: try { try decoder.decodeSingularStringField(value: &self.text) }()
-      case 5: try { try decoder.decodeRepeatedMessageField(value: &self.mentions) }()
-      case 6: try { try decoder.decodeSingularMessageField(value: &self._media) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.feedPostID.isEmpty {
-      try visitor.visitSingularStringField(value: self.feedPostID, fieldNumber: 1)
-    }
-    if !self.parentCommentID.isEmpty {
-      try visitor.visitSingularStringField(value: self.parentCommentID, fieldNumber: 3)
-    }
-    if !self.text.isEmpty {
-      try visitor.visitSingularStringField(value: self.text, fieldNumber: 4)
-    }
-    if !self.mentions.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.mentions, fieldNumber: 5)
-    }
-    try { if let v = self._media {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-    } }()
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Clients_Comment, rhs: Clients_Comment) -> Bool {
-    if lhs.feedPostID != rhs.feedPostID {return false}
-    if lhs.parentCommentID != rhs.parentCommentID {return false}
-    if lhs.text != rhs.text {return false}
-    if lhs.mentions != rhs.mentions {return false}
-    if lhs._media != rhs._media {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Clients_ChatMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".ChatMessage"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "media"),
-    2: .same(proto: "text"),
-    3: .standard(proto: "feed_post_id"),
-    4: .standard(proto: "feed_post_media_index"),
-    5: .same(proto: "mentions"),
-    6: .standard(proto: "chat_reply_message_id"),
-    7: .standard(proto: "chat_reply_message_media_index"),
-    8: .standard(proto: "chat_reply_message_sender_id"),
-    9: .same(proto: "contacts"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.media) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.text) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self.feedPostID) }()
-      case 4: try { try decoder.decodeSingularInt32Field(value: &self.feedPostMediaIndex) }()
-      case 5: try { try decoder.decodeRepeatedMessageField(value: &self.mentions) }()
-      case 6: try { try decoder.decodeSingularStringField(value: &self.chatReplyMessageID) }()
-      case 7: try { try decoder.decodeSingularInt32Field(value: &self.chatReplyMessageMediaIndex) }()
-      case 8: try { try decoder.decodeSingularStringField(value: &self.chatReplyMessageSenderID) }()
-      case 9: try { try decoder.decodeRepeatedMessageField(value: &self.contacts) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.media.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.media, fieldNumber: 1)
-    }
-    if !self.text.isEmpty {
-      try visitor.visitSingularStringField(value: self.text, fieldNumber: 2)
-    }
-    if !self.feedPostID.isEmpty {
-      try visitor.visitSingularStringField(value: self.feedPostID, fieldNumber: 3)
-    }
-    if self.feedPostMediaIndex != 0 {
-      try visitor.visitSingularInt32Field(value: self.feedPostMediaIndex, fieldNumber: 4)
-    }
-    if !self.mentions.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.mentions, fieldNumber: 5)
-    }
-    if !self.chatReplyMessageID.isEmpty {
-      try visitor.visitSingularStringField(value: self.chatReplyMessageID, fieldNumber: 6)
-    }
-    if self.chatReplyMessageMediaIndex != 0 {
-      try visitor.visitSingularInt32Field(value: self.chatReplyMessageMediaIndex, fieldNumber: 7)
-    }
-    if !self.chatReplyMessageSenderID.isEmpty {
-      try visitor.visitSingularStringField(value: self.chatReplyMessageSenderID, fieldNumber: 8)
-    }
-    if !self.contacts.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.contacts, fieldNumber: 9)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Clients_ChatMessage, rhs: Clients_ChatMessage) -> Bool {
-    if lhs.media != rhs.media {return false}
-    if lhs.text != rhs.text {return false}
-    if lhs.feedPostID != rhs.feedPostID {return false}
-    if lhs.feedPostMediaIndex != rhs.feedPostMediaIndex {return false}
-    if lhs.mentions != rhs.mentions {return false}
-    if lhs.chatReplyMessageID != rhs.chatReplyMessageID {return false}
-    if lhs.chatReplyMessageMediaIndex != rhs.chatReplyMessageMediaIndex {return false}
-    if lhs.chatReplyMessageSenderID != rhs.chatReplyMessageSenderID {return false}
-    if lhs.contacts != rhs.contacts {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Clients_SignedPreKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".SignedPreKey"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -2111,18 +1827,12 @@ extension Clients_CommentContext: SwiftProtobuf.Message, SwiftProtobuf._MessageI
 extension Clients_Container: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Container"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "post"),
-    2: .same(proto: "comment"),
-    3: .standard(proto: "chat_message"),
     4: .standard(proto: "post_container"),
     5: .standard(proto: "comment_container"),
     6: .standard(proto: "chat_container"),
   ]
 
   fileprivate class _StorageClass {
-    var _post: Clients_Post? = nil
-    var _comment: Clients_Comment? = nil
-    var _chatMessage: Clients_ChatMessage? = nil
     var _postContainer: Clients_PostContainer? = nil
     var _commentContainer: Clients_CommentContainer? = nil
     var _chatContainer: Clients_ChatContainer? = nil
@@ -2132,9 +1842,6 @@ extension Clients_Container: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     private init() {}
 
     init(copying source: _StorageClass) {
-      _post = source._post
-      _comment = source._comment
-      _chatMessage = source._chatMessage
       _postContainer = source._postContainer
       _commentContainer = source._commentContainer
       _chatContainer = source._chatContainer
@@ -2156,9 +1863,6 @@ extension Clients_Container: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
         // allocates stack space for every case branch when no optimizations are
         // enabled. https://github.com/apple/swift-protobuf/issues/1034
         switch fieldNumber {
-        case 1: try { try decoder.decodeSingularMessageField(value: &_storage._post) }()
-        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._comment) }()
-        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._chatMessage) }()
         case 4: try { try decoder.decodeSingularMessageField(value: &_storage._postContainer) }()
         case 5: try { try decoder.decodeSingularMessageField(value: &_storage._commentContainer) }()
         case 6: try { try decoder.decodeSingularMessageField(value: &_storage._chatContainer) }()
@@ -2174,15 +1878,6 @@ extension Clients_Container: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       // allocates stack space for every if/case branch local when no optimizations
       // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
       // https://github.com/apple/swift-protobuf/issues/1182
-      try { if let v = _storage._post {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-      } }()
-      try { if let v = _storage._comment {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-      } }()
-      try { if let v = _storage._chatMessage {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-      } }()
       try { if let v = _storage._postContainer {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
       } }()
@@ -2201,9 +1896,6 @@ extension Clients_Container: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
         let _storage = _args.0
         let rhs_storage = _args.1
-        if _storage._post != rhs_storage._post {return false}
-        if _storage._comment != rhs_storage._comment {return false}
-        if _storage._chatMessage != rhs_storage._chatMessage {return false}
         if _storage._postContainer != rhs_storage._postContainer {return false}
         if _storage._commentContainer != rhs_storage._commentContainer {return false}
         if _storage._chatContainer != rhs_storage._chatContainer {return false}

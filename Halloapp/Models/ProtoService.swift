@@ -1510,7 +1510,7 @@ extension ProtoService: HalloService {
     }
 
     func sendGroupChatMessage(_ message: HalloGroupChatMessage) {
-        guard let messageData = try? message.protoContainer.serializedData() else {
+        guard let messageData = try? message.protoContainer?.serializedData() else {
             DDLogError("ProtoService/sendGroupChatMessage/\(message.id)/error could not serialize message data")
             return
         }

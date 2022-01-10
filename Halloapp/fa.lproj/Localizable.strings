@@ -172,6 +172,9 @@
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "گفتگوها رمزگذاری سرتاسری شده‌اند و هالواپ به آن‌ها دسترسی ندارد. برای اطلاعات بیشتر کلیک کنید.";
 
+/* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
+"chat.event.security.keys.changed" = "کد امنیتی با @% تغییر کرده است";
+
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@ از طریق لینک به گروه پیوست";
 
@@ -331,11 +334,17 @@
 /* Title for audio post composer */
 "composer.audio.title" = "پست صوتی جدید";
 
+/* Title warning that a voice recording will be deleted */
+"composer.delete.recording.title" = "حذف پیام صوتی";
+
 /* Show the user that the title is tappable */
 "composer.deletevoicenote.message" = "ضبط صدا ذخیره نمیشود اگر این پست را لغو کنید.";
 
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "لغو پست؟";
+
+/* Label shown when only single media item selected */
+"composer.label.more" = "پیوست بیشتر";
 
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "لطفاً‌ ویدیوی دیگری انتخاب کنید یا گزینه ویرایش را انتخاب کنید.";

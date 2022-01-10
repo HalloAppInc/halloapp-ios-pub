@@ -17,9 +17,6 @@
       location = "group:HalloApp.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:Pods/Pods.xcodeproj">
-   </FileRef>
-   <FileRef
       location = "group:Core/Core.xcodeproj">
    </FileRef>
 </Workspace>

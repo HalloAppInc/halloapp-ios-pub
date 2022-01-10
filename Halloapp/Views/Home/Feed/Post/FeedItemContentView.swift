@@ -60,6 +60,8 @@ protocol FeedItemContentViewDelegate {
 final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private let scaleThreshold: CGFloat = 1.3
+    // Prevent expensive bindings if just used for sizing
+    private var isSizingView = false
     private var postId: FeedPostID? = nil
     private var feedPost: FeedPost?
     var delegate: FeedItemContentViewDelegate?
@@ -181,12 +183,12 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             DDLogInfo("FeedItemContentView/media-view-height post=[\(post.id)] height=[\(mediaViewHeight)]")
             if let mediaView = mediaView {
                 mediaViewHeightConstraint?.constant = mediaViewHeight
-                mediaView.refreshData(media: imageAndVideoMedia, index: displayData?.currentMediaIndex ?? 0, animated: false)
+                mediaView.refreshData(media: isSizingView ? [] : imageAndVideoMedia, index: displayData?.currentMediaIndex ?? 0, animated: false)
             } else {
                 // Create new media view
                 var mediaViewConfiguration = MediaCarouselViewConfiguration.default
                 mediaViewConfiguration.gutterWidth = gutterWidth
-                let mediaView = MediaCarouselView(media: imageAndVideoMedia, initialIndex: displayData?.currentMediaIndex, configuration: mediaViewConfiguration)
+                let mediaView = MediaCarouselView(media: isSizingView ? [] : imageAndVideoMedia, initialIndex: displayData?.currentMediaIndex, configuration: mediaViewConfiguration)
                 mediaView.delegate = self
                 mediaViewHeightConstraint = mediaView.heightAnchor.constraint(equalToConstant: mediaViewHeight)
                 mediaViewHeightConstraint?.isActive = true
@@ -205,7 +207,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             audioView.delegate = self
             let isOwnPost = post.userId == MainAppContext.shared.userData.userId
             audioView.isSeen = post.status == .seen || isOwnPost
-            audioView.feedMedia = audioMedia
+            audioView.feedMedia = isSizingView ? nil : audioMedia
 
             // Use the same top margin if the media carousel's page control is not displayed
             audioView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: imageAndVideoMedia.count > 1 ? 8 : 20,
@@ -306,6 +308,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private static var forSizing: FeedItemContentView = {
         let view = FeedItemContentView()
+        view.isSizingView = true
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -869,7 +872,7 @@ final class FeedItemFooterView: UIView {
                 facePileView.configure(with: post)
             }
         case .sending, .retracting:
-            showProgressView()
+            showProgressView(post)
             hideErrorView()
 
             if let count = post.media?.count, count > 0 {
@@ -935,11 +938,13 @@ final class FeedItemFooterView: UIView {
         return view
     }()
 
-    private func showProgressView() {
+    private func showProgressView(_ post: FeedPost) {
         if progressView.superview == nil {
             addSubview(progressView)
             progressView.constrain(to: buttonStack)
         }
+        
+        progressView.configure(with: post)
         progressView.isHidden = false
     }
 
@@ -1089,6 +1094,25 @@ class PostingProgressView: UIView {
         activityIndicatorView.translatesAutoresizingMaskIntoConstraints = false
         activityIndicatorView.centerXAnchor.constraint(equalTo: cancelButton.centerXAnchor).isActive = true
         activityIndicatorView.centerYAnchor.constraint(equalTo: cancelButton.centerYAnchor).isActive = true
+    }
+    
+    /**
+    Used to display the appropriate progress indicator when making a post.
+         
+    For posts that consist of *only* text, there will be no progress bar.
+    */
+    func configure(with post: FeedPost) {
+        let media = post.media
+        let isTextPost = media?.isEmpty ?? true
+
+        isIndeterminate = isTextPost
+
+        switch post.status {
+        case .retracting:
+            textLabel.text = Localizations.feedDeleting
+        default:
+            textLabel.text = Localizations.feedPosting
+        }
     }
 }
 
