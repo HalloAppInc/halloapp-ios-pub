@@ -18,13 +18,8 @@ private extension Localizations {
 }
 
 class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
-
-    enum CommentViewSection {
-      case main
-    }
-
-    typealias CommentDataSource = UICollectionViewDiffableDataSource<CommentViewSection, FeedPostComment>
-    typealias CommentSnapshot = NSDiffableDataSourceSnapshot<CommentViewSection, FeedPostComment>
+    typealias CommentDataSource = UICollectionViewDiffableDataSource<String, FeedPostComment>
+    typealias CommentSnapshot = NSDiffableDataSourceSnapshot<String, FeedPostComment>
     static private let messageViewCellReuseIdentifier = "MessageViewCell"
 
     private var mediaPickerController: MediaPickerViewController?
@@ -52,17 +47,29 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                 return cell
             })
         // Setup comment header view
-        dataSource.supplementaryViewProvider = {[weak self] ( view, kind, index) in
-            let headerView = view.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: MessageCommentHeaderView.elementKind, for: index)
-            if let messageCommentHeaderView = headerView as? MessageCommentHeaderView, let self = self, let feedPost = self.feedPost {
-                messageCommentHeaderView.configure(withPost: feedPost)
-                messageCommentHeaderView.delegate = self
-                messageCommentHeaderView.textLabel.delegate = self
-                return messageCommentHeaderView
+        dataSource.supplementaryViewProvider = { [weak self] ( view, kind, index) in
+            if kind == MessageTimeHeaderView.elementKind {
+                let headerView = view.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: MessageTimeHeaderView.elementKind, for: index)
+                if let messageTimeHeaderView = headerView as? MessageTimeHeaderView, let self = self, let feedPost = self.feedPost, let sections = self.fetchedResultsController?.sections{
+                    let section = sections[index.section ]
+                    messageTimeHeaderView.configure(headerText: section.name)
+                    return messageTimeHeaderView
+                } else {
+                    // TODO(@dini) add post loading here
+                    DDLogInfo("FlatCommentsViewController/configureHeader/time header info not available")
+                    return headerView
+                }
             } else {
-                // TODO(@dini) add post loading here
-                DDLogInfo("FlatCommentsViewController/configureHeader/header info not available")
-                return headerView
+                let headerView = view.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: MessageCommentHeaderView.elementKind, for: index)
+                if let messageCommentHeaderView = headerView as? MessageCommentHeaderView, let self = self, let feedPost = self.feedPost {
+                    messageCommentHeaderView.configure(withPost: feedPost)
+                    messageCommentHeaderView.delegate = self
+                    return messageCommentHeaderView
+                } else {
+                    // TODO(@dini) add post loading here
+                    DDLogInfo("FlatCommentsViewController/configureHeader/header info not available")
+                    return headerView
+                }
             }
         }
         return dataSource
@@ -79,6 +86,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         collectionView.preservesSuperviewLayoutMargins = true
         collectionView.register(MessageViewCell.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageViewCellReuseIdentifier)
         collectionView.register(MessageCommentHeaderView.self, forSupplementaryViewOfKind: MessageCommentHeaderView.elementKind, withReuseIdentifier: MessageCommentHeaderView.elementKind)
+        collectionView.register(MessageTimeHeaderView.self, forSupplementaryViewOfKind: MessageTimeHeaderView.elementKind, withReuseIdentifier: MessageTimeHeaderView.elementKind)
         collectionView.delegate = self
         return collectionView
     }()
@@ -100,6 +108,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationItem.title = Localizations.titleComments
         view.backgroundColor = UIColor.primaryBg
         view.addSubview(collectionView)
         collectionView.constrainMargins([.top, .leading, .bottom, .trailing], to: view)
@@ -131,7 +140,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         fetchedResultsController = NSFetchedResultsController<FeedPostComment>(
             fetchRequest: fetchRequest,
             managedObjectContext: MainAppContext.shared.feedData.viewContext,
-            sectionNameKeyPath: nil,
+            sectionNameKeyPath: "headerTime",
             cacheName: nil
         )
         fetchedResultsController?.delegate = self
@@ -146,9 +155,15 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChangeContentWith snapshot: NSDiffableDataSourceSnapshotReference) {
         var snapshot = CommentSnapshot()
-        snapshot.appendSections([.main])
-        let comments = fetchedResultsController?.fetchedObjects ?? []
-        snapshot.appendItems(comments, toSection: .main)
+        if let sections = fetchedResultsController?.sections {
+            snapshot.appendSections(sections.map { $0.name } )
+            for section in sections {
+                if let comments = section.objects as? [FeedPostComment] {
+                    snapshot.appendItems(comments, toSection: section.name)
+                }
+
+            }
+        }
         dataSource.apply(snapshot, animatingDifferences: true)
     }
 
@@ -159,12 +174,17 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
 
+
+        let sectionHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
+        let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: sectionHeaderSize, elementKind: MessageTimeHeaderView.elementKind, alignment: .top)
+        sectionHeader.pinToVisibleBounds = true
+
         let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0)
+        section.boundarySupplementaryItems = [sectionHeader]
 
         // Setup the comment view header with post information as the global header of the collection view.
-        let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
-        let layoutHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: MessageCommentHeaderView.elementKind, alignment: .top)
+        let layoutHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(55))
+        let layoutHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: layoutHeaderSize, elementKind: MessageCommentHeaderView.elementKind, alignment: .top)
         let layoutConfig = UICollectionViewCompositionalLayoutConfiguration()
         layoutConfig.boundarySupplementaryItems = [layoutHeader]
 
@@ -249,6 +269,12 @@ extension FlatCommentsViewController: MessageViewDelegate {
         controller.delegate = view
         present(controller, animated: true)
     }
+}
+
+extension FeedPostComment {
+  @objc var headerTime: String { get {
+    return timestamp.chatMsgGroupingTimestamp(Date())
+  }
 }
 
 extension FlatCommentsViewController: TextLabelDelegate {

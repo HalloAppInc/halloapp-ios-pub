@@ -67,6 +67,7 @@
 		32C83FC42690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FC32690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift */; };
 		32C83FCB2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FCA2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift */; };
 		32C83FDA2698171700BEB4F5 /* PrivacyPermissionDeniedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FD92698171700BEB4F5 /* PrivacyPermissionDeniedView.swift */; };
+		32C90672278CC9C500E292EE /* MessageTimeHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C90671278CC9C500E292EE /* MessageTimeHeaderView.swift */; };
 		32E60AFA271F510800D6A368 /* PostComposerLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */; };
 		32ECB6DB27725E2C004DABBA /* MessageCommentHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */; };
 		32ECB6E9277515DD004DABBA /* QuotedMessageCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */; };
@@ -565,6 +566,7 @@
 		32C83FC32690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPermissionDeniedController.swift; sourceTree = "<group>"; };
 		32C83FCA2694DB1D00BEB4F5 /* InvitePermissionDeniedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitePermissionDeniedViewController.swift; sourceTree = "<group>"; };
 		32C83FD92698171700BEB4F5 /* PrivacyPermissionDeniedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPermissionDeniedView.swift; sourceTree = "<group>"; };
+		32C90671278CC9C500E292EE /* MessageTimeHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageTimeHeaderView.swift; sourceTree = "<group>"; };
 		32E2481C270BB66200E0D12D /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerLinkPreviewView.swift; sourceTree = "<group>"; };
 		32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCommentHeaderView.swift; sourceTree = "<group>"; };
@@ -1145,6 +1147,7 @@
 				324455E0275994D50031CD60 /* MessageViewCell.swift */,
 				32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */,
 				32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */,
+				32C90671278CC9C500E292EE /* MessageTimeHeaderView.swift */,
 			);
 			path = FlatComment;
 			sourceTree = "<group>";
@@ -2797,6 +2800,7 @@
 				EA0B9917249C1FFB00B05094 /* Character.swift in Sources */,
 				764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */,
 				76A92449244EBCB600794859 /* ShapeView.swift in Sources */,
+				32C90672278CC9C500E292EE /* MessageTimeHeaderView.swift in Sources */,
 				68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */,
 				68CCB16726964851007015FA /* InitializingViewController.swift in Sources */,
 				F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */,
