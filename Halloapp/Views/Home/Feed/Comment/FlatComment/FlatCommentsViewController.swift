@@ -159,8 +159,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             snapshot.appendSections(sections.map { $0.name } )
             for section in sections {
                 if let comments = section.objects as? [FeedPostComment] {
-
-                    print("Nandini section name : \(section.name) ||| comments count : \(comments.count) ")
                     snapshot.appendItems(comments, toSection: section.name)
                 }
 
