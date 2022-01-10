@@ -56,7 +56,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                     return messageTimeHeaderView
                 } else {
                     // TODO(@dini) add post loading here
-                    DDLogInfo("FlatCommentsViewController/configureHeader/header info not available")
+                    DDLogInfo("FlatCommentsViewController/configureHeader/time header info not available")
                     return headerView
                 }
             } else {
