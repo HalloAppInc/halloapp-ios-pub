@@ -37,7 +37,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         let providerConfiguration = CXProviderConfiguration(localizedName: "HalloApp")
         providerConfiguration.supportsVideo = false
         providerConfiguration.maximumCallsPerCallGroup = 1
-        providerConfiguration.supportedHandleTypes = [.phoneNumber, .generic]
+        providerConfiguration.supportedHandleTypes = [.phoneNumber]
         providerConfiguration.includesCallsInRecents = true
         return providerConfiguration
     }
@@ -209,8 +209,14 @@ final class CallManager: NSObject, CXProviderDelegate {
     }
 
     private func handle(for peerUserID: UserID) -> CXHandle {
-        let peerNumber = MainAppContext.shared.contactStore.pushNumber(peerUserID) ?? ""
-        let handle = CXHandle(type: .generic, value: peerNumber)
+        let peerPhoneNumber: String
+        if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: peerUserID) {
+            peerPhoneNumber = "+" + phoneNumber
+        } else {
+            peerPhoneNumber = ""
+        }
+        DDLogInfo("CallManager/handle/for: \(peerUserID)/phone: \(peerPhoneNumber)")
+        let handle = CXHandle(type: .phoneNumber, value: peerPhoneNumber)
         return handle
     }
 
@@ -310,6 +316,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                     }
                 case .failure(let error) :
                     DDLogError("CallManager/CXStartCallAction/failed: \(error.localizedDescription)")
+                    // TODO: show failure UI here.
                     self.resetState()
                     action.fail()
                 }

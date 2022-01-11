@@ -87,7 +87,7 @@ class CallViewController: UIViewController {
 
     private let peerUserID: UserID
     private var peerPhoneNumber: String {
-        if let phoneNumber = MainAppContext.shared.contactStore.pushNumber(peerUserID) {
+        if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: peerUserID) {
             return phoneNumber.formattedPhoneNumber
         } else {
             return ""
