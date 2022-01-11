@@ -74,41 +74,34 @@ class MainAppContext: AppContext {
     }
 
     // MARK: Paths
-    static let documentsDirectoryURL = {
-        URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!)
-    }()
-
-    static let libraryDirectoryURL = {
-        URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).first!)
-    }()
 
     static let mediaDirectoryURL = {
-        libraryDirectoryURL.appendingPathComponent("Media", isDirectory: false)
+        AppContext.libraryDirectoryURL.appendingPathComponent("Media", isDirectory: false)
     }()
 
     static let chatMediaDirectoryURL = {
-        libraryDirectoryURL.appendingPathComponent("ChatMedia", isDirectory: false)
+        AppContext.libraryDirectoryURL.appendingPathComponent("ChatMedia", isDirectory: false)
     }()
 
     static let feedStoreURL = {
-        documentsDirectoryURL.appendingPathComponent(feedDatabaseFilename)
+        AppContext.documentsDirectoryURL.appendingPathComponent(feedDatabaseFilename)
     }()
 
     static let chatStoreURL = {
-        documentsDirectoryURL.appendingPathComponent(chatDatabaseFilename)
+        AppContext.documentsDirectoryURL.appendingPathComponent(chatDatabaseFilename)
     }()
 
     static let cryptoStatsStoreURLLegacy = {
-        documentsDirectoryURL.appendingPathComponent(cryptoStatsDatabaseFilenameLegacy)
+        AppContext.documentsDirectoryURL.appendingPathComponent(cryptoStatsDatabaseFilenameLegacy)
     }()
 
     static let uploadStoreURLLegacy = {
-        documentsDirectoryURL.appendingPathComponent(uploadDatabaseFilenameLegacy)
+        AppContext.documentsDirectoryURL.appendingPathComponent(uploadDatabaseFilenameLegacy)
     }()
     
     func deleteDocumentsDirectory() {
         do {
-            try FileManager.default.removeItem(at: Self.documentsDirectoryURL)
+            try FileManager.default.removeItem(at: AppContext.documentsDirectoryURL)
             DDLogInfo("MainAppContext/deleteDocumentsDirectory: Deleted documents data")
         } catch {
             DDLogError("MainAppContext/deleteDocumentsDirectory: Error deleting documents data: \(error)")

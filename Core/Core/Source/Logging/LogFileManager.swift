@@ -12,9 +12,8 @@ import Foundation
 class LogFileManager: DDLogFileManagerDefault {
 
     override func isLogFile(withName fileName: String) -> Bool {
-        let hasProperPrefix = fileName.hasPrefix(Bundle.main.bundleIdentifier ?? "com.halloapp.hallo")
         let hasProperSuffix = fileName.hasSuffix(".log")
-        return hasProperPrefix && hasProperSuffix
+        return hasProperSuffix
     }
     
     override var newLogFileName: String {

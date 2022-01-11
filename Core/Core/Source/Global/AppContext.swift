@@ -178,6 +178,14 @@ open class AppContext {
     }
     
     // MARK: Paths
+    public static let documentsDirectoryURL = {
+        URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!)
+    }()
+
+    public static let libraryDirectoryURL = {
+        URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).first!)
+    }()
+
     public static let sharedDirectoryURL: URL! = {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppContext.appGroupName)
     }()
@@ -234,6 +242,7 @@ open class AppContext {
         fileLogger.logFormatter = FileLogFormatter()
         DDLog.add(fileLogger)
         self.fileLogger = fileLogger
+        let files = fileLogger.logFileManager.sortedLogFilePaths
 
         let osLogger = DDOSLogger.sharedInstance
         osLogger.logFormatter = LogFormatter()

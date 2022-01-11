@@ -157,6 +157,9 @@ final class NotificationProtoService: ProtoServiceCore {
         }
 
         switch msg.payload {
+        case .requestLogs:
+            uploadLogsToServer()
+            return
         case .endOfQueue(_):
             return
         case .incomingCall(let incomingCall):

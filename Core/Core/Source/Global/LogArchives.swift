@@ -9,9 +9,8 @@
 import CocoaLumberjackSwift
 import Foundation
 import Zip
-import Core
 
-extension MainAppContext {
+extension AppContext {
 
     public func archiveLogs(to archiveURL: URL) throws {
         var logfileURLs = fileLogger.logFileManager.sortedLogFilePaths.compactMap { URL(fileURLWithPath: $0) }
@@ -26,7 +25,7 @@ extension MainAppContext {
         DispatchQueue.global(qos: .default).async { [weak self] in
             guard let self = self else { return }
             do {
-                DDLogInfo("MainAppContext/uploadLogsToServer/begin")
+                DDLogInfo("AppContext/uploadLogsToServer/begin")
                 let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
                 let archiveURL = tempDirectoryURL.appendingPathComponent("logs.zip")
                 try self.archiveLogs(to: archiveURL)
@@ -39,11 +38,11 @@ extension MainAppContext {
                 var urlComps = URLComponents(string: "https://api.halloapp.net/api/logs/device/")
                 urlComps?.queryItems = queryItems
                 guard let url = urlComps?.url else {
-                    DDLogError("MainAppContext/uploadLogsToServer/failed to get url: \(String(describing: urlComps))")
+                    DDLogError("AppContext/uploadLogsToServer/failed to get url: \(String(describing: urlComps))")
                     return
                 }
                 guard let logData = try? Data(contentsOf: archiveURL) else {
-                    DDLogError("MainAppContext/uploadLogsToServer/failed to get logData: \(archiveURL)")
+                    DDLogError("AppContext/uploadLogsToServer/failed to get logData: \(archiveURL)")
                     return
                 }
 
@@ -53,21 +52,21 @@ extension MainAppContext {
                 request.setValue(AppContext.userAgent, forHTTPHeaderField: "User-Agent")
                 let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
                     guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                        DDLogError("MainAppContext/uploadLogsToServer/error Invalid response. [\(String(describing: urlResponse))]")
+                        DDLogError("AppContext/uploadLogsToServer/error Invalid response. [\(String(describing: urlResponse))]")
                         return
                     }
                     guard let data = data,
                           let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                              DDLogError("MainAppContext/uploadLogsToServer/error Invalid response. [\(data ?? Data())]")
+                              DDLogError("AppContext/uploadLogsToServer/error Invalid response. [\(data ?? Data())]")
                               return
                     }
                     if let error = error {
-                        DDLogError("MainAppContext/uploadLogsToServer/error [\(error)]")
+                        DDLogError("AppContext/uploadLogsToServer/error [\(error)]")
                         completion(.failure(NSError(domain: "com.halloapp.uploadLogs", code: httpResponse.statusCode, userInfo: nil)))
                     } else {
                         completion(.success(()))
                     }
-                    DDLogInfo("MainAppContext/uploadLogsToServer/response: \(httpResponse) - \(response)")
+                    DDLogInfo("AppContext/uploadLogsToServer/response: \(httpResponse) - \(response)")
                 }
                 task.resume()
             } catch {
@@ -127,9 +126,9 @@ extension MainAppContext {
             "TEMPORARY",
             directoryContents(at: URL(fileURLWithPath: NSTemporaryDirectory())),
             "DOCUMENTS",
-            directoryContents(at: MainAppContext.documentsDirectoryURL),
+            directoryContents(at: AppContext.documentsDirectoryURL),
             "LIBRARY",
-            directoryContents(at: MainAppContext.libraryDirectoryURL),
+            directoryContents(at: AppContext.libraryDirectoryURL),
         ]
         .joined(separator: "\n\n")
     }

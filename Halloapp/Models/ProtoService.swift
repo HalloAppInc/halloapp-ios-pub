@@ -18,7 +18,6 @@ fileprivate let userDefaultsKeyForAPNSSyncTime = "apnsSyncTime"
 fileprivate let userDefaultsKeyForVOIPSyncTime = "voipSyncTime"
 fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 fileprivate let userDefaultsKeyForSilentRerequestRecords = "silentRerequestRecords"
-fileprivate let userDefaultsKeyForRequestLogs = "serverRequestedLogs"
 
 final class ProtoService: ProtoServiceCore {
 
@@ -896,8 +895,7 @@ final class ProtoService: ProtoServiceCore {
             }
         case .requestLogs(_):
             DDLogInfo("proto/didReceive/\(msg.id)/request logs")
-            UserDefaults.standard.set(true, forKey: userDefaultsKeyForRequestLogs)
-            uploadLogsToServerIfNecessary()
+            uploadLogsToServer()
         case .wakeup(_):
             DDLogInfo("proto/didReceive/\(msg.id)/wakeup")
         case .endOfQueue:
@@ -976,19 +974,6 @@ final class ProtoService: ProtoServiceCore {
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .iceRestartAnswer(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        }
-    }
-
-    private func uploadLogsToServerIfNecessary() {
-        guard UserDefaults.standard.bool(forKey: userDefaultsKeyForRequestLogs) else { return }
-        MainAppContext.shared.uploadLogsToServer() { result in
-            DDLogInfo("proto/uploadLogsToServerIfNecessary/result: \(result)")
-            switch result {
-            case .success:
-                UserDefaults.standard.set(false, forKey: userDefaultsKeyForRequestLogs)
-            default:
-                break
-            }
         }
     }
 

@@ -14,6 +14,8 @@ enum Stream {
     case noise(NoiseStream)
 }
 
+fileprivate let userDefaultsKeyForRequestLogs = "serverRequestedLogs"
+
 open class ProtoServiceCore: NSObject, ObservableObject {
 
     // MARK: Avatar
@@ -304,6 +306,26 @@ open class ProtoServiceCore: NSObject, ObservableObject {
                 if request.cancelAndPrepareFor(retry: true) {
                     self.requestsToSend.append(request)
                 }
+            }
+        }
+    }
+
+    public func uploadLogsToServerIfNecessary() {
+        guard UserDefaults.shared.bool(forKey: userDefaultsKeyForRequestLogs) else {
+            return
+        }
+        uploadLogsToServer()
+    }
+
+    public func uploadLogsToServer() {
+        UserDefaults.shared.set(true, forKey: userDefaultsKeyForRequestLogs)
+        AppContext.shared.uploadLogsToServer() { result in
+            DDLogInfo("ProtoServiceCore/uploadLogsToServer/result: \(result)")
+            switch result {
+            case .success:
+                UserDefaults.shared.set(false, forKey: userDefaultsKeyForRequestLogs)
+            default:
+                break
             }
         }
     }
