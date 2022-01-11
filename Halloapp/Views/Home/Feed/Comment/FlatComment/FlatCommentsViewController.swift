@@ -15,6 +15,10 @@ private extension Localizations {
     static var newComment: String {
         NSLocalizedString("title.comments.picker", value: "New Comment", comment: "Title for the picker screen.")
     }
+
+    static var titleComments: String {
+        NSLocalizedString("title.comments", value: "Comments", comment: "Title for the Comments screen.")
+    }
 }
 
 class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
@@ -272,8 +276,10 @@ extension FlatCommentsViewController: MessageViewDelegate {
 }
 
 extension FeedPostComment {
-  @objc var headerTime: String { get {
-    return timestamp.chatMsgGroupingTimestamp(Date())
+  @objc var headerTime: String {
+      get {
+          return timestamp.chatMsgGroupingTimestamp(Date())
+      }
   }
 }
 
