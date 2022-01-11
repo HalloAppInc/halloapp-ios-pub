@@ -344,7 +344,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             try fetchedResultsController?.performFetch()
             updateEmptyView()
         } catch {
-            fatalError("ChatListView/frc/setup failure: \(error)")
+            fatalError("Failed to fetch feed items \(error)")
         }
     }
 
@@ -359,7 +359,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogVerbose("ChatListView/frc/controllerDidChangeContent")
+        DDLogDebug("ChatListView/controllerDidChangeContent")
         reloadData(animated: false)
         updateEmptyView()
         dismissInviteScreenIfNeeded()

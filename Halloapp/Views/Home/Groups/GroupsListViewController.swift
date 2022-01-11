@@ -23,17 +23,16 @@ fileprivate struct Constants {
 class GroupsListViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private static let cellReuseIdentifier = "ThreadListCell"
+    private static let inviteFriendsReuseIdentifier = "GroupsListInviteFriendsCell"
     private let tableView = UITableView(frame: CGRect.zero, style: .grouped)
-
+    
     private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
-    private var dataSource: GroupsListDataSource?
     
     private var isVisible: Bool = false
     private var cancellableSet: Set<AnyCancellable> = []
     
-    private var filteredChatsTitles: [ChatThread] = []
     private var filteredChatsMembers: [ChatThread] = []
-
+    private var filteredChatsTitles: [ChatThread] = []
     private var searchController = UISearchController(searchResultsController: nil)
     
     private var isSearchBarEmpty: Bool {
@@ -48,7 +47,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         return searchController.isActive && !isSearchBarEmpty
     }
     private var groupIdToPresent: GroupID? = nil
-
+        
     // MARK: Lifecycle
     
     init(title: String) {
@@ -99,6 +98,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         tableView.register(GroupsListHeaderView.self, forHeaderFooterViewReuseIdentifier: "sectionHeader")
         tableView.register(ThreadListCell.self, forCellReuseIdentifier: GroupsListViewController.cellReuseIdentifier)
         tableView.delegate = self
+        tableView.dataSource = self
 
         tableView.backgroundView = UIView() // fixes issue where bg color was off when pulled down from top
         tableView.backgroundColor = .primaryBg
@@ -108,35 +108,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60 // set a number close to default to prevent cells overlapping issue, can't be auto
 
-        dataSource = GroupsListDataSource(tableView: tableView) { [weak self] (tableView, indexPath, row) in
-            guard let self = self else { return UITableViewCell() }
-            if [0, 1].contains(indexPath.section) {
-                switch row {
-                case .group:
-                    guard let chatThread = self.chatThread(at: indexPath) else {
-                        let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
-                        cell.isHidden = true
-                        return cell
-                    }
-
-                    let cell = tableView.dequeueReusableCell(withIdentifier: GroupsListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
-
-                    cell.configureAvatarSize(Constants.AvatarSize)
-                    cell.configureForGroupsList(with: chatThread, squareSize: Constants.AvatarSize)
-
-                    if self.isFiltering {
-                        let strippedString = self.searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
-                        let searchItems = strippedString.components(separatedBy: " ")
-                        cell.highlightTitle(searchItems)
-                    }
-                    return cell
-                }
-            }
-            return UITableViewCell()
-        }
-        
         setupFetchedResultsController()
-        reloadData(animated: false)
 
         // When the user was on this view
         cancellableSet.insert(
@@ -306,17 +278,22 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         return fetchRequest
     }
 
+    private var trackPerRowFRCChanges = false
+
+    private var reloadTableViewInDidChangeContent = false
+
     private func setupFetchedResultsController() {
         fetchedResultsController = createFetchedResultsController()
         do {
             try fetchedResultsController?.performFetch()
             updateEmptyView()
         } catch {
-            fatalError("GroupsListView/frc/setup failure: \(error)")
+            fatalError("Failed to fetch thread items \(error)")
         }
     }
 
     private func createFetchedResultsController() -> NSFetchedResultsController<ChatThread> {
+        // Setup fetched results controller the old way because it allows granular control over UI update operations.
         let fetchedResultsController = NSFetchedResultsController<ChatThread>(fetchRequest: fetchRequest,
                                                                               managedObjectContext: MainAppContext.shared.chatData.viewContext,
                                                                               sectionNameKeyPath: nil,
@@ -325,75 +302,75 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         return fetchedResultsController
     }
 
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogVerbose("GroupsListView/frc/controllerDidChangeContent")
-        reloadData(animated: false)
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        reloadTableViewInDidChangeContent = false
+        trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
+        DDLogDebug("GroupsListView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+        
+        if trackPerRowFRCChanges {
+            tableView.beginUpdates()
+        }
+
         updateEmptyView()
     }
 
-    private func reloadData(animated: Bool = true) {
-        DispatchQueue.main.async { [weak self] in
-            self?.reloadDataInMainQueue(animated: animated)
-        }
-    }
-
-    private func reloadDataInMainQueue(animated: Bool = false) {
-        var chatThreads: [ChatThread] = []
-        var threadsOfFoundMembers: [ChatThread] = []
-
-        if isFiltering {
-            chatThreads.append(contentsOf: filteredChatsTitles.map {$0} )
-            threadsOfFoundMembers.append(contentsOf: filteredChatsMembers.map {$0} )
-        } else if let objects = fetchedResultsController?.fetchedObjects {
-            chatThreads.append(contentsOf: objects.map {$0} )
-        }
-
-        var groupRows = [Row]()
-        var groupRowsOfFoundMembers = [Row]()
-
-        chatThreads.forEach { thread in
-            guard let groupID = thread.groupId else { return }
-            var threadData = ThreadData(type: .group, groupID: groupID, lastFeedID: thread.lastFeedId ?? "", lastFeedStatus: thread.lastFeedStatus)
-            if isFiltering {
-                if let searchStr = searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces) {
-                    threadData.type = .groupOfFoundTitle
-                    threadData.searchStr = searchStr
-                }
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        switch type {
+        case .insert:
+            guard let indexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
+            DDLogDebug("GroupsListView/frc/insert [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
+            if trackPerRowFRCChanges && !isFiltering {
+                tableView.insertRows(at: [ indexPath ], with: .automatic)
+            } else {
+                reloadTableViewInDidChangeContent = true
             }
-            groupRows.append(Row.group(threadData))
-        }
 
-        if isFiltering, filteredChatsMembers.count > 0  {
-            threadsOfFoundMembers.forEach { thread in
-                guard let groupID = thread.groupId else { return }
-                var threadDataOfFoundMembers = ThreadData(type: .groupOfFoundMember, groupID: groupID, lastFeedID: thread.lastFeedId ?? "", lastFeedStatus: thread.lastFeedStatus)
-                if let searchStr = searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces) {
-                    threadDataOfFoundMembers.searchStr = searchStr
-                }
-                groupRowsOfFoundMembers.append(Row.group(threadDataOfFoundMembers))
-            }
-        }
-
-        /* apply snapshot */
-        var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
+        case .delete:
+            guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { break }
+            DDLogDebug("GroupsListView/frc/delete [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
       
-        snapshot.appendSections([ .groups ])
-        snapshot.appendItems(groupRows, toSection: .groups)
-        
-        if isFiltering, filteredChatsMembers.count > 0  {
-            snapshot.appendSections([ .groupsWithFoundMembers ])
-            snapshot.appendItems(groupRowsOfFoundMembers, toSection: .groupsWithFoundMembers)
+            if trackPerRowFRCChanges && !isFiltering {
+                tableView.deleteRows(at: [ indexPath ], with: .left)
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
+            
+        case .move:
+            guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
+            DDLogDebug("GroupsListView/frc/move [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            if trackPerRowFRCChanges && !isFiltering {
+                tableView.moveRow(at: fromIndexPath, to: toIndexPath)
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
+        case .update:
+            guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { return }
+            DDLogDebug("GroupsListView/frc/update [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
+
+            if trackPerRowFRCChanges && !isFiltering {
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
+        default:
+            break
         }
 
-        dataSource?.defaultRowAnimation = .fade
-
-        if #available(iOS 15.0, *) {
-            dataSource?.applySnapshotUsingReloadData(snapshot)
-        } else {
-            dataSource?.apply(snapshot, animatingDifferences: animated)
-        }
+        updateEmptyView()
     }
 
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        DDLogDebug("GroupsListView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
+        if trackPerRowFRCChanges {
+            tableView.endUpdates()
+        }
+        if reloadTableViewInDidChangeContent || isFiltering {
+            tableView.reloadData()
+        }
+
+        updateEmptyView()
+    }
+    
     // MARK: Actions
     
     @objc private func openNewGroupAction() {
@@ -493,14 +470,14 @@ extension GroupsListViewController: GroupsListHeaderViewDelegate {
 }
 
 // MARK: UITableView Delegates
-extension GroupsListViewController: UITableViewDelegate {
-
+extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
+    
     func chatThread(at indexPath: IndexPath) -> ChatThread? {
         
         if isFiltering {
             if (indexPath.section == 0 && filteredChatsTitles.count > 0) {
                 return filteredChatsTitles[indexPath.row]
-            } else if (indexPath.section == 1 && filteredChatsMembers.count > 0) {
+            } else {
                 return filteredChatsMembers[indexPath.row]
             }
         }
@@ -519,6 +496,53 @@ extension GroupsListViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return section == 1 ? CGFloat.leastNormalMagnitude : 25
+    }
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        
+        if isFiltering {
+            if (filteredChatsTitles.count > 0 && filteredChatsMembers.count > 0) {
+                return 2
+            } else {
+                return 1
+            }
+        }
+        
+        return fetchedResultsController?.sections?.count ?? 0
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        
+        if isFiltering {
+            if (section == 0 && filteredChatsTitles.count > 0) {
+                return filteredChatsTitles.count
+            } else {
+                return filteredChatsMembers.count
+            }
+        }
+        
+        guard let sections = fetchedResultsController?.sections else { return 0 }
+        return sections[section].numberOfObjects + 1
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let chatThread = chatThread(at: indexPath) else {
+            let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+            cell.isHidden = true
+            return cell
+        }
+        let cell = tableView.dequeueReusableCell(withIdentifier: GroupsListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
+
+        cell.configureAvatarSize(Constants.AvatarSize)
+        cell.configureForGroupsList(with: chatThread, squareSize: Constants.AvatarSize)
+
+        if isFiltering {
+            let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
+            let searchItems = strippedString.components(separatedBy: " ")
+            cell.highlightTitle(searchItems)
+        }
+        
+        return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -608,7 +632,7 @@ extension GroupsListViewController: UISearchResultsUpdating {
         let strippedString = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces)
         
         let searchItems = strippedString.components(separatedBy: " ")
-
+        
         filteredChatsTitles = allChats.filter {
             var titleText: String? = nil
             if $0.type == .group {
@@ -626,7 +650,7 @@ extension GroupsListViewController: UISearchResultsUpdating {
             }
             return false
         }
-
+        
         filteredChatsMembers = allChats.filter {
             var flag = false
             var groupIdStr: GroupID? = nil
@@ -654,12 +678,11 @@ extension GroupsListViewController: UISearchResultsUpdating {
             }
             return flag
         }
-
-        reloadData(animated: false)
+        
+        tableView.reloadData()
     }
 }
 
-// MARK: NewGroupMembersViewController Delegates
 extension GroupsListViewController: NewGroupMembersViewControllerDelegate {
     func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, selected: [UserID]) {}
     
@@ -670,63 +693,6 @@ extension GroupsListViewController: NewGroupMembersViewControllerDelegate {
 
         // skip animation to prevent user from having to see the groups list first
         navigationController?.pushViewController(vc, animated: false)
-    }
-}
-
-fileprivate class GroupsListDataSource: UITableViewDiffableDataSource<Section, Row> {
-
-    // when using UITableViewDiffableDataSource, canEditRowAt needs to be set to enable swipe to delete
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        return true
-    }
-}
-
-fileprivate enum ThreadDataType {
-    case group
-    case groupOfFoundTitle
-    case groupOfFoundMember
-}
-
-fileprivate struct ThreadData {
-    var type: ThreadDataType
-    let groupID: GroupID
-    let lastFeedID: String
-    let lastFeedStatus: ChatThread.LastFeedStatus
-    var searchStr: String? = nil
-}
-
-extension ThreadData : Hashable {
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(type)
-        hasher.combine(groupID)
-        hasher.combine(lastFeedID)
-        hasher.combine(lastFeedStatus)
-        hasher.combine(searchStr)
-    }
-}
-
-extension ThreadData : Equatable {
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        return  lhs.groupID == rhs.groupID &&
-                lhs.type == rhs.type &&
-                lhs.lastFeedID == rhs.lastFeedID &&
-                lhs.lastFeedStatus == rhs.lastFeedStatus &&
-                lhs.searchStr == rhs.searchStr
-    }
-}
-
-fileprivate enum Section: Hashable {
-    case groups
-    case groupsWithFoundMembers
-}
-
-fileprivate enum Row: Hashable, Equatable {
-    case group(ThreadData)
-
-    var group: ThreadData? {
-        switch self {
-        case .group(let threadData): return threadData
-        }
     }
 }
 
