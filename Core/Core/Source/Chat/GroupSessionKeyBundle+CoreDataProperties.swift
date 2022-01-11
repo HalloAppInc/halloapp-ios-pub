@@ -35,7 +35,7 @@ extension GroupSessionKeyBundle {
 
     public var pendingUserIds: [UserID] {
         get {
-            pendingUserIdsString.split(separator: ",") as? [UserID] ?? []
+            pendingUserIdsString.split(separator: ",").map{ UserID($0) }
         }
         set {
             pendingUserIdsString = newValue.joined(separator: ",")
