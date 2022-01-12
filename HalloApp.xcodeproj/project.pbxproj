@@ -123,6 +123,7 @@
 		6A081C5B273F976E00E9E29A /* us_ringback_tone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6A081C5A273F976E00E9E29A /* us_ringback_tone.mp3 */; };
 		6A081C5E274070E900E9E29A /* NotificationProtoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A081C5D274070E900E9E29A /* NotificationProtoService.swift */; };
 		6A1BFD30260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */; };
+		6A218966278E55C7008D7B7C /* us_ringtone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6A218964278E55C7008D7B7C /* us_ringtone.mp3 */; };
 		6A6D50D9270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6A6D50D8270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel */; };
 		6A91069D262D02170081E337 /* NotificationRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A91069C262D02170081E337 /* NotificationRequest.swift */; };
 		6A911F3C270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6A911F3B270EAF2E003DCB7A /* Feed5ToFeed6.xcmappingmodel */; };
@@ -742,6 +743,7 @@
 		6A081C5A273F976E00E9E29A /* us_ringback_tone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = us_ringback_tone.mp3; sourceTree = "<group>"; };
 		6A081C5D274070E900E9E29A /* NotificationProtoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationProtoService.swift; sourceTree = "<group>"; };
 		6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostCommentToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
+		6A218964278E55C7008D7B7C /* us_ringtone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = us_ringtone.mp3; sourceTree = "<group>"; };
 		6A38E09426F2BB6800103F30 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6A6D50D8270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed4ToFeed6.xcmappingmodel; sourceTree = "<group>"; };
 		6A91069C262D02170081E337 /* NotificationRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationRequest.swift; sourceTree = "<group>"; };
@@ -1065,7 +1067,6 @@
 				6A081C51273C154600E9E29A /* WebRTC in Frameworks */,
 				68929F9F2734AD3C00F79288 /* MarkdownKit in Frameworks */,
 				685B509B25E075FE00F782F9 /* Reachability in Frameworks */,
-				761E9AAD2465E83900864AE9 /* Zip in Frameworks */,
 				F4B91DDE278CF46B00DF70C1 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1243,6 +1244,7 @@
 		6A081C58273F975600E9E29A /* Calls */ = {
 			isa = PBXGroup;
 			children = (
+				6A218964278E55C7008D7B7C /* us_ringtone.mp3 */,
 				6A081C5A273F976E00E9E29A /* us_ringback_tone.mp3 */,
 			);
 			path = Calls;
@@ -2426,6 +2428,7 @@
 				762EDBCF244E2EB700986617 /* Gotham-BoldIta.otf in Resources */,
 				762EDBD3244E2EB700986617 /* Gotham-BookIta.otf in Resources */,
 				EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */,
+				6A218966278E55C7008D7B7C /* us_ringtone.mp3 in Resources */,
 				68AAE4EF273498A600C10B05 /* MainAppAssets.xcassets in Resources */,
 				762EDBD8244E2EB700986617 /* Gotham-Bold.otf in Resources */,
 				762EDBCC244E2EB700986617 /* Gotham-UltraIta.otf in Resources */,
@@ -4686,11 +4689,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6A081C4F273C154600E9E29A /* XCRemoteSwiftPackageReference "WebRTC" */;
 			productName = WebRTC;
-		};
-		761E9AAC2465E83900864AE9 /* Zip */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */;
-			productName = Zip;
 		};
 		F4B91DDD278CF46B00DF70C1 /* Sentry */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -441,7 +441,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         DDLogInfo("CallManager/setupCallRingtone")
         do {
             // Loop ringtone
-            callRingtonePlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "us_ringback_tone", ofType: "mp3")!))
+            callRingtonePlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "us_ringtone", ofType: "mp3")!))
             callRingtonePlayer?.prepareToPlay()
             callRingtonePlayer?.numberOfLoops = -1
         } catch {
