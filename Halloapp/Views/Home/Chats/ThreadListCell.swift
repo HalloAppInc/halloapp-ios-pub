@@ -151,22 +151,30 @@ class ThreadListCell: UITableViewCell {
             messageText = Localizations.deletedPostGeneric
         }
 
-        switch chatThread.lastFeedMediaType {
-        case .image:
-            if messageText.isEmpty {
+        var mediaIcon: UIImage?
+        if messageText.isEmpty {
+            switch chatThread.lastFeedMediaType {
+            case .image:
+                mediaIcon = UIImage(systemName: "photo")
                 messageText = Localizations.chatMessagePhoto
-            }
-
-        case .video:
-            if messageText.isEmpty {
+            case .video:
+                mediaIcon = UIImage(systemName: "video.fill")
                 messageText = Localizations.chatMessageVideo
+            case .audio:
+                mediaIcon = UIImage(systemName: "mic.fill")
+                messageText = Localizations.chatMessageAudio
+            default:
+                break
             }
-
-        default:
-            break
+            mediaIcon = mediaIcon?.withTintColor(.systemGray, renderingMode: .alwaysOriginal)
         }
 
         let result = NSMutableAttributedString(string: contactNamePart)
+
+        if let mediaIcon = mediaIcon {
+            result.append(NSAttributedString(attachment: NSTextAttachment(image: mediaIcon)))
+            result.append(NSAttributedString(string: " "))
+        }
 
         result.append(NSAttributedString(string: messageText))
 
