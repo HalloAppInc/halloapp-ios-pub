@@ -334,11 +334,17 @@
 /* Title for audio post composer */
 "composer.audio.title" = "Neuer Audiobeitrag";
 
+/* Title warning that a voice recording will be deleted */
+"composer.delete.recording.title" = "Sprachaufnahme löschen?";
+
 /* Show the user that the title is tappable */
 "composer.deletevoicenote.message" = "Die Sprachnotiz wird nicht gespeichert, wenn du diesen Beitrag verwirfst.";
 
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Beitrag verwerfen?";
+
+/* Label shown when only single media item selected */
+"composer.label.more" = "Mehr hinzufügen";
 
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "Bitte wähle ein anderes Video aus oder tippe auf bearbeiten.";
