@@ -51,6 +51,8 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     public var reachabilityState: ReachablilityState = .reachable
     public var reachabilityConnectionType: String = "unknown"
 
+    private var isLogUploadInProgress: Bool = false
+
     public var isAppVersionKnownExpired = CurrentValueSubject<Bool, Never>(false)
     public var isAppVersionCloseToExpiry = CurrentValueSubject<Bool, Never>(false)
 
@@ -318,6 +320,10 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
 
     public func uploadLogsToServer() {
+        guard !isLogUploadInProgress else {
+            return
+        }
+        isLogUploadInProgress = true
         UserDefaults.shared.set(true, forKey: userDefaultsKeyForRequestLogs)
         AppContext.shared.uploadLogsToServer() { result in
             DDLogInfo("ProtoServiceCore/uploadLogsToServer/result: \(result)")
@@ -327,6 +333,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             default:
                 break
             }
+            self.isLogUploadInProgress = false
         }
     }
 
