@@ -60,13 +60,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return MainAppContext.mediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
         }
 
-        /* enable videoes to play with sound even when the phone is set to ringer mode */
-        do {
-           try AVAudioSession.sharedInstance().setCategory(.playback)
-        } catch(let error) {
-            DDLogError("FeedData/  Failed to set AVAudioSession category to \"Playback\" error=[\(error.localizedDescription)]")
-        }
-
         // when app resumes, xmpp reconnects, feed should try uploading any pending again
         cancellableSet.insert(
             self.service.didConnect.sink {

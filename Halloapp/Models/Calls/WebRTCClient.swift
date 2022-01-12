@@ -68,7 +68,7 @@ final class WebRTCClient: NSObject {
 
     weak var delegate: WebRTCClientDelegate?
     private let peerConnection: RTCPeerConnection
-    private let rtcAudioSession =  RTCAudioSession.sharedInstance()
+    private var audioSession: AudioSession?
     private let audioQueue = DispatchQueue(label: "audio")
     private let mediaConstraints = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue]
     private var localDataChannel: RTCDataChannel?
@@ -98,8 +98,8 @@ final class WebRTCClient: NSObject {
         // set AudioSession to useManualAudio.
         // We should activate/deactivate the audioSession based on the callback from ios.
         // This is done in CallManager - ProviderDelegate callbacks.
+        let rtcAudioSession = RTCAudioSession.sharedInstance()
         rtcAudioSession.useManualAudio = true
-        rtcAudioSession.isAudioEnabled = false
         rtcAudioSession.add(self)
 
         createMediaSenders()
@@ -151,21 +151,14 @@ final class WebRTCClient: NSObject {
 
     func end() {
         self.peerConnection.close()
-        self.rtcAudioSession.remove(self)
+        audioSession = nil
+        RTCAudioSession.sharedInstance().remove(self)
     }
 
     // MARK: Media
     private func configureAudioSession() {
-        self.rtcAudioSession.lockForConfiguration()
-        do {
-            try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue, with: AVAudioSession.CategoryOptions.allowBluetooth)
-            try self.rtcAudioSession.setMode(AVAudioSession.Mode.voiceChat.rawValue)
-            try self.rtcAudioSession.overrideOutputAudioPort(.none)
-            try self.rtcAudioSession.setActive(true)
-        } catch let error {
-            DDLogError("WebRTCClient/Error changeing AVAudioSession category: \(error)")
-        }
-        self.rtcAudioSession.unlockForConfiguration()
+        audioSession = AudioSession(category: .call)
+        AudioSessionManager.beginSession(audioSession)
     }
 
     private func createMediaSenders() {
@@ -285,38 +278,14 @@ extension WebRTCClient {
     // Fallback to the default playing device: headphones/bluetooth/ear speaker
     func speakerOff() {
         self.audioQueue.async { [weak self] in
-            guard let self = self else {
-                return
-            }
-
-            self.rtcAudioSession.lockForConfiguration()
-            do {
-                try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue, with: AVAudioSession.CategoryOptions.allowBluetooth)
-                try self.rtcAudioSession.overrideOutputAudioPort(.none)
-                try self.rtcAudioSession.setActive(true)
-            } catch let error {
-                DDLogError("WebRTCClient/Error setting AVAudioSession category: \(error)")
-            }
-            self.rtcAudioSession.unlockForConfiguration()
+            self?.audioSession?.portOverride = .none
         }
     }
 
     // Force speaker
     func speakerOn() {
         self.audioQueue.async { [weak self] in
-            guard let self = self else {
-                return
-            }
-
-            self.rtcAudioSession.lockForConfiguration()
-            do {
-                try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue, with: AVAudioSession.CategoryOptions.allowBluetooth)
-                try self.rtcAudioSession.overrideOutputAudioPort(.speaker)
-                try self.rtcAudioSession.setActive(true)
-            } catch let error {
-                DDLogError("WebRTCClient/Couldn't force audio to speaker: \(error)")
-            }
-            self.rtcAudioSession.unlockForConfiguration()
+            self?.audioSession?.portOverride = .speaker
         }
     }
 

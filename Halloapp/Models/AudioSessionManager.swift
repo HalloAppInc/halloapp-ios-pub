@@ -25,10 +25,21 @@ class AudioSession {
         }
     }
 
+    enum PortOverride: Int {
+        case none, speaker
+    }
+
     let category: Category
 
-    init(category: Category) {
+    var portOverride: PortOverride {
+        didSet {
+            AudioSessionManager.updateSharedAudioSession()
+        }
+    }
+
+    init(category: Category, portOverride: PortOverride = .none) {
         self.category = category
+        self.portOverride = portOverride
     }
 
     deinit {
@@ -42,22 +53,24 @@ class AudioSessionManager {
         weak var audioSession: AudioSession?
     }
 
-    private static var activeAudioSessionHolders: [AudioSessionHolder] = []
+    private static var activeAudioSessionHolders: [AudioSessionHolder] = [] {
+        didSet {
+            activeAudioSessionHolders.removeAll { $0.audioSession == nil }
+        }
+    }
+
+    // Whether we have activated the audio session
+    private static var isActive = false
+
+    // Whether an external source has activated the audio session
+    // Used for CallKit handoff
+    private static var isExternallyActive = false
+
+    private static var portOverride: AVAudioSession.PortOverride = .none
+
     private static var proximitySubscriber: AnyCancellable?
     private static var routeChangeSubscriber: AnyCancellable?
     private static var interruptionSubscriber: AnyCancellable?
-    private static var isActive = false {
-        didSet {
-            guard oldValue != isActive else {
-                return
-            }
-            do {
-                try AVAudioSession.sharedInstance().setActive(isActive, options: .notifyOthersOnDeactivation)
-            } catch {
-                DDLogError("AudioSessionManager/updateSharedAudioSession/setActive: \(error)")
-            }
-        }
-    }
 
     static func isSessionActive(_ audioSession: AudioSession?) -> Bool {
         return audioSession != nil && activeAudioSessionHolders.contains { $0.audioSession === audioSession }
@@ -81,7 +94,7 @@ class AudioSessionManager {
         updateSharedAudioSession()
     }
 
-    private static func updateSharedAudioSession() {
+    fileprivate static func updateSharedAudioSession() {
         guard Thread.isMainThread else {
             DispatchQueue.main.async {
                 updateSharedAudioSession()
@@ -96,13 +109,24 @@ class AudioSessionManager {
         }
 
         // Determine options per active category
-        var category: AVAudioSession.Category = .ambient
+        var category: AVAudioSession.Category = .playback
         var options: AVAudioSession.CategoryOptions = []
         var mode: AVAudioSession.Mode = .default
+        var portOverride: AVAudioSession.PortOverride = .none
         var disableIdleTimer = false
         var monitorProximity = false
-        if let activeCategory = activeAudioSessions.map(\.category).max() {
-            switch activeCategory {
+
+        var activeAudioSession: AudioSession? = nil
+        // Find the last (most recently began) audio session with the hightest priority category
+        for audioSession in activeAudioSessions {
+            if let category = activeAudioSession?.category, audioSession.category < category {
+                continue
+            }
+            activeAudioSession = audioSession
+        }
+
+        if let activeAudioSession = activeAudioSession {
+            switch activeAudioSession.category {
             case .call:
                 category = .playAndRecord
                 options = .allowBluetooth
@@ -122,12 +146,33 @@ class AudioSessionManager {
                 category = .playAndRecord
                 disableIdleTimer = true
             }
+
+            switch activeAudioSession.portOverride {
+            case .speaker:
+                portOverride = .speaker
+            default:
+                portOverride = .none
+            }
         }
 
-        do {
-            try AVAudioSession.sharedInstance().setCategory(category, mode: mode, options: options)
-        } catch {
-            DDLogError("AudioSessionManager/updateSharedAudioSession/setCategory: \(error)")
+        let sharedAudioSession = AVAudioSession.sharedInstance()
+        if sharedAudioSession.category != category || sharedAudioSession.mode != mode || sharedAudioSession.categoryOptions != options {
+            do {
+                try AVAudioSession.sharedInstance().setCategory(category, mode: mode, options: options)
+                DDLogInfo("AudioSessionManager/updateSharedAudioSession: \(category) \(mode) \(options)")
+            } catch {
+                DDLogError("AudioSessionManager/updateSharedAudioSession/failedSetCategory: \(error)")
+            }
+        }
+
+        if self.portOverride != portOverride {
+            do {
+                try AVAudioSession.sharedInstance().overrideOutputAudioPort(portOverride)
+                self.portOverride = portOverride
+                DDLogInfo("AudioSessionManager/portOverride: \(portOverride)")
+            } catch {
+                DDLogError("AudioSessionManager/failedSetOverrideAudioPort: \(error)")
+            }
         }
 
         // Idle timer
@@ -162,7 +207,15 @@ class AudioSessionManager {
             interruptionSubscriber = nil
         }
 
-        isActive = hasActiveAudioSession
+        if !isExternallyActive, hasActiveAudioSession != isActive {
+            do {
+                try AVAudioSession.sharedInstance().setActive(hasActiveAudioSession, options: .notifyOthersOnDeactivation)
+                isActive = hasActiveAudioSession
+                DDLogInfo("AudioSessionManager/setActive: \(hasActiveAudioSession)")
+            } catch {
+                DDLogError("AudioSessionManager/failedSetActive: \(hasActiveAudioSession) \(error)")
+            }
+        }
     }
 
     private static func handleRouteChange(_ notification: Notification) {
@@ -170,6 +223,8 @@ class AudioSessionManager {
               let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
                   return
               }
+
+        DDLogInfo("AudioSessionManager/handleRouteChange/reason: \(reason.rawValue)")
 
         switch reason {
         case .oldDeviceUnavailable:
@@ -188,11 +243,29 @@ class AudioSessionManager {
                   return
               }
 
+        DDLogInfo("AudioSessionManager/handleInterruption/type: \(type.rawValue)")
+
         switch type {
         case .began:
             MainAppContext.shared.mediaDidStartPlaying.send(nil)
         default:
             break
         }
+    }
+
+    static func unmanagedAudioSessionDidActivate() {
+        if isExternallyActive {
+            DDLogError("AudioSessionManager/unbalancedUnmanagedActivation")
+        }
+        isExternallyActive = true
+        updateSharedAudioSession()
+    }
+
+    static func unmanagedAudioSessionDidDeactivate() {
+        if !isExternallyActive {
+            DDLogError("AudioSessionManager/unbalancedUnmanagedDeactivation")
+        }
+        isExternallyActive = false
+        updateSharedAudioSession()
     }
 }

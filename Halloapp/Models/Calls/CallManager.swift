@@ -64,7 +64,6 @@ final class CallManager: NSObject, CXProviderDelegate {
         }
     }
     public var callViewDelegate: CallViewDelegate?
-    public var rtcAudioSession: RTCAudioSession = RTCAudioSession.sharedInstance()
     private var cancelTimer: DispatchSourceTimer?
     private var callTimer: Timer?
     public var callDurationMs: Double {
@@ -389,6 +388,8 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
         DDLogInfo("CallManager/didActivate/\(audioSession.description)")
+        AudioSessionManager.unmanagedAudioSessionDidActivate()
+        let rtcAudioSession = RTCAudioSession.sharedInstance()
         rtcAudioSession.audioSessionDidActivate(audioSession)
         rtcAudioSession.isAudioEnabled = true
         if isOutgoing ?? false {
@@ -398,6 +399,8 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
         DDLogInfo("CallManager/didDeactivate/\(audioSession.description)")
+        AudioSessionManager.unmanagedAudioSessionDidDeactivate()
+        let rtcAudioSession = RTCAudioSession.sharedInstance()
         rtcAudioSession.audioSessionDidDeactivate(audioSession)
         rtcAudioSession.isAudioEnabled = false
     }

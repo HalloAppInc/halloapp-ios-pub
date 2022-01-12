@@ -109,12 +109,6 @@ class AudioRecorder {
             stop(cancel: true)
         }
 
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playAndRecord)
-        } catch {
-            return DDLogError("AudioRecorder/start: audio session [\(error)]")
-        }
-
         let url = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent(UUID().uuidString, isDirectory: false)
             .appendingPathExtension("aac")
