@@ -50,6 +50,10 @@ class Call {
     var isAnswered: Bool = false
     var isConnected: Bool = false
     var isCallEndedLocally: Bool = false
+    var iceIdx: Int32 = 0
+    private var rtcIceState: RTCIceConnectionState = .new
+    private var iceRestartTimer: DispatchSourceTimer?
+    private var callFailTImer: DispatchSourceTimer?
     private var webRTCClient: WebRTCClient
     let service: HalloService = MainAppContext.shared.callManager.service
     private(set) var state: CallState = .inactive {
@@ -87,22 +91,30 @@ class Call {
     }
 
     var isReadyToProcessRemoteIceCandidates: Bool {
-        // state will be changed to 'active' after we received an 'answerCall' packet successfully.
-        // state will be changed to 'ringing' after we received an 'startCall' packet successfully.
         if isOutgoing {
-            return state == .active
+            // state will be changed to 'connected' after we received an 'answerCall' packet successfully.
+            // state will be changed to 'connected' after we received an 'iceAnswer' packet successfully.
+            // process iceCandidates even after state is active.
+            return state == .connected || state == .active
         } else {
-            return state == .ringing
+            // state will be changed to 'ringing' after we received an 'startCall' packet successfully.
+            // state will be changed to 'iceRestartConnecting' after we received an 'iceOffer' packet successfully.
+            // process iceCandidates even after state is active.
+            return state == .ringing || state == .iceRestartConnecting || state == .active
         }
     }
 
     var isReadyToSendLocalIceCandidates: Bool {
-        // state will be changed to 'connecting' after we send a 'startCall' packet successfully.
-        // state will be changed to 'active' after we send an 'answerCall' packet successfully.
         if isOutgoing {
-            return state == .connecting
+            // state will be changed to 'connecting' after we send a 'startCall' packet successfully.
+            // state will be changed to 'iceRestartConnecting' after we send an 'iceOffer' packet successfully.
+            // send iceCandidates even after state is connected or active.
+            return state == .connecting || state == .iceRestartConnecting || state == .connected || state == .active
         } else {
-            return state == .active
+            // state will be changed to 'connected' after we send an 'answerCall' packet successfully.
+            // state will be changed to 'connected' after we send an 'iceAnswer' packet successfully.
+            // send iceCandidates even after state is active.
+            return state == .connected || state == .active
         }
     }
 
@@ -115,6 +127,39 @@ class Call {
         self.webRTCClient = WebRTCClient(iceServers: iceServers)
         webRTCClient.delegate = self
         MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID, type: .audio, direction: direction)
+    }
+
+    private func checkAndStartIceRestartTimer(deadline: DispatchTime) {
+        DDLogInfo("Call/startIceRestartTimer/begin")
+        let timer = DispatchSource.makeTimerSource()
+        timer.setEventHandler(handler: { [weak self] in
+            guard let self = self else { return }
+            DDLogInfo("Call/startIceRestartTimer/restartIce now")
+            if self.rtcIceState != .connected {
+                self.state = .iceRestart
+                if self.isOutgoing {
+                    self.iceRestartOffer() { _ in }
+                }
+            }
+        })
+        timer.schedule(deadline: deadline)
+        timer.resume()
+        iceRestartTimer = timer
+    }
+
+    private func checkAndStartCallFailedTimer(deadline: DispatchTime) {
+        DDLogInfo("Call/checkAndStartCallFailedTimer/begin")
+        let timer = DispatchSource.makeTimerSource()
+        timer.setEventHandler(handler: { [weak self] in
+            guard let self = self else { return }
+            DDLogInfo("Call/checkAndStartCallFailedTimer/failed call now")
+            if self.rtcIceState == .closed {
+                self.state = .disconnected
+            }
+        })
+        timer.schedule(deadline: deadline)
+        timer.resume()
+        callFailTImer = timer
     }
 
     // MARK: Local User Actions
@@ -153,6 +198,45 @@ class Call {
         }
     }
 
+    func iceRestartOffer(completion: @escaping ((_ success: Bool) -> Void)) {
+        DDLogInfo("Call/\(callID)/iceRestartOffer/begin")
+        callQueue.async { [self] in
+            iceIdx += 1
+            webRTCClient.restartIce()
+            webRTCClient.offer { sdpInfo in
+                guard let payload = sdpInfo.sdp.data(using: .utf8) else {
+                    state = .iceRestart
+                    DDLogError("Call/\(callID)/iceRestartOffer/failed")
+                    DispatchQueue.main.async {
+                        completion(false)
+                    }
+                    return
+                }
+                service.iceRestartOfferCall(id: callID, to: peerUserID, payload: payload, iceIdx: iceIdx) { result in
+                    switch result {
+                    case .success:
+                        if rtcIceState == .connected {
+                            state = .active
+                        } else {
+                            state = .iceRestartConnecting
+                        }
+                        DDLogInfo("Call/\(callID)/iceRestartOffer/success")
+                        processPendingLocalIceCandidates()
+                        DispatchQueue.main.async {
+                            completion(true)
+                        }
+                    case .failure(let error):
+                        state = .iceRestart
+                        DDLogError("Call/\(callID)/iceRestartOffer/failed: \(error.localizedDescription)")
+                        DispatchQueue.main.async {
+                            completion(false)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     func answer(completion: @escaping ((_ success: Bool) -> Void)) {
         DDLogInfo("Call/\(callID)/answer/begin")
         callQueue.async { [self] in
@@ -177,6 +261,44 @@ class Call {
                     case .failure(let error):
                         state = .inactive
                         DDLogError("Call/\(callID)/answer/failed: \(error.localizedDescription)")
+                        DispatchQueue.main.async {
+                            completion(false)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    func iceRestartAnswer(completion: @escaping ((_ success: Bool) -> Void)) {
+        DDLogInfo("Call/\(callID)/iceRestartAnswer/begin")
+        callQueue.async { [self] in
+            iceIdx += 1
+            webRTCClient.answer { sdpInfo in
+                guard let payload = sdpInfo.sdp.data(using: .utf8) else {
+                    state = .iceRestart
+                    DDLogError("Call/\(callID)/iceRestartAnswer/failed")
+                    DispatchQueue.main.async {
+                        completion(false)
+                    }
+                    return
+                }
+                service.iceRestartAnswerCall(id: callID, to: peerUserID, payload: payload, iceIdx: iceIdx) { result in
+                    switch result {
+                    case .success:
+                        if rtcIceState == .connected {
+                            state = .active
+                        } else {
+                            state = .connected
+                        }
+                        DDLogInfo("Call/\(callID)/iceRestartAnswer/success")
+                        processPendingLocalIceCandidates()
+                        DispatchQueue.main.async {
+                            completion(true)
+                        }
+                    case .failure(let error):
+                        state = .iceRestart
+                        DDLogError("Call/\(callID)/iceRestartAnswer/failed: \(error.localizedDescription)")
                         DispatchQueue.main.async {
                             completion(false)
                         }
@@ -300,6 +422,26 @@ class Call {
         }
     }
 
+    func didReceiveIceOffer(sdpInfo: String) {
+        DDLogInfo("Call/\(callID)/didReceiveIceOffer/begin")
+        callQueue.async { [self] in
+            webRTCClient.set(remoteSdp: RTCSessionDescription(type: .offer, sdp: sdpInfo)) { error in
+                if let error = error {
+                    DDLogError("Call/\(callID)didReceiveIceOffer/error: \(error.localizedDescription)")
+                } else {
+                    DDLogInfo("Call/\(callID)/didReceiveIceOffer/success")
+                    if rtcIceState == .connected {
+                        state = .active
+                    } else {
+                        state = .iceRestartConnecting
+                    }
+                    processPendingRemoteIceCandidateInfo()
+                    iceRestartAnswer() { _ in }
+                }
+            }
+        }
+    }
+
     func didReceiveAnswer(sdpInfo: String) {
         DDLogInfo("Call/\(callID)/didReceiveAnswer/begin")
         callQueue.async { [self] in
@@ -309,6 +451,25 @@ class Call {
                 } else {
                     DDLogInfo("Call/\(callID)/didReceiveAnswer/success")
                     state = .connected
+                    processPendingRemoteIceCandidateInfo()
+                }
+            }
+        }
+    }
+
+    func didReceiveIceAnswer(sdpInfo: String) {
+        DDLogInfo("Call/\(callID)/didReceiveIceAnswer/begin")
+        callQueue.async { [self] in
+            webRTCClient.set(remoteSdp: RTCSessionDescription(type: .answer, sdp: sdpInfo)) { error in
+                if let error = error {
+                    DDLogError("Call/\(callID)didReceiveIceAnswer/error: \(error.localizedDescription)")
+                } else {
+                    DDLogInfo("Call/\(callID)/didReceiveIceAnswer/success")
+                    if rtcIceState == .connected {
+                        state = .active
+                    } else {
+                        state = .connected
+                    }
                     processPendingRemoteIceCandidateInfo()
                 }
             }
@@ -349,7 +510,9 @@ class Call {
     func didReceiveCallRinging() {
         DDLogInfo("Call/\(callID)/didReceiveCallRinging/begin")
         callQueue.async { [self] in
-            state = .ringing
+            if state == .connecting {
+                state = .ringing
+            }
             DDLogInfo("Call/\(callID)/didReceiveCallRinging/success")
         }
     }
@@ -421,16 +584,19 @@ extension Call: WebRTCClientDelegate {
     }
 
     func webRTCClient(_ client: WebRTCClient, didChangeConnectionState iceState: RTCIceConnectionState) {
-        DDLogInfo("Call/\(callID)/WebRTCClientDelegate/didChangeConnectionState/begin")
+        DDLogInfo("Call/\(callID)/WebRTCClientDelegate/didChangeConnectionState/begin - \(iceState.description)")
         callQueue.async { [self] in
+            rtcIceState = iceState
             switch iceState {
-            case .closed, .failed:
-                self.state = .disconnected
+            case .disconnected:
+                checkAndStartIceRestartTimer(deadline: .now() + DispatchTimeInterval.seconds(3))
+            case .failed:
+                checkAndStartIceRestartTimer(deadline: .now())
+            case .closed:
+                checkAndStartCallFailedTimer(deadline: .now() + DispatchTimeInterval.seconds(10))
             case .connected:
                 isConnected = true
-                if self.state == .connected {
-                    self.state = .active
-                }
+                state = .active
             default:
                 break
             }

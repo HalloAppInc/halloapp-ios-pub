@@ -21,6 +21,7 @@ class CallViewController: UIViewController {
     // MARK: View Controller
 
     var callStatus = "calling"
+    var useCallStatus: Bool = false
     let micOffImage = UIImage(systemName: "mic.slash.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline))
     let micOnImage = UIImage(systemName: "mic.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline))
     let speakerOffImage = UIImage(systemName: "speaker.slash.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline))
@@ -99,6 +100,11 @@ class CallViewController: UIViewController {
     private var isCallActive: Bool {
         get {
             return callManager.activeCall?.isActive ?? false
+        }
+    }
+    private var callDurationSec: Int {
+        get {
+            return Int(callManager.callDurationMs / 1000)
         }
     }
 
@@ -185,17 +191,16 @@ class CallViewController: UIViewController {
     }
 
     private func getCallStatusText() -> String {
-        if isOutgoing {
+        if isOutgoing || useCallStatus {
             return callStatus + " " + peerPhoneNumber + "..."
         } else {
             return peerPhoneNumber + "..."
         }
     }
 
-    private func updateCallStatusLabel() {
-        DDLogInfo("CallViewController/updateCallStatusLabel")
+    private func updateCallStatusLabel(seconds: Int) {
         if isCallActive {
-            callStatusLabel.text = durationString(seconds: 0)
+            callStatusLabel.text = durationString(seconds: seconds)
         } else {
             callStatusLabel.text = getCallStatusText()
         }
@@ -282,29 +287,39 @@ extension CallViewController: CallViewDelegate {
     func callRinging() {
         callStatus = "ringing"
         DispatchQueue.main.async {
-            self.updateCallStatusLabel()
+            self.updateCallStatusLabel(seconds: self.callDurationSec)
         }
     }
 
     func callConnected() {
         callStatus = "connecting"
+        useCallStatus = true
         DispatchQueue.main.async {
-            self.updateCallStatusLabel()
+            self.updateCallStatusLabel(seconds: self.callDurationSec)
         }
     }
 
     func callActive() {
+        useCallStatus = false
         DispatchQueue.main.async {
-            self.updateCallStatusLabel()
+            self.updateCallStatusLabel(seconds: self.callDurationSec)
         }
     }
 
     func callDurationChanged(seconds: Int) {
         DispatchQueue.main.async {
-            self.callStatusLabel.text = self.durationString(seconds: seconds)
+            self.updateCallStatusLabel(seconds: seconds)
         }
     }
 
     func callEnded() {
+    }
+
+    func callReconnecting() {
+        callStatus = "reconnecting"
+        useCallStatus = true
+        DispatchQueue.main.async {
+            self.updateCallStatusLabel(seconds: self.callDurationSec)
+        }
     }
 }

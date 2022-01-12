@@ -962,6 +962,28 @@ final class ProtoService: ProtoServiceCore {
                 callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveIceCandidate: iceCandidate)
             }
 
+        case .iceRestartOffer(let iceOffer):
+            if !readyToHandleCallMessages {
+                DDLogInfo("proto/didReceive/\(msg.id)/iceRestartOffer/\(iceOffer.callID)/addedToPending")
+                var pendingMsgs = pendingCallMessages[iceOffer.callID] ?? []
+                pendingMsgs.append(msg)
+                pendingCallMessages[iceOffer.callID] = pendingMsgs
+            } else {
+                DDLogInfo("proto/didReceive/\(msg.id)/iceRestartOffer/\(iceOffer.callID)")
+                callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveIceOffer: iceOffer)
+            }
+
+        case .iceRestartAnswer(let iceAnswer):
+            if !readyToHandleCallMessages {
+                DDLogInfo("proto/didReceive/\(msg.id)/iceRestartAnswer/\(iceAnswer.callID)/addedToPending")
+                var pendingMsgs = pendingCallMessages[iceAnswer.callID] ?? []
+                pendingMsgs.append(msg)
+                pendingCallMessages[iceAnswer.callID] = pendingMsgs
+            } else {
+                DDLogInfo("proto/didReceive/\(msg.id)/iceRestartAnswer/\(iceAnswer.callID)")
+                callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveIceAnswer: iceAnswer)
+            }
+
         case .inviteeNotice:
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .historyResend:
@@ -969,10 +991,6 @@ final class ProtoService: ProtoServiceCore {
         case .homeFeedRerequest(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .marketingAlert(_):
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .iceRestartOffer(_):
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .iceRestartAnswer(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
@@ -992,6 +1010,10 @@ final class ProtoService: ProtoServiceCore {
                     callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveCallRinging: callRinging)
                 case .iceCandidate(let iceCandidate):
                     callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveIceCandidate: iceCandidate)
+                case .iceRestartOffer(let iceOffer):
+                    callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveIceOffer: iceOffer)
+                case .iceRestartAnswer(let iceAnswer):
+                    callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveIceAnswer: iceAnswer)
                 default:
                     DDLogError("proto/didReceive/unexpected call message: \(String(describing: pendingMsg.payload))")
                     break
@@ -1665,6 +1687,55 @@ extension ProtoService: HalloService {
         }
     }
 
+    func iceRestartOfferCall(id callID: CallID, to peerUserID: UserID, payload: Data, iceIdx: Int32, completion: @escaping (Result<Void, RequestError>) -> Void) {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            AppContext.shared.messageCrypter.encrypt(payload, for: peerUserID) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .failure(let error):
+                    DDLogError("ProtoService/iceRestartOfferCall/\(callID)/failed encryption: \(peerUserID)/error: \(error)")
+                    completion(.failure(.aborted))
+                case .success((let encryptedData, _)):
+                    guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+                        DDLogError("ProtoService/iceRestartOfferCall/\(callID)/error invalid sender uid")
+                        completion(.failure(.aborted))
+                        return
+                    }
+                    guard let toUID = Int64(peerUserID) else {
+                        DDLogError("ProtoService/iceRestartOfferCall/\(callID)/error invalid to uid")
+                        completion(.failure(.aborted))
+                        return
+                    }
+
+                    let msgID = PacketID.generate()
+                    var webrtcOffer = Server_WebRtcSessionDescription()
+                    webrtcOffer.encPayload = encryptedData.data
+                    webrtcOffer.publicKey = encryptedData.identityKey ?? Data()
+                    webrtcOffer.oneTimePreKeyID = Int32(encryptedData.oneTimeKeyId)
+
+                    var iceRestartOffer = Server_IceRestartOffer()
+                    iceRestartOffer.callID = callID
+                    iceRestartOffer.webrtcOffer = webrtcOffer
+                    iceRestartOffer.idx = iceIdx
+
+                    var packet = Server_Packet()
+                    packet.msg.fromUid = fromUID
+                    packet.msg.id = msgID
+                    packet.msg.toUid = toUID
+                    packet.msg.payload = .iceRestartOffer(iceRestartOffer)
+
+                    guard let packetData = try? packet.serializedData() else {
+                        DDLogError("ProtoService/iceRestartOfferCall/\(callID)/error could not serialize packet")
+                        return
+                    }
+                    DDLogInfo("ProtoService/iceRestartOfferCall/\(callID) sending")
+                    self.send(packetData)
+                    completion(.success(()))
+                }
+            }
+        }
+    }
+
     func answerCall(id callID: CallID, to peerUserID: UserID, payload: Data, completion: @escaping (Result<Void, RequestError>) -> Void) {
         AppContext.shared.messageCrypter.encrypt(payload, for: peerUserID) { [weak self] result in
             guard let self = self else { return }
@@ -1706,6 +1777,55 @@ extension ProtoService: HalloService {
                 DDLogInfo("ProtoService/answerCall/\(callID) sending")
                 self.send(packetData)
                 completion(.success(()))
+            }
+        }
+    }
+
+    func iceRestartAnswerCall(id callID: CallID, to peerUserID: UserID, payload: Data, iceIdx: Int32, completion: @escaping (Result<Void, RequestError>) -> Void) {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            AppContext.shared.messageCrypter.encrypt(payload, for: peerUserID) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .failure(let error):
+                    DDLogError("ProtoService/iceRestartAnswerCall/\(callID)/failed encryption: \(peerUserID)/error: \(error)")
+                    completion(.failure(.aborted))
+                case .success((let encryptedData, _)):
+                    guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+                        DDLogError("ProtoService/iceRestartAnswerCall/\(callID)/error invalid sender uid")
+                        completion(.failure(.aborted))
+                        return
+                    }
+                    guard let toUID = Int64(peerUserID) else {
+                        DDLogError("ProtoService/iceRestartAnswerCall/\(callID)/error invalid to uid")
+                        completion(.failure(.aborted))
+                        return
+                    }
+
+                    let msgID = PacketID.generate()
+                    var webrtcAnswer = Server_WebRtcSessionDescription()
+                    webrtcAnswer.encPayload = encryptedData.data
+                    webrtcAnswer.publicKey = encryptedData.identityKey ?? Data()
+                    webrtcAnswer.oneTimePreKeyID = Int32(encryptedData.oneTimeKeyId)
+
+                    var iceRestartAnswer = Server_IceRestartAnswer()
+                    iceRestartAnswer.callID = callID
+                    iceRestartAnswer.webrtcAnswer = webrtcAnswer
+                    iceRestartAnswer.idx = iceIdx
+
+                    var packet = Server_Packet()
+                    packet.msg.fromUid = fromUID
+                    packet.msg.id = msgID
+                    packet.msg.toUid = toUID
+                    packet.msg.payload = .iceRestartAnswer(iceRestartAnswer)
+
+                    guard let packetData = try? packet.serializedData() else {
+                        DDLogError("ProtoService/iceRestartAnswerCall/\(callID)/error could not serialize packet")
+                        return
+                    }
+                    DDLogInfo("ProtoService/iceRestartAnswerCall/\(callID) sending")
+                    self.send(packetData)
+                    completion(.success(()))
+                }
             }
         }
     }
@@ -1772,36 +1892,38 @@ extension ProtoService: HalloService {
     }
 
     func sendIceCandidate(id callID: CallID, to peerUserID: UserID, iceCandidateInfo: IceCandidateInfo) {
-        guard let fromUID = Int64(AppContext.shared.userData.userId) else {
-            DDLogError("ProtoService/sendIceCandidate/\(callID)/error invalid sender uid")
-            return
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+                DDLogError("ProtoService/sendIceCandidate/\(callID)/error invalid sender uid")
+                return
+            }
+            guard let toUID = Int64(peerUserID) else {
+                DDLogError("ProtoService/sendIceCandidate/\(callID)/error invalid to uid")
+                return
+            }
+
+            let msgID = PacketID.generate()
+
+            var iceCandidate = Server_IceCandidate()
+            iceCandidate.callID = callID
+            iceCandidate.sdpMediaID = iceCandidateInfo.sdpMid
+            iceCandidate.sdpMediaLineIndex = iceCandidateInfo.sdpMLineIndex
+            iceCandidate.sdp = iceCandidateInfo.sdpInfo
+
+            var packet = Server_Packet()
+            packet.msg.fromUid = fromUID
+            packet.msg.id = msgID
+            packet.msg.toUid = toUID
+            packet.msg.payload = .iceCandidate(iceCandidate)
+
+            guard let packetData = try? packet.serializedData() else {
+                DDLogError("ProtoService/sendIceCandidate/\(callID)/error could not serialize packet")
+                return
+            }
+
+            DDLogInfo("ProtoService/sendIceCandidate/\(callID) sending")
+            self.send(packetData)
         }
-        guard let toUID = Int64(peerUserID) else {
-            DDLogError("ProtoService/sendIceCandidate/\(callID)/error invalid to uid")
-            return
-        }
-
-        let msgID = PacketID.generate()
-
-        var iceCandidate = Server_IceCandidate()
-        iceCandidate.callID = callID
-        iceCandidate.sdpMediaID = iceCandidateInfo.sdpMid
-        iceCandidate.sdpMediaLineIndex = iceCandidateInfo.sdpMLineIndex
-        iceCandidate.sdp = iceCandidateInfo.sdpInfo
-
-        var packet = Server_Packet()
-        packet.msg.fromUid = fromUID
-        packet.msg.id = msgID
-        packet.msg.toUid = toUID
-        packet.msg.payload = .iceCandidate(iceCandidate)
-
-        guard let packetData = try? packet.serializedData() else {
-            DDLogError("ProtoService/sendIceCandidate/\(callID)/error could not serialize packet")
-            return
-        }
-
-        DDLogInfo("ProtoService/sendIceCandidate/\(callID) sending")
-        send(packetData)
     }
 }
 

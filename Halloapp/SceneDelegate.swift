@@ -383,6 +383,10 @@ extension SceneDelegate: CallViewDelegate {
     func callEnded() {
         callViewController?.callEnded()
     }
+
+    func callReconnecting() {
+        callViewController?.callReconnecting()
+    }
 }
 
 // App expiration

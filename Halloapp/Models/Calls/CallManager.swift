@@ -22,6 +22,7 @@ protocol CallViewDelegate: AnyObject {
     func callActive()
     func callDurationChanged(seconds: Int)
     func callEnded()
+    func callReconnecting()
 }
 
 public struct CallDetails {
@@ -558,7 +559,9 @@ extension CallManager: HalloCallDelegate {
 
         // Try and decrypt answer and then report to callkit provider.
         if activeCallID == callID {
-            let encryptedData = EncryptedData(data: webrtcAnswer.encPayload, identityKey: webrtcAnswer.publicKey.isEmpty ? nil : webrtcAnswer.publicKey, oneTimeKeyId: Int(webrtcAnswer.oneTimePreKeyID))
+            let encryptedData = EncryptedData(data: webrtcAnswer.encPayload,
+                                              identityKey: webrtcAnswer.publicKey.isEmpty ? nil : webrtcAnswer.publicKey,
+                                              oneTimeKeyId: Int(webrtcAnswer.oneTimePreKeyID))
             AppContext.shared.messageCrypter.decrypt(encryptedData, from: peerUserID) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
@@ -619,6 +622,84 @@ extension CallManager: HalloCallDelegate {
         }
     }
 
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIceOffer iceOffer: Server_IceRestartOffer) {
+        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceAnswer/begin")
+        let callID = iceOffer.callID
+        let webrtcOffer = iceOffer.webrtcOffer
+
+        // Try and decrypt iceOffer.
+        if activeCallID == callID {
+            let encryptedData = EncryptedData(data: webrtcOffer.encPayload,
+                                              identityKey: webrtcOffer.publicKey.isEmpty ? nil : webrtcOffer.publicKey,
+                                              oneTimeKeyId: Int(webrtcOffer.oneTimePreKeyID))
+            AppContext.shared.messageCrypter.decrypt(encryptedData, from: peerUserID) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success(let decryptedData):
+                    DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceOffer/decrypt/success")
+                    self.activeCall?.didReceiveIceOffer(sdpInfo: String(data: decryptedData, encoding: .utf8)!)
+                case .failure(let failure):
+                    DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceOffer/decrypt/failure: \(failure)")
+                    self.service.rerequestMessage(callID,
+                                                  senderID: peerUserID,
+                                                  failedEphemeralKey: failure.ephemeralKey,
+                                                  contentType: .call) { result in
+                        switch result {
+                        case .failure(let error):
+                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceOffer/rerequestMessage/failure: \(error)")
+                        case .success(_):
+                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceOffer/rerequestMessage/success")
+                        }
+                    }
+                    // Dont do anything else here for now.
+                    // call-state will eventually go to failed and then closed - we will then end the call.
+                }
+            }
+        } else {
+            DDLogError("CallManager/HalloCallDelegate/didReceiveIceOffer: \(callID) from: \(peerUserID)/end with reason busy")
+            MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
+        }
+    }
+
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIceAnswer iceAnswer: Server_IceRestartAnswer) {
+        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceAnswer/begin")
+        let callID = iceAnswer.callID
+        let webrtcAnswer = iceAnswer.webrtcAnswer
+
+        // Try and decrypt iceAnswer
+        if activeCallID == callID {
+            let encryptedData = EncryptedData(data: webrtcAnswer.encPayload,
+                                              identityKey: webrtcAnswer.publicKey.isEmpty ? nil : webrtcAnswer.publicKey,
+                                              oneTimeKeyId: Int(webrtcAnswer.oneTimePreKeyID))
+            AppContext.shared.messageCrypter.decrypt(encryptedData, from: peerUserID) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success(let decryptedData):
+                    DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceAnswer/decrypt/success")
+                    self.activeCall?.didReceiveIceAnswer(sdpInfo: String(data: decryptedData, encoding: .utf8)!)
+                case .failure(let failure):
+                    DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceAnswer/decrypt/failure: \(failure)")
+                    self.service.rerequestMessage(callID,
+                                                  senderID: peerUserID,
+                                                  failedEphemeralKey: failure.ephemeralKey,
+                                                  contentType: .call) { result in
+                        switch result {
+                        case .failure(let error):
+                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceAnswer/rerequestMessage/failure: \(error)")
+                        case .success(_):
+                            DDLogInfo("CallManager/HalloCallDelegate/didReceiveIceAnswer/rerequestMessage/success")
+                        }
+                    }
+                    // Dont do anything else here for now.
+                    // call-state will eventually go to failed and then closed - we will then end the call.
+                }
+            }
+        } else {
+            DDLogError("CallManager/HalloCallDelegate/didReceiveIceAnswer: \(callID) from: \(peerUserID)/end with reason busy")
+            MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
+        }
+    }
+
 }
 
 
@@ -640,6 +721,10 @@ extension CallManager: CallStateDelegate {
             callViewDelegate?.callStarted()
             startCancelTimer()
 
+        case .iceRestartConnecting:
+            // Update UI to show reconnecting status
+            callViewDelegate?.callReconnecting()
+
         case .ringing:
             // Update UI to show ringing status.
             callViewDelegate?.callRinging()
@@ -654,7 +739,13 @@ extension CallManager: CallStateDelegate {
             // Cancel timer if call is active.
             cancelTimer?.cancel()
             cancelTimer = nil
-            startCallDurationTimer()
+            if callTimer == nil {
+                startCallDurationTimer()
+            }
+
+        case .iceRestart:
+            // Update UI to show reconnecting status
+            callViewDelegate?.callReconnecting()
 
         case .held:
             break

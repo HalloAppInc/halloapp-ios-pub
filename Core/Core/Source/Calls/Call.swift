@@ -124,6 +124,8 @@ public enum CallState {
     case active
     case held
     case disconnected
+    case iceRestart
+    case iceRestartConnecting
 }
 
 extension String {
