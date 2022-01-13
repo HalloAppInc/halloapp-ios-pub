@@ -167,7 +167,6 @@ public final class MessageCrypter: KeyStoreDelegate {
         } else {
             let newSession = WhisperSession(userID: userID, service: service, keyStore: keyStore)
             userSessions[userID] = newSession
-            AppContext.shared.eventMonitor.count(.sessionReset(false))
             return newSession
         }
     }

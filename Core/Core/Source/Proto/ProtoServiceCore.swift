@@ -1228,7 +1228,6 @@ extension ProtoServiceCore: CoreService {
                             }
                         case .failure(let failure):
                             DDLogError("proto/decryptGroupFeedPayload/\(item.gid)/error/\(failure.error)")
-                            AppContext.shared.eventMonitor.count(.sessionReset(true))
                             newCompletion(nil, GroupDecryptionFailure(contentId, publisherUid, failure.error, .senderState))
                             return
                         }
@@ -1445,7 +1444,6 @@ extension ProtoServiceCore: CoreService {
                     completion(nil, nil, DecryptionFailure(.deserialization))
                 }
             case .failure(let failure):
-                AppContext.shared.eventMonitor.count(.sessionReset(true))
                 completion(nil, nil, failure)
             }
         }

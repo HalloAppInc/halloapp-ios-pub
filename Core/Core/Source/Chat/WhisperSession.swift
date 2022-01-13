@@ -27,6 +27,8 @@ public final class WhisperSession {
 
         if let (keyBundle, messageKeys) = loadFromKeyStore() {
             self.state = .ready(keyBundle, messageKeys)
+        } else {
+            AppContext.shared.eventMonitor.count(.sessionReset(false))
         }
 
         // This should solve issues when client tries sending messages when facing connection problems.
@@ -336,6 +338,7 @@ public final class WhisperSession {
                 completion(.success(data))
             case .failure(let failure):
                 DDLogInfo("WhisperSession/\(self.userID)/decrypt/teardown [\(failure.error)]")
+                AppContext.shared.eventMonitor.count(.sessionReset(true))
                 self.teardown(payload.ephemeralPublicKey)
                 self.setupOutbound()
                 completion(.failure(failure))

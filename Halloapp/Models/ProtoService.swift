@@ -840,7 +840,6 @@ final class ProtoService: ProtoServiceCore {
             case .senderState:
                 hasAckBeenDelegated = true
                 AppContext.shared.messageCrypter.resetWhisperSession(for: userID)
-                AppContext.shared.eventMonitor.count(.sessionReset(true))
                 // we are acking the message here - what if we fail to reset the session properly
                 delegate.halloService(self, didRerequestGroupFeedItem: rerequest.id, from: userID, ack: ack)
             case .UNRECOGNIZED(_):
