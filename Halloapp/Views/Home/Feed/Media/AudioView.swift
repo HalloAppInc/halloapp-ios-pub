@@ -210,7 +210,7 @@ class AudioView : UIStackView {
 
         MainAppContext.shared.mediaDidStartPlaying.send(url)
 
-        let displayLink = CADisplayLink(target: self, selector: #selector(onTimeUpdate))
+        let displayLink = CADisplayLink(weakTarget: self, selector: #selector(onTimeUpdate))
         displayLink.add(to: .main, forMode: .common)
         self.displayLink = displayLink
 

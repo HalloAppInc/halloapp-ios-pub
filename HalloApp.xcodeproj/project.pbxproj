@@ -362,6 +362,7 @@
 		F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C8627570707008144DE /* AudioPostComposer.swift */; };
 		F4B91DDE278CF46B00DF70C1 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F4B91DDD278CF46B00DF70C1 /* Sentry */; };
 		F4B91DE2278CF83400DF70C1 /* SentryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B91DE1278CF83400DF70C1 /* SentryLogger.swift */; };
+		F4B91DF8278FCEEB00DF70C1 /* CADisplayLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */; };
 		F4F157DA276AA39F002FDB9E /* DeleteAccountPhoneNumberTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */; };
 		F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
@@ -991,6 +992,7 @@
 		F40F7C6A274C8158008144DE /* PostAudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAudioView.swift; sourceTree = "<group>"; };
 		F40F7C8627570707008144DE /* AudioPostComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPostComposer.swift; sourceTree = "<group>"; };
 		F4B91DE1278CF83400DF70C1 /* SentryLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SentryLogger.swift; sourceTree = "<group>"; };
+		F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADisplayLink.swift; sourceTree = "<group>"; };
 		F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountPhoneNumberTextField.swift; sourceTree = "<group>"; };
 		F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountTextView.swift; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
@@ -1924,6 +1926,7 @@
 				76407DF7245CA3F00031F96A /* UIViewController.swift */,
 				EABB650226D989B900367F44 /* UISearchBar.swift */,
 				EA7FBD1126546B5900CE1836 /* UITabBarController.swift */,
+				F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -2645,6 +2648,7 @@
 				EAAF43992603F7720037F83D /* BlurView.swift in Sources */,
 				EAEE49F1277153660042E654 /* ChatEvent+CoreDataProperties.swift in Sources */,
 				761B3957241D815800858251 /* SyncManager.swift in Sources */,
+				F4B91DF8278FCEEB00DF70C1 /* CADisplayLink.swift in Sources */,
 				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
 				24AA69D324DCC1B500ED65CE /* XMPPChatMessage.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,

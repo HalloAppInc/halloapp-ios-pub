@@ -142,7 +142,7 @@ class AudioRecorder {
 
     private func startTimer() {
         displayLink?.invalidate()
-        let displayLink = CADisplayLink(target: self, selector: #selector(updateTimer))
+        let displayLink = CADisplayLink(weakTarget: self, selector: #selector(updateTimer))
         displayLink.add(to: .main, forMode: .common)
         self.displayLink = displayLink
     }

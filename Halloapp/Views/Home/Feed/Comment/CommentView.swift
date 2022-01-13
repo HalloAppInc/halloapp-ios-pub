@@ -685,6 +685,7 @@ class CommentsTableHeaderView: UIView {
             // Audio
             if let audioMedia = media.first(where: { $0.type == .audio }) {
                 let audioView = audioView ?? PostAudioView(configuration: .comments)
+                audioView.delegate = self
                 audioView.feedMedia = audioMedia
                 let isOwnPost = feedPost.userId == MainAppContext.shared.userData.userId
                 audioView.isSeen = feedPost.status == .seen || isOwnPost
