@@ -158,7 +158,7 @@ class UserFeedViewController: FeedCollectionViewController {
     @objc func moreButtonTapped() {
         guard !isOwnFeed else { return }
         
-        let alert = UIAlertController(title: MainAppContext.shared.contactStore.fullName(for: userId), message: nil, preferredStyle: .actionSheet)
+        let alert = ActionSheetViewController(title: MainAppContext.shared.contactStore.fullName(for: userId), message: nil)
 
         /* Add to Contact Book */
         let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId)
@@ -166,7 +166,7 @@ class UserFeedViewController: FeedCollectionViewController {
 
         if !isContactInAddressBook, pushNumberExist {
             let action = UserMenuAction.addContact(userId)
-            let addToContactBookAction = UIAlertAction(title: Localizations.addToContactBook, style: .default) { [weak self] _ in
+            let addToContactBookAction = ActionSheetAction(title: Localizations.addToContactBook, style: .default) { [weak self] _ in
                 self?.handle(action: action)
             }
             alert.addAction(addToContactBookAction)
@@ -178,32 +178,32 @@ class UserFeedViewController: FeedCollectionViewController {
            let contactData = SafetyNumberData(keyBundle: contactKeyBundle)
         {
             let action = UserMenuAction.safetyNumber(self.userId, contactData: contactData, bundle: userKeys)
-            let verifySafetyNumberAction = UIAlertAction(title: Localizations.safetyNumberTitle, style: .default) { [weak self] _ in
+            let verifySafetyNumberAction = ActionSheetAction(title: Localizations.safetyNumberTitle, style: .default) { [weak self] _ in
                 self?.handle(action: action)
             }
             alert.addAction(verifySafetyNumberAction)
         }
 
-        let groupCommonAction = UIAlertAction(title: Localizations.groupsInCommonButtonLabel, style: .default) { [weak self, userId] _ in
+        let groupCommonAction = ActionSheetAction(title: Localizations.groupsInCommonButtonLabel, style: .default) { [weak self, userId] _ in
             self?.handle(action: UserMenuAction.commonGroups(userId))
         }
         alert.addAction(groupCommonAction)
 
         /* Block on HalloApp */
         if isUserBlocked {
-            let unblockUserAction = UIAlertAction(title: Localizations.userOptionUnblock, style: .destructive) { [weak self, userId] _ in
+            let unblockUserAction = ActionSheetAction(title: Localizations.userOptionUnblock, style: .destructive) { [weak self, userId] _ in
                 self?.handle(action: .unblock(userId))
             }
             alert.addAction(unblockUserAction)
         } else {
-            let blockUserAction = UIAlertAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self, userId] _ in
+            let blockUserAction = ActionSheetAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self, userId] _ in
                 self?.handle(action: .block(userId))
             }
             alert.addAction(blockUserAction)
         }
 
-        let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
-        alert.view.tintColor = .systemBlue
+        let cancel = ActionSheetAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
+
         alert.addAction(cancel)
 
         present(alert, animated: true)
