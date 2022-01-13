@@ -329,31 +329,31 @@ extension WebRTCClient: RTCAudioSessionDelegate {
     }
 
     func audioSessionDidStartPlayOrRecord(_ session: RTCAudioSession) {
-        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(session.description)")
+        DDLogDebug("WebRTCClient/audioSessionDidStartPlayOrRecord/\(session.description)")
     }
 
     func audioSessionDidStopPlayOrRecord(_ session: RTCAudioSession) {
-        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(session.description)")
+        DDLogDebug("WebRTCClient/audioSessionDidStopPlayOrRecord/\(session.description)")
     }
 
     func audioSession(_ session: RTCAudioSession, didChangeCanPlayOrRecord canPlayOrRecord: Bool) {
-        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(session.description): \(canPlayOrRecord)")
+        DDLogDebug("WebRTCClient/audioSessionDidChangeCanPlayOrRecord/\(session.description): \(canPlayOrRecord)")
     }
 
     func audioSession(_ audioSession: RTCAudioSession, failedToSetActive active: Bool, error: Error) {
-        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(audioSession.description): \(active): \(error)")
+        DDLogDebug("WebRTCClient/audioSessionFailedToSetActive/\(audioSession.description): \(active): \(error)")
     }
 
     func audioSession(_ audioSession: RTCAudioSession, didSetActive active: Bool) {
-        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(audioSession.description): \(active)")
+        DDLogDebug("WebRTCClient/audioSessionDidSetActive/\(audioSession.description): \(active)")
     }
 
     func audioSession(_ audioSession: RTCAudioSession, willSetActive active: Bool) {
-        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(audioSession.description): \(active)")
+        DDLogDebug("WebRTCClient/audioSessionWillSetActive/\(audioSession.description): \(active)")
     }
 
     func audioSessionDidChangeRoute(_ session: RTCAudioSession, reason: AVAudioSession.RouteChangeReason, previousRoute: AVAudioSessionRouteDescription) {
-        DDLogDebug("WebRTCClient/audioSessionMediaServerReset/\(session.description): \(reason.rawValue)")
+        DDLogDebug("WebRTCClient/audioSessionDidChangeRoute/\(session.description): \(reason.rawValue)")
     }
 
 }
