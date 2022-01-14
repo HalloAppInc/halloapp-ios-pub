@@ -334,15 +334,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         tableView.tableFooterView = nil
-        let scrollPoint = CGPoint(x: 0, y: tableView.contentSize.height)
-        tableView.setContentOffset(scrollPoint, animated: false)
-
-        // scroll again after setting contentOffset cause for some reason it would
-        // not scroll to the very bottom sometimes (by a few points) in iOS 14 and 15
-        // dispatch is needed for iOS 14
-        DispatchQueue.main.async {
-            self.scrollToBottom(false)
-        }
+        scrollToBottom(false)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -758,39 +750,10 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     private var shouldScrollToBottom = false
     private var shouldUpdate = false
     
-    private func isCellHeightUpdate(for chatMessage: ChatMessage) -> Bool {
-        guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return false }
-        if trackedChatMessage.cellHeight != chatMessage.cellHeight {
-            return true
-        }
-        return false
-    }
-    
-    private func isRetractStatusUpdate(for chatMessage: ChatMessage) -> Bool {
-        guard chatMessage.toUserId == MainAppContext.shared.userData.userId else { return false }
-        if chatMessage.incomingStatus == .retracted {
-            return true
-        }
-        if [.retracting, .retracted].contains(chatMessage.outgoingStatus) {
-            return true
-        }
-        return false
-    }
-    
     private func isOutgoingMessageStatusUpdate(for chatMessage: ChatMessage) -> Bool {
         guard chatMessage.fromUserId == MainAppContext.shared.userData.userId else { return false }
         guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return false }
         if trackedChatMessage.outgoingStatus != chatMessage.outgoingStatus {
-            return true
-        }
-        return false
-    }
-
-    private func isRerequestStatusUpdate(for chatMessage: ChatMessage) -> Bool {
-        guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return false }
-        if trackedChatMessage.incomingStatus == .rerequesting &&
-            chatMessage.incomingStatus != .rerequesting
-        {
             return true
         }
         return false
@@ -821,15 +784,17 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 shouldUpdate = false
                 guard let chatMessage = anObject as? ChatMessage else { break }
 
-                if isRetractStatusUpdate(for: chatMessage) {
-                    DDLogDebug("ChatViewController/frc/msg/update/inboundMessageStatusChange")
-                    shouldUpdate = true
-                } else if isOutgoingMessageStatusUpdate(for: chatMessage) {
+                // outbound message status change, update directly
+                if isOutgoingMessageStatusUpdate(for: chatMessage) {
                     DDLogDebug("ChatViewController/frc/msg/update/outgoingMessageStatusChange")
-                    shouldUpdate = true
-                } else if isRerequestStatusUpdate(for: chatMessage) {
-                    DDLogDebug("ChatViewController/frc/msg/update/rerequestStatusUpdate")
-                    shouldUpdate = true
+                    guard let indexPath = indexPath else { break }
+                    
+                    // frc chatMessage have already changed, use trackedMsg to find item in the datasource
+                    guard let trackedMsg = trackedChatMessages[chatMessage.id] else { break }
+                    let chatMsgData = ChatMsgData(id: chatMessage.id, cellHeight: Int16(trackedMsg.cellHeight), outgoingStatus: trackedMsg.outgoingStatus, incomingStatus: trackedMsg.incomingStatus, timestamp: trackedMsg.timestamp, indexPath: indexPath)
+                    guard let tableIndexPath = dataSource?.indexPath(for: Row.chatMsg(chatMsgData)) else { break }
+                    guard let cell = tableView.cellForRow(at: tableIndexPath) as? OutboundMsgViewCell else { break }
+                    cell.updateText(chatMessage: chatMessage)
                 }
 
                 // inbound message media changes, update directly
@@ -870,7 +835,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         guard shouldUpdate else {
-            DDLogDebug("ChatViewController/frc/update/skipping")
+            DDLogDebug("ChatViewController/frc/update/skip whole cell update")
             return
         }
 
@@ -919,20 +884,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         dataSource?.defaultRowAnimation = .fade
 
-        if #available(iOS 15.0, *) {
-            dataSource?.applySnapshotUsingReloadData(snapshot) { [weak self] in
-                guard let self = self else { return }
-                guard self.shouldScrollToBottom else { return }
-                self.scrollToBottom(true)
-                self.shouldScrollToBottom = false
-            }
-        } else {
-            dataSource?.apply(snapshot, animatingDifferences: animated) { [weak self] in
-                guard let self = self else { return }
-                guard self.shouldScrollToBottom else { return }
-                self.scrollToBottom(true)
-                self.shouldScrollToBottom = false
-            }
+        dataSource?.apply(snapshot, animatingDifferences: animated) { [weak self] in
+            guard let self = self else { return }
+            guard self.shouldScrollToBottom else { return }
+            self.scrollToBottom(true)
+            self.shouldScrollToBottom = false
         }
     }
 
@@ -1234,7 +1190,6 @@ fileprivate struct ChatMsgData {
     let cellHeight: Int16
     let outgoingStatus: ChatMessage.OutgoingStatus
     let incomingStatus: ChatMessage.IncomingStatus
-    var media: [TrackedChatMedia] = []
     let timestamp: Date?
     let indexPath: IndexPath
 }
@@ -1242,17 +1197,36 @@ fileprivate struct ChatMsgData {
 extension ChatMsgData : Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-        hasher.combine(outgoingStatus)
-        hasher.combine(incomingStatus)
     }
 }
 
 extension ChatMsgData : Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
-        return  lhs.id == rhs.id &&
-                lhs.cellHeight == rhs.cellHeight &&
-                lhs.outgoingStatus == rhs.outgoingStatus &&
-                lhs.incomingStatus == rhs.incomingStatus
+
+        var isOutboundMsgRetracted = false
+        if lhs.outgoingStatus != rhs.outgoingStatus {
+            isOutboundMsgRetracted = [.retracting, .retracted].contains(rhs.outgoingStatus)
+        }
+
+        var isInboundMsgRetracted = false
+        var isInboundMsgRerequestedSuccessfully = false
+        if lhs.incomingStatus != rhs.incomingStatus {
+            if rhs.incomingStatus == .retracted {
+                isInboundMsgRetracted = true
+            }
+            if lhs.incomingStatus == .rerequesting {
+                isInboundMsgRerequestedSuccessfully = true
+            }
+        }
+    
+        let isOutboundStatusChange = isOutboundMsgRetracted
+        let isInboundStatusChange = isInboundMsgRetracted || isInboundMsgRerequestedSuccessfully
+
+        let isEqual = lhs.id == rhs.id &&
+                      !isOutboundStatusChange &&
+                      !isInboundStatusChange
+
+        return isEqual
     }
 }
 
@@ -1601,17 +1575,17 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
 extension ChatViewController: MsgViewCellDelegate {
 
     func msgViewCell(_ msgViewCell: MsgViewCell, replyTo msgId: String) {
+        guard let tableIndexPath = msgViewCell.tableIndexPath else { return }
         guard let indexPath = msgViewCell.indexPath else { return }
         guard let chatMessage = fetchedResultsController?.optionalObject(at: indexPath) as? ChatMessage else { return }
-
         guard chatMessage.incomingStatus != .retracted else { return }
         guard ![.retracting, .retracted].contains(chatMessage.outgoingStatus) else { return }
 
         if chatMessage.fromUserId == MainAppContext.shared.userData.userId {
-            guard let cell = tableView.cellForRow(at: indexPath) as? OutboundMsgViewCell else { return }
+            guard let cell = tableView.cellForRow(at: tableIndexPath) as? OutboundMsgViewCell else { return }
             handleQuotedReply(msg: chatMessage, mediaIndex: cell.mediaIndex)
         } else {
-            guard let cell = tableView.cellForRow(at: indexPath) as? InboundMsgViewCell else { return }
+            guard let cell = tableView.cellForRow(at: tableIndexPath) as? InboundMsgViewCell else { return }
             handleQuotedReply(msg: chatMessage, mediaIndex: cell.mediaIndex)
         }
     }

@@ -56,9 +56,10 @@ class ChatEventViewCell: UITableViewCell {
 
     private lazy var keysChangedLabel: UILabel = {
         let label = UILabel()
-        label.numberOfLines = 1
+        label.numberOfLines = 2
+        label.textAlignment = .center
 
-        label.font = UIFont.italicSystemFont(ofSize: 17)
+        label.font = UIFont.italicSystemFont(ofSize: 16)
         label.textColor = .label.withAlphaComponent(0.7)
 
         label.translatesAutoresizingMaskIntoConstraints = false

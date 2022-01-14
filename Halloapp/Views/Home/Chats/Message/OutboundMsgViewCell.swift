@@ -425,7 +425,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         voiceNoteView.pause()
     }
 
-    // MARK: Link Preivew Row
+    // MARK: Link Preview Row
 
     private lazy var linkPreviewRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ chatLinkPreviewView ])
@@ -463,24 +463,14 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             quoteMediaIndex = Int(chatMessage.chatReplyMessageMediaIndex)
         }
         let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted, mediaIndex: quoteMediaIndex)
-                
-        var text = chatMessage.text
-        if [.retracting, .retracted].contains(chatMessage.outgoingStatus) {
-            textView.textColor = UIColor.chatTime
-            text = Localizations.chatMessageDeleted
-        }
 
-        updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
+        updateWith(chatMessage: chatMessage,
+                   isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
-                   isPlayed: chatMessage.outgoingStatus == .played,
-                   text: text,
                    orderedMentions: [],
-                   media: chatMessage.media,
-                   linkPreview: chatMessage.linkPreviews?.first,
-                   timestamp: chatMessage.timestamp,
-                   statusIcon: statusIcon(chatMessage.outgoingStatus))
+                   linkPreview: chatMessage.linkPreviews?.first)
 
         let gesture = UILongPressGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
         bubbleWrapper.isUserInteractionEnabled = true
@@ -571,13 +561,15 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         return isQuotedMessage
     }
     
-    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, isPlayed: Bool, text: String?, orderedMentions: [ChatMention], media: Set<ChatMedia>?, linkPreview: ChatLinkPreview?, timestamp: Date?, statusIcon: UIImage?) {
+    func updateWith(chatMessage: ChatMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, orderedMentions: [ChatMention], linkPreview: ChatLinkPreview?) {
         if isPreviousMsgSameSender {
             contentView.layoutMargins = UIEdgeInsets(top: 3, left: 18, bottom: 0, right: 18)
         } else {
             contentView.layoutMargins = UIEdgeInsets(top: 12, left: 18, bottom: 0, right: 18)
         }
 
+        let media = chatMessage.media
+        
         let isVoiceNote = media?.count == 1 && media?.first?.type == .audio
 
         if isVoiceNote, let item = media?.first {
@@ -662,46 +654,58 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         }
 
         // time and status
-        if let timestamp = timestamp {
-            let result = NSMutableAttributedString(string: timestamp.chatTimestamp())
+        updateText(chatMessage: chatMessage)
+    }
 
-            let playedIcon: UIImage? = {
-                if isVoiceNote {
-                    if isPlayed {
-                        return UIImage(named: "Microphone")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
-                    } else {
-                        return UIImage(named: "Microphone")?.withTintColor(.systemGray)
-                    }
+    func updateText(chatMessage: ChatMessage) {
+        guard let timestamp = chatMessage.timestamp else { return }
+
+        let isVoiceNote = chatMessage.media?.count == 1 && chatMessage.media?.first?.type == .audio
+        let isPlayed = chatMessage.outgoingStatus == .played
+
+        let result = NSMutableAttributedString(string: timestamp.chatTimestamp())
+
+        let playedIcon: UIImage? = {
+            if isVoiceNote {
+                if isPlayed {
+                    return UIImage(named: "Microphone")?.withTintColor(traitCollection.userInterfaceStyle == .light ? UIColor.chatOwnMsg : UIColor.primaryBlue)
+                } else {
+                    return UIImage(named: "Microphone")?.withTintColor(.systemGray)
                 }
-
-                return nil
-            } ()
-
-            if let icon = playedIcon {
-                let iconAttachment = NSTextAttachment(image: icon)
-                iconAttachment.bounds = CGRect(x: 0, y: -2, width: 12, height: 12)
-
-                result.append(NSAttributedString(string: "  "))
-                result.append(NSAttributedString(attachment: iconAttachment))
-            }
-    
-            if let icon = statusIcon {
-                let imageSize = icon.size
-                let font = UIFont.systemFont(ofSize: timeAndStatusLabel.font.pointSize - 1)
-                
-                let scale = font.capHeight / imageSize.height
-                let iconAttachment = NSTextAttachment(image: icon)
-                iconAttachment.bounds.size = CGSize(width: ceil(imageSize.width * scale), height: ceil(imageSize.height * scale))
-                
-                result.append(NSAttributedString(string: "  "))
-                result.append(NSAttributedString(attachment: iconAttachment))
             }
 
-            timeAndStatusLabel.attributedText = result
+            return nil
+        } ()
+
+        if let icon = playedIcon {
+            let iconAttachment = NSTextAttachment(image: icon)
+            iconAttachment.bounds = CGRect(x: 0, y: -2, width: 12, height: 12)
+
+            result.append(NSAttributedString(string: "  "))
+            result.append(NSAttributedString(attachment: iconAttachment))
         }
 
+        if let icon = statusIcon(chatMessage.outgoingStatus) {
+            let imageSize = icon.size
+            let font = UIFont.systemFont(ofSize: timeAndStatusLabel.font.pointSize - 1)
+            
+            let scale = font.capHeight / imageSize.height
+            let iconAttachment = NSTextAttachment(image: icon)
+            iconAttachment.bounds.size = CGSize(width: ceil(imageSize.width * scale), height: ceil(imageSize.height * scale))
+            
+            result.append(NSAttributedString(string: "  "))
+            result.append(NSAttributedString(attachment: iconAttachment))
+        }
+
+        timeAndStatusLabel.attributedText = result
+        
         // text
-        var text = text ?? ""
+        var text = chatMessage.text ?? ""
+        if [.retracting, .retracted].contains(chatMessage.outgoingStatus) {
+            textView.textColor = UIColor.chatTime
+            text = Localizations.chatMessageDeleted
+        }
+
         var isLargeFontEmoji = false
         var showTextRTL = text.isRightToLeftLanguage() // show RTL languages right to left even when interface is LTR and vice versa
         let isInterfaceRTL = self.effectiveUserInterfaceLayoutDirection == .rightToLeft
@@ -754,8 +758,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         } else {
             textView.makeTextWritingDirectionRightToLeft(nil)
         }
+
     }
-    
+
     func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {
         if pendingMsgIconTimer != nil {
             pendingMsgIconTimer?.invalidate()
