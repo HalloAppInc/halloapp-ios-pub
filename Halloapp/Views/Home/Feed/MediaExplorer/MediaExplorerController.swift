@@ -52,10 +52,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 let oldCell = collectionView.cellForItem(at: IndexPath(item: oldValue, section: 0))
                 let currentCell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0))
 
-                MainAppContext.shared.mediaDidStartPlaying.send(nil)
-
                 if let cell = oldCell as? MediaExplorerImageCell {
                     cell.reset()
+                } else if let cell = oldCell as? MediaExplorerVideoCell {
+                    cell.pause()
                 }
 
                 if let cell = currentCell as? MediaExplorerVideoCell {
@@ -433,7 +433,12 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        MainAppContext.shared.mediaDidStartPlaying.send(nil)
+
+        for cell in collectionView.visibleCells {
+            if let cell = cell as? MediaExplorerVideoCell {
+                cell.pause()
+            }
+        }
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -546,15 +551,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard !isTransition else { return }
-        let rem = scrollView.contentOffset.x.truncatingRemainder(dividingBy: scrollView.frame.width)
-
-        if rem == 0 {
-            let index = Int(scrollView.contentOffset.x / scrollView.frame.width)
-
-            if index != currentIndex {
-                currentIndex = index
-            }
-        }
+        currentIndex = Int(scrollView.contentOffset.x / scrollView.frame.width)
     }
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {
