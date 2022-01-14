@@ -517,6 +517,12 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         return tapRecognizer
     }()
 
+    private lazy var quotedPanel: QuotedMessageCellView =  {
+        let quotedPanel = QuotedMessageCellView()
+        quotedPanel.translatesAutoresizingMaskIntoConstraints = false
+        return quotedPanel
+    }()
+
     private var borderMaskLayer: CAShapeLayer?
     private var borderFrameLayer: CAShapeLayer?
 
@@ -761,6 +767,13 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             self.vStack.insertArrangedSubview(self.replyContextPanel, at: 0)
         }
         self.setNeedsUpdateHeight()
+    }
+
+    func showQuotedReplyPanel(comment: FeedPostComment) {
+        quotedPanel.configureWithComment(comment: comment)
+        if !vStack.subviews.contains(quotedPanel){
+            vStack.insertArrangedSubview(quotedPanel, at: 0)
+        }
     }
 
     func removeReplyPanel() {

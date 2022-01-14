@@ -19,6 +19,18 @@ private extension Localizations {
     static var titleComments: String {
         NSLocalizedString("title.comments", value: "Comments", comment: "Title for the Comments screen.")
     }
+
+    static var deleteCommentConfirmation: String {
+        NSLocalizedString("comment.delete.confirmation",
+                          value: "Delete this comment? This action cannot be undone.",
+                          comment: "Confirmation text displayed at comment deletion prompt")
+    }
+
+    static var deleteCommentAction: String {
+        NSLocalizedString("comment.delete.action",
+                          value: "Delete Comment",
+                          comment: "Title for the button in comment deletion confirmation prompt.")
+    }
 }
 
 class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
@@ -28,6 +40,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     private var mediaPickerController: MediaPickerViewController?
     private var cancellableSet: Set<AnyCancellable> = []
+    private var parentCommentID: FeedPostCommentID?
 
     private var feedPostId: FeedPostID {
         didSet {
@@ -47,6 +60,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                 if let itemCell = cell as? MessageViewCell {
                     itemCell.configureWithComment(comment: comment)
                     itemCell.textLabel.delegate = self
+                    itemCell.delegate = self
                 }
                 return cell
             })
@@ -120,11 +134,20 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             configureUI(with: feedPost)
         }
         messageInputView.delegate = self
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(getMessageOptions))
+        longPressGesture.delaysTouchesBegan = true
+        collectionView.addGestureRecognizer(longPressGesture)
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.messageInputView.willAppear(in: self)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // TODO @dini check if post is available first
+        MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
     }
 
     private func configureUI(with feedPost: FeedPost) {
@@ -201,6 +224,40 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         return Mentions.mentionableUsers(forPostID: feedPostId)
     }
 
+    @objc func getMessageOptions(_ gestureRecognizer: UILongPressGestureRecognizer) {
+        if let indexPath = collectionView.indexPathForItem(at: gestureRecognizer.location(in: collectionView)) {
+            if let cell = collectionView.cellForItem(at: indexPath) as? MessageViewCell, let comment = fetchedResultsController?.object(at: indexPath), comment.status != .retracted {
+                // Only the author can delete a comment
+                guard comment.userId == MainAppContext.shared.userData.userId else { return }
+                cell.markViewSelected()
+                UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                // Setup action sheet
+                let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+                actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
+                    guard let self = self else { return }
+                    self.presentDeleteConfirmationActionSheet(indexPath: indexPath, cell: cell, comment: comment)
+                })
+                actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
+                    cell.markViewUnselected()
+                })
+                self.present(actionSheet, animated: true)
+            }
+        }
+    }
+
+    private func presentDeleteConfirmationActionSheet(indexPath: IndexPath, cell: MessageViewCell, comment: FeedPostComment) {
+        let confirmationActionSheet = UIAlertController(title: nil, message: Localizations.deleteCommentConfirmation, preferredStyle: .actionSheet)
+        confirmationActionSheet.addAction(UIAlertAction(title: Localizations.deleteCommentAction, style: .destructive) { _ in
+            guard let comment = MainAppContext.shared.feedData.feedComment(with: comment.id) else { return }
+            MainAppContext.shared.feedData.retract(comment: comment)
+            cell.configureWithComment(comment: comment)
+        })
+        confirmationActionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
+            cell.markViewUnselected()
+        })
+        self.present(confirmationActionSheet, animated: true)
+    }
+
     // MARK: UI Actions
 
     @objc private func showUserFeedForPostAuthor() {
@@ -272,6 +329,14 @@ extension FlatCommentsViewController: MessageViewDelegate {
         let controller = MediaExplorerController(media: media, index: index, canSaveMedia: canSavePost)
         controller.delegate = view
         present(controller, animated: true)
+    }
+
+    func messageView(_ messageViewCell: MessageViewCell, replyTo feedPostCommentID: FeedPostCommentID) {
+        guard let indexPath = collectionView.indexPath(for: messageViewCell) else { return }
+        guard let comment = fetchedResultsController?.object(at: indexPath) else { return }
+        guard !comment.isRetracted else { return }
+        parentCommentID = comment.id
+        messageInputView.showQuotedReplyPanel(comment: comment)
     }
 }
 
@@ -397,7 +462,7 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
         if let media = media {
             sendMedia.append(media)
         }
-        MainAppContext.shared.feedData.post(comment: text, media: sendMedia, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: feedPostId, replyingTo: nil)
+        MainAppContext.shared.feedData.post(comment: text, media: sendMedia, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: feedPostId, replyingTo: parentCommentID)
         messageInputView.clear()
     }
 }

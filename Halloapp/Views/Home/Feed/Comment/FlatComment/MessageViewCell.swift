@@ -19,6 +19,7 @@ private extension Localizations {
 
 protocol MessageViewDelegate: AnyObject {
     func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
+    func messageView(_ messageViewCell: MessageViewCell, replyTo feedPostCommentID: FeedPostCommentID)
 }
 
 class MessageViewCell: UICollectionViewCell {
@@ -30,6 +31,9 @@ class MessageViewCell: UICollectionViewCell {
 
     var feedPostCommentID: FeedPostCommentID?
     weak var delegate: MessageViewDelegate?
+    private var isReplyTriggered = false // track if swiping gesture on cell is enough to trigger reply
+
+    private var isOwnMessage: Bool = false
 
     lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
@@ -71,6 +75,7 @@ class MessageViewCell: UICollectionViewCell {
         let hStack = UIStackView(arrangedSubviews: [ nameTextTimeRow ])
         hStack.axis = .horizontal
         hStack.translatesAutoresizingMaskIntoConstraints = false
+        hStack.isUserInteractionEnabled = true
         nameTextTimeRow.setContentHuggingPriority(.defaultHigh, for: .vertical)
         NSLayoutConstraint.activate([
             nameTextTimeRow.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(MaxWidthOfMessageBubble).rounded()),
@@ -78,6 +83,18 @@ class MessageViewCell: UICollectionViewCell {
         ])
         return hStack
     }()
+
+    func markViewSelected() {
+        UIView.animate(withDuration: 0.5, animations: {
+            self.bubbleView.backgroundColor = .systemGray4
+        })
+    }
+
+    func markViewUnselected() {
+        UIView.animate(withDuration: 0.5, animations: {
+            self.configureCell()
+        })
+    }
 
     private lazy var nameTextTimeRow: UIStackView = {
         let vStack = UIStackView(arrangedSubviews: [ nameRow, quotedMessageView, linkPreviewView, audioView, mediaCarouselView, textLabel, timeRow ])
@@ -216,6 +233,20 @@ class MessageViewCell: UICollectionViewCell {
         return quotedMessageView
     }()
 
+    // MARK: Reply Arrow
+
+    private lazy var replyArrow: UIImageView = {
+        let view = UIImageView(image: UIImage(systemName: "arrowshape.turn.up.left.fill"))
+        view.tintColor = UIColor.systemGray4
+        view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            view.widthAnchor.constraint(equalToConstant: 25),
+            view.heightAnchor.constraint(equalToConstant: 25)
+        ])
+        view.isHidden = true
+        return view
+    }()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
@@ -238,6 +269,11 @@ class MessageViewCell: UICollectionViewCell {
         messageRow.constrain([.top], to: contentView)
         messageRow.constrainMargin(anchor: .bottom, to: contentView, constant: 5, priority: UILayoutPriority(rawValue: 999))
         setupConditionalConstraints()
+
+        // Reply gesture
+        let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(panGestureCellAction))
+        panGestureRecognizer.delegate = self
+        self.addGestureRecognizer(panGestureRecognizer)
     }
     
     private func setupConditionalConstraints() {
@@ -252,19 +288,20 @@ class MessageViewCell: UICollectionViewCell {
     func configureWithComment(comment: FeedPostComment) {
         audioMediaStatusCancellable?.cancel()
         feedPostCommentID = comment.id
+        isOwnMessage = comment.userId == MainAppContext.shared.userData.userId
         configureQuotedComment(comment: comment)
         timeLabel.text = comment.timestamp.chatTimestamp()
         setNameLabel(for: comment.userId)
         // Set up retracted comment
         if comment.status == .retracted || comment.status == .retracting {
-            configureCell(isOwnMessage: comment.userId == MainAppContext.shared.userData.userId)
+            configureCell()
             configureRetractedComment()
             return
         }
         configureText(comment: comment)
         configureMedia(comment: comment)
         configureLinkPreviewView(comment: comment)
-        configureCell(isOwnMessage: comment.userId == MainAppContext.shared.userData.userId)
+        configureCell()
     }
 
     private func configureRetractedComment() {
@@ -276,7 +313,7 @@ class MessageViewCell: UICollectionViewCell {
     }
     
     // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
-    private func configureCell(isOwnMessage: Bool) {
+    private func configureCell() {
         updateMediaConstraints()
         if isOwnMessage {
             bubbleView.backgroundColor = UIColor.chatOwnBubbleBg
@@ -433,5 +470,94 @@ extension MessageViewCell: AudioViewDelegate {
         MainAppContext.shared.feedData.markCommentAsPlayed(commentId: commentId)
     }
     func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {
+    }
+}
+
+// MARK: UIGestureRecognizer Delegates
+extension MessageViewCell: UIGestureRecognizerDelegate {
+
+    // used for swiping to reply
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard let panGestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer else { return false }
+        let velocity: CGPoint = panGestureRecognizer.velocity(in: contentView)
+        if velocity.x < 0 { return false }
+        return abs(velocity.x) > abs(velocity.y)
+    }
+
+    @objc func panGestureCellAction(recognizer: UIPanGestureRecognizer)  {
+        guard let view = recognizer.view else { return }
+        guard let superview = view.superview else { return }
+        let replyArrowStartOffset:CGFloat = -25.0
+        let replyArrowOffset:CGFloat = replyArrowStartOffset
+        let windowWidth = self.window?.bounds.width ?? UIScreen.main.bounds.width
+        let replyTriggerThreshold = windowWidth / 4.5
+
+        // add to mainView so arrow can appear off-screen and slide in
+        if !superview.subviews.contains(replyArrow) {
+            superview.addSubview(replyArrow)
+            replyArrow.isHidden = false
+
+            replyArrow.trailingAnchor.constraint(equalTo: superview.leadingAnchor, constant: replyArrowStartOffset).isActive = true
+
+            // anchor to bubbleRow since mainView can have the timestamp row also
+            replyArrow.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        }
+
+        let translation = recognizer.translation(in: view) // movement in the gesture
+        let originX = view.frame.minX
+        let originY = view.frame.minY
+
+        let newViewCenter = CGPoint(x: view.center.x + translation.x, y: view.center.y)
+        let newReplyArrowCenter = CGPoint(x: replyArrow.center.x + translation.x, y: replyArrow.center.y)
+
+        if (originX + translation.x) > 0 {
+            view.center = newViewCenter // move bubbleRow view
+            if originX < replyTriggerThreshold {
+                replyArrow.center = newReplyArrowCenter // only move reply arrow forward if it's not past threshold
+            } else {
+                let replyArrowCenterMaxX = replyTriggerThreshold - replyArrow.frame.width
+                replyArrow.center = CGPoint(x: replyArrowCenterMaxX, y: replyArrow.center.y)
+            }
+        } else {
+            // move back to 0, barely noticeable but helps eliminate small stutter when dragging towards 0 to negatives
+            view.frame = CGRect(x: 0, y: originY, width: view.frame.width, height: view.frame.height)
+            replyArrow.frame = CGRect(x: replyArrowOffset, y: replyArrow.frame.origin.y, width: replyArrow.frame.width, height: replyArrow.frame.height)
+        }
+
+        recognizer.setTranslation(CGPoint(x: 0, y: 0), in: view)
+
+        let isOriginXPastThreshold = originX > replyTriggerThreshold
+
+        if !isReplyTriggered, isOriginXPastThreshold {
+            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+            isReplyTriggered = true
+            replyArrow.tintColor = UIColor.primaryBlue
+        }
+
+        if !isOriginXPastThreshold {
+            self.isReplyTriggered = false
+            replyArrow.tintColor = UIColor.systemGray4
+        }
+
+        if recognizer.state == .ended {
+
+            UIView.animate(withDuration: 0.25, delay: 0, options: .curveEaseOut) { [weak self] in
+                guard let self = self else { return }
+                view.frame = CGRect(x: 0, y: originY, width: view.frame.width, height: view.frame.height)
+
+                self.replyArrow.frame = CGRect(x: replyArrowOffset, y: self.replyArrow.frame.origin.y, width: self.replyArrow.frame.width, height: self.replyArrow.frame.height)
+            } completion: { (finished) in
+                guard let feedPostCommentID = self.feedPostCommentID else { return }
+
+                if self.isReplyTriggered {
+                    self.delegate?.messageView(self, replyTo: feedPostCommentID)
+                    self.isReplyTriggered = false
+                }
+
+                if superview.subviews.contains(self.replyArrow) {
+                    self.replyArrow.removeFromSuperview()
+                }
+            }
+        }
     }
 }
