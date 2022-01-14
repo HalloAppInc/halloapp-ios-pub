@@ -268,7 +268,7 @@ class ImageServer {
         var data = handle.availableData
         guard !data.isEmpty && data.count > 8 else { return }
 
-        let moovSize = data[0..<3].withUnsafeBytes { Int(bigEndian: $0.load(as: Int.self)) }
+        let moovSize = Int(data[0..<4].withUnsafeBytes { Int32(bigEndian: $0.load(as: Int32.self)) })
         data = data.subdata(in: 0..<moovSize)
 
         try clearTimestamps(for: mvhd, from: data, at: moovIdx, in: handle)
