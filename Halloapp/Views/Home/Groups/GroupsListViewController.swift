@@ -299,7 +299,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         let fetchRequest = NSFetchRequest<ChatThread>(entityName: "ChatThread")
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(key: "lastFeedTimestamp", ascending: false),
-            NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]
         fetchRequest.predicate = NSPredicate(format: "groupId != nil")
@@ -353,7 +352,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 
         chatThreads.forEach { thread in
             guard let groupID = thread.groupId else { return }
-            var threadData = ThreadData(type: .group, groupID: groupID, lastFeedID: thread.lastFeedId ?? "", lastFeedStatus: thread.lastFeedStatus)
+            var threadData = ThreadData(type: .group, groupID: groupID, title: thread.title ?? "", lastFeedID: thread.lastFeedId ?? "", lastFeedStatus: thread.lastFeedStatus, lastFeedText: thread.lastFeedText ?? "", unreadFeedCount: thread.unreadFeedCount)
             if isFiltering {
                 if let searchStr = searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces) {
                     threadData.type = .groupOfFoundTitle
@@ -366,7 +365,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         if isFiltering, filteredChatsMembers.count > 0  {
             threadsOfFoundMembers.forEach { thread in
                 guard let groupID = thread.groupId else { return }
-                var threadDataOfFoundMembers = ThreadData(type: .groupOfFoundMember, groupID: groupID, lastFeedID: thread.lastFeedId ?? "", lastFeedStatus: thread.lastFeedStatus)
+                var threadDataOfFoundMembers = ThreadData(type: .groupOfFoundMember, groupID: groupID, title: thread.title ?? "", lastFeedID: thread.lastFeedId ?? "", lastFeedStatus: thread.lastFeedStatus, lastFeedText: thread.lastFeedText ?? "", unreadFeedCount: thread.unreadFeedCount)
                 if let searchStr = searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces) {
                     threadDataOfFoundMembers.searchStr = searchStr
                 }
@@ -386,12 +385,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         }
 
         dataSource?.defaultRowAnimation = .fade
-
-        if #available(iOS 15.0, *) {
-            dataSource?.applySnapshotUsingReloadData(snapshot)
-        } else {
-            dataSource?.apply(snapshot, animatingDifferences: animated)
-        }
+        dataSource?.apply(snapshot, animatingDifferences: animated)
     }
 
     // MARK: Actions
@@ -602,57 +596,34 @@ extension GroupsListViewController: UISearchBarDelegate {
 // MARK: UISearchController Updating Delegates
 extension GroupsListViewController: UISearchResultsUpdating {
     
+    // room for improvement: searches can be debounced by 200ms so that not each keypress searches the whole list
     func updateSearchResults(for searchController: UISearchController) {
-        guard let allChats = fetchedResultsController?.fetchedObjects else { return }
+        guard let threads = fetchedResultsController?.fetchedObjects else { return }
         guard let searchBarText = searchController.searchBar.text else { return }
-        let strippedString = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces)
-        
-        let searchItems = strippedString.components(separatedBy: " ")
+        let searchStr = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces).lowercased()
 
-        filteredChatsTitles = allChats.filter {
-            var titleText: String? = nil
-            if $0.type == .group {
-                titleText = $0.title
-            } else {
-                titleText = MainAppContext.shared.contactStore.fullName(for: $0.chatWithUserId ?? "")
-            }
-
-            guard let title = titleText else { return false }
-        
-            for item in searchItems {
-                if title.lowercased().contains(item.lowercased()) {
-                    return true
-                }
+        filteredChatsTitles = threads.filter {
+            guard let title = $0.title else { return false }
+            if title.lowercased().contains(searchStr) {
+                return true
             }
             return false
         }
 
-        filteredChatsMembers = allChats.filter {
-            var flag = false
-            var groupIdStr: GroupID? = nil
-            if $0.type == .group {
-                groupIdStr = $0.groupId
-            } else {
-                groupIdStr = MainAppContext.shared.contactStore.fullName(for: $0.chatWithUserId ?? "")
-            }
+        let remainingThreads = Array(Set(threads).subtracting(filteredChatsTitles))
 
-            guard let Id = groupIdStr else { return false }
-            let group = MainAppContext.shared.chatData.chatGroup(groupId: Id)
-            guard let members = group?.members else {return false}
+        filteredChatsMembers = remainingThreads.filter {
+            guard let groupID = $0.groupId else { return false }
+            let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID)
+            guard let members = group?.members else { return false }
 
             for member in members {
                 let name = MainAppContext.shared.contactStore.fullName(for: member.userId)
-                for item in searchItems {
-                    if name.lowercased().contains(item.lowercased()) {
-                        flag = true
-                    }
+                if name.lowercased().contains(searchStr) {
+                    return true
                 }
             }
-            
-            if (filteredChatsTitles.contains($0)) {
-                flag = false
-            }
-            return flag
+            return false
         }
 
         reloadData(animated: false)
@@ -690,8 +661,11 @@ fileprivate enum ThreadDataType {
 fileprivate struct ThreadData {
     var type: ThreadDataType
     let groupID: GroupID
+    let title: String
     let lastFeedID: String
     let lastFeedStatus: ChatThread.LastFeedStatus
+    let lastFeedText: String
+    let unreadFeedCount: Int32
     var searchStr: String? = nil
 }
 
@@ -699,18 +673,17 @@ extension ThreadData : Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(type)
         hasher.combine(groupID)
-        hasher.combine(lastFeedID)
-        hasher.combine(lastFeedStatus)
-        hasher.combine(searchStr)
     }
 }
 
 extension ThreadData : Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         return  lhs.groupID == rhs.groupID &&
-                lhs.type == rhs.type &&
+                lhs.title == rhs.title &&
                 lhs.lastFeedID == rhs.lastFeedID &&
                 lhs.lastFeedStatus == rhs.lastFeedStatus &&
+                lhs.lastFeedText == rhs.lastFeedText &&
+                lhs.unreadFeedCount == rhs.unreadFeedCount &&
                 lhs.searchStr == rhs.searchStr
     }
 }

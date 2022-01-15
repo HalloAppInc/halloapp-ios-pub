@@ -1542,8 +1542,7 @@ class ChatData: ObservableObject {
     private func isAtChatListViewTop() -> Bool {
         guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return false }
         guard let topController = keyWindow.rootViewController else { return false }
-        guard let homeView = topController as? UITabBarController else { return false }
-        
+        guard let homeView = topController.children.first as? UITabBarController else { return false }
         guard homeView.selectedIndex == 2 else { return false }
         guard let navigationController = homeView.selectedViewController as? UINavigationController else { return false }
         guard let chatListViewController = navigationController.topViewController as? ChatListViewController else { return false }

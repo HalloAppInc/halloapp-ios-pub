@@ -415,12 +415,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         snapshot.appendItems(chatRows, toSection: .chats)
 
         dataSource?.defaultRowAnimation = .fade
-
-        if #available(iOS 15.0, *) {
-            dataSource?.applySnapshotUsingReloadData(snapshot)
-        } else {
-            dataSource?.apply(snapshot, animatingDifferences: animated)
-        }
+        dataSource?.apply(snapshot, animatingDifferences: animated)
     }
 
     // MARK: Actions
@@ -446,7 +441,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     private func updateCellWithChatState(cell: ThreadListCell, chatThread: ChatThread) {
         var typingIndicatorStr: String? = nil
-        
+
         if chatThread.type == .oneToOne {
             typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: chatThread.type, id: chatThread.chatWithUserId)
         }
@@ -454,7 +449,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         if typingIndicatorStr == nil && !cell.isShowingTypingIndicator {
             return
         }
-        
+
         cell.configureTypingIndicator(typingIndicatorStr)
     }
    
@@ -579,12 +574,12 @@ extension ChatListViewController: UISearchResultsUpdating {
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
         guard let searchBarText = searchController.searchBar.text else { return }
 
-        let searchStr = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces)
+        let searchStr = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces).lowercased()
 
         filteredChats = allChats.filter {
             guard let chatWithUserID = $0.chatWithUserId else { return false }
             let title = MainAppContext.shared.contactStore.fullName(for: chatWithUserID)
-            if title.lowercased().contains(searchStr.lowercased()) {
+            if title.lowercased().contains(searchStr) {
                 return true
             }
             return false
@@ -712,10 +707,6 @@ fileprivate struct ChatThreadData {
 extension ChatThreadData : Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(chatWithUserID)
-        hasher.combine(lastMsgID)
-        hasher.combine(lastMsgStatus)
-        hasher.combine(isNew)
-        hasher.combine(searchStr)
     }
 }
 
