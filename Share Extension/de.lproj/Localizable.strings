@@ -23,7 +23,7 @@
 "button.create" = "Erstellen";
 
 /* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Verwerfen";
+"button.dismiss" = "Ablehnen";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
 "button.done" = "Fertig";

@@ -697,9 +697,6 @@
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "\n\n\nBeschrijf het probleem of de feedback in de ruimte hierboven alsjeblieft.\n\nVersie %1$@ - %2$@\n%3$@";
 
-/* Button to dismiss the alert. */
-"home.calls.button.exit" = "OK";
-
 /* Text shown to users on call failure. */
 "home.calls.fail.text" = "Sorry, probeer later opnieuw.";
 

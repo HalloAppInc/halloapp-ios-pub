@@ -83,7 +83,7 @@
 "button.create" = "Erstellen";
 
 /* Title for generic Dismiss button. Mostly used to complete some modal flow. */
-"button.dismiss" = "Verwerfen";
+"button.dismiss" = "Ablehnen";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
 "button.done" = "Fertig";
@@ -696,9 +696,6 @@
 
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "\n\nBitte oberhalb dein Feedback oder eine Problembeschreibung eingeben.\n\nVersion %1$@ - %2$@\n%3$@";
-
-/* Button to dismiss the alert. */
-"home.calls.button.exit" = "OK";
 
 /* Text shown to users on call failure. */
 "home.calls.fail.text" = "Bitte versuche es später noch einmal.";

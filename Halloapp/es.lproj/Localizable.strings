@@ -697,9 +697,6 @@
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "\n\n\nPor favor deja un comentario o una descripción del problema en el espacio de arriba. \n\nVersión %1$@ - %2$@\n%3$@";
 
-/* Button to dismiss the alert. */
-"home.calls.button.exit" = "OK";
-
 /* Text shown to users on call failure. */
 "home.calls.fail.text" = "Lo siento, inténtalo de nuevo más tarde.";
 

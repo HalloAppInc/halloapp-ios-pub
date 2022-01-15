@@ -655,9 +655,6 @@
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "\n\n\nLütfen yukarıya, yaşadığın sorunla ilgili bir açıklama veya geri bildirim yaz.\nSürüm %1$@ - %2$@\n%3$@";
 
-/* Button to dismiss the alert. */
-"home.calls.button.exit" = "Tamam";
-
 /* Text shown to users on call failure. */
 "home.calls.fail.text" = "Lütfen daha sonra dene.";
 

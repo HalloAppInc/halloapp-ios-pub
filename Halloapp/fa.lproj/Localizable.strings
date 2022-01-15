@@ -697,9 +697,6 @@
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "لطفاً‌ نظر یا توضیحات مشکل را در جایگاه بالا بنویسید.\n\n@Version %1$@ - %2$\n@%3$";
 
-/* Button to dismiss the alert. */
-"home.calls.button.exit" = "تأیید";
-
 /* Text shown to users on call failure. */
 "home.calls.fail.text" = "ببخشید، لطفاً بعداً امتحان کنید.";
 
