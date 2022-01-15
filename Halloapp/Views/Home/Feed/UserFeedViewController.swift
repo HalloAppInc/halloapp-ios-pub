@@ -33,7 +33,15 @@ class UserFeedViewController: FeedCollectionViewController {
     private var headerViewController: ProfileHeaderViewController!
     private var cancellables = Set<AnyCancellable>()
     
-    var isUserBlocked: Bool
+    var isUserBlocked: Bool {
+        didSet {
+            guard isUserBlocked != oldValue else { return }
+            DispatchQueue.main.async {
+                // Header may need to change size
+                self.collectionView.reloadData()
+            }
+        }
+    }
 
     private lazy var exchangeNumbersView: UIView = {
         let image = UIImage(named: "FeedExchangeNumbers")?.withRenderingMode(.alwaysTemplate)
@@ -63,13 +71,8 @@ class UserFeedViewController: FeedCollectionViewController {
         super.viewDidLoad()
 
         installExchangeNumbersView()
-        
-        guard let blockedList = MainAppContext.shared.privacySettings.blocked else {
-            return
-        }
-        if blockedList.userIds.contains(self.userId) {
-            self.isUserBlocked = true
-        }
+
+        isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userId)
 
         headerViewController = ProfileHeaderViewController()
         headerViewController.delegate = self
@@ -143,14 +146,14 @@ class UserFeedViewController: FeedCollectionViewController {
         alert.addAction(groupCommonAction)
 
         /* Block on HalloApp */
-        if !isUserBlocked {
+        if isUserBlocked {
+            let unblockUserAction = UIAlertAction(title: Localizations.userOptionUnblock, style: .destructive) { [weak self] _ in
+                self?.unBlockUserTapped()
+            }
+            alert.addAction(unblockUserAction)
+        } else {
             let blockUserAction = UIAlertAction(title: Localizations.userOptionBlock, style: .destructive) { [weak self] _ in
                 self?.blockUserTapped()
-            }
-            alert.addAction(blockUserAction)
-        } else {
-            let blockUserAction = UIAlertAction(title: Localizations.userOptionUnblock, style: .destructive) { [weak self] _ in
-                self?.unBlockUserTapped()
             }
             alert.addAction(blockUserAction)
         }

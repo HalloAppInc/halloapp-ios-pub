@@ -50,6 +50,13 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     init(title: String) {
         super.init(nibName: nil, bundle: nil)
         self.title = title
+
+        cancellableSet.insert(
+            MainAppContext.shared.openChatThreadRequest.sink { [weak self] (threadID) in
+                guard let self = self else { return }
+                self.routeTo(threadID, animated: false)
+            }
+        )
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
@@ -460,17 +467,20 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         }
 
         // If the user tapped on a notification, move to the chat view
-        DDLogInfo("ChatListViewController/processNotification/open chat \(metadata.fromId)")
-
-        navigationController?.popToRootViewController(animated: false)
-
         if metadata.contentType == .chatMessage || metadata.isContactNotification {
-            let vc = ChatViewController(for: metadata.fromId, with: nil, at: 0)
-            vc.delegate = self
-            navigationController?.pushViewController(vc, animated: true)
+            routeTo(metadata.fromId, animated: true)
         }
 
         metadata.removeFromUserDefaults()
+    }
+
+    private func routeTo(_ userID: UserID, animated: Bool) {
+        DDLogInfo("ChatListViewController/routeTo/\(userID)")
+
+        navigationController?.popToRootViewController(animated: false)
+        let vc = ChatViewController(for: userID, with: nil, at: 0)
+        vc.delegate = self
+        navigationController?.pushViewController(vc, animated: animated)
     }
 
 }

@@ -13,6 +13,13 @@ import SwiftUI
 import Combine
 import CocoaLumberjackSwift
 
+enum CallStatus {
+    case calling
+    case ringing
+    case connecting
+    case reconnecting
+}
+
 class CallViewController: UIViewController {
 
     var muted: Bool = false
@@ -20,69 +27,58 @@ class CallViewController: UIViewController {
 
     // MARK: View Controller
 
-    var callStatus = "calling"
+    var callStatus = CallStatus.calling
     var useCallStatus: Bool = false
-    let micOffImage = UIImage(systemName: "mic.slash.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline))
-    let micOnImage = UIImage(systemName: "mic.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline))
-    let speakerOffImage = UIImage(systemName: "speaker.slash.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline))
-    let speakerOnImage = UIImage(systemName: "speaker.wave.3.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline))
-    let endCallImage = UIImage(systemName: "phone.down.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline))
-    let backImage = UIImage(named: "NavbarBack")?.imageFlippedForRightToLeftLayoutDirection()
+    let micOffImage = UIImage(systemName: "mic.slash.fill")
+    let micOnImage = UIImage(systemName: "mic.fill")
+    let speakerOffImage = UIImage(systemName: "speaker.slash.fill")
+    let speakerOnImage = UIImage(systemName: "speaker.wave.3.fill")
+    let endCallImage = UIImage(systemName: "xmark")
+    let chatImage = UIImage(systemName: "message.fill")
+    let backImage = UIImage(named: "NavbarBack")?.imageFlippedForRightToLeftLayoutDirection().withRenderingMode(.alwaysTemplate)
 
     private lazy var backButton: UIButton = {
         let button = UIButton(type: .custom)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(didTapBack), for: [.touchUpInside])
         button.setImage(backImage, for: .normal)
+        button.tintColor = .white
         return button
     }()
 
     private lazy var callStatusLabel: UILabel = {
         let callStatusLabel = UILabel()
-        callStatusLabel.widthAnchor.constraint(equalToConstant: self.view.frame.width).isActive = true
-        callStatusLabel.heightAnchor.constraint(equalToConstant: 35.0).isActive = true
-        callStatusLabel.text = getCallStatusText()
         callStatusLabel.font = UIFont.systemFont(ofSize: 20.0)
         callStatusLabel.textAlignment = .center
+        callStatusLabel.textColor = .white
         return callStatusLabel
     }()
 
-    private lazy var micButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(micOnImage, for: .normal)
+    private lazy var micButton: CallViewButton = {
+        let button = CallViewButton(image: micOnImage, title: Localizations.callMute)
+        button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(micButtonTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        button.layer.cornerRadius = 10
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.black.cgColor
         return button
     }()
 
-    private lazy var speakerButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(speakerOffImage, for: .normal)
+    private lazy var chatButton: CallViewButton = {
+        let button = CallViewButton(image: chatImage, title: Localizations.callChat)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(chatButtonTapped), for: .touchUpInside)
+        return button
+    }()
+
+    private lazy var speakerButton: CallViewButton = {
+        let button = CallViewButton(image: speakerOffImage, title: Localizations.callSpeaker)
+        button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        button.layer.cornerRadius = 10
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.black.cgColor
         return button
     }()
 
-    private lazy var endCallButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(endCallImage, for: .normal)
-        button.addTarget(self, action: #selector(endCallButtonTapped), for: .touchUpInside)
+    private lazy var endCallButton: CallViewButton = {
+        let button = CallViewButton(image: endCallImage, title: Localizations.callEnd, circleColor: .red, diameter: 72)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        button.layer.cornerRadius = 10
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.black.cgColor
+        button.addTarget(self, action: #selector(endCallButtonTapped), for: .touchUpInside)
         return button
     }()
 
@@ -124,8 +120,14 @@ class CallViewController: UIViewController {
     override func viewDidLoad() {
         DDLogInfo("CallViewController/viewDidLoad")
         super.viewDidLoad()
-        view.backgroundColor = .feedBackground
+        view.backgroundColor = .black
         view.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+
+        let stationIdentification = UILabel()
+        stationIdentification.translatesAutoresizingMaskIntoConstraints = false
+        stationIdentification.text = Localizations.appNameHalloApp
+        stationIdentification.textColor = .white
+        stationIdentification.font = .systemFont(forTextStyle: .title3)
 
         let avatarView = AvatarView()
         avatarView.configure(with: peerUserID, using: MainAppContext.shared.avatarStore)
@@ -139,44 +141,57 @@ class CallViewController: UIViewController {
         buttonPanel.axis = .horizontal
         buttonPanel.distribution  = .equalSpacing
         buttonPanel.alignment = UIStackView.Alignment.center
-        buttonPanel.spacing   = 45.0
         buttonPanel.addArrangedSubview(micButton)
+        buttonPanel.addArrangedSubview(chatButton)
         buttonPanel.addArrangedSubview(speakerButton)
-        buttonPanel.addArrangedSubview(endCallButton)
+        if backAction == nil {
+            // Chat action currently requires being able to exit call screen
+            chatButton.isHidden = true
+        }
 
         // Text Label
         let peerNameLabel = UILabel()
         peerNameLabel.text = MainAppContext.shared.contactStore.fullName(for: peerUserID, showPushNumber: true)
-        peerNameLabel.font = UIFont.boldSystemFont(ofSize: 35.0)
+        peerNameLabel.font = .systemFont(ofSize: 30)
+        peerNameLabel.textColor = .white
         peerNameLabel.adjustsFontSizeToFitWidth = true
         peerNameLabel.textAlignment = .center
+        peerNameLabel.translatesAutoresizingMaskIntoConstraints = false
 
         // Full stack view: contains all the components
-        let fullCallView   = UIStackView(arrangedSubviews: [peerNameLabel, callStatusLabel, avatarView, buttonPanel])
-        fullCallView.axis  = .vertical
-        fullCallView.distribution  = .fillProportionally
-        fullCallView.alignment = .center
-        fullCallView.spacing   = 16.0
+        let fullCallView = UIStackView(arrangedSubviews: [stationIdentification, avatarView, peerNameLabel, callStatusLabel, buttonPanel])
         fullCallView.translatesAutoresizingMaskIntoConstraints = false
-
-        fullCallView.setCustomSpacing(35, after: callStatusLabel)
-        fullCallView.setCustomSpacing(185, after: avatarView)
+        fullCallView.axis = .vertical
+        fullCallView.distribution = .fill
+        fullCallView.alignment = .center
+        fullCallView.spacing = 36
+        fullCallView.setCustomSpacing(8, after: peerNameLabel)
 
         view.addSubview(fullCallView)
+        view.addSubview(endCallButton)
 
-        fullCallView.constrainMargins([.leading, .trailing], to: view)
+        fullCallView.constrain(anchor: .leading, to: view, constant: 36)
+        fullCallView.constrain(anchor: .trailing, to: view, constant: -36)
+        buttonPanel.constrain(dimension: .width, to: fullCallView)
+
+        endCallButton.constrain([.centerX], to: view)
+        NSLayoutConstraint.activate([
+            // Give end call button at least 16px of top padding...
+            endCallButton.topAnchor.constraint(greaterThanOrEqualTo: fullCallView.bottomAnchor, constant: 16),
+            // ... and make sure bottom is inside margins...
+            endCallButton.bottomAnchor.constraint(lessThanOrEqualTo: view.layoutMarginsGuide.bottomAnchor),
+            // ... but has at most 64px of bottom padding.
+            endCallButton.bottomAnchor.constraint(greaterThanOrEqualTo: view.layoutMarginsGuide.bottomAnchor, constant: -64),
+        ])
 
         if backAction == nil {
-            // Center the call view
-            fullCallView.constrain([.centerY], to: view)
+            fullCallView.constrainMargin(anchor: .top, to: view, constant: 44)
         } else {
             view.addSubview(backButton)
             backButton.constrainMargins([.top, .leading], to: view)
             backButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
             backButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
 
-            // Center the call view if possible (but make sure it's below the back button)
-            fullCallView.constrain([.centerY], to: view, priority: .defaultHigh)
             fullCallView.topAnchor.constraint(greaterThanOrEqualTo: backButton.bottomAnchor).isActive = true
         }
     }
@@ -184,6 +199,7 @@ class CallViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("CallViewController/viewWillAppear")
         super.viewWillAppear(animated)
+        updateCallStatusLabel()
     }
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
@@ -191,19 +207,17 @@ class CallViewController: UIViewController {
     }
 
     private func getCallStatusText() -> String {
-        if isOutgoing || useCallStatus {
-            return callStatus + " " + peerPhoneNumber + "..."
+        if isCallActive {
+            return durationString(seconds: callDurationSec)
+        } else if isOutgoing || useCallStatus {
+            return Localizations.callStatus(callStatus, for: peerPhoneNumber)
         } else {
-            return peerPhoneNumber + "..."
+            return Localizations.callIncoming
         }
     }
 
-    private func updateCallStatusLabel(seconds: Int) {
-        if isCallActive {
-            callStatusLabel.text = durationString(seconds: seconds)
-        } else {
-            callStatusLabel.text = getCallStatusText()
-        }
+    private func updateCallStatusLabel() {
+        callStatusLabel.text = getCallStatusText()
     }
 
     private func durationString(seconds : Int) -> String {
@@ -219,6 +233,11 @@ class CallViewController: UIViewController {
 
     // Call Actions.
 
+    @objc func chatButtonTapped(sender: UIButton) {
+        MainAppContext.shared.openChatThreadRequest.send(peerUserID)
+        backAction?()
+    }
+
     @objc func micButtonTapped(sender: UIButton) {
         muted = !muted
         DDLogInfo("CallViewController/micButtonTapped/muted: \(muted)")
@@ -229,11 +248,8 @@ class CallViewController: UIViewController {
                 case .failure(let error):
                     DDLogError("CallViewController/endCall/failed: \(error)")
                 case .success:
-                    if self.muted {
-                        self.micButton.setImage(self.micOffImage, for: .normal)
-                    } else {
-                        self.micButton.setImage(self.micOnImage, for: .normal)
-                    }
+                    let micStatusImage = self.muted ? self.micOffImage : self.micOnImage
+                    self.micButton.image = micStatusImage
                 }
             }
         }
@@ -249,11 +265,8 @@ class CallViewController: UIViewController {
                 case .failure(let error):
                     DDLogError("CallViewController/endCall/failed: \(error)")
                 case .success:
-                    if self.speakerOn {
-                        self.speakerButton.setImage(self.speakerOnImage, for: .normal)
-                    } else {
-                        self.speakerButton.setImage(self.speakerOffImage, for: .normal)
-                    }
+                    let speakerStatusImage = self.speakerOn ? self.speakerOnImage : self.speakerOffImage
+                    self.speakerButton.image = speakerStatusImage
                 }
             }
         }
@@ -285,30 +298,30 @@ extension CallViewController: CallViewDelegate {
     }
 
     func callRinging() {
-        callStatus = "ringing"
+        callStatus = .ringing
         DispatchQueue.main.async {
-            self.updateCallStatusLabel(seconds: self.callDurationSec)
+            self.updateCallStatusLabel()
         }
     }
 
     func callConnected() {
-        callStatus = "connecting"
+        callStatus = .connecting
         useCallStatus = true
         DispatchQueue.main.async {
-            self.updateCallStatusLabel(seconds: self.callDurationSec)
+            self.updateCallStatusLabel()
         }
     }
 
     func callActive() {
         useCallStatus = false
         DispatchQueue.main.async {
-            self.updateCallStatusLabel(seconds: self.callDurationSec)
+            self.updateCallStatusLabel()
         }
     }
 
     func callDurationChanged(seconds: Int) {
         DispatchQueue.main.async {
-            self.updateCallStatusLabel(seconds: seconds)
+            self.updateCallStatusLabel()
         }
     }
 
@@ -316,10 +329,98 @@ extension CallViewController: CallViewDelegate {
     }
 
     func callReconnecting() {
-        callStatus = "reconnecting"
+        callStatus = .reconnecting
         useCallStatus = true
         DispatchQueue.main.async {
-            self.updateCallStatusLabel(seconds: self.callDurationSec)
+            self.updateCallStatusLabel()
+        }
+    }
+}
+
+final class CallViewButton: UIControl {
+    init(image: UIImage?, title: String, circleColor: UIColor = UIColor.white.withAlphaComponent(0.1), diameter: CGFloat = 80) {
+        self.diameter = diameter
+        super.init(frame: .zero)
+        circleView.backgroundColor = circleColor
+        imageView.image = image
+        label.text = title
+        addSubview(circleView)
+        addSubview(label)
+        circleView.isUserInteractionEnabled = false
+        circleView.constrain([.top, .leading, .trailing], to: self)
+        label.topAnchor.constraint(equalTo: circleView.bottomAnchor, constant: 4).isActive = true
+        label.constrain([.bottom, .leading, .trailing], to: self)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    let diameter: CGFloat
+
+    var image: UIImage? {
+        get { imageView.image }
+        set { imageView.image = newValue }
+    }
+
+    private let imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.tintColor = .white
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+
+    private let label: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(forTextStyle: .subheadline, weight: .medium)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private lazy var circleView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(imageView)
+        view.layer.cornerRadius = diameter / 2
+
+        imageView.heightAnchor.constraint(equalToConstant: 32).isActive = true
+        imageView.widthAnchor.constraint(equalToConstant: 32).isActive = true
+        imageView.constrain([.centerX, .centerY], to: view)
+
+        view.heightAnchor.constraint(equalToConstant: diameter).isActive = true
+        view.widthAnchor.constraint(equalToConstant: diameter).isActive = true
+        return view
+    }()
+}
+
+private extension Localizations {
+    static var callMute: String {
+        NSLocalizedString("call.button.mute", value: "mute", comment: "Label for button that toggles mute status during call")
+    }
+    static var callChat: String {
+        NSLocalizedString("call.button.chat", value: "chat", comment: "Label for button that opens chat during call")
+    }
+    static var callSpeaker: String {
+        NSLocalizedString("call.button.speaker", value: "speaker", comment: "Label for button that toggles speakerphone status during call")
+    }
+    static var callEnd: String {
+        NSLocalizedString("call.button.end", value: "end call", comment: "Label for button that ends call")
+    }
+    static var callIncoming: String {
+        NSLocalizedString("call.status.incoming", value: "incoming call", comment: "Status displayed when incoming call starts")
+    }
+    static func callStatus(_ status: CallStatus, for phoneNumber: String) -> String {
+        switch status {
+        case .calling:
+            return NSLocalizedString("call.status.calling", value: "calling...", comment: "Status displayed when outgoing call starts")
+        case .ringing:
+            return NSLocalizedString("call.status.ringing", value: "ringing...", comment: "Status displayed while outgoing call is ringing")
+        case .connecting:
+            return NSLocalizedString("call.status.connecting", value: "connecting...", comment: "Status displayed while call is connecting")
+        case .reconnecting:
+            return NSLocalizedString("call.status.reconnecting", value: "reconnecting...", comment: "Status displayed when reconnecting during call")
         }
     }
 }

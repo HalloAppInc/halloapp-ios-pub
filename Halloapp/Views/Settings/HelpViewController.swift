@@ -255,10 +255,6 @@ extension Localizations {
         NSLocalizedString("home.calls.notice.text", value: "You dont have an active call at the moment.", comment: "Text shown to users trying to open the call screen.")
     }
 
-    static var buttonOk: String {
-        NSLocalizedString("home.calls.button.exit", value: "OK", comment: "Button to dismiss the alert.")
-    }
-
     static var failedCallTitle: String {
         NSLocalizedString("home.calls.fail.title", value: "Failed placing a call.", comment: "Title of failed call screen alert.")
     }

@@ -30,7 +30,6 @@ final class ProfileHeaderViewController: UIViewController {
     }
     
     var name: String? { headerView.name }
-    var userId: UserID = ""
     weak var delegate: ProfileHeaderDelegate?
 
     private var cancellableSet: Set<AnyCancellable> = []
@@ -43,6 +42,9 @@ final class ProfileHeaderViewController: UIViewController {
         let screenWidth = UIScreen.main.bounds.width
         let headerView = ProfileHeaderView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: screenWidth))
         headerView.isEditingAllowed = isEditingAllowed
+        headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
+        headerView.callButton.addTarget(self, action: #selector(callButtonTapped), for: .touchUpInside)
+        headerView.unblockButton.addTarget(self, action: #selector(unblockButtonTappedprofile), for: .touchUpInside)
         view = headerView
     }
 
@@ -66,24 +68,14 @@ final class ProfileHeaderViewController: UIViewController {
 
         let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID)
 
-        let isBlockedFlag = isBlocked(userId: userId)
+        headerView.isBlocked = isBlocked(userId: userID)
+        headerView.isInAddressBook = isContactInAddressBook
         var showPhoneLabel = false
 
         if isContactInAddressBook {
             if let contact = MainAppContext.shared.contactStore.contact(withUserId: userID), let phoneNumber = contact.phoneNumber {
                 headerView.phoneLabel.text = phoneNumber.formattedPhoneNumber
                 showPhoneLabel = true
-            }
-          
-            if !isBlockedFlag {
-                headerView.messageButton.isHidden = false
-                headerView.canMessage = true
-                headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
-                headerView.unblockButton.isHidden = true
-            } else {
-                headerView.unblockButton.isHidden = false
-                headerView.messageButton.isHidden = true
-                headerView.unblockButton.addTarget(self, action: #selector(unblockButtonTappedprofile), for: .touchUpInside)
             }
         } else {
             if let pushNumber = MainAppContext.shared.contactStore.pushNumber(userID) {
@@ -114,8 +106,9 @@ final class ProfileHeaderViewController: UIViewController {
     }
     
     @objc func unblockButtonTappedprofile() {
-        
-        let unBlockMessage = Localizations.unBlockMessage(username: MainAppContext.shared.contactStore.fullName(for: userId))
+        guard let userID = headerView.userID else { return }
+
+        let unBlockMessage = Localizations.unBlockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID))
 
         let alert = UIAlertController(title: nil, message: unBlockMessage, preferredStyle: .actionSheet)
         let button = UIAlertAction(title: Localizations.unBlockButton, style: .destructive) { [weak self] _ in
@@ -124,11 +117,10 @@ final class ProfileHeaderViewController: UIViewController {
             guard let blockedList = privacySettings.blocked else { return }
             
             var newBlockList = blockedList.userIds
-            newBlockList.removeAll { value in return value == self.userId}
+            newBlockList.removeAll { $0 == userID }
             privacySettings.replaceUserIDs(in: blockedList, with: newBlockList)
             
-            self.headerView.updateBlockedStatus()
-            self.headerView.messageButton.addTarget(self, action: #selector(self.openChatView), for: .touchUpInside)
+            self.headerView.isBlocked = false
             self.delegate?.profileHeaderDidTapUnblock(self)
         }
         alert.addAction(button)
@@ -229,6 +221,41 @@ final class ProfileHeaderViewController: UIViewController {
         guard let userID = headerView.userID else { return }
 
         navigationController?.pushViewController(ChatViewController(for: userID), animated: true)
+    }
+
+    @objc private func callButtonTapped() {
+        guard let peerUserID = headerView.userID else {
+            DDLogInfo("ProfileHeader/callButtonTapped/peerUserID is empty")
+            return
+        }
+        if peerUserID == MainAppContext.shared.userData.userId {
+            DDLogInfo("ProfileHeader/callButtonTapped/cannot call oneself")
+            return
+        }
+        MainAppContext.shared.callManager.startCall(to: peerUserID) { [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    DDLogInfo("ProfileHeader/startCall/success")
+                case .failure:
+                    DDLogInfo("ProfileHeader/startCall/failure")
+                    let alert = self.getFailedCallAlertController()
+                    self.present(alert, animated: true)
+                }
+            }
+        }
+    }
+
+    private func getFailedCallAlertController() -> UIAlertController {
+        let alert = UIAlertController(
+            title: Localizations.failedCallTitle,
+            message: Localizations.failedCallNoticeText,
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
+            self.dismiss(animated: true, completion: nil)
+        }))
+        return alert
     }
     
     func openGroupsCommonPage() {
@@ -345,13 +372,15 @@ private final class ProfileHeaderView: UIView {
         }
     }
     
-    var canMessage: Bool = false {
+    var isBlocked: Bool = false {
         didSet {
-            if canMessage {
-                messageButton.isHidden = false
-            } else {
-                messageButton.isHidden = true
-            }
+            updateActions()
+        }
+    }
+
+    var isInAddressBook: Bool = false {
+        didSet {
+            updateActions()
         }
     }
     
@@ -375,6 +404,12 @@ private final class ProfileHeaderView: UIView {
         avatarViewButtonHeightAnchor?.constant = 80
         nameColumn.alignment = .leading
     }
+
+    private func updateActions() {
+        actionPanel.isHidden = isBlocked || !isInAddressBook
+        unblockButton.isHidden = !isBlocked
+        callButton.isHidden = !ServerProperties.isAudioCallsEnabled
+    }
     
     private func addCameraOverlayToAvatarViewButton() {
         let overlayViewDiameter: CGFloat = 27
@@ -394,11 +429,6 @@ private final class ProfileHeaderView: UIView {
             cameraOverlayView.trailingAnchor.constraint(equalTo: avatarViewButton.avatarView.trailingAnchor, constant: 8)
         ])
         
-    }
-    
-    func updateBlockedStatus() {
-        self.canMessage = true
-        self.unblockButton.isHidden = true
     }
 
     private var vStackTopAnchorConstraint: NSLayoutConstraint?
@@ -450,6 +480,8 @@ private final class ProfileHeaderView: UIView {
         vStackBottomAnchorConstraint?.isActive = true
         
         vStack.constrainMargins([ .leading, .trailing ], to: self)
+
+        updateActions()
     }
     
     private lazy var vStack: UIStackView = {
@@ -462,7 +494,7 @@ private final class ProfileHeaderView: UIView {
     }()
     
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, phoneLabel, messageButton, unblockButton ])
+        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, phoneLabel, actionPanel, unblockButton ])
         view.axis = .vertical
         view.alignment = .center
         view.spacing = 5
@@ -471,32 +503,50 @@ private final class ProfileHeaderView: UIView {
     
         return view
     }()
+
+    private(set) lazy var actionPanel: UIView = {
+        let view = UIStackView(arrangedSubviews: [messageButton, callButton])
+        view.axis = .horizontal
+        view.spacing = 8
+        return view
+    }()
     
-    private(set) lazy var messageButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 10)
-        button.tintColor = .primaryBlue
-        
-        button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
-        button.setTitle(Localizations.profileHeaderMessageUser, for: .normal)
-        
-        button.isHidden = true
+    private(set) lazy var messageButton: UIControl = {
+        let button = Self.makeActionButton(
+            image: .init(systemName: "message.fill")?.withRenderingMode(.alwaysTemplate),
+            title: Localizations.profileHeaderMessageUser)
         return button
-        
+    }()
+
+    private(set) lazy var callButton: UIControl = {
+        let button = Self.makeActionButton(
+            image: .init(systemName: "phone.fill")?.withRenderingMode(.alwaysTemplate),
+            title: Localizations.profileHeaderCallUser)
+        return button
     }()
     
     private(set) lazy var unblockButton: UIButton = {
         let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
         button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 10)
         button.tintColor = .primaryBlue
         
         button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
         button.setTitle(Localizations.unBlockedUser, for: .normal)
-        
-        button.isHidden = true
         return button
-        
     }()
+
+    static func makeActionButton(image: UIImage?, title: String) -> UIControl {
+        let button = LabeledIconButton(image: image, title: title)
+        button.heightAnchor.constraint(greaterThanOrEqualToConstant: 55).isActive = true
+        button.widthAnchor.constraint(greaterThanOrEqualToConstant: 65).isActive = true
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = .feedPostBackground
+        button.layer.cornerRadius = 10
+        button.layer.borderWidth = 0.5
+        button.layer.borderColor = UIColor.primaryBlackWhite.withAlphaComponent(0.1).cgColor
+        return button
+    }
 }
 
 extension ProfileHeaderViewController: MediaExplorerTransitionDelegate {
@@ -527,7 +577,11 @@ extension Localizations {
     }
     
     static var profileHeaderMessageUser: String {
-        NSLocalizedString("profile.header.message.user", value: "Message", comment: "This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun.")
+        NSLocalizedString("profile.header.message.user", value: "message", comment: "This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun.")
+    }
+
+    static var profileHeaderCallUser: String {
+        NSLocalizedString("profile.header.call.user", value: "call", comment: "This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun.")
     }
     
     static var unBlockedUser: String {
@@ -537,4 +591,53 @@ extension Localizations {
     static var groupsInCommonButtonLabel: String {
         NSLocalizedString("profile.groups.in.common", value: "Groups In Common", comment: "A label for the button which leads to the page showing groups in common")
     }
+}
+
+final class LabeledIconButton: UIControl {
+
+    init(image: UIImage?, title: String) {
+        super.init(frame: .zero)
+        imageView.image = image
+        label.text = title
+        addSubview(contentView)
+        contentView.isUserInteractionEnabled = false
+        contentView.constrain([.centerX, .centerY], to: self)
+        NSLayoutConstraint.activate([
+            contentView.leadingAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.leadingAnchor),
+            contentView.trailingAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.trailingAnchor),
+            contentView.bottomAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.bottomAnchor),
+            contentView.topAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.topAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private let imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.tintColor = .systemBlue
+        return imageView
+    }()
+    private let label: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(forTextStyle: .caption2, weight: .medium)
+        label.textColor = .systemBlue
+        return label
+    }()
+    private lazy var contentView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(imageView)
+        view.addSubview(label)
+
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.constrain([.top, .centerX], to: view)
+        imageView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor).isActive = true
+
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.constrain([.bottom, .leading, .trailing], to: view)
+        label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 4).isActive = true
+        return view
+    }()
 }

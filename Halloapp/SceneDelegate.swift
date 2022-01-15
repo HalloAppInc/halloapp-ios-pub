@@ -328,7 +328,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
             title: Localizations.failedCallTitle,
             message: Localizations.failedCallNoticeText,
             preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: Localizations.buttonOk, style: .default, handler: { action in
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
             DDLogInfo("SceneDelegate/failedCallAlertController/dismiss")
         }))
         return alert

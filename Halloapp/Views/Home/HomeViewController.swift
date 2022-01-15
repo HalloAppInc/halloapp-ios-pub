@@ -132,6 +132,12 @@ class HomeViewController: UITabBarController {
         })
 
         cancellableSet.insert(
+            MainAppContext.shared.openChatThreadRequest.sink { [weak self] (threadID) in
+                guard let self = self else { return }
+                self.switchTo(tab: .chat)
+        })
+
+        cancellableSet.insert(
             MainAppContext.shared.service.didConnect.sink { [weak self] in
                 guard let self = self else { return }
                 

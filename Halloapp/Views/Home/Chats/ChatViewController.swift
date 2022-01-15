@@ -405,7 +405,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             title: Localizations.failedCallTitle,
             message: Localizations.failedCallNoticeText,
             preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: Localizations.buttonOk, style: .default, handler: { action in
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
             self.dismiss(animated: true, completion: nil)
         }))
         return alert
