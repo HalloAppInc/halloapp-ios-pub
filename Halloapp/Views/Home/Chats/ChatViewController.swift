@@ -1117,10 +1117,12 @@ fileprivate extension ChatViewController {
     // message not yet fetched
     private func setupChatMessageFetchedResultsController() {
         let fetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "(fromUserId = %@ AND toUserId = %@) || (toUserId = %@ && fromUserId = %@)", self.fromUserId!, MainAppContext.shared.userData.userId, self.fromUserId!, AppContext.shared.userData.userId)
+        guard let userID = fromUserId else { return }
+        let appUserID = MainAppContext.shared.userData.userId
+        fetchRequest.predicate = NSPredicate(format: "(fromUserId = %@ AND toUserId = %@) || (toUserId = %@ && fromUserId = %@)", userID, appUserID, userID, appUserID)
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true),
-            NSSortDescriptor(keyPath: \ChatMessage.id, ascending: true) // if timestamps are the same, break tie
+            NSSortDescriptor(keyPath: \ChatMessage.serialID, ascending: true) // if timestamps are the same, break tie
         ]
 
         fetchedResultsController = NSFetchedResultsController<ChatMessage>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext, sectionNameKeyPath: nil, cacheName: nil)
@@ -1140,7 +1142,7 @@ fileprivate extension ChatViewController {
     private func setupChatEventFetchedResultsController() {
         guard let userID = fromUserId else { return }
         let fetchRequest: NSFetchRequest<ChatEvent> = ChatEvent.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userID = %@", userID) // remember to add event filter
+        fetchRequest.predicate = NSPredicate(format: "userID = %@", userID)
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(keyPath: \ChatEvent.timestamp, ascending: true)
         ]

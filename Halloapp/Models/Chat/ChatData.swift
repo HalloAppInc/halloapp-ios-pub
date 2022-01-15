@@ -2831,8 +2831,13 @@ extension ChatData {
     func deleteChat(chatThreadId: String) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            // delete thread
+
+            // delete all chat events and chat thread
             if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatThreadId, in: managedObjectContext) {
+                if let chatWithUserId = chatThread.chatWithUserId {
+                    self.deleteChatEvents(userID: chatWithUserId)
+                }
+
                 managedObjectContext.delete(chatThread)
             }
 
@@ -2853,6 +2858,7 @@ extension ChatData {
                 DDLogError("ChatData/delete-messages/error  [\(error)]")
                 return
             }
+            
             self.save(managedObjectContext)
 
             DispatchQueue.main.async { [weak self] in
@@ -3434,12 +3440,41 @@ extension ChatData {
 
     private func recordNewChatEvent(userID: UserID, type: ChatEventType) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             DDLogInfo("ChatData/recordNewChatEvent/for: \(userID)")
-          
+
+            let appUserID = MainAppContext.shared.userData.userId
+            let predicate = NSPredicate(format: "(fromUserId = %@ AND toUserId = %@) || (toUserId = %@ && fromUserId = %@)", userID, appUserID, userID, appUserID)
+            guard self.chatMessages(predicate: predicate, limit: 1, in: managedObjectContext).count > 0 else {
+                DDLogInfo("ChatData/recordNewChatEvent/\(userID)/no messages yet, skip recording keys change event")
+                return
+            }
+
             let chatEvent = ChatEvent(context: managedObjectContext)
             chatEvent.userID = userID
             chatEvent.type = type
             chatEvent.timestamp = Date()
+            self.save(managedObjectContext)
+        }
+    }
+
+    private func deleteChatEvents(userID: UserID) {
+        DDLogInfo("ChatData/deleteChatEvents")
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            let fetchRequest = NSFetchRequest<ChatEvent>(entityName: ChatEvent.entity().name!)
+            fetchRequest.predicate = NSPredicate(format: "userID = %@", userID)
+
+            do {
+                let events = try managedObjectContext.fetch(fetchRequest)
+                DDLogInfo("ChatData/events/deleteChatEvents/count=[\(events.count)]")
+                events.forEach {
+                    managedObjectContext.delete($0)
+                }
+            }
+            catch {
+                DDLogError("ChatData/events/deleteChatEvents/error  [\(error)]")
+                return
+            }
             self?.save(managedObjectContext)
         }
     }
