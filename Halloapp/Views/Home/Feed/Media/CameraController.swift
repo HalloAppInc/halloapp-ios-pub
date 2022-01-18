@@ -208,6 +208,19 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
 
     private func startCaptureSession() {
         guard let captureSession = captureSession else { return }
+        if (previewLayer == nil) {
+            DDLogInfo("CameraController/startCaptureSession create preview layer")
+            previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+        }
+        DDLogInfo("CameraController/startCaptureSession attach preview layer")
+        view.layer.addSublayer(previewLayer!)
+        view.layer.insertSublayer(timerLabel.layer, above: previewLayer)
+        previewLayer!.frame = view.layer.frame
+        timerLabel.layer.frame = CGRect(
+            x: previewLayer!.frame.minX,
+            y: previewLayer!.frame.minY,
+            width: previewLayer!.frame.width,
+            height: 30)
         DispatchQueue.global(qos: .userInitiated).async{
             if !captureSession.isRunning {
                 DDLogInfo("CameraController/startCaptureSession startRunning")
@@ -216,19 +229,7 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
                     self.sessionIsStarted = true
                     NotificationCenter.default.addObserver(
                         self, selector: #selector(self.sessionWasInterrupted(_:)), name: NSNotification.Name.AVCaptureSessionWasInterrupted, object: nil)
-                    if (self.previewLayer == nil) {
-                        DDLogInfo("CameraController/startCaptureSession create preview layer")
-                        self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-                    }
-                    DDLogInfo("CameraController/startCaptureSession attach preview layer")
-                    self.view.layer.addSublayer(self.previewLayer!)
-                    self.view.layer.insertSublayer(self.timerLabel.layer, above: self.previewLayer)
-                    self.previewLayer!.frame = self.view.layer.frame
-                    self.timerLabel.layer.frame = CGRect(
-                        x: self.previewLayer!.frame.minX,
-                        y: self.previewLayer!.frame.minY,
-                        width: self.previewLayer!.frame.width,
-                        height: 30)
+                    DDLogInfo("CameraController/startCaptureSession done")
                 }
             }
         }
@@ -245,6 +246,7 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
             if captureSession.isRunning {
                 DDLogInfo("CameraController/stopCaptureSession stopRunning")
                 captureSession.stopRunning()
+                DDLogInfo("CameraController/stopCaptureSession done")
             }
         }
     }
