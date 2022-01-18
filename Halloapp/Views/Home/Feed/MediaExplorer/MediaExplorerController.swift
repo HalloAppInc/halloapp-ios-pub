@@ -551,7 +551,12 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard !isTransition else { return }
-        currentIndex = Int(scrollView.contentOffset.x / scrollView.frame.width)
+
+        let rem = scrollView.contentOffset.x.truncatingRemainder(dividingBy: scrollView.frame.width)
+
+        if rem == 0 {
+            currentIndex = Int(scrollView.contentOffset.x / scrollView.frame.width)
+        }
     }
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -580,6 +585,12 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return collectionView.frame.size
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        if let cell = cell as? MediaExplorerVideoCell {
+            cell.pause()
+        }
     }
 
     func explorerMedia(at index: Int) -> MediaExplorerMedia {
