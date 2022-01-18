@@ -12,11 +12,13 @@ public struct GroupListItem: Codable {
     public var id: GroupID
     public var name: String
     public var users: [UserID]
+    public var lastActivityTimestamp: Date?
 
-    public init(id: GroupID, name: String, users: [UserID]) {
+    public init(id: GroupID, name: String, users: [UserID], lastActivityTimestamp: Date?) {
         self.id = id
         self.name = name
         self.users = users
+        self.lastActivityTimestamp = lastActivityTimestamp
     }
 
     private static var fileUrl: URL {
@@ -30,6 +32,8 @@ public struct GroupListItem: Codable {
         }
 
         do {
+            // file:///private/var/mobile/Containers/Shared/AppGroup/C5984765-4F4C-437C-92AC-468B65B4C264/group-list.json
+            DDLogInfo("group-list/will be loaded from \(fileUrl.description)")
             return try JSONDecoder().decode([GroupListItem].self, from: data)
         } catch {
             DDLogError("group-list/load/error \(error)")

@@ -367,6 +367,8 @@
 		F4F157DA276AA39F002FDB9E /* DeleteAccountPhoneNumberTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */; };
 		F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
+		F82D303727722522006D1245 /* ShareDestinationRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82D303627722522006D1245 /* ShareDestinationRowView.swift */; };
+		F82D303A27733437006D1245 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = F82D303927733437006D1245 /* Localizable.stringsdict */; };
 		F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */; };
 		F850677826A55DAC00A120EC /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F850677726A55DAC00A120EC /* AudioRecorder.swift */; };
 		F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F850677926A7FDDF00A120EC /* AudioView.swift */; };
@@ -998,6 +1000,8 @@
 		F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountPhoneNumberTextField.swift; sourceTree = "<group>"; };
 		F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountTextView.swift; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
+		F82D303627722522006D1245 /* ShareDestinationRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareDestinationRowView.swift; sourceTree = "<group>"; };
+		F82D303927733437006D1245 /* Localizable.stringsdict */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; path = Localizable.stringsdict; sourceTree = "<group>"; };
 		F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoEditViewController.swift; sourceTree = "<group>"; };
 		F850677726A55DAC00A120EC /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
 		F850677926A7FDDF00A120EC /* AudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioView.swift; sourceTree = "<group>"; };
@@ -1148,12 +1152,14 @@
 				24D743DD24B3D199001111BF /* Info.plist */,
 				687D5EC5265317F8008A3A65 /* InfoPlist.strings */,
 				7688FA3E25489E26006B86B3 /* Localizable.strings */,
+				F82D303927733437006D1245 /* Localizable.stringsdict */,
 				24009E8F24B6690E00155DE2 /* Share Extension.entitlements */,
 				24009EB724BE399F00155DE2 /* ShareComposerViewController.swift */,
 				24009EB924BE3FA200155DE2 /* ShareDestinationViewController.swift */,
 				24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */,
 				F8DFCD87262EF4C0003F850F /* ShareViewController.swift */,
 				F8B0F7602745785400235CCF /* ShareDataLoader.swift */,
+				F82D303627722522006D1245 /* ShareDestinationRowView.swift */,
 			);
 			path = "Share Extension";
 			sourceTree = "<group>";
@@ -2383,6 +2389,7 @@
 				24AA69DC24DDC6DA00ED65CE /* SharedAssets.xcassets in Resources */,
 				2446D66924C7E48E005BAD3C /* ExtensionPreprocessing.js in Resources */,
 				687D5EC7265317F8008A3A65 /* InfoPlist.strings in Resources */,
+				F82D303A27733437006D1245 /* Localizable.stringsdict in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2505,6 +2512,7 @@
 				76B5B524250086330055E712 /* UIColor.swift in Sources */,
 				2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */,
 				24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */,
+				F82D303727722522006D1245 /* ShareDestinationRowView.swift in Sources */,
 				2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */,
 				F86919DD26395E2500B01306 /* VideoView.swift in Sources */,
 				F86919DF26395E8D00B01306 /* BlurView.swift in Sources */,

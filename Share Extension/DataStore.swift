@@ -13,7 +13,7 @@ import CoreData
 class DataStore: ShareExtensionDataStore {
 
     private let service: CoreService
-    private let mediaUploader: MediaUploader
+    let mediaUploader: MediaUploader
     private let imageServer = ImageServer()
 
     init(service: CoreService) {

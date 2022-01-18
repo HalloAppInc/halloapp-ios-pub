@@ -10,25 +10,6 @@ import Core
 import SwiftUI
 
 public extension Localizations {
-
-    static var feedPrivacyShareWithAllContacts: String {
-        return NSLocalizedString("feed.privacy.descr.all",
-                                 value: "Share with all my contacts",
-                                 comment: "Describes what 'All Contacts' feed privacy setting means.")
-    }
-
-    static var feedPrivacyShareWithContactsExcept: String {
-        return NSLocalizedString("feed.privacy.descr.except",
-                                 value: "Share with my contacts except people I select",
-                                 comment: "Describes what 'All Contacts' feed privacy setting means.")
-    }
-
-    static var feedPrivacyShareWithSelected: String {
-        return NSLocalizedString("feed.privacy.descr.only",
-                                 value: "Only share with selected contacts",
-                                 comment: "Describes what 'All Contacts' feed privacy setting means.")
-    }
-
     static var header: String {
         NSLocalizedString("feed.privacy.header", value: "Who will see my posts", comment: "Header describing what these options are for")
     }

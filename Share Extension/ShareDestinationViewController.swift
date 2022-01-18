@@ -8,9 +8,9 @@
 import CocoaLumberjackSwift
 import Combine
 import Core
+import Intents
 import UIKit
 import Social
-import Intents
 
 private extension Localizations {
     static var title: String {
@@ -22,22 +22,28 @@ private extension Localizations {
     }
 
     static var contacts: String {
-        NSLocalizedString("share.destination.contacts", value: "Contacts", comment: "Contacts category label")
+        NSLocalizedString("share.destination.contacts", value: "Recent Contacts", comment: "Contacts category label")
     }
 
     static var groups: String {
-        NSLocalizedString("share.destination.groups", value: "Groups", comment: "Groups category label")
+        NSLocalizedString("share.destination.groups", value: "Your Groups", comment: "Groups category label")
+    }
+
+    static var newPost: String {
+        NSLocalizedString("share.destination.new", value: "New Post", comment: "Share on the home feed selection cell")
     }
 }
 
 class ShareDestinationViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     private let contacts: [ABContact]
-    private let groups: [GroupListItem]
+    private let allGroups: [GroupListItem]
+    private var groups: [GroupListItem]
     private var filteredContacts: [ABContact] = []
     private var filteredGroups: [GroupListItem] = []
     private var searchController: UISearchController!
     private var selected: [ShareDestination] = []
     private var cancellableSet: Set<AnyCancellable> = []
+    private var hasMoreGroups: Bool = true
 
     private var isFiltering: Bool {
         return searchController.isActive && !(searchController.searchBar.text?.isEmpty ?? true)
@@ -47,66 +53,27 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
         let tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.allowsMultipleSelection = true
+        tableView.backgroundColor = .primaryBg
+        tableView.rowHeight = 50
         tableView.register(DestinationCell.self, forCellReuseIdentifier: DestinationCell.reuseIdentifier)
+        tableView.keyboardDismissMode = .onDrag
         tableView.delegate = self
         tableView.dataSource = self
 
         return tableView
     } ()
 
-    private lazy var selectionRow: UICollectionView = {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        layout.itemSize = CGSize(width: 100, height: 100)
+    private lazy var selectionRow: ShareDestinationRowView = {
+        let rowView = ShareDestinationRowView() { [weak self] index in
+            guard let self = self else { return }
 
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.backgroundColor = .primaryBg
-
-        collectionView.register(SelectionViewCell.self, forCellWithReuseIdentifier: SelectionViewCell.reuseIdentifier)
-
-        let borderFrame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 0)
-        let borderPath = UIBezierPath(rect: borderFrame.insetBy(dx: -500, dy: 0))
-        let borderLayer = CAShapeLayer()
-        borderLayer.frame = borderFrame
-        borderLayer.path = borderPath.cgPath
-        borderLayer.strokeColor = UIColor.secondarySystemGroupedBackground.cgColor
-        borderLayer.lineWidth = 1
-        borderLayer.fillColor = UIColor.clear.cgColor
-        collectionView.layer.addSublayer(borderLayer)
-
-        return collectionView
-    } ()
-
-    private lazy var selectionDataSource: UICollectionViewDiffableDataSource<Int, ShareDestination> = {
-        UICollectionViewDiffableDataSource<Int, ShareDestination>(collectionView: selectionRow) { [weak self] collectionView, indexPath, destination in
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SelectionViewCell.reuseIdentifier, for: indexPath) as? SelectionViewCell else {
-                return nil
-            }
-
-            switch destination {
-            case .feed:
-                cell.configure("Home")
-            case .group(let group):
-                cell.configure(group)
-            case .contact(let contact):
-                cell.configure(contact)
-            }
-
-            cell.removeAction = { [weak self] in
-                guard let self = self else { return }
-                guard let idx = self.selected.firstIndex(where: { $0 == destination }) else { return }
-
-                self.selected.remove(at: idx)
-                self.updateNextBtn()
-                self.updateSelectionRow()
-                self.tableView.reloadData()
-                self.reloadSelection()
-            }
-
-            return cell
+            self.selected.remove(at: index)
+            self.updateNextBtn()
+            self.updateSelectionRow()
+            self.tableView.reloadData()
         }
+
+        return rowView
     } ()
 
     private lazy var selectionRowHeightConstraint: NSLayoutConstraint = {
@@ -119,7 +86,12 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     
     init() {
         contacts = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: true)
-        groups = GroupListItem.load()
+        allGroups = GroupListItem.load().sorted {
+            ($0.lastActivityTimestamp ?? Date.distantPast) > ($1.lastActivityTimestamp ?? Date.distantPast)
+        }
+
+        hasMoreGroups = allGroups.count > 6
+        groups = hasMoreGroups ? [GroupListItem](allGroups[..<6]) : allGroups
 
         super.init(nibName: nil, bundle: nil)
 
@@ -138,7 +110,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
 
         setupSearch()
 
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .primaryBg
         view.addSubview(tableView)
         view.addSubview(selectionRow)
 
@@ -223,26 +195,22 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     }
 
     private func updateSelectionRow() {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, ShareDestination>()
-        snapshot.appendSections([0])
-        snapshot.appendItems(selected)
-
-        if self.selected.count > 0 && selectionRowHeightConstraint.constant == 0 {
+        if selected.count > 0 && selectionRowHeightConstraint.constant == 0 {
             UIView.animate(withDuration: 0.3, animations: {
                 self.selectionRowHeightConstraint.constant = 100
                 self.selectionRow.layoutIfNeeded()
             }) { _ in
-                self.selectionDataSource.apply(snapshot, animatingDifferences: false)
+                self.selectionRow.update(with: self.selected)
             }
-        } else if self.selected.count == 0 && selectionRowHeightConstraint.constant > 0 {
-            selectionDataSource.apply(snapshot, animatingDifferences: true) {
+        } else if selected.count == 0 && selectionRowHeightConstraint.constant > 0 {
+            selectionRow.update(with: self.selected)
+
+            UIView.animate(withDuration: 0.3) {
                 self.selectionRowHeightConstraint.constant = 0
                 self.selectionRow.layoutIfNeeded()
             }
         } else {
-            self.selectionDataSource.apply(snapshot, animatingDifferences: true) {
-                self.selectionRow.scrollToItem(at: IndexPath(row: self.selected.count - 1, section: 0), at: .right, animated: true)
-            }
+            selectionRow.update(with: self.selected)
         }
     }
 
@@ -294,12 +262,6 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
         }
     }
 
-    private func reloadSelection() {
-        for destination in selected {
-            tableView.selectRow(at: indexPath(for: destination), animated: false, scrollPosition: .none)
-        }
-    }
-
     private func setupSearch() {
         searchController = UISearchController(searchResultsController: nil)
         searchController.searchResultsUpdater = self
@@ -346,41 +308,71 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: DestinationCell.reuseIdentifier, for: indexPath) as! DestinationCell
 
-        switch indexPath.section {
-        case 0:
-            cell.configure(Localizations.home)
-        case 1:
-            let group = isFiltering ? filteredGroups[indexPath.row] : groups[indexPath.row]
-            cell.configure(group)
-        case 2:
-            let contact = isFiltering ? filteredContacts[indexPath.row] : contacts[indexPath.row]
-            cell.configure(contact)
-        default:
-            break
+        guard let destination = destinationForRow(at: indexPath) else { return cell }
+        let isSelected = selected.contains { $0 == destination }
+
+        switch destination {
+        case .feed:
+            cell.configureHome(isSelected: isSelected) {
+                // TODO
+            }
+        case .group(let group):
+            cell.configure(group, isSelected: isSelected)
+        case .contact(let contact):
+            cell.configure(contact, isSelected: isSelected)
         }
 
         return cell
     }
 
     // MARK: UITableViewDelegate
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let destination = destinationForRow(at: indexPath) else { return }
 
-        selected.append(destination)
+    func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+        guard let destination = destinationForRow(at: indexPath) else { return nil }
+
+        if let idx = selected.firstIndex(where: { $0 == destination }) {
+            selected.remove(at: idx)
+        } else {
+            selected.append(destination)
+        }
+
         updateNextBtn()
         updateSelectionRow()
-
         searchController.searchBar.text = ""
+        searchController.isActive = false
+        tableView.reloadData()
+
+        return nil
     }
 
-    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
-        guard let destination = destinationForRow(at: indexPath) else { return }
-        guard let idx = selected.firstIndex(where: { $0 == destination }) else { return }
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        if section == 1 && !isFiltering && hasMoreGroups {
+            let container = UIView()
 
-        selected.remove(at: idx)
-        updateNextBtn()
-        updateSelectionRow()
+            let moreGroupsButton = UIButton(type: .custom)
+            moreGroupsButton.translatesAutoresizingMaskIntoConstraints = false
+            moreGroupsButton.setTitle("Show more...", for: .normal)
+            moreGroupsButton.setTitleColor(.primaryBlue, for: .normal)
+            moreGroupsButton.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
+            moreGroupsButton.addTarget(self, action: #selector(moreGroupsAction), for: .touchUpInside)
+
+            container.addSubview(moreGroupsButton)
+            NSLayoutConstraint.activate([
+                moreGroupsButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
+                moreGroupsButton.topAnchor.constraint(equalTo: container.topAnchor),
+                moreGroupsButton.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -6),
+            ])
+
+            return container
+        }
+
+        return nil
+    }
+
+    @objc func moreGroupsAction() {
+        groups = allGroups
+        hasMoreGroups = false
+        tableView.reloadData()
     }
 }
 
@@ -389,7 +381,6 @@ extension ShareDestinationViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         DispatchQueue.main.async { [weak self] in
             self?.tableView.reloadData()
-            self?.reloadSelection()
             self?.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .middle, animated: true)
         }
     }
@@ -399,8 +390,8 @@ extension ShareDestinationViewController: UISearchBarDelegate {
 extension ShareDestinationViewController: UISearchResultsUpdating {
 
     func updateSearchResults(for searchController: UISearchController) {
-        guard let searchText = searchController.searchBar.text?.lowercased() else { return }
-        let searchItems = searchText.trimmingCharacters(in: CharacterSet.whitespaces).components(separatedBy: " ")
+        guard let searchText = searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces), !searchText.isEmpty else { return }
+        let searchItems = searchText.lowercased().components(separatedBy: " ")
 
         filteredGroups = groups.filter {
             let name = $0.name.lowercased()
@@ -428,7 +419,6 @@ extension ShareDestinationViewController: UISearchResultsUpdating {
         }
 
         tableView.reloadData()
-        reloadSelection()
     }
 }
 
@@ -438,15 +428,45 @@ fileprivate class DestinationCell: UITableViewCell {
     }
 
     private var cancellable: AnyCancellable?
+    private var more: (() -> Void)?
+    private lazy var homeView: UIView = {
+        let imageView = UIImageView(image: Self.homeIcon)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.tintColor = .avatarHomeIcon
+        imageView.contentMode = .scaleAspectFit
+
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.backgroundColor = .avatarHomeBg
+        container.layer.cornerRadius = 6
+        container.clipsToBounds = true
+        container.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        container.isHidden = true
+
+        container.addSubview(imageView)
+
+        NSLayoutConstraint.activate([
+            container.widthAnchor.constraint(equalToConstant: 34),
+            container.heightAnchor.constraint(equalTo: container.widthAnchor),
+            imageView.widthAnchor.constraint(equalToConstant: 24),
+            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor),
+            imageView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+        ])
+
+        return container
+    }()
     private var avatar: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        imageView.isHidden = true
 
         NSLayoutConstraint.activate([
-            imageView.widthAnchor.constraint(equalToConstant: 30),
-            imageView.heightAnchor.constraint(equalToConstant: 30),
+            imageView.widthAnchor.constraint(equalToConstant: 34),
+            imageView.heightAnchor.constraint(equalToConstant: 34),
         ])
 
         return imageView
@@ -465,7 +485,29 @@ fileprivate class DestinationCell: UITableViewCell {
         label.font = .preferredFont(forTextStyle: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isHidden = true
+
         return label
+    }()
+    private lazy var moreButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(Self.more, for: .normal)
+        button.tintColor = .primaryBlue
+        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        button.addTarget(self, action: #selector(moreAction), for: .touchUpInside)
+        button.isHidden = true
+
+        return button
+    }()
+    private lazy var selectedView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.image = Self.checkmarkUnchecked
+        imageView.tintColor = Self.colorUnchecked
+        imageView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+
+        return imageView
     }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -478,9 +520,12 @@ fileprivate class DestinationCell: UITableViewCell {
         setup()
     }
 
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-        accessoryType = selected ? .checkmark : .none
+    override func prepareForReuse() {
+        cancellable?.cancel()
+        homeView.isHidden = true
+        avatar.isHidden = true
+        subtitle.isHidden = true
+        moreButton.isHidden = true
     }
 
     private func setup() {
@@ -492,7 +537,7 @@ fileprivate class DestinationCell: UITableViewCell {
         labels.distribution = .fill
         labels.spacing = 3
 
-        let stack = UIStackView(arrangedSubviews: [avatar, labels])
+        let stack = UIStackView(arrangedSubviews: [homeView, avatar, labels, moreButton, selectedView])
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .horizontal
         stack.alignment = .center
@@ -501,47 +546,71 @@ fileprivate class DestinationCell: UITableViewCell {
 
         contentView.addSubview(stack)
         NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
             stack.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 16),
             stack.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -16),
+            stack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
         ])
     }
 
-    public func configure(_ text: String) {
-        cancellable?.cancel()
-
-        title.text = text
-        subtitle.isHidden = true
-        avatar.isHidden = true
+    @objc func moreAction() {
+        if let more = more {
+            more()
+        }
     }
 
-    public func configure(_ group: GroupListItem) {
+    public func configureHome(isSelected: Bool, more: @escaping () -> Void) {
+        self.more = more
+
+        title.text = Localizations.home
+        homeView.isHidden = false
+        subtitle.isHidden = false
+//        moreButton.isHidden = false
+
+        switch ShareExtensionContext.shared.privacySettings.activeType {
+        case .all:
+            subtitle.text = Localizations.feedPrivacyShareWithAllContacts
+        case .blacklist:
+            subtitle.text = Localizations.feedPrivacyShareWithContactsExcept
+        case .whitelist:
+            subtitle.text = Localizations.feedPrivacyShareWithSelected
+        default:
+            subtitle.isHidden = true
+        }
+
+        configureSelected(isSelected)
+    }
+
+    public func configure(_ group: GroupListItem, isSelected: Bool) {
         title.text = group.name
-        subtitle.isHidden = true
         avatar.isHidden = false
         avatar.layer.cornerRadius = 6
 
         loadAvatar(group: group.id)
+        configureSelected(isSelected)
     }
 
-    public func configure(_ contact: ABContact) {
+    public func configure(_ contact: ABContact, isSelected: Bool) {
         title.text = contact.fullName
         subtitle.isHidden = false
         subtitle.text = contact.phoneNumber
+        avatar.isHidden = false
+        avatar.layer.cornerRadius = 17
 
         if let id = contact.userId {
-            avatar.isHidden = false
-            avatar.layer.cornerRadius = 15
             loadAvatar(user: id)
         } else {
-            avatar.isHidden = true
+            avatar.image = AvatarView.defaultImage
         }
+
+        configureSelected(isSelected)
+    }
+
+    private func configureSelected(_ isSelected: Bool) {
+        selectedView.image = isSelected ? Self.checkmarkChecked : Self.checkmarkUnchecked
+        selectedView.tintColor = isSelected ? Self.colorChecked : Self.colorUnchecked
     }
 
     private func loadAvatar(group id: GroupID) {
-        cancellable?.cancel()
-
         let avatarData = ShareExtensionContext.shared.avatarStore.groupAvatarData(for: id)
 
         if let image = avatarData.image {
@@ -566,14 +635,12 @@ fileprivate class DestinationCell: UITableViewCell {
     }
 
     private func loadAvatar(user id: UserID) {
-        cancellable?.cancel()
-
         let userAvatar = ShareExtensionContext.shared.avatarStore.userAvatar(forUserId: id)
 
         if let image = userAvatar.image {
             avatar.image = image
         } else {
-            avatar.image = AvatarView.defaultGroupImage
+            avatar.image = AvatarView.defaultImage
 
             if !userAvatar.isEmpty {
                 userAvatar.loadImage(using: ShareExtensionContext.shared.avatarStore)
@@ -586,185 +653,32 @@ fileprivate class DestinationCell: UITableViewCell {
             if let image = image {
                 self.avatar.image = image
             } else {
-                self.avatar.image = AvatarView.defaultGroupImage
-            }
-        }
-    }
-}
-
-fileprivate class SelectionViewCell: UICollectionViewCell {
-    static var reuseIdentifier: String {
-        return String(describing: SelectionViewCell.self)
-    }
-
-    public var removeAction: (() -> ())?
-    private var cancellable: AnyCancellable?
-
-
-    private lazy var homeView: UIView = {
-        let icon = UIImage(named: "HomeFill")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-        let imageView = UIImageView(image: icon)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
-
-        let container = UIView()
-        container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = .avatarDefaultBg
-        container.layer.cornerRadius = 24
-        container.clipsToBounds = true
-
-        container.addSubview(imageView)
-
-        container.widthAnchor.constraint(equalToConstant: 48).isActive = true
-        container.heightAnchor.constraint(equalTo: container.widthAnchor).isActive = true
-        imageView.widthAnchor.constraint(equalToConstant: 36).isActive = true
-        imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor).isActive = true
-        imageView.centerXAnchor.constraint(equalTo: container.centerXAnchor).isActive = true
-        imageView.centerYAnchor.constraint(equalTo: container.centerYAnchor).isActive = true
-
-        return container
-    }()
-
-    private lazy var avatar: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = 24
-        imageView.clipsToBounds = true
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-
-        imageView.widthAnchor.constraint(equalToConstant: 48).isActive = true
-        imageView.heightAnchor.constraint(equalToConstant: 48).isActive = true
-
-        return imageView
-    }()
-
-    private lazy var title: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = .preferredFont(forTextStyle: .caption1)
-        label.textColor = .label
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-
-        return label
-    }()
-
-    private lazy var removeButton: UIButton = {
-        let button = UIButton(type: .custom)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(systemName: "xmark.circle.fill")?.withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
-        button.addTarget(self, action: #selector(removeButtonPressed), for: [.touchUpInside, .touchUpOutside])
-
-        button.widthAnchor.constraint(equalToConstant: 32).isActive = true
-
-        return button
-    }()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        contentView.addSubview(homeView)
-        contentView.addSubview(avatar)
-        contentView.addSubview(title)
-        contentView.addSubview(removeButton)
-
-        homeView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
-        homeView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8).isActive = true
-        avatar.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
-        avatar.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8).isActive = true
-        title.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
-        title.topAnchor.constraint(equalTo: avatar.bottomAnchor, constant: 8).isActive = true
-        removeButton.topAnchor.constraint(equalTo: avatar.topAnchor, constant: -8).isActive = true
-        removeButton.trailingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: 8).isActive = true
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    @objc func removeButtonPressed() {
-        if let removeAction = removeAction {
-            removeAction()
-        }
-    }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        cancellable?.cancel()
-        avatar.isHidden = true
-        homeView.isHidden = true
-    }
-
-    public func configure(_ text: String) {
-        title.text = text
-        homeView.isHidden = false
-    }
-
-    public func configure(_ group: GroupListItem) {
-        title.text = group.name
-        avatar.isHidden = false
-
-        loadAvatar(group: group.id)
-    }
-
-    public func configure(_ contact: ABContact) {
-        title.text = contact.fullName
-        avatar.isHidden = false
-
-        if let id = contact.userId {
-            loadAvatar(user: id)
-        }
-    }
-
-    private func loadAvatar(group id: GroupID) {
-        cancellable?.cancel()
-
-        let avatarData = ShareExtensionContext.shared.avatarStore.groupAvatarData(for: id)
-
-        if let image = avatarData.image {
-            avatar.image = image
-        } else {
-            avatar.image = AvatarView.defaultGroupImage
-
-            if !avatarData.isEmpty {
-                avatarData.loadImage(using: ShareExtensionContext.shared.avatarStore)
-            }
-        }
-
-        cancellable = avatarData.imageDidChange.sink { [weak self] image in
-            guard let self = self else { return }
-
-            if let image = image {
-                self.avatar.image = image
-            } else {
-                self.avatar.image = AvatarView.defaultGroupImage
+                self.avatar.image = AvatarView.defaultImage
             }
         }
     }
 
-    private func loadAvatar(user id: UserID) {
-        cancellable?.cancel()
+    static var homeIcon: UIImage {
+        UIImage(named: "HomeFill")!.withRenderingMode(.alwaysTemplate)
+    }
 
-        let userAvatar = ShareExtensionContext.shared.avatarStore.userAvatar(forUserId: id)
+    private static var more: UIImage {
+        UIImage(systemName: "ellipsis", withConfiguration: UIImage.SymbolConfiguration(pointSize: 21))!.withRenderingMode(.alwaysTemplate)
+    }
 
-        if let image = userAvatar.image {
-            avatar.image = image
-        } else {
-            avatar.image = AvatarView.defaultGroupImage
+    private static var checkmarkUnchecked: UIImage {
+        UIImage(systemName: "circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 21))!.withRenderingMode(.alwaysTemplate)
+    }
 
-            if !userAvatar.isEmpty {
-                userAvatar.loadImage(using: ShareExtensionContext.shared.avatarStore)
-            }
-        }
+    private static var checkmarkChecked: UIImage {
+        UIImage(systemName: "checkmark.circle.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 21))!.withRenderingMode(.alwaysTemplate)
+    }
 
-        cancellable = userAvatar.imageDidChange.sink { [weak self] image in
-            guard let self = self else { return }
+    private static var colorChecked: UIColor {
+        .primaryBlue
+    }
 
-            if let image = image {
-                self.avatar.image = image
-            } else {
-                self.avatar.image = AvatarView.defaultGroupImage
-            }
-        }
+    private static var colorUnchecked: UIColor {
+        .primaryBlackWhite.withAlphaComponent(0.2)
     }
 }

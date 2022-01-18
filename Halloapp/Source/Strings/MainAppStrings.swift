@@ -47,10 +47,6 @@ extension Localizations {
     static var titleNotifications: String {
         NSLocalizedString("title.notifications", value: "Notifications", comment: "Row in Settings screen")
     }
-
-    static var titlePrivacy: String {
-        NSLocalizedString("title.privacy", value: "Privacy", comment: "Row in Settings screen")
-    }
     
     static var titleStorage: String {
         NSLocalizedString("title.storage", value: "Storage", comment: "Row in Settings screen")

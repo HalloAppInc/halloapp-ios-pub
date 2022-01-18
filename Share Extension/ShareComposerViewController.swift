@@ -15,6 +15,7 @@ import IntentsUI
 
 fileprivate struct Constants {
     static let textViewTextColor = UIColor.label.withAlphaComponent(0.9)
+    static let destinationRowHeight: CGFloat = 100
 }
 
 private extension Localizations {
@@ -44,16 +45,26 @@ private extension Localizations {
         NSLocalizedString("share.composer.placeholder.text", value: "Write a post", comment: "Placeholder when sharing text only.")
     }
 
-    static var uploadingTitle: String {
-        NSLocalizedString("share.composer.uploading.title", value: "Uploading...", comment: "Alert dialog title shown when uploading begins.")
-    }
-
     static var uploadingFailedTitle: String {
         NSLocalizedString("share.composer.uploading.fail.title", value: "Uploading failed", comment: "Alert dialog title shown when uploading fails.")
     }
 
     static var uploadingFailedMessage: String {
         NSLocalizedString("share.composer.uploading.fail.message", value: "Please try again later.", comment: "Alert dialog message shown when uploading fails.")
+    }
+
+    static var shareWith: String {
+        NSLocalizedString("share.composer.destinations.label", value: "Share with", comment: "Label above the list with whom you share")
+    }
+
+    static func uploadingItems(_ numberOfItems: Int) -> String {
+        let format = NSLocalizedString("uploading.n.items", comment: "Message how many items are currently being upload")
+        return String.localizedStringWithFormat(format, numberOfItems)
+    }
+
+    static func upladingBytesProgress(partial: String, total: String) -> String {
+        let format = NSLocalizedString("uploading.bytes.progress", value: "%@ of %@", comment: "How many bytes from total have been uploaded")
+        return String.localizedStringWithFormat(format, partial, total)
     }
 }
 
@@ -82,6 +93,7 @@ class ShareComposerViewController: UIViewController {
     private var linkPreviewData: LinkPreviewData?
     private var linkViewImage: UIImage?
     private var linkPreviewMedia: PendingMedia?
+    private var progressUploadMonitor: ProgressUploadMonitor?
 
     private var mentions = MentionRangeMap()
     private lazy var mentionableUsers: [MentionableUser] = {
@@ -90,6 +102,33 @@ class ShareComposerViewController: UIViewController {
     var mentionInput: MentionInput {
         MentionInput(text: textView.text, mentions: mentions, selectedRange: textView.selectedRange)
     }
+
+    private lazy var destinationRowLabel: UIView = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = Localizations.shareWith.uppercased()
+        label.textColor = .primaryBlackWhite.withAlphaComponent(0.45)
+        label.font = .preferredFont(forTextStyle: .caption1)
+
+        return label
+    }()
+
+    private lazy var destinationRow: ShareDestinationRowView = {
+        let rowView = ShareDestinationRowView() { [weak self] index in
+            guard let self = self else { return }
+
+            self.destinations.remove(at: index)
+
+            if self.destinations.isEmpty {
+                self.backAction()
+            } else {
+                self.destinationRow.update(with: self.destinations)
+            }
+        }
+        rowView.translatesAutoresizingMaskIntoConstraints = false
+
+        return rowView
+    } ()
 
     init(destinations: [ShareDestination]) {
         self.destinations = destinations
@@ -104,7 +143,7 @@ class ShareComposerViewController: UIViewController {
         super.viewDidLoad()
 
         isModalInPresentation = true
-        view.backgroundColor = .systemGray6
+        view.backgroundColor = .primaryBg
         setupNavigationBar()
 
         view.addSubview(loadingView)
@@ -131,9 +170,6 @@ class ShareComposerViewController: UIViewController {
     }
 
     private func setupNavigationBar() {
-        let titleView = TitleView()
-        titleView.title.text = Localizations.titleDestinationFeed
-
         let shareButton = UIBarButtonItem(title: Localizations.buttonShare, style: .done, target: self, action: #selector(shareAction))
         shareButton.tintColor = .systemBlue
 
@@ -145,46 +181,13 @@ class ShareComposerViewController: UIViewController {
             }
         }.count == 0
 
-        let hasGroups = destinations.filter {
-            if case .group(_) = $0 {
-                return true
-            } else {
-                return false
-            }
-        }.count > 0
-
         if contactsOnly {
-            titleView.title.text = Localizations.titleDestinationContact
-            titleView.subtitle.text = Localizations.subtitle(contact: prepareSubtitle())
             shareButton.title = Localizations.buttonSend
-        } else if hasGroups {
-            titleView.subtitle.text = Localizations.subtitle(group: prepareSubtitle())
         }
 
-        navigationItem.titleView = titleView
+        title = Localizations.appNameHalloApp
         navigationItem.rightBarButtonItem = shareButton
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarBack"), style: .plain, target: self, action: #selector(backAction))
-    }
-
-    private func prepareSubtitle() -> String {
-        let names = destinations.compactMap { (destination) -> String? in
-            switch destination {
-            case .feed:
-                return nil
-            case .contact(let contact):
-                return contact.fullName ?? Localizations.unknownContact
-            case .group(let group):
-                return group.name
-            }
-        }
-
-        if names.count == 0 {
-            return ""
-        } else if names.count == 1 {
-            return names[0]
-        } else {
-            return names[0..<names.count-1].joined(separator: ", ") + " & " + names[names.count - 1]
-        }
     }
 
     private func setupUI() {
@@ -192,133 +195,126 @@ class ShareComposerViewController: UIViewController {
 
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.keyboardDismissMode = .onDrag
         scrollView.delegate = self
         view.addSubview(scrollView)
 
-        let contentView = UIView()
+        let contentView = UIStackView()
         contentView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.axis = .vertical
+        contentView.alignment = .center
         scrollView.addSubview(contentView)
 
-        let cardView = makeCardView()
-        contentView.addSubview(cardView)
+        textView = makeTextView()
+        textViewPlaceholder = makeTextViewPlaceholder()
+        textView.addSubview(textViewPlaceholder)
+
+        view.addSubview(destinationRow)
+        view.addSubview(destinationRowLabel)
 
         if media.count > 0 {
-            DDLogInfo("ShareComposerViewController/init media")
+            contentView.spacing = 10
 
             collectionView = makeCollectionView()
-            cardView.addSubview(collectionView)
+            contentView.addArrangedSubview(collectionView)
 
             if media.count > 1 {
                 pageControl = makePageControl()
-                cardView.addSubview(pageControl)
-
-                constraints.append(contentsOf: [
-                    pageControl.bottomAnchor.constraint(equalTo: cardView.bottomAnchor),
-                    pageControl.centerXAnchor.constraint(equalTo: cardView.centerXAnchor),
-
-                    collectionView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
-                    collectionView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
-                    collectionView.topAnchor.constraint(equalTo: cardView.topAnchor),
-                    collectionView.bottomAnchor.constraint(equalTo: pageControl.topAnchor, constant: 10),
-                ])
-            } else {
-                DDLogInfo("ShareComposerViewController/init text only")
-
-                constraints.append(contentsOf: [
-                    collectionView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
-                    collectionView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
-                    collectionView.topAnchor.constraint(equalTo: cardView.topAnchor),
-                    collectionView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor),
-                ])
+                contentView.addArrangedSubview(pageControl)
             }
 
-            textView = makeTextView()
-            view.addSubview(textView)
+            textView.textContainerInset = UIEdgeInsets(top: 14, left: 18, bottom: 8, right: 18)
 
-            textViewPlaceholder = makeTextViewPlaceholder()
-            textView.addSubview(textViewPlaceholder)
+            let textViewContainer = UIView()
+            textViewContainer.translatesAutoresizingMaskIntoConstraints = false
+            textViewContainer.backgroundColor = .secondarySystemGroupedBackground
+            textViewContainer.layer.cornerRadius = 24
+            textViewContainer.layer.shadowColor = UIColor.black.cgColor
+            textViewContainer.layer.shadowOpacity = 0.05
+            textViewContainer.layer.shadowOffset = CGSize(width: 0, height: 1)
+            textViewContainer.layer.shadowRadius = 2
+            textViewContainer.addSubview(textView)
+            textView.constrain(to: textViewContainer)
 
-            bottomConstraint = textView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-            textViewHeightConstraint = textView.heightAnchor.constraint(equalToConstant: computeTextViewHeight())
-            cardViewHeightConstraint = cardView.heightAnchor.constraint(equalToConstant: computeCardViewHeight())
+            let bottomRowContainer = UIView()
+            bottomRowContainer.translatesAutoresizingMaskIntoConstraints = false
+            bottomRowContainer.addSubview(textViewContainer)
+            view.addSubview(bottomRowContainer)
+
+            bottomConstraint = bottomRowContainer.bottomAnchor.constraint(equalTo: destinationRowLabel.topAnchor, constant: -8)
 
             constraints.append(contentsOf: [
-                bottomConstraint,
-                textViewHeightConstraint,
-                textView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                textView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-                textViewPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 25),
-                textViewPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 20),
-                scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-                scrollView.bottomAnchor.constraint(equalTo: textView.topAnchor),
-                scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-
-                cardViewHeightConstraint,
+                collectionView.widthAnchor.constraint(equalTo: contentView.widthAnchor),
+                bottomRowContainer.topAnchor.constraint(equalTo: scrollView.bottomAnchor),
+                bottomRowContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                bottomRowContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                textViewContainer.topAnchor.constraint(equalTo: bottomRowContainer.topAnchor, constant: 10),
+                textViewContainer.bottomAnchor.constraint(equalTo: bottomRowContainer.bottomAnchor, constant: -10),
+                textViewContainer.leadingAnchor.constraint(equalTo: bottomRowContainer.leadingAnchor, constant: 20),
+                textViewContainer.trailingAnchor.constraint(equalTo: bottomRowContainer.trailingAnchor, constant: -20),
+                textViewPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 23),
+                textViewPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 14),
             ])
         } else {
-            let vStack = UIStackView()
-            vStack.translatesAutoresizingMaskIntoConstraints = false
-            vStack.axis = .vertical
-            vStack.alignment = .center
+            contentView.backgroundColor = .feedPostBackground
+            contentView.layer.cornerRadius = 15
+            contentView.layer.shadowColor = UIColor.black.cgColor
+            contentView.layer.shadowOpacity = 0.05
+            contentView.layer.shadowOffset = CGSize(width: 0, height: 5)
+            contentView.layer.shadowRadius = 10
+            contentView.clipsToBounds = true
 
-            textView = makeTextView()
+            textView.textContainerInset = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
             linkPreviewView = makeLinkPreviewView()
-            vStack.addArrangedSubview(textView)
-            vStack.addArrangedSubview(linkPreviewView)
-            cardView.addSubview(vStack)
+            contentView.addArrangedSubview(textView)
+            contentView.addArrangedSubview(linkPreviewView)
 
-            textViewPlaceholder = makeTextViewPlaceholder()
-            textView.addSubview(textViewPlaceholder)
-
-            bottomConstraint = scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-            textViewHeightConstraint = textView.heightAnchor.constraint(equalToConstant: computeTextViewHeight())
-            cardViewHeightConstraint = cardView.heightAnchor.constraint(equalToConstant: computeCardViewHeight())
+            bottomConstraint = scrollView.bottomAnchor.constraint(equalTo: destinationRowLabel.topAnchor, constant: -8)
 
             constraints.append(contentsOf: [
-                bottomConstraint,
-                scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-                scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-
-                vStack.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
-                vStack.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
-                vStack.topAnchor.constraint(equalTo: cardView.topAnchor),
-                vStack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor),
-
-                textView.leadingAnchor.constraint(equalTo: vStack.leadingAnchor),
-                textView.trailingAnchor.constraint(equalTo: vStack.trailingAnchor),
-                linkPreviewView.heightAnchor.constraint(equalToConstant: 150),
-                linkPreviewView.leadingAnchor.constraint(equalTo: vStack.leadingAnchor, constant: 10),
-                linkPreviewView.trailingAnchor.constraint(equalTo: vStack.trailingAnchor, constant: -10),
-                textViewHeightConstraint,
+                textView.topAnchor.constraint(equalTo: contentView.topAnchor),
+                textView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                textView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
                 textViewPlaceholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 25),
                 textViewPlaceholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 20),
-
-                textView.topAnchor.constraint(equalTo: cardView.topAnchor),
-                cardViewHeightConstraint,
+                linkPreviewView.heightAnchor.constraint(equalToConstant: 150),
+                linkPreviewView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+                linkPreviewView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
             ])
         }
 
+        textViewHeightConstraint = textView.heightAnchor.constraint(equalToConstant: computeTextViewHeight())
+        cardViewHeightConstraint = contentView.heightAnchor.constraint(equalToConstant: computeCardViewHeight())
+
         constraints.append(contentsOf: [
-            contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
-            contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            textViewHeightConstraint,
+            cardViewHeightConstraint,
+            bottomConstraint,
 
-            contentView.centerXAnchor.constraint(equalTo: scrollView.frameLayoutGuide.centerXAnchor),
-            contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
-            contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor),
-            contentView.heightAnchor.constraint(greaterThanOrEqualTo: cardView.heightAnchor, constant: 16),
+            destinationRowLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 14),
+            destinationRowLabel.bottomAnchor.constraint(equalTo: destinationRow.topAnchor, constant: -8),
 
-            cardView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            cardView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
-            cardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            destinationRow.heightAnchor.constraint(equalToConstant: Constants.destinationRowHeight),
+            destinationRow.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            destinationRow.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            destinationRow.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+
+            scrollView.contentLayoutGuide.widthAnchor.constraint(equalTo: view.widthAnchor),
+            scrollView.contentLayoutGuide.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor),
+            scrollView.contentLayoutGuide.heightAnchor.constraint(greaterThanOrEqualTo: contentView.heightAnchor, constant: 16),
+
+            contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor, constant: media.count > 0 ? 0 : 8),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor, constant: media.count > 0 ? 0 : -8),
+            contentView.centerYAnchor.constraint(equalTo: scrollView.contentLayoutGuide.centerYAnchor),
         ])
 
         updateLinkPreviewViewIfNecessary()
         NSLayoutConstraint.activate(constraints)
+        destinationRow.update(with: destinations)
         handleKeyboardUpdates()
     }
 
@@ -326,14 +322,14 @@ class ShareComposerViewController: UIViewController {
         cancellableSet.insert(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification).sink { [weak self] notification in
             guard let self = self else { return }
             self.animateWithKeyboard(notification: notification) {
-                self.bottomConstraint.constant = -$0
+                self.bottomConstraint.constant = -$0 + Constants.destinationRowHeight + self.destinationRowLabel.bounds.height + 8
             }
         })
 
         cancellableSet.insert(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification).sink { [weak self] notification in
             guard let self = self else { return }
             self.animateWithKeyboard(notification: notification) { _ in
-                self.bottomConstraint.constant = 0
+                self.bottomConstraint.constant = -8
 
                 // Share Extension is displayed modally and when that modal view is scrolled
                 // the keyboard is hidden without really resigning the text view
@@ -364,8 +360,7 @@ class ShareComposerViewController: UIViewController {
     }
 
     private func computeCardViewHeight() -> CGFloat {
-        let width = view.bounds.width - 16
-        let maxHeight = view.bounds.height - 250
+        let maxHeight = view.bounds.height - 320
 
         if media.count == 0 {
             return min(maxHeight, 400)
@@ -378,14 +373,14 @@ class ShareComposerViewController: UIViewController {
 
         guard let maxRatio = ratios.max() else { return 0 }
 
-        return min(maxHeight, width * maxRatio)
+        return min(maxHeight, view.bounds.width * maxRatio)
     }
 
     private func computeTextViewHeight() -> CGFloat {
         let size = textView.sizeThatFits(CGSize(width: textView.frame.size.width, height: CGFloat.greatestFiniteMagnitude))
 
         if media.count > 0 {
-            return max(100, min(size.height, 250))
+            return max(48, min(size.height, 250))
         } else if let linkPreviewView = linkPreviewView, !linkPreviewView.isHidden {
             return max(size.height, 100)
         } else {
@@ -399,18 +394,8 @@ class ShareComposerViewController: UIViewController {
         textView.font = .preferredFont(forTextStyle: .body)
         textView.textColor = Constants.textViewTextColor
         textView.text = text
-        textView.textContainerInset = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+        textView.backgroundColor = .clear
         textView.delegate = self
-
-        if media.count > 0 {
-            textView.layer.shadowColor = UIColor.black.cgColor
-            textView.layer.shadowOpacity = 0.07
-            textView.layer.shadowOffset = CGSize(width: 0, height: -5)
-            textView.layer.shadowRadius = 15
-            textView.clipsToBounds = false
-        } else {
-            textView.backgroundColor = .clear
-        }
 
         let contacts = destinations.filter {
             if case .contact(_) = $0 {
@@ -451,19 +436,6 @@ class ShareComposerViewController: UIViewController {
         picker.heightAnchor.constraint(lessThanOrEqualToConstant: 120).isActive = true
 
         return picker
-    }
-
-    private func makeCardView() -> UIView {
-        let cardView = UIView()
-        cardView.translatesAutoresizingMaskIntoConstraints = false
-        cardView.backgroundColor = .feedPostBackground
-        cardView.layer.cornerRadius = 15
-        cardView.layer.shadowColor = UIColor.black.cgColor
-        cardView.layer.shadowOpacity = 0.05
-        cardView.layer.shadowOffset = CGSize(width: 0, height: 5)
-        cardView.layer.shadowRadius = 10
-
-        return cardView
     }
 
     private func makeCollectionView() -> UICollectionView {
@@ -617,10 +589,11 @@ class ShareComposerViewController: UIViewController {
         } else {
             share()
         }
-        showUploadingAlert()
     }
 
     private func share() {
+        showUploadingAlert()
+
         let queue = DispatchQueue(label: "com.halloapp.share.prepare", qos: .userInitiated)
         ShareExtensionContext.shared.coreService.execute(whenConnectionStateIs: .connected, onQueue: queue) {
             self.prepareAndUpload()
@@ -637,19 +610,14 @@ class ShareComposerViewController: UIViewController {
     }
 
     private func showUploadingAlert() {
-        let alert = UIAlertController(title: Localizations.uploadingTitle, message: "\n\n", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .default) { _ in
-            ShareExtensionContext.shared.dataStore.cancelSending()
-        })
+        let bytesCount = Int64(media
+            .compactMap { try? $0.fileURL?.resourceValues(forKeys: [.fileSizeKey]).fileSize }
+            .reduce(0) { $0 + $1 })
 
-        let activityIndicator = UIActivityIndicatorView(style: .large)
-        activityIndicator.frame = alert.view.bounds
-        activityIndicator.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        activityIndicator.isUserInteractionEnabled = false
-        activityIndicator.startAnimating()
-        alert.view.addSubview(activityIndicator)
+        progressUploadMonitor = ProgressUploadMonitor(mediaCount: media.count, bytesCount: bytesCount)
 
         DispatchQueue.main.async {
+            guard let alert = self.progressUploadMonitor?.alert else { return }
             self.present(alert, animated: true)
         }
     }
@@ -733,7 +701,12 @@ class ShareComposerViewController: UIViewController {
                 self.dismiss(animated: false)
                 self.showUploadingFailedAlert()
             } else {
-                self.extensionContext?.completeRequest(returningItems: nil)
+                self.progressUploadMonitor?.setProgress(1, animated: true)
+
+                // let the user observe the full progress
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                    self.extensionContext?.completeRequest(returningItems: nil)
+                }
             }
         }
     }
@@ -817,7 +790,10 @@ extension ShareComposerViewController: UITextViewDelegate {
         updateMentionPickerContent()
         updateLinkPreviewViewIfNecessary()
         updateWithMarkdown()
-        cardViewHeightConstraint.constant = computeCardViewHeight()
+
+        if media.count == 0 {
+            cardViewHeightConstraint.constant = computeCardViewHeight()
+        }
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
@@ -860,8 +836,6 @@ extension ShareComposerViewController: UIScrollViewDelegate {
                 pageControl.currentPage = Int(collectionView.contentOffset.x / collectionView.frame.width)
                 pauseAllVideos()
             }
-        } else if scrollView.contentOffset.y < 0 {
-            textView.resignFirstResponder()
         }
     }
 }
@@ -1014,50 +988,79 @@ class VideoCell: UICollectionViewCell {
     }
 }
 
-fileprivate class TitleView: UIView {
-    lazy var title: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = .label
-        return label
-    }()
-    lazy var subtitle: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 13)
-        label.textColor = .secondaryLabel
-        label.lineBreakMode = .byTruncatingTail
-        return label
+fileprivate class ProgressUploadMonitor {
+    private var processingProgressCancellable: AnyCancellable?
+    private var uploadProgressCancellable: AnyCancellable?
+    private var mediaUploader: MediaUploader {
+        ShareExtensionContext.shared.dataStore.mediaUploader
+    }
+    private let mediaCount: Int
+    private let totalBytesCount: Int64
+    private let totalBytesString: String
+
+    let alert: UIAlertController
+
+    private lazy var progressView: UIProgressView = {
+        let progressView = UIProgressView(progressViewStyle: .default)
+        progressView.frame = CGRect(x: 27, y: 56, width: alert.view.bounds.width - 54 , height: 10)
+        progressView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        progressView.isUserInteractionEnabled = false
+
+        return progressView
     }()
 
-    override init(frame: CGRect){
-        super.init(frame: frame)
-        setup()
+    init(mediaCount: Int, bytesCount: Int64) {
+        self.mediaCount = mediaCount
+        totalBytesCount = bytesCount
+        totalBytesString = ByteCountFormatter.string(fromByteCount: bytesCount, countStyle: .file)
+
+        alert = UIAlertController(title: Localizations.uploadingItems(mediaCount), message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .default) { _ in
+            ShareExtensionContext.shared.dataStore.cancelSending()
+        })
+
+        if mediaCount > 0 {
+            alert.message = progressMessage(bytesCount: 0)
+            alert.view.addSubview(progressView)
+            listenForProgress()
+        }
     }
 
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
+        fatalError("init(coder:) has not been implemented")
     }
 
-    private func setup() {
-        let stack = UIStackView(arrangedSubviews: [title, subtitle])
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.axis = .vertical
-        stack.alignment = .center
-        stack.distribution = .fillProportionally
-        stack.spacing = 0
+    private func progressMessage(bytesCount: Int64) -> String {
+        let bytesCountString = ByteCountFormatter.string(fromByteCount: bytesCount, countStyle: .file)
+        let message = Localizations.upladingBytesProgress(partial: bytesCountString, total: totalBytesString)
+        return "\n\n\(message)"
+    }
 
-        addSubview(stack)
+    private func listenForProgress() {
+        processingProgressCancellable = ImageServer.progress.receive(on: DispatchQueue.main).sink { [weak self] id in
+            guard let self = self else { return }
+            self.updateProgress(for: id)
+        }
 
-        NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
-            stack.topAnchor.constraint(equalTo: topAnchor),
-            stack.bottomAnchor.constraint(equalTo: bottomAnchor),
-            stack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
-        ])
+        uploadProgressCancellable = mediaUploader.uploadProgressDidChange.receive(on: DispatchQueue.main).sink { [weak self] id in
+            guard let self = self else { return }
+            self.updateProgress(for: id)
+        }
+    }
+
+    private func updateProgress(for id: String) {
+        var (processingCount, processingProgress) = ImageServer.progress(for: id)
+        var (uploadCount, uploadProgress) = mediaUploader.uploadProgress(forGroupId: id)
+
+        processingProgress = processingProgress * Float(processingCount) / Float(mediaCount)
+        uploadProgress = uploadProgress * Float(uploadCount) / Float(mediaCount)
+        let progress = (processingProgress + uploadProgress) / 2
+
+        setProgress(progress, animated: true)
+    }
+
+    func setProgress(_ progress: Float, animated: Bool) {
+        alert.message = progressMessage(bytesCount: Int64(Float(totalBytesCount) * progress))
+        progressView.setProgress(progress, animated: animated)
     }
 }

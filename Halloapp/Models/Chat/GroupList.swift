@@ -37,16 +37,39 @@ public class GroupList: NSObject, NSFetchedResultsControllerDelegate {
         sync()
     }
 
-    private func sync() {
-        guard let userId = userId else { return }
+    private func chatThread(for id: GroupID, in context: NSManagedObjectContext) -> ChatThread? {
+        let request = ChatThread.fetchRequest()
+        request.predicate = NSPredicate(format: "groupId == %@", id)
 
-        let groups = (fetchedResultsController?.fetchedObjects ?? []).filter {
-            $0.members?.first { $0.userId == userId } != nil
+
+        do {
+            return try context.fetch(request).first
+        }
+        catch {
+            DDLogError("group-list/chatThread/fetch/error  [\(error)]")
         }
 
-        return GroupListItem.save(groups.map {
-            let users = $0.members?.map { $0.userId } ?? [UserID]()
-            return GroupListItem(id: $0.groupId, name: $0.name, users: users)
-        })
+        return nil
+    }
+
+    private func sync() {
+        guard let userId = userId else { return }
+        guard let controller = fetchedResultsController else { return }
+
+        let groups = (controller.fetchedObjects ?? [])
+            .filter { $0.members?.first { $0.userId == userId } != nil }
+            .map { (group: ChatGroup) -> GroupListItem in
+                let users = group.members?.map { $0.userId } ?? [UserID]()
+                let thread = chatThread(for: group.groupId, in: controller.managedObjectContext)
+
+                return GroupListItem(
+                    id: group.groupId,
+                    name: group.name,
+                    users: users,
+                    lastActivityTimestamp: thread?.lastFeedTimestamp ?? thread?.lastMsgTimestamp
+                )
+            }
+
+        GroupListItem.save(groups)
     }
 }

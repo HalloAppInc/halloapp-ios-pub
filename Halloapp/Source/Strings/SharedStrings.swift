@@ -157,4 +157,30 @@ extension Localizations {
     static var micAccessDeniedMessage: String {
         NSLocalizedString("chat.mic.access.denied.message", value: "To enable audio recording, please tap on Settings and then turn on Microphone", comment: "Alert message when missing microphone access")
     }
+
+    // MARK: Privacy
+
+    static var feedPrivacyShareWithAllContacts: String {
+        return NSLocalizedString("feed.privacy.descr.all",
+                                 value: "Share with all my contacts",
+                                 comment: "Describes what 'All Contacts' feed privacy setting means.")
+    }
+
+    static var feedPrivacyShareWithContactsExcept: String {
+        return NSLocalizedString("feed.privacy.descr.except",
+                                 value: "Share with my contacts except people I select",
+                                 comment: "Describes what 'All Contacts' feed privacy setting means.")
+    }
+
+    static var feedPrivacyShareWithSelected: String {
+        return NSLocalizedString("feed.privacy.descr.only",
+                                 value: "Only share with selected contacts",
+                                 comment: "Describes what 'All Contacts' feed privacy setting means.")
+    }
+
+    // MARK: Screen Titles
+
+    static var titlePrivacy: String {
+        NSLocalizedString("title.privacy", value: "Privacy", comment: "Row in Settings screen")
+    }
 }
