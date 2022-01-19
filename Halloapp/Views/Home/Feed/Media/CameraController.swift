@@ -16,6 +16,7 @@ import MediaPlayer
 protocol CameraDelegate: AVCapturePhotoCaptureDelegate, AVCaptureFileOutputRecordingDelegate {
     func goBack() -> Void
     func volumeButtonPressed() -> Void
+    func cameraDidFlip(usingBackCamera: Bool) -> Void
 }
 
 enum CameraInitError: Error, LocalizedError {
@@ -121,23 +122,23 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
         .strokeColor: UIColor.black.withAlphaComponent(0.4),
         .font: UIFont.gothamFont(ofFixedSize: 17)
     ]
+    
+    private var focusIndicator: CircleView?
+    private var hideFocusIndicator: DispatchWorkItem?
 
     private static func checkCapturePermissions(type: AVMediaType, permissionHandler: @escaping (Bool) -> Void) {
         switch AVCaptureDevice.authorizationStatus(for: type) {
         case .authorized:
             permissionHandler(true)
-
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: type) { granted in
                 DispatchQueue.main.async {
                     permissionHandler(granted)
                 }
             }
-
         case .denied,
              .restricted:
             permissionHandler(false)
-
         @unknown default:
             DDLogError("CameraController/checkCapturePermissions unknown AVAuthorizationStatus")
             permissionHandler(false)
@@ -166,7 +167,15 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
         view.layer.masksToBounds = true
         let pinchToZoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(pinchToZoom(_:)))
         view.addGestureRecognizer(pinchToZoomRecognizer)
-
+        
+        let focusTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapToFocus(_:)))
+        focusTapRecognizer.numberOfTapsRequired = 1
+        view.addGestureRecognizer(focusTapRecognizer)
+        
+        let cameraChangeRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapToChangeCamera(_:)))
+        cameraChangeRecognizer.numberOfTapsRequired = 2
+        view.addGestureRecognizer(cameraChangeRecognizer)
+        
         timerLabel = UILabel()
         timerLabel.textAlignment = .center
         timerLabel.isHidden = true
@@ -181,7 +190,7 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
         volumeView.clipsToBounds = true
         view.addSubview(volumeView)
     }
-
+    
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("CameraController/viewWillAppear")
         super.viewWillAppear(animated)
@@ -214,13 +223,9 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
         }
         DDLogInfo("CameraController/startCaptureSession attach preview layer")
         view.layer.addSublayer(previewLayer!)
-        view.layer.insertSublayer(timerLabel.layer, above: previewLayer)
+        view.addSubview(timerLabel)
         previewLayer!.frame = view.layer.frame
-        timerLabel.layer.frame = CGRect(
-            x: previewLayer!.frame.minX,
-            y: previewLayer!.frame.minY,
-            width: previewLayer!.frame.width,
-            height: 30)
+        orientTimer()
         DispatchQueue.global(qos: .userInitiated).async{
             if !captureSession.isRunning {
                 DDLogInfo("CameraController/startCaptureSession startRunning")
@@ -238,17 +243,20 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
     private func stopCaptureSession() {
         DDLogInfo("CameraController/stopCaptureSession detach preview layer")
         previewLayer?.removeFromSuperlayer()
-        timerLabel.layer.removeFromSuperlayer()
+        timerLabel.removeFromSuperview()
+        
         guard let captureSession = captureSession else { return }
+        
         sessionIsStarted = false
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVCaptureSessionWasInterrupted, object: nil)
-        DispatchQueue.global(qos: .userInitiated).async{
+        DispatchQueue.global(qos: .userInitiated).async {
             if captureSession.isRunning {
                 DDLogInfo("CameraController/stopCaptureSession stopRunning")
                 captureSession.stopRunning()
                 DDLogInfo("CameraController/stopCaptureSession done")
             }
         }
+        
     }
 
     @objc func volumeDidChange(_ notification: NSNotification) {
@@ -439,6 +447,54 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
         }
     }
     
+    private func showFocusIndicator(_ point: CGPoint) {
+        if focusIndicator == nil {
+            focusIndicator = CircleView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
+            view.addSubview(focusIndicator!)
+            focusIndicator?.fillColor = .clear
+            focusIndicator?.lineWidth = 1.75
+            focusIndicator?.strokeColor = .white
+        }
+        
+        hideFocusIndicator?.cancel()
+        
+        focusIndicator?.alpha = 0
+        focusIndicator?.center = point
+        focusIndicator?.transform = CGAffineTransform(scaleX: 1.25, y: 1.25)
+        
+        UIView.animate(withDuration: 0.15,
+                              delay: 0,
+             usingSpringWithDamping: 0.7,
+              initialSpringVelocity: 0.5,
+                            options: [.allowUserInteraction])
+        {
+            self.focusIndicator?.transform = .identity
+            self.focusIndicator?.alpha = 1
+        } completion: { [weak self] _ in
+            self?.scheduleFocusIndicatorHide()
+        }
+    }
+    
+    private func scheduleFocusIndicatorHide() {
+        hideFocusIndicator = DispatchWorkItem {
+            UIView.animate(withDuration: 0.15,
+                                  delay: 0,
+                 usingSpringWithDamping: 0.7,
+                  initialSpringVelocity: 0.5,
+                                options: [.allowUserInteraction])
+            { [weak self] in
+                self?.focusIndicator?.alpha = 0
+                self?.focusIndicator?.transform = CGAffineTransform(scaleX: 1.15, y: 1.15)
+            } completion: { [weak self] _ in
+                self?.focusIndicator?.removeFromSuperview()
+                self?.focusIndicator = nil
+                self?.hideFocusIndicator = nil
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: self.hideFocusIndicator!)
+    }
+    
     private func setupInput(_ session: AVCaptureSession) throws {
         if let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
             backCamera = device
@@ -557,6 +613,15 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
             DDLogError("CameraController/pinchToZoom \(error)")
         }
     }
+    
+    @objc private func tapToFocus(_ tapRecognizer: UITapGestureRecognizer) {
+        let point = tapRecognizer.location(in: tapRecognizer.view)
+        focusOn(point)
+    }
+    
+    @objc private func tapToChangeCamera(_ tapRecognizer: UITapGestureRecognizer) {
+        switchCamera(!isUsingBackCamera)
+    }
 
     public func setOrientation(_ orientation: UIDeviceOrientation) {
         guard let captureSession = captureSession,
@@ -568,21 +633,57 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
         if self.orientation != orientation {
             self.orientation = orientation
             DDLogInfo("CameraController/setOrientation didOrientationChange")
+            orientTimer()
             captureSession.beginConfiguration()
             configureVideoOutput(photoOutput)
             configureVideoOutput(movieOutput)
             captureSession.commitConfiguration()
         }
     }
+    
+    private func orientTimer() {
+        // n is the label's height when in portrait, and width when in landscape
+        let n = CGFloat(30)
+        timerLabel.transform = .identity
+        
+        switch orientation {
+        case .landscapeLeft:
+            timerLabel.transform = timerLabel.transform.rotated(by: .pi / 2)
+            timerLabel.frame = CGRect(x: view.bounds.maxX - n,
+                                      y: 0,
+                                  width: n,
+                                 height: view.bounds.height)
+        case .landscapeRight:
+            timerLabel.transform = timerLabel.transform.rotated(by: -.pi / 2)
+            timerLabel.frame = CGRect(x: view.bounds.minX,
+                                      y: view.bounds.minY,
+                                  width: n,
+                                 height: view.bounds.height)
+        case .portraitUpsideDown:
+            timerLabel.transform = timerLabel.transform.rotated(by: .pi)
+            timerLabel.frame = CGRect(x: view.bounds.minX,
+                                      y: view.bounds.maxY - n,
+                                  width: view.bounds.width,
+                                 height: n)
+        default:
+            // default is portrait
+            timerLabel.frame = CGRect(x: view.bounds.minX,
+                                      y: view.bounds.minY,
+                                  width: view.bounds.width,
+                                 height: n)
+        }
+    }
 
     public func switchCamera(_ useBackCamera: Bool) {
-        guard let captureSession = captureSession,
+        guard
+            let captureSession = captureSession,
             captureSession.isRunning,
             sessionIsStarted,
             let backInput = backInput,
             let frontInput = frontInput,
             let photoOutput = photoOutput,
-            let movieOutput = movieOutput else { return }
+            let movieOutput = movieOutput
+        else { return }
 
         if useBackCamera != isUsingBackCamera {
             DDLogInfo("CameraController/switchCamera")
@@ -596,20 +697,24 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
             configureVideoOutput(movieOutput)
 
             captureSession.commitConfiguration()
+            cameraDelegate.cameraDidFlip(usingBackCamera: isUsingBackCamera)
         }
     }
 
-    public func focusOnPoint(_ point: CGPoint) {
-        guard let captureSession = captureSession,
+    public func focusOn(_ point: CGPoint) {
+        guard
+            let captureSession = captureSession,
             captureSession.isRunning,
             sessionIsStarted,
             let backCamera = backCamera,
             let frontCamera = frontCamera,
-            let previewLayer = previewLayer else { return }
+            let previewLayer = previewLayer
+        else { return }
 
         let convertedPoint = previewLayer.captureDevicePointConverted(fromLayerPoint: point)
         DDLogInfo("CameraController/focusOnPoint \(convertedPoint)")
         setFocusAndExposure(camera: isUsingBackCamera ? backCamera : frontCamera, point: convertedPoint)
+        showFocusIndicator(point)
     }
 
     public func takePhoto(useFlashlight: Bool) -> Bool {

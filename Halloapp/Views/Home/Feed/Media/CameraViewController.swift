@@ -9,6 +9,7 @@
 import CocoaLumberjackSwift
 import SwiftUI
 import AVFoundation
+import CoreMotion
 
 fileprivate class GenericObservable<T>: ObservableObject {
     init(_ value: T) {
@@ -16,14 +17,6 @@ fileprivate class GenericObservable<T>: ObservableObject {
     }
 
     @Published var value: T
-}
-
-fileprivate class CameraStateModel: ObservableObject {
-    @Published var shouldTakePhoto = false
-    @Published var shouldRecordVideo = false
-    @Published var shouldUseBackCamera = true
-    @Published var shouldUseFlashlight = false
-    @Published var orientation = UIDevice.current.orientation
 }
 
 fileprivate class AlertStateModel: ObservableObject {
@@ -109,23 +102,32 @@ class CameraViewController: UIViewController {
     }
 
     private func setupBarButtons() {
-        let defaultBackImage = UIImage(named: "NavbarBack")
-        let landscapeBackImage = defaultBackImage?.cgImage != nil ?
-            UIImage(cgImage: defaultBackImage!.cgImage!, scale: 1.0, orientation: .right) : nil
-
-        let landscapeButton = UIButton(type: .system)
-        landscapeButton.setImage(landscapeBackImage, for: .normal)
-        landscapeButton.addTarget(self, action: #selector(cancelAction), for: .touchUpInside)
-
-        defaultBackButton = UIBarButtonItem(
-            image: defaultBackImage, style: .plain, target: self, action: #selector(cancelAction))
-        let barButton = UIBarButtonItem(customView: landscapeButton)
-        barButton.customView?.translatesAutoresizingMaskIntoConstraints = false
-        barButton.customView?.heightAnchor.constraint(
+        let backImage = UIImage(named: "NavbarBack")
+        let backButton = UIButton(type: .system)
+        backButton.setImage(backImage, for: .normal)
+        backButton.addTarget(self, action: #selector(cancelAction), for: .touchUpInside)
+        
+        let backBarItem = UIBarButtonItem(customView: backButton)
+        backBarItem.customView?.translatesAutoresizingMaskIntoConstraints = false
+        backBarItem.customView?.heightAnchor.constraint(
             equalToConstant: CameraViewLayoutConstants.barButtonSize).isActive = true
-        barButton.customView?.widthAnchor.constraint(
+        backBarItem.customView?.widthAnchor.constraint(
             equalToConstant: CameraViewLayoutConstants.barButtonSize).isActive = true
-        landscapeBackButton = barButton
+        
+        let rotated = UIButton(type: .system)
+        rotated.setImage(backImage, for: .normal)
+        rotated.addTarget(self, action: #selector(cancelAction), for: .touchUpInside)
+        
+        let landscapeBarItem = UIBarButtonItem(customView: rotated)
+        landscapeBarItem.customView?.translatesAutoresizingMaskIntoConstraints = false
+        landscapeBarItem.customView?.heightAnchor.constraint(
+            equalToConstant: CameraViewLayoutConstants.barButtonSize).isActive = true
+        landscapeBarItem.customView?.widthAnchor.constraint(
+            equalToConstant: CameraViewLayoutConstants.barButtonSize).isActive = true
+        landscapeBarItem.customView?.transform = landscapeBarItem.customView!.transform.rotated(by: .pi / 2)
+        
+        defaultBackButton = backBarItem
+        landscapeBackButton = landscapeBarItem
     }
 
     private func setTitle(orientation: UIDeviceOrientation) {
@@ -142,15 +144,87 @@ class CameraViewController: UIViewController {
 
         if showCancelButton {
             if orientation.isLandscape {
-                navigationItem.leftBarButtonItem = nil
-                navigationItem.rightBarButtonItem = landscapeBackButton
+                navigationItem.leftBarButtonItem = landscapeBackButton
             } else if orientation.isPortrait {
                 navigationItem.leftBarButtonItem = defaultBackButton
-                navigationItem.rightBarButtonItem = nil
             }
         }
     }
 }
+
+fileprivate class CameraModel: ObservableObject {
+    @Published var shouldTakePhoto = false
+    @Published var shouldRecordVideo = false {
+        didSet {
+            if shouldRecordVideo {
+                // once we start recording, orientation is locked
+                stopListeningForOrientation()
+            } else {
+                startListeningForOrientation()
+            }
+        }
+    }
+    @Published var shouldUseBackCamera = true
+    @Published var shouldUseFlashlight = false
+    @Published var orientation = UIDevice.current.orientation
+    private let manager: CMMotionManager
+    private let queue: OperationQueue
+    
+    init() {
+        manager = CMMotionManager()
+        queue = OperationQueue()
+        queue.qualityOfService = .utility
+        
+        startListeningForOrientation()
+    }
+    
+    private func startListeningForOrientation() {
+        queue.isSuspended = false
+        manager.deviceMotionUpdateInterval = 0.5
+        manager.startDeviceMotionUpdates(to: queue) { [weak self] data, _ in
+            guard
+                let self = self,
+                let data = data
+            else {
+                return
+            }
+            
+            let orientation = self.orientation(from: data)
+            DispatchQueue.main.async {
+                if orientation != self.orientation {
+                    self.orientation = orientation
+                }
+            }
+        }
+    }
+    
+    private func orientation(from data: CMDeviceMotion) -> UIDeviceOrientation {
+        let gravity = data.gravity
+        let threshold = 0.6
+        
+        if gravity.x >= threshold {
+            return .landscapeRight
+        }
+        if gravity.x <= -threshold {
+            return .landscapeLeft
+        }
+        if gravity.y <= -threshold {
+            return .portrait
+        }
+        if gravity.y >= threshold {
+            return .portraitUpsideDown
+        }
+        
+        // same as before
+        return self.orientation
+    }
+    
+    private func stopListeningForOrientation() {
+        manager.stopDeviceMotionUpdates()
+        queue.isSuspended = true
+    }
+}
+
 
 fileprivate struct CameraView: View {
     let didPickImage: DidPickImageCallback
@@ -159,22 +233,17 @@ fileprivate struct CameraView: View {
     let onOrientationChange: (UIDeviceOrientation) -> Void
     let captureButtonExtendedFrame = CGRect(x: -0.5 * CameraViewLayoutConstants.captureButtonSize,
                                             y: -0.5 * CameraViewLayoutConstants.captureButtonSize,
-                                            width: 2 * CameraViewLayoutConstants.captureButtonSize,
-                                            height: 2 * CameraViewLayoutConstants.captureButtonSize)
+                                        width: 2 * CameraViewLayoutConstants.captureButtonSize,
+                                       height: 2 * CameraViewLayoutConstants.captureButtonSize)
 
     @Environment(\.colorScheme) var colorScheme
-    @ObservedObject var cameraState = CameraStateModel()
+    @ObservedObject var cameraState = CameraModel()
     @ObservedObject var alertState = AlertStateModel()
     @State var captureButtonColor = Color.cameraButton
     @State var captureIsPressed = false
     @State var rotationAngle = Angle(degrees: 0)
 
     private let plainButtonStyle = PlainButtonStyle()
-    private let orientationPublisher = NotificationCenter.default
-        .publisher(for: UIDevice.orientationDidChangeNotification)
-        .map { _ in UIDevice.current.orientation }
-        .eraseToAnyPublisher()
-
     private static func getCameraControllerHeight(_ width: CGFloat) -> CGFloat {
         return ((width - 4 * CameraViewLayoutConstants.horizontalPadding) * 4 / 3).rounded()
     }
@@ -198,18 +267,13 @@ fileprivate struct CameraView: View {
         return HStack {
             Spacer()
             Button(action: self.toggleFlash) {
-                if cameraState.shouldUseFlashlight {
-                    Image("CameraFlashOn")
-                        .foregroundColor(.cameraButton)
-                        .rotationEffect(rotationAngle)
-                } else {
-                    Image("CameraFlashOff")
-                        .foregroundColor(.cameraButton)
-                        .rotationEffect(rotationAngle)
-                }
+                let flashIconString = cameraState.shouldUseFlashlight ? "CameraFlashOn" : "CameraFlashOff"
+                Image(flashIconString)
+                    .renderingMode(.template)
+                    .foregroundColor(.cameraButton)
+                    .rotationEffect(rotationAngle)
             }
             Spacer()
-
 
             Circle()
                 .strokeBorder(self.captureButtonColor, lineWidth: CameraViewLayoutConstants.captureButtonStroke)
@@ -227,6 +291,7 @@ fileprivate struct CameraView: View {
             Spacer()
             Button(action: self.flipCamera) {
                 Image("CameraFlip")
+                    .renderingMode(.template)
                     .foregroundColor(.cameraButton)
                     .rotationEffect(rotationAngle)
             }
@@ -266,8 +331,8 @@ fileprivate struct CameraView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.feedBackground)
             .edgesIgnoringSafeArea(.bottom)
-            .onReceive(self.orientationPublisher) { orientation in
-                self.cameraState.orientation = orientation
+            .edgesIgnoringSafeArea(.top)
+            .onReceive(cameraState.$orientation) { orientation in
                 self.onOrientationChange(orientation)
                 self.updateRotationAngle(orientation: orientation)
             }
@@ -318,7 +383,6 @@ fileprivate struct CameraView: View {
     private func flipCamera() {
         cameraState.shouldUseBackCamera = !cameraState.shouldUseBackCamera
     }
-
 }
 
 fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
@@ -329,22 +393,13 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
     let didPickVideo: DidPickVideoCallback
     let goBack: () -> Void
 
-    @ObservedObject var cameraState: CameraStateModel
+    @ObservedObject var cameraState: CameraModel
     var alertState: AlertStateModel
-    @ObservedObject var focusPoint = GenericObservable<CGPoint?>(nil)
 
     func makeUIViewController(context: Context) -> CameraController {
-        let controller = CameraController(
-            cameraDelegate: context.coordinator,
-            orientation: cameraState.orientation)
-        let tappedGesture =
-            UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped))
-        tappedGesture.numberOfTapsRequired = 1
-        let doubleTappedGesture =
-            UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.doubleTapped))
-        doubleTappedGesture.numberOfTapsRequired = 2
-        controller.view.addGestureRecognizer(tappedGesture)
-        controller.view.addGestureRecognizer(doubleTappedGesture)
+        let controller = CameraController(cameraDelegate: context.coordinator,
+                                             orientation: cameraState.orientation)
+        
         return controller
     }
 
@@ -355,11 +410,7 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
         if cameraState.orientation != cameraController.orientation {
             cameraController.setOrientation(cameraState.orientation)
         }
-        if let selectedFocusPoint = focusPoint.value {
-            cameraController.focusOnPoint(selectedFocusPoint)
-            focusPoint.value = nil
-        }
-
+        
         if cameraState.shouldTakePhoto &&
             !context.coordinator.isTakingPhoto &&
             !cameraState.shouldRecordVideo &&
@@ -413,19 +464,15 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
                     mediaType == .photo ? "Could not take a photo" : "Could not record a video"
             }
         }
-
-        @objc func tapped(gesture:UITapGestureRecognizer) {
-            parent.focusPoint.value = gesture.location(in: gesture.view!)
-        }
-
-        @objc func doubleTapped(gesture:UITapGestureRecognizer) {
-            self.parent.cameraState.shouldUseBackCamera = !self.parent.cameraState.shouldUseBackCamera
+        
+        func cameraDidFlip(usingBackCamera: Bool) {
+            parent.cameraState.shouldUseBackCamera = usingBackCamera
         }
 
         func goBack() {
             parent.goBack()
         }
-
+        
         func volumeButtonPressed() {
             if !parent.cameraState.shouldTakePhoto &&
                 !isTakingPhoto &&
