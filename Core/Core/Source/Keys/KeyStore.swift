@@ -320,7 +320,7 @@ open class KeyStore {
         DDLogInfo("KeyStore/deleteMessageKeyBundles/forUser: \(userId)")
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             let fetchRequest = NSFetchRequest<MessageKeyBundle>(entityName: MessageKeyBundle.entity().name!)
-            fetchRequest.predicate = NSPredicate(format: "userId = %@", userId)
+            fetchRequest.predicate = NSPredicate(format: "userId == %@", userId)
             do {
                 let messageKeyBundles = try managedObjectContext.fetch(fetchRequest)
                 DDLogInfo("KeyStore/deleteMessageKeyBundles count=[\(messageKeyBundles.count)]")
