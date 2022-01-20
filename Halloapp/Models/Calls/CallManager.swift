@@ -107,6 +107,9 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     public let isAnyCallOngoing = PassthroughSubject<Call?, Never>()
     public let didCallFail = PassthroughSubject<Void, Never>()
+    // TODO: maybe we should just try and have a delegate
+    // for all possible call failures and show alerts accordingly.
+    public let microphoneAccessDenied = PassthroughSubject<Void, Never>()
     private var cancellables = Set<AnyCancellable>()
 
     // Initialize
@@ -130,32 +133,49 @@ final class CallManager: NSObject, CXProviderDelegate {
     // MARK: User-Initiated Actions
 
     func startCall(to peerUserID: String, completion: @escaping (Result<Void, CallError>) -> Void) {
-        if let callID = activeCallID {
-            DDLogError("CallManager/startCall/callID:\(callID)/failed call to \(peerUserID)")
-            completion(.failure(.alreadyInCall))
-        } else {
-            let callID = PacketID.generate()
-            callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID)
-            let handle = handle(for: peerUserID)
-            DDLogInfo("CallManager/startCall/create/callID: \(callID)/handleValue: \(handle.value)")
-            let startCallAction = CXStartCallAction(call: callID.callUUID, handle: handle)
-            startCallAction.contactIdentifier = peerName(for: peerUserID)
-            let transaction = CXTransaction()
-            transaction.addAction(startCallAction)
-            requestTransaction(transaction, completion: completion)
+        // check Mic permissions before starting a call.
+        AVAudioSession.sharedInstance().requestRecordPermission { [self] granted in
+            if (granted) {
+                if let callID = activeCallID {
+                    DDLogError("CallManager/startCall/callID:\(callID)/failed call to \(peerUserID)")
+                    completion(.failure(.alreadyInCall))
+                } else {
+                    let callID = PacketID.generate()
+                    callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID)
+                    let handle = handle(for: peerUserID)
+                    DDLogInfo("CallManager/startCall/create/callID: \(callID)/handleValue: \(handle.value)")
+                    let startCallAction = CXStartCallAction(call: callID.callUUID, handle: handle)
+                    startCallAction.contactIdentifier = peerName(for: peerUserID)
+                    let transaction = CXTransaction()
+                    transaction.addAction(startCallAction)
+                    requestTransaction(transaction, completion: completion)
+                }
+            } else {
+                microphoneAccessDenied.send()
+                completion(.failure(.systemError))
+            }
         }
     }
 
     func answerCall(completion: @escaping (Result<Void, CallError>) -> Void) {
-        if let callID = activeCallID {
-            DDLogInfo("CallManager/answerCall/callID: \(callID)")
-            let answerCallAction = CXAnswerCallAction(call: callID.callUUID)
-            let transaction = CXTransaction()
-            transaction.addAction(answerCallAction)
-            requestTransaction(transaction, completion: completion)
-        } else {
-            DDLogError("CallManager/answerCall/callID is nil")
-            completion(.failure(.noActiveCall))
+        // check Mic permissions before answering the call.
+        AVAudioSession.sharedInstance().requestRecordPermission { [self] granted in
+            if (granted) {
+                if let callID = activeCallID {
+                    DDLogInfo("CallManager/answerCall/callID: \(callID)")
+                    let answerCallAction = CXAnswerCallAction(call: callID.callUUID)
+                    let transaction = CXTransaction()
+                    transaction.addAction(answerCallAction)
+                    requestTransaction(transaction, completion: completion)
+                } else {
+                    DDLogError("CallManager/answerCall/callID is nil")
+                    completion(.failure(.noActiveCall))
+                }
+            } else {
+                endActiveCall(reason: .systemError)
+                microphoneAccessDenied.send()
+                completion(.failure(.systemError))
+            }
         }
     }
 
@@ -334,14 +354,14 @@ final class CallManager: NSObject, CXProviderDelegate {
                                 action.fulfill()
                             } else {
                                 DDLogError("CallManager/CXStartCallAction/failed")
-                                handleSystemError()
+                                endActiveCall(reason: .systemError)
                                 action.fail()
                                 didCallFail.send()
                             }
                         }
                     case .failure(let error) :
                         DDLogError("CallManager/CXStartCallAction/failed: \(error.localizedDescription)")
-                        handleSystemError()
+                        endActiveCall(reason: .systemError)
                         action.fail()
                         didCallFail.send()
                     }
@@ -384,18 +404,25 @@ final class CallManager: NSObject, CXProviderDelegate {
         if let details = callDetailsMap[action.callUUID],
            details.callID == activeCallID,
            let displayCall = activeCall {
-            // Show call UI to the user
-            callViewDelegate?.callAccepted(call: displayCall)
-
-            activeCall?.answer { [weak self] success in
-                guard let self = self else { action.fail(); return }
-                if success {
-                    DDLogInfo("CallManager/CXAnswerCallAction/result: \(success)")
-                    action.fulfill()
+            // check Mic permissions before answering the call.
+            AVAudioSession.sharedInstance().requestRecordPermission { [self] granted in
+                if (granted) {
+                    // Show call UI to the user
+                    callViewDelegate?.callAccepted(call: displayCall)
+                    activeCall?.answer { success in
+                        if success {
+                            DDLogInfo("CallManager/CXAnswerCallAction/result: \(success)")
+                            action.fulfill()
+                        } else {
+                            DDLogError("CallManager/CXAnswerCallAction/failed")
+                            endActiveCall(reason: .systemError)
+                            action.fail()
+                        }
+                    }
                 } else {
-                    DDLogError("CallManager/CXAnswerCallAction/failed")
-                    self.handleSystemError()
+                    endActiveCall(reason: .systemError)
                     action.fail()
+                    microphoneAccessDenied.send()
                 }
             }
         } else {

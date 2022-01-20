@@ -165,6 +165,16 @@ extension SceneDelegate: UIWindowSceneDelegate {
                 }
         })
 
+        cancellables.insert(
+            MainAppContext.shared.callManager.microphoneAccessDenied.sink {
+                DispatchQueue.main.async {
+                    guard UIApplication.shared.applicationState != .background else {
+                        return
+                    }
+                    self.presentMicPermissionsAlertController()
+                }
+        })
+
         MainAppContext.shared.callManager.callViewDelegate = self
         rootViewController.delegate = self
         
@@ -348,6 +358,21 @@ extension SceneDelegate: UIWindowSceneDelegate {
             preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
             DDLogInfo("SceneDelegate/failedCallAlertController/dismiss")
+        }))
+        var viewController = window?.rootViewController
+        while let presentedViewController = viewController?.presentedViewController {
+            viewController = presentedViewController
+        }
+        viewController?.present(alert, animated: true)
+    }
+
+    private func presentMicPermissionsAlertController() {
+        DDLogInfo("SceneDelegate/presentMicPermissionsAlertController")
+        let alert = UIAlertController(title: Localizations.micAccessDeniedTitle, message: Localizations.micAccessDeniedMessage, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default, handler: { _ in
+            guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
+            UIApplication.shared.open(settingsUrl)
         }))
         var viewController = window?.rootViewController
         while let presentedViewController = viewController?.presentedViewController {

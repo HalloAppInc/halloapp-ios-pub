@@ -68,7 +68,9 @@ class Call {
                     }
                 } else if state == .inactive {
                     callFailTImer?.cancel()
+                    callFailTImer = nil
                     iceRestartTimer?.cancel()
+                    iceRestartTimer = nil
                 }
             }
         }
@@ -602,6 +604,10 @@ extension Call: WebRTCClientDelegate {
             case .connected:
                 isConnected = true
                 state = .active
+                iceRestartTimer?.cancel()
+                iceRestartTimer = nil
+                callFailTImer?.cancel()
+                callFailTImer = nil
             default:
                 break
             }
