@@ -673,12 +673,19 @@ extension ThreadData : Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(type)
         hasher.combine(groupID)
+        hasher.combine(title)
+        hasher.combine(lastFeedID)
+        hasher.combine(lastFeedStatus)
+        hasher.combine(lastFeedText)
+        hasher.combine(unreadFeedCount)
+        hasher.combine(searchStr)
     }
 }
 
 extension ThreadData : Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
-        return  lhs.groupID == rhs.groupID &&
+        return  lhs.type == rhs.type &&
+                lhs.groupID == rhs.groupID &&
                 lhs.title == rhs.title &&
                 lhs.lastFeedID == rhs.lastFeedID &&
                 lhs.lastFeedStatus == rhs.lastFeedStatus &&

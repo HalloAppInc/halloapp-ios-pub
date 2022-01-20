@@ -707,6 +707,10 @@ fileprivate struct ChatThreadData {
 extension ChatThreadData : Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(chatWithUserID)
+        hasher.combine(lastMsgID)
+        hasher.combine(lastMsgStatus)
+        hasher.combine(isNew)
+        hasher.combine(searchStr)
     }
 }
 
