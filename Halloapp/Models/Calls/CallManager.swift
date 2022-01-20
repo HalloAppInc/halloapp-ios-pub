@@ -16,6 +16,10 @@ import WebRTC
 import AVFoundation
 
 protocol CallViewDelegate: AnyObject {
+    // indicates user actions
+    func startedOutgoingCall(call: Call)
+    func callAccepted(call: Call)
+    // indicates call states
     func callStarted()
     func callRinging()
     func callConnected()
@@ -23,6 +27,7 @@ protocol CallViewDelegate: AnyObject {
     func callDurationChanged(seconds: Int)
     func callEnded()
     func callReconnecting()
+    func callFailed()
 }
 
 public struct CallDetails {
@@ -60,7 +65,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                 startDate = nil
                 endDate = nil
             }
-            isAnyCallActive.send(activeCall)
+            isAnyCallOngoing.send(activeCall)
         }
     }
     public var callViewDelegate: CallViewDelegate?
@@ -100,7 +105,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         return nil
     }
 
-    public let isAnyCallActive = PassthroughSubject<Call?, Never>()
+    public let isAnyCallOngoing = PassthroughSubject<Call?, Never>()
     public let didCallFail = PassthroughSubject<Void, Never>()
     private var cancellables = Set<AnyCancellable>()
 
@@ -235,9 +240,10 @@ final class CallManager: NSObject, CXProviderDelegate {
         return MainAppContext.shared.contactStore.fullNameIfAvailable(for: peerUserID, ownName: nil, showPushNumber: true) ?? Localizations.unknownContact
     }
 
-    private func resetState() {
-        DDLogInfo("CallManager/resetState/clearing whole state and ending calls.")
+    private func handleSystemError() {
+        DDLogInfo("CallManager/handleSystemError/clearing whole state and ending calls.")
         // We should reset our whole state.
+        callViewDelegate?.callFailed()
         callDetailsMap.removeAll()
         cancelTimer?.cancel()
         cancelTimer = nil
@@ -295,7 +301,7 @@ final class CallManager: NSObject, CXProviderDelegate {
     func providerDidReset(_ provider: CXProvider) {
         DDLogInfo("CallManager/providerDidReset/\(provider.description)")
         // We should reset our whole state.
-        resetState()
+        handleSystemError()
     }
 
     func providerDidBegin(_ provider: CXProvider) {
@@ -307,14 +313,20 @@ final class CallManager: NSObject, CXProviderDelegate {
         if activeCallID == nil,
            let details = callDetailsMap[action.callUUID] {
 
+            activeCall = Call(id: details.callID, peerUserID: details.peerUserID, direction: .outgoing)
+            activeCall?.stateDelegate = self
+            // Show call UI to the user
+            if let displayCall = activeCall {
+                callViewDelegate?.startedOutgoingCall(call: displayCall)
+            }
+
             // set startCall work item.
             pendingStartCallAction = DispatchWorkItem { [self] in
                 service.getCallServers(id: details.callID, for: details.peerUserID, callType: .audio) { callServersResult in
                     switch callServersResult {
                     case .success(let callServers):
                         let iceServers = WebRTCClient.getIceServers(stunServers: callServers.stunServers, turnServers: callServers.turnServers)
-                        activeCall = Call(id: details.callID, peerUserID: details.peerUserID, iceServers: iceServers, direction: .outgoing)
-                        activeCall?.stateDelegate = self
+                        activeCall?.initializeWebRtcClient(iceServers: iceServers)
                         DDLogInfo("CallManager/CXStartCallAction/callID: \(details.callID)/to: \(details.peerUserID)/iceServers success")
                         activeCall?.start { success in
                             DDLogInfo("CallManager/CXStartCallAction/result: \(success)")
@@ -322,14 +334,14 @@ final class CallManager: NSObject, CXProviderDelegate {
                                 action.fulfill()
                             } else {
                                 DDLogError("CallManager/CXStartCallAction/failed")
-                                resetState()
+                                handleSystemError()
                                 action.fail()
                                 didCallFail.send()
                             }
                         }
                     case .failure(let error) :
                         DDLogError("CallManager/CXStartCallAction/failed: \(error.localizedDescription)")
-                        resetState()
+                        handleSystemError()
                         action.fail()
                         didCallFail.send()
                     }
@@ -354,7 +366,7 @@ final class CallManager: NSObject, CXProviderDelegate {
             }
         } else {
             DDLogError("CallManager/CXStartCallAction/callUUID: \(action.callUUID)/unexpected failure")
-            resetState()
+            handleSystemError()
             action.fail()
             didCallFail.send()
         }
@@ -370,7 +382,11 @@ final class CallManager: NSObject, CXProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         DDLogInfo("CallManager/CXAnswerCallAction/\(action.callUUID)/begin")
         if let details = callDetailsMap[action.callUUID],
-           details.callID == activeCallID {
+           details.callID == activeCallID,
+           let displayCall = activeCall {
+            // Show call UI to the user
+            callViewDelegate?.callAccepted(call: displayCall)
+
             activeCall?.answer { [weak self] success in
                 guard let self = self else { action.fail(); return }
                 if success {
@@ -378,13 +394,13 @@ final class CallManager: NSObject, CXProviderDelegate {
                     action.fulfill()
                 } else {
                     DDLogError("CallManager/CXAnswerCallAction/failed")
-                    self.resetState()
+                    self.handleSystemError()
                     action.fail()
                 }
             }
         } else {
             DDLogError("CallManager/CXAnswerCallAction/callUUID: \(action.callUUID)/unexpected failure")
-            resetState()
+            handleSystemError()
             action.fail()
         }
     }
@@ -398,7 +414,7 @@ final class CallManager: NSObject, CXProviderDelegate {
             action.fulfill()
         } else {
             DDLogError("CallManager/CXEndCallAction/failed")
-            resetState()
+            handleSystemError()
             action.fail()
         }
     }
@@ -412,7 +428,7 @@ final class CallManager: NSObject, CXProviderDelegate {
             action.fulfill()
         } else {
             DDLogError("CallManager/CXSetMutedCallAction/failed")
-            resetState()
+            handleSystemError()
             action.fail()
         }
     }
@@ -579,8 +595,9 @@ extension CallManager: HalloCallDelegate {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID)/callUUID: \(callID.callUUID)")
                 callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID)
                 let iceServers = WebRTCClient.getIceServers(stunServers: incomingCall.stunServers, turnServers: incomingCall.turnServers)
-                activeCall = Call(id: callID, peerUserID: peerUserID, iceServers: iceServers)
+                activeCall = Call(id: callID, peerUserID: peerUserID)
                 activeCall?.stateDelegate = self
+                activeCall?.initializeWebRtcClient(iceServers: iceServers)
                 reportIncomingCall(id: callID, from: peerUserID) { error in
                     switch error {
                     case .success:

@@ -140,11 +140,6 @@ final class WebRTCClient: NSObject {
         self.peerConnection.add(remoteCandidate, completionHandler: completion)
     }
 
-    func updateIceServers(stunServers: [Server_StunServer], turnServers: [Server_TurnServer]) {
-        let iceServers = WebRTCClient.getIceServers(stunServers: stunServers, turnServers: turnServers)
-        self.peerConnection.configuration.iceServers.append(contentsOf: iceServers)
-    }
-
     func restartIce() {
         self.peerConnection.restartIce()
     }

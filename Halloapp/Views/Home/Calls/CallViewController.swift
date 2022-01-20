@@ -18,6 +18,7 @@ enum CallStatus {
     case ringing
     case connecting
     case reconnecting
+    case failed
 }
 
 class CallViewController: UIViewController {
@@ -294,6 +295,13 @@ class CallViewController: UIViewController {
 }
 
 extension CallViewController: CallViewDelegate {
+
+    func startedOutgoingCall(call: Call) {
+    }
+
+    func callAccepted(call: Call) {
+    }
+
     func callStarted() {
     }
 
@@ -330,6 +338,14 @@ extension CallViewController: CallViewDelegate {
 
     func callReconnecting() {
         callStatus = .reconnecting
+        useCallStatus = true
+        DispatchQueue.main.async {
+            self.updateCallStatusLabel()
+        }
+    }
+
+    func callFailed() {
+        callStatus = .failed
         useCallStatus = true
         DispatchQueue.main.async {
             self.updateCallStatusLabel()
@@ -421,6 +437,8 @@ private extension Localizations {
             return NSLocalizedString("call.status.connecting", value: "connecting...", comment: "Status displayed while call is connecting")
         case .reconnecting:
             return NSLocalizedString("call.status.reconnecting", value: "reconnecting...", comment: "Status displayed when reconnecting during call")
+        case .failed:
+            return NSLocalizedString("call.status.failed", value: "failed", comment: "Status displayed when call fails.")
         }
     }
 }

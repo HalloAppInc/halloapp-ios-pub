@@ -135,7 +135,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
         })
 
         cancellables.insert(
-            MainAppContext.shared.callManager.isAnyCallActive.sink { call in
+            MainAppContext.shared.callManager.isAnyCallOngoing.sink { call in
                 DispatchQueue.main.async {
                     if UIApplication.shared.applicationState == .background {
                         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
@@ -147,12 +147,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
                         }
                     }
 
-                    if let call = call {
-                        // Show fullscreen call window and add call bar to root VC while it's hidden
-                        self.showCallViewController(for: call) {
-                            self.rootViewController.updateCallUI(with: call, animated: false)
-                        }
-                    } else {
+                    if call == nil {
                         // Animate call bar out if visible or hide it immediately if root VC is hidden
                         self.rootViewController.updateCallUI(with: call, animated: self.callViewController == nil)
                         self.hideCallViewController()
@@ -334,6 +329,17 @@ extension SceneDelegate: UIWindowSceneDelegate {
         }
     }
 
+    private func displayOngoingCall(call: Call) {
+        DispatchQueue.main.async {
+            // Always show call view controller for outgoing calls.
+            // For incoming calls: show call view controller only after user accepts the call.
+            // displayOngoingCall is called specifically in those specific stages of the calls.
+            self.showCallViewController(for: call) {
+                self.rootViewController.updateCallUI(with: call, animated: false)
+            }
+        }
+    }
+
     private func presentFailedCallAlertController() {
         DDLogInfo("SceneDelegate/presentFailedCallAlertController")
         let alert = UIAlertController(
@@ -377,6 +383,17 @@ extension SceneDelegate: RootViewControllerDelegate {
 }
 
 extension SceneDelegate: CallViewDelegate {
+
+    func startedOutgoingCall(call: Call) {
+        displayOngoingCall(call: call)
+        callViewController?.startedOutgoingCall(call: call)
+    }
+
+    func callAccepted(call: Call) {
+        displayOngoingCall(call: call)
+        callViewController?.callAccepted(call: call)
+    }
+
     func callStarted() {
         callViewController?.callStarted()
     }
@@ -404,6 +421,10 @@ extension SceneDelegate: CallViewDelegate {
 
     func callReconnecting() {
         callViewController?.callReconnecting()
+    }
+
+    func callFailed() {
+        callViewController?.callFailed()
     }
 }
 

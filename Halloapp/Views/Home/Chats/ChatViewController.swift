@@ -275,7 +275,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         )
 
         cancellableSet.insert(
-            MainAppContext.shared.callManager.isAnyCallActive.sink { [weak self] call in
+            MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] call in
                 guard let self = self else { return }
                 DispatchQueue.main.async {
                     // Disable call button when the user is in an active call.
