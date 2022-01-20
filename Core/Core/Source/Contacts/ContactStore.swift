@@ -186,6 +186,79 @@ open class ContactStore {
         }
     }
 
+    public func normalizedPhoneNumber(for userID: UserID) -> String? {
+        if userID == self.userData.userId {
+            // TODO: return correct pronoun.
+            return userData.normalizedPhoneNumber
+        }
+        var normalizedPhoneNumber: String? = nil
+
+        // Fetch from the address book.
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
+        do {
+            let contacts = try viewContext.fetch(fetchRequest)
+            if let number = contacts.first?.normalizedPhoneNumber {
+                normalizedPhoneNumber = number
+            }
+        } catch {
+            fatalError("Unable to fetch contacts: \(error)")
+        }
+
+        // Try push number as necessary.
+        if normalizedPhoneNumber == nil {
+            if let pushNumber = self.pushNumber(userID) {
+                normalizedPhoneNumber = pushNumber
+            }
+        }
+
+        return normalizedPhoneNumber
+    }
+
+    public func userID(for normalizedPhoneNumber: String) -> UserID? {
+        if normalizedPhoneNumber == self.userData.normalizedPhoneNumber {
+            return userData.userId
+        }
+        var userID: UserID? = nil
+
+        // Fetch from the address book.
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPhoneNumber)
+        do {
+            let contacts = try viewContext.fetch(fetchRequest)
+            if let contactID = contacts.first?.userId {
+                userID = contactID
+            }
+        } catch {
+            fatalError("Unable to fetch contacts: \(error)")
+        }
+
+        // Try looking up push db as necessary.
+        if userID == nil {
+            if let pushUserID = self.userID(forPushNumber: normalizedPhoneNumber) {
+                userID = pushUserID
+            }
+        }
+
+        return userID
+    }
+
+
+    public func userID(forPushNumber normalizedPushNumber: String) -> UserID? {
+        let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPushNumber)
+        do {
+            let results = try viewContext.fetch(fetchRequest)
+            if results.count >= 2 {
+                DDLogError("contactStore/fetchUserID/fetched count=[\(results.count)]")
+            }
+            return results.first?.userID
+        }
+        catch {
+            fatalError("contactStore/fetchUserID/error [\(error)]")
+        }
+    }
+
     // MARK: Push names
 
     private static func fetchAllPushNames(using managedObjectContext: NSManagedObjectContext) -> [UserID: String] {
@@ -266,21 +339,6 @@ open class ContactStore {
     open func pushNumber(_ userID: UserID) -> String? {
         guard let pushNumberData = pushNumbersData[userID] else { return nil }
         return pushNumberData.normalizedPhoneNumber
-    }
-
-    open func userID(for normalizedPushNumber: UserID) -> UserID? {
-        let fetchRequest: NSFetchRequest<PushNumber> = PushNumber.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPushNumber)
-        do {
-            let results = try viewContext.fetch(fetchRequest)
-            if results.count >= 2 {
-                DDLogError("contactStore/fetchUserID/fetched count=[\(results.count)]")
-            }
-            return results.first?.userID
-        }
-        catch {
-            fatalError("contactStore/fetchUserID/error [\(error)]")
-        }
     }
 
     private static func fetchAllPushNumbersData(using managedObjectContext: NSManagedObjectContext) -> [UserID: PushNumberData] {

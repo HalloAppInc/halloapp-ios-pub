@@ -970,35 +970,6 @@ class ContactStoreMain: ContactStore {
         return firstName ?? Localizations.unknownContact
     }
 
-    func normalizedPhoneNumber(for userID: UserID) -> String? {
-        if userID == self.userData.userId {
-            // TODO: return correct pronoun.
-            return userData.normalizedPhoneNumber
-        }
-        var normalizedPhoneNumber: String? = nil
-
-        // Fetch from the address book.
-        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
-        do {
-            let contacts = try viewContext.fetch(fetchRequest)
-            if let number = contacts.first?.normalizedPhoneNumber {
-                normalizedPhoneNumber = number
-            }
-        } catch {
-            fatalError("Unable to fetch contacts: \(error)")
-        }
-
-        // Try push number as necessary.
-        if normalizedPhoneNumber == nil {
-            if let pushNumber = self.pushNumber(userID) {
-                normalizedPhoneNumber = pushNumber
-            }
-        }
-
-        return normalizedPhoneNumber
-    }
-
 
     // MARK: Push names
 

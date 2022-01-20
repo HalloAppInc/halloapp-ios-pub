@@ -280,17 +280,20 @@ extension SceneDelegate: UIWindowSceneDelegate {
             // So we try to look up the userID using that phone number and then use that to start call.
 
             let peerUserID: UserID?
-            if let contactIdentifier = userActivity.contactIdentifier {
+            let contactIdentifier = userActivity.contactIdentifier
+            let peerNumber = userActivity.phoneNumber
+
+            if let peerNumber = peerNumber {
+                peerUserID = MainAppContext.shared.contactStore.userID(for: peerNumber)
+                DDLogInfo("appdelegate/scene/continueUserActivity/using peerNumber: \(peerNumber)/peerUserID: \(String(describing: peerUserID))")
+            } else if let contactIdentifier = contactIdentifier {
                 let peerContact = MainAppContext.shared.contactStore.contact(withIdentifier: contactIdentifier)
                 peerUserID = peerContact?.userId
+                DDLogInfo("appdelegate/scene/continueUserActivity/using contactIdentifier: \(contactIdentifier)/peerUserID: \(String(describing: peerUserID))")
             } else {
-                DDLogError("appdelegate/scene/continueUserActivity/contactIdentifier is nil - \(String(describing: userActivity.interaction?.intent))")
-                if let peerNumber = userActivity.phoneNumber {
-                    peerUserID = MainAppContext.shared.contactStore.userID(for: peerNumber)
-                } else {
-                    DDLogError("appdelegate/scene/continueUserActivity/peerNumber is nil - \(String(describing: userActivity.interaction?.intent))")
-                    return
-                }
+                DDLogError("appdelegate/scene/continueUserActivity/peerNumber is nil - \(String(describing: userActivity.interaction?.intent))")
+                // TODO: show failed call ui
+                return
             }
 
             guard let peerUserID = peerUserID else {
@@ -441,7 +444,9 @@ extension NSUserActivity {
             return nil
         }
         DDLogInfo("NSUserActivity/handleValue/intent: \(String(describing: interaction?.intent.description))")
-        return startCallIntent.contacts?.first?.personHandle?.value
+        // Remove occurrences of "+" in the number.
+        // We add plus in the handle - since we want iOS to automatically lookup the contact name of the number if available.
+        return startCallIntent.contacts?.first?.personHandle?.value?.replacingOccurrences(of: "+", with: "")
     }
 
     var contactIdentifier: String? {
