@@ -15,7 +15,7 @@ extension FeedPost {
     var hideFooterSeparator: Bool {
         // Separator should be hidden for media-only posts and posts with link previews
         if hasLinkPreviews { return true }
-        if hasText { return false }
+        if hasText || hasAudio { return false }
         return true
     }
 
@@ -31,6 +31,10 @@ extension FeedPost {
             return false
         }
         return true
+    }
+
+    var hasAudio: Bool {
+        return media?.contains{ $0.type == .audio } ?? false
     }
 }
 
