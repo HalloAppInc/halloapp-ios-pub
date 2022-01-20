@@ -12,9 +12,9 @@ import UIKit
 
 final class FloatingMenuButton: UIView {
     init(
-        button: UIButton,
-        action: ((UIButton, FloatingMenu) -> Future<Void, Never>)?,
-        transition: ((UIButton, FloatingMenu.State) -> Void)? = nil)
+        button: UIControl,
+        action: ((FloatingMenu) -> Future<Void, Never>)?,
+        transition: ((FloatingMenu.State) -> Void)? = nil)
     {
         self.button = button
         self.action = action
@@ -31,13 +31,13 @@ final class FloatingMenuButton: UIView {
     }
 
     /// Internal control view
-    let button: UIButton
+    let button: UIControl
 
     /// Closure called when button tapped. Returns a future so we can hande async actions.
-    let action: ((UIButton, FloatingMenu) -> Future<Void, Never>)?
+    let action: ((FloatingMenu) -> Future<Void, Never>)?
 
     /// Closure called by menu when its state changes (e.g., so we can animate button color or icon change alongside menu)
-    let transition: ((UIButton, FloatingMenu.State) -> Void)?
+    let transition: ((FloatingMenu.State) -> Void)?
 
     weak var menu: FloatingMenu?
 
@@ -47,74 +47,49 @@ final class FloatingMenuButton: UIView {
             DDLogError("Floating menu button requires menu to function")
             return
         }
-        _ = action(button, menu).sink() {}
-    }
-
-    /// Fades from one icon to the other when expanded
-    static func fadingToggleButton(collapsedIconTemplate: UIImage?, expandedIconTemplate: UIImage) -> FloatingMenuButton {
-        return FloatingMenuButton(
-            button: makeUIButton(icon: collapsedIconTemplate, accessibilityLabel: "Menu"),
-            action: { _, menu in menu.toggleExpanded() },
-            transition: { button, state in
-            switch state {
-            case .collapsed:
-                button.tintColor = .white
-                button.backgroundColor = .lavaOrange
-                button.setImage(collapsedIconTemplate, for: .normal)
-            case .expanded:
-                button.tintColor = .lavaOrange
-                button.backgroundColor = .white
-                button.setImage(expandedIconTemplate, for: .normal)
-            }
-        })
+        _ = action(menu).sink() {}
     }
 
     /// Rotates icon by specified number of degrees when expanded (e.g., 45 degrees from + to X, 180 degrees from up arrow to down arrow)
-    static func rotatingToggleButton(collapsedIconTemplate: UIImage?, expandedRotation: CGFloat) -> FloatingMenuButton {
+    static func rotatingToggleButton(collapsedIconTemplate: UIImage?, accessoryView: UIView, expandedRotation: CGFloat) -> FloatingMenuButton {
+        let button = AccessorizedFloatingButton(icon: collapsedIconTemplate, accessoryView: accessoryView)
         return FloatingMenuButton(
-            button: makeUIButton(icon: collapsedIconTemplate, accessibilityLabel: "Menu"),
-            action: { _, menu in menu.toggleExpanded() },
-            transition: { button, state in
+            button: button,
+            action: { menu in menu.toggleExpanded() },
+            transition: { state in
                 switch state {
                 case .collapsed:
-                    button.tintColor = .white
-                    button.backgroundColor = .lavaOrange
-                    button.transform = .init(rotationAngle: 0)
+                    button.pillView.backgroundColor = .lavaOrange
+                    button.imageView.tintColor = .white
+                    button.imageView.transform = .init(rotationAngle: 0)
+                    button.accessoryView.isHidden = false
                 case .expanded:
-                    button.tintColor = .lavaOrange
-                    button.backgroundColor = .white
-                    button.transform = .init(rotationAngle: expandedRotation * (CGFloat.pi / 180))
+                    button.pillView.backgroundColor = .white
+                    button.imageView.tintColor = .lavaOrange
+                    button.imageView.transform = .init(rotationAngle: expandedRotation * (CGFloat.pi / 180))
+                    button.accessoryView.isHidden = true
                 }
         })
     }
 
     /// Standard action button with no state transition and a synchronous action. Closes menu if expanded.
     static func standardActionButton(iconTemplate: UIImage?, accessibilityLabel: String, action: @escaping () -> Void) -> FloatingMenuButton {
+        let button = LabeledFloatingButton(icon: iconTemplate, text: accessibilityLabel)
         return FloatingMenuButton(
-            button: makeUIButton(icon: iconTemplate, accessibilityLabel: accessibilityLabel),
-            action: { _, menu in
+            button: button,
+            action: { menu in
                 action()
-                return menu.setState(.collapsed, animated: true) })
-    }
-
-    private static func makeUIButton(icon: UIImage?, accessibilityLabel: String) -> UIButton {
-        if icon == nil {
-            DDLogError("Missing image for floating button: \(accessibilityLabel)")
-        }
-
-        let diameter = FloatingMenu.ButtonDiameter
-        let button = UIButton.systemButton(with: icon ?? UIImage(), target: nil, action: nil)
-        button.accessibilityLabel = accessibilityLabel
-        button.backgroundColor = .lavaOrange
-        button.tintColor = .white
-        button.layer.cornerRadius = diameter / 2
-        button.layer.shadowPath = UIBezierPath(
-            roundedRect: CGRect(origin: .zero, size: CGSize(width: diameter, height: diameter)),
-            cornerRadius: diameter/2).cgPath
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.heightAnchor.constraint(equalToConstant: diameter).isActive = true
-        button.widthAnchor.constraint(equalToConstant: diameter).isActive = true
-        return button
+                return menu.setState(.collapsed, animated: true) },
+            transition: { state in
+                switch state {
+                case .collapsed:
+                    button.label.alpha = 0
+                    button.circleView.layer.shadowOpacity = 0
+                case .expanded:
+                    button.label.alpha = 1
+                    button.circleView.layer.shadowOpacity = FloatingMenu.ShadowOpacity
+                }
+            })
     }
 }
 
@@ -124,6 +99,7 @@ final class FloatingMenu: UIView {
     static var ButtonSpacing: CGFloat = 15
     static var PermanentButtonExtraSpacing: CGFloat = 5
     static var ShadowOpacity: Float = 0.2
+    static var ExpandedBackgroundColor: UIColor = .feedBackground.withAlphaComponent(0.9)
 
     init(permanentButton: FloatingMenuButton, expandedButtons: [FloatingMenuButton] = []) {
         self.permanentButton = permanentButton
@@ -142,7 +118,8 @@ final class FloatingMenu: UIView {
     // NB: This is private(set) so we can update it in a custom animation block.
     private(set) var state = State.collapsed {
         didSet {
-            orderedButtons.forEach { $0.transition?($0.button, state) }
+            orderedButtons.forEach { $0.transition?(state) }
+            backgroundColor = (state == .collapsed) ? .clear : Self.ExpandedBackgroundColor
             layoutSubviews()
         }
     }
@@ -190,10 +167,12 @@ final class FloatingMenu: UIView {
         super.layoutSubviews()
 
         for (i, button) in orderedButtons.enumerated() {
-            let castsShadow = button == permanentButton || !isCollapsed
+            let castsShadow = button == permanentButton
             let needsSpacing = !isCollapsed && button != permanentButton
             button.layer.shadowOpacity = castsShadow ? Self.ShadowOpacity : 0
-            button.center = permanentButton.center
+            button.center = CGPoint(
+                x: permanentButton.center.x - (button.bounds.width - permanentButton.bounds.width) / 2,
+                y: permanentButton.center.y)
             if needsSpacing {
                 let deltaY = Self.PermanentButtonExtraSpacing + CGFloat(i) * (Self.ButtonDiameter + Self.ButtonSpacing)
                 button.center.y -= deltaY
@@ -253,4 +232,111 @@ extension Future {
             promise(.success(value))
         }
     }
+}
+
+final class AccessorizedFloatingButton: UIControl {
+    init(icon: UIImage?, accessoryView: UIView) {
+        self.accessoryView = accessoryView
+        super.init(frame: .zero)
+
+        imageView.image = icon
+        imageView.heightAnchor.constraint(equalToConstant: icon?.size.height ?? 0).isActive = true
+        imageView.widthAnchor.constraint(equalToConstant: icon?.size.width ?? 0).isActive = true
+        translatesAutoresizingMaskIntoConstraints = false
+        addSubview(pillView)
+        pillView.constrain(to: self)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    let accessoryView: UIView
+    let imageView = UIImageView()
+
+    lazy var pillView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isUserInteractionEnabled = false
+        view.layoutMargins = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+        view.backgroundColor = .lavaOrange
+        view.layer.cornerRadius = FloatingMenu.ButtonDiameter / 2
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowRadius = 6
+        view.layer.shadowOffset = CGSize(width: 0, height: 5)
+
+        let stackView = UIStackView(arrangedSubviews: [accessoryView, imageView])
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .horizontal
+        stackView.spacing = 9
+        view.addSubview(stackView)
+
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.tintColor = .white
+        imageView.centerXAnchor.constraint(equalTo: view.trailingAnchor, constant: -FloatingMenu.ButtonDiameter/2).isActive = true
+        imageView.constrain([.centerY], to: view)
+        accessoryView.constrainMargins([.leading, .centerY], to: view)
+
+        view.heightAnchor.constraint(equalToConstant: FloatingMenu.ButtonDiameter).isActive = true
+        view.widthAnchor.constraint(greaterThanOrEqualToConstant: FloatingMenu.ButtonDiameter).isActive = true
+        return view
+    }()
+}
+
+final class LabeledFloatingButton: UIControl {
+    init(icon: UIImage?, text: String, isCollapsed: Bool = true) {
+        super.init(frame: .zero)
+
+        label.alpha = isCollapsed ? 0 : 1
+        label.text = text
+        imageView.image = icon
+        circleView.layer.shadowOpacity = isCollapsed ? 0 : FloatingMenu.ShadowOpacity
+
+        addSubview(circleView)
+        addSubview(label)
+
+        label.constrain([.leading, .top, .bottom], to: self)
+        circleView.leadingAnchor.constraint(equalTo: label.trailingAnchor, constant: 20).isActive = true
+        circleView.constrain([.centerY, .trailing], to: self)
+        heightAnchor.constraint(greaterThanOrEqualTo: circleView.heightAnchor).isActive = true
+
+        translatesAutoresizingMaskIntoConstraints = false
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private let imageView = UIImageView()
+    lazy var circleView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isUserInteractionEnabled = false
+        view.backgroundColor = .lavaOrange
+        view.layer.cornerRadius = FloatingMenu.ButtonDiameter / 2
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowRadius = 6
+        view.layer.shadowOffset = CGSize(width: 0, height: 5)
+        view.layer.shadowPath = UIBezierPath(
+            roundedRect: CGRect(origin: .zero, size: CGSize(width: FloatingMenu.ButtonDiameter, height: FloatingMenu.ButtonDiameter)),
+            cornerRadius: FloatingMenu.ButtonDiameter/2).cgPath
+        view.addSubview(imageView)
+
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.tintColor = .white
+        imageView.constrain([.centerX, .centerY], to: view)
+
+        view.heightAnchor.constraint(equalToConstant: FloatingMenu.ButtonDiameter).isActive = true
+        view.widthAnchor.constraint(equalToConstant: FloatingMenu.ButtonDiameter).isActive = true
+        return view
+    }()
+
+    let label: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = UIApplication.shared.userInterfaceLayoutDirection == .rightToLeft ? .left : .right
+        label.textColor = .label
+        label.font = .gothamFont(forTextStyle: .footnote, weight: .medium)
+        return label
+    }()
 }

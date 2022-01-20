@@ -336,6 +336,7 @@ class FeedViewController: FeedCollectionViewController {
         return FloatingMenu(
             permanentButton: .rotatingToggleButton(
                 collapsedIconTemplate: UIImage(named: "icon_fab_compose_post")?.withRenderingMode(.alwaysTemplate),
+                accessoryView: UIImageView(image: UIImage(named: "fab_hallo")),
                 expandedRotation: 45),
             expandedButtons: expandedButtons)
     }()

@@ -52,14 +52,18 @@ extension Localizations {
         NSLocalizedString("title.storage", value: "Storage", comment: "Row in Settings screen")
     }
     
-    // MARK: FAB Accessibility
+    // MARK: FAB
+
+    static var fabPostButton: String {
+        NSLocalizedString("fab.post.button", value: "Post", comment: "Label for floating compose post menu on Group screen.")
+    }
 
     static var fabAccessibilityCamera: String {
         NSLocalizedString("fab.accessibility.camera", value: "Camera", comment: "VoiceOver label for camera button in floating compose post menu in Home view.")
     }
 
     static var fabAccessibilityPhotoLibrary: String {
-        NSLocalizedString("fab.accessibility.photo.library", value: "Photo Library", comment: "VoiceOver label for photo button in floating compose post menu in Home view.")
+        NSLocalizedString("fab.accessibility.photo.library", value: "Gallery", comment: "VoiceOver label for photo button in floating compose post menu in Home view.")
     }
 
     static var fabAccessibilityTextPost: String {
@@ -67,7 +71,7 @@ extension Localizations {
     }
 
     static var fabAccessibilityVoiceNote: String {
-        NSLocalizedString("fab.accessibility.voice", value: "Voice Note", comment: "VoiceOver label for voice note button in floating compose post menu in Home view.")
+        NSLocalizedString("fab.accessibility.voice", value: "Audio", comment: "VoiceOver label for audio post button in floating compose post menu in Home view.")
     }
     
     // MARK: Message Actions

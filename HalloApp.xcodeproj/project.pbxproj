@@ -98,6 +98,11 @@
 		68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68629293265C660D00C54367 /* FeedPermissionAlert.swift */; };
 		686CDFBC2548A6C200DB7266 /* RegistrationDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686CDFBB2548A6C200DB7266 /* RegistrationDemo.swift */; };
 		68781D822600170D0045AB61 /* InviteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68781D812600170D0045AB61 /* InviteViewController.swift */; };
+		6878E0132798E962008BB351 /* Quicksand-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E00D2798E962008BB351 /* Quicksand-Medium.ttf */; };
+		6878E0142798E962008BB351 /* Quicksand-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E00F2798E962008BB351 /* Quicksand-Regular.ttf */; };
+		6878E0152798E962008BB351 /* Quicksand-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E0102798E962008BB351 /* Quicksand-Light.ttf */; };
+		6878E0162798E962008BB351 /* Quicksand-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E0112798E962008BB351 /* Quicksand-Bold.ttf */; };
+		6878E0172798E962008BB351 /* Quicksand-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6878E0122798E962008BB351 /* Quicksand-SemiBold.ttf */; };
 		687D5EC7265317F8008A3A65 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 687D5EC5265317F8008A3A65 /* InfoPlist.strings */; };
 		687D5ECB265317F8008A3A65 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 687D5EC9265317F8008A3A65 /* InfoPlist.strings */; };
 		68929F9F2734AD3C00F79288 /* MarkdownKit in Frameworks */ = {isa = PBXBuildFile; productRef = 68929F9E2734AD3B00F79288 /* MarkdownKit */; };
@@ -657,6 +662,11 @@
 		6872712326C58F1400D4D9AB /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6872712426C58F1400D4D9AB /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		68781D812600170D0045AB61 /* InviteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteViewController.swift; sourceTree = "<group>"; };
+		6878E00D2798E962008BB351 /* Quicksand-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Quicksand-Medium.ttf"; sourceTree = "<group>"; };
+		6878E00F2798E962008BB351 /* Quicksand-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Quicksand-Regular.ttf"; sourceTree = "<group>"; };
+		6878E0102798E962008BB351 /* Quicksand-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Quicksand-Light.ttf"; sourceTree = "<group>"; };
+		6878E0112798E962008BB351 /* Quicksand-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Quicksand-Bold.ttf"; sourceTree = "<group>"; };
+		6878E0122798E962008BB351 /* Quicksand-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Quicksand-SemiBold.ttf"; sourceTree = "<group>"; };
 		687D5EC6265317F8008A3A65 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		687D5EC8265317F8008A3A65 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		687D5ECA265317F8008A3A65 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -1124,6 +1134,11 @@
 		146B93752405F35E00768AC6 /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
+				6878E0112798E962008BB351 /* Quicksand-Bold.ttf */,
+				6878E0102798E962008BB351 /* Quicksand-Light.ttf */,
+				6878E00D2798E962008BB351 /* Quicksand-Medium.ttf */,
+				6878E00F2798E962008BB351 /* Quicksand-Regular.ttf */,
+				6878E0122798E962008BB351 /* Quicksand-SemiBold.ttf */,
 				762EDBC7244E2EB700986617 /* Gotham-Black.otf */,
 				762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */,
 				762EDBC8244E2EB700986617 /* Gotham-Bold.otf */,
@@ -2454,10 +2469,15 @@
 				762EDBCF244E2EB700986617 /* Gotham-BoldIta.otf in Resources */,
 				762EDBD3244E2EB700986617 /* Gotham-BookIta.otf in Resources */,
 				EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */,
+				6878E0152798E962008BB351 /* Quicksand-Light.ttf in Resources */,
+				6878E0142798E962008BB351 /* Quicksand-Regular.ttf in Resources */,
+				6878E0132798E962008BB351 /* Quicksand-Medium.ttf in Resources */,
 				6A218966278E55C7008D7B7C /* us_ringtone.mp3 in Resources */,
 				68AAE4EF273498A600C10B05 /* MainAppAssets.xcassets in Resources */,
 				762EDBD8244E2EB700986617 /* Gotham-Bold.otf in Resources */,
 				762EDBCC244E2EB700986617 /* Gotham-UltraIta.otf in Resources */,
+				6878E0162798E962008BB351 /* Quicksand-Bold.ttf in Resources */,
+				6878E0172798E962008BB351 /* Quicksand-SemiBold.ttf in Resources */,
 				762EDBD6244E2EB700986617 /* Gotham-MediumIta.otf in Resources */,
 				762EDBD9244E2EB700986617 /* Gotham-ThinIta.otf in Resources */,
 				762EDBD1244E2EB700986617 /* Gotham-Book.otf in Resources */,

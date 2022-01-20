@@ -35,6 +35,28 @@ extension UIFont {
         return font
     }
 
+    class func quicksandFont(ofFixedSize fontSize: CGFloat, weight: UIFont.Weight = .regular) -> UIFont {
+        let suffix: String = {
+        switch weight {
+        case  .ultraLight, .thin, .light:
+            return "Light"
+        case .regular:
+            return "Regular"
+        case .medium:
+            return "Medium"
+        case .semibold:
+            return "SemiBold"
+        case .heavy, .black, .bold:
+            return "Bold"
+        default:
+            return "Regular"
+        }}()
+        guard let font = UIFont(name: "Quicksand-\(suffix)", size: fontSize) else {
+            return UIFont.systemFont(ofSize: fontSize, weight: weight)
+        }
+        return font
+    }
+
     class func gothamFont(forTextStyle style: UIFont.TextStyle, pointSizeChange: CGFloat = 0, weight: UIFont.Weight = .regular, maximumPointSize: CGFloat? = nil) -> UIFont {
         let traitCollection = UITraitCollection(preferredContentSizeCategory: .large)
         let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style, compatibleWith: traitCollection)
@@ -53,7 +75,7 @@ extension UIFont {
         if let maximumPointSize = maximumPointSize {
             return UIFontMetrics(forTextStyle: style).scaledFont(for: baseFont, maximumPointSize: maximumPointSize)
         } else {
-            return UIFontMetrics(forTextStyle: style).scaledFont(for:baseFont)
+            return UIFontMetrics(forTextStyle: style).scaledFont(for: baseFont)
         }
     }
 

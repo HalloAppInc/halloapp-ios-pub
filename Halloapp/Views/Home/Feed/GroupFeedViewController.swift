@@ -280,9 +280,16 @@ class GroupFeedViewController: FeedCollectionViewController {
                 action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) }), at: 1)
         }
 
+        let postLabel = UILabel()
+        postLabel.translatesAutoresizingMaskIntoConstraints = false
+        postLabel.font = .quicksandFont(ofFixedSize: 21, weight: .bold)
+        postLabel.text = Localizations.fabPostButton
+        postLabel.textColor = .white
+
         return FloatingMenu(
             permanentButton: .rotatingToggleButton(
                 collapsedIconTemplate: UIImage(named: "icon_fab_compose_post")?.withRenderingMode(.alwaysTemplate),
+                accessoryView: postLabel,
                 expandedRotation: 45),
             expandedButtons: expandedButtons)
     }()
