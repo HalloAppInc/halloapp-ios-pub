@@ -130,6 +130,33 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Update";
 
+/* Label for button that opens chat during call */
+"call.button.chat" = "Chat";
+
+/* Label for button that ends call */
+"call.button.end" = "Anruf beenden";
+
+/* Label for button that toggles mute status during call */
+"call.button.mute" = "Stummschaltung";
+
+/* Label for button that toggles speakerphone status during call */
+"call.button.speaker" = "Lautsprecher";
+
+/* Status displayed when outgoing call starts */
+"call.status.calling" = "ausgehender Anruf...";
+
+/* Status displayed while call is connecting */
+"call.status.connecting" = "verbindet...";
+
+/* Status displayed when incoming call starts */
+"call.status.incoming" = "eingehender Anruf";
+
+/* Status displayed when reconnecting during call */
+"call.status.reconnecting" = "erneutes Verbinden...";
+
+/* Status displayed while outgoing call is ringing */
+"call.status.ringing" = "klingelt...";
+
 /* Generic error when trying to use camera */
 "camera.error" = "Kamerafehler";
 
@@ -422,13 +449,16 @@
 "fab.accessibility.camera" = "Kamera";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Fotobibliothek";
+"fab.accessibility.photo.library" = "Galerie";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Text";
 
-/* VoiceOver label for voice note button in floating compose post menu in Home view. */
+/* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "Sprachnotiz";
+
+/* Label for floating compose post menu on Group screen. */
+"fab.post.button" = "Beitrag";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "wird gelöscht...";
@@ -698,7 +728,7 @@
 "help.send.logs.email.body" = "\n\nBitte oberhalb dein Feedback oder eine Problembeschreibung eingeben.\n\nVersion %1$@ - %2$@\n%3$@";
 
 /* Text shown to users on call failure. */
-"home.calls.fail.text" = "Bitte versuche es später noch einmal.";
+"home.calls.fail.text" = "Stell sicher, ob du eine Internetverbindung hast, und versuche es erneut.";
 
 /* Title of failed call screen alert. */
 "home.calls.fail.title" = "Der Anruf konnte nicht getätigt werden.";
@@ -1011,6 +1041,9 @@
 
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Gemeinsame Gruppen";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
+"profile.header.call.user" = "anrufen";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Nachricht senden";

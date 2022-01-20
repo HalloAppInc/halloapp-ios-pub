@@ -427,7 +427,7 @@
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Texto";
 
-/* VoiceOver label for voice note button in floating compose post menu in Home view. */
+/* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "Nota de Voz";
 
 /* Shown while content is being retracted from feed */

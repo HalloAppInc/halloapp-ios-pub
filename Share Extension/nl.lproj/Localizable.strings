@@ -76,6 +76,15 @@
 /* Title for generic delete button. */
 "Delete" = "Verwijderen";
 
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Delen met al mijn contacten";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Delen met mijn contacten behalve personen die ik selecteer";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Alleen delen met geselecteerde contacten";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Zoeken";
 
@@ -96,6 +105,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Sluit je aan bij mijn netwerk voor échte relaties op HalloApp. Download gratis op halloapp.com/dl";
+
+/* Label above the list with whom you share */
+"share.composer.destinations.label" = "Delen met";
 
 /* Placeholder for media caption. */
 "share.composer.placeholder" = "Voeg een omschrijving toe";
@@ -121,17 +133,17 @@
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Uploaden mislukt";
 
-/* Alert dialog title shown when uploading begins. */
-"share.composer.uploading.title" = "Uploaden...";
-
 /* Contacts category label */
-"share.destination.contacts" = "Contacten";
+"share.destination.contacts" = "Recente Contacten";
 
 /* Groups category label */
-"share.destination.groups" = "Groepen";
+"share.destination.groups" = "Jouw groepen";
 
 /* Share on the home feed label */
 "share.destination.home" = "Home";
+
+/* Share on the home feed selection cell */
+"share.destination.new" = "Nieuwe Post";
 
 /* Destination screen title */
 "share.destination.title" = "HalloApp";
@@ -142,6 +154,15 @@
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "Je bent niet ingelogd";
 
+/* Row in Settings screen */
+"title.privacy" = "Privacy";
+
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Onbekend Contact";
+
+/* How many bytes from total have been uploaded */
+"uploading.bytes.progress" = "%1$@ van %2$@";
+
+/* Message how many items are currently being upload */
+"uploading.n.items" = "uploading.n.items";
 

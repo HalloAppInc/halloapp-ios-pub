@@ -130,6 +130,33 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Actualizar";
 
+/* Label for button that opens chat during call */
+"call.button.chat" = "conversación";
+
+/* Label for button that ends call */
+"call.button.end" = "terminar llamada";
+
+/* Label for button that toggles mute status during call */
+"call.button.mute" = "silencio";
+
+/* Label for button that toggles speakerphone status during call */
+"call.button.speaker" = "altavoz";
+
+/* Status displayed when outgoing call starts */
+"call.status.calling" = "llamando...";
+
+/* Status displayed while call is connecting */
+"call.status.connecting" = "conectando...";
+
+/* Status displayed when incoming call starts */
+"call.status.incoming" = "llamada entrante";
+
+/* Status displayed when reconnecting during call */
+"call.status.reconnecting" = "reconectando...";
+
+/* Status displayed while outgoing call is ringing */
+"call.status.ringing" = "llamando...";
+
 /* Generic error when trying to use camera */
 "camera.error" = "Error de cámara";
 
@@ -427,7 +454,7 @@
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Enviar mensaje de texto";
 
-/* VoiceOver label for voice note button in floating compose post menu in Home view. */
+/* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "Nota de voz";
 
 /* Shown while content is being retracted from feed */
@@ -1011,6 +1038,9 @@
 
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Grupos en común";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
+"profile.header.call.user" = "llamar";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Enviar un mensaje";

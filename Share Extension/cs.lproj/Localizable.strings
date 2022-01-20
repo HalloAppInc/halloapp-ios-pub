@@ -85,9 +85,6 @@
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Nahrávání se nezdařilo";
 
-/* Alert dialog title shown when uploading begins. */
-"share.composer.uploading.title" = "Nahrávám...";
-
 /* Contacts category label */
 "share.destination.contacts" = "Kontakty";
 

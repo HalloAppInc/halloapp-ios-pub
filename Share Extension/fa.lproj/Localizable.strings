@@ -121,9 +121,6 @@
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "خطا در بارگذاری";
 
-/* Alert dialog title shown when uploading begins. */
-"share.composer.uploading.title" = "در حال بارگذاری...";
-
 /* Contacts category label */
 "share.destination.contacts" = "مخاطب‌ها";
 

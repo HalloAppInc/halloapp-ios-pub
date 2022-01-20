@@ -97,9 +97,6 @@
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Gagal mengunggah";
 
-/* Alert dialog title shown when uploading begins. */
-"share.composer.uploading.title" = "Mengunggah...";
-
 /* Contacts category label */
 "share.destination.contacts" = "Kontak";
 

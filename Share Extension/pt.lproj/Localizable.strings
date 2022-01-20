@@ -121,9 +121,6 @@
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Falha ao fazer upload";
 
-/* Alert dialog title shown when uploading begins. */
-"share.composer.uploading.title" = "Upload em progresso...";
-
 /* Contacts category label */
 "share.destination.contacts" = "Contatos";
 

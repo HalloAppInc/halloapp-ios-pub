@@ -79,6 +79,15 @@
 /* Title for generic delete button. */
 "Delete" = "Удалить";
 
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Поделиться со всеми моими контактами";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Поделиться с моими контактами, кроме людей, которых я выберу";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Поделиться только с выбранными контактами";
+
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Выйти";
 
@@ -177,6 +186,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Присоединяйся к моей сети настоящих отношений в HalloApp. Скачай бесплатно на halloapp.com/dl";
+
+/* Row in Settings screen */
+"title.privacy" = "Конфиденциальность";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Неизвестный контакт";

@@ -88,9 +88,6 @@
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Το Ανέβασμα απέτυχε";
 
-/* Alert dialog title shown when uploading begins. */
-"share.composer.uploading.title" = "Ανεβαίνει...";
-
 /* Contacts category label */
 "share.destination.contacts" = "Επαφές";
 

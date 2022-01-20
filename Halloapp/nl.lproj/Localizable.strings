@@ -130,6 +130,36 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Bijwerken";
 
+/* Label for button that opens chat during call */
+"call.button.chat" = "chat";
+
+/* Label for button that ends call */
+"call.button.end" = "oproep beëindigen";
+
+/* Label for button that toggles mute status during call */
+"call.button.mute" = "dempen";
+
+/* Label for button that toggles speakerphone status during call */
+"call.button.speaker" = "luidspreker";
+
+/* Status displayed when outgoing call starts */
+"call.status.calling" = "belt...";
+
+/* Status displayed while call is connecting */
+"call.status.connecting" = "verbinding maken...";
+
+/* Status displayed when call fails. */
+"call.status.failed" = "mislukt";
+
+/* Status displayed when incoming call starts */
+"call.status.incoming" = "inkomende oproep";
+
+/* Status displayed when reconnecting during call */
+"call.status.reconnecting" = "opnieuw verbinding maken...";
+
+/* Status displayed while outgoing call is ringing */
+"call.status.ringing" = "gaat over...";
+
 /* Generic error when trying to use camera */
 "camera.error" = "Camerafout";
 
@@ -422,13 +452,16 @@
 "fab.accessibility.camera" = "Camera";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Fotobibliotheek";
+"fab.accessibility.photo.library" = "Galerij";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Tekst";
 
-/* VoiceOver label for voice note button in floating compose post menu in Home view. */
-"fab.accessibility.voice" = "Spraakbericht";
+/* VoiceOver label for audio post button in floating compose post menu in Home view. */
+"fab.accessibility.voice" = "Audio";
+
+/* Label for floating compose post menu on Group screen. */
+"fab.post.button" = "Post";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Wordt verwijderd...";
@@ -698,10 +731,10 @@
 "help.send.logs.email.body" = "\n\n\nBeschrijf het probleem of de feedback in de ruimte hierboven alsjeblieft.\n\nVersie %1$@ - %2$@\n%3$@";
 
 /* Text shown to users on call failure. */
-"home.calls.fail.text" = "Sorry, probeer later opnieuw.";
+"home.calls.fail.text" = "Zorg ervoor dat je telefoon internetverbinding heeft en probeer opnieuw.";
 
 /* Title of failed call screen alert. */
-"home.calls.fail.title" = "Oproep mislukt.";
+"home.calls.fail.title" = "Kan niet bellen.";
 
 /* Text shown to users trying to open the call screen. */
 "home.calls.notice.text" = "Je hebt op dit moment geen actieve oproep.";
@@ -1012,8 +1045,11 @@
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Gemeenschappelijke Groepen";
 
+/* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
+"profile.header.call.user" = "bellen";
+
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
-"profile.header.message.user" = "Stuur Bericht";
+"profile.header.message.user" = "stuur bericht";
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Deblokkeren";

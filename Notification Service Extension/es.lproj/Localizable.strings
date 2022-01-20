@@ -76,6 +76,15 @@
 /* Title for generic delete button. */
 "Delete" = "Eliminar";
 
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Compartir con todos mis contactos";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Compartir con todos mis contactos excepto con la gente que yo seleccione";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Solo compartir con contactos seleccionados";
+
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Fuiste agregado a un grupo nuevo";
 
@@ -138,6 +147,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Únete a mi red social de relaciones verdaderas en HalloApp. Bájalo gratis en halloapp.com/dl ";
+
+/* Row in Settings screen */
+"title.privacy" = "Privacidad";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Contacto desconocido";

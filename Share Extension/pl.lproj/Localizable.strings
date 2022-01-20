@@ -109,9 +109,6 @@
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Przesyłanie nie powiodło się";
 
-/* Alert dialog title shown when uploading begins. */
-"share.composer.uploading.title" = "Przesyłanie...";
-
 /* Contacts category label */
 "share.destination.contacts" = "Kontakty";
 
