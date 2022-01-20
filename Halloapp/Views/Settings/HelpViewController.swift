@@ -256,10 +256,10 @@ extension Localizations {
     }
 
     static var failedCallTitle: String {
-        NSLocalizedString("home.calls.fail.title", value: "Failed placing a call.", comment: "Title of failed call screen alert.")
+        NSLocalizedString("home.calls.fail.title", value: "Couldn't place call.", comment: "Title of failed call screen alert.")
     }
 
     static var failedCallNoticeText: String {
-        NSLocalizedString("home.calls.fail.text", value: "Sorry, please try again later.", comment: "Text shown to users on call failure.")
+        NSLocalizedString("home.calls.fail.text", value: "Make sure your phone has an internet connection and try again.", comment: "Text shown to users on call failure.")
     }
 }

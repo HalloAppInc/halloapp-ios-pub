@@ -79,6 +79,7 @@ final class CallManager: NSObject, CXProviderDelegate {
     }
     private var endReason: EndCallReason? = nil
     private var callRingtonePlayer: AVAudioPlayer?
+    private var pendingStartCallAction: DispatchWorkItem? = nil
 
     // UUID to callID and peerUserID map: for all possible calls.
     // Call UUID can be generated from callID in a deterministic way.
@@ -100,6 +101,8 @@ final class CallManager: NSObject, CXProviderDelegate {
     }
 
     public let isAnyCallActive = PassthroughSubject<Call?, Never>()
+    public let didCallFail = PassthroughSubject<Void, Never>()
+    private var cancellables = Set<AnyCancellable>()
 
     // Initialize
     init(service: HalloService) {
@@ -108,6 +111,14 @@ final class CallManager: NSObject, CXProviderDelegate {
         super.init()
         self.provider.setDelegate(self, queue: .main)
         self.service.callDelegate = self
+
+        cancellables.insert(
+            service.didConnect.sink {
+                // runs on main-queue.
+                DDLogInfo("CallManager/service/didConnect")
+                self.performStartCallAction()
+            })
+
     }
 
 
@@ -295,37 +306,65 @@ final class CallManager: NSObject, CXProviderDelegate {
         DDLogInfo("CallManager/CXStartCallAction/callUUID: \(action.callUUID)/begin")
         if activeCallID == nil,
            let details = callDetailsMap[action.callUUID] {
-            service.getCallServers(id: details.callID, for: details.peerUserID, callType: .audio) { [weak self] callServersResult in
-                guard let self = self else { action.fail(); return }
-                switch callServersResult {
-                case .success(let callServers):
-                    let iceServers = WebRTCClient.getIceServers(stunServers: callServers.stunServers, turnServers: callServers.turnServers)
-                    self.activeCall = Call(id: details.callID, peerUserID: details.peerUserID, iceServers: iceServers, direction: .outgoing)
-                    self.activeCall?.stateDelegate = self
-                    DDLogInfo("CallManager/CXStartCallAction/callID: \(details.callID)/to: \(details.peerUserID)/iceServers success")
-                    self.activeCall?.start { [weak self] success in
-                        guard let self = self else { action.fail(); return }
-                        DDLogInfo("CallManager/CXStartCallAction/result: \(success)")
-                        if success {
-                            action.fulfill()
-                        } else {
-                            DDLogError("CallManager/CXStartCallAction/failed")
-                            self.resetState()
-                            action.fail()
+
+            // set startCall work item.
+            pendingStartCallAction = DispatchWorkItem { [self] in
+                service.getCallServers(id: details.callID, for: details.peerUserID, callType: .audio) { callServersResult in
+                    switch callServersResult {
+                    case .success(let callServers):
+                        let iceServers = WebRTCClient.getIceServers(stunServers: callServers.stunServers, turnServers: callServers.turnServers)
+                        activeCall = Call(id: details.callID, peerUserID: details.peerUserID, iceServers: iceServers, direction: .outgoing)
+                        activeCall?.stateDelegate = self
+                        DDLogInfo("CallManager/CXStartCallAction/callID: \(details.callID)/to: \(details.peerUserID)/iceServers success")
+                        activeCall?.start { success in
+                            DDLogInfo("CallManager/CXStartCallAction/result: \(success)")
+                            if success {
+                                action.fulfill()
+                            } else {
+                                DDLogError("CallManager/CXStartCallAction/failed")
+                                resetState()
+                                action.fail()
+                                didCallFail.send()
+                            }
                         }
+                    case .failure(let error) :
+                        DDLogError("CallManager/CXStartCallAction/failed: \(error.localizedDescription)")
+                        resetState()
+                        action.fail()
+                        didCallFail.send()
                     }
-                case .failure(let error) :
-                    DDLogError("CallManager/CXStartCallAction/failed: \(error.localizedDescription)")
-                    // TODO: show failure UI here.
-                    self.resetState()
-                    action.fail()
+                }
+            }
+
+            // Check if we are connected or not.
+            // There is a race-condition between our app trying to connect and placing a call.
+            // If we try to place a call before we are connected - we fail immediately.
+            // This primarily happens when user tries calling a friend from the recents-call log screen.
+            // So, we first check if the app is connected and if not we try to perform the work after 500ms.
+            // If we connect before then - then we perform the work on the didConnect subscriber.
+            if service.isConnected {
+                DDLogError("CallManager/CXStartCallAction/callUUID: \(action.callUUID)/connected/performAction")
+                performStartCallAction()
+            } else {
+                DDLogError("CallManager/CXStartCallAction/callUUID: \(action.callUUID)/notConnected/wait to performAction")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    DDLogError("CallManager/CXStartCallAction/callUUID: \(action.callUUID)/performAction anyways")
+                    self.performStartCallAction()
                 }
             }
         } else {
             DDLogError("CallManager/CXStartCallAction/callUUID: \(action.callUUID)/unexpected failure")
             resetState()
             action.fail()
+            didCallFail.send()
         }
+    }
+
+    func performStartCallAction() {
+        let isCallActionAvailable = pendingStartCallAction != nil
+        DDLogInfo("CallManager/performStartCallAction/isCallActionAvailable: \(isCallActionAvailable)")
+        pendingStartCallAction?.perform()
+        pendingStartCallAction = nil
     }
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {

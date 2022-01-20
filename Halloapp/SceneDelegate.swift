@@ -160,6 +160,16 @@ extension SceneDelegate: UIWindowSceneDelegate {
                 }
         })
 
+        cancellables.insert(
+            MainAppContext.shared.callManager.didCallFail.sink {
+                DispatchQueue.main.async {
+                    guard UIApplication.shared.applicationState != .background else {
+                        return
+                    }
+                    self.presentFailedCallAlertController()
+                }
+        })
+
         MainAppContext.shared.callManager.callViewDelegate = self
         rootViewController.delegate = self
         
@@ -292,12 +302,12 @@ extension SceneDelegate: UIWindowSceneDelegate {
                 DDLogInfo("appdelegate/scene/continueUserActivity/using contactIdentifier: \(contactIdentifier)/peerUserID: \(String(describing: peerUserID))")
             } else {
                 DDLogError("appdelegate/scene/continueUserActivity/peerNumber is nil - \(String(describing: userActivity.interaction?.intent))")
-                // TODO: show failed call ui
-                return
+                peerUserID = nil
             }
 
             guard let peerUserID = peerUserID else {
                 DDLogError("appdelegate/scene/continueUserActivity/empty peerUserID - \(String(describing: userActivity.interaction?.intent))")
+                presentFailedCallAlertController()
                 return
             }
 
@@ -310,9 +320,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
                         DDLogInfo("appdelegate/scene/continueUserActivity/startCall/success")
                     case .failure:
                         DDLogInfo("appdelegate/scene/continueUserActivity/startCall/failure")
-                        // TODO: present a call failure screen here.
-                        let alert = self.getFailedCallAlertController()
-                        self.window?.rootViewController?.present(alert, animated: true, completion: nil)
+                        self.presentFailedCallAlertController()
                     }
                 }
             }
@@ -326,7 +334,8 @@ extension SceneDelegate: UIWindowSceneDelegate {
         }
     }
 
-    private func getFailedCallAlertController() -> UIAlertController {
+    private func presentFailedCallAlertController() {
+        DDLogInfo("SceneDelegate/presentFailedCallAlertController")
         let alert = UIAlertController(
             title: Localizations.failedCallTitle,
             message: Localizations.failedCallNoticeText,
@@ -334,7 +343,11 @@ extension SceneDelegate: UIWindowSceneDelegate {
         alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
             DDLogInfo("SceneDelegate/failedCallAlertController/dismiss")
         }))
-        return alert
+        var viewController = window?.rootViewController
+        while let presentedViewController = viewController?.presentedViewController {
+            viewController = presentedViewController
+        }
+        viewController?.present(alert, animated: true)
     }
 
     private func checkPasteboardForGroupInviteLinkIfNecessary() {

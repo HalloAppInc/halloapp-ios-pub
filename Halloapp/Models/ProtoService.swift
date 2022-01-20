@@ -1830,64 +1830,68 @@ extension ProtoService: HalloService {
     }
 
     func sendCallRinging(id callID: CallID, to peerUserID: UserID) {
-        guard let fromUID = Int64(AppContext.shared.userData.userId) else {
-            DDLogError("ProtoService/sendCallRinging/\(callID)/error invalid sender uid")
-            return
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+                DDLogError("ProtoService/sendCallRinging/\(callID)/error invalid sender uid")
+                return
+            }
+            guard let toUID = Int64(peerUserID) else {
+                DDLogError("ProtoService/sendCallRinging/\(callID)/error invalid to uid")
+                return
+            }
+
+            let msgID = PacketID.generate()
+
+            var callRinging = Server_CallRinging()
+            callRinging.callID = callID
+
+            var packet = Server_Packet()
+            packet.msg.fromUid = fromUID
+            packet.msg.id = msgID
+            packet.msg.toUid = toUID
+            packet.msg.payload = .callRinging(callRinging)
+
+            guard let packetData = try? packet.serializedData() else {
+                DDLogError("ProtoService/sendCallRinging/\(callID)/error could not serialize packet")
+                return
+            }
+
+            DDLogInfo("ProtoService/sendCallRinging/\(callID) sending")
+            self.send(packetData)
         }
-        guard let toUID = Int64(peerUserID) else {
-            DDLogError("ProtoService/sendCallRinging/\(callID)/error invalid to uid")
-            return
-        }
-
-        let msgID = PacketID.generate()
-
-        var callRinging = Server_CallRinging()
-        callRinging.callID = callID
-
-        var packet = Server_Packet()
-        packet.msg.fromUid = fromUID
-        packet.msg.id = msgID
-        packet.msg.toUid = toUID
-        packet.msg.payload = .callRinging(callRinging)
-
-        guard let packetData = try? packet.serializedData() else {
-            DDLogError("ProtoService/sendCallRinging/\(callID)/error could not serialize packet")
-            return
-        }
-
-        DDLogInfo("ProtoService/sendCallRinging/\(callID) sending")
-        send(packetData)
     }
 
     func endCall(id callID: CallID, to peerUserID: UserID, reason: EndCallReason) {
-        guard let fromUID = Int64(AppContext.shared.userData.userId) else {
-            DDLogError("ProtoService/endCall/\(callID)/error invalid sender uid")
-            return
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+                DDLogError("ProtoService/endCall/\(callID)/error invalid sender uid")
+                return
+            }
+            guard let toUID = Int64(peerUserID) else {
+                DDLogError("ProtoService/endCall/\(callID)/error invalid to uid")
+                return
+            }
+
+            let msgID = PacketID.generate()
+
+            var endCall = Server_EndCall()
+            endCall.callID = callID
+            endCall.reason = reason.serverEndCallReason
+
+            var packet = Server_Packet()
+            packet.msg.fromUid = fromUID
+            packet.msg.id = msgID
+            packet.msg.toUid = toUID
+            packet.msg.payload = .endCall(endCall)
+
+            guard let packetData = try? packet.serializedData() else {
+                DDLogError("ProtoService/endCall/\(callID)/error could not serialize packet")
+                return
+            }
+
+            DDLogInfo("ProtoService/endCall/\(callID) sending")
+            self.send(packetData)
         }
-        guard let toUID = Int64(peerUserID) else {
-            DDLogError("ProtoService/endCall/\(callID)/error invalid to uid")
-            return
-        }
-
-        let msgID = PacketID.generate()
-
-        var endCall = Server_EndCall()
-        endCall.callID = callID
-        endCall.reason = reason.serverEndCallReason
-
-        var packet = Server_Packet()
-        packet.msg.fromUid = fromUID
-        packet.msg.id = msgID
-        packet.msg.toUid = toUID
-        packet.msg.payload = .endCall(endCall)
-
-        guard let packetData = try? packet.serializedData() else {
-            DDLogError("ProtoService/endCall/\(callID)/error could not serialize packet")
-            return
-        }
-
-        DDLogInfo("ProtoService/endCall/\(callID) sending")
-        send(packetData)
     }
 
     func sendIceCandidate(id callID: CallID, to peerUserID: UserID, iceCandidateInfo: IceCandidateInfo) {
