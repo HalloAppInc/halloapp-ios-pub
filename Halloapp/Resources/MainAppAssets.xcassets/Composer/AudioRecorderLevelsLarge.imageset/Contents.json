@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "audio_recorder_levels_large.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

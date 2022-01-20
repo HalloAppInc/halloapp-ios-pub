@@ -80,17 +80,7 @@ struct AudioPostComposer: View {
                     // opacity(0) still renders as an accessibility element, so we must pass this through
                     // to the internal button so it can set accessibility(hidden)
                     isHidden: state == .recorded,
-                    action: {
-                        if recorder.isRecording {
-                            recorder.stopRecording(cancel: false)
-                        } else {
-                            if !recorder.hasMicPermission {
-                                showPermissionsAlert = true
-                            } else {
-                                recorder.startRecording()
-                            }
-                        }
-                    },
+                    action: toggleRecord,
                     audioMeter: recorder.meter)
                     .padding(.top, 4)
                     .alert(isPresented: $showPermissionsAlert) {
@@ -102,11 +92,18 @@ struct AudioPostComposer: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.top, 48)
-            Text(Localizations.tapToRecord)
-                .font(.footnote)
-                .foregroundColor(.audioComposerHelperText)
-                .padding(.top, 12)
-                .opacity(state == .ready ? 1 : 0)
+            ZStack {
+                Text(Localizations.tapToRecord)
+                    .font(.footnote)
+                    .foregroundColor(.audioComposerHelperText)
+                    .opacity(state == .ready ? 1 : 0)
+                Text(Localizations.buttonStop)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundColor(.audioComposerRecordButtonForeground)
+                    .opacity(state == .recording ? 1 : 0)
+            }
+            .padding(.top, 12)
+            .onTapGesture(perform: toggleRecord)
             HStack(alignment: .center) {
                 Button(action: { presentMediaPicker = true }) {
                     Image("icon_add_photo")
@@ -124,6 +121,18 @@ struct AudioPostComposer: View {
         }
         .animation(.default)
         .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func toggleRecord() {
+        if recorder.isRecording {
+            recorder.stopRecording(cancel: false)
+        } else {
+            if !recorder.hasMicPermission {
+                showPermissionsAlert = true
+            } else {
+                recorder.startRecording()
+            }
+        }
     }
 }
 
@@ -156,8 +165,8 @@ fileprivate struct RecordButton: View {
     var isRecording: Bool
     var isHidden: Bool
 
-    @State private var averagePowerScale: CGFloat = 1
-    @State private var peakPowerScale: CGFloat = 1
+    @State private var meterScale1: CGFloat = 1
+    @State private var meterScale2: CGFloat = 1
 
     let action: () -> Void
 
@@ -170,13 +179,16 @@ fileprivate struct RecordButton: View {
     var body: some View {
         ZStack(alignment: .center) {
             Group {
-                Circle()
-                    .fill(Color.audioComposerRecordButtonForeground.opacity(0.3))
-                    .scaleEffect(peakPowerScale)
-                Circle()
-                    .fill(Color.audioComposerRecordButtonForeground.opacity(0.3))
-                    .scaleEffect(averagePowerScale)
+                Image("AudioRecorderLevelsLarge")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .scaleEffect(meterScale1)
+                Image("AudioRecorderLevelsSmall")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .scaleEffect(meterScale2)
             }
+            .frame(width: 76, height: 76)
             .animation(.default)
             .opacity(isRecording ? 1 : 0)
             Button(action: action) {
@@ -197,11 +209,11 @@ fileprivate struct RecordButton: View {
             .accessibility(hidden: isHidden)
         }
         .opacity(isHidden ? 0 : 1)
-        .onReceive(audioMeter) { (averagePower: Float, peakPower: Float) in
-            withAnimation {
-                averagePowerScale = min(2, max(1, 1 + 1.5 * CGFloat(pow(10, (0.05 * peakPower)))))
-                peakPowerScale = min(2, max(1, 1 + 3 * CGFloat(pow(10, (0.05 * averagePower)))))
-            }
+        .onReceive(audioMeter) { (averagePower: Float, _) in
+            meterScale1 = 1 + 0.4 * min(1, max(0, 8 * CGFloat(pow(10, (0.05 * averagePower)))))
+        }
+        .onReceive(audioMeter.delay(for: .seconds(0.2), scheduler: RunLoop.main)) { (averagePower: Float, _) in
+            meterScale2 = 1 + 0.4 * min(1, max(0, 8 * CGFloat(pow(10, (0.05 * averagePower)))))
         }
     }
 }
