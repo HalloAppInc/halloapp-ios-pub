@@ -165,7 +165,8 @@ class AudioRecorderControlView: UIView {
         return cancelButton.rightAnchor.constraint(equalTo: expandingContainer.leftAnchor, constant: actionOffset)
     }()
 
-    private var isActive = false
+    private var isStarting = false
+    private var hasStarted = false
     private var isCancelInProgress = false
     private var isLockInProgress = false
     private var startLocation: CGPoint = .zero
@@ -205,16 +206,17 @@ class AudioRecorderControlView: UIView {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard !isActive else { return }
+        guard !isStarting && !hasStarted else { return }
         guard let touch = touches.first else { return }
         startLocation = touch.location(in: self)
         show()
-        isActive = true
+        isStarting = true
+        hasStarted = false
         delegate?.audioRecorderControlViewWillStart(self)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard isActive else { return }
+        guard hasStarted else { return }
         guard let touch = touches.first else { return }
 
         let location = touch.location(in: self)
@@ -334,7 +336,7 @@ class AudioRecorderControlView: UIView {
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if isActive {
+        if isStarting || hasStarted {
             delegate?.audioRecorderControlViewFinished(self, cancel: false)
         }
 
@@ -362,7 +364,9 @@ class AudioRecorderControlView: UIView {
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + TimeInterval(0.3)) {
-            guard self.isActive else { return }
+            guard self.isStarting else { return }
+            self.isStarting = false
+            self.hasStarted = true
             self.levitateLockButton()
             self.delegate?.audioRecorderControlViewStarted(self)
         }
@@ -370,7 +374,8 @@ class AudioRecorderControlView: UIView {
 
     func hide() {
         expandingContainer.isHidden = true
-        isActive = false
+        isStarting = false
+        hasStarted = false
         isLockInProgress = false
         isCancelInProgress = false
         cancelButton.alpha = 1
