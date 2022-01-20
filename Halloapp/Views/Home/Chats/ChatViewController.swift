@@ -48,12 +48,13 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private let waitForCellTimeout: TimeInterval = 0.25
 
+    private var viewHaveAppear: Bool = false
+    private var firstActionHappened: Bool = false
+
     private var currentUnseenChatThreadsList: [UserID: Int] = [:]
     private var currentUnseenGroupChatThreadsList: [GroupID: Int] = [:]
 
     private var cancellableSet: Set<AnyCancellable> = []
-
-    private var firstActionHappened: Bool = false
 
     // MARK: Lifecycle
 
@@ -333,12 +334,15 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        guard !viewHaveAppear else { return }
+
         tableView.tableFooterView = nil
         scrollToBottom(false)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        viewHaveAppear = true
 
         if let chatWithUserId = self.fromUserId {
             MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
@@ -749,7 +753,28 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private var shouldScrollToBottom = false
     private var shouldUpdate = false
-    
+
+    private func isRetractStatusUpdate(for chatMessage: ChatMessage) -> Bool {
+        guard chatMessage.toUserId == MainAppContext.shared.userData.userId else { return false }
+        if chatMessage.incomingStatus == .retracted {
+            return true
+        }
+        if [.retracting, .retracted].contains(chatMessage.outgoingStatus) {
+            return true
+        }
+        return false
+    }
+
+    private func isRerequestStatusUpdate(for chatMessage: ChatMessage) -> Bool {
+        guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return false }
+        if trackedChatMessage.incomingStatus == .rerequesting &&
+            chatMessage.incomingStatus != .rerequesting
+        {
+            return true
+        }
+        return false
+    }
+
     private func isOutgoingMessageStatusUpdate(for chatMessage: ChatMessage) -> Bool {
         guard chatMessage.fromUserId == MainAppContext.shared.userData.userId else { return false }
         guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return false }
@@ -780,13 +805,27 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         case fetchedResultsController:
             switch type {
             case .update:
-                DDLogDebug("ChatViewController/frc/msg/update")
+
+                /* only update when it's needed (ie. msg retraction, successful rerequest) */
                 shouldUpdate = false
                 guard let chatMessage = anObject as? ChatMessage else { break }
+                DDLogVerbose("ChatViewController/frc/msg/update \(chatMessage.id)")
 
-                // outbound message status change, update directly
+                if isRetractStatusUpdate(for: chatMessage) {
+                    DDLogDebug("ChatViewController/frc/msg/update/isRetractStatusUpdate \(chatMessage.id)")
+                    shouldUpdate = true
+                    break
+                }
+
+                if isRerequestStatusUpdate(for: chatMessage) {
+                    DDLogDebug("ChatViewController/frc/msg/update/isRerequestStatusUpdate \(chatMessage.id)")
+                    shouldUpdate = true
+                    break
+                }
+
+                // outbound msg status change, update cell directly
                 if isOutgoingMessageStatusUpdate(for: chatMessage) {
-                    DDLogDebug("ChatViewController/frc/msg/update/outgoingMessageStatusChange")
+                    DDLogVerbose("ChatViewController/frc/msg/update/isOutgoingMessageStatusUpdate \(chatMessage.id)")
                     guard let indexPath = indexPath else { break }
                     
                     // frc chatMessage have already changed, use trackedMsg to find item in the datasource
@@ -795,11 +834,12 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                     guard let tableIndexPath = dataSource?.indexPath(for: Row.chatMsg(chatMsgData)) else { break }
                     guard let cell = tableView.cellForRow(at: tableIndexPath) as? OutboundMsgViewCell else { break }
                     cell.updateText(chatMessage: chatMessage)
+                    break
                 }
 
-                // inbound message media changes, update directly
+                // inbound msg media changes, update cell directly
                 if let updatedChatMedia = findUpdatedMedia(for: chatMessage) {
-                    DDLogVerbose("ChatViewController/frc/msg/update/updatedChatMedia/update cell directly")
+                    DDLogVerbose("ChatViewController/frc/msg/update/updatedChatMedia/\(chatMessage.id) update cell directly")
                     guard let indexPath = indexPath else { break }
 
                     // frc chatMessage have already changed, use trackedMsg to find item in the datasource
@@ -808,10 +848,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                     guard let tableIndexPath = dataSource?.indexPath(for: Row.chatMsg(chatMsgData)) else { break }
                     guard let cell = tableView.cellForRow(at: tableIndexPath) as? InboundMsgViewCell else { break }
                     cell.updateMedia(updatedChatMedia)
+                    break
                 }
             case .insert:
-                DDLogVerbose("ChatViewController/frc/msg/insert")
                 guard let chatMsg = anObject as? ChatMessage else { break }
+                DDLogVerbose("ChatViewController/frc/msg/insert \(chatMsg.id)")
                 shouldUpdate = true
                 shouldScrollToBottom = checkIfShouldScrollToBottom(chatMsg.fromUserId)
             default:
@@ -835,7 +876,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         guard shouldUpdate else {
-            DDLogDebug("ChatViewController/frc/update/skip whole cell update")
+            DDLogVerbose("ChatViewController/frc/update/skip whole cell update")
             return
         }
 
@@ -887,7 +928,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         dataSource?.apply(snapshot, animatingDifferences: animated) { [weak self] in
             guard let self = self else { return }
             guard self.shouldScrollToBottom else { return }
-            self.scrollToBottom(true)
+            self.scrollToBottom(false)
             self.shouldScrollToBottom = false
         }
     }
@@ -983,7 +1024,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     // MARK: Actions
 
     @IBAction func jumpDown(_ sender: Any?) {
-        scrollToBottom()
+        scrollToBottom(true)
     }
     
     // MARK: Input view
@@ -1197,12 +1238,22 @@ fileprivate struct ChatMsgData {
 }
 
 extension ChatMsgData : Hashable {
+
+    /* hash must be the same if structs are equal (equatable) */
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
+        if [.retracting, .retracted].contains(outgoingStatus) {
+            hasher.combine(outgoingStatus)
+        }
+        if [.retracted, .rerequesting].contains(incomingStatus) {
+            hasher.combine(incomingStatus)
+        }
     }
 }
 
 extension ChatMsgData : Equatable {
+
+    /* only update cell when it's retracted or rerequested successfully */
     static func == (lhs: Self, rhs: Self) -> Bool {
 
         var isOutboundMsgRetracted = false
@@ -1220,7 +1271,7 @@ extension ChatMsgData : Equatable {
                 isInboundMsgRerequestedSuccessfully = true
             }
         }
-    
+
         let isOutboundStatusChange = isOutboundMsgRetracted
         let isInboundStatusChange = isInboundMsgRetracted || isInboundMsgRerequestedSuccessfully
 
