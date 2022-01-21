@@ -119,7 +119,6 @@ class GroupFeedViewController: FeedCollectionViewController {
         MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
         UNUserNotificationCenter.current().removeDeliveredChatNotifications(groupId: groupId)
         updateFloatingActionMenu()
-        tabBarController?.hideTabBar(vc: self)
     }
 
     override func viewWillDisappear(_ animated: Bool) {

@@ -211,12 +211,6 @@ final class ProfileHeaderViewController: UIViewController {
         return roundedImage!
     }
     
-    @objc private func dismissFullscreenImage(_ sender: UITapGestureRecognizer) {
-        navigationController?.isNavigationBarHidden = false
-        tabBarController?.tabBar.isHidden = false
-        sender.view?.removeFromSuperview()
-    }
-
     @objc private func openChatView() {
         guard let userID = headerView.userID else { return }
 

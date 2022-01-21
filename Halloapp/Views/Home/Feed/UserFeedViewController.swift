@@ -226,13 +226,6 @@ class UserFeedViewController: FeedCollectionViewController {
         present(alert, animated: true)
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(true)
-        DispatchQueue.main.async {
-            self.tabBarController?.tabBar.isHidden = false
-        }
-    }
-    
     override func showGroupName() -> Bool {
         return true
     }

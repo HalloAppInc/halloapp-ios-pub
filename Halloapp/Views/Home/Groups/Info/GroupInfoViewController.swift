@@ -181,7 +181,6 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         }
         super.viewWillAppear(animated)
         MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupID)
-        tabBarController?.hideTabBar(vc: self)
     }
 
     deinit {
