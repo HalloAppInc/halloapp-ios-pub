@@ -24,7 +24,7 @@ protocol RootViewControllerDelegate: AnyObject {
 final class RootViewController: UIViewController {
 
     var callBar = CallBar()
-    var callBarHeightConstraint: NSLayoutConstraint?
+    var callBarCollapsedConstraint: NSLayoutConstraint?
     var callViewController: CallViewController?
 
     var primaryViewContainer = UIView()
@@ -42,8 +42,8 @@ final class RootViewController: UIViewController {
         callBar.constrain([.top, .leading, .trailing], to: view)
         callBar.addTarget(self, action: #selector(didTapCallBar), for: .touchUpInside)
 
-        callBarHeightConstraint = callBar.heightAnchor.constraint(equalToConstant: 0)
-        callBarHeightConstraint?.isActive = true
+        callBarCollapsedConstraint = callBar.heightAnchor.constraint(equalToConstant: 0)
+        callBarCollapsedConstraint?.isActive = true
 
         primaryViewContainer.translatesAutoresizingMaskIntoConstraints = false
         primaryViewContainer.constrain([.leading, .trailing, .bottom], to: view)
@@ -90,9 +90,8 @@ final class RootViewController: UIViewController {
     }
 
     private func updateCallBarVisibility(_ isVisible: Bool, animated: Bool) {
-        let barHeight: CGFloat = isVisible ? 80 : 0
         UIView.animate(withDuration: animated ? 0.3 : 0) {
-            self.callBarHeightConstraint?.constant = barHeight
+            self.callBarCollapsedConstraint?.isActive = !isVisible
             self.view.layoutIfNeeded()
         }
     }
@@ -153,42 +152,51 @@ final class CallBar: UIControl {
 
     // MARK: Private
 
-    private let phoneIcon = UIImageView(image: UIImage(systemName: "phone.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal))
-    private let nameLabel = UILabel()
+    private let phoneIcon = UIImageView(image: UIImage(systemName: "phone.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal))
+    private let titleLabel = UILabel()
     private let durationLabel = UILabel()
 
-    private func commonInit() {
+    private lazy var titleView: UIView = {
+
         phoneIcon.translatesAutoresizingMaskIntoConstraints = false
+        phoneIcon.contentMode = .scaleAspectFit
 
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.font = .systemFont(forTextStyle: .body, weight: .bold)
-        nameLabel.textColor = .white
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.font = .systemFont(forTextStyle: .callout)
+        titleLabel.textColor = .white
 
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isUserInteractionEnabled = false
+        view.addSubview(phoneIcon)
+        view.addSubview(titleLabel)
+
+        phoneIcon.constrain([.top, .bottom, .leading], to: view)
+
+        titleLabel.constrain([.top, .bottom, .trailing], to: view)
+        titleLabel.leadingAnchor.constraint(equalTo: phoneIcon.trailingAnchor, constant: 8).isActive = true
+        return view
+    }()
+
+    private func commonInit() {
         durationLabel.translatesAutoresizingMaskIntoConstraints = false
         durationLabel.font = .systemFont(forTextStyle: .body)
         durationLabel.textColor = .white
 
-        addSubview(nameLabel)
+        addSubview(titleView)
         addSubview(durationLabel)
-        addSubview(phoneIcon)
 
-        phoneIcon.constrainMargins([.top, .bottom, .leading], to: self)
-        phoneIcon.heightAnchor.constraint(equalTo: phoneIcon.widthAnchor).isActive = true
-
-        nameLabel.constrainMargins([.top, .bottom], to: self)
-        nameLabel.leadingAnchor.constraint(equalTo: phoneIcon.trailingAnchor, constant: 8).isActive = true
-
-        durationLabel.constrainMargins([.top, .bottom, .trailing], to: self)
-        durationLabel.leadingAnchor.constraint(equalTo: nameLabel.trailingAnchor, constant: 8).isActive = true
+        titleView.constrainMargins([.top, .bottom, .centerX], to: self, priority: .ifPossible)
+        durationLabel.constrainMargins([.top, .bottom, .trailing], to: self, priority: .ifPossible)
     }
 
     private func update(with call: Call?) {
-        guard let call = call else {
-            nameLabel.text = nil
+        guard call != nil else {
+            titleLabel.text = nil
             durationLabel.text = nil
             return
         }
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: call.peerUserID)
+        titleLabel.text = Localizations.tapToReturnToCall
         durationLabel.text = nil
     }
 
@@ -201,5 +209,17 @@ final class CallBar: UIControl {
         } else {
             return String(format: "%02d:%02d", mm, ss)
         }
+    }
+}
+
+private extension Localizations {
+    static var tapToReturnToCall: String {
+        NSLocalizedString("tap.return.call", value: "tap to return to call", comment: "Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped.")
+    }
+}
+
+private extension UILayoutPriority {
+    static var ifPossible: UILayoutPriority {
+        return UILayoutPriority(rawValue: 999)
     }
 }

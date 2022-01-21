@@ -498,6 +498,7 @@ private final class ProfileHeaderView: UIView {
         view.axis = .vertical
         view.alignment = .center
         view.spacing = 5
+        view.setCustomSpacing(22, after: phoneLabel)
         
         view.translatesAutoresizingMaskIntoConstraints = false
     
@@ -599,6 +600,7 @@ final class LabeledIconButton: UIControl {
         super.init(frame: .zero)
         imageView.image = image
         label.text = title
+        layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         addSubview(contentView)
         contentView.isUserInteractionEnabled = false
         contentView.constrain([.centerX, .centerY], to: self)

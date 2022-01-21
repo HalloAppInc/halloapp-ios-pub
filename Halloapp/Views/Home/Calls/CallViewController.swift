@@ -34,7 +34,7 @@ class CallViewController: UIViewController {
     let micOnImage = UIImage(systemName: "mic.fill")
     let speakerOffImage = UIImage(systemName: "speaker.slash.fill")
     let speakerOnImage = UIImage(systemName: "speaker.wave.3.fill")
-    let endCallImage = UIImage(systemName: "xmark")
+    let endCallImage = UIImage(named: "ReplyPanelClose")?.withRenderingMode(.alwaysTemplate)
     let chatImage = UIImage(systemName: "message.fill")
     let backImage = UIImage(named: "NavbarBack")?.imageFlippedForRightToLeftLayoutDirection().withRenderingMode(.alwaysTemplate)
 
@@ -77,10 +77,31 @@ class CallViewController: UIViewController {
     }()
 
     private lazy var endCallButton: CallViewButton = {
-        let button = CallViewButton(image: endCallImage, title: Localizations.callEnd, circleColor: .red, diameter: 72)
+        let button = CallViewButton(image: endCallImage, title: Localizations.callEnd, style: .destructive)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(endCallButtonTapped), for: .touchUpInside)
         return button
+    }()
+
+    private lazy var stationIdentification: UIView = {
+        let imageView = UIImageView(image: UIImage(named: "AppIconSmall"))
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = Localizations.appNameHalloApp
+        label.textColor = .white
+        label.font = .systemFont(forTextStyle: .title3)
+
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(imageView)
+        view.addSubview(label)
+
+        imageView.constrain([.top, .bottom, .leading], to: view)
+        label.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 10).isActive = true
+        label.constrain([.top, .bottom, .trailing], to: view)
+        return view
     }()
 
     private let peerUserID: UserID
@@ -123,12 +144,6 @@ class CallViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .black
         view.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
-
-        let stationIdentification = UILabel()
-        stationIdentification.translatesAutoresizingMaskIntoConstraints = false
-        stationIdentification.text = Localizations.appNameHalloApp
-        stationIdentification.textColor = .white
-        stationIdentification.font = .systemFont(forTextStyle: .title3)
 
         let avatarView = AvatarView()
         avatarView.configure(with: peerUserID, using: MainAppContext.shared.avatarStore)
@@ -354,14 +369,33 @@ extension CallViewController: CallViewDelegate {
 }
 
 final class CallViewButton: UIControl {
-    init(image: UIImage?, title: String, circleColor: UIColor = UIColor.white.withAlphaComponent(0.1), diameter: CGFloat = 80) {
-        self.diameter = diameter
+
+    struct Style {
+        var circleDiameter: CGFloat = 80
+        var circleColor: UIColor = UIColor.white.withAlphaComponent(0.1)
+        var iconHeight: CGFloat = 32
+
+        static var normal: Style {
+            Style()
+        }
+
+        static var destructive: Style {
+            Style(
+                circleDiameter: 72,
+                circleColor: UIColor(red: 235.0/255, green: 77.0/255, blue: 61.0/255, alpha: 1),
+                iconHeight: 26)
+        }
+    }
+
+    init(image: UIImage?, title: String, style: Style = .normal) {
+        self.diameter = style.circleDiameter
         super.init(frame: .zero)
-        circleView.backgroundColor = circleColor
+        circleView.backgroundColor = style.circleColor
         imageView.image = image
         label.text = title
         addSubview(circleView)
         addSubview(label)
+        imageView.heightAnchor.constraint(equalToConstant: style.iconHeight).isActive = true
         circleView.isUserInteractionEnabled = false
         circleView.constrain([.top, .leading, .trailing], to: self)
         label.topAnchor.constraint(equalTo: circleView.bottomAnchor, constant: 4).isActive = true
@@ -401,8 +435,8 @@ final class CallViewButton: UIControl {
         view.addSubview(imageView)
         view.layer.cornerRadius = diameter / 2
 
-        imageView.heightAnchor.constraint(equalToConstant: 32).isActive = true
-        imageView.widthAnchor.constraint(equalToConstant: 32).isActive = true
+        imageView.widthAnchor.constraint(equalToConstant: diameter).isActive = true
+        imageView.contentMode = .scaleAspectFit
         imageView.constrain([.centerX, .centerY], to: view)
 
         view.heightAnchor.constraint(equalToConstant: diameter).isActive = true
