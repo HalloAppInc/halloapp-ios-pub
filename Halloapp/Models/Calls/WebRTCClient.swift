@@ -258,6 +258,37 @@ extension WebRTCClient: RTCPeerConnectionDelegate {
         DDLogDebug("WebRTCClient/peerConnection/didOpenDataChannel: \(dataChannel.description)")
         self.remoteDataChannel = dataChannel
     }
+
+    func peerConnection(_ peerConnection: RTCPeerConnection, didChangeStandardizedIceConnectionState newState: RTCIceConnectionState) {
+        DDLogDebug("WebRTCClient/peerConnection/didChangeStandardizedIceConnectionState: \(newState.description)")
+    }
+
+    func peerConnection(_ peerConnection: RTCPeerConnection, didChangeLocalCandidate local: RTCIceCandidate, remoteCandidate remote: RTCIceCandidate, lastReceivedMs lastDataReceivedMs: Int32, changeReason reason: String) {
+        DDLogDebug("WebRTCClient/peerConnection/didChangeLocalCandidate/local: \(local.description)/remote: \(remote.description)/reason: \(reason)")
+    }
+
+    func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCPeerConnectionState) {
+        DDLogDebug("WebRTCClient/peerConnection/didChangeRTCPeerConnectionState: \(newState.rawValue)")
+    }
+
+    func peerConnection(_ peerConnection: RTCPeerConnection, didStartReceivingOn transceiver: RTCRtpTransceiver) {
+        DDLogDebug("WebRTCClient/peerConnection/didStartReceivingOnRTCRtpTransceiver: \(transceiver.description)")
+    }
+
+    func peerConnection(_ peerConnection: RTCPeerConnection, didAdd rtpReceiver: RTCRtpReceiver, streams mediaStreams: [RTCMediaStream]) {
+        rtpReceiver.delegate = self
+        DDLogDebug("WebRTCClient/peerConnection/didAddRTCRtpReceiver/rtpReceiver: \(rtpReceiver.description)/streams: \(mediaStreams.description)")
+    }
+
+    func peerConnection(_ peerConnection: RTCPeerConnection, didRemove rtpReceiver: RTCRtpReceiver) {
+        DDLogDebug("WebRTCClient/peerConnection/didRemoveRTCRtpReceiver: \(rtpReceiver.description)")
+    }
+}
+
+extension WebRTCClient: RTCRtpReceiverDelegate {
+    func rtpReceiver(_ rtpReceiver: RTCRtpReceiver, didReceiveFirstPacketFor mediaType: RTCRtpMediaType) {
+        DDLogDebug("WebRTCClient/rtpReceiver/didReceiveFirstPacketFor: \(rtpReceiver.description)/mediaType: \(mediaType.rawValue)")
+    }
 }
 
 // MARK:- Audio control
