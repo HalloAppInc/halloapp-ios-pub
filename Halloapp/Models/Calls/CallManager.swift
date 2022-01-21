@@ -175,6 +175,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                     completion(.failure(.noActiveCall))
                 }
             } else {
+                checkAndReportCallEnded(id: activeCallID, reason: .failed)
                 endActiveCall(reason: .systemError)
                 microphoneAccessDenied.send()
                 completion(.failure(.systemError))
@@ -296,7 +297,8 @@ final class CallManager: NSObject, CXProviderDelegate {
         timer.setEventHandler(handler: { [weak self] in
             guard let self = self else { return }
             DDLogInfo("CallManager/startCancelTimer/endCall now")
-            self.endCall(reason: .timeout) { _ in }
+            self.checkAndReportCallEnded(id: self.activeCallID, reason: .unanswered)
+            self.endActiveCall(reason: .timeout)
         })
         timer.schedule(deadline: .now() + DispatchTimeInterval.seconds(ServerProperties.callWaitTimeoutSec))
         timer.resume()
@@ -418,11 +420,13 @@ final class CallManager: NSObject, CXProviderDelegate {
                             action.fulfill()
                         } else {
                             DDLogError("CallManager/CXAnswerCallAction/failed")
+                            checkAndReportCallEnded(id: activeCallID, reason: .failed)
                             endActiveCall(reason: .systemError)
                             action.fail()
                         }
                     }
                 } else {
+                    checkAndReportCallEnded(id: activeCallID, reason: .failed)
                     endActiveCall(reason: .systemError)
                     action.fail()
                     microphoneAccessDenied.send()
@@ -509,9 +513,15 @@ final class CallManager: NSObject, CXProviderDelegate {
         }
     }
 
-    func reportCallEnded(id callID: CallID) {
-        DDLogInfo("CallManager/reportCallEnded/callID: \(callID)")
-        provider.reportCall(with: callID.callUUID, endedAt: nil, reason: .remoteEnded)
+    func checkAndReportCallEnded(id callID: CallID?, reason: CXCallEndedReason) {
+        if let callID = callID {
+            reportCallEnded(id: callID, reason: reason)
+        }
+    }
+
+    func reportCallEnded(id callID: CallID, reason: CXCallEndedReason) {
+        DDLogInfo("CallManager/reportCallEnded/callID: \(callID)/reason: \(reason.rawValue)")
+        provider.reportCall(with: callID.callUUID, endedAt: nil, reason: reason)
     }
 
     func reportCallConnecting(id callID: CallID) {
@@ -574,11 +584,13 @@ extension CallManager: HalloCallDelegate {
                                                                 turnServers: incomingCall.turnServers) { [weak self] result in
                             guard let self = self else { return }
                             if !result {
-                                self.endCall(reason: .systemError) { _ in }
+                                self.checkAndReportCallEnded(id: callID, reason: .failed)
+                                self.endActiveCall(reason: .systemError)
                             }
                         }
                     } else {
-                        self.endCall(reason: .systemError) { _ in }
+                        self.checkAndReportCallEnded(id: callID, reason: .failed)
+                        self.endActiveCall(reason: .systemError)
                     }
                 case .failure(let failure):
                     DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/decrypt/failure: \(failure)")
@@ -593,7 +605,8 @@ extension CallManager: HalloCallDelegate {
                             DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/rerequestMessage/success")
                         }
                     }
-                    self.endCall(reason: .decryptionError) { _ in }
+                    self.checkAndReportCallEnded(id: callID, reason: .failed)
+                    self.endActiveCall(reason: .decryptionError)
                 }
             }
         }
@@ -699,12 +712,17 @@ extension CallManager: HalloCallDelegate {
     }
 
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveEndCall endCall: Server_EndCall) {
-        DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/begin")
+        DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/begin/reason: \(endCall.reason)")
         let callID = endCall.callID
         if activeCallID == callID {
-            reportCallEnded(id: callID)
+            reportCallEnded(id: callID, reason: endCall.cxEndCallReason)
             activeCall?.logPeerConnectionStats()
             endDate = Date()
+            if endCall.shouldResetWhisperSession,
+               let peerUserID = activeCall?.peerUserID {
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/resetWhisperSession")
+                AppContext.shared.messageCrypter.resetWhisperSession(for: peerUserID)
+            }
             activeCall?.didReceiveEndCall()
             activeCall = nil
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
@@ -841,9 +859,7 @@ extension CallManager: CallStateDelegate {
 
         case .disconnected:
             stopCallRingtone()
-            if let callID = activeCallID {
-                reportCallEnded(id: callID)
-            }
+            checkAndReportCallEnded(id: activeCallID, reason: .failed)
             endActiveCall(reason: .connectionError)
         }
     }

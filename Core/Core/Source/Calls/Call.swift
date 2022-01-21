@@ -45,6 +45,32 @@ extension Server_CallType {
     }
 }
 
+extension Server_EndCall {
+    public var cxEndCallReason: CXCallEndedReason {
+        switch self.reason {
+        case .timeout:
+            return .unanswered
+        case .systemError, .connectionError, .decryptionFailed, .encryptionFailed, .videoUnsupported:
+            return .failed
+        case .cancel, .reject, .busy, .callEnd:
+            return .remoteEnded
+        case .unknown, .UNRECOGNIZED(_):
+            return .failed
+        }
+    }
+
+    public var shouldResetWhisperSession: Bool {
+        switch self.reason {
+        case .decryptionFailed:
+            return true
+        case .timeout, .systemError, .connectionError, .encryptionFailed, .cancel, .reject, .busy, .callEnd, .videoUnsupported:
+            return false
+        case .unknown, .UNRECOGNIZED(_):
+            return false
+        }
+    }
+}
+
 public enum CallError: Error {
     case systemError
     case alreadyInCall

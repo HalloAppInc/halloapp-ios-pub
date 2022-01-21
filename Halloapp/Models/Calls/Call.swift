@@ -161,8 +161,8 @@ class Call {
         let timer = DispatchSource.makeTimerSource()
         timer.setEventHandler(handler: { [weak self] in
             guard let self = self else { return }
-            DDLogInfo("Call/checkAndStartCallFailedTimer/failed call now")
-            if self.rtcIceState == .closed {
+            DDLogInfo("Call/checkAndStartCallFailedTimer/failed call now/rtcIceState: \(self.rtcIceState)")
+            if self.rtcIceState != .connected {
                 self.state = .disconnected
             }
         })
@@ -596,10 +596,17 @@ extension Call: WebRTCClientDelegate {
             rtcIceState = iceState
             switch iceState {
             case .disconnected:
+                // check state and restart ice in 3 seconds.
                 checkAndStartIceRestartTimer(deadline: .now() + DispatchTimeInterval.seconds(3))
+                // disconnect call if we dont recover in 30 seconds.
+                checkAndStartCallFailedTimer(deadline: .now() + DispatchTimeInterval.seconds(30))
             case .failed:
+                // check state and restart ice now.
                 checkAndStartIceRestartTimer(deadline: .now())
+                // disconnect call if we dont recover in 30 seconds.
+                checkAndStartCallFailedTimer(deadline: .now() + DispatchTimeInterval.seconds(30))
             case .closed:
+                // disconnect call if we dont recover in 10 seconds.
                 checkAndStartCallFailedTimer(deadline: .now() + DispatchTimeInterval.seconds(10))
             case .connected:
                 isConnected = true
