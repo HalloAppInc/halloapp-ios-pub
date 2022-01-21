@@ -104,6 +104,9 @@ final class CallManager: NSObject, CXProviderDelegate {
         }
         return nil
     }
+    public var isAnyCallActive: Bool {
+        return activeCall != nil
+    }
 
     public let isAnyCallOngoing = PassthroughSubject<Call?, Never>()
     public let didCallFail = PassthroughSubject<Void, Never>()

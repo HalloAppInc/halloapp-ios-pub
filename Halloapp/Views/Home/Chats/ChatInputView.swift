@@ -29,6 +29,7 @@ protocol ChatInputViewDelegate: AnyObject {
     func chatInputViewDidPasteImage(_ inputView: ChatInputView, media: PendingMedia)
     func chatInputViewDidSelectMediaPicker(_ inputView: ChatInputView)
     func chatInputViewMicrophoneAccessDenied(_ inputView: ChatInputView)
+    func chatInputViewMicrophoneAccessDeniedDuringCall(_ inputView: ChatInputView)
     func chatInputViewCloseQuotePanel(_ inputView: ChatInputView)
     func chatInputView(_ inputView: ChatInputView, didInterruptRecorder recorder: AudioRecorder)
 }
@@ -1565,11 +1566,16 @@ extension ChatInputView: AudioRecorderControlViewDelegate {
         updatePostButtons()
     }
 
-    func audioRecorderControlViewWillStart(_ view: AudioRecorderControlView) {
+    func audioRecorderControlViewShouldStart(_ view: AudioRecorderControlView) -> Bool {
+        guard !MainAppContext.shared.callManager.isAnyCallActive else {
+            delegate?.chatInputViewMicrophoneAccessDeniedDuringCall(self)
+            return false
+        }
         voiceNoteTime.text = "0:00"
         voiceNoteTime.isHidden = false
         placeholder.isHidden = true
         textView.isHidden = true
+        return true
     }
 
     func audioRecorderControlViewStarted(_ view: AudioRecorderControlView) {

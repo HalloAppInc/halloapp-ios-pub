@@ -412,6 +412,12 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
         present(alert, animated: true)
     }
 
+    func commentInputViewCouldNotRecordDuringCall(_ inputView: CommentInputView) {
+        let alert = UIAlertController(title: Localizations.failedActionDuringCallTitle, message: Localizations.failedActionDuringCallNoticeText, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { _ in }))
+        present(alert, animated: true)
+    }
+
     func commentInputView(_ inputView: CommentInputView, didInterruptRecorder recorder: AudioRecorder) {
         guard let url = recorder.saveVoiceComment(for: feedPostId) else { return }
         DispatchQueue.main.async {

@@ -262,4 +262,12 @@ extension Localizations {
     static var failedCallNoticeText: String {
         NSLocalizedString("home.calls.fail.text", value: "Make sure your phone has an internet connection and try again.", comment: "Text shown to users on call failure.")
     }
+
+    static var failedActionDuringCallTitle: String {
+        NSLocalizedString("home.calls.fail.audio.title", value: "Cannot record audio during a HalloApp call.", comment: "Title of failed audio capture alert during a call.")
+    }
+
+    static var failedActionDuringCallNoticeText: String {
+        NSLocalizedString("home.calls.fail.audio.text", value: "Please try again later.", comment: "Text shown to users on failed audio capture alert during a call.")
+    }
 }

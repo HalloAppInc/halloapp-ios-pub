@@ -919,6 +919,12 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         present(alert, animated: true)
     }
 
+    func commentInputViewCouldNotRecordDuringCall(_ inputView: CommentInputView) {
+        let alert = UIAlertController(title: Localizations.failedActionDuringCallTitle, message: Localizations.failedActionDuringCallNoticeText, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { _ in }))
+        present(alert, animated: true)
+    }
+
     func commentInputViewDidTapSelectedMedia(_ inputView: CommentInputView, mediaToEdit: PendingMedia) {
         let editController = MediaEditViewController(mediaToEdit: [mediaToEdit], selected: nil) { [weak self] controller, media, selected, cancel in
             controller.dismiss(animated: true)

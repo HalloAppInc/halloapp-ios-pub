@@ -1722,6 +1722,12 @@ extension ChatViewController: ChatInputViewDelegate {
         present(alert, animated: true)
     }
 
+    func chatInputViewMicrophoneAccessDeniedDuringCall(_ inputView: ChatInputView) {
+        let alert = UIAlertController(title: Localizations.failedActionDuringCallTitle, message: Localizations.failedActionDuringCallNoticeText, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { _ in }))
+        present(alert, animated: true)
+    }
+
     func chatInputView(_ inputView: ChatInputView, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?) {
         let text = mentionText.trimmed().collapsedText
         sendMessage(text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)

@@ -16,7 +16,7 @@ private extension Localizations {
 }
 
 protocol AudioRecorderControlViewDelegate: AnyObject {
-    func audioRecorderControlViewWillStart(_ view: AudioRecorderControlView)
+    func audioRecorderControlViewShouldStart(_ view: AudioRecorderControlView) -> Bool
     func audioRecorderControlViewStarted(_ view: AudioRecorderControlView)
     func audioRecorderControlViewFinished(_ view: AudioRecorderControlView, cancel: Bool)
     func audioRecorderControlViewLocked(_ view: AudioRecorderControlView)
@@ -209,10 +209,12 @@ class AudioRecorderControlView: UIView {
         guard !isStarting && !hasStarted else { return }
         guard let touch = touches.first else { return }
         startLocation = touch.location(in: self)
-        show()
-        isStarting = true
-        hasStarted = false
-        delegate?.audioRecorderControlViewWillStart(self)
+        let shouldStart = delegate?.audioRecorderControlViewShouldStart(self) ?? false
+        if shouldStart {
+            show()
+            isStarting = true
+            hasStarted = false
+        }
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {

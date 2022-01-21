@@ -317,16 +317,29 @@ class GroupFeedViewController: FeedCollectionViewController {
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
-        let newPostViewController = NewPostViewController(source: source, destination: .groupFeed(groupId)) { didPost in
-            self.dismiss(animated: true)
-            if didPost { self.scrollToTop(animated: true) }
-        }
-        newPostViewController.modalPresentationStyle = .fullScreen
-        present(newPostViewController, animated: true)
+        if source == .voiceNote && MainAppContext.shared.callManager.isAnyCallActive {
+            // When we have an active call ongoing: we should not record audio.
+            // We should present an alert saying that this action is not allowed.
+            let alert = UIAlertController(
+                title: Localizations.failedActionDuringCallTitle,
+                message: Localizations.failedActionDuringCallNoticeText,
+                preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
+                DDLogInfo("GroupFeedViewController/presentNewPostViewController/failedActionDuringCall/dismiss")
+            }))
+            present(alert, animated: true)
+        } else {
+            let newPostViewController = NewPostViewController(source: source, destination: .groupFeed(groupId)) { didPost in
+                self.dismiss(animated: true)
+                if didPost { self.scrollToTop(animated: true) }
+            }
+            newPostViewController.modalPresentationStyle = .fullScreen
+            present(newPostViewController, animated: true)
 
-        if !firstActionHappened {
-            delegate?.feedCollectionViewController(self, userActioned: true)
-            firstActionHappened = true
+            if !firstActionHappened {
+                delegate?.feedCollectionViewController(self, userActioned: true)
+                firstActionHappened = true
+            }
         }
     }
 

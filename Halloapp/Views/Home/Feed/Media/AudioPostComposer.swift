@@ -384,12 +384,18 @@ fileprivate struct AudioComposerRecorderControlView: UIViewRepresentable {
             self.controlView = controlView
         }
 
-        func audioRecorderControlViewWillStart(_ view: AudioRecorderControlView) {
+        func audioRecorderControlViewShouldStart(_ view: AudioRecorderControlView) -> Bool {
+            guard !MainAppContext.shared.callManager.isAnyCallActive else {
+                // TODO: This does not work.
+                // Need to present an alert from here.
+                return false
+            }
             if controlView.recorder.hasMicPermission {
                 controlView.recorder.recorderControlsExpanded = true
             } else {
                 controlView.showMicPermissionsAlert = true
             }
+            return true
         }
 
         func audioRecorderControlViewStarted(_ view: AudioRecorderControlView) {

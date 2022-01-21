@@ -28,6 +28,7 @@ protocol CommentInputViewDelegate: AnyObject {
     func commentInputViewResetReplyContext(_ inputView: CommentInputView)
     func commentInputViewResetInputMedia(_ inputView: CommentInputView)
     func commentInputViewMicrophoneAccessDenied(_ inputView: CommentInputView)
+    func commentInputViewCouldNotRecordDuringCall(_ inputView: CommentInputView)
     func commentInputViewDidTapSelectedMedia(_ inputView: CommentInputView, mediaToEdit: PendingMedia)
     func commentInputView(_ inputView: CommentInputView, didInterruptRecorder recorder: AudioRecorder)
 }
@@ -1612,11 +1613,16 @@ extension CommentInputView: AudioRecorderControlViewDelegate {
         updatePostButtons()
     }
 
-    func audioRecorderControlViewWillStart(_ view: AudioRecorderControlView) {
+    func audioRecorderControlViewShouldStart(_ view: AudioRecorderControlView) -> Bool {
+        guard !MainAppContext.shared.callManager.isAnyCallActive else {
+            delegate?.commentInputViewCouldNotRecordDuringCall(self)
+            return false
+        }
         voiceNoteTime.text = "0:00"
         voiceNoteTime.isHidden = false
         placeholder.isHidden = true
         textView.isHidden = true
+        return true
     }
 
     func audioRecorderControlViewCancelled(_ view: AudioRecorderControlView) {
