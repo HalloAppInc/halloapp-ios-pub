@@ -209,11 +209,21 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             audioView.isSeen = post.status == .seen || isOwnPost
             audioView.feedMedia = isSizingView ? nil : audioMedia
 
-            // Use the same top margin if the media carousel's page control is not displayed
-            audioView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: imageAndVideoMedia.count > 1 ? 8 : 20,
-                                                                         leading: 0,
-                                                                         bottom: 20,
-                                                                         trailing: 0)
+            let layoutMargins: NSDirectionalEdgeInsets
+            if let mediaView = mediaView, !mediaView.isHidden {
+                // Use the same top margin if the media carousel's page control is not displayed
+                layoutMargins = NSDirectionalEdgeInsets(top: imageAndVideoMedia.count > 1 ? 8 : 20,
+                                                        leading: 0,
+                                                        bottom: 20 - LayoutConstants.bottomMarginWithSeparator,
+                                                        trailing: 0)
+            } else {
+                layoutMargins = NSDirectionalEdgeInsets(top: 21 - LayoutConstants.topMargin,
+                                                        leading: 0,
+                                                        bottom: 26 - LayoutConstants.bottomMarginWithSeparator,
+                                                        trailing: 0)
+            }
+            audioView.directionalLayoutMargins = layoutMargins
+
             vStack.insertArrangedSubview(audioView, at: showMediaCarousel ? 1 : 0)
             audioView.isHidden = false
         }
