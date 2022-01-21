@@ -181,6 +181,9 @@ final class FloatingMenu: UIView {
     }
 
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard isUserInteractionEnabled else {
+            return nil
+        }
         let hitTargets: [UIView] = isCollapsed ? [permanentButton] : orderedButtons
         let result: UIView? = hitTargets.reduce(nil) { hitView, target in
             let convertedPoint = self.convert(point, to: target)
@@ -305,6 +308,12 @@ final class LabeledFloatingButton: UIControl {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override var isEnabled: Bool {
+        didSet {
+            imageView.alpha = isEnabled ? 1.0 : 0.42
+        }
     }
 
     private let imageView = UIImageView()

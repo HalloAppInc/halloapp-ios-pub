@@ -82,6 +82,7 @@ struct AudioPostComposer: View {
                     isHidden: state == .recorded,
                     action: toggleRecord,
                     audioMeter: recorder.meter)
+                    .disabled(!recorder.canRecord)
                     .padding(.top, 4)
                     .alert(isPresented: $showPermissionsAlert) {
                         AudioComposerRecorder.micPermissionsAlert
@@ -168,6 +169,8 @@ fileprivate struct RecordButton: View {
     @State private var meterScale1: CGFloat = 1
     @State private var meterScale2: CGFloat = 1
 
+    @Environment(\.isEnabled) private var isEnabled: Bool
+
     let action: () -> Void
 
     var audioMeter: CurrentValueSubject<(averagePower: Float, peakPower: Float), Never>
@@ -195,12 +198,12 @@ fileprivate struct RecordButton: View {
                 Image(isRecording ? "icon_stop" : "icon_mic")
                     .frame(width: 76, height: 76)
                     .foregroundColor(isRecording ? .blue : .white)
+                    .opacity(isEnabled ? 1 : 0.42)
                     .background(Circle()
                                     .strokeBorder(Color.audioComposerRecordButtonForeground, lineWidth: 2, antialiased: true)
                                     .background(Circle().fill(currentBackgroundColor))
                                     .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 0))
                     .shadow(color: .black.opacity(0.15), radius: 10, x: 0, y: 4)
-
             }
             .simultaneousGesture(LongPressGesture(minimumDuration: 0.8).onEnded { _ in
                 action()
@@ -225,6 +228,8 @@ class AudioComposerRecorder: NSObject, ObservableObject {
     @Published private(set) var duration = 0.formatted
     @Published private(set) var isRecording = false
 
+    @Published private(set) var canRecord = false
+
     // Whether the inline recorder controls are locked to record
     @Published var recorderControlsLocked = false
 
@@ -232,6 +237,16 @@ class AudioComposerRecorder: NSObject, ObservableObject {
     @Published var recorderControlsExpanded = false
 
     @Published var voiceNote: PendingMedia?
+
+    private var hasActiveCallCancellable: AnyCancellable?
+
+    override init() {
+        super.init()
+
+        hasActiveCallCancellable = MainAppContext.shared.callManager.hasActiveCallPublisher.sink { [weak self] hasActiveCall in
+            self?.canRecord = !hasActiveCall
+        }
+    }
 
     var meter: CurrentValueSubject<(averagePower: Float, peakPower: Float), Never> {
         return audioRecorder.meter

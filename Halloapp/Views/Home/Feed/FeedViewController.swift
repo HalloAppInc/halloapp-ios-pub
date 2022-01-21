@@ -99,6 +99,10 @@ class FeedViewController: FeedCollectionViewController {
                 self.processNotification(metadata: metadata)
         })
 
+        cancellables.insert(MainAppContext.shared.callManager.hasActiveCallPublisher.sink(receiveValue: { [weak self] hasActiveCall in
+            self?.composeVoiceNoteButton?.button.isEnabled = !hasActiveCall
+        }))
+
         // When the user was not on this view, and HomeView sends user to here
         if let metadata = NotificationMetadata.fromUserDefaults()  {
             // dispatch_async is needed because collection view isn't ready to scroll to a given item at this point.
@@ -310,6 +314,8 @@ class FeedViewController: FeedCollectionViewController {
 
     // MARK: New post
 
+    private var composeVoiceNoteButton: FloatingMenuButton?
+
     private lazy var floatingMenu: FloatingMenu = {
         var expandedButtons: [FloatingMenuButton] = [
             .standardActionButton(
@@ -327,10 +333,12 @@ class FeedViewController: FeedCollectionViewController {
         ]
 
         if ServerProperties.isVoicePostsEnabled {
-            expandedButtons.insert(.standardActionButton(
+            let button = FloatingMenuButton.standardActionButton(
                 iconTemplate: UIImage(named: "icon_fab_compose_voice")?.withRenderingMode(.alwaysTemplate),
                 accessibilityLabel: Localizations.fabAccessibilityVoiceNote,
-                action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) }), at: 1)
+                action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) })
+            composeVoiceNoteButton = button
+            expandedButtons.insert(button, at: 1)
         }
 
         return FloatingMenu(

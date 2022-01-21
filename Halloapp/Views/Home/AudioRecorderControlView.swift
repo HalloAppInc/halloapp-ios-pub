@@ -5,6 +5,7 @@
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
+import Combine
 import Core
 import Foundation
 import UIKit
@@ -42,7 +43,8 @@ class AudioRecorderControlView: UIView {
     private var lockButtonAnimator: UIViewPropertyAnimator?
 
     private lazy var mainButton: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "Microphone")?.withTintColor(.primaryBlue))
+        let imageView = UIImageView(image: UIImage(named: "Microphone")?.withRenderingMode(.alwaysTemplate))
+        imageView.tintColor = .primaryBlue
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
 
@@ -177,6 +179,8 @@ class AudioRecorderControlView: UIView {
     private let actionActivationThreshold: CGFloat = 90
     private let actionDoneThreshold: CGFloat = 105
 
+    private var hasActiveCallCancellable: AnyCancellable?
+
     init(configuration: Configuration) {
         self.configuration = configuration
 
@@ -199,6 +203,14 @@ class AudioRecorderControlView: UIView {
 
         lockButtonVertical.isActive = true
         cancelButtonHorizontal.isActive = true
+
+        hasActiveCallCancellable = MainAppContext.shared.callManager.hasActiveCallPublisher.sink { [weak self] hasActiveCall in
+            guard let self = self else {
+                return
+            }
+            self.mainButton.alpha = hasActiveCall ? 0.42 : 1
+            self.isUserInteractionEnabled = !hasActiveCall
+        }
     }
 
     required init?(coder: NSCoder) {

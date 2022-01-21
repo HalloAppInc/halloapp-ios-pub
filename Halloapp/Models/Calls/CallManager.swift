@@ -66,6 +66,11 @@ final class CallManager: NSObject, CXProviderDelegate {
                 endDate = nil
             }
             isAnyCallOngoing.send(activeCall)
+
+            let hasActiveCall = activeCall != nil
+            DispatchQueue.main.async {
+                self.hasActiveCallPublisher.send(hasActiveCall)
+            }
         }
     }
     public var callViewDelegate: CallViewDelegate?
@@ -108,6 +113,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         return activeCall != nil
     }
 
+    public let hasActiveCallPublisher = CurrentValueSubject<Bool, Never>(false)
     public let isAnyCallOngoing = PassthroughSubject<Call?, Never>()
     public let didCallFail = PassthroughSubject<Void, Never>()
     // TODO: maybe we should just try and have a delegate

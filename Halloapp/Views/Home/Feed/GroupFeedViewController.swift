@@ -70,6 +70,8 @@ class GroupFeedViewController: FeedCollectionViewController {
 
         titleView.animateInfoLabel()
 
+        installFloatingActionMenu()
+
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetAGroupFeed.sink { [weak self] (groupID) in
                 guard let self = self else { return }
@@ -99,6 +101,10 @@ class GroupFeedViewController: FeedCollectionViewController {
                 }
             }
         )
+
+        cancellableSet.insert(MainAppContext.shared.callManager.hasActiveCallPublisher.sink(receiveValue: { [weak self] hasActiveCall in
+            self?.composeVoiceNoteButton?.button.isEnabled = !hasActiveCall
+        }))
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -257,6 +263,8 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     // MARK: New post
 
+    private var composeVoiceNoteButton: FloatingMenuButton?
+
     private lazy var floatingMenu: FloatingMenu = {
         var expandedButtons: [FloatingMenuButton] = [
             .standardActionButton(
@@ -274,10 +282,12 @@ class GroupFeedViewController: FeedCollectionViewController {
         ]
 
         if ServerProperties.isVoicePostsEnabled {
-            expandedButtons.insert(.standardActionButton(
+            let button = FloatingMenuButton.standardActionButton(
                 iconTemplate: UIImage(named: "icon_fab_compose_voice")?.withRenderingMode(.alwaysTemplate),
                 accessibilityLabel: Localizations.fabAccessibilityVoiceNote,
-                action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) }), at: 1)
+                action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) })
+            composeVoiceNoteButton = button
+            expandedButtons.insert(button, at: 1)
         }
 
         let postLabel = UILabel()
@@ -295,13 +305,8 @@ class GroupFeedViewController: FeedCollectionViewController {
     }()
 
     private func updateFloatingActionMenu() {
-        guard userBelongsToGroup else {
-            removeFloatingActionMenu()
-            return
-        }
-        if floatingMenu.superview == nil {
-            installFloatingActionMenu()
-        }
+        floatingMenu.isHidden = !userBelongsToGroup
+        floatingMenu.isUserInteractionEnabled = userBelongsToGroup
     }
 
     private func installFloatingActionMenu() {
@@ -310,10 +315,6 @@ class GroupFeedViewController: FeedCollectionViewController {
         floatingMenu.constrain(to: view)
 
         collectionView.contentInset.bottom = floatingMenu.suggestedContentInsetHeight
-    }
-
-    private func removeFloatingActionMenu() {
-        floatingMenu.removeFromSuperview()
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
