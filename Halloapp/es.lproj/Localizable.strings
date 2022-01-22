@@ -148,6 +148,9 @@
 /* Status displayed while call is connecting */
 "call.status.connecting" = "conectando...";
 
+/* Status displayed when call fails. */
+"call.status.failed" = "llamada fallida";
+
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "llamada entrante";
 
@@ -457,6 +460,9 @@
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "Nota de voz";
 
+/* Label for floating compose post menu on Group screen. */
+"fab.post.button" = "Publicación";
+
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Eliminando...";
 
@@ -716,13 +722,19 @@
 "groups.list.remove.message" = "¿Estás seguro que quieres eliminar este grupo y su contenido de este dispositivo?";
 
 /* The name of the group that is created for the user when they are new and in the zero zone (no contacts and no content) */
-"groups.NUX.user.group.name" = "Grupo de %@'";
+"groups.NUX.user.group.name" = "Grupo de %@";
 
 /* A label on the header to indicate which person I have groups in common with */
 "groups.title" = "Con %@";
 
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "\n\n\nPor favor deja un comentario o una descripción del problema en el espacio de arriba. \n\nVersión %1$@ - %2$@\n%3$@";
+
+/* Text shown to users on failed audio capture alert during a call. */
+"home.calls.fail.audio.text" = "Por favor, inténtalo de nuevo más tarde";
+
+/* Title of failed audio capture alert during a call. */
+"home.calls.fail.audio.title" = "No se puso grabar el audio durante la llamada de HalloApp.";
 
 /* Text shown to users on call failure. */
 "home.calls.fail.text" = "Lo siento, inténtalo de nuevo más tarde.";

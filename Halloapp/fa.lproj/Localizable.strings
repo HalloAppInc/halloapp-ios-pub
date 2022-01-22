@@ -148,6 +148,9 @@
 /* Status displayed while call is connecting */
 "call.status.connecting" = "در حال اتصال...";
 
+/* Status displayed when call fails. */
+"call.status.failed" = "ناموفق";
+
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "تماس دریافتی";
 
@@ -456,6 +459,9 @@
 
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "پیام صوتی";
+
+/* Label for floating compose post menu on Group screen. */
+"fab.post.button" = "پست";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "در حال پاک کردن...";

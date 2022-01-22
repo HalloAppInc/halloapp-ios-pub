@@ -79,6 +79,15 @@
 /* Title for generic delete button. */
 "Delete" = "حذف";
 
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "به اشتراک گذاشتن با تمام مخاطبین";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "به اشتراک گذاشتن با مخاطبین غیر از اشخاصی که انتخاب میکنم";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "به اشتراک گذاشتن فقط با مخاطبین انتخابی";
+
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "خروج";
 
@@ -177,6 +186,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "به شبکه دوست‌های واقعی من در هالواپ بپیوندید. لینک دانلود رایگان halloapp.com/dl";
+
+/* Row in Settings screen */
+"title.privacy" = "حریم خصوصی";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "مخاطب ناشناخته";

@@ -1154,7 +1154,7 @@
 "server.marketing.post.title" = "Quer saber o que compartilhar?";
 
 /* title of the marketing alert sent to users */
-"server.marketing.title" = "Hallo ai! ";
+"server.marketing.title" = "Hallo ai!";
 
 /* fallback text in notification for a new comment */
 "server.new.comment" = "Novo comentário";

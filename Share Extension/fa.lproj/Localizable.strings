@@ -76,6 +76,15 @@
 /* Title for generic delete button. */
 "Delete" = "حذف";
 
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "به اشتراک گذاشتن با تمام مخاطبین";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "به اشتراک گذاشتن با مخاطبین غیر از اشخاصی که انتخاب میکنم";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "به اشتراک گذاشتن فقط با مخاطبین انتخابی";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "جستجو";
 
@@ -96,6 +105,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "به شبکه دوست‌های واقعی من در هالواپ بپیوندید. لینک دانلود رایگان halloapp.com/dl";
+
+/* Label above the list with whom you share */
+"share.composer.destinations.label" = "به اشتراک گذاشتن با";
 
 /* Placeholder for media caption. */
 "share.composer.placeholder" = "افزودن توضیحات";
@@ -130,6 +142,9 @@
 /* Share on the home feed label */
 "share.destination.home" = "صفحه اصلی";
 
+/* Share on the home feed selection cell */
+"share.destination.new" = "پست جدید";
+
 /* Destination screen title */
 "share.destination.title" = "هالواپ";
 
@@ -139,6 +154,15 @@
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "شما وارد نشده‌اید";
 
+/* Row in Settings screen */
+"title.privacy" = "حریم خصوصی";
+
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "مخاطب ناشناس";
+
+/* How many bytes from total have been uploaded */
+"uploading.bytes.progress" = "@%1$ از @$2%";
+
+/* Message how many items are currently being upload */
+"uploading.n.items" = "uploading.n.items";
 
