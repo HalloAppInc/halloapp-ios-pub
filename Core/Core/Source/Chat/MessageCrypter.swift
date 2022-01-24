@@ -9,6 +9,7 @@
 import Foundation
 
 public typealias EncryptionLogInfo = [String: String]
+public typealias OutboundCompletion = (Result<KeyBundle, EncryptionError>) -> Void
 public typealias EncryptionCompletion = (Result<(EncryptedData, EncryptionLogInfo), EncryptionError>) -> Void
 public typealias DecryptionCompletion = (Result<Data, DecryptionFailure>) -> Void
 public typealias GroupFeedRerequestType = Server_GroupFeedRerequest.RerequestType
@@ -18,6 +19,16 @@ public final class MessageCrypter: KeyStoreDelegate {
     public init(service: CoreService, keyStore: KeyStore) {
         self.service = service
         self.keyStore = keyStore
+    }
+
+    public func setupOutbound(
+        for userID: UserID,
+        completion: @escaping OutboundCompletion)
+    {
+        queue.async {
+            let session = self.loadSession(for: userID)
+            session.setupOutbound(completion: completion)
+        }
     }
 
     public func encrypt(
@@ -49,7 +60,19 @@ public final class MessageCrypter: KeyStoreDelegate {
     {
         queue.async {
             let session = self.loadGroupSession(for: groupID)
-            session.encrypt(data, completion: completion)
+            session.encrypt(data, potentialMemberUids: [], completion: completion)
+        }
+    }
+
+    public func encrypt(
+        _ data: Data,
+        in groupID: GroupID,
+        potentialMemberUids: [UserID],
+        completion: @escaping GroupEncryptionCompletion)
+    {
+        queue.async {
+            let session = self.loadGroupSession(for: groupID)
+            session.encrypt(data, potentialMemberUids: potentialMemberUids, completion: completion)
         }
     }
 
@@ -251,4 +274,5 @@ public enum EncryptionError: String, Error {
     case serialization
     case signing
     case missingAudienceHash
+    case missingEncryptedSenderState
 }

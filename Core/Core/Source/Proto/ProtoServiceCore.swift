@@ -47,7 +47,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             }
         }
     }
-    
+
     public var reachabilityState: ReachablilityState = .reachable
     public var reachabilityConnectionType: String = "unknown"
 
@@ -733,7 +733,7 @@ extension ProtoServiceCore: CoreService {
     }
 
     private func makePublishPostPayload(_ post: PostData, feed: Feed, completion: @escaping (Result<Server_Iq.OneOf_Payload, EncryptionError>) -> Void) {
-        guard let payloadData = try? post.clientContainer?.serializedData() else {
+        guard let payloadData = try? post.clientContainer.serializedData() else {
             completion(.failure(.serialization))
             return
         }
@@ -837,107 +837,26 @@ extension ProtoServiceCore: CoreService {
                 DDLogError("ProtoServiceCore/makeGroupEncryptedPayload/\(groupID)/encryption/error [\(error)]")
                 completion(.failure(.missingKeyBundle))
             case .success(let groupEncryptedData):
-                guard let audienceHash = groupEncryptedData.audienceHash else {
-                    DDLogError("ProtoServiceCore/makeGroupEncryptedPayload/\(groupID)/encryption/error missingAudienceHash")
-                    completion(.failure(.missingAudienceHash))
-                    return
-                }
-                item.audienceHash = audienceHash
-                // We need to construct senderStateBundles for all the receiverUids necessary and then publish the post/comment.
-                var senderStateBundles: [Server_SenderStateBundle] = []
-                var numberOfFailedEncrypts = 0
-                let encryptGroup = DispatchGroup()
-                let encryptCompletion: (Result<(EncryptedData, EncryptionLogInfo), EncryptionError>) -> Void = { result in
-                    switch result {
-                    case .failure(_):
-                        numberOfFailedEncrypts += 1
-                        DDLogError("ProtoServiceCore/makeGroupEncryptedPayload/\(groupID)/encryptCompletion/error \(numberOfFailedEncrypts)")
-                    default:
-                        break
-                    }
-                    encryptGroup.leave()
-                }
-
+                item.audienceHash = groupEncryptedData.audienceHash
+                item.senderStateBundles = groupEncryptedData.senderStateBundles
                 do {
-                    if !groupEncryptedData.receiverUids.isEmpty {
-                        guard let chainKey = groupEncryptedData.senderKey?.chainKey,
-                              let signKey = groupEncryptedData.senderKey?.publicSignatureKey,
-                              let chainIndex = groupEncryptedData.chainIndex else {
-                                  completion(.failure(.missingKeyBundle))
-                                  DDLogError("ProtoServiceCore/makeGroupEncryptedPayload/\(groupID)/missingSenderState")
-                                  return
-                              }
-
-                        // construct own senderState
-                        var senderKey = Clients_SenderKey()
-                        senderKey.chainKey = chainKey
-                        senderKey.publicSignatureKey = signKey
-                        var senderState = Clients_SenderState()
-                        senderState.senderKey = senderKey
-                        senderState.currentChainIndex = chainIndex
-                        let senderStatePayload = try senderState.serializedData()
-
-                        // encrypt senderState using 1-1 channel for all the receivers.
-                        for receiverUserID in groupEncryptedData.receiverUids {
-                            encryptGroup.enter()
-                            AppContext.shared.messageCrypter.encrypt(senderStatePayload, for: receiverUserID) { result in
-                                var senderStateWithKeyInfo = Server_SenderStateWithKeyInfo()
-                                var senderStateBundle = Server_SenderStateBundle()
-                                senderStateBundle.uid = Int64(receiverUserID) ?? 0
-                                switch result {
-                                case .failure(_):
-                                    DDLogError("ProtoServiceCore/makeGroupEncryptedPayload/\(groupID)/failed to encrypt for userID: \(receiverUserID)")
-                                    break
-                                case .success((let encryptedData, _)):
-                                    if let publicKey = encryptedData.identityKey, !publicKey.isEmpty {
-                                        senderStateWithKeyInfo.publicKey = publicKey
-                                        senderStateWithKeyInfo.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
-                                    }
-                                    senderStateWithKeyInfo.encSenderState = encryptedData.data
-                                }
-                                senderStateBundle.senderState = senderStateWithKeyInfo
-                                senderStateBundles.append(senderStateBundle)
-                                encryptCompletion(result)
-                            }
-                        }
+                    switch oneOfItem {
+                    case .comment(var serverComment):
+                        var clientEncryptedPayload = Clients_EncryptedPayload()
+                        clientEncryptedPayload.senderStateEncryptedPayload = groupEncryptedData.data
+                        serverComment.encPayload = try clientEncryptedPayload.serializedData()
+                        item.item = .comment(serverComment)
+                    case .post(var serverPost):
+                        var clientEncryptedPayload = Clients_EncryptedPayload()
+                        clientEncryptedPayload.senderStateEncryptedPayload = groupEncryptedData.data
+                        serverPost.encPayload = try clientEncryptedPayload.serializedData()
+                        item.item = .post(serverPost)
                     }
-
-                    encryptGroup.notify(queue: .main) {
-                        // After successfully obtaining the senderStateBundles
-                        // construct the encPayload and senderStateBundles in the feeditem and payload(post/comment) stanza
-                        // publish it
-                        if numberOfFailedEncrypts > 0 {
-                            DDLogError("proto/makeGroupEncryptedPayload/\(groupID)/encryption/error numberOfFailedEncrypts: \(numberOfFailedEncrypts)")
-                            completion(.failure(.aesError))
-                        } else {
-                            DDLogInfo("proto/makeGroupEncryptedPayload/\(groupID)/encryption - obtained senderStateBundles for all receivers")
-                            item.senderStateBundles = senderStateBundles
-                            do {
-                                switch oneOfItem {
-                                case .comment(var serverComment):
-                                    var clientEncryptedPayload = Clients_EncryptedPayload()
-                                    clientEncryptedPayload.senderStateEncryptedPayload = groupEncryptedData.data
-                                    serverComment.encPayload = try clientEncryptedPayload.serializedData()
-                                    item.item = .comment(serverComment)
-                                case .post(var serverPost):
-                                    var clientEncryptedPayload = Clients_EncryptedPayload()
-                                    clientEncryptedPayload.senderStateEncryptedPayload = groupEncryptedData.data
-                                    serverPost.encPayload = try clientEncryptedPayload.serializedData()
-                                    item.item = .post(serverPost)
-                                }
-                                DDLogInfo("proto/makeGroupEncryptedPayload/\(groupID)/success")
-                                completion(.success(item))
-                            } catch {
-                                DDLogError("proto/makeGroupEncryptedPayload/\(groupID)/payload-serialization/error \(error)")
-                                completion(.failure(.serialization))
-                                return
-                            }
-                        }
-                    }
+                    DDLogInfo("proto/makeGroupEncryptedPayload/\(groupID)/success")
+                    completion(.success(item))
                 } catch {
-                    DDLogError("proto/makeGroupEncryptedPayload/\(groupID)/senderState-serialization/error \(error)")
+                    DDLogError("proto/makeGroupEncryptedPayload/\(groupID)/payload-serialization/error \(error)")
                     completion(.failure(.serialization))
-                    return
                 }
             }
         }
@@ -1063,7 +982,7 @@ extension ProtoServiceCore: CoreService {
     }
 
     private func makeGroupFeedMessage(_ post: PostData, feed: Feed, to toUserID: UserID, completion: @escaping (Result<Server_GroupFeedItem, EncryptionError>) -> Void) {
-        guard let payloadData = try? post.clientContainer?.serializedData() else {
+        guard let payloadData = try? post.clientContainer.serializedData() else {
             completion(.failure(.serialization))
             return
         }
@@ -1206,35 +1125,15 @@ extension ProtoServiceCore: CoreService {
             }
 
             DDLogInfo("ProtoServiceCore/decryptGroupFeedPayload/contentId/\(item.gid)/\(contentId), publisherUid: \(publisherUid)/begin")
-
-            if !item.senderState.encSenderState.isEmpty {
-                // We might already have an e2e session setup with this user.
-                // but we have to overwrite our current session with this user. our code does this.
-                AppContext.shared.messageCrypter.decrypt(
-                    EncryptedData(
-                        data: item.senderState.encSenderState,
-                        identityKey: item.senderState.publicKey.isEmpty ? nil : item.senderState.publicKey,
-                        oneTimeKeyId: Int(item.senderState.oneTimePreKeyID)),
-                    from: publisherUid) { result in
-                        // After decrypting sender state.
-                        switch result {
-                        case .success(let decryptedData):
-                            DDLogInfo("proto/decryptGroupFeedPayload/\(item.gid)/success/decrypted senderState successfully")
-                            do {
-                                let senderState = try Clients_SenderState(serializedData: decryptedData)
-                                self.inspectAndDecryptClientEncryptedPayload(payload: encryptedPayload, senderState: senderState, item: item, completion: newCompletion)
-                            } catch {
-                                DDLogError("proto/decryptGroupFeedPayload/\(item.gid)/error/invalid senderState \(error)")
-                            }
-                        case .failure(let failure):
-                            DDLogError("proto/decryptGroupFeedPayload/\(item.gid)/error/\(failure.error)")
-                            newCompletion(nil, GroupDecryptionFailure(contentId, publisherUid, failure.error, .senderState))
-                            return
-                        }
+            self.decryptGroupPayloadAndSenderState(encryptedPayload, contentId: contentId, in: groupID, with: item.senderState, from: publisherUid) { result in
+                switch result {
+                case .failure(let groupDecryptionFailure):
+                    newCompletion(nil, groupDecryptionFailure)
+                case .success(let decryptedPayload):
+                    self.parseGroupPayloadContent(payload: decryptedPayload, item: item, completion: newCompletion)
                 }
-            } else {
-                self.inspectAndDecryptClientEncryptedPayload(payload: encryptedPayload, senderState: nil, item: item, completion: newCompletion)
             }
+            DDLogInfo("ProtoServiceCore/decryptGroupFeedPayload/contentId/\(item.gid)/\(contentId), publisherUid: \(publisherUid)/end")
         }
 
         DispatchQueue.main.async { [self] in
@@ -1272,24 +1171,63 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func inspectAndDecryptClientEncryptedPayload(payload: Data, senderState: Clients_SenderState?, item: Server_GroupFeedItem, completion: @escaping (FeedContent?, GroupDecryptionFailure?) -> Void) {
-        guard let contentId = item.contentId,
-              let publisherUid = item.publisherUid,
-              item.encryptedPayload != nil else {
-                  completion(nil, GroupDecryptionFailure(nil, nil, .missingPayload, .payload))
-            return
+    public func decryptGroupPayloadAndSenderState(_ payload: Data,
+                                                  contentId: String,
+                                                  in groupID: GroupID,
+                                                  with clientSenderState: Server_SenderStateWithKeyInfo,
+                                                  from publisherUid: UserID,
+                                                  completion: @escaping (Result<Data, GroupDecryptionFailure>) -> Void) {
+        if !clientSenderState.encSenderState.isEmpty {
+            // We might already have an e2e session setup with this user.
+            // but we have to overwrite our current session with this user. our code does this.
+            AppContext.shared.messageCrypter.decrypt(
+                EncryptedData(
+                    data: clientSenderState.encSenderState,
+                    identityKey: clientSenderState.publicKey.isEmpty ? nil : clientSenderState.publicKey,
+                    oneTimeKeyId: Int(clientSenderState.oneTimePreKeyID)),
+                from: publisherUid) { [weak self] result in
+                    guard let self = self else {
+                        completion(.failure(GroupDecryptionFailure(contentId, publisherUid, .missingSenderState, .senderState)))
+                        return
+                    }
+                    // After decrypting sender state.
+                    switch result {
+                    case .success(let decryptedData):
+                        DDLogInfo("proto/decryptGroupFeedPayload/\(groupID)/success/decrypted senderState successfully")
+                        do {
+                            let senderState = try Clients_SenderState(serializedData: decryptedData)
+                            self.decryptGroupPayload(payload, contentId: contentId, in: groupID, with: senderState, from: publisherUid, completion: completion)
+                        } catch {
+                            DDLogError("proto/decryptGroupFeedPayload/\(groupID)/error/invalid senderState \(error)")
+                        }
+                    case .failure(let failure):
+                        DDLogError("proto/decryptGroupFeedPayload/\(groupID)/error/\(failure.error)")
+                        completion(.failure(GroupDecryptionFailure(contentId, publisherUid, failure.error, .senderState)))
+                        return
+                    }
+            }
+        } else {
+            decryptGroupPayload(payload, contentId: contentId, in: groupID, with: nil, from: publisherUid, completion: completion)
         }
+    }
+
+    public func decryptGroupPayload(_ payload: Data,
+                                    contentId: String,
+                                    in groupID: GroupID,
+                                    with senderState: Clients_SenderState?,
+                                    from publisherUid: UserID,
+                                    completion: @escaping (Result<Data, GroupDecryptionFailure>) -> Void) {
 
         // Decrypt payload using the group channel.
         let groupDecryptPayloadCompletion: ((Clients_SenderState?, Data) -> Void) = { (senderState, groupEncryptedPayload) in
             // Decrypt the actual payload now.
-            AppContext.shared.messageCrypter.decrypt(groupEncryptedPayload, from: publisherUid, in: item.gid, with: senderState) { groupResult in
+            AppContext.shared.messageCrypter.decrypt(groupEncryptedPayload, from: publisherUid, in: groupID, with: senderState) { groupResult in
                 switch groupResult {
                 case .success(let decryptedPayload):
-                    self.parseGroupPayloadContent(payload: decryptedPayload, item: item, completion: completion)
+                    completion(.success(decryptedPayload))
                 case .failure(let error):
-                    DDLogError("proto/inspectAndDecryptClientEncryptedPayload/\(item.gid)/error/\(error)")
-                    completion(nil, GroupDecryptionFailure(contentId, publisherUid, error, .payload))
+                    DDLogError("proto/inspectAndDecryptClientEncryptedPayload/\(groupID)/error/\(error)")
+                    completion(.failure(GroupDecryptionFailure(contentId, publisherUid, error, .payload)))
                 }
             }
         }
@@ -1304,10 +1242,10 @@ extension ProtoServiceCore: CoreService {
             from: publisherUid) { result in
                 switch result {
                 case .success(let decryptedPayload):
-                    self.parseGroupPayloadContent(payload: decryptedPayload, item: item, completion: completion)
+                    completion(.success(decryptedPayload))
                 case .failure(let error):
-                    DDLogError("proto/inspectAndDecryptClientEncryptedPayload/\(item.gid)/error/\(error)")
-                    completion(nil, GroupDecryptionFailure(contentId, publisherUid, error.error, .payload))
+                    DDLogError("proto/inspectAndDecryptClientEncryptedPayload/\(groupID)/error/\(error)")
+                    completion(.failure(GroupDecryptionFailure(contentId, publisherUid, error.error, .payload)))
                 }
             }
         }
@@ -1318,17 +1256,17 @@ extension ProtoServiceCore: CoreService {
             switch clientEncryptedPayload.payload {
             case .oneToOneEncryptedPayload(let oneToOneEncryptedPayload):
                 oneToOneDecryptPayloadCompletion(oneToOneEncryptedPayload)
-                AppContext.shared.messageCrypter.updateSenderState(with: senderState, for: publisherUid, in: item.gid)
+                AppContext.shared.messageCrypter.updateSenderState(with: senderState, for: publisherUid, in: groupID)
             case .senderStateEncryptedPayload(let groupEncryptedPayload):
                 groupDecryptPayloadCompletion(senderState, groupEncryptedPayload)
             default:
-                DDLogError("proto/decryptGroupFeedPayload/\(item.gid)/error/invalid payload")
-                completion(nil, GroupDecryptionFailure(contentId, publisherUid, .invalidPayload, .payload))
+                DDLogError("proto/decryptGroupFeedPayload/\(groupID)/error/invalid payload")
+                completion(.failure(GroupDecryptionFailure(contentId, publisherUid, .invalidPayload, .payload)))
                 return
             }
         } catch {
-            DDLogError("proto/decryptGroupFeedPayload/\(item.gid)/error/invalid payload \(error)")
-            completion(nil, GroupDecryptionFailure(contentId, publisherUid, .deserialization, .payload))
+            DDLogError("proto/decryptGroupFeedPayload/\(groupID)/error/invalid payload \(error)")
+            completion(.failure(GroupDecryptionFailure(contentId, publisherUid, .deserialization, .payload)))
             return
         }
     }
@@ -1590,7 +1528,7 @@ extension ProtoServiceCore: CoreService {
     public func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoLoggingRequest(countableEvents: countableEvents, discreteEvents: discreteEvents, completion: completion))
     }
-    
+
     // MARK: Key requests
 
     public func getGroupMemberIdentityKeys(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupStanza>) {
@@ -1606,7 +1544,7 @@ extension ProtoServiceCore: CoreService {
     }
 
     // MARK: Groups
-    
+
     public func getGroupPreviewWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
         enqueue(request: ProtoGroupPreviewWithLinkRequest(inviteLink: inviteLink, completion: completion))
     }

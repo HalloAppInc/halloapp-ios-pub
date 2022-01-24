@@ -44,7 +44,7 @@ public struct GroupOutgoingSession {
 }
 
 private enum GroupCryptoTask {
-    case encryption(Data, GroupEncryptionCompletion)
+    case encryption(Data, [UserID], GroupEncryptionCompletion)
     case decryption(Data, UserID, Clients_SenderState?, GroupDecryptionCompletion)
     case membersAdded([UserID])
     case membersRemoved([UserID])
@@ -67,19 +67,21 @@ public enum GroupSessionState: Int16 {
 }
 
 public struct GroupEncryptedData {
-    public init(data: Data, senderKey: GroupSenderKey?, chainIndex: Int?, audienceHash: Data?, receiverUids: [UserID]) {
+    public init(data: Data, senderKey: GroupSenderKey?, chainIndex: Int?, audienceHash: Data, receiverUids: [UserID], senderStateBundles: [Server_SenderStateBundle]) {
         self.data = data
         self.senderKey = senderKey
         self.chainIndex = chainIndex == nil ? nil : Int32(chainIndex!)
         self.audienceHash = audienceHash
         self.receiverUids = receiverUids
+        self.senderStateBundles = senderStateBundles
     }
 
     public var data: Data
     public var senderKey: GroupSenderKey?
     public var chainIndex: Int32?
-    public var audienceHash: Data?
+    public var audienceHash: Data
     public var receiverUids: [UserID]
+    public var senderStateBundles: [Server_SenderStateBundle]
 }
 
 public struct GroupSenderState {
@@ -127,12 +129,12 @@ final class GroupWhisperSession {
     private lazy var sessionQueue = { DispatchQueue(label: "com.halloapp.groupCrypto-\(groupID)", qos: .userInitiated) }()
     private var pendingTasks = [GroupCryptoTask]()
 
-    public func encrypt(_ data: Data, completion: @escaping GroupEncryptionCompletion) {
+    public func encrypt(_ data: Data, potentialMemberUids: [UserID], completion: @escaping GroupEncryptionCompletion) {
         let dispatchedCompletion = { result in
             DispatchQueue.main.async { completion(result) }
         }
         sessionQueue.async {
-            self.pendingTasks.append(.encryption(data, dispatchedCompletion))
+            self.pendingTasks.append(.encryption(data, potentialMemberUids, dispatchedCompletion))
             self.executeTasks()
         }
     }
@@ -269,7 +271,7 @@ final class GroupWhisperSession {
                 // Decryption can continue fine. removingMembers should clear that user's keys.
                 // addingMembers/removingPendingUids/updating hash will be taken care when outbound is setup.
                 switch task {
-                case .encryption(_, let completion):
+                case .encryption(_, _, let completion):
                     guard setupAttempts < 3 else {
                         DDLogError("GroupWhisperSession/\(groupID)/execute/encryption outbound setup failed \(setupAttempts) times")
                         completion(.failure(.missingKeyBundle))
@@ -316,9 +318,9 @@ final class GroupWhisperSession {
 
             case .ready(let groupKeyBundle):
                 switch task {
-                case .encryption(let data, let completion):
+                case .encryption(let data, let potentialMemberUids, let completion):
                     DDLogInfo("GroupWhisperSession/\(groupID)/execute/encrypting")
-                    executeEncryption(data, pendingUids: groupKeyBundle.pendingUids,  completion: completion)
+                    executeEncryption(data, pendingUids: groupKeyBundle.pendingUids, potentialMemberUids: potentialMemberUids,  completion: completion)
                 case .decryption(let data, let userID, let incomingSenderState, let completion):
                     DDLogInfo("GroupWhisperSession/\(groupID)/execute/decrypting")
                     executeDecryption(data, from: userID, with: incomingSenderState, completion: completion)
@@ -402,7 +404,7 @@ final class GroupWhisperSession {
         }
     }
 
-    private func executeEncryption(_ data: Data, pendingUids: [UserID], completion: GroupEncryptionCompletion) {
+    private func executeEncryption(_ data: Data, pendingUids: [UserID], potentialMemberUids: [UserID], completion: @escaping GroupEncryptionCompletion) {
         DDLogInfo("GroupWhisperSession/executeEncryption/\(groupID)/begin/pendingUids: \(pendingUids)")
         let keyBundle = self.state.keyBundle
         guard let outgoingSession = keyBundle.outgoingSession else {
@@ -420,31 +422,115 @@ final class GroupWhisperSession {
             let updatedKeyBundle = GroupKeyBundle(outgoingSession: newOutgoingSession,
                                                   incomingSession: keyBundle.incomingSession,
                                                   pendingUids: keyBundle.pendingUids)
-            let output: GroupEncryptedData = {
-                if pendingUids.isEmpty {
-                    return GroupEncryptedData(data: data,
-                                              senderKey: nil,
-                                              chainIndex: nil,
-                                              audienceHash: updatedKeyBundle.outgoingSession?.audienceHash,
-                                              receiverUids: pendingUids)
-                } else {
-                    return GroupEncryptedData(data: data,
-                                              senderKey: outgoingSession.senderKey, // send keys that were used for encryption
-                                              chainIndex: outgoingSession.currentChainIndex, // send status that were used for encryption
-                                              audienceHash: updatedKeyBundle.outgoingSession?.audienceHash,
-                                              receiverUids: pendingUids)
+            guard let audienceHash = newOutgoingSession.audienceHash else {
+                DDLogError("GroupWhisperSession/executeEncryption/\(groupID)/failure")
+                completion(.failure(.missingAudienceHash))
+                return
+            }
+            constructGroupEncryptedData(data,
+                                        senderKey: outgoingSession.senderKey,
+                                        chainIndex: outgoingSession.currentChainIndex,
+                                        audienceHash: audienceHash,
+                                        pendingUids: pendingUids + potentialMemberUids) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success:
+                    self.updateState(to: .ready(keyBundle: updatedKeyBundle), saveToKeyStore: true)
+                    DDLogInfo("GroupWhisperSession/executeEncryption/\(self.groupID)/success")
+                case .failure(let error):
+                    DDLogError("GroupWhisperSession/executeEncryption/\(self.groupID)/failure: \(error)")
                 }
-            }()
-            updateState(to: .ready(keyBundle: updatedKeyBundle), saveToKeyStore: true)
-            DDLogInfo("GroupWhisperSession/executeEncryption/\(groupID)/success")
-            completion(.success(output))
+                completion(result)
+            }
         case .failure(let error):
             DDLogError("GroupWhisperSession/executeEncryption/\(groupID)/error \(error)")
             completion(.failure(error))
         }
     }
 
-    private func executeDecryption(_ encryptedData: Data, from userID: UserID, with incomingSenderState: Clients_SenderState?, completion: GroupDecryptionCompletion) {
+    private func constructGroupEncryptedData(_ data: Data,
+                                             senderKey: GroupSenderKey?,
+                                             chainIndex: Int?,
+                                             audienceHash: Data,
+                                             pendingUids: [UserID],
+                                             completion: @escaping (Result<GroupEncryptedData, EncryptionError>) -> Void) {
+        do {
+            var senderStateBundles: [Server_SenderStateBundle] = []
+            var numberOfFailedEncrypts = 0
+            let encryptGroup = DispatchGroup()
+            let encryptCompletion: (Result<(EncryptedData, EncryptionLogInfo), EncryptionError>) -> Void = { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .failure(_):
+                    numberOfFailedEncrypts += 1
+                    DDLogError("ProtoServiceCore/makeGroupEncryptedPayload/\(self.groupID)/encryptCompletion/error \(numberOfFailedEncrypts)")
+                default:
+                    break
+                }
+                encryptGroup.leave()
+            }
+            guard let chainKey = senderKey?.chainKey,
+                  let signKey = senderKey?.publicSignatureKey,
+                  let chainIndex = chainIndex else {
+                      completion(.failure(.missingKeyBundle))
+                      return
+                  }
+
+            // construct own senderState
+            var clientSenderKey = Clients_SenderKey()
+            clientSenderKey.chainKey = chainKey
+            clientSenderKey.publicSignatureKey = signKey
+            var senderState = Clients_SenderState()
+            senderState.senderKey = clientSenderKey
+            senderState.currentChainIndex = Int32(chainIndex)
+            let senderStatePayload = try senderState.serializedData()
+
+            // encrypt senderState using 1-1 channel for all the receivers.
+            for receiverUserID in pendingUids {
+                encryptGroup.enter()
+                AppContext.shared.messageCrypter.encrypt(senderStatePayload, for: receiverUserID) { [weak self] result in
+                    guard let self = self else { return }
+                    var senderStateWithKeyInfo = Server_SenderStateWithKeyInfo()
+                    var senderStateBundle = Server_SenderStateBundle()
+                    senderStateBundle.uid = Int64(receiverUserID) ?? 0
+                    switch result {
+                    case .failure(_):
+                        DDLogError("ProtoServiceCore/makeGroupEncryptedPayload/\(self.groupID)/failed to encrypt for userID: \(receiverUserID)")
+                        break
+                    case .success((let encryptedData, _)):
+                        if let publicKey = encryptedData.identityKey, !publicKey.isEmpty {
+                            senderStateWithKeyInfo.publicKey = publicKey
+                            senderStateWithKeyInfo.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
+                        }
+                        senderStateWithKeyInfo.encSenderState = encryptedData.data
+                    }
+                    senderStateBundle.senderState = senderStateWithKeyInfo
+                    senderStateBundles.append(senderStateBundle)
+                    encryptCompletion(result)
+                }
+            }
+
+            encryptGroup.notify(queue: .main) {
+                // After successfully obtaining the senderStateBundles
+                // return groupEncryptedData properly.
+                if numberOfFailedEncrypts > 0 {
+                    completion(.failure(.missingEncryptedSenderState))
+                } else {
+                    // send keys that were used for encryption
+                    completion(.success(GroupEncryptedData(data: data,
+                                                           senderKey: senderKey,
+                                                           chainIndex: chainIndex,
+                                                           audienceHash: audienceHash,
+                                                           receiverUids: pendingUids,
+                                                           senderStateBundles: senderStateBundles)))
+                }
+            }
+        } catch {
+            completion(.failure(.serialization))
+        }
+    }
+
+    private func executeDecryption(_ encryptedData: Data, from userID: UserID, with incomingSenderState: Clients_SenderState?, completion: @escaping GroupDecryptionCompletion) {
         DDLogInfo("GroupWhisperSession/executeDecryption/\(groupID)/begin/from: \(userID)")
         updateIncomingSession(from: userID, with: incomingSenderState)
         let keyBundle = self.state.keyBundle
@@ -517,10 +603,10 @@ final class GroupWhisperSession {
             DDLogInfo("GroupWhisperSession/setupOutbound/\(groupID)/state \(state) returning")
             return
         }
-        
+
         let attemptNumber = 1 + (state.failedSetupAttempts ?? 0)
         state = .retrievingKeys(incomingSession: state.incomingSession)
-        
+
         service.getGroupMemberIdentityKeys(groupID: groupID) { result in
             self.sessionQueue.async {
                 switch self.state {
@@ -535,7 +621,7 @@ final class GroupWhisperSession {
                     DDLogInfo("GroupWhisperSession/\(self.groupID)/setupOutbound/aborting [session already set up]")
                     return
                 }
-                
+
                 var members: [UserID] = []
                 // Initialize outgoing session if possible
                 let outgoingSession: GroupOutgoingSession? = {

@@ -1421,7 +1421,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         dispatchGroup.notify(queue: .main) {
             feedPosts.filter({ !postIdsToFilterOut.contains($0.id) }).forEach { (feedPost) in
-                guard let protoContainer = feedPost.postData.clientContainer else { return }
+                let protoContainer = feedPost.postData.clientContainer
                 let protobufData = try? protoContainer.serializedData()
                 let metadataContentType: NotificationContentType = feedPost.groupId == nil ? .feedPost : .groupFeedPost
                 let metadata = NotificationMetadata(contentId: feedPost.id,

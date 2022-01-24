@@ -15,6 +15,7 @@ private enum WhisperTask {
     case decryption(EncryptedData, DecryptionCompletion)
     case getSessionSetupInfoForRerequest(((Data, Int)?) -> Void)
     case resetSession
+    case setupOutbound(OutboundCompletion)
 }
 
 public final class WhisperSession {
@@ -51,6 +52,17 @@ public final class WhisperSession {
                 }
             }
         )
+    }
+
+    public func setupOutbound(completion: @escaping OutboundCompletion)
+    {
+        let dispatchedCompletion = { result in
+            DispatchQueue.main.async { completion(result) }
+        }
+        sessionQueue.async {
+            self.pendingTasks.append(.setupOutbound(dispatchedCompletion))
+            self.executeTasks()
+        }
     }
 
     public func encrypt(
@@ -298,6 +310,15 @@ public final class WhisperSession {
                     DDLogInfo("WhisperSession/\(userID)/execute/resetSession - (needs outbound setup)")
                     self.teardown(nil)
                     self.setupOutbound()
+                case .setupOutbound(let completion):
+                    guard setupAttempts < 3 else {
+                        DDLogInfo("WhisperSession/\(userID)/execute/setupOutbound failing (outbound setup failed \(setupAttempts) times")
+                        completion(.failure(.missingKeyBundle))
+                        return
+                    }
+                    DDLogInfo("WhisperSession/\(userID)/execute/setupOutbound - setting up")
+                    setupOutbound()
+                    return
                 }
             case .ready(let keyBundle, let messageKeys):
                 switch task {
@@ -313,6 +334,9 @@ public final class WhisperSession {
                     DDLogInfo("WhisperSession/\(userID)/execute/resetSession - (needs outbound setup)")
                     self.teardown(nil)
                     self.setupOutbound()
+                case .setupOutbound(let completion):
+                    DDLogInfo("WhisperSession/\(userID)/execute/setupOutbound")
+                    completion(.success(keyBundle))
                 }
             }
             pendingTasks.removeFirst()

@@ -376,7 +376,7 @@ public enum FeedRetract {
 
 public extension PostData {
 
-    var clientContainer: Clients_Container? {
+    var clientContainer: Clients_Container {
         var container = Clients_Container()
         container.postContainer = clientPostContainer
         return container
