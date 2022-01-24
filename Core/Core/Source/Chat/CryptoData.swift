@@ -72,10 +72,6 @@ public final class CryptoData {
                 DDLogError("CryptoData/update/\(contentID)/group/\(groupID)/error could not find or create decryption report")
                 return
             }
-            guard !groupFeedItemDecryption.hasBeenReported else {
-                DDLogInfo("CryptoData/update/\(contentID)/group/\(groupID)/skipping already reported")
-                return
-            }
             guard !isItemAlreadyDecrypted else {
                 DDLogInfo("CryptoData/update/\(contentID)/group/\(groupID)/skipping already decrypted")
                 return
@@ -87,6 +83,10 @@ public final class CryptoData {
             groupFeedItemDecryption.rerequestCount = Int32(rerequestCount)
             groupFeedItemDecryption.decryptionError = error
             groupFeedItemDecryption.timeDecrypted = error == "" ? Date() : nil
+            // If error is empty - then mark the item as not reported, so that client reports this stat to server again.
+            if error.isEmpty {
+                groupFeedItemDecryption.hasBeenReported = false
+            }
             if self.bgContext.hasChanges {
                 do {
                     try self.bgContext.save()
