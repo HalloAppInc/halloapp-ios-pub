@@ -963,6 +963,29 @@ public struct Server_GroupFeedItems {
   public init() {}
 }
 
+public struct Server_GroupFeedHistory {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var gid: String = String()
+
+  public var id: String = String()
+
+  public var payload: Data = Data()
+
+  /// Serialized GroupFeedItems stanza and then encrypted using 1-1 channel.
+  public var encPayload: Data = Data()
+
+  public var publicKey: Data = Data()
+
+  public var oneTimePreKeyID: Int32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Server_GroupMember {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3202,6 +3225,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .iceRestartAnswer(newValue)}
   }
 
+  public var groupFeedHistory: Server_GroupFeedHistory {
+    get {
+      if case .groupFeedHistory(let v)? = _storage._payload {return v}
+      return Server_GroupFeedHistory()
+    }
+    set {_uniqueStorage()._payload = .groupFeedHistory(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -3252,6 +3283,7 @@ public struct Server_Msg {
     case marketingAlert(Server_MarketingAlert)
     case iceRestartOffer(Server_IceRestartOffer)
     case iceRestartAnswer(Server_IceRestartAnswer)
+    case groupFeedHistory(Server_GroupFeedHistory)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -3397,6 +3429,10 @@ public struct Server_Msg {
       }()
       case (.iceRestartAnswer, .iceRestartAnswer): return {
         guard case .iceRestartAnswer(let l) = lhs, case .iceRestartAnswer(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.groupFeedHistory, .groupFeedHistory): return {
+        guard case .groupFeedHistory(let l) = lhs, case .groupFeedHistory(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -7124,6 +7160,68 @@ extension Server_GroupFeedItems: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   }
 }
 
+extension Server_GroupFeedHistory: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GroupFeedHistory"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "gid"),
+    2: .same(proto: "id"),
+    3: .same(proto: "payload"),
+    4: .standard(proto: "enc_payload"),
+    5: .standard(proto: "public_key"),
+    6: .standard(proto: "one_time_pre_key_id"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.gid) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 3: try { try decoder.decodeSingularBytesField(value: &self.payload) }()
+      case 4: try { try decoder.decodeSingularBytesField(value: &self.encPayload) }()
+      case 5: try { try decoder.decodeSingularBytesField(value: &self.publicKey) }()
+      case 6: try { try decoder.decodeSingularInt32Field(value: &self.oneTimePreKeyID) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.gid.isEmpty {
+      try visitor.visitSingularStringField(value: self.gid, fieldNumber: 1)
+    }
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 2)
+    }
+    if !self.payload.isEmpty {
+      try visitor.visitSingularBytesField(value: self.payload, fieldNumber: 3)
+    }
+    if !self.encPayload.isEmpty {
+      try visitor.visitSingularBytesField(value: self.encPayload, fieldNumber: 4)
+    }
+    if !self.publicKey.isEmpty {
+      try visitor.visitSingularBytesField(value: self.publicKey, fieldNumber: 5)
+    }
+    if self.oneTimePreKeyID != 0 {
+      try visitor.visitSingularInt32Field(value: self.oneTimePreKeyID, fieldNumber: 6)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_GroupFeedHistory, rhs: Server_GroupFeedHistory) -> Bool {
+    if lhs.gid != rhs.gid {return false}
+    if lhs.id != rhs.id {return false}
+    if lhs.payload != rhs.payload {return false}
+    if lhs.encPayload != rhs.encPayload {return false}
+    if lhs.publicKey != rhs.publicKey {return false}
+    if lhs.oneTimePreKeyID != rhs.oneTimePreKeyID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Server_GroupMember: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".GroupMember"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -9720,6 +9818,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     39: .standard(proto: "marketing_alert"),
     40: .standard(proto: "ice_restart_offer"),
     41: .standard(proto: "ice_restart_answer"),
+    42: .standard(proto: "group_feed_history"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -10224,6 +10323,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .iceRestartAnswer(v)
           }
         }()
+        case 42: try {
+          var v: Server_GroupFeedHistory?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .groupFeedHistory(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupFeedHistory(v)
+          }
+        }()
         default: break
         }
       }
@@ -10400,6 +10512,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .iceRestartAnswer?: try {
         guard case .iceRestartAnswer(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 41)
+      }()
+      case .groupFeedHistory?: try {
+        guard case .groupFeedHistory(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 42)
       }()
       default: break
       }
