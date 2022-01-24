@@ -453,10 +453,6 @@ public final class WhisperSession {
                     DDLogError("WhisperSession/\(self.userID)/setupOutbound/failed [\(attemptNumber)]")
                     self.state = .awaitingSetup(attempts: attemptNumber)
                 }
-
-                // if the client is facing connection issues - then we retry immediately for 3 times and then give up after failing.
-                // however: we now reset our number of attempts: so we'll retry sending these messages again on the next connection.
-                // messages are always sent in-order to the recipient.
                 self.executeTasks()
             }
         }

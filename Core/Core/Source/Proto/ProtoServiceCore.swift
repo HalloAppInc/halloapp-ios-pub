@@ -476,7 +476,10 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func requestWhisperKeyBundle(userID: UserID, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>) {
-        enqueue(request: ProtoWhisperGetBundleRequest(targetUserId: userID, completion: completion))
+        // Wait until connected to request key bundle - else, it will fail anyways.
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            self.enqueue(request: ProtoWhisperGetBundleRequest(targetUserId: userID, completion: completion))
+        }
     }
 
     public func publishPost(_ post: PostData, feed: Feed, completion: @escaping ServiceRequestCompletion<Date>) {
@@ -1532,7 +1535,10 @@ extension ProtoServiceCore: CoreService {
     // MARK: Key requests
 
     public func getGroupMemberIdentityKeys(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupStanza>) {
-        enqueue(request: ProtoGroupMemberKeysRequest(groupID: groupID, completion: completion))
+        // Wait until connected to retry getting identity keys of group members.
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            self.enqueue(request: ProtoGroupMemberKeysRequest(groupID: groupID, completion: completion))
+        }
     }
 
     public func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>) {
