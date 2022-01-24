@@ -140,6 +140,7 @@ class MainAppContext: AppContext {
         shareExtensionDataStore = ShareExtensionDataStore()
         notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()
         callManager = CallManager(service: service)
+        AudioSessionManager.initialize()
 
         performAppUpdateMigrationIfNecessary()
         migrateUploadDataIfNecessary()

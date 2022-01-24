@@ -94,6 +94,14 @@ class AudioSessionManager {
         updateSharedAudioSession()
     }
 
+    private static let initializeOnce: Void = {
+        updateSharedAudioSession()
+    }()
+
+    static func initialize() {
+        initializeOnce
+    }
+
     fileprivate static func updateSharedAudioSession() {
         guard Thread.isMainThread else {
             DispatchQueue.main.async {
