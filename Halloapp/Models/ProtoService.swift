@@ -991,6 +991,8 @@ final class ProtoService: ProtoServiceCore {
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .marketingAlert(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .groupFeedHistory(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
 
