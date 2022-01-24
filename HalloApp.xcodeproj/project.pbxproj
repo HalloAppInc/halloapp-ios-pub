@@ -372,6 +372,7 @@
 		F4063F2F276836F50068B9ED /* ShareButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4063F2E276836F50068B9ED /* ShareButton.swift */; };
 		F40F7C6B274C8159008144DE /* PostAudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C6A274C8158008144DE /* PostAudioView.swift */; };
 		F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C8627570707008144DE /* AudioPostComposer.swift */; };
+		F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */; };
 		F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */; };
 		F4B91DDE278CF46B00DF70C1 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F4B91DDD278CF46B00DF70C1 /* Sentry */; };
 		F4B91DE2278CF83400DF70C1 /* SentryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B91DE1278CF83400DF70C1 /* SentryLogger.swift */; };
@@ -1022,6 +1023,7 @@
 		F4063F2E276836F50068B9ED /* ShareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareButton.swift; sourceTree = "<group>"; };
 		F40F7C6A274C8158008144DE /* PostAudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAudioView.swift; sourceTree = "<group>"; };
 		F40F7C8627570707008144DE /* AudioPostComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPostComposer.swift; sourceTree = "<group>"; };
+		F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteSheetViewController.swift; sourceTree = "<group>"; };
 		F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
 		F4B91DE1278CF83400DF70C1 /* SentryLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SentryLogger.swift; sourceTree = "<group>"; };
 		F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADisplayLink.swift; sourceTree = "<group>"; };
@@ -1641,6 +1643,7 @@
 				EAB533C926265ED700943FDC /* GroupBackgroundViewController.swift */,
 				EA79AEF4260E5D5200F8184F /* GroupInviteViewController.swift */,
 				EA96D5B526689A0400F85731 /* GroupInviteQRViewController.swift */,
+				F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */,
 			);
 			path = Info;
 			sourceTree = "<group>";
@@ -2820,6 +2823,7 @@
 				76271389252D250E00389FBC /* FacePileView.swift in Sources */,
 				EAA85A0B25E5D510006D0BC9 /* NotInGroupBannerView.swift in Sources */,
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
+				F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */,
 				E598D4C0265F0188001A436A /* ConversationID.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
 				F878427C24F6C0FB0040B723 /* MediaAlbumsViewController.swift in Sources */,

@@ -787,7 +787,7 @@ final class InviteCellView: UIView {
     }
 }
 
-private extension Localizations {
+extension Localizations {
 
     static var inviteViaLink: String {
         NSLocalizedString("invite.via.link", value: "Invite via link", comment: "Title of cell at the top of the invite screen")
