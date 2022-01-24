@@ -2350,6 +2350,64 @@ public struct Server_IceRestartAnswer {
   fileprivate var _webrtcAnswer: Server_WebRtcSessionDescription? = nil
 }
 
+public struct Server_ExternalSharePost {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var action: Server_ExternalSharePost.Action = .store
+
+  public var blobID: String = String()
+
+  public var blob: Data = Data()
+
+  public var expiresInSeconds: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Action: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case store // = 0
+    case delete // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .store
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .store
+      case 1: self = .delete
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .store: return 0
+      case .delete: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_ExternalSharePost.Action: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_ExternalSharePost.Action] = [
+    .store,
+    .delete,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 public struct Server_Iq {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2659,6 +2717,14 @@ public struct Server_Iq {
     set {payload = .truncWhisperKeysCollection(newValue)}
   }
 
+  public var externalSharePost: Server_ExternalSharePost {
+    get {
+      if case .externalSharePost(let v)? = payload {return v}
+      return Server_ExternalSharePost()
+    }
+    set {payload = .externalSharePost(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -2701,6 +2767,7 @@ public struct Server_Iq {
     case startCall(Server_StartCall)
     case startCallResult(Server_StartCallResult)
     case truncWhisperKeysCollection(Server_TruncWhisperKeysCollection)
+    case externalSharePost(Server_ExternalSharePost)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Iq.OneOf_Payload, rhs: Server_Iq.OneOf_Payload) -> Bool {
@@ -2854,6 +2921,10 @@ public struct Server_Iq {
       }()
       case (.truncWhisperKeysCollection, .truncWhisperKeysCollection): return {
         guard case .truncWhisperKeysCollection(let l) = lhs, case .truncWhisperKeysCollection(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.externalSharePost, .externalSharePost): return {
+        guard case .externalSharePost(let l) = lhs, case .externalSharePost(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -9055,6 +9126,63 @@ extension Server_IceRestartAnswer: SwiftProtobuf.Message, SwiftProtobuf._Message
   }
 }
 
+extension Server_ExternalSharePost: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ExternalSharePost"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "action"),
+    2: .standard(proto: "blob_id"),
+    3: .same(proto: "blob"),
+    4: .standard(proto: "expires_in_seconds"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.action) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.blobID) }()
+      case 3: try { try decoder.decodeSingularBytesField(value: &self.blob) }()
+      case 4: try { try decoder.decodeSingularInt64Field(value: &self.expiresInSeconds) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.action != .store {
+      try visitor.visitSingularEnumField(value: self.action, fieldNumber: 1)
+    }
+    if !self.blobID.isEmpty {
+      try visitor.visitSingularStringField(value: self.blobID, fieldNumber: 2)
+    }
+    if !self.blob.isEmpty {
+      try visitor.visitSingularBytesField(value: self.blob, fieldNumber: 3)
+    }
+    if self.expiresInSeconds != 0 {
+      try visitor.visitSingularInt64Field(value: self.expiresInSeconds, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_ExternalSharePost, rhs: Server_ExternalSharePost) -> Bool {
+    if lhs.action != rhs.action {return false}
+    if lhs.blobID != rhs.blobID {return false}
+    if lhs.blob != rhs.blob {return false}
+    if lhs.expiresInSeconds != rhs.expiresInSeconds {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_ExternalSharePost.Action: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "STORE"),
+    1: .same(proto: "DELETE"),
+  ]
+}
+
 extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Iq"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -9097,6 +9225,7 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     40: .standard(proto: "start_call"),
     41: .standard(proto: "start_call_result"),
     42: .standard(proto: "trunc_whisper_keys_collection"),
+    43: .standard(proto: "external_share_post"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -9588,6 +9717,19 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
           self.payload = .truncWhisperKeysCollection(v)
         }
       }()
+      case 43: try {
+        var v: Server_ExternalSharePost?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .externalSharePost(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .externalSharePost(v)
+        }
+      }()
       default: break
       }
     }
@@ -9752,6 +9894,10 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     case .truncWhisperKeysCollection?: try {
       guard case .truncWhisperKeysCollection(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 42)
+    }()
+    case .externalSharePost?: try {
+      guard case .externalSharePost(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 43)
     }()
     case nil: break
     }

@@ -855,6 +855,8 @@ public struct Server_GroupDecryptionReport {
 
   public var senderVersion: String = String()
 
+  public var schedule: Server_GroupDecryptionReport.Schedule = .daily
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Status: SwiftProtobuf.Enum {
@@ -893,6 +895,7 @@ public struct Server_GroupDecryptionReport {
     case unknownType // = 0
     case post // = 1
     case comment // = 2
+    case historyResend // = 3
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -904,6 +907,7 @@ public struct Server_GroupDecryptionReport {
       case 0: self = .unknownType
       case 1: self = .post
       case 2: self = .comment
+      case 3: self = .historyResend
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -913,6 +917,35 @@ public struct Server_GroupDecryptionReport {
       case .unknownType: return 0
       case .post: return 1
       case .comment: return 2
+      case .historyResend: return 3
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum Schedule: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case daily // = 0
+    case resultBased // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .daily
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .daily
+      case 1: self = .resultBased
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .daily: return 0
+      case .resultBased: return 1
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -939,6 +972,15 @@ extension Server_GroupDecryptionReport.ItemType: CaseIterable {
     .unknownType,
     .post,
     .comment,
+    .historyResend,
+  ]
+}
+
+extension Server_GroupDecryptionReport.Schedule: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_GroupDecryptionReport.Schedule] = [
+    .daily,
+    .resultBased,
   ]
 }
 
@@ -1987,6 +2029,7 @@ extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Me
     8: .standard(proto: "time_taken_s"),
     9: .standard(proto: "sender_platform"),
     10: .standard(proto: "sender_version"),
+    11: .same(proto: "schedule"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2005,6 +2048,7 @@ extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Me
       case 8: try { try decoder.decodeSingularUInt32Field(value: &self.timeTakenS) }()
       case 9: try { try decoder.decodeSingularEnumField(value: &self.senderPlatform) }()
       case 10: try { try decoder.decodeSingularStringField(value: &self.senderVersion) }()
+      case 11: try { try decoder.decodeSingularEnumField(value: &self.schedule) }()
       default: break
       }
     }
@@ -2041,6 +2085,9 @@ extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Me
     if !self.senderVersion.isEmpty {
       try visitor.visitSingularStringField(value: self.senderVersion, fieldNumber: 10)
     }
+    if self.schedule != .daily {
+      try visitor.visitSingularEnumField(value: self.schedule, fieldNumber: 11)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2055,6 +2102,7 @@ extension Server_GroupDecryptionReport: SwiftProtobuf.Message, SwiftProtobuf._Me
     if lhs.timeTakenS != rhs.timeTakenS {return false}
     if lhs.senderPlatform != rhs.senderPlatform {return false}
     if lhs.senderVersion != rhs.senderVersion {return false}
+    if lhs.schedule != rhs.schedule {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2073,6 +2121,14 @@ extension Server_GroupDecryptionReport.ItemType: SwiftProtobuf._ProtoNameProvidi
     0: .same(proto: "UNKNOWN_TYPE"),
     1: .same(proto: "POST"),
     2: .same(proto: "COMMENT"),
+    3: .same(proto: "HISTORY_RESEND"),
+  ]
+}
+
+extension Server_GroupDecryptionReport.Schedule: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "DAILY"),
+    1: .same(proto: "RESULT_BASED"),
   ]
 }
 
