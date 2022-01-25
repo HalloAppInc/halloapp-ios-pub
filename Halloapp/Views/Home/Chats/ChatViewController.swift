@@ -388,6 +388,12 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             DDLogInfo("ChatViewController/callButtonTapped/cannot call oneself")
             return
         }
+        guard MainAppContext.shared.service.isConnected else {
+            DDLogInfo("ChatViewController/callButtonTapped/service not connected")
+            let alert = self.getFailedCallAlertController()
+            self.present(alert, animated: true)
+            return
+        }
         MainAppContext.shared.callManager.startCall(to: peerUserID) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
