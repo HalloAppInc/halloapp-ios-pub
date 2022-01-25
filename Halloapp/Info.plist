@@ -73,6 +73,11 @@
 		<string>Gotham-UltraIta.otf</string>
 		<string>Gotham-XLight.otf</string>
 		<string>Gotham-XLightIta.otf</string>
+		<string>Quicksand-Bold.ttf</string>
+		<string>Quicksand-Light.ttf</string>
+		<string>Quicksand-Medium.ttf</string>
+		<string>Quicksand-Regular.ttf</string>
+		<string>Quicksand-SemiBold.ttf</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
