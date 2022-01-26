@@ -164,7 +164,11 @@ extension Localizations {
     static var unBlockButton: String {
         NSLocalizedString("user.unblock", value: "Unblock", comment: "Button to confirm unblocking user via profile page")
     }
-    
+
+    static var buttonCall: String {
+        NSLocalizedString("user.voice.call", value: "Call", comment: "Button to start voice call. Should be translated as verb.")
+    }
+
     // MARK: Misc
 
     static var inviteFriendsAndFamily: String {

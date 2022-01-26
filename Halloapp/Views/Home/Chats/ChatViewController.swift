@@ -37,6 +37,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private var fetchedResultsController: NSFetchedResultsController<ChatMessage>?
     private var chatEventFetchedResultsController: NSFetchedResultsController<ChatEvent>?
+    private var callHistoryFetchedResultsController: NSFetchedResultsController<Core.Call>?
     private var dataSource: ChatDataSource?
 
     private var trackedChatMessages: [String: TrackedChatMessage] = [:]
@@ -45,6 +46,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     static private let inboundMsgViewCellReuseIdentifier = "InboundMsgViewCell"
     static private let outboundMsgViewCellReuseIdentifier = "OutboundMsgViewCell"
     static private let chatEventViewCellReuseIdentifier = "ChatEventViewCell"
+    static private let chatCallViewCellReuseIdentifier = "ChatCallViewCell"
 
     private let waitForCellTimeout: TimeInterval = 0.25
 
@@ -209,6 +211,12 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                         cell.configure(userID: chatEvent.userID)
                         return cell
                     }
+                case .chatCall(let callData):
+                    if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.chatCallViewCellReuseIdentifier, for: indexPath) as? ChatCallCell {
+                        cell.configure(callData)
+                        cell.delegate = self
+                        return cell
+                    }
                 }
             }
             return UITableViewCell()
@@ -216,6 +224,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         setupChatMessageFetchedResultsController()
         setupChatEventFetchedResultsController()
+        setupCallHistoryFetchedResultsController()
         updateDataInMainQueue(animated: false)
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
@@ -384,6 +393,10 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             DDLogInfo("ChatViewController/callButtonTapped/peerUserID is empty")
             return
         }
+        startCallIfPossible(with: peerUserID)
+    }
+
+    private func startCallIfPossible(with peerUserID: UserID) {
         if peerUserID == MainAppContext.shared.userData.userId {
             DDLogInfo("ChatViewController/callButtonTapped/cannot call oneself")
             return
@@ -407,6 +420,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 }
             }
         }
+
     }
 
     private func getFailedCallAlertController() -> UIAlertController {
@@ -656,6 +670,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         tableView.register(InboundMsgViewCell.self, forCellReuseIdentifier: ChatViewController.inboundMsgViewCellReuseIdentifier)
         tableView.register(OutboundMsgViewCell.self, forCellReuseIdentifier: ChatViewController.outboundMsgViewCellReuseIdentifier)
         tableView.register(ChatEventViewCell.self, forCellReuseIdentifier: ChatViewController.chatEventViewCellReuseIdentifier)
+        tableView.register(ChatCallCell.self, forCellReuseIdentifier: ChatViewController.chatCallViewCellReuseIdentifier)
         tableView.delegate = self
         return tableView
     }()
@@ -873,6 +888,18 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             default:
                 break
             }
+        case callHistoryFetchedResultsController:
+            DDLogVerbose("ChatViewController/callHistoryFRC/event/\(type)")
+            switch type {
+            case .insert, .delete:
+                guard let call = anObject as? Core.Call else { break }
+                shouldUpdate = true
+                shouldScrollToBottom = checkIfShouldScrollToBottom(call.peerUserID)
+            case .move, .update:
+                break
+            @unknown default:
+                break
+            }
         default:
             break
         }
@@ -899,6 +926,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     private func updateDataInMainQueue(animated: Bool = false) {
         guard let chatMessages = fetchedResultsController?.fetchedObjects else { return }
         guard let chatEvents = chatEventFetchedResultsController?.fetchedObjects else { return }
+        guard let calls = callHistoryFetchedResultsController?.fetchedObjects else { return }
 
         var chatRows = [Row]()
 
@@ -916,10 +944,12 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             }
         }
 
+        chatRows += calls
+            .map { ChatCallData(userID: $0.peerUserID, timestamp: $0.timestamp, duration: $0.durationMs / 1000, wasSuccessful: $0.answered, wasIncoming: $0.direction == .incoming) }
+            .map { Row.chatCall($0) }
+
         chatRows = chatRows.sorted {
-            let t1 = $0.chatMsg?.timestamp ?? $0.chatEvent?.timestamp ?? Date()
-            let t2 = $1.chatMsg?.timestamp ?? $1.chatEvent?.timestamp ?? Date()
-            return t1 < t2
+            ($0.timestamp ?? .distantFuture) < ($1.timestamp ?? .distantFuture)
         }
 
         /* apply snapshot */
@@ -1204,6 +1234,28 @@ fileprivate extension ChatViewController {
 
 }
 
+// MARK: Call History FetchedResults
+fileprivate extension ChatViewController {
+
+    private func setupCallHistoryFetchedResultsController() {
+        guard let userID = fromUserId else { return }
+        let fetchRequest: NSFetchRequest<Core.Call> = Core.Call.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "peerUserID == %@ && endReasonValue != 10", userID)
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(keyPath: \Core.Call.timestamp, ascending: true)
+        ]
+
+        callHistoryFetchedResultsController = NSFetchedResultsController<Core.Call>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.mainDataStore.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+        callHistoryFetchedResultsController?.delegate = self
+        do {
+            try callHistoryFetchedResultsController!.performFetch()
+        } catch {
+            return
+        }
+    }
+
+}
+
 fileprivate class ChatDataSource: UITableViewDiffableDataSource<Section, Row> {
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         return true
@@ -1215,20 +1267,18 @@ fileprivate enum Section: Hashable {
 }
 
 fileprivate enum Row: Hashable, Equatable {
+    case chatCall(ChatCallData)
     case chatMsg(ChatMsgData)
     case chatEvent(ChatEventData)
 
-    var chatMsg: ChatMsgData? {
+    var timestamp: Date? {
         switch self {
-        case .chatMsg(let chatMsgData): return chatMsgData
-        case .chatEvent: return nil
-        }
-    }
-
-    var chatEvent: ChatEventData? {
-        switch self {
-        case .chatMsg: return nil
-        case .chatEvent(let chatEventData): return chatEventData
+        case .chatMsg(let data):
+            return data.timestamp
+        case .chatEvent(let data):
+            return data.timestamp
+        case .chatCall(let data):
+            return data.timestamp
         }
     }
 }
@@ -1291,6 +1341,14 @@ extension ChatMsgData : Equatable {
 fileprivate struct ChatEventData {
     let timestamp: Date?
     let indexPath: IndexPath
+}
+
+struct ChatCallData: Hashable {
+    var userID: UserID
+    var timestamp: Date?
+    var duration: TimeInterval
+    var wasSuccessful: Bool
+    var wasIncoming: Bool
 }
 
 extension ChatEventData : Hashable {
@@ -1424,7 +1482,7 @@ extension ChatViewController: UITableViewDelegate {
             guard chatMessage.cellHeight != height else { return }
             DDLogVerbose("ChatViewController/willDisplay/updateCellHeight/\(chatMessage.id) from \(chatMessage.cellHeight) to \(height)")
             MainAppContext.shared.chatData.updateChatMessageCellHeight(for: chatMessage.id, with: height)
-        case .chatEvent: break
+        case .chatEvent, .chatCall: break
         }
     }
 
@@ -1437,7 +1495,8 @@ extension ChatViewController: UITableViewDelegate {
             guard let chatMessage = fetchedResultsController?.optionalObject(at: chatMsgData.indexPath) else { break }
             guard chatMessage.cellHeight != 0 else { break }
             return CGFloat(chatMessage.cellHeight)
-        case .chatEvent: break
+        case .chatEvent, .chatCall:
+            break
         }
 
         return defaultHeight
@@ -1648,6 +1707,13 @@ extension ChatViewController: MsgViewCellDelegate {
         }
     }
 
+}
+
+// MARK: ChatCallView Delegates
+extension ChatViewController: ChatCallViewDelegate {
+    func chatCallView(_ callView: ChatCallView, didTapCallButtonWithData callData: ChatCallData) {
+        startCallIfPossible(with: callData.userID)
+    }
 }
 
 // MARK: ChatInputView Delegates

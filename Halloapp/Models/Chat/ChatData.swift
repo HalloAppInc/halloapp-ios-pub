@@ -287,6 +287,17 @@ class ChatData: ObservableObject {
                     }
                 }
             )
+
+            self.cancellableSet.insert(
+                MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] call in
+                    guard let call = call else { return }
+                    self?.updateChatThread(
+                        type: .oneToOne,
+                        for: call.peerUserID,
+                        block: { $0.lastMsgTimestamp = Date() },
+                        performAfterSave: nil)
+                }
+            )
         }
 
         cancellableSet.insert(
