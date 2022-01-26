@@ -265,6 +265,9 @@ class CommentView: UIView {
             textCommentLabel.removeFromSuperview()
             self.commentLinkPreviewView = nil
         }
+
+        let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
+        let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
  
         let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: feedPostComment.id)
         let feedPostCommentText = feedPostComment.text + cryptoResultString
@@ -351,11 +354,17 @@ class CommentView: UIView {
             configureLinkPreviewView(feedLinkPreview: feedLinkPreview)
             // Add text below link preview
             configureTextCommentLabel(feedPostComment: feedPostComment)
+
+        } else if feedPostComment.isWaiting  {
+            let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId)
+            let attributedText = NSMutableAttributedString(string: contactName,
+                                                           attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
+                                                                        NSAttributedString.Key.font: nameFont])
+            attributedText.append(NSAttributedString(string: " "))
+            nameTextLabel.attributedText = attributedText
+
         } else {
             // No media, set name and append text to name label
-            let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
-            let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
-
             let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId)
             let attributedText = NSMutableAttributedString(string: contactName,
                                                            attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
@@ -456,10 +465,20 @@ class CommentView: UIView {
                 font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable,
                 color: .secondaryLabel)
         case .incoming, .sendError, .sending, .sent, .none, .played:
+            // TODO: we should reconfigure and update the comment here.
             hideDeletedView()
         case .rerequesting:
-            // TODO: murali@: need to fix the UI accordingly in the future.
-            hideDeletedView()
+            if comment.isWaiting {
+                showDeletedView()
+                let attributedText = NSMutableAttributedString(string: "🕓 " + Localizations.feedCommentWaiting)
+                deletedCommentTextLabel.attributedText = attributedText.with(
+                    font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable,
+                    color: .secondaryLabel)
+            } else {
+                hideDeletedView()
+                // TODO: murali@: we need to refresh content here.
+                // check with team on how to do this.
+            }
         }
         
         profilePictureButton.avatarView.configure(with: comment.userId, using: MainAppContext.shared.avatarStore)
@@ -701,21 +720,29 @@ class CommentsTableHeaderView: UIView {
         // Text
         let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: feedPost.id)
         let postTextWithCryptoResult = (feedPost.text ?? "") + cryptoResultString
-        if !postTextWithCryptoResult.isEmpty {
+
+        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+        let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
+
+        if feedPost.isWaiting {
+            let text = NSMutableAttributedString(string: "🕓 " + Localizations.feedPostWaiting)
+            let textFont = font.withItalicsIfAvailable
+            textLabel.attributedText = text.with(font: textFont, color: .label)
+            textLabel.numberOfLines = 0
+            vStack.insertArrangedSubview(textLabel, at: vStack.arrangedSubviews.count - 1)
+
+        } else if !postTextWithCryptoResult.isEmpty {
             let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
                 postTextWithCryptoResult,
                 mentions: feedPost.orderedMentions)
-
-            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
-            let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
-
             if let attrText = textWithMentions?.with(font: font, color: .label) {
                 let ham = HAMarkdown(font: font, color: .label)
                 textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
             }
 
             vStack.insertArrangedSubview(textLabel, at: vStack.arrangedSubviews.count - 1)
+
         } else {
             vStack.removeArrangedSubview(textLabel)
             textLabel.removeFromSuperview()

@@ -408,7 +408,7 @@ public extension PostData {
                 voiceNote.audio = audio
             }
             container.post = .voiceNote(voiceNote)
-        case .retracted, .unsupported:
+        case .retracted, .unsupported, .waiting:
             break
         }
         return container
@@ -441,7 +441,7 @@ public extension CommentData {
             var voiceNote = Clients_VoiceNote()
             voiceNote.audio = protoResource
             commentContainer.voiceNote = voiceNote
-        case .retracted, .unsupported:
+        case .retracted, .unsupported, .waiting:
             break
         }
         commentContainer.context.feedPostID = feedPostId

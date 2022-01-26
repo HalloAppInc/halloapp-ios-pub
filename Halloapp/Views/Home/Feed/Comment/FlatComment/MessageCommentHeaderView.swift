@@ -214,6 +214,8 @@ class MessageCommentHeaderView: UICollectionReusableView {
     }
 
     private func configureText(feedPost: FeedPost) {
+        // TODO: Need to handle groupFeedItems that failed to decrypt.
+        // talk to nandini.
         let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: feedPost.id)
         let postTextWithCryptoResult = (feedPost.text ?? "") + cryptoResultString
         if !postTextWithCryptoResult.isEmpty {

@@ -345,6 +345,8 @@ final class NotificationProtoService: ProtoServiceCore {
                 DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/failure \(groupDecryptionFailure.debugDescription)")
                 if let groupId = metadata.groupId,
                    let decryptionFailure = groupDecryptionFailure {
+                    // Use serverProp value to decide whether to fallback to plainTextContent.
+                    let fallback = ServerProperties.useClearTextGroupFeedContent
                     self.rerequestGroupFeedItemIfNecessary(id: contentID, groupID: groupId, failure: decryptionFailure) { result in
                         switch result {
                         case .success: break
@@ -353,9 +355,9 @@ final class NotificationProtoService: ProtoServiceCore {
                         }
                         switch contentType {
                         case .post:
-                            self.processPostData(postData: metadata.postData(status: .rerequesting), status: .decryptionError, metadata: metadata, ack: ack)
+                            self.processPostData(postData: metadata.postData(status: .rerequesting, usePlainTextPayload: fallback), status: .decryptionError, metadata: metadata, ack: ack)
                         case .comment:
-                            self.processCommentData(commentData: metadata.commentData(status: .rerequesting), status: .decryptionError, metadata: metadata, ack: ack)
+                            self.processCommentData(commentData: metadata.commentData(status: .rerequesting, usePlainTextPayload: fallback), status: .decryptionError, metadata: metadata, ack: ack)
                         }
                     }
                 }

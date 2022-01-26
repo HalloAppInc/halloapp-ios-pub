@@ -70,6 +70,13 @@ extension FeedPost {
         return self.status == .unsupported
     }
 
+    var isWaiting: Bool {
+        switch self.postData.content {
+        case .waiting: return true
+        default: return false
+        }
+    }
+
     var audience: FeedAudience? {
         guard let audienceType = info?.audienceType else { return nil }
         guard let receipts = info?.receipts else { return nil }
@@ -119,7 +126,12 @@ extension FeedPost {
                     linkPreviewData.append(linkPreview)
                 }
             }
-            return .text(mentionText, linkPreviewData)
+            // If status is rerequesting and the content is empty, then this means postContent is nil.
+            if feedItemStatus == .rerequesting && mentionText.isEmpty() && linkPreviewData.isEmpty {
+                return .waiting
+            } else {
+                return .text(mentionText, linkPreviewData)
+            }
         }
     }
 

@@ -282,6 +282,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 case .unsupported:
                     DDLogInfo("FeedData/processUnsupportedItems/posts/skipping [still unsupported] [\(post.id)]")
                     continue
+                case .waiting:
+                    DDLogInfo("FeedData/processUnsupportedItems/posts/skipping [still empty] [\(post.id)]")
+                    continue
                 }
                 if let groupID = post.groupId {
                     var elements = groupFeedElements[groupID] ?? []
@@ -313,6 +316,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     DDLogInfo("FeedData/processUnsupportedItems/comments/migrating [\(comment.id)]")
                 case .unsupported:
                     DDLogInfo("FeedData/processUnsupportedItems/comments/skipping [still unsupported] [\(comment.id)]")
+                    continue
+                case .waiting:
+                    DDLogInfo("FeedData/processUnsupportedItems/comments/skipping [still empty] [\(comment.id)]")
                     continue
                 }
                 if let groupID = comment.post.groupId {
@@ -745,30 +751,27 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // We only override status attribute if we encounter a successfully encrypted duplicate post.
             // Since we already obtained content using the unencrypted part of the payload.
             if let existingPost = existingPosts[xmppPost.id] {
-                if existingPost.status == .rerequesting,
-                   xmppPost.status == .received {
-                    DDLogError("FeedData/process-posts/existing [\(xmppPost.id)], override status")
-                    existingPost.status = .incoming
-                } else {
+                guard existingPost.status == .rerequesting && xmppPost.status == .received else {
                     DDLogError("FeedData/process-posts/existing [\(xmppPost.id)], ignoring")
+                    continue
                 }
-                continue
             }
 
             if xmppPost.isShared {
                 sharedPosts.append(xmppPost.id)
             }
 
-            let feedPost: FeedPost = {
-                if let existingPost = existingPosts[xmppPost.id] {
-                    DDLogError("FeedData/process-posts/existing [\(xmppPost.id)]")
-                    return existingPost
-                } else {
-                    // Add new FeedPost to database.
-                    DDLogDebug("FeedData/process-posts/new [\(xmppPost.id)]")
-                    return NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
-                }
-            }()
+            let feedPost: FeedPost
+            // Fetch or Create new post and update timestamp for new post.
+            if let existingPost = existingPosts[xmppPost.id] {
+                DDLogError("FeedData/process-posts/existing [\(xmppPost.id)]")
+                feedPost = existingPost
+            } else {
+                // Add new FeedPost to database.
+                DDLogDebug("FeedData/process-posts/new [\(xmppPost.id)]")
+                feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
+                feedPost.timestamp = xmppPost.timestamp
+            }
 
             switch feedPost.status {
                 // TODO: murali@: verify the timestamp here.
@@ -784,7 +787,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.userId = xmppPost.userId
             feedPost.groupId = groupID
             feedPost.text = xmppPost.text
-            feedPost.timestamp = xmppPost.timestamp
 
             switch xmppPost.content {
             case .album, .text, .voiceNote:
@@ -805,6 +807,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             case .unsupported(let data):
                 feedPost.status = .unsupported
                 feedPost.rawData = data
+            case .waiting:
+                feedPost.status = .rerequesting
+                if xmppPost.status != .rerequesting {
+                    DDLogError("FeedData/process-posts/invalid content [\(xmppPost.id)] with status: \(xmppPost.status)")
+                }
             }
 
             var mentions = Set<FeedMention>()
@@ -912,17 +919,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         while !xmppCommentsMutable.isEmpty && numRuns < 100 {
             for xmppComment in xmppCommentsMutable {
 
-                // We only override status attribute if we encounter a successfully encrypted duplicate comment.
-                // Since we already obtained content using the unencrypted part of the payload.
                 if let existingComment = comments[xmppComment.id] {
-                    if existingComment.status == .rerequesting,
-                       xmppComment.status == .received {
-                        DDLogError("FeedData/process-comments/existing [\(xmppComment.id)], override status")
-                        existingComment.status = .incoming
-                    } else {
+                    guard existingComment.status == .rerequesting && xmppComment.status == .received else {
                         DDLogError("FeedData/process-comments/existing [\(xmppComment.id)], ignoring")
+                        continue
                     }
-                    continue
                 }
 
                 // Find comment's post.
@@ -972,6 +973,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     // Add new FeedPostComment to database.
                     DDLogDebug("FeedData/process-comments/new [\(xmppComment.id)]")
                     comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
+                    comment.timestamp = xmppComment.timestamp
                 }
 
                 comment.id = xmppComment.id
@@ -1075,8 +1077,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     if comment.text.isEmpty {
                         comment.text = ""
                     }
+                case .waiting:
+                    comment.status = .rerequesting
+                    if xmppComment.status != .rerequesting {
+                        DDLogError("FeedData/process-comments/invalid content [\(xmppComment.id)] with status: \(xmppComment.status)")
+                    }
+                    comment.text = ""
                 }
-                comment.timestamp = xmppComment.timestamp
 
                 comments[comment.id] = comment
                 newComments.append(comment)
@@ -1127,14 +1134,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             case .comment(let comment, let name):
                 comments.append(comment)
-                switch comment.content {
-                case .text(let mentionText, _):
-                    for (_, user) in mentionText.mentions {
-                        guard let pushName = user.pushName, !pushName.isEmpty else { continue }
-                        contactNames[user.userID] = pushName
-                    }
-                case .album, .voiceNote, .retracted, .unsupported:
-                    break
+                comment.orderedMentions.forEach {
+                    guard !$0.name.isEmpty else { return }
+                    contactNames[$0.userID] = $0.name
                 }
                 if let name = name, !name.isEmpty {
                     contactNames[comment.userId] = name
@@ -1637,6 +1639,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // TODO: murali@: fix this up eventually and test properly!
         guard feedPost.status == .incoming || feedPost.status == .seenSending || feedPost.status == .rerequesting else {
             DDLogWarn("FeedData/seen-receipt/ignore Incorrect post status: \(feedPost.status)")
+            return
+        }
+        guard !feedPost.isWaiting else {
+            DDLogWarn("FeedData/seen-receipt/ignore post content is empty: \(feedPost.status)")
             return
         }
         // Send seen receipts for now - but dont update status.

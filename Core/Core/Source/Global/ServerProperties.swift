@@ -24,6 +24,7 @@ public struct ServerProperties {
         case isVoiceNotesEnabled = "voice_notes"
         case isMediaCommentsEnabled = "media_comments"
         case sendClearTextGroupFeedContent = "cleartext_group_feed"
+        case useClearTextGroupFeedContent = "use_cleartext_group_feed"
         case isAudioCallsEnabled = "audio_calls"
         case isVideoCallsEnabled = "video_calls"
         case callWaitTimeoutSec = "call_wait_timeout"
@@ -52,6 +53,7 @@ public struct ServerProperties {
         static let isVoiceNotesEnabled = false
         static let isMediaCommentsEnabled = false
         static let sendClearTextGroupFeedContent = true
+        static let useClearTextGroupFeedContent = true
         static let isAudioCallsEnabled = false
         static let isVideoCallsEnabled = false
         static let callWaitTimeoutSec = 60
@@ -223,6 +225,10 @@ public struct ServerProperties {
 
     public static var sendClearTextGroupFeedContent: Bool {
         ServerProperties.bool(forKey: .sendClearTextGroupFeedContent) ?? Defaults.sendClearTextGroupFeedContent
+    }
+
+    public static var useClearTextGroupFeedContent: Bool {
+        ServerProperties.bool(forKey: .useClearTextGroupFeedContent) ?? Defaults.useClearTextGroupFeedContent
     }
 
     public static var isAudioCallsEnabled: Bool {

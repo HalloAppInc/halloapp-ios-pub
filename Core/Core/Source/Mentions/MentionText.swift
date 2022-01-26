@@ -115,4 +115,8 @@ public struct MentionText: Codable {
 
         return cleared.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty
     }
+
+    public func isEmpty() -> Bool {
+        return collapsedText.isEmpty && mentions.isEmpty
+    }
 }

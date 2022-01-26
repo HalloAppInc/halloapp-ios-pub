@@ -74,6 +74,13 @@ extension FeedPostComment {
         return status == .unsupported
     }
 
+    var isWaiting: Bool {
+        switch self.commentData.content {
+        case .waiting: return true
+        default: return false
+        }
+    }
+
     var isPosted: Bool {
         get {
             // TODO: murali@: allow rerequesting status as well for clients to respond for now.
@@ -129,7 +136,12 @@ extension FeedPostComment {
                     linkPreviewData.append(linkPreview)
                 }
             }
-            content = .text(mentionText, linkPreviewData)
+            // If status is rerequesting and the content is empty, then this means commentContent is nil.
+            if feedItemStatus == .rerequesting && mentionText.isEmpty() && linkPreviewData.isEmpty {
+                content = .waiting
+            } else {
+                content = .text(mentionText, linkPreviewData)
+            }
         }
 
         return CommentData(

@@ -161,6 +161,8 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
                 guard let self = self else { return }
                 guard self.feedPostId == feedPost.id else { return }
                 self.configureUI(with: feedPost)
+                // TODO: murali@: Need to refresh the post if it is already being shown.
+                // talk to team on how to do this.
             }
         }
     }

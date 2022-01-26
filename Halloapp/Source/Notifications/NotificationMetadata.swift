@@ -569,7 +569,7 @@ class NotificationMetadata: Codable {
         case .voiceNote:
             subtitle = newPostString
             body = ""
-        case .none, .retracted, .unsupported(_):
+        case .none, .retracted, .unsupported(_), .waiting:
             subtitle = ""
             body = newPostString
         }
@@ -599,7 +599,7 @@ class NotificationMetadata: Codable {
             body = String(format: Localizations.newCommentWithTextNotificationBody, commentText)
         case .voiceNote(_):
             body = String(format: Localizations.newCommentWithTextNotificationBody, Localizations.newAudioNoteNotificationBody)
-        case .none, .retracted, .unsupported:
+        case .none, .retracted, .unsupported, .waiting:
             body = newCommentString
         }
     }
@@ -719,42 +719,58 @@ extension NotificationMetadata {
         }
     }
 
-    func postData(status: FeedItemStatus = .received) -> PostData? {
+    func postData(status: FeedItemStatus = .received, usePlainTextPayload: Bool = true) -> PostData? {
         if contentType == .feedPost || contentType == .groupFeedPost {
-            guard let data = data,
-                  let timestamp = timestamp,
-                  let postData = PostData(id: contentId,
-                                          userId: fromId,
-                                          timestamp: timestamp,
-                                          payload: data,
-                                          status: status) else
-            {
-                DDLogError("postData is null \(debugDescription)")
-                return nil
+            // Fallback to plainText payload depending on the boolean here.
+            if usePlainTextPayload {
+                guard let timestamp = timestamp,
+                      let postData = PostData(id: contentId,
+                                              userId: fromId,
+                                              timestamp: timestamp,
+                                              payload: data ?? Data(),
+                                              status: status) else
+                {
+                    DDLogError("postData is null \(debugDescription)")
+                    return nil
+                }
+                return postData
+            } else {
+                return PostData(id: contentId, userId: fromId, content: .waiting, status: status)
             }
-            return postData
         } else {
             return nil
         }
     }
 
-    func commentData(status: FeedItemStatus = .received) -> CommentData? {
+    func commentData(status: FeedItemStatus = .received, usePlainTextPayload: Bool = true) -> CommentData? {
         if contentType == .feedComment || contentType == .groupFeedComment {
-            guard let data = data,
-                  let timestamp = timestamp,
-                  let postId = feedPostId,
-                  let commentData = CommentData(id: contentId,
-                                                userId: fromId,
-                                                feedPostId: postId,
-                                                parentId: parentId,
-                                                timestamp: timestamp,
-                                                payload: data,
-                                                status: status) else
-            {
-                DDLogError("CommentData is null \(debugDescription)")
-                return nil
+            guard let timestamp = timestamp,
+                  let postId = feedPostId else {
+                      return nil
+                  }
+            // Fallback to plainText payload depending on the boolean here.
+            if usePlainTextPayload {
+                guard let commentData = CommentData(id: contentId,
+                                                    userId: fromId,
+                                                    feedPostId: postId,
+                                                    parentId: parentId,
+                                                    timestamp: timestamp,
+                                                    payload: data ?? Data(),
+                                                    status: status) else
+                {
+                    DDLogError("CommentData is null \(debugDescription)")
+                    return nil
+                }
+                return commentData
+            } else {
+                return CommentData(id: contentId,
+                                   userId: fromId,
+                                   timestamp: timestamp,
+                                   feedPostId: postId,
+                                   parentId: parentId,
+                                   content: .waiting,
+                                   status: status)
             }
-            return commentData
         } else {
             return nil
         }

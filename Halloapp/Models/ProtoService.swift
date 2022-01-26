@@ -370,12 +370,15 @@ final class ProtoService: ProtoServiceCore {
         var retracts = [FeedRetract]()
         var elements = [FeedElement]()
 
+        // This function is used for groupFeedItems from server and for fallback to unencrypted payload.
+        // So, use serverProp value to decide whether to fallback to plainTextContent when status is .rerequesting
+        let fallback: Bool = status == .rerequesting ? ServerProperties.useClearTextGroupFeedContent : true
         for item in items {
             switch item.item {
             case .post(let serverPost):
                 switch item.action {
                 case .publish, .share:
-                    guard let post = PostData(serverPost, status: status, isShared: item.action == .share) else {
+                    guard let post = PostData(serverPost, status: status, usePlainTextPayload: fallback, isShared: item.action == .share) else {
                         DDLogError("proto/payloadContents/\(serverPost.id)/error could not make post object")
                         continue
                     }
@@ -388,7 +391,7 @@ final class ProtoService: ProtoServiceCore {
             case .comment(let serverComment):
                 switch item.action {
                 case .publish, .share:
-                    guard let comment = CommentData(serverComment, status: status) else {
+                    guard let comment = CommentData(serverComment, status: status, usePlainTextPayload: fallback) else {
                         DDLogError("proto/payloadContents/\(serverComment.id)/error could not make comment object")
                         continue
                     }

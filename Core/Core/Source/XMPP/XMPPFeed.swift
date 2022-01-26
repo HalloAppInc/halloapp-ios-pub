@@ -18,6 +18,7 @@ public enum PostContent {
     case retracted
     case unsupported(Data)
     case voiceNote(FeedMediaData)
+    case waiting
 }
 
 // It is a bit confusing to use this in some places and other status in some places.
@@ -44,7 +45,7 @@ public struct PostData {
 
     public var text: String? {
         switch content {
-        case .retracted, .unsupported, .voiceNote:
+        case .retracted, .unsupported, .voiceNote, .waiting:
             return nil
         case .text(let mentionText, _):
             return mentionText.collapsedText
@@ -59,7 +60,7 @@ public struct PostData {
             return media
         case .voiceNote(let mediaItem):
             return [mediaItem]
-        case .retracted, .text, .unsupported:
+        case .retracted, .text, .unsupported, .waiting:
             return []
         }
     }
@@ -67,7 +68,7 @@ public struct PostData {
     public var orderedMentions: [FeedMentionProtocol] {
         let mentions: [Int: MentionedUser] = {
             switch content {
-            case .retracted, .unsupported, .voiceNote:
+            case .retracted, .unsupported, .voiceNote, .waiting:
                 return [:]
             case .album(let mentionText, _):
                 return mentionText.mentions
@@ -84,7 +85,7 @@ public struct PostData {
     
     public var linkPreviewData: [LinkPreviewProtocol] {
         switch content {
-        case .retracted, .unsupported, .album, .voiceNote:
+        case .retracted, .unsupported, .album, .voiceNote, .waiting:
             return []
         case .text(_, let linkPreviewData):
             return linkPreviewData
@@ -108,7 +109,7 @@ public struct PostData {
             return counters
         case .text(_, _):
             return MediaCounters()
-        case .retracted, .unsupported:
+        case .retracted, .unsupported, .waiting:
             return MediaCounters()
         case .voiceNote:
             return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1)
@@ -133,13 +134,17 @@ public struct PostData {
         self.isShared = isShared
     }
 
-    public init?(_ serverPost: Server_Post, status: FeedItemStatus, isShared: Bool = false) {
-        self.init(id: serverPost.id,
-                  userId: UserID(serverPost.publisherUid),
-                  timestamp: Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp)),
-                  payload: serverPost.payload,
-                  status: status,
-                  isShared: isShared)
+    public init?(_ serverPost: Server_Post, status: FeedItemStatus, usePlainTextPayload: Bool = true, isShared: Bool = false) {
+
+        let postId = serverPost.id
+        let userId = UserID(serverPost.publisherUid)
+        let timestamp = Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp))
+        // Fallback to plainText payload depending on the boolean here.
+        if usePlainTextPayload {
+            self.init(id: postId, userId: userId, timestamp: timestamp, payload: serverPost.payload, status: status, isShared: isShared)
+        } else {
+            self.init(id: postId, userId: userId, content: .waiting, timestamp: timestamp, status: status, isShared: isShared)
+        }
     }
 
     public init?(id: String, userId: UserID, timestamp: Date, payload: Data, status: FeedItemStatus, isShared: Bool = false) {
@@ -326,6 +331,7 @@ public enum CommentContent {
     case voiceNote(FeedMediaData)
     case unsupported(Data)
     case retracted
+    case waiting
  }
 
 public struct CommentData {
@@ -348,7 +354,7 @@ public struct CommentData {
             return media
         case .voiceNote(let mediaItem):
             return [mediaItem]
-        case .retracted, .text, .unsupported:
+        case .retracted, .text, .unsupported, .waiting:
             return []
         }
     }
@@ -356,13 +362,12 @@ public struct CommentData {
     public var orderedMentions: [FeedMentionProtocol] {
         let mentions: [Int: MentionedUser] = {
             switch content {
-            case .retracted, .unsupported, .voiceNote:
+            case .retracted, .unsupported, .voiceNote, .waiting:
                 return [:]
             case .text(let mentionText, _):
                 return mentionText.mentions
             case .album(let mentionText, _):
                 return mentionText.mentions
-            
             }
         }()
         return mentions
@@ -374,7 +379,7 @@ public struct CommentData {
     
     public var linkPreviewData: [LinkPreviewProtocol] {
         switch content {
-        case .retracted, .unsupported, .album, .voiceNote:
+        case .retracted, .unsupported, .album, .voiceNote, .waiting:
             return []
         case .text(_, let linkPreviewData):
             return linkPreviewData
@@ -400,7 +405,7 @@ public struct CommentData {
             return MediaCounters()
         case .voiceNote:
             return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1)
-        case .retracted, .unsupported:
+        case .retracted, .unsupported, .waiting:
             return MediaCounters()
         }
     }
@@ -424,15 +429,18 @@ public struct CommentData {
         self.status = status
     }
 
-    public init?(_ serverComment: Server_Comment, status: FeedItemStatus) {
-        // do we need fallback for some of these ids to the clients_container?
-        self.init(id: serverComment.id,
-                  userId: UserID(serverComment.publisherUid),
-                  feedPostId: serverComment.postID,
-                  parentId: serverComment.parentCommentID.isEmpty ? nil : serverComment.parentCommentID,
-                  timestamp: Date(timeIntervalSince1970: TimeInterval(serverComment.timestamp)),
-                  payload: serverComment.payload,
-                  status: status)
+    public init?(_ serverComment: Server_Comment, status: FeedItemStatus, usePlainTextPayload: Bool = true) {
+        let commentId = serverComment.id
+        let userId = UserID(serverComment.publisherUid)
+        let timestamp = Date(timeIntervalSince1970: TimeInterval(serverComment.timestamp))
+        let feedPostId = serverComment.postID
+        let parentId = serverComment.parentCommentID.isEmpty ? nil : serverComment.parentCommentID
+        // Fallback to plainText payload depending on the boolean here.
+        if usePlainTextPayload {
+            self.init(id: commentId, userId: userId, feedPostId: feedPostId, parentId: parentId, timestamp: timestamp, payload: serverComment.payload, status: status)
+        } else {
+            self.init(id: commentId, userId: userId, timestamp: timestamp, feedPostId: feedPostId, parentId: parentId, content: .waiting, status: status)
+        }
     }
 
     public init?(id: String, userId: UserID, feedPostId: String, parentId: String?, timestamp: Date, payload: Data, status: FeedItemStatus) {

@@ -262,6 +262,12 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             textContentView.isHidden = false
             textLabel.attributedText = text.with(font: font, color: .label)
             textLabel.numberOfLines = 0
+        } else if post.isWaiting  {
+            let text = NSMutableAttributedString(string: "🕓 " + Localizations.feedPostWaiting)
+            let font = UIFont.preferredFont(forTextStyle: .body).withItalicsIfAvailable
+            textContentView.isHidden = false
+            textLabel.attributedText = text.with(font: font, color: .label)
+            textLabel.numberOfLines = 0
         } else if postContainsText {
             textContentView.isHidden = false
             let defaultNumberOfLines = media.isEmpty ? 10 : 3
@@ -1138,6 +1144,12 @@ extension Localizations {
     }
     static var feedPostUnsupported: String {
         NSLocalizedString("feed.post.unsupported", value: "Your version of HalloApp does not support this type of post.", comment: "Shown when receiving a new (unsupported) type of post.")
+    }
+    static var feedPostWaiting: String {
+        NSLocalizedString("feed.post.waiting", value: "Waiting for this post. This may take a while.", comment: "Text shown in place of a received post we are not able to decrypt yet.")
+    }
+    static var feedCommentWaiting: String {
+        NSLocalizedString("feed.comment.waiting", value: "Waiting for this comment. This may take a while.", comment: "Text shown in place of a received post we are not able to decrypt yet.")
     }
     static func feedPostArchivedTimestamp(time: String) -> String {
         let formatString = NSLocalizedString("feed.post.archived.timestamp", value: "Archived %@", comment: "Archived date timestamp")
