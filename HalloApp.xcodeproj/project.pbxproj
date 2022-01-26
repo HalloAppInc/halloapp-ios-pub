@@ -257,6 +257,8 @@
 		76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */; };
 		76F43F2B2489BC4700D47920 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
+		A1C18C7C27A1EC9100A76102 /* HalloCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7B27A1EC9100A76102 /* HalloCode.swift */; };
+		A1C18C7F27A1ED8C00A76102 /* HalloCodeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */; };
 		E5230B1E267AABA60046A2EB /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5230B1D267AABA60046A2EB /* Intents.framework */; };
 		E5230B21267AABA60046A2EB /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5230B20267AABA60046A2EB /* IntentHandler.swift */; };
 		E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E5230B1C267AABA60046A2EB /* Intents Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -896,6 +898,8 @@
 		76E81D27255E485F0068CD62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Notification Service Extension.entitlements"; sourceTree = "<group>"; };
 		76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactPickerViewController.swift; path = HalloApp/Components/Views/ContactPickerViewController.swift; sourceTree = SOURCE_ROOT; };
+		A1C18C7B27A1EC9100A76102 /* HalloCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCode.swift; sourceTree = "<group>"; };
+		A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCodeTest.swift; sourceTree = "<group>"; };
 		E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */ = {isa = PBXFileReference; lastKnownFileType = file.intentdefinition; path = Intents.intentdefinition; sourceTree = "<group>"; };
 		E5230B1C267AABA60046A2EB /* Intents Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Intents Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5230B1D267AABA60046A2EB /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
@@ -1666,6 +1670,7 @@
 				EA1CEF5D2617964C00BC0C79 /* GroupInvitePreviewViewController.swift */,
 				33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */,
 				EA5975DD252D3CF600810F48 /* GroupMemberAvatars.swift */,
+				A1C18C7B27A1EC9100A76102 /* HalloCode.swift */,
 			);
 			path = Groups;
 			sourceTree = "<group>";
@@ -2059,6 +2064,7 @@
 			children = (
 				685B76BF24E262AF00BF666A /* MentionInputTests.swift */,
 				E552E8E0268249EB00C7774D /* DateTests.swift */,
+				A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */,
 				EAF3A1D92334192000805FF9 /* HalloappTests.swift */,
 				EAF3A1DB2334192000805FF9 /* Info.plist */,
 			);
@@ -2733,6 +2739,7 @@
 				68CFF38F2551FF6F009B0D81 /* Localizations+Registration.swift in Sources */,
 				E55B6099268B80C800A322DC /* ExportDataModel.swift in Sources */,
 				E5CB831B26A0F17100C18ACA /* ActivityCenter.swift in Sources */,
+				A1C18C7C27A1EC9100A76102 /* HalloCode.swift in Sources */,
 				E5D951E826990D3600179289 /* AccountListViewController.swift in Sources */,
 				32C83FB9268FC8FE00BEB4F5 /* NewChatPermissionDeniedController.swift in Sources */,
 				EAB1FFEE2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift in Sources */,
@@ -2895,6 +2902,7 @@
 				EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */,
 				E552E8E1268249EB00C7774D /* DateTests.swift in Sources */,
 				685B76C124E262AF00BF666A /* MentionInputTests.swift in Sources */,
+				A1C18C7F27A1ED8C00A76102 /* HalloCodeTest.swift in Sources */,
 				E552E8E3268249F600C7774D /* Date.swift in Sources */,
 				E552E8E426824C0E00C7774D /* DateFormatter.swift in Sources */,
 			);
