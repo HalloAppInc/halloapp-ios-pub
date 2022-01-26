@@ -115,6 +115,15 @@ public struct PostData {
         }
     }
 
+    var serverMediaCounters: Server_MediaCounters {
+        var counters = Server_MediaCounters()
+        let mediaCounters = mediaCounters
+        counters.numImages = mediaCounters.numImages
+        counters.numVideos = mediaCounters.numVideos
+        counters.numAudio = mediaCounters.numAudio
+        return counters
+    }
+
     public init(id: FeedPostID, userId: UserID, content: PostContent, timestamp: Date = Date(), status: FeedItemStatus, isShared: Bool = false) {
         self.id = id
         self.userId = userId
@@ -394,6 +403,15 @@ public struct CommentData {
         case .retracted, .unsupported:
             return MediaCounters()
         }
+    }
+
+    public var serverMediaCounters: Server_MediaCounters {
+        var counters = Server_MediaCounters()
+        let mediaCounters = mediaCounters
+        counters.numImages = mediaCounters.numImages
+        counters.numVideos = mediaCounters.numVideos
+        counters.numAudio = mediaCounters.numAudio
+        return counters
     }
 
     public init(id: FeedPostCommentID, userId: UserID, timestamp: Date, feedPostId: FeedPostID, parentId: FeedPostCommentID?, content: CommentContent, status: FeedItemStatus) {

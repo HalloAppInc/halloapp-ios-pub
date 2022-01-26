@@ -183,6 +183,15 @@ public extension ChatMessageProtocol {
             return MediaCounters()
         }
     }
+
+    var serverMediaCounters: Server_MediaCounters {
+        var counters = Server_MediaCounters()
+        let mediaCounters = mediaCounters
+        counters.numImages = mediaCounters.numImages
+        counters.numVideos = mediaCounters.numVideos
+        counters.numAudio = mediaCounters.numAudio
+        return counters
+    }
 }
 
 public protocol ChatMediaProtocol {

@@ -748,11 +748,7 @@ extension ProtoServiceCore: CoreService {
         serverPost.timestamp = Int64(post.timestamp.timeIntervalSince1970)
 
         // Add media counters.
-        let postMediaCounters = post.mediaCounters
-        serverPost.mediaCounters = Server_MediaCounters()
-        serverPost.mediaCounters.numImages = postMediaCounters.numImages
-        serverPost.mediaCounters.numVideos = postMediaCounters.numVideos
-        serverPost.mediaCounters.numAudio = postMediaCounters.numAudio
+        serverPost.mediaCounters = post.serverMediaCounters
 
         switch feed {
         case .group(let groupID):
@@ -803,11 +799,7 @@ extension ProtoServiceCore: CoreService {
         }
 
         // Add media counters.
-        let commentMediaCounters = comment.mediaCounters
-        serverComment.mediaCounters = Server_MediaCounters()
-        serverComment.mediaCounters.numImages = commentMediaCounters.numImages
-        serverComment.mediaCounters.numVideos = commentMediaCounters.numVideos
-        serverComment.mediaCounters.numAudio = commentMediaCounters.numAudio
+        serverComment.mediaCounters = comment.serverMediaCounters
 
         if let groupID = groupID {
             makeGroupEncryptedPayload(payloadData: payloadData, groupID: groupID, oneOfItem: .comment(serverComment)) { result in
@@ -966,11 +958,7 @@ extension ProtoServiceCore: CoreService {
                 chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
 
                 // Add media counters.
-                let messageMediaCounters = message.mediaCounters
-                chat.mediaCounters = Server_MediaCounters()
-                chat.mediaCounters.numImages = messageMediaCounters.numImages
-                chat.mediaCounters.numVideos = messageMediaCounters.numVideos
-                chat.mediaCounters.numVideos = messageMediaCounters.numAudio
+                chat.mediaCounters = message.serverMediaCounters
 
                 if let publicKey = encryptedData.identityKey {
                     chat.publicKey = publicKey
@@ -997,11 +985,7 @@ extension ProtoServiceCore: CoreService {
         serverPost.timestamp = Int64(post.timestamp.timeIntervalSince1970)
 
         // Add media counters.
-        let postMediaCounters = post.mediaCounters
-        serverPost.mediaCounters = Server_MediaCounters()
-        serverPost.mediaCounters.numImages = postMediaCounters.numImages
-        serverPost.mediaCounters.numVideos = postMediaCounters.numVideos
-        serverPost.mediaCounters.numAudio = postMediaCounters.numAudio
+        serverPost.mediaCounters = post.serverMediaCounters
 
         switch feed {
         case .group(let groupID):
@@ -1035,11 +1019,7 @@ extension ProtoServiceCore: CoreService {
         }
 
         // Add media counters.
-        let commentMediaCounters = comment.mediaCounters
-        serverComment.mediaCounters = Server_MediaCounters()
-        serverComment.mediaCounters.numImages = commentMediaCounters.numImages
-        serverComment.mediaCounters.numVideos = commentMediaCounters.numVideos
-        serverComment.mediaCounters.numAudio = commentMediaCounters.numAudio
+        serverComment.mediaCounters = comment.serverMediaCounters
 
         if let groupID = groupID {
             makeGroupRerequestEncryptedPayload(payloadData: payloadData, groupID: groupID, for: toUserID, oneOfItem: .comment(serverComment)) { result in
