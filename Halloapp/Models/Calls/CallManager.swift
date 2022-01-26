@@ -41,10 +41,15 @@ final class CallManager: NSObject, CXProviderDelegate {
     // The app's provider configuration, representing its CallKit capabilities
     static var providerConfiguration: CXProviderConfiguration {
         let providerConfiguration = CXProviderConfiguration(localizedName: "HalloApp")
-        providerConfiguration.supportsVideo = false
+        // Temporary change to disable facetime on locked-screen for audio calls.
+        providerConfiguration.supportsVideo = true
         providerConfiguration.maximumCallsPerCallGroup = 1
         providerConfiguration.supportedHandleTypes = [.phoneNumber]
         providerConfiguration.includesCallsInRecents = true
+        // TODO: murali@: This image is not good - waiting on alisa.
+        // https://developer.apple.com/documentation/callkit/cxproviderconfiguration/2274376-icontemplateimagedata
+        let image = UIImage(systemName: "h.circle", withConfiguration: UIImage.SymbolConfiguration(textStyle: .headline))
+        providerConfiguration.iconTemplateImageData = image?.pngData()
         return providerConfiguration
     }
 

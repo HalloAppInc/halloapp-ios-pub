@@ -270,4 +270,12 @@ extension Localizations {
     static var failedActionDuringCallNoticeText: String {
         NSLocalizedString("home.calls.fail.audio.text", value: "Please try again later.", comment: "Text shown to users on failed audio capture alert during a call.")
     }
+
+    static var unsupportedVideoCallTitle: String {
+        NSLocalizedString("home.video.calls.fail.title", value: "Video calls are not supported at the moment.", comment: "Title of failed video call screen alert.")
+    }
+
+    static var unsupportedVideoCallNoticeText: String {
+        NSLocalizedString("home.video.calls.fail.text", value: "Coming soon...", comment: "Text shown to users on video call failure.")
+    }
 }

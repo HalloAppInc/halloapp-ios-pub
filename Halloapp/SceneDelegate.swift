@@ -330,6 +330,10 @@ extension SceneDelegate: UIWindowSceneDelegate {
                 }
             }
 
+        case "INStartVideoCallIntent":
+            DDLogInfo("application/scene/continue - unable to handle - type: \(userActivity.activityType)")
+            self.presentUnsupportedVideoCallAlertController()
+
         default:
             DDLogInfo("application/scene/continue - unable to handle - type: \(userActivity.activityType)")
         }
@@ -362,6 +366,25 @@ extension SceneDelegate: UIWindowSceneDelegate {
         var viewController = window?.rootViewController
         while let presentedViewController = viewController?.presentedViewController {
             viewController = presentedViewController
+        }
+        viewController?.present(alert, animated: true)
+    }
+
+    private func presentUnsupportedVideoCallAlertController() {
+        DDLogInfo("SceneDelegate/presentUnsupportedVideoCallAlertController")
+        let alert = UIAlertController(
+            title: Localizations.unsupportedVideoCallTitle,
+            message: Localizations.unsupportedVideoCallNoticeText,
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
+            DDLogInfo("SceneDelegate/presentUnsupportedVideoCallAlertController/dismiss")
+        }))
+        var viewController: UIViewController? = self.callViewController
+        if viewController == nil {
+            viewController = window?.rootViewController
+            while let presentedViewController = viewController?.presentedViewController {
+                viewController = presentedViewController
+            }
         }
         viewController?.present(alert, animated: true)
     }
