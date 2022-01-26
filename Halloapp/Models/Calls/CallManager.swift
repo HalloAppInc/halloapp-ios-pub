@@ -46,9 +46,8 @@ final class CallManager: NSObject, CXProviderDelegate {
         providerConfiguration.maximumCallsPerCallGroup = 1
         providerConfiguration.supportedHandleTypes = [.phoneNumber]
         providerConfiguration.includesCallsInRecents = true
-        // TODO: murali@: This image is not good - waiting on alisa.
         // https://developer.apple.com/documentation/callkit/cxproviderconfiguration/2274376-icontemplateimagedata
-        let image = UIImage(systemName: "h.circle", withConfiguration: UIImage.SymbolConfiguration(textStyle: .headline))
+        let image = UIImage(named: "NativeAppIcon")
         providerConfiguration.iconTemplateImageData = image?.pngData()
         return providerConfiguration
     }
