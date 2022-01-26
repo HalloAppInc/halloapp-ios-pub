@@ -376,6 +376,8 @@ final class GroupWhisperSession {
             for userId in userIds {
                 groupKeyBundle.incomingSession?.senderStates[userId] = nil
             }
+            // Remove these members from pendingUids if any.
+            groupKeyBundle.pendingUids = groupKeyBundle.pendingUids.filter { !userIds.contains($0) }
             state = .ready(keyBundle: groupKeyBundle)
         }
         if userIds.contains(AppContext.shared.userData.userId) {
