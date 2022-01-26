@@ -22,6 +22,7 @@ class SyncManager {
         case retryDelay(TimeInterval)
         case alreadyRunning
         case awaitingAuthorization
+        case tooManyContacts
     }
 
     typealias SyncResult = Result<Void, SyncFailureReason>
@@ -291,6 +292,8 @@ class SyncManager {
             switch error {
             case .retryDelay(let timeInterval):
                 finishSync(withMode: mode, result: .failure(.retryDelay(timeInterval)))
+            case .serverError("too_many_contacts"):
+                finishSync(withMode: mode, result: .failure(.tooManyContacts))
             default:
                 finishSync(withMode: mode, result: .failure(.serverError(error)))
             }
@@ -362,6 +365,10 @@ class SyncManager {
         switch result {
         case .success:
             DDLogInfo("syncmanager/sync/\(mode)/finished")
+
+        case .failure(.tooManyContacts):
+            DDLogInfo("syncmanager/sync/\(mode)/sync ended/error: too many contacts")
+            // TODO: maybe show an alert to the user indicating that they have too many contacts and app wont function perfectly!
 
         case .failure(let failureReason):
             let retryDelay: TimeInterval? = {
