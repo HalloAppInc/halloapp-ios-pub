@@ -1,26 +1,52 @@
 //
-//  GroupList.swift
+//  GroupListSync.swift
 //
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
 import CocoaLumberjackSwift
+import Combine
 import Core
 import CoreData
 import Foundation
 
-public class GroupList: NSObject, NSFetchedResultsControllerDelegate {
+public class GroupListSync: NSObject, NSFetchedResultsControllerDelegate {
 
     private var fetchedResultsController: NSFetchedResultsController<ChatGroup>?
     private var userId: UserID?
+    private let sync = PassthroughSubject<Void, Never>()
+    private var syncCancellable: AnyCancellable?
+    private let syncQueue = DispatchQueue(label: "com.halloapp.group-list-sync")
 
     public func listenForChanges(using context: NSManagedObjectContext, userId: UserID) {
+        syncCancellable = sync.debounce(for: .seconds(0.5), scheduler: syncQueue).sink { [weak self] in
+            guard let self = self else { return }
+            guard let controller = self.fetchedResultsController else { return }
+            guard let userId = self.userId else { return }
+
+            let groups = (controller.fetchedObjects ?? [])
+                .filter { $0.members?.first { $0.userId == userId } != nil }
+                .map { (group: ChatGroup) -> GroupListSyncItem in
+                    let users = group.members?.map { $0.userId } ?? [UserID]()
+                    let thread = self.chatThread(for: group.groupId, in: controller.managedObjectContext)
+
+                    return GroupListSyncItem(
+                        id: group.groupId,
+                        name: group.name,
+                        users: users,
+                        lastActivityTimestamp: thread?.lastFeedTimestamp ?? thread?.lastMsgTimestamp
+                    )
+                }
+
+            GroupListSyncItem.save(groups)
+        }
+
         self.userId = userId
 
         fetchedResultsController = makeFetchedResultsController(using: context)
         fetchedResultsController?.delegate = self
         try? fetchedResultsController?.performFetch()
-        sync()
+        sync.send()
     }
 
     private func makeFetchedResultsController(using context: NSManagedObjectContext) -> NSFetchedResultsController<ChatGroup> {
@@ -34,7 +60,7 @@ public class GroupList: NSObject, NSFetchedResultsControllerDelegate {
     }
 
     public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        sync()
+        sync.send()
     }
 
     private func chatThread(for id: GroupID, in context: NSManagedObjectContext) -> ChatThread? {
@@ -50,26 +76,5 @@ public class GroupList: NSObject, NSFetchedResultsControllerDelegate {
         }
 
         return nil
-    }
-
-    private func sync() {
-        guard let userId = userId else { return }
-        guard let controller = fetchedResultsController else { return }
-
-        let groups = (controller.fetchedObjects ?? [])
-            .filter { $0.members?.first { $0.userId == userId } != nil }
-            .map { (group: ChatGroup) -> GroupListItem in
-                let users = group.members?.map { $0.userId } ?? [UserID]()
-                let thread = chatThread(for: group.groupId, in: controller.managedObjectContext)
-
-                return GroupListItem(
-                    id: group.groupId,
-                    name: group.name,
-                    users: users,
-                    lastActivityTimestamp: thread?.lastFeedTimestamp ?? thread?.lastMsgTimestamp
-                )
-            }
-
-        GroupListItem.save(groups)
     }
 }

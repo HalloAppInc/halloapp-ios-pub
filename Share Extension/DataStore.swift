@@ -216,7 +216,7 @@ class DataStore: ShareExtensionDataStore {
         }
     }
 
-    func post(group: GroupListItem? = nil, text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil, completion: @escaping (Result<String, Error>) -> ()) {
+    func post(group: GroupListSyncItem? = nil, text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData? = nil, linkPreviewMedia: PendingMedia? = nil, completion: @escaping (Result<String, Error>) -> ()) {
         let postId: FeedPostID = UUID().uuidString
         DDLogInfo("SharedDataStore/post/\(postId)/created")
 

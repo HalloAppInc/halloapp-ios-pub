@@ -19,7 +19,7 @@ enum ShareError: Error {
 
 enum ShareDestination: Equatable, Hashable {
     case feed
-    case group(GroupListItem)
+    case group(GroupListSyncItem)
     case contact(ABContact)
 
     static func == (lhs: ShareDestination, rhs: ShareDestination) -> Bool {

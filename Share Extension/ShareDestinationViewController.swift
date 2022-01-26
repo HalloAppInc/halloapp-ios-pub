@@ -36,10 +36,10 @@ private extension Localizations {
 
 class ShareDestinationViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     private let contacts: [ABContact]
-    private let allGroups: [GroupListItem]
-    private var groups: [GroupListItem]
+    private let allGroups: [GroupListSyncItem]
+    private var groups: [GroupListSyncItem]
     private var filteredContacts: [ABContact] = []
-    private var filteredGroups: [GroupListItem] = []
+    private var filteredGroups: [GroupListSyncItem] = []
     private var searchController: UISearchController!
     private var selected: [ShareDestination] = []
     private var cancellableSet: Set<AnyCancellable> = []
@@ -57,6 +57,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
         tableView.rowHeight = 50
         tableView.register(DestinationCell.self, forCellReuseIdentifier: DestinationCell.reuseIdentifier)
         tableView.keyboardDismissMode = .onDrag
+        tableView.contentInset = UIEdgeInsets(top: -10, left: 0, bottom: 0, right: 0) // -10 to hide top padding on searchBar
         tableView.delegate = self
         tableView.dataSource = self
 
@@ -85,13 +86,35 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     } ()
     
     init() {
-        contacts = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: true)
-        allGroups = GroupListItem.load().sorted {
+        var chatTimestamps: [UserID : Date] = [:]
+        ChatListSyncItem.load().forEach {
+            chatTimestamps[$0.userId] = $0.timestamp ?? Date.distantPast
+        }
+
+        contacts = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: false).sorted {
+            var timestamp0 = Date.distantPast
+            var timestamp1 = Date.distantPast
+
+            if let userId = $0.userId, let time = chatTimestamps[userId] {
+                timestamp0 = time
+            }
+
+            if let userId = $1.userId, let time = chatTimestamps[userId] {
+                timestamp1 = time
+            }
+
+            if timestamp0 == timestamp1 {
+                return $0.sort > $1.sort
+            }
+
+            return timestamp0 > timestamp1
+        }
+        allGroups = GroupListSyncItem.load().sorted {
             ($0.lastActivityTimestamp ?? Date.distantPast) > ($1.lastActivityTimestamp ?? Date.distantPast)
         }
 
         hasMoreGroups = allGroups.count > 6
-        groups = hasMoreGroups ? [GroupListItem](allGroups[..<6]) : allGroups
+        groups = hasMoreGroups ? [GroupListSyncItem](allGroups[..<6]) : allGroups
 
         super.init(nibName: nil, bundle: nil)
 
@@ -580,7 +603,7 @@ fileprivate class DestinationCell: UITableViewCell {
         configureSelected(isSelected)
     }
 
-    public func configure(_ group: GroupListItem, isSelected: Bool) {
+    public func configure(_ group: GroupListSyncItem, isSelected: Bool) {
         title.text = group.name
         avatar.isHidden = false
         avatar.layer.cornerRadius = 6

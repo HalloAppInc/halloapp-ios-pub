@@ -57,7 +57,8 @@ class ChatData: ObservableObject {
     private var service: HalloService
     private let mediaUploader: MediaUploader
     private let imageServer = ImageServer()
-    private let groupList = GroupList()
+    private let groupListSync = GroupListSync()
+    private let chatListSync = ChatListSync()
     
     private var currentlyChattingWithUserId: String? = nil
     private var isSubscribedToCurrentUser: Bool = false
@@ -443,7 +444,8 @@ class ChatData: ObservableObject {
         
         performSeriallyOnBackgroundContext { [weak self] (context) in
             guard let self = self else { return }
-            self.groupList.listenForChanges(using: context, userId: self.userData.userId)
+            self.groupListSync.listenForChanges(using: context, userId: self.userData.userId)
+            self.chatListSync.listenForChanges(using: context)
         }
 
         DispatchQueue.main.async {

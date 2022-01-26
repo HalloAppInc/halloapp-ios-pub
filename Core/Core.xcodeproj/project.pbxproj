@@ -140,7 +140,8 @@
 		F4215B9E277D4B2500C37FD6 /* Sodium.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4215B9D277D4B2500C37FD6 /* Sodium.swift */; };
 		F47C3079277D475E007DC248 /* Sodium in Frameworks */ = {isa = PBXBuildFile; productRef = F47C3078277D475E007DC248 /* Sodium */; };
 		F86919E226397F0C00B01306 /* UIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86919E126397F0C00B01306 /* UIImageView.swift */; };
-		F8DFCD8F262F0F6E003F850F /* GroupList.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCD8E262F0F6E003F850F /* GroupList.swift */; };
+		F8BE61AA27A0640C0061FFC2 /* ChatListSyncItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BE61A927A0640C0061FFC2 /* ChatListSyncItem.swift */; };
+		F8DFCD8F262F0F6E003F850F /* GroupListSyncItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DFCD8E262F0F6E003F850F /* GroupListSyncItem.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -272,7 +273,8 @@
 		EAF47E09251D80930056196F /* GroupAvatar+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupAvatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		F4215B9D277D4B2500C37FD6 /* Sodium.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sodium.swift; sourceTree = "<group>"; };
 		F86919E126397F0C00B01306 /* UIImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageView.swift; sourceTree = "<group>"; };
-		F8DFCD8E262F0F6E003F850F /* GroupList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupList.swift; sourceTree = "<group>"; };
+		F8BE61A927A0640C0061FFC2 /* ChatListSyncItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListSyncItem.swift; sourceTree = "<group>"; };
+		F8DFCD8E262F0F6E003F850F /* GroupListSyncItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupListSyncItem.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -441,6 +443,7 @@
 				68D64BFB25EEE220000AB07C /* Whisper.swift */,
 				68567EDF26C493C800A3800F /* MessageDecryption+CoreDataClass.swift */,
 				68567EE126C4940100A3800F /* MessageDecryption+CoreDataProperties.swift */,
+				F8BE61A927A0640C0061FFC2 /* ChatListSyncItem.swift */,
 			);
 			path = Chat;
 			sourceTree = "<group>";
@@ -649,7 +652,7 @@
 		F8DFCD8D262F0F51003F850F /* Groups */ = {
 			isa = PBXGroup;
 			children = (
-				F8DFCD8E262F0F6E003F850F /* GroupList.swift */,
+				F8DFCD8E262F0F6E003F850F /* GroupListSyncItem.swift */,
 			);
 			path = Groups;
 			sourceTree = "<group>";
@@ -758,6 +761,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				68567EE326C49BE200A3800F /* CryptoStats.xcdatamodeld in Sources */,
+				F8BE61AA27A0640C0061FFC2 /* ChatListSyncItem.swift in Sources */,
 				6A5729772745885500E02BAC /* NotificationStatus+CoreDataClass.swift in Sources */,
 				6A5729782745885500E02BAC /* NotificationStatus+CoreDataProperties.swift in Sources */,
 				327334F32672A5C3006E31E5 /* Locale.swift in Sources */,
@@ -818,7 +822,7 @@
 				6A958D80270764E6007C89C6 /* GroupMessageKey+CoreDataProperties.swift in Sources */,
 				68D2915525096F9400AF5061 /* Mentions.swift in Sources */,
 				EAAE7B5224DD2C3000946B77 /* MessageKey+CoreDataProperties.swift in Sources */,
-				F8DFCD8F262F0F6E003F850F /* GroupList.swift in Sources */,
+				F8DFCD8F262F0F6E003F850F /* GroupListSyncItem.swift in Sources */,
 				6A6BBAF22767A4B10063E8BC /* MainDataStore.swift in Sources */,
 				EAAE7B4E24DD2C3000946B77 /* SignedPreKey+CoreDataProperties.swift in Sources */,
 				F4215B9E277D4B2500C37FD6 /* Sodium.swift in Sources */,

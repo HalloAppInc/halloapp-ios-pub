@@ -51,7 +51,8 @@ class ShareDestinationRowView: UICollectionView {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        layout.itemSize = CGSize(width: 70, height: 100)
+        layout.itemSize = CGSize(width: 64, height: 100)
+        layout.minimumInteritemSpacing = 0
 
         super.init(frame: .zero, collectionViewLayout: layout)
         translatesAutoresizingMaskIntoConstraints = false
@@ -194,7 +195,7 @@ fileprivate class DestinationViewCell: UICollectionViewCell {
         homeView.isHidden = false
     }
 
-    public func configure(_ group: GroupListItem) {
+    public func configure(_ group: GroupListSyncItem) {
         title.text = group.name
         avatar.isHidden = false
         avatar.layer.cornerRadius = 6

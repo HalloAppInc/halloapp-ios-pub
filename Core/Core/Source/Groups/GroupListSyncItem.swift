@@ -1,5 +1,5 @@
 //
-//  GroupList.swift
+//  GroupListSyncItem.swift
 //
 //  Copyright © 2021 Hallo App, Inc. All rights reserved.
 //
@@ -8,7 +8,7 @@ import CocoaLumberjackSwift
 import Foundation
 
 // Simple way to share existing groups between app and extensions
-public struct GroupListItem: Codable {
+public struct GroupListSyncItem: Codable {
     public var id: GroupID
     public var name: String
     public var users: [UserID]
@@ -25,7 +25,7 @@ public struct GroupListItem: Codable {
         AppContext.sharedDirectoryURL.appendingPathComponent("group-list.json", isDirectory: false)
     }
 
-    public static func load() -> [GroupListItem] {
+    public static func load() -> [GroupListSyncItem] {
         guard let data = try? Data(contentsOf: fileUrl) else {
             DDLogWarn("group-list/load/error file does not exist.")
             return []
@@ -34,7 +34,7 @@ public struct GroupListItem: Codable {
         do {
             // file:///private/var/mobile/Containers/Shared/AppGroup/C5984765-4F4C-437C-92AC-468B65B4C264/group-list.json
             DDLogInfo("group-list/will be loaded from \(fileUrl.description)")
-            return try JSONDecoder().decode([GroupListItem].self, from: data)
+            return try JSONDecoder().decode([GroupListSyncItem].self, from: data)
         } catch {
             DDLogError("group-list/load/error \(error)")
             try? FileManager.default.removeItem(at: fileUrl)
@@ -42,7 +42,7 @@ public struct GroupListItem: Codable {
         }
     }
 
-    public static func save(_ items: [GroupListItem]) {
+    public static func save(_ items: [GroupListSyncItem]) {
         do {
             let data = try JSONEncoder().encode(items)
             try data.write(to: fileUrl)

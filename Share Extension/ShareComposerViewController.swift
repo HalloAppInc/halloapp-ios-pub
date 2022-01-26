@@ -104,9 +104,13 @@ class ShareComposerViewController: UIViewController {
     }
 
     private lazy var destinationRowLabel: UIView = {
+        let labelText = Localizations.shareWith.uppercased() + ":"
+        let attributedText = NSMutableAttributedString(string: labelText)
+        attributedText.addAttribute(.kern, value: 0.7, range: NSRange(location: 0, length: labelText.count))
+
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = Localizations.shareWith.uppercased()
+        label.attributedText = attributedText
         label.textColor = .primaryBlackWhite.withAlphaComponent(0.45)
         label.font = .preferredFont(forTextStyle: .caption1)
 
@@ -458,6 +462,9 @@ class ShareComposerViewController: UIViewController {
         collectionView.register(VideoCell.self, forCellWithReuseIdentifier: VideoCell.reuseIdentifier)
         collectionView.register(EmptyCell.self, forCellWithReuseIdentifier: EmptyCell.reuseIdentifier)
 
+        let closeKeyboardByTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(hideKeyboardAction))
+        collectionView.addGestureRecognizer(closeKeyboardByTapRecognizer)
+
         return collectionView
     }
 
@@ -609,6 +616,10 @@ class ShareComposerViewController: UIViewController {
         collectionView.setContentOffset(CGPoint(x: x, y: collectionView.contentOffset.y), animated: true)
     }
 
+    @objc func hideKeyboardAction() {
+        textView.resignFirstResponder()
+    }
+
     private func showUploadingAlert() {
         let bytesCount = Int64(media
             .compactMap { try? $0.fileURL?.resourceValues(forKeys: [.fileSizeKey]).fileSize }
@@ -716,7 +727,7 @@ class ShareComposerViewController: UIViewController {
     /// For more information, see [this documentation](https://developer.apple.com/documentation/sirikit/insendmessageintent)\.
     /// - Parameter chatGroup: The ID for the group the user is sharing to
     /// - Remark: This is different from the implementation in `FeedData.swift` because `MainAppContext` isn't available.
-    private func addIntent(chatGroup: GroupListItem) {
+    private func addIntent(chatGroup: GroupListSyncItem) {
         if #available(iOS 14.0, *) {
             let recipient = INSpeakableString(spokenPhrase: chatGroup.name)
             let sendMessageIntent = INSendMessageIntent(recipients: nil,
