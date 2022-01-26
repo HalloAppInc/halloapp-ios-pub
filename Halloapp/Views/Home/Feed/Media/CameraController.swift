@@ -12,6 +12,7 @@ import Core
 import CallKit
 import UIKit
 import MediaPlayer
+import Combine
 
 protocol CameraDelegate: AVCapturePhotoCaptureDelegate, AVCaptureFileOutputRecordingDelegate {
     func goBack() -> Void
@@ -112,6 +113,7 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
     private(set) var isUsingBackCamera = true
 
     private var sessionIsStarted = false
+    private var cancellables: Set<AnyCancellable> = []
 
     private var timer: Timer?
     private var timerSeconds = 0
@@ -362,6 +364,7 @@ class CameraController: UIViewController, AVCaptureFileOutputRecordingDelegate {
         if session.canSetSessionPreset(.photo) {
             session.sessionPreset = .photo
         }
+        session.usesApplicationAudioSession = false
         session.automaticallyConfiguresCaptureDeviceForWideColor = true
 
         do {
