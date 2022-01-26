@@ -77,7 +77,7 @@ public enum CallError: Error {
     case noActiveCall
 }
 
-public enum EndCallReason: Int, Codable {
+public enum EndCallReason: Int16, Codable {
     case ended = 0
     case canceled = 1
     case reject = 2
@@ -88,6 +88,7 @@ public enum EndCallReason: Int, Codable {
     case encryptionError = 7
     case connectionError = 8
     case videoUnsupportedError = 9
+    case unknown = 10   // ongoingCall
 }
 
 extension EndCallReason {
@@ -113,6 +114,8 @@ extension EndCallReason {
             return .connectionError
         case .videoUnsupportedError:
             return .videoUnsupported
+        case .unknown:
+            return .unknown
         }
     }
 
@@ -138,6 +141,8 @@ extension EndCallReason {
             return "connectionError"
         case .videoUnsupportedError:
             return "videoUnsupported"
+        case .unknown:
+            return "unknown"
         }
     }
 }

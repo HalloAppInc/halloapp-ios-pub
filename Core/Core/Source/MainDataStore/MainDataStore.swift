@@ -125,6 +125,7 @@ open class MainDataStore {
             call.timestamp = Date()
             call.answered = false
             call.durationMs = 0.0
+            call.endReason = .unknown
 
             managedObjectContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
             self.save(managedObjectContext)

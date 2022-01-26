@@ -24,6 +24,15 @@ extension Call {
     @NSManaged public var durationMs: Double
     @NSManaged public var answered: Bool
     @NSManaged public var timestamp: Date
+    @NSManaged public var endReasonValue: Int16
+    public var endReason: EndCallReason {
+        get {
+            return EndCallReason(rawValue: self.endReasonValue)!
+        }
+        set {
+            self.endReasonValue = newValue.rawValue
+        }
+    }
 
     public var direction: CallDirection {
         get {

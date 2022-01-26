@@ -5,6 +5,7 @@
         <attribute name="callID" attributeType="String"/>
         <attribute name="directionValue" attributeType="String"/>
         <attribute name="durationMs" attributeType="Double" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="endReasonValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="peerUserID" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="typeValue" attributeType="String"/>
@@ -15,6 +16,6 @@
         </uniquenessConstraints>
     </entity>
     <elements>
-        <element name="Call" positionX="-63" positionY="-18" width="128" height="134"/>
+        <element name="Call" positionX="-63" positionY="-18" width="128" height="149"/>
     </elements>
 </model>

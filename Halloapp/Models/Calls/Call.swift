@@ -341,6 +341,7 @@ class Call {
                 do {
                     MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
                         call.durationMs = durationMs
+                        call.endReason = reason
                     }
                     let reasonStr = reason.serverEndCallReasonStr
                     let webrtcStatsData = try JSONSerialization.data(withJSONObject: modifiedReport, options: [.prettyPrinted, .withoutEscapingSlashes])
