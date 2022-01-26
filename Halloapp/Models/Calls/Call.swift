@@ -318,6 +318,7 @@ class Call {
 
     func end(reason: EndCallReason) {
         DDLogInfo("Call/\(callID)/end/reason: \(reason)/begin")
+        let durationMs = MainAppContext.shared.callManager.callDurationMs
         callQueue.async { [self] in
             isCallEndedLocally = true
             service.endCall(id: callID, to: peerUserID, reason: reason)
@@ -338,7 +339,6 @@ class Call {
                             ]
                 }
                 do {
-                    let durationMs = MainAppContext.shared.callManager.callDurationMs
                     MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
                         call.durationMs = durationMs
                     }
