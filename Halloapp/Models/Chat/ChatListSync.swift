@@ -20,14 +20,17 @@ public class ChatListSync: NSObject, NSFetchedResultsControllerDelegate {
 
     public func listenForChanges(using context: NSManagedObjectContext) {
         syncCancellable = sync.debounce(for: .seconds(0.5), scheduler: syncQueue).sink { [weak self] in
-            guard let self = self else { return }
-            guard let controller = self.fetchedResultsController else { return }
-            let threads = (controller.fetchedObjects ?? [])
+            guard let fetchedResultsController = self?.fetchedResultsController else {
+                return
+            }
+            fetchedResultsController.managedObjectContext.perform {
+                let threads = (fetchedResultsController.fetchedObjects ?? [])
 
-            ChatListSyncItem.save(threads.compactMap {
-                guard let userId = $0.chatWithUserId else { return nil }
-                return ChatListSyncItem(userId: userId, timestamp: $0.lastMsgTimestamp)
-            })
+                ChatListSyncItem.save(threads.compactMap {
+                    guard let userId = $0.chatWithUserId else { return nil }
+                    return ChatListSyncItem(userId: userId, timestamp: $0.lastMsgTimestamp)
+                })
+            }
         }
 
         fetchedResultsController = makeFetchedResultsController(using: context)

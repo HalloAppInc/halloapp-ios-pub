@@ -20,25 +20,26 @@ public class GroupListSync: NSObject, NSFetchedResultsControllerDelegate {
 
     public func listenForChanges(using context: NSManagedObjectContext, userId: UserID) {
         syncCancellable = sync.debounce(for: .seconds(0.5), scheduler: syncQueue).sink { [weak self] in
-            guard let self = self else { return }
-            guard let controller = self.fetchedResultsController else { return }
-            guard let userId = self.userId else { return }
+            guard let self = self, let fetchedResultsController = self.fetchedResultsController, let userId = self.userId else {
+                return
+            }
+            fetchedResultsController.managedObjectContext.perform {
+                let groups = (fetchedResultsController.fetchedObjects ?? [])
+                    .filter { $0.members?.first { $0.userId == userId } != nil }
+                    .map { (group: ChatGroup) -> GroupListSyncItem in
+                        let users = group.members?.map { $0.userId } ?? [UserID]()
+                        let thread = self.chatThread(for: group.groupId, in: fetchedResultsController.managedObjectContext)
 
-            let groups = (controller.fetchedObjects ?? [])
-                .filter { $0.members?.first { $0.userId == userId } != nil }
-                .map { (group: ChatGroup) -> GroupListSyncItem in
-                    let users = group.members?.map { $0.userId } ?? [UserID]()
-                    let thread = self.chatThread(for: group.groupId, in: controller.managedObjectContext)
+                        return GroupListSyncItem(
+                            id: group.groupId,
+                            name: group.name,
+                            users: users,
+                            lastActivityTimestamp: thread?.lastFeedTimestamp ?? thread?.lastMsgTimestamp
+                        )
+                    }
 
-                    return GroupListSyncItem(
-                        id: group.groupId,
-                        name: group.name,
-                        users: users,
-                        lastActivityTimestamp: thread?.lastFeedTimestamp ?? thread?.lastMsgTimestamp
-                    )
-                }
-
-            GroupListSyncItem.save(groups)
+                GroupListSyncItem.save(groups)
+            }
         }
 
         self.userId = userId
