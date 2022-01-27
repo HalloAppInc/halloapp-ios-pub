@@ -288,14 +288,14 @@ extension HalloCode {
 /// A helper class for determining the value of a specific QR code module.
 fileprivate class ModuleReader {
     let context: CGContext
-    private let ptr: UnsafeMutablePointer<UInt32>
+    private let ptr: UnsafeMutablePointer<UInt8>
     
     init?(_ cg: CGImage) {
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bytesPerPixel = 4
+        let colorSpace = CGColorSpaceCreateDeviceGray()
+        let bytesPerPixel = 1
         let bytesPerRow = bytesPerPixel * cg.width
         let bitsPerComponent = 8
-        let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+        let bitmapInfo = CGImageAlphaInfo.none.rawValue
         
         guard
             let context = CGContext(data: nil,
@@ -305,7 +305,7 @@ fileprivate class ModuleReader {
                              bytesPerRow: bytesPerRow,
                                    space: colorSpace,
                               bitmapInfo: bitmapInfo),
-            let ptr = context.data?.bindMemory(to: UInt32.self, capacity: cg.height * cg.width)
+            let ptr = context.data?.bindMemory(to: UInt8.self, capacity: cg.height * cg.width)
         else {
             return nil
         }
@@ -317,7 +317,7 @@ fileprivate class ModuleReader {
     
     func moduleValue(at point: CGPoint) -> Bool {
         let i = context.width * Int(point.y) + Int(point.x)
-        let pixel = UInt8(ptr[i] & 255)
+        let pixel = ptr[i]
 
         return pixel == 0
     }
