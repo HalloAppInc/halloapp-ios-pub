@@ -42,8 +42,12 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     private var mediaPickerController: MediaPickerViewController?
     private var cancellableSet: Set<AnyCancellable> = []
     private var parentCommentID: FeedPostCommentID?
+
     var highlightedCommentId: FeedPostCommentID?
     private var commentToScrollTo: FeedPostCommentID?
+
+    // Key used to encode/decode array of comment drafts from `UserDefaults`.
+    static let postCommentDraftKey = "posts.comments.drafts"
 
     private var feedPostId: FeedPostID {
         didSet {
@@ -150,6 +154,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.messageInputView.willAppear(in: self)
+        loadCommentsDraft()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -198,6 +203,12 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         scrollToTarget(withAnimation: true)
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        saveCommentDraft()
+        messageInputView.willDisappear(in: self)
+    }
+
     private func initFetchedResultsController() {
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "post.id = %@", feedPostId)
@@ -337,6 +348,44 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         return self.messageInputView
     }
 
+    // MARK: Draft Comments
+
+    private func saveCommentDraft() {
+        guard !messageInputView.mentionText.collapsedText.isEmpty else {
+            FeedData.deletePostCommentDrafts { existingDraft in
+                existingDraft.postID == feedPostId
+            }
+            return
+        }
+        let draft = CommentDraft(postID: feedPostId, text: messageInputView.mentionText, parentComment: parentCommentID)
+        var draftsArray: [CommentDraft] = []
+        if let draftsDecoded: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: Self.postCommentDraftKey) {
+            draftsArray = draftsDecoded
+        }
+        draftsArray.removeAll { existingDraft in
+            existingDraft.postID == draft.postID
+        }
+        draftsArray.append(draft)
+        do {
+            try AppContext.shared.userDefaults.setCodable(draftsArray, forKey: Self.postCommentDraftKey)
+        } catch {
+            DDLogError("FlatCommentsViewController/saveCommentDraft/failed to save comment draft foPost: \(feedPostId) error: \(error)")
+        }
+    }
+
+    private func loadCommentsDraft() {
+        guard let draftsArray: [CommentDraft] = try? AppContext.shared.userDefaults.codable(forKey: Self.postCommentDraftKey) else { return }
+        guard let draft = draftsArray.first(where: { draft in
+            draft.postID == feedPostId
+        }) else { return }
+
+        if let parentComment = draft.parentComment {
+            let parentCommentUserID = MainAppContext.shared.feedData.feedComment(with: parentComment)?.userId ?? ""
+            parentCommentID = parentComment
+        }
+        messageInputView.mentionText = draft.text
+        messageInputView.updateInputView()
+  
     // MARK: Scrolling and Highlighting
 
     private func scrollToTarget(withAnimation: Bool) {
@@ -544,7 +593,7 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
         mediaPickerController = MediaPickerViewController(filter: .all, multiselect: false, camera: true) {[weak self] controller, media, cancel in
             guard let self = self else { return }
             guard let media = media.first, !cancel else {
-                DDLogInfo("CommentsView/media comment cancelled")
+                DDLogInfo("FlatCommentsViewController/media comment cancelled")
                 self.dismissMediaPicker(animated: true)
                 return
             }
