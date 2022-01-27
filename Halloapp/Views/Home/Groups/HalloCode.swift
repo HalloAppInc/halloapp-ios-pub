@@ -215,7 +215,7 @@ extension HalloCode {
     }
     
     private func drawInnerFinderPatterns(_ context: CGContext, _ size: CGSize) {
-        guard let outlineImage = UIImage(named: "iconOutline") else {
+        guard let outlineImage = UIImage(named: "QRIconOutline") else {
             return
         }
         
@@ -226,8 +226,8 @@ extension HalloCode {
         let innerFinderOffset = (newHeight - oldHeight) / 2
         
         // inner finder 1
-        var rect = CGRect(x: (moduleWidth * 3) + drawingOffset,
-                          y: (moduleWidth * 3) + drawingOffset,
+        var rect = CGRect(x: innerWidth + drawingOffset,
+                          y: innerWidth + drawingOffset,
                       width: innerWidth,
                      height: innerWidth)
         
@@ -236,7 +236,7 @@ extension HalloCode {
         context.draw(outlineImage.cgImage!, in: rect)
         
         // inner finder 2
-        rect = CGRect(x: (moduleWidth * 3) + drawingOffset,
+        rect = CGRect(x: innerWidth + drawingOffset,
                       y: ((size.height * moduleWidth) - (6 * moduleWidth)) + drawingOffset,
                   width: innerWidth,
                  height: innerWidth)
@@ -247,7 +247,7 @@ extension HalloCode {
         
         // inner finder 3
         rect = CGRect(x: ((size.width * moduleWidth) - (6 * moduleWidth)) + drawingOffset,
-                      y: (moduleWidth * 3) + drawingOffset,
+                      y: innerWidth + drawingOffset,
                   width: innerWidth,
                  height: innerWidth)
 
@@ -259,7 +259,7 @@ extension HalloCode {
     private func drawIcon(_ context: CGContext) {
         guard
             let iconFrame = iconFrame,
-            let iconImage = UIImage(named: "icon")
+            let iconImage = UIImage(named: "QRIcon")
         else {
             return
         }

@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 fileprivate struct Constants {
-    static let QRCodeSize:CGFloat = 200
+    static let QRCodeSize:CGFloat = 300
 }
 
 class GroupInviteQRViewController: UIViewController {
@@ -46,9 +46,14 @@ class GroupInviteQRViewController: UIViewController {
         mainView.constrain(to: view)
 
         if let link = inviteLink {
-            if let data = link.data(using: .ascii, allowLossyConversion: false) {
-                let image = UIImage.qrCodeImage(for: data, size: CGSize(width: Constants.QRCodeSize, height: Constants.QRCodeSize))
-                QRImage.image = image
+//            if let data = link.data(using: .ascii, allowLossyConversion: false) {
+//                let image = UIImage.qrCodeImage(for: data, size: CGSize(width: Constants.QRCodeSize, height: Constants.QRCodeSize))
+//                QRImage.image = image
+//
+//            }
+            
+            if let code = HalloCode(frame: CGRect(x: 0, y: 0, width: Constants.QRCodeSize, height: Constants.QRCodeSize), string: link) {
+                QRImage.image = code.image
             }
         }
 
