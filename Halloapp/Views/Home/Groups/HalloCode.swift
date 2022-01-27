@@ -264,19 +264,14 @@ extension HalloCode {
             return
         }
 
-        let iconView = UIImageView(image: iconImage)
-        iconView.frame = iconFrame
-        iconView.contentMode = .scaleAspectFit
-
-        let radius = iconView.bounds.width / cornerRadius
+        let radius = iconFrame.width / cornerRadius
         let size = CGSize(width: radius, height: radius)
-        let path = UIBezierPath(roundedRect: iconView.bounds, byRoundingCorners: .allCorners, cornerRadii: size)
-        let mask = CAShapeLayer()
-        mask.path = path.cgPath
-        iconView.layer.mask = mask
-        
-        context.translateBy(x: iconFrame.minX, y: iconFrame.minY)
-        iconView.layer.render(in: context)
+        let path = UIBezierPath(roundedRect: iconFrame, byRoundingCorners: .allCorners, cornerRadii: size)
+
+        context.saveGState()
+        path.addClip()
+        iconImage.draw(in: iconFrame)
+        context.restoreGState()
     }
 }
 
