@@ -122,10 +122,10 @@
 "share.composer.uploading.fail.title" = "Falha no upload";
 
 /* Contacts category label */
-"share.destination.contacts" = "Contatos";
+"share.destination.contacts" = "Contatos recentes";
 
 /* Groups category label */
-"share.destination.groups" = "Grupos";
+"share.destination.groups" = "Seus Grupos";
 
 /* Share on the home feed label */
 "share.destination.home" = "Início";

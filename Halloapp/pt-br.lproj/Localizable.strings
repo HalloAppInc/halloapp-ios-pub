@@ -422,7 +422,7 @@
 "fab.accessibility.camera" = "Câmera";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Biblioteca de fotos";
+"fab.accessibility.photo.library" = "Galeria de fotos";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Texto";
@@ -698,10 +698,10 @@
 "help.send.logs.email.body" = "Por favor, deixe um comentário ou uma descrição do problema no espaço acima.\n\nVersão %1$@ - %2$@\n%3$@";
 
 /* Text shown to users on call failure. */
-"home.calls.fail.text" = "Desculpe, por favor tente novamente mais tarde.";
+"home.calls.fail.text" = "Verifique se o telefone está conectado à Internet e tente novamente.";
 
 /* Title of failed call screen alert. */
-"home.calls.fail.title" = "Falha ao realizar a chamada.";
+"home.calls.fail.title" = "Não foi possível fazer a chamada.";
 
 /* Text shown to users trying to open the call screen. */
 "home.calls.notice.text" = "Você não tem nenhuma chamada ativa no momento.";
@@ -1013,7 +1013,7 @@
 "profile.groups.in.common" = "Grupos em comum";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
-"profile.header.message.user" = "Mensagem";
+"profile.header.message.user" = "Mensagem \n";
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Desbloquear";

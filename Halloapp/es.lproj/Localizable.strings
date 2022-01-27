@@ -1333,6 +1333,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Únete a mí en mi red social de relaciones reales, HalloApp. Baja la aplicación gratis en halloapp.com/dl";
 
+/* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
+"tap.return.call" = "toca para devolver la llamada";
+
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Añadir a la lista de lectura";
 

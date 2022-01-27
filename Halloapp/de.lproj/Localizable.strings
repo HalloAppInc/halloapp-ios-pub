@@ -148,6 +148,9 @@
 /* Status displayed while call is connecting */
 "call.status.connecting" = "verbindet...";
 
+/* Status displayed when call fails. */
+"call.status.failed" = "Anruf fehlgeschlagen";
+
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "eingehender Anruf";
 
@@ -455,7 +458,7 @@
 "fab.accessibility.text" = "Text";
 
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
-"fab.accessibility.voice" = "Sprachnotiz";
+"fab.accessibility.voice" = "Audio";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Beitrag";
@@ -726,6 +729,12 @@
 
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "\n\nBitte oberhalb dein Feedback oder eine Problembeschreibung eingeben.\n\nVersion %1$@ - %2$@\n%3$@";
+
+/* Text shown to users on failed audio capture alert during a call. */
+"home.calls.fail.audio.text" = "Bitte versuche es später noch einmal.";
+
+/* Title of failed audio capture alert during a call. */
+"home.calls.fail.audio.title" = "Audio kann während eines HalloApp-Anrufs nicht aufgezeichnet werden.";
 
 /* Text shown to users on call failure. */
 "home.calls.fail.text" = "Stell sicher, ob du eine Internetverbindung hast, und versuche es erneut.";
@@ -1323,6 +1332,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Mach mit bei meinem HalloApp-Netzwerk für echte Beziehungen! Kostenlos herunterladen auf halloapp.com/dl";
+
+/* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
+"tap.return.call" = "Tippen, um zum Anruf zurückzukehren";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Zur Leseliste hinzufügen";
