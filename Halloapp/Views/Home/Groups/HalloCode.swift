@@ -8,18 +8,21 @@
 import UIKit
 
 /// A custom QR code that incorporates HalloApp's design language.
-class HalloCode: UIImageView {
+class HalloCode {
     let string: String
+    private(set) lazy var image: UIImage = drawCode()
     //let cg: CGImage
     private let reader: ModuleReader
     /// The width of one QR code module, scaled accordingly.
     private let moduleWidth: CGFloat
+    private let bounds: CGRect
     /// The bounds for the code excluding its margin.
     private let innerRect: CGRect
     
     
-    init?(frame: CGRect, string: String) {
+    init?(size: CGSize, string: String) {
         self.string = string
+        self.bounds = CGRect(origin: .zero, size: size)
         guard let filter = CIFilter(name: "CIQRCodeGenerator") else {
             return nil
         }
@@ -43,14 +46,11 @@ class HalloCode: UIImageView {
 
         self.reader = reader
         
-        let moduleDiameter = floor(frame.width / CGFloat(cg.width))
+        let moduleDiameter = floor(size.width / CGFloat(cg.width))
         let inner = CGRect(origin: .zero,
-                             size: frame.size).insetBy(dx: 3 * moduleDiameter, dy: 3 * moduleDiameter)
+                             size: size).insetBy(dx: 3 * moduleDiameter, dy: 3 * moduleDiameter)
         self.innerRect = inner
         self.moduleWidth = inner.width / CGFloat(cg.width)
-        
-        super.init(frame: frame)
-        self.image = drawCode()
     }
     
     required init?(coder: NSCoder) {
@@ -97,9 +97,20 @@ extension HalloCode {
             return 20
         }
     }
-    ///
+    /// For rounding the finder patterns and the icon.
     var cornerRadius: CGFloat {
         return 3.5
+    }
+    /// The width of a single finder pattern.
+    ///
+    /// Finder patterns are the big squares in three of the code's corners.
+    /// They have a width of 7 modules.
+    private var finderWidth: CGFloat {
+        return moduleWidth * 7
+    }
+    /// The width of the smaller square that is inside of a finder pattern.
+    private var innerFinderWidth: CGFloat {
+        return moduleWidth * 3
     }
 }
 
@@ -154,7 +165,7 @@ extension HalloCode {
     }
     
     private func removeExistingFinders(_ context: CGContext, _ size: CGSize) {
-        let finderWidth = 7 * moduleWidth
+        let finderWidth = finderWidth
         let f1 = CGRect(x: moduleWidth + drawingOffset,
                         y: moduleWidth + drawingOffset,
                     width: finderWidth,
@@ -178,7 +189,7 @@ extension HalloCode {
     
     private func drawFinderPatterns(_ context: CGContext, _ size: CGSize) {
         let strokeWidth = moduleWidth * 0.64
-        let finderWidth = 7 * moduleWidth
+        let finderWidth = finderWidth
         let finderInset = strokeWidth / 2
         let outerRadius = finderWidth / cornerRadius
         
@@ -186,7 +197,7 @@ extension HalloCode {
         context.setStrokeColor(UIColor.black.cgColor)
         context.setFillColor(UIColor.black.cgColor)
         
-        // finder 1
+        // finder 1 (top left)
         var rect = CGRect(x: moduleWidth + drawingOffset,
                           y: moduleWidth + drawingOffset,
                       width: finderWidth,
@@ -195,18 +206,18 @@ extension HalloCode {
         context.addPath(rounded.cgPath)
         context.strokePath()
 
-        // finder 2
-        rect = CGRect(x: moduleWidth + drawingOffset,
-                      y: ((size.height * moduleWidth) - (8 * moduleWidth)) + drawingOffset,
+        // finder 2 (top right)
+        rect = CGRect(x: ((size.width * moduleWidth) - (8 * moduleWidth)) + drawingOffset,
+                      y: moduleWidth + drawingOffset,
                   width: finderWidth,
                  height: finderWidth).insetBy(dx: finderInset, dy: finderInset)
         rounded = UIBezierPath.init(roundedRect: rect, cornerRadius: outerRadius)
         context.addPath(rounded.cgPath)
         context.strokePath()
         
-        // finder 3
-        rect = CGRect(x: ((size.width * moduleWidth) - (8 * moduleWidth)) + drawingOffset,
-                      y: moduleWidth + drawingOffset,
+        // finder 3 (bottom left)
+        rect = CGRect(x: moduleWidth + drawingOffset,
+                      y: ((size.height * moduleWidth) - (8 * moduleWidth)) + drawingOffset,
                   width: finderWidth,
                  height: finderWidth).insetBy(dx: finderInset, dy: finderInset)
         rounded = UIBezierPath.init(roundedRect: rect, cornerRadius: outerRadius)
@@ -215,45 +226,37 @@ extension HalloCode {
     }
     
     private func drawInnerFinderPatterns(_ context: CGContext, _ size: CGSize) {
-        guard let outlineImage = UIImage(named: "QRIconOutline") else {
+        guard let outlineImage = UIImage(named: "QRIconOutline")?.cgImage else {
             return
         }
         
-        let innerWidth = 3 * moduleWidth
+        // need to calculate a slight offset as the image we're using isn't a square
+        let innerWidth = innerFinderWidth
         let oldHeight = innerWidth
         let newWidth = oldHeight
-        let newHeight = (outlineImage.size.height * newWidth) / outlineImage.size.width
+        let newHeight = (CGFloat(outlineImage.height) * newWidth) / CGFloat(outlineImage.width)
         let innerFinderOffset = (newHeight - oldHeight) / 2
         
-        // inner finder 1
+        // inner finder 1 (top left)
         var rect = CGRect(x: innerWidth + drawingOffset,
-                          y: innerWidth + drawingOffset,
-                      width: innerWidth,
-                     height: innerWidth)
+                          y: (innerWidth + drawingOffset) - innerFinderOffset,
+                      width: newWidth,
+                     height: newHeight)
+        context.draw(outlineImage, in: rect)
         
-        rect.size = CGSize(width: newWidth, height: newHeight)
-        rect.origin.y -= innerFinderOffset
-        context.draw(outlineImage.cgImage!, in: rect)
-        
-        // inner finder 2
-        rect = CGRect(x: innerWidth + drawingOffset,
-                      y: ((size.height * moduleWidth) - (6 * moduleWidth)) + drawingOffset,
-                  width: innerWidth,
-                 height: innerWidth)
-
-        rect.size = CGSize(width: newWidth, height: newHeight)
-        rect.origin.y -= innerFinderOffset
-        context.draw(outlineImage.cgImage!, in: rect)
-        
-        // inner finder 3
+        // inner finder 2 (top right)
         rect = CGRect(x: ((size.width * moduleWidth) - (6 * moduleWidth)) + drawingOffset,
-                      y: innerWidth + drawingOffset,
-                  width: innerWidth,
-                 height: innerWidth)
-
-        rect.size = CGSize(width: newWidth, height: newHeight)
-        rect.origin.y -= innerFinderOffset
-        context.draw(outlineImage.cgImage!, in: rect)
+                      y: (innerWidth + drawingOffset) - innerFinderOffset,
+                  width: newWidth,
+                 height: newHeight)
+        context.draw(outlineImage, in: rect)
+        
+        // inner finder (bottom left)
+        rect = CGRect(x: innerWidth + drawingOffset,
+                      y: (((size.height * moduleWidth) - (6 * moduleWidth)) + drawingOffset) - innerFinderOffset,
+                  width: newWidth,
+                 height: newHeight)
+        context.draw(outlineImage, in: rect)
     }
     
     private func drawIcon(_ context: CGContext) {

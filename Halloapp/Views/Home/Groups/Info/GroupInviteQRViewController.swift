@@ -52,7 +52,7 @@ class GroupInviteQRViewController: UIViewController {
 //
 //            }
             
-            if let code = HalloCode(frame: CGRect(x: 0, y: 0, width: Constants.QRCodeSize, height: Constants.QRCodeSize), string: link) {
+            if let code = HalloCode(size: CGSize(width: Constants.QRCodeSize, height: Constants.QRCodeSize), string: link) {
                 QRImage.image = code.image
             }
         }

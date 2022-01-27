@@ -23,9 +23,9 @@ class HalloCodeTest: XCTestCase {
     
     override func setUpWithError() throws {
         for url in HalloCodeTest.strings {
-            for frame in HalloCodeTest.frames {
+            for size in HalloCodeTest.sizes {
                 // create the same code at different sizes
-                guard let code = HalloCode(frame: frame, string: url) else {
+                guard let code = HalloCode(size: size, string: url) else {
                     throw HalloCodeError.couldNotCreate(url)
                 }
                 
@@ -49,21 +49,21 @@ class HalloCodeTest: XCTestCase {
     /// Tests the performance of creating a large code.
     func testCodeCreationPerformance() throws {
         let url = HalloCodeTest.strings.last!
-        let rect = CGRect(x: 0, y: 0, width: 300, height: 300)
+        let size = CGSize(width: 300, height: 300)
         
         let options = XCTMeasureOptions()
         options.iterationCount = 40
         
         self.measure(options: options) {
-            guard let _ = HalloCode(frame: rect, string: url) else {
+            guard let _ = HalloCode(size: size, string: url)?.image else {
                 fatalError()
             }
         }
     }
 
     private func decode(_ code: HalloCode) -> String? {
+        let image = code.image
         guard
-            let image = code.image,
             let detector = CIDetector(ofType: CIDetectorTypeQRCode,context: nil,
                                      options: [CIDetectorAccuracy: CIDetectorAccuracyHigh]),
             let ci = CIImage(image: image),
@@ -102,9 +102,9 @@ extension HalloCodeTest {
         "Specifically, Apple’s security concerns relate to language in the bill that the company fears would allow iPhone and iPad users to download apps outside of the App Store. Powderly argued this provision could harm users who could download unscreened and potentially harmful software to their devices. If enacted, the bill would make it difficult for Apple to collect its sometimes 30 percent commissions from developers on App Store purchases."
     ]
     
-    private static let frames = [
-        CGRect(x: 0, y: 0, width: 100, height: 100),
-        CGRect(x: 0, y: 0, width: 200, height: 200),
-        CGRect(x: 0, y: 0, width: 300, height: 300)
+    private static let sizes = [
+        CGSize(width: 100, height: 100),
+        CGSize(width: 200, height: 200),
+        CGSize(width: 300, height: 300)
     ]
 }
