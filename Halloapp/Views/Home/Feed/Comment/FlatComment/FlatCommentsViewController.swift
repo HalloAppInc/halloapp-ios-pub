@@ -385,6 +385,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }
         messageInputView.mentionText = draft.text
         messageInputView.updateInputView()
+    }
   
     // MARK: Scrolling and Highlighting
 
@@ -500,9 +501,6 @@ extension FlatCommentsViewController: TextLabelDelegate {
 }
 
 extension FlatCommentsViewController: CommentInputViewDelegate {
-    func commentInputViewCouldNotRecordDuringCall(_ inputView: CommentInputView) {
-        // TODO Dini
-    }
 
     func commentInputView(_ inputView: CommentInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
             self.updateCollectionViewContentOffset(forKeyboardHeight: inputView.bottomInset)
