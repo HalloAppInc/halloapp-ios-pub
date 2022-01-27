@@ -50,7 +50,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private let waitForCellTimeout: TimeInterval = 0.25
 
-    private var viewHaveAppear: Bool = false
+    private var isHeaderSetup: Bool = false
     private var firstActionHappened: Bool = false
 
     private var currentUnseenChatThreadsList: [UserID: Int] = [:]
@@ -123,6 +123,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         DispatchQueue.main.async { [weak self] in
             self?.setupOrRefreshHeaderAndFooter()
+            self?.isHeaderSetup = true
+            self?.scrollToBottomIfNecessary()
         }
 
         dataSource = ChatDataSource(tableView: tableView) { [weak self] (tableView, indexPath, row) in
@@ -338,19 +340,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         chatInputView.willAppear(in: self)
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        guard !viewHaveAppear else { return }
-
-        tableView.tableFooterView = nil
-        scrollToBottom(false)
+        scrollToBottomIfNecessary()
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        viewHaveAppear = true
 
         if let chatWithUserId = self.fromUserId {
             MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
@@ -874,28 +868,38 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 guard let chatMsg = anObject as? ChatMessage else { break }
                 DDLogVerbose("ChatViewController/frc/msg/insert \(chatMsg.id)")
                 shouldUpdate = true
-                shouldScrollToBottom = checkIfShouldScrollToBottom(chatMsg.fromUserId)
+                receivedNewItem = true
+                if chatMsg.fromUserId != MainAppContext.shared.userData.userId {
+                    incrementJumpButtonIfVisible()
+                }
             default:
                 break
             }
-        case fetchedResultsController:
+        case chatEventFetchedResultsController:
             switch type {
             case .insert:
                 DDLogVerbose("ChatViewController/frc/event/insert")
                 guard let event = anObject as? ChatEvent else { break }
                 shouldUpdate = true
-                shouldScrollToBottom = checkIfShouldScrollToBottom(event.userID)
+                receivedNewItem = true
+                if event.userID != MainAppContext.shared.userData.userId {
+                    incrementJumpButtonIfVisible()
+                }
             default:
                 break
             }
         case callHistoryFetchedResultsController:
-            DDLogVerbose("ChatViewController/callHistoryFRC/event/\(type)")
+            DDLogVerbose("ChatViewController/frc/call/event/\(type)")
             switch type {
-            case .insert, .delete:
+            case .insert:
                 guard let call = anObject as? Core.Call else { break }
                 shouldUpdate = true
-                shouldScrollToBottom = checkIfShouldScrollToBottom(call.peerUserID)
-            case .move, .update:
+                receivedNewItem = true
+                if call.direction == .incoming {
+                    incrementJumpButtonIfVisible()
+                }
+
+            case .move, .update, .delete:
                 break
             @unknown default:
                 break
@@ -961,10 +965,10 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         dataSource?.defaultRowAnimation = .fade
 
         dataSource?.apply(snapshot, animatingDifferences: animated) { [weak self] in
-            guard let self = self else { return }
-            guard self.shouldScrollToBottom else { return }
-            self.scrollToBottom(false)
-            self.shouldScrollToBottom = false
+            // Need to dispatch this call to get the right offset after sending a message
+            DispatchQueue.main.async {
+                self?.scrollToBottomIfNecessary()
+            }
         }
     }
 
@@ -985,17 +989,28 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         navigationController?.viewControllers = viewControllers
     }
 
-    private func checkIfShouldScrollToBottom(_ userID: UserID) -> Bool {
-        var result = true
-        guard userID != MainAppContext.shared.userData.userId else { return result }
+    private var needsInitialScrollToBottom = true
+    private var receivedNewItem = false
 
-        if jumpButton.isHidden == false {
-            result = false
-            jumpButtonUnreadCount += 1
-            jumpButtonUnreadCountLabel.text = String(jumpButtonUnreadCount)
+    private func incrementJumpButtonIfVisible() {
+        guard !jumpButton.isHidden else { return }
+        jumpButtonUnreadCount += 1
+        jumpButtonUnreadCountLabel.text = String(jumpButtonUnreadCount)
+    }
+
+    private func scrollToBottomIfNecessary() {
+        guard isHeaderSetup else {
+            // NB: Header gets added asynchronously.
+            // Wait for it before performing initial scroll.
+            return
         }
-
-        return result
+        if needsInitialScrollToBottom {
+            scrollToBottom(false)
+        } else if receivedNewItem && jumpButton.isHidden {
+            scrollToBottom(true)
+        }
+        receivedNewItem = false
+        needsInitialScrollToBottom = false
     }
 
     private func scrollToBottom(_ animated: Bool = true) {
