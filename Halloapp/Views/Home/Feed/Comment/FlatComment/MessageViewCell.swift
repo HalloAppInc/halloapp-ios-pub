@@ -71,11 +71,19 @@ class MessageViewCell: UICollectionViewCell {
         }
     }
 
+    var isCellHighlighted: Bool = false {
+        didSet {
+            self.backgroundColor = isCellHighlighted ? UIColor.systemBlue.withAlphaComponent(0.1) : .clear
+        }
+    }
+
     private lazy var messageRow: UIStackView = {
         let hStack = UIStackView(arrangedSubviews: [ nameTextTimeRow ])
         hStack.axis = .horizontal
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.isUserInteractionEnabled = true
+        hStack.isLayoutMarginsRelativeArrangement = true
+        hStack.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
         nameTextTimeRow.setContentHuggingPriority(.defaultHigh, for: .vertical)
         NSLayoutConstraint.activate([
             nameTextTimeRow.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(MaxWidthOfMessageBubble).rounded()),
@@ -267,7 +275,7 @@ class MessageViewCell: UICollectionViewCell {
         contentView.preservesSuperviewLayoutMargins = false
         contentView.addSubview(messageRow)
         messageRow.constrain([.top], to: contentView)
-        messageRow.constrainMargin(anchor: .bottom, to: contentView, constant: 5, priority: UILayoutPriority(rawValue: 999))
+        messageRow.constrain(anchor: .bottom, to: contentView, priority: UILayoutPriority(rawValue: 999))
         setupConditionalConstraints()
 
         // Reply gesture

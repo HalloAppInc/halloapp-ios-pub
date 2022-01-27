@@ -37,10 +37,13 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     typealias CommentDataSource = UICollectionViewDiffableDataSource<String, FeedPostComment>
     typealias CommentSnapshot = NSDiffableDataSourceSnapshot<String, FeedPostComment>
     static private let messageViewCellReuseIdentifier = "MessageViewCell"
+    static private let cellHighlightAnimationDuration = 0.15
 
     private var mediaPickerController: MediaPickerViewController?
     private var cancellableSet: Set<AnyCancellable> = []
     private var parentCommentID: FeedPostCommentID?
+    var highlightedCommentId: FeedPostCommentID?
+    private var commentToScrollTo: FeedPostCommentID?
 
     private var feedPostId: FeedPostID {
         didSet {
@@ -102,6 +105,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         collectionView.allowsSelection = false
         collectionView.contentInsetAdjustmentBehavior = .scrollableAxes
         collectionView.preservesSuperviewLayoutMargins = true
+        collectionView.keyboardDismissMode = .interactive
         collectionView.register(MessageViewCell.self, forCellWithReuseIdentifier: FlatCommentsViewController.messageViewCellReuseIdentifier)
         collectionView.register(MessageCommentHeaderView.self, forSupplementaryViewOfKind: MessageCommentHeaderView.elementKind, withReuseIdentifier: MessageCommentHeaderView.elementKind)
         collectionView.register(MessageTimeHeaderView.self, forSupplementaryViewOfKind: MessageTimeHeaderView.elementKind, withReuseIdentifier: MessageTimeHeaderView.elementKind)
@@ -129,14 +133,18 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         navigationItem.title = Localizations.titleComments
         view.backgroundColor = UIColor.primaryBg
         view.addSubview(collectionView)
-        collectionView.constrainMargins([.top, .leading, .bottom, .trailing], to: view)
+        collectionView.constrain(to: view)
         if let feedPost = feedPost {
             configureUI(with: feedPost)
         }
         messageInputView.delegate = self
+        // Long press message options
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(getMessageOptions))
         longPressGesture.delaysTouchesBegan = true
         collectionView.addGestureRecognizer(longPressGesture)
+        // Dismiss keyboard when user taps comments
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
+        view.addGestureRecognizer(tapGesture)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -148,6 +156,27 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         super.viewDidAppear(animated)
         // TODO @dini check if post is available first
         MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
+        resetCommentHighlightingIfNeeded()
+    }
+
+    private func resetCommentHighlightingIfNeeded() {
+        if let commentId = highlightedCommentId, fetchedResultsController?.fetchedObjects?.firstIndex(where: {$0.id == commentId }) != nil {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+                guard let self = self else { return }
+                self.unhighlightComment(commentId)
+            }
+            highlightedCommentId = nil
+        }
+    }
+
+    private func unhighlightComment(_ commentId: FeedPostCommentID) {
+        for cell in collectionView.visibleCells.compactMap({ $0 as? MessageViewCell }) {
+            if cell.feedPostCommentID == commentId && cell.isCellHighlighted {
+                UIView.animate(withDuration: Self.cellHighlightAnimationDuration) {
+                    cell.isCellHighlighted = false
+                }
+            }
+        }
     }
 
     private func configureUI(with feedPost: FeedPost) {
@@ -158,6 +187,15 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         if let comments = fetchedResultsController?.fetchedObjects {
             MainAppContext.shared.feedData.downloadMedia(in: comments)
         }
+        // Coming from notification
+        if let highlightedCommentId = highlightedCommentId {
+            commentToScrollTo = highlightedCommentId
+        }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        scrollToTarget(withAnimation: true)
     }
     
     private func initFetchedResultsController() {
@@ -191,7 +229,9 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
             }
         }
-        dataSource.apply(snapshot, animatingDifferences: true)
+        dataSource.apply(snapshot, animatingDifferences: true) {
+            self.scrollToTarget(withAnimation: true)
+        }
     }
 
     private func createLayout() -> UICollectionViewCompositionalLayout {
@@ -278,6 +318,10 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         self.navigationController?.pushViewController(userViewController, animated: true)
     }
 
+    @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
+        messageInputView.hideKeyboard()
+    }
+
     // MARK: Input view
 
     private let messageInputView: CommentInputView = CommentInputView(frame: .zero)
@@ -291,6 +335,41 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     override var inputAccessoryView: CommentInputView? {
         self.messageInputView.setInputViewWidth(self.view.bounds.size.width)
         return self.messageInputView
+    }
+
+    // MARK: Scrolling and Highlighting
+
+    private func scrollToTarget(withAnimation: Bool) {
+        DDLogDebug("FlatCommentsView/scrollToTarget/withAnimation: \(withAnimation)")
+        let animated = withAnimation && isViewLoaded && view.window != nil && transitionCoordinator == nil
+        DDLogDebug("FlatCommentsView/scrollToTarget/commentToScrollTo: \(commentToScrollTo ?? "")")
+        if let commentId = commentToScrollTo  {
+            scroll(toComment: commentId, animated: animated, highlightAfterScroll: commentId)
+        }
+    }
+
+    private func scroll(toComment commentId: FeedPostCommentID, animated: Bool, highlightAfterScroll: FeedPostCommentID?) {
+        DDLogDebug("FlatCommentsView/scroll/called/toComment: \(commentId)")
+        guard let index = fetchedResultsController?.fetchedObjects?.firstIndex(where: {$0.id == commentId }) else {
+            return
+        }
+        let commentObj = fetchedResultsController?.fetchedObjects?[index]
+        if let commentObj = commentObj, let indexp = fetchedResultsController?.indexPath(forObject: commentObj) {
+            DDLogDebug("FlatCommentsView/scroll/scrolling/toComment: \(commentId)")
+            collectionView.scrollToItem(at: indexp, at: .centeredVertically, animated: animated)
+            // if this comment needs to be highlighted after scroll, reset commentToScrollTo after highlighting
+            if let highlightedCommentId = highlightedCommentId, highlightedCommentId == commentId {
+                guard let cell = collectionView.cellForItem(at: indexp) as? MessageViewCell else { return }
+                    DDLogDebug("FlatCommentsView/scroll/highlighting/toComment: \(commentId)")
+                UIView.animate(withDuration: Self.cellHighlightAnimationDuration) {
+                    cell.isCellHighlighted = true
+                }
+                commentToScrollTo = nil
+            } else {
+                // comment does not need highlighting, we can safely reset commentToScrollTo
+                commentToScrollTo = nil
+            }
+        }
     }
 }
 
@@ -372,7 +451,38 @@ extension FlatCommentsViewController: TextLabelDelegate {
 }
 
 extension FlatCommentsViewController: CommentInputViewDelegate {
+    func commentInputViewCouldNotRecordDuringCall(_ inputView: CommentInputView) {
+        // TODO Dini
+    }
+
     func commentInputView(_ inputView: CommentInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
+            self.updateCollectionViewContentOffset(forKeyboardHeight: inputView.bottomInset)
+            // Manually adjust insets to account for inputView
+            let bottomContentInset = inputView.bottomInset - collectionView.safeAreaInsets.bottom
+            collectionView.contentInset.bottom = bottomContentInset
+            collectionView.verticalScrollIndicatorInsets.bottom = bottomContentInset
+        }
+
+        func updateCollectionViewContentOffset(forKeyboardHeight keyboardHeight: CGFloat) {
+            let bottomInset = keyboardHeight
+            let currentInset = self.collectionView.adjustedContentInset
+            var contentOffset = self.collectionView.contentOffset
+
+            DDLogDebug("FlatCommentsView/keyboard Bottom inset: [\(bottomInset)]  Current insets: [\(currentInset)]")
+
+            if bottomInset > currentInset.bottom && currentInset.bottom == collectionView.safeAreaInsets.bottom {
+                // Because of the SwiftUI the accessory view appears with a slight delay
+                // and bottom inset increased from 0 to some value. Do not scroll when that happens.
+                return
+            }
+
+            contentOffset.y += bottomInset - currentInset.bottom
+
+            contentOffset.y = min(contentOffset.y, collectionView.contentSize.height - (collectionView.frame.height - currentInset.top - bottomInset))
+            contentOffset.y = max(contentOffset.y, -currentInset.top)
+
+            DDLogDebug("FlatCommentsView/keyboard Content offset: [\(collectionView.contentOffset)] -> [\(contentOffset)]")
+            self.collectionView.contentOffset = contentOffset
     }
 
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText, andMedia media: PendingMedia?, linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?) {
@@ -468,7 +578,7 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
         if let media = media {
             sendMedia.append(media)
         }
-        MainAppContext.shared.feedData.post(comment: text, media: sendMedia, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: feedPostId, replyingTo: parentCommentID)
+        commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, media: sendMedia, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: feedPostId, replyingTo: parentCommentID)
         messageInputView.clear()
     }
 }
