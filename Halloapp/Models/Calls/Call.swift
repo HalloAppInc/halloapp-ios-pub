@@ -171,6 +171,51 @@ class Call {
         callFailTImer = timer
     }
 
+    private func saveCallStatusAndSendReport(durationMs: Double, reason: EndCallReason) {
+        // Save call status to CoreData
+        MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+            call.durationMs = durationMs
+            call.endReason = reason
+        }
+        // Send call report to the server.
+        let direction = isOutgoing ? "outgoing" : "incoming"
+        let networkType = MainAppContext.shared.service.reachabilityConnectionType.lowercased()
+        DDLogInfo("Call/\(callID)/end/networkType: \(networkType)/checking")
+        webRTCClient?.fetchPeerConnectionStats() { [self] report in
+            let filteredReport = report.statistics.filter { (key, stats) in
+                return !unwantedStatTypes.contains(stats.type)
+            }
+            let modifiedReport = filteredReport.mapValues { stats -> [String: Any] in
+                return ["id": stats.id,
+                         "timestamp_us": stats.timestamp_us,
+                         "type": stats.type,
+                         "values": stats.values
+                        ]
+            }
+            do {
+                let reasonStr = reason.serverEndCallReasonStr
+                let webrtcStatsData = try JSONSerialization.data(withJSONObject: modifiedReport, options: [.prettyPrinted, .withoutEscapingSlashes])
+                if let webrtcStatsString = String(data: webrtcStatsData, encoding: .utf8) {
+                    AppContext.shared.observeAndSave(event: .callReport(id: callID,
+                                                                       peerUserID: peerUserID,
+                                                                       type: "audio",
+                                                                       direction: direction,
+                                                                       networkType: networkType,
+                                                                       answered: isAnswered,
+                                                                       connected: isConnected,
+                                                                       duration_ms: Int(durationMs),
+                                                                       endCallReason: reasonStr,
+                                                                       localEndCall: isCallEndedLocally,
+                                                                       webrtcStats: webrtcStatsString))
+                } else {
+                    DDLogError("Call/\(callID)/end/failed getting callReport data")
+                }
+            } catch {
+                DDLogError("Call/\(callID)/end/failed getting callReport data")
+            }
+        }
+    }
+
     // MARK: Local User Actions
 
     func start(completion: @escaping ((_ success: Bool) -> Void)) {
@@ -322,49 +367,7 @@ class Call {
         callQueue.async { [self] in
             isCallEndedLocally = true
             service.endCall(id: callID, to: peerUserID, reason: reason)
-
-            // Send call report to the server.
-            let direction = isOutgoing ? "outgoing" : "incoming"
-            let networkType = MainAppContext.shared.service.reachabilityConnectionType.lowercased()
-            DDLogInfo("Call/\(callID)/end/networkType: \(networkType)/checking")
-            webRTCClient?.fetchPeerConnectionStats() { report in
-                let filteredReport = report.statistics.filter { (key, stats) in
-                    return !unwantedStatTypes.contains(stats.type)
-                }
-                let modifiedReport = filteredReport.mapValues { stats -> [String: Any] in
-                    return ["id": stats.id,
-                             "timestamp_us": stats.timestamp_us,
-                             "type": stats.type,
-                             "values": stats.values
-                            ]
-                }
-                do {
-                    MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
-                        call.durationMs = durationMs
-                        call.endReason = reason
-                    }
-                    let reasonStr = reason.serverEndCallReasonStr
-                    let webrtcStatsData = try JSONSerialization.data(withJSONObject: modifiedReport, options: [.prettyPrinted, .withoutEscapingSlashes])
-                    if let webrtcStatsString = String(data: webrtcStatsData, encoding: .utf8) {
-                        AppContext.shared.observeAndSave(event: .callReport(id: callID,
-                                                                           peerUserID: peerUserID,
-                                                                           type: "audio",
-                                                                           direction: direction,
-                                                                           networkType: networkType,
-                                                                           answered: isAnswered,
-                                                                           connected: isConnected,
-                                                                           duration_ms: Int(durationMs),
-                                                                           endCallReason: reasonStr,
-                                                                           localEndCall: isCallEndedLocally,
-                                                                           webrtcStats: webrtcStatsString))
-                    } else {
-                        DDLogError("Call/\(callID)/end/failed getting callReport data")
-                    }
-                } catch {
-                    DDLogError("Call/\(callID)/end/failed getting callReport data")
-                }
-            }
-
+            saveCallStatusAndSendReport(durationMs: durationMs, reason: reason)
             webRTCClient?.end()
             state = .inactive
             DDLogInfo("Call/\(callID)/end/success")
@@ -505,10 +508,12 @@ class Call {
         }
     }
 
-    func didReceiveEndCall() {
+    func didReceiveEndCall(reason: EndCallReason) {
         DDLogInfo("Call/\(callID)/didReceiveEndCall/begin")
+        let durationMs = MainAppContext.shared.callManager.callDurationMs
         callQueue.async { [self] in
-            // TODO: send call report to the server.
+            isCallEndedLocally = false
+            saveCallStatusAndSendReport(durationMs: durationMs, reason: reason)
             webRTCClient?.end()
             state = .inactive
             DDLogInfo("Call/\(callID)/didReceiveEndCall/success")

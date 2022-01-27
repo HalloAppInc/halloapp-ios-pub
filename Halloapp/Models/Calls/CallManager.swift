@@ -733,7 +733,7 @@ extension CallManager: HalloCallDelegate {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/resetWhisperSession")
                 AppContext.shared.messageCrypter.resetWhisperSession(for: peerUserID)
             }
-            activeCall?.didReceiveEndCall()
+            activeCall?.didReceiveEndCall(reason: endCall.endCallReason)
             activeCall = nil
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
         }

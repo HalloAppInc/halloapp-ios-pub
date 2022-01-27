@@ -69,6 +69,35 @@ extension Server_EndCall {
             return false
         }
     }
+
+    public var endCallReason: EndCallReason {
+        switch self.reason {
+        case .callEnd:
+            return .ended
+        case .cancel:
+            return .canceled
+        case .reject:
+            return .reject
+        case .busy:
+            return .busy
+        case .timeout:
+            return .timeout
+        case .systemError:
+            return .systemError
+        case .encryptionFailed:
+            return .encryptionError
+        case .decryptionFailed:
+            return .decryptionError
+        case .connectionError:
+            return .connectionError
+        case .videoUnsupported:
+            return .videoUnsupportedError
+        case .unknown:
+            return .unknown
+        case .UNRECOGNIZED(_):
+            return .ended
+        }
+    }
 }
 
 public enum CallError: Error {
