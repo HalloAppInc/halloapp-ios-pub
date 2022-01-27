@@ -213,11 +213,15 @@ fileprivate struct RecordButton: View {
         }
         .opacity(isHidden ? 0 : 1)
         .onReceive(audioMeter) { (averagePower: Float, _) in
-            meterScale1 = 1 + 0.4 * min(1, max(0, 8 * CGFloat(pow(10, (0.05 * averagePower)))))
+            meterScale1 = convertToScale(dbm: CGFloat(averagePower))
         }
         .onReceive(audioMeter.delay(for: .seconds(0.2), scheduler: RunLoop.main)) { (averagePower: Float, _) in
-            meterScale2 = 1 + 0.4 * min(1, max(0, 8 * CGFloat(pow(10, (0.05 * averagePower)))))
+            meterScale2 = convertToScale(dbm: CGFloat(averagePower))
         }
+    }
+
+    private func convertToScale(dbm: CGFloat) -> CGFloat {
+        return 1.0 + 0.4 * min(1.0, max(0.0, 8 * CGFloat(pow(10.0, (0.05 * dbm)))))
     }
 }
 

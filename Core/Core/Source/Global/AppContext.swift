@@ -242,7 +242,6 @@ open class AppContext {
         fileLogger.logFormatter = FileLogFormatter()
         DDLog.add(fileLogger)
         self.fileLogger = fileLogger
-        let files = fileLogger.logFileManager.sortedLogFilePaths
 
         let osLogger = DDOSLogger.sharedInstance
         osLogger.logFormatter = LogFormatter()
