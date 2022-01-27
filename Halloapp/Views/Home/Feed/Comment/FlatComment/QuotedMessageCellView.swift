@@ -42,22 +42,15 @@ class QuotedMessageCellView: UIView {
         return mediaView
     }()
     
-    private lazy var textView: UnselectableUITextView = {
-        let textView = UnselectableUITextView()
-        textView.translatesAutoresizingMaskIntoConstraints = false
-        textView.isHidden = true
-        textView.isScrollEnabled = false
-        textView.isEditable = false
-        textView.isSelectable = true
-        textView.isUserInteractionEnabled = true
-        textView.dataDetectorTypes = .link
-        textView.textContainerInset = UIEdgeInsets.zero
-        textView.textColor = UIColor.systemGray
-        textView.backgroundColor = .clear
-        textView.font = UIFont.preferredFont(forTextStyle: .footnote)
-        textView.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
-        textView.setContentHuggingPriority(.defaultHigh, for: .vertical)
-        return textView
+    lazy var textView: TextLabel = {
+        let textLabel = TextLabel()
+        textLabel.isUserInteractionEnabled = true
+        textLabel.backgroundColor = .clear
+        textLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+        textLabel.isHidden = true
+        textLabel.numberOfLines = 0
+        return textLabel
     }()
     
     private lazy var bubbleView: UIView = {
@@ -73,9 +66,32 @@ class QuotedMessageCellView: UIView {
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
         return bubbleView
     }()
-    
+
+    private lazy var nameLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.boldSystemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        return label
+    }()
+
+    private lazy var nameTextRow: UIStackView = {
+        let vStack = UIStackView(arrangedSubviews: [ nameLabel, textView ])
+        vStack.axis = .vertical
+        vStack.alignment = .fill
+        vStack.isLayoutMarginsRelativeArrangement = true
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.spacing = 5
+        // Set bubble background
+        vStack.insertSubview(bubbleView, at: 0)
+        return vStack
+    }()
+
     private lazy var quotedView: UIStackView = {
-        let quotedView = UIStackView(arrangedSubviews: [textView, mediaView])
+        let quotedView = UIStackView(arrangedSubviews: [mediaView, nameTextRow])
         quotedView.axis = .horizontal
         quotedView.alignment = .fill
         quotedView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -116,19 +132,13 @@ class QuotedMessageCellView: UIView {
     func configureWithComment(comment: FeedPostComment) {
         hasText = false
         hasMedia = false
+        setNameLabel(for: comment.userId)
         configureText(comment: comment)
         configureMedia(comment: comment)
-        updateMediaConstraints()
     }
 
-    private func updateMediaConstraints() {
-        if hasMedia {
-            mediaWidthConstraint.priority = UILayoutPriority.defaultHigh
-            mediaHeightConstraint.priority = UILayoutPriority.defaultHigh
-        } else {
-            mediaWidthConstraint.priority = UILayoutPriority.defaultLow
-            mediaHeightConstraint.priority = UILayoutPriority.defaultLow
-        }
+    private func setNameLabel(for userID: String) {
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true)
     }
 
     private func configureText(comment: FeedPostComment) {

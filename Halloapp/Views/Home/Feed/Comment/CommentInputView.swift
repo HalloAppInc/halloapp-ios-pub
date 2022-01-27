@@ -518,10 +518,36 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         return tapRecognizer
     }()
 
-    private lazy var quotedPanel: QuotedMessageCellView =  {
-        let quotedPanel = QuotedMessageCellView()
+    // Quoted replied for the new flat comments view
+    private lazy var quotedPanel: UIView =  {
+        var quotedPanel = UIView()
         quotedPanel.translatesAutoresizingMaskIntoConstraints = false
+        quotedPanel.preservesSuperviewLayoutMargins = true
+        quotedPanel.addSubview(quotedCellView)
+        quotedPanel.addSubview(quotedPanelCloseButton)
+        quotedCellView.constrainMargins(to: quotedPanel)
+        NSLayoutConstraint.activate([
+            quotedPanelCloseButton.trailingAnchor.constraint(equalTo: quotedCellView.trailingAnchor, constant: -6),
+            quotedPanelCloseButton.topAnchor.constraint(equalTo: quotedCellView.topAnchor, constant: 6),
+        ])
         return quotedPanel
+    }()
+
+    private lazy var quotedCellView: QuotedMessageCellView =  {
+        let quotedCellView = QuotedMessageCellView()
+        quotedCellView.translatesAutoresizingMaskIntoConstraints = false
+        return quotedCellView
+    }()
+
+    private lazy var quotedPanelCloseButton: UIButton = {
+        let closeButton = UIButton(type: .custom)
+        closeButton.bounds.size = CGSize(width: closeButtonDiameter, height: closeButtonDiameter)
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.setImage(UIImage(systemName: "xmark.circle.fill")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        closeButton.tintColor = .placeholderText
+        closeButton.layer.cornerRadius = 0.5 * closeButtonDiameter
+        closeButton.addTarget(self, action: #selector(didTapCloseQuotedPanel), for: .touchUpInside)
+        return closeButton
     }()
 
     private var borderMaskLayer: CAShapeLayer?
@@ -771,9 +797,16 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }
 
     func showQuotedReplyPanel(comment: FeedPostComment) {
-        quotedPanel.configureWithComment(comment: comment)
         if !vStack.subviews.contains(quotedPanel){
             vStack.insertArrangedSubview(quotedPanel, at: 0)
+        }
+        quotedCellView.configureWithComment(comment: comment)
+    }
+
+    func removeQuotedReplyPanel() {
+        if vStack.subviews.contains(quotedPanel){
+            vStack.removeArrangedSubview(quotedPanel)
+            quotedPanel.removeFromSuperview()
         }
     }
 
@@ -788,6 +821,10 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     @objc private func didTapCloseMediaPanel() {
         self.delegate?.commentInputViewResetInputMedia(self)
+    }
+
+    @objc private func didTapCloseQuotedPanel() {
+        self.delegate?.commentInputViewResetReplyContext(self)
     }
 
     @objc private func tapMediaAction(sender: UITapGestureRecognizer) {

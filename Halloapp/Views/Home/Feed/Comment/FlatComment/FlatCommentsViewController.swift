@@ -510,6 +510,8 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
     }
 
     func commentInputViewResetReplyContext(_ inputView: CommentInputView) {
+        parentCommentID = nil
+        messageInputView.removeQuotedReplyPanel()
     }
 
     func commentInputViewMicrophoneAccessDenied(_ inputView: CommentInputView) {
