@@ -14,7 +14,6 @@ fileprivate struct Constants {
 }
 
 class GroupInviteQRViewController: UIViewController {
-
     private var inviteLink: String?
     private var orignalScreenBrightness: CGFloat = 0.5
 
@@ -43,24 +42,34 @@ class GroupInviteQRViewController: UIViewController {
     private func setupView() {
         view.backgroundColor = .primaryBg
         view.addSubview(mainView)
+        navigationItem.rightBarButtonItem = shareButton
         mainView.constrain(to: view)
 
         if let link = inviteLink {
-//            if let data = link.data(using: .ascii, allowLossyConversion: false) {
-//                let image = UIImage.qrCodeImage(for: data, size: CGSize(width: Constants.QRCodeSize, height: Constants.QRCodeSize))
-//                QRImage.image = image
-//
-//            }
-            
             if let code = HalloCode(size: CGSize(width: Constants.QRCodeSize, height: Constants.QRCodeSize), string: link) {
                 QRImage.image = code.image
             }
         }
-
     }
     
+    @objc private func pushedShare(_ button: UIBarButtonItem) {
+        guard let image = QRImage.image else {
+            return
+        }
+        
+        let activityVC = UIActivityViewController(activityItems: [image], applicationActivities: nil)
+        present(activityVC, animated: true, completion: nil)
+    }
+    
+    private lazy var shareButton: UIBarButtonItem = {
+        let config = UIImage.SymbolConfiguration(weight: .medium)
+        let share = UIImage(systemName: "square.and.arrow.up", withConfiguration: config)?.withRenderingMode(.alwaysOriginal)
+        let button = UIBarButtonItem(image: share, style: .plain, target: self, action: #selector(pushedShare))
+        
+        return button
+    }()
+    
     private lazy var mainView: UIStackView = {
-
         let view = UIStackView(arrangedSubviews: [QRImage])
         view.axis = .vertical
         view.alignment = .center
