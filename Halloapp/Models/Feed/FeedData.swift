@@ -813,6 +813,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     DDLogError("FeedData/process-posts/invalid content [\(xmppPost.id)] with status: \(xmppPost.status)")
                 }
             }
+            // Clear cached media if any.
+            cachedMedia[feedPost.id] = nil
 
             var mentions = Set<FeedMention>()
             for xmppMention in xmppPost.orderedMentions {
@@ -980,6 +982,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 comment.userId = xmppComment.userId
                 comment.parent = parentComment
                 comment.post = feedPost
+                // Clear cached media if any.
+                cachedMedia[comment.id] = nil
 
                 // Set status to be rerequesting if necessary.
                 if xmppComment.status == .rerequesting {
@@ -3801,6 +3805,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedPost.rawData = rawData
                 feedPost.status = .unsupported
             }
+            // Clear cached media if any.
+            cachedMedia[postId] = nil
 
             // Mentions
             var mentionSet = Set<FeedMention>()
@@ -4045,6 +4051,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }()
         feedComment.timestamp = sharedComment.timestamp
+        // Clear cached media if any.
+        cachedMedia[commentId] = nil
         
         if let rawData = sharedComment.rawData {
             feedComment.rawData = rawData

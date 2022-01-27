@@ -239,6 +239,8 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     // This works around an NSDiffableDataSource issue.
     // Cells for deleted posts need to be reloaded (but only when they're first deleted)
     private var deletedPostIDs = Set<FeedPostID>()
+
+    private var waitingPostIds = Set<FeedPostID>()
     
     private func update(with items: [FeedDisplayItem]) {
         willUpdate(with: items)
@@ -246,6 +248,11 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         let updatedPostIDs = Set(items.compactMap { $0.post?.id })
 
         let newPostIDs = updatedPostIDs.subtracting(loadedPostIDs)
+        let newWaitingPosts = items.filter {
+            guard let post = $0.post else { return false }
+            return post.isWaiting
+        }
+        waitingPostIds.formUnion(newWaitingPosts.compactMap { $0.post?.id })
 
         if !isNearTop(100) && !newPostIDs.isEmpty {
             let userOwnItems = items.filter { $0.post?.userId == MainAppContext.shared.userData.userId }
@@ -263,7 +270,15 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
             return post.isPostRetracted && !deletedPostIDs.contains(post.id)
         }
 
+        let newlyDecryptedPosts = items.filter {
+            guard let post = $0.post else { return false }
+            return !post.isWaiting && waitingPostIds.contains(post.id)
+        }
+
         newlyDeletedPosts.forEach {
+            self.cachedCellHeights[$0] = nil
+        }
+        newlyDecryptedPosts.forEach {
             self.cachedCellHeights[$0] = nil
         }
 
@@ -272,8 +287,9 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         snapshot.appendItems(items)
 
         // TODO: See if we can improve this animation
-        snapshot.reloadItems(newlyDeletedPosts)
+        snapshot.reloadItems(newlyDeletedPosts + newlyDecryptedPosts)
         deletedPostIDs.formUnion(newlyDeletedPosts.compactMap { $0.post?.id })
+        waitingPostIds = waitingPostIds.subtracting(newlyDecryptedPosts.compactMap { $0.post?.id })
 
         collectionViewDataSource?.apply(snapshot, animatingDifferences: true) { [weak self] in
             self?.loadedPostIDs = updatedPostIDs

@@ -465,7 +465,6 @@ class CommentView: UIView {
                 font: UIFont.preferredFont(forTextStyle: .subheadline).withItalicsIfAvailable,
                 color: .secondaryLabel)
         case .incoming, .sendError, .sending, .sent, .none, .played:
-            // TODO: we should reconfigure and update the comment here.
             hideDeletedView()
         case .rerequesting:
             if comment.isWaiting {
@@ -476,8 +475,6 @@ class CommentView: UIView {
                     color: .secondaryLabel)
             } else {
                 hideDeletedView()
-                // TODO: murali@: we need to refresh content here.
-                // check with team on how to do this.
             }
         }
         
