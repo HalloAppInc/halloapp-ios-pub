@@ -25,7 +25,7 @@ final class ContactSelectionViewController: UIViewController {
         header: String? = nil,
         showSearch: Bool = true,
         style: Style = .default,
-        saveAction: ((Set<UserID>) -> Void)? = nil,
+        saveAction: ((ContactSelectionViewController, Set<UserID>) -> Void)? = nil,
         dismissAction: (() -> Void)? = nil)
     {
         searchController = {
@@ -169,7 +169,7 @@ final class ContactSelectionViewController: UIViewController {
     }()
     private var searchController: UISearchController?
 
-    private let saveAction: ((Set<UserID>) -> Void)?
+    private let saveAction: ((ContactSelectionViewController, Set<UserID>) -> Void)?
     private let dismissAction: (() -> Void)?
 
     private var cancellableSet = Set<AnyCancellable>()
@@ -247,7 +247,7 @@ final class ContactSelectionViewController: UIViewController {
     // MARK: Top Nav Button Actions
 
     @objc private func didTapDone() {
-        saveAction?(manager.selectedUserIDs)
+        saveAction?(self, manager.selectedUserIDs)
     }
 
     @objc private func didTapCancel() {
@@ -520,7 +520,13 @@ extension ContactSelectionViewController {
             title: PrivacyList.title(forPrivacyListType: privacyList.type),
             header: PrivacyList.details(forPrivacyListType: privacyList.type),
             style: privacyList.type == .blacklist ? .destructive : .default,
-            saveAction: { userIDs in
+            saveAction: { vc, userIDs in
+
+                if privacyList.type == .whitelist, userIDs.isEmpty {
+                    vc.presentNoContactSelectedAlert()
+                    return
+                }
+
                 privacySettings.replaceUserIDs(in: privacyList, with: userIDs)
 
                 if let doneAction = doneAction {
@@ -530,6 +536,15 @@ extension ContactSelectionViewController {
                 }
             },
             dismissAction: dismissAction)
+    }
+
+    func presentNoContactSelectedAlert() {
+        let alert = UIAlertController(
+            title: Localizations.noContactSelected,
+            message: Localizations.selectAtLeastOneContact,
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
+        present(alert, animated: true)
     }
 }
 
@@ -593,4 +608,13 @@ struct SelectableContact: Hashable, Equatable {
     var name: String
     var phoneNumber: String?
     var searchTokens = [String]()
+}
+
+extension Localizations {
+    static var noContactSelected: String {
+        NSLocalizedString("no.contact.selected", value: "No contact selected", comment: "Title for alert that pops up when user attempts to save an empty contact list")
+    }
+    static var selectAtLeastOneContact: String {
+        NSLocalizedString("select.at.least.one.contact", value: "Please select at least one contact.", comment: "Message that pops up when user attempts to save an empty contact list")
+    }
 }
