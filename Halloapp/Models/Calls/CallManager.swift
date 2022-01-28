@@ -457,7 +457,7 @@ final class CallManager: NSObject, CXProviderDelegate {
             DDLogInfo("CallManager/CXEndCallAction/success")
             action.fulfill()
         } else {
-            DDLogError("CallManager/CXEndCallAction/failed")
+            DDLogError("CallManager/CXEndCallAction/failed: \(activeCallID) - \(callDetailsMap[action.callUUID])")
             handleSystemError()
             action.fail()
         }
@@ -472,7 +472,6 @@ final class CallManager: NSObject, CXProviderDelegate {
             action.fulfill()
         } else {
             DDLogError("CallManager/CXSetMutedCallAction/failed")
-            handleSystemError()
             action.fail()
         }
     }
@@ -482,7 +481,15 @@ final class CallManager: NSObject, CXProviderDelegate {
     }
 
     func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
-        DDLogError("CallManager/CXSetHeldCallAction/\(action.callUUID) - unimplemented")
+        DDLogError("CallManager/CXSetHeldCallAction/\(action.callUUID)")
+        if let details = callDetailsMap[action.callUUID],
+           details.callID == activeCallID {
+            DDLogInfo("CallManager/CXSetHeldCallAction/success")
+            action.fulfill()
+        } else {
+            DDLogError("CallManager/CXSetHeldCallAction/failed")
+            action.fail()
+        }
     }
 
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
