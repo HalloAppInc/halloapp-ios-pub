@@ -93,10 +93,9 @@ class GroupFeedViewController: FeedCollectionViewController {
             MainAppContext.shared.chatData.didGetAGroupEvent.sink { [weak self] (groupID) in
                 guard let self = self else { return }
                 guard groupID == self.groupId else { return }
-                self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupID)
-                self.theme = self.group?.background ?? 0
-
                 DispatchQueue.main.async {
+                    self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupID)
+                    self.theme = self.group?.background ?? 0
                     self.populateEvents()
                 }
             }
