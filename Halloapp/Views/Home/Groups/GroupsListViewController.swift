@@ -192,7 +192,26 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         if(searchController.isActive && isSearchBarEmpty) {
             searchController.isActive = false
         }
+    }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if let height = layoutHeight, height != view.bounds.height {
+            // Search bar can become misaligned if view height changes (e.g., because bar appears for active call)
+            resetSearchBarIfActive()
+        }
+        layoutHeight = view.bounds.height
+    }
+
+    private var layoutHeight: CGFloat?
+
+    private func resetSearchBarIfActive() {
+        if searchController.isActive {
+            let searchText = searchController.searchBar.text
+            searchController.isActive = false
+            searchController.isActive = true
+            searchController.searchBar.text = searchText
+        }
     }
 
     private lazy var rightBarButtonItem: UIBarButtonItem = {
