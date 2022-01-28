@@ -296,9 +296,17 @@ final class CallManager: NSObject, CXProviderDelegate {
         cancelTimer = nil
         activeCall?.logPeerConnectionStats()
         endDate = Date()
+        checkAndPlayEndCallToneAndVibrate()
         activeCall?.end(reason: reason)
         activeCall = nil
         callViewDelegate?.callEnded()
+    }
+
+    private func checkAndPlayEndCallToneAndVibrate() {
+        if activeCall?.isAnswered == true {
+            // TODO: We should also play an audio tune here.
+            AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
+        }
     }
 
     private func startCancelTimer() {
@@ -458,7 +466,7 @@ final class CallManager: NSObject, CXProviderDelegate {
             DDLogInfo("CallManager/CXEndCallAction/success")
             action.fulfill()
         } else {
-            DDLogError("CallManager/CXEndCallAction/failed: \(activeCallID) - \(callDetailsMap[action.callUUID])")
+            DDLogError("CallManager/CXEndCallAction/failed: \(String(describing: activeCallID)) - \(String(describing: callDetailsMap[action.callUUID]))")
             handleSystemError()
             action.fail()
         }
@@ -750,6 +758,7 @@ extension CallManager: HalloCallDelegate {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/resetWhisperSession")
                 AppContext.shared.messageCrypter.resetWhisperSession(for: peerUserID)
             }
+            checkAndPlayEndCallToneAndVibrate()
             activeCall?.didReceiveEndCall(reason: endCall.endCallReason)
             activeCall = nil
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
