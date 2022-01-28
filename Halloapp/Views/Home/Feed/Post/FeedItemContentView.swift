@@ -335,6 +335,14 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         fittingView.prepareForReuse()
         fittingView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
         let fittingSize = fittingView.systemLayoutSizeFitting(targetSize)
+        let postHasImageOrVideo = post.media?.contains { [FeedMediaType.image, FeedMediaType.video].contains($0.type) } ?? false
+        if let mediaHeight = fittingView.mediaViewHeightConstraint?.constant,
+            postHasImageOrVideo,
+            mediaHeight > fittingSize.height
+        {
+            DDLogError("FeedItemContentView/preferredHeight/\(post.id)/error [media: \(mediaHeight)] [fit: \(fittingSize.height)] [width: \(contentWidth)] [gutter: \(gutterWidth)]")
+            return mediaHeight
+        }
         return fittingSize.height
     }
 
@@ -435,7 +443,7 @@ final class FeedItemHeaderView: UIView {
 
     private var contentSizeCategoryDidChangeCancellable: AnyCancellable!
 
-    private let avatarButtonWidth: CGFloat = 36
+    let avatarButtonSize: CGFloat = 36
     private let avatarButtonSpacing: CGFloat = 8
     private let moreButtonPadding: CGFloat = 20 // padding used to increase the tapping area of button
     private let moreButtonWidth: CGFloat = 18
@@ -446,7 +454,7 @@ final class FeedItemHeaderView: UIView {
         avatarViewButton.translatesAutoresizingMaskIntoConstraints = false
         avatarViewButton.addTarget(self, action: #selector(showUser), for: .touchUpInside)
 
-        avatarViewButton.widthAnchor.constraint(equalToConstant: avatarButtonWidth).isActive = true
+        avatarViewButton.widthAnchor.constraint(equalToConstant: avatarButtonSize).isActive = true
         avatarViewButton.heightAnchor.constraint(equalTo: avatarViewButton.widthAnchor).isActive = true
         return avatarViewButton
     }()
@@ -673,7 +681,7 @@ final class FeedItemHeaderView: UIView {
     private func isRowTruncated(contentWidth: CGFloat) -> Bool {
         var requiredWidth = userAndGroupNameRow.systemLayoutSizeFitting(CGSize(width: contentWidth, height: 20)).width
         requiredWidth += moreButton.isHidden ? 0 : (moreButtonWidth + moreButtonPadding + moreButtonSpacing)
-        requiredWidth += avatarButtonWidth + avatarButtonSpacing
+        requiredWidth += avatarButtonSize + avatarButtonSpacing
 
         return requiredWidth > contentWidth
     }

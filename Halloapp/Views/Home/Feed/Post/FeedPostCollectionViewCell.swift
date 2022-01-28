@@ -286,6 +286,11 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         sizingHeader.configure(with: post, contentWidth: contentWidth, showGroupName: showGroupName)
         let targetSize = CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
         let headerSize = sizingHeader.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+        let avatarSize = sizingHeader.avatarButtonSize
+        guard headerSize.height >= avatarSize else {
+            DDLogError("FeedPostCollectionViewCell/headerHeight/\(post.id)/error [avatar: \(avatarSize)] [fit: \(headerSize.height)] [width: \(contentWidth)]")
+            return avatarSize
+        }
         return headerSize.height
     }
 
@@ -298,6 +303,10 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         let footerView = FeedItemFooterView()
         let targetSize = CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
         let footerSize = footerView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+        guard footerSize.height >= 0 else {
+            DDLogError("FeedPostCollectionViewCell/footerHeight/\(post.id)/error [fit: \(footerSize.height)] [width: \(contentWidth)]")
+            return 0
+        }
         Self.metricsCache[footerCacheKey] = footerSize.height
         return footerSize.height
     }
