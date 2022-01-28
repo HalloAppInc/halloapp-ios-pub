@@ -78,6 +78,7 @@ class Call {
     private var callQueue = DispatchQueue(label: "com.halloapp.call", qos: .userInitiated)
     private var pendingLocalIceCandidates: [IceCandidateInfo] = []
     private var pendingRemoteIceCandidates: [IceCandidateInfo] = []
+    private var pendingEndCallAction: DispatchWorkItem? = nil
 
     var stateDelegate: CallStateDelegate? = nil
 
@@ -120,6 +121,15 @@ class Call {
             // state will be changed to 'connected' after we send an 'iceAnswer' packet successfully.
             // send iceCandidates even after state is active.
             return state == .connected || state == .active
+        }
+    }
+
+    var isReadyToEndCall: Bool {
+        if isOutgoing {
+            // There could be a race condition where state is still inactive and the client is trying to end the call.
+            return state != .inactive
+        } else {
+            return true
         }
     }
 
@@ -216,6 +226,15 @@ class Call {
         }
     }
 
+    private func endCall(durationMs: Double, reason: EndCallReason) {
+        isCallEndedLocally = true
+        service.endCall(id: callID, to: peerUserID, reason: reason)
+        saveCallStatusAndSendReport(durationMs: durationMs, reason: reason)
+        webRTCClient?.end()
+        state = .inactive
+        DDLogInfo("Call/\(callID)/end/success")
+    }
+
     // MARK: Local User Actions
 
     func start(completion: @escaping ((_ success: Bool) -> Void)) {
@@ -239,6 +258,9 @@ class Call {
                         DispatchQueue.main.async {
                             completion(true)
                         }
+                        // Check pendingEndCallAction and perform.
+                        pendingEndCallAction?.perform()
+                        pendingEndCallAction = nil
                     case .failure(let error):
                         state = .inactive
                         DDLogError("Call/\(callID)/start/failed: \(error.localizedDescription)")
@@ -365,12 +387,21 @@ class Call {
         DDLogInfo("Call/\(callID)/end/reason: \(reason)/begin")
         let durationMs = MainAppContext.shared.callManager.callDurationMs
         callQueue.async { [self] in
-            isCallEndedLocally = true
-            service.endCall(id: callID, to: peerUserID, reason: reason)
-            saveCallStatusAndSendReport(durationMs: durationMs, reason: reason)
-            webRTCClient?.end()
-            state = .inactive
-            DDLogInfo("Call/\(callID)/end/success")
+            pendingEndCallAction = DispatchWorkItem {
+                endCall(durationMs: durationMs, reason: reason)
+            }
+            if isReadyToEndCall {
+                pendingEndCallAction?.perform()
+                pendingEndCallAction = nil
+            } else {
+                // We are in an inactive state.
+                // So we'll check and process pendingEndCallAction on connecting.
+                // Otherwise run in 5 seconds to end the call anyways.
+                callQueue.asyncAfter(deadline: .now() + 5) {
+                    pendingEndCallAction?.perform()
+                    pendingEndCallAction = nil
+                }
+            }
         }
     }
 
