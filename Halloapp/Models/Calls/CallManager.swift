@@ -366,6 +366,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                         activeCall?.start { success in
                             DDLogInfo("CallManager/CXStartCallAction/result: \(success)")
                             if success {
+                                reportCallHoldUnavailable(id: details.callID)
                                 action.fulfill()
                             } else {
                                 DDLogError("CallManager/CXStartCallAction/failed")
@@ -514,11 +515,20 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     // MARK: Report to Provider
 
+    func reportCallHoldUnavailable(id callID: CallID) {
+        DDLogInfo("CallManager/reportCallHoldUnavailable/callID: \(callID)")
+        let update = CXCallUpdate()
+        update.supportsHolding = false
+        provider.reportCall(with: callID.callUUID, updated: update)
+        DDLogInfo("CallManager/reportCallHoldUnavailable/callID: \(callID)/success")
+    }
+
     func reportIncomingCall(id callID: CallID, from peerUserID: UserID, completion: @escaping (Result<Void, CallError>) -> Void) {
         DDLogInfo("CallManager/reportIncomingCall/callID: \(callID)/peerUserID: \(peerUserID)")
         let update = CXCallUpdate()
         update.remoteHandle = handle(for: peerUserID)
         update.localizedCallerName = peerName(for: peerUserID)
+        update.supportsHolding = false
         provider.reportNewIncomingCall(with: callID.callUUID, update: update) { error in
             if let error = error {
                 DDLogError("CallManager/reportNewIncomingCall/callID: \(callID)/error: \(error)")
