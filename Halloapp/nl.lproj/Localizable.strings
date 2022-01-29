@@ -149,7 +149,7 @@
 "call.history.voice.call.missed" = "Gemiste spraakoproep";
 
 /* Status displayed when outgoing call starts */
-"call.status.calling" = "belt...";
+"call.status.calling" = "wordt gebeld...";
 
 /* Status displayed while call is connecting */
 "call.status.connecting" = "verbinding maken...";
@@ -940,6 +940,9 @@
 /* Alert text shown when max group size is reached when selecting/adding group members */
 "new.group.members.max.size.alert" = "De maximale groepsgrootte is %d";
 
+/* Title for alert that pops up when user attempts to save an empty contact list */
+"no.contact.selected" = "Geen contact geselecteerd.";
+
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Je bent geen deelnemer meer van deze groep";
 
@@ -1203,6 +1206,9 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "Veiligheidsnummer voor %@ succesvol geverifieerd!";
+
+/* Message that pops up when user attempts to save an empty contact list */
+"select.at.least.one.contact" = "Selecteer ten minste één contact.";
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Nodig je vrienden uit voor HalloApp!";

@@ -64,11 +64,29 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Udostępnij";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Stop";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Aktualizuj";
 
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Aby umożliwić nagrywanie audio, stuknij Ustawienia, a następnie włącz Mikrofon";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Nie można uzyskać dostępu do mikrofonu";
+
 /* Title for generic delete button. */
 "Delete" = "Usuń";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Udostępniaj wszystkim moim kontaktom";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Udostępniaj moim kontaktom z wyjątkiem osób, które wybiorę";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Udostępniaj tylko wybranym kontaktom";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Zamknij";
@@ -93,6 +111,9 @@
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ja";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Odrzuć";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Otrzymasz kod weryfikacyjny.\nMogą obowiązywać stawki operatorów.";
@@ -165,6 +186,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Dołącz do mojej sieci prawdziwych relacji z bliskimi na HalloApp. Pobierz za darmo na halloapp.com/dl";
+
+/* Row in Settings screen */
+"title.privacy" = "Prywatność";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Nieznany kontakt";

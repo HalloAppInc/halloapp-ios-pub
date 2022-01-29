@@ -4,8 +4,17 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Zkontrolujte prosím své připojení k internetu a pak to zkuste znovu.";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Přidat";
+
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Zrušit";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "ZRUŠIT";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Pokračovat";
@@ -24,6 +33,9 @@
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "Instalovat";
+
+/* Title for generic Invite button. */
+"button.invite" = "Pozvat";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Zjistit více";
@@ -52,11 +64,29 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Sdílet";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Zastavit";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Aktualizovat";
 
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Chcete-li povolit nahrávání zvuku, klepněte na možnost Nastavení a zapněte mikrofon.";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Nelze získat přístup k mikrofonu";
+
 /* Title for generic delete button. */
 "Delete" = "Odstranit";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Sdílet se všemi mými kontakty";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Sdílet s mými kontakty kromě vybraných lidí";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Sdílet pouze s vybranými kontakty";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Ukončit";
@@ -67,14 +97,23 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Tato verze je zastaralá";
 
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Hledat";
+
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Další informace";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Aktualizujte svou aplikaci.";
 
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Načítání náhledu…";
+
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Já";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Zahodit";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Obdržíte ověřovací kód.\nMohou být uplatněny sazby dopravce.";
@@ -112,6 +151,12 @@
 /* When user registers for HalloApp using the AppClip via group invite link, they are prompted to install HalloApp to join the group. */
 "registration.install.app.to.join.group" = "Pokud chcete otevřít skupinu %@, nainstalujte si aplikaci HalloApp";
 
+/* Title for popup that appears when user tries to register invalid number */
+"registration.invalidphone" = "No nazdar!";
+
+/* Popup that appears when user tries to register invalid number */
+"registration.invalidphone.only" = "Zadané telefonní číslo je neplatné. Překontrolujte si ho prosím.";
+
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Pokud jste se zaregistrovali pomocí odkazu Pozvánka do skupiny, opětovným kliknutím na odkaz dokončete registraci a připojte se ke skupině.";
 
@@ -138,6 +183,12 @@
 
 /* Alert title telling the user that their account was successfully deleted */
 "settings.account.deleted.title" = "Účet byl úspěšně odstraněn";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "Připojte se k mé síti skutečných vztahů v aplikaci HalloApp. Můžete si ji stáhnout zdarma na adrese halloapp.com/dl";
+
+/* Row in Settings screen */
+"title.privacy" = "Soukromí";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Neznámý kontakt";

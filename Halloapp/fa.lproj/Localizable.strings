@@ -142,6 +142,12 @@
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "بلندگو";
 
+/* Title for call history event. Appears next to details of a successful call. */
+"call.history.voice.call" = "تماس صوتی";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.voice.call.missed" = "تماس صوتی از دست رفته";
+
 /* Status displayed when outgoing call starts */
 "call.status.calling" = "در حال تماس...";
 
@@ -463,6 +469,9 @@
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "پست";
 
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.comment.waiting" = "در انتظار این نظر. ممکن است طول بکشد.";
+
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "در حال پاک کردن...";
 
@@ -516,6 +525,9 @@
 
 /* Shown when receiving a new (unsupported) type of post. */
 "feed.post.unsupported" = "ورژن هالواپ شما این نوع پست را نمیپذیرد.";
+
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.post.waiting" = "در انتظار این پست. ممکن است طول بکشد.";
 
 /* Shown while content is being posted to feed */
 "feed.posting" = "در حال ارسال...";
@@ -730,6 +742,12 @@
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "لطفاً‌ نظر یا توضیحات مشکل را در جایگاه بالا بنویسید.\n\n@Version %1$@ - %2$\n@%3$";
 
+/* Text shown to users on failed audio capture alert during a call. */
+"home.calls.fail.audio.text" = "لطفاً بعداً امتحان کنید.";
+
+/* Title of failed audio capture alert during a call. */
+"home.calls.fail.audio.title" = "نمیتوانید در حین تماس هالواپ ضبط صدا کنید.";
+
 /* Text shown to users on call failure. */
 "home.calls.fail.text" = "ببخشید، لطفاً بعداً امتحان کنید.";
 
@@ -750,6 +768,12 @@
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "این نسخه قدیمی است";
+
+/* Text shown to users on video call failure. */
+"home.video.calls.fail.text" = "به زودی...";
+
+/* Title of failed video call screen alert. */
+"home.video.calls.fail.title" = "تماس ویدیویی در حال حاضر ممکن نیست.";
 
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "دعوت %@ از طریق...";
@@ -915,6 +939,9 @@
 
 /* Alert text shown when max group size is reached when selecting/adding group members */
 "new.group.members.max.size.alert" = "حداکثر اعضای گروه d%";
+
+/* Title for alert that pops up when user attempts to save an empty contact list */
+"no.contact.selected" = "هیچ مخاطبی انتخاب نشده";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "شما دیگر در این گروه نیستید";
@@ -1180,6 +1207,9 @@
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "کد امنیتی با موفقیت تأیید شد برای %@!";
 
+/* Message that pops up when user attempts to save an empty contact list */
+"select.at.least.one.contact" = "لطفاً حداقل یک مخاطب انتخاب کنید.";
+
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "دوستانتان را دعوت کنید تا از هالواپ لذت ببرند!";
 
@@ -1327,6 +1357,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "به شبکه ارتباطی من در هالواپ بپیوندید. برنامه را رایگان از halloapp.com/dl دانلود کنید";
 
+/* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
+"tap.return.call" = "برای بازگشت به تماس کلیک کنید";
+
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "افزودن به لیست خواندنی‌ها";
 
@@ -1455,6 +1488,9 @@
 
 /* Message asking if the user is sure they want to unblock this user */
 "user.unblock.message" = "مطمئنید میخواهید %@ را در هالواپ رفع مسدودیت کنید؟ میتوانید نظرتان را بعداً عوض کنید.";
+
+/* Button to start voice call. Should be translated as verb. */
+"user.voice.call" = "تماس";
 
 /* Reference to the user, second person pronoun */
 "user.you" = "شما";

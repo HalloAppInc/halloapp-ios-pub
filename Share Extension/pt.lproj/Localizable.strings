@@ -76,6 +76,15 @@
 /* Title for generic delete button. */
 "Delete" = "Apagar";
 
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Partilhar com todos os meus contatos";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Partilhar com meus contatos, exceto pessoas que eu selecionar";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Partilhar apenas com contatos selecionados";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Buscar";
 
@@ -96,6 +105,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Junte-se à minha rede de relacionamento real no HalloApp. Baixe gratuitamente no site halloapp.com/dl";
+
+/* Label above the list with whom you share */
+"share.composer.destinations.label" = "Partilhar com";
 
 /* Placeholder for media caption. */
 "share.composer.placeholder" = "Escreva uma descrição";
@@ -122,13 +134,16 @@
 "share.composer.uploading.fail.title" = "Falha ao fazer upload";
 
 /* Contacts category label */
-"share.destination.contacts" = "Contatos";
+"share.destination.contacts" = "Contatos recentes";
 
 /* Groups category label */
-"share.destination.groups" = "Grupos";
+"share.destination.groups" = "Seus Grupos";
 
 /* Share on the home feed label */
 "share.destination.home" = "Início";
+
+/* Share on the home feed selection cell */
+"share.destination.new" = "Nova postagem";
 
 /* Destination screen title */
 "share.destination.title" = "HalloApp";
@@ -139,6 +154,15 @@
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "Não está com login feito";
 
+/* Row in Settings screen */
+"title.privacy" = "Privacidade";
+
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Contato desconhecido";
+
+/* How many bytes from total have been uploaded */
+"uploading.bytes.progress" = "%1$@ de %2$@";
+
+/* Message how many items are currently being upload */
+"uploading.n.items" = "carregando.n.itens";
 

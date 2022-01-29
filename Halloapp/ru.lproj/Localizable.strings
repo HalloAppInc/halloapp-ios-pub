@@ -142,11 +142,20 @@
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "громкая связь";
 
+/* Title for call history event. Appears next to details of a successful call. */
+"call.history.voice.call" = "Голосовой вызов";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.voice.call.missed" = "Пропущенный голосовой вызов";
+
 /* Status displayed when outgoing call starts */
 "call.status.calling" = "звонит...";
 
 /* Status displayed while call is connecting */
 "call.status.connecting" = "подключается...";
+
+/* Status displayed when call fails. */
+"call.status.failed" = "не удалось";
 
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "входящий звонок";
@@ -457,6 +466,12 @@
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
 "fab.accessibility.voice" = "Голосовая заметка";
 
+/* Label for floating compose post menu on Group screen. */
+"fab.post.button" = "Публикация";
+
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.comment.waiting" = "Ждем этого комментария. Это может занять некоторое время.";
+
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Удаляем...";
 
@@ -510,6 +525,9 @@
 
 /* Shown when receiving a new (unsupported) type of post. */
 "feed.post.unsupported" = "Твоя версия HalloApp не поддерживает этот тип поста.";
+
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.post.waiting" = "Ждем этот пост. Это может занять некоторое время.";
 
 /* Shown while content is being posted to feed */
 "feed.posting" = "Публикуем...";
@@ -724,6 +742,12 @@
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "Оставьте отзыв или описание проблемы в поле выше. \n\nВерсия %1$@ — %2$@\n%3$@";
 
+/* Text shown to users on failed audio capture alert during a call. */
+"home.calls.fail.audio.text" = "Пожалуйста, попробуйте еще раз позже.";
+
+/* Title of failed audio capture alert during a call. */
+"home.calls.fail.audio.title" = "Нельзя делать аудио записи во время звонка через HalloApp.";
+
 /* Text shown to users on call failure. */
 "home.calls.fail.text" = "Извините, попробуйте еще раз позже.";
 
@@ -744,6 +768,12 @@
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Эта версия устарела";
+
+/* Text shown to users on video call failure. */
+"home.video.calls.fail.text" = "Вскоре...";
+
+/* Title of failed video call screen alert. */
+"home.video.calls.fail.title" = "Видеозвонки пока не поддерживаются.";
 
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "Пригласить %@ по...";
@@ -1321,6 +1351,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Присоединяйтесь к моей сети знакомых из реальной жизни в HalloApp. Приложение можно скачать бесплатно по адресу halloapp.com/dl";
 
+/* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
+"tap.return.call" = "нажмите, чтобы вернуться к звонку";
+
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Добавить в список для чтения";
 
@@ -1449,6 +1482,9 @@
 
 /* Message asking if the user is sure they want to unblock this user */
 "user.unblock.message" = "Вы действительно хотите разблокировать %@ в HalloApp? Вы всегда можете изменить это позже.";
+
+/* Button to start voice call. Should be translated as verb. */
+"user.voice.call" = "Вызов";
 
 /* Reference to the user, second person pronoun */
 "user.you" = "вы";

@@ -61,11 +61,29 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Partager";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Arrêter";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Actualiser";
 
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Pour activer l'enregistrement audio, appuie sur « Paramètres », puis allume le microphone";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Impossible d'accéder au microphone";
+
 /* Title for generic delete button. */
 "Delete" = "Supprimer";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Partager avec tous mes contacts";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Partager avec mes contacts, sauf les personnes que je sélectionne";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Partager seulement avec les contacts sélectionnés";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Tu as été ajouté à un nouveau groupe";
@@ -84,6 +102,9 @@
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Moi";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Abandonner";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Commentaire : %@";
@@ -126,6 +147,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Rejoignez mon réseau de relations réelles sur HalloApp. Téléchargez-le gratuitement sur halloapp.com/dl";
+
+/* Row in Settings screen */
+"title.privacy" = "Confidentialité";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Contact inconnu";

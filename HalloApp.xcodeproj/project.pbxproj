@@ -582,6 +582,7 @@
 		329E044C26824B8900C2D250 /* VerificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationViewController.swift; sourceTree = "<group>"; };
 		32A9F9B82710D98F004BB00B /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		32C231752735E6F700D03ABF /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-br.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		32C4695B27A4EFFA00EC5AB9 /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		32C83FB6268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionDeniedController.swift; sourceTree = "<group>"; };
 		32C83FB8268FC8FE00BEB4F5 /* NewChatPermissionDeniedController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatPermissionDeniedController.swift; sourceTree = "<group>"; };
 		32C83FBC268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGroupMembersPermissionDeniedController.swift; sourceTree = "<group>"; };
@@ -3023,6 +3024,7 @@
 				32C231752735E6F700D03ABF /* pt-BR */,
 				327888B62764260500EACBCC /* de */,
 				324918192764265600E9090F /* pt */,
+				32C4695B27A4EFFA00EC5AB9 /* cs */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";

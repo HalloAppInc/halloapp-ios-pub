@@ -130,6 +130,42 @@
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Atualizar";
 
+/* Label for button that opens chat during call */
+"call.button.chat" = "Conversas";
+
+/* Label for button that ends call */
+"call.button.end" = "Finalizar chamada";
+
+/* Label for button that toggles mute status during call */
+"call.button.mute" = "Mudo";
+
+/* Label for button that toggles speakerphone status during call */
+"call.button.speaker" = "alto falante";
+
+/* Title for call history event. Appears next to details of a successful call. */
+"call.history.voice.call" = "Chamada de voz";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.voice.call.missed" = "Chamada de voz perdida";
+
+/* Status displayed when outgoing call starts */
+"call.status.calling" = "ligando...";
+
+/* Status displayed while call is connecting */
+"call.status.connecting" = "conectando...";
+
+/* Status displayed when call fails. */
+"call.status.failed" = "Falha ao realizar à chamada";
+
+/* Status displayed when incoming call starts */
+"call.status.incoming" = "Recebendo Chamada";
+
+/* Status displayed when reconnecting during call */
+"call.status.reconnecting" = "reconectando...";
+
+/* Status displayed while outgoing call is ringing */
+"call.status.ringing" = "chamando...";
+
 /* Generic error when trying to use camera */
 "camera.error" = "Erro de câmara";
 
@@ -422,13 +458,19 @@
 "fab.accessibility.camera" = "Câmara";
 
 /* VoiceOver label for photo button in floating compose post menu in Home view. */
-"fab.accessibility.photo.library" = "Biblioteca de fotografias";
+"fab.accessibility.photo.library" = "Galeria de fotografias";
 
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Texto";
 
 /* VoiceOver label for audio post button in floating compose post menu in Home view. */
-"fab.accessibility.voice" = "Nota de Voz";
+"fab.accessibility.voice" = "Enviar Audio";
+
+/* Label for floating compose post menu on Group screen. */
+"fab.post.button" = "Publicar";
+
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.comment.waiting" = "Aguardando este comentário. Isso pode demorar um pouco.";
 
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "A apagar...";
@@ -483,6 +525,9 @@
 
 /* Shown when receiving a new (unsupported) type of post. */
 "feed.post.unsupported" = "A sua versão do HalloApp não suporta este tipo de publicação.";
+
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.post.waiting" = "Aguardando esta postagem. Isso pode demorar um pouco.";
 
 /* Shown while content is being posted to feed */
 "feed.posting" = "A publicar...";
@@ -697,11 +742,17 @@
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "Por favor, deixe um comentário ou uma descrição do problema no espaço acima.\n\nVersão %1$@ - %2$@\n%3$@";
 
+/* Text shown to users on failed audio capture alert during a call. */
+"home.calls.fail.audio.text" = "Por favor tente novamente mais tarde.";
+
+/* Title of failed audio capture alert during a call. */
+"home.calls.fail.audio.title" = "Não é possível gravar áudio durante uma chamada HalloApp.";
+
 /* Text shown to users on call failure. */
-"home.calls.fail.text" = "Desculpe, por favor tente novamente mais tarde.";
+"home.calls.fail.text" = "Verifique se o telefone está conectado à Internet e tente novamente.";
 
 /* Title of failed call screen alert. */
-"home.calls.fail.title" = "Falha ao fazer uma chamada.";
+"home.calls.fail.title" = "Não foi possível fazer a chamada.";
 
 /* Text shown to users trying to open the call screen. */
 "home.calls.notice.text" = "Você não tem nenhuma chamada ativa no momento.";
@@ -717,6 +768,12 @@
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Esta versão está desatualizada";
+
+/* Text shown to users on video call failure. */
+"home.video.calls.fail.text" = "Em breve...";
+
+/* Title of failed video call screen alert. */
+"home.video.calls.fail.title" = "As videochamadas não são suportadas no momento.";
 
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "Convidar %@ por...";
@@ -1012,8 +1069,11 @@
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Grupos em comum";
 
+/* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
+"profile.header.call.user" = "Ligar";
+
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
-"profile.header.message.user" = "Mensagem";
+"profile.header.message.user" = "Enviar Mensagem";
 
 /* Text for unblocking user under profile header */
 "profile.header.unblock.user" = "Desbloquear ";
@@ -1291,6 +1351,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Junte-se à minha rede de relacionamento real no HalloApp. Baixe gratuitamente em halloapp.com/dl";
 
+/* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
+"tap.return.call" = "toque para retornar à chamada";
+
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Adicionar à lista de leitura";
 
@@ -1419,6 +1482,9 @@
 
 /* Message asking if the user is sure they want to unblock this user */
 "user.unblock.message" = "Tem a certeza de que deseja desbloquear %@ no HalloApp? Poderá sempre alterar isso mais tarde.";
+
+/* Button to start voice call. Should be translated as verb. */
+"user.voice.call" = "Ligar";
 
 /* Reference to the user, second person pronoun */
 "user.you" = "você";

@@ -61,11 +61,29 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Udostępnij";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Stop";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Aktualizuj";
 
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Aby umożliwić nagrywanie audio, stuknij Ustawienia, a następnie włącz Mikrofon";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Nie można uzyskać dostępu do mikrofonu";
+
 /* Title for generic delete button. */
 "Delete" = "Usuń";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Udostępniaj wszystkim moim kontaktom";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Udostępniaj moim kontaktom z wyjątkiem osób, które wybiorę";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Udostępniaj tylko wybranym kontaktom";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Szukaj";
@@ -82,8 +100,14 @@
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ja";
 
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Odrzuć";
+
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Dołącz do mojej sieci prawdziwych relacji z bliskimi na HalloApp. Pobierz za darmo na halloapp.com/dl";
+
+/* Label above the list with whom you share */
+"share.composer.destinations.label" = "Udostępnij";
 
 /* Placeholder for media caption. */
 "share.composer.placeholder" = "Wprowadź opis";
@@ -110,13 +134,16 @@
 "share.composer.uploading.fail.title" = "Przesyłanie nie powiodło się";
 
 /* Contacts category label */
-"share.destination.contacts" = "Kontakty";
+"share.destination.contacts" = "Ostatnie kontakty";
 
 /* Groups category label */
-"share.destination.groups" = "Grupy";
+"share.destination.groups" = "Twoje grupy";
 
 /* Share on the home feed label */
 "share.destination.home" = "Strona główna";
+
+/* Share on the home feed selection cell */
+"share.destination.new" = "Nowy post";
 
 /* Destination screen title */
 "share.destination.title" = "HalloApp";
@@ -127,6 +154,15 @@
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "Nie jesteś zalogowany(-a)";
 
+/* Row in Settings screen */
+"title.privacy" = "Prywatność";
+
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Nieznany kontakt";
+
+/* How many bytes from total have been uploaded */
+"uploading.bytes.progress" = "%1$@ z %2$@";
+
+/* Message how many items are currently being upload */
+"uploading.n.items" = "uploading.n.items";
 

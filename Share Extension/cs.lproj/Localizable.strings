@@ -4,8 +4,17 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Zkontrolujte, zda máte připojení k internetu, a zkuste to znovu.";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
+/* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
+"button.add" = "Přidat";
+
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Zrušit";
+
+/* Title for generic capitalized CANCEL button. Mostly used in popups and as such. */
+"button.cancel.capitalized" = "ZRUŠIT";
 
 /* Title for generic Continue button. Mostly used to complete some modal flow. */
 "button.continue" = "Pokračovat";
@@ -21,6 +30,9 @@
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
 "button.go.to.settings" = "Přejít do Nastavení";
+
+/* Title for generic Invite button. */
+"button.invite" = "Pozvat";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Další informace";
@@ -49,11 +61,32 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Sdílet";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Zastavit";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Aktualizovat";
 
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Chcete-li povolit nahrávání zvuku, klepněte na možnost Nastavení a zapněte mikrofon.";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Nelze získat přístup k mikrofonu";
+
 /* Title for generic delete button. */
 "Delete" = "Odstranit";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Sdílet se všemi mými kontakty";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Sdílet s mými kontakty kromě vybraných lidí";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Sdílet pouze s vybranými kontakty";
+
+/* Generic label for search, mostly used as placeholder text for searchbar */
+"label.search" = "Hledat";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Zjistit více";
@@ -61,8 +94,20 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Aktualizujte svou aplikaci.";
 
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Načítání náhledu…";
+
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Já";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Zahodit";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "Připojte se k mé síti skutečných vztahů v aplikaci HalloApp. Můžete si ji stáhnout zdarma na adrese halloapp.com/dl";
+
+/* Label above the list with whom you share */
+"share.composer.destinations.label" = "Sdílet s";
 
 /* Placeholder for media caption. */
 "share.composer.placeholder" = "Napsat popis";
@@ -82,17 +127,23 @@
 /* Composer title when sharing to feed */
 "share.composer.title.feed" = "Nový příspěvek";
 
+/* Alert dialog message shown when uploading fails. */
+"share.composer.uploading.fail.message" = "Zkuste to znovu později.";
+
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Nahrávání se nezdařilo";
 
 /* Contacts category label */
-"share.destination.contacts" = "Kontakty";
+"share.destination.contacts" = "Poslední kontakty";
 
 /* Groups category label */
-"share.destination.groups" = "Skupiny";
+"share.destination.groups" = "Vaše skupiny";
 
 /* Share on the home feed label */
 "share.destination.home" = "Domů";
+
+/* Share on the home feed selection cell */
+"share.destination.new" = "Nový příspěvek";
 
 /* Destination screen title */
 "share.destination.title" = "HalloApp";
@@ -103,6 +154,15 @@
 /* Title of alert when user is not logged in */
 "share.notlogged.title" = "Nejste přihlášeni";
 
+/* Row in Settings screen */
+"title.privacy" = "Soukromí";
+
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Neznámý kontakt";
+
+/* How many bytes from total have been uploaded */
+"uploading.bytes.progress" = "%1$@ z %2$@";
+
+/* Message how many items are currently being upload */
+"uploading.n.items" = "nahrávání.n.položek";
 
