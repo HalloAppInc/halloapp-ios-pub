@@ -302,10 +302,17 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     func showCommentsView(for postId: FeedPostID, highlighting commentId: FeedPostCommentID? = nil) {
         DDLogDebug("FeedCollectionViewController/showCommentsView/post: \(postId), comment: \(commentId ?? "")")
-        let commentsViewController = CommentsViewController(feedPostId: postId)
-        commentsViewController.highlightedCommentId = commentId
-        navigationController?.pushViewController(commentsViewController, animated: true)
-        
+
+        if MainAppContext.shared.feedData.enableFlatComments {
+            let commentsViewController = FlatCommentsViewController(feedPostId: postId)
+            commentsViewController.highlightedCommentId = commentId
+            navigationController?.pushViewController(commentsViewController, animated: true)
+        } else {
+            let commentsViewController = CommentsViewController(feedPostId: postId)
+            commentsViewController.highlightedCommentId = commentId
+            navigationController?.pushViewController(commentsViewController, animated: true)
+        }
+
         if !firstActionHappened {
             delegate?.feedCollectionViewController(self, userActioned: true)
             firstActionHappened = true

@@ -20,12 +20,14 @@ private enum MenuTitles {
     static var resetNUXDemo: String { "Reset NUX Demo" }
     static var startZeroZoneDemo: String { "Start Welcome Posts Demo" }
     static var clearPushNamesAndNumbers: String { "Clear Pushnames/numbers" }
+    static var enableFlatComments: String {"Enable Flat Comments"}
     static var logOut: String { "Log Out" }
 }
 
 struct DeveloperMenuView: View {
 
     @State var useTestServer = MainAppContext.shared.coreService.useTestServer
+    @State var enableFlatComments = MainAppContext.shared.feedData.enableFlatComments
 
     @ObservedObject var videoSettings = VideoSettings.shared
     @State var showVideoResolutionActionSheet = false
@@ -153,6 +155,16 @@ struct DeveloperMenuView: View {
                     self.dismiss?()
                 }) {
                     Text(MenuTitles.clearPushNamesAndNumbers)
+                }
+
+                // Enable Flat Comments
+                HStack {
+                    Toggle(MenuTitles.enableFlatComments, isOn: $enableFlatComments)
+                        .onReceive(Just(self.enableFlatComments)) { value in
+                            if value != MainAppContext.shared.feedData.enableFlatComments {
+                                MainAppContext.shared.feedData.enableFlatComments = value
+                            }
+                        }
                 }
 
                 // Log Out
