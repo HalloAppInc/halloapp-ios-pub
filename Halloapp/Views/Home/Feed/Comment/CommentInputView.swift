@@ -1176,6 +1176,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         textView.text = ""
         textView.resetMentions()
         removeMediaPanel()
+        removeQuotedReplyPanel()
         self.inputTextViewDidChange(self.textView)
         self.setNeedsUpdateHeight(animationDuration: 0.25)
     }
