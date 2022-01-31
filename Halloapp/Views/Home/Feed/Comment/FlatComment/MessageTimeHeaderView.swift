@@ -17,7 +17,8 @@ class MessageTimeHeaderView: UICollectionReusableView {
 
     private let timestampLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.font = UIFont.systemFont(ofSize: 12, weight: .bold)
+        label.alpha = 0.75
         label.textColor = .secondaryLabel
         label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false

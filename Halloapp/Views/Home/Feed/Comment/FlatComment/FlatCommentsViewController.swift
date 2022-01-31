@@ -65,7 +65,8 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                     withReuseIdentifier: FlatCommentsViewController.messageViewCellReuseIdentifier,
                     for: indexPath)
                 if let itemCell = cell as? MessageViewCell {
-                    itemCell.configureWithComment(comment: comment)
+                    let isPreviousMessageFromSameSender = self?.isPreviousMessageSameSender(indexPath: indexPath, currentComment: comment)
+                    itemCell.configureWithComment(comment: comment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender ?? false)
                     itemCell.textLabel.delegate = self
                     itemCell.delegate = self
                 }
@@ -99,6 +100,15 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }
         return dataSource
     }()
+
+    private func isPreviousMessageSameSender(indexPath: IndexPath, currentComment: FeedPostComment) -> Bool {
+        let previousIndexPath = IndexPath(row: indexPath.row - 1, section: indexPath.section)
+        if let previousComment =  fetchedResultsController?.getOptionalObject(at: previousIndexPath) as? FeedPostComment {
+            return previousComment.userId == currentComment.userId
+        }
+        // If there is not previous comment, return false
+        return false
+    }
 
     private var fetchedResultsController: NSFetchedResultsController<FeedPostComment>?
 
@@ -301,7 +311,8 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         confirmationActionSheet.addAction(UIAlertAction(title: Localizations.deleteCommentAction, style: .destructive) { _ in
             guard let comment = MainAppContext.shared.feedData.feedComment(with: comment.id) else { return }
             MainAppContext.shared.feedData.retract(comment: comment)
-            cell.configureWithComment(comment: comment)
+            let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(indexPath: indexPath, currentComment: comment)
+            cell.configureWithComment(comment: comment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         })
         confirmationActionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
             cell.markViewUnselected()
@@ -629,5 +640,15 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
         }
         commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, media: sendMedia, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: feedPostId, replyingTo: parentCommentID)
         messageInputView.clear()
+    }
+}
+
+fileprivate extension NSFetchedResultsController {
+    @objc func getOptionalObject(at indexPath: IndexPath) -> AnyObject? {
+        guard indexPath.row >= 0 else { return nil }
+        guard let sections = sections, indexPath.section < sections.count else { return nil }
+        let sectionInfo = sections[indexPath.section]
+        guard sectionInfo.numberOfObjects > indexPath.row else { return nil }
+        return object(at: indexPath)
     }
 }

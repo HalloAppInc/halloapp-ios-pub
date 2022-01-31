@@ -34,6 +34,7 @@ class MessageViewCell: UICollectionViewCell {
     private var isReplyTriggered = false // track if swiping gesture on cell is enough to trigger reply
 
     private var isOwnMessage: Bool = false
+    private var isPreviousMessageOwnMessage: Bool = false
 
     lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
@@ -123,10 +124,9 @@ class MessageViewCell: UICollectionViewCell {
         bubbleView.layer.borderWidth = 0.5
         bubbleView.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
         bubbleView.layer.cornerRadius = 15
-        bubbleView.layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
+        bubbleView.layer.shadowColor = UIColor.black.withAlphaComponent(0.08).cgColor
         bubbleView.layer.shadowOffset = CGSize(width: 0, height: 2)
-        bubbleView.layer.shadowRadius = 4
-        bubbleView.layer.shadowOpacity = 0.5
+        bubbleView.layer.shadowRadius = 1.5
         return bubbleView
     }()
 
@@ -158,7 +158,7 @@ class MessageViewCell: UICollectionViewCell {
         let label = UILabel()
         label.numberOfLines = 1
 
-        label.font = UIFont.boldSystemFont(ofSize: 14)
+        label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
         label.textColor = .secondaryLabel
 
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -293,10 +293,11 @@ class MessageViewCell: UICollectionViewCell {
         ])
     }
 
-    func configureWithComment(comment: FeedPostComment) {
+    func configureWithComment(comment: FeedPostComment, isPreviousMessageFromSameSender: Bool) {
         audioMediaStatusCancellable?.cancel()
         feedPostCommentID = comment.id
         isOwnMessage = comment.userId == MainAppContext.shared.userData.userId
+        isPreviousMessageOwnMessage = isPreviousMessageFromSameSender
         configureQuotedComment(comment: comment)
         timeLabel.text = comment.timestamp.chatTimestamp()
         setNameLabel(for: comment.userId)
@@ -335,6 +336,9 @@ class MessageViewCell: UICollectionViewCell {
             nameRow.isHidden = false
             rightAlignedConstraint.priority = UILayoutPriority(1)
             leftAlignedConstraint.priority = UILayoutPriority(800)
+        }
+        if isPreviousMessageOwnMessage {
+            nameRow.isHidden = true
         }
     }
 
