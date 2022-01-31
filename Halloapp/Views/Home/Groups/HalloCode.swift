@@ -85,16 +85,8 @@ extension HalloCode {
         let moduleCount = CGFloat(reader.context.width)
         if moduleCount < 32 {
             return nil
-        } else if moduleCount < 34 {
-            return 10
-        } else if moduleCount < 36 {
-            return 12
-        } else if moduleCount < 41 {
-            return 14
-        } else if moduleCount < 51 {
-            return 16
         } else {
-            return 20
+            return 14
         }
     }
     /// For rounding the finder patterns and the icon.
