@@ -49,12 +49,29 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     // Key used to encode/decode array of comment drafts from `UserDefaults`.
     static let postCommentDraftKey = "posts.comments.drafts"
 
+    // List of colors to cycle through while setting user names
+    private var colors: [UIColor] = [
+        UIColor.UserColor1,
+        UIColor.UserColor2,
+        UIColor.UserColor3,
+        UIColor.UserColor4,
+        UIColor.UserColor5,
+        UIColor.UserColor6,
+        UIColor.UserColor7,
+        UIColor.UserColor8,
+        UIColor.UserColor9,
+        UIColor.UserColor10,
+        UIColor.UserColor11,
+        UIColor.UserColor12
+    ]
+
     private var feedPostId: FeedPostID {
         didSet {
             // TODO Remove this if not needed for mentions
         }
     }
 
+    private var commentParticipants: [String: Int] = [:]
     private var feedPost: FeedPost?
 
     // MARK: Jump Button
@@ -118,9 +135,10 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                 let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: FlatCommentsViewController.messageViewCellReuseIdentifier,
                     for: indexPath)
-                if let itemCell = cell as? MessageViewCell {
-                    let isPreviousMessageFromSameSender = self?.isPreviousMessageSameSender(indexPath: indexPath, currentComment: comment)
-                    itemCell.configureWithComment(comment: comment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender ?? false)
+                if let itemCell = cell as? MessageViewCell, let self = self {
+                    let userColorAssignment = self.getUserColorAssignment(userId: comment.userId)
+                    let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(indexPath: indexPath, currentComment: comment)
+                    itemCell.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
                     itemCell.textLabel.delegate = self
                     itemCell.delegate = self
                 }
@@ -163,6 +181,14 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }
         // If there is not previous comment, return false
         return false
+    }
+
+    private func getUserColorAssignment(userId: UserID) -> UIColor {
+        guard let userColorIndex = commentParticipants[userId] else {
+            commentParticipants[userId] = commentParticipants.count
+            return colors[(commentParticipants.count - 1) % colors.count]
+        }
+        return colors[userColorIndex % colors.count]
     }
 
     private var fetchedResultsController: NSFetchedResultsController<FeedPostComment>?
@@ -373,8 +399,9 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         confirmationActionSheet.addAction(UIAlertAction(title: Localizations.deleteCommentAction, style: .destructive) { _ in
             guard let comment = MainAppContext.shared.feedData.feedComment(with: comment.id) else { return }
             MainAppContext.shared.feedData.retract(comment: comment)
+            let userColorAssignment = self.getUserColorAssignment(userId: comment.userId)
             let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(indexPath: indexPath, currentComment: comment)
-            cell.configureWithComment(comment: comment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+            cell.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         })
         confirmationActionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
             cell.markViewUnselected()

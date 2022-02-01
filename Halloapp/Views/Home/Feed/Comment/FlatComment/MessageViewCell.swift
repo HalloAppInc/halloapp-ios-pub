@@ -293,11 +293,13 @@ class MessageViewCell: UICollectionViewCell {
         ])
     }
 
-    func configureWithComment(comment: FeedPostComment, isPreviousMessageFromSameSender: Bool) {
+    func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         audioMediaStatusCancellable?.cancel()
         feedPostCommentID = comment.id
         isOwnMessage = comment.userId == MainAppContext.shared.userData.userId
         isPreviousMessageOwnMessage = isPreviousMessageFromSameSender
+        replyArrow.tintColor = userColorAssignment
+        nameLabel.textColor = userColorAssignment
         configureQuotedComment(comment: comment)
         timeLabel.text = comment.timestamp.chatTimestamp()
         setNameLabel(for: comment.userId)

@@ -227,4 +227,52 @@ extension UIColor {
     class var voiceNoteInputField: UIColor {
         UIColor(named: "voiceNoteInputField")!
     }
+
+    class var UserColor1: UIColor {
+        UIColor(named: "UserColor1")!
+    }
+
+    class var UserColor2: UIColor {
+        UIColor(named: "UserColor2")!
+    }
+
+    class var UserColor3: UIColor {
+        UIColor(named: "UserColor3")!
+    }
+
+    class var UserColor4: UIColor {
+        UIColor(named: "UserColor4")!
+    }
+
+    class var UserColor5: UIColor {
+        UIColor(named: "UserColor5")!
+    }
+
+    class var UserColor6: UIColor {
+        UIColor(named: "UserColor6")!
+    }
+
+    class var UserColor7: UIColor {
+        UIColor(named: "UserColor7")!
+    }
+
+    class var UserColor8: UIColor {
+        UIColor(named: "UserColor8")!
+    }
+
+    class var UserColor9: UIColor {
+        UIColor(named: "UserColor9")!
+    }
+
+    class var UserColor10: UIColor {
+        UIColor(named: "UserColor10")!
+    }
+
+    class var UserColor11: UIColor {
+        UIColor(named: "UserColor11")!
+    }
+
+    class var UserColor12: UIColor {
+        UIColor(named: "UserColor12")!
+    }
 }

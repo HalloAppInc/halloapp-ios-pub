@@ -801,6 +801,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             vStack.insertArrangedSubview(quotedPanel, at: 0)
         }
         quotedCellView.configureWithComment(comment: comment)
+        textView.becomeFirstResponder()
     }
 
     func removeQuotedReplyPanel() {
