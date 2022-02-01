@@ -1312,6 +1312,7 @@ extension ChatMsgData : Hashable {
     /* hash must be the same if structs are equal (equatable) */
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
+        hasher.combine(indexPath)
         if [.retracting, .retracted].contains(outgoingStatus) {
             hasher.combine(outgoingStatus)
         }
@@ -1346,6 +1347,7 @@ extension ChatMsgData : Equatable {
         let isInboundStatusChange = isInboundMsgRetracted || isInboundMsgRerequestedSuccessfully
 
         let isEqual = lhs.id == rhs.id &&
+                      lhs.indexPath == rhs.indexPath &&
                       !isOutboundStatusChange &&
                       !isInboundStatusChange
 
