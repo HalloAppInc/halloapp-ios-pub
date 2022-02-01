@@ -981,6 +981,12 @@ public struct Server_GroupFeedHistory {
 
   public var oneTimePreKeyID: Int32 = 0
 
+  /// Use >=16 for temporary elements since 1-15 encode smaller
+  public var senderLogInfo: String = String()
+
+  /// ex: "HalloApp/Android0.127"
+  public var senderClientVersion: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -1872,6 +1878,12 @@ public struct Server_HistoryResend {
 
   public var audienceHash: Data = Data()
 
+  /// Use >=16 for temporary elements since 1-15 encode smaller
+  public var senderLogInfo: String = String()
+
+  /// ex: "HalloApp/Android0.127"
+  public var senderClientVersion: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -2165,6 +2177,7 @@ public struct Server_CallRinging {
   public init() {}
 }
 
+/// send before the AnswerCall so we can connect the PeerConnection
 public struct Server_PreAnswerCall {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2375,6 +2388,22 @@ public struct Server_IceRestartAnswer {
   public init() {}
 
   fileprivate var _webrtcAnswer: Server_WebRtcSessionDescription? = nil
+}
+
+public struct Server_HoldCall {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var callID: String = String()
+
+  public var hold: Bool = false
+
+  public var timestampMs: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
 }
 
 public struct Server_ExternalSharePost {
@@ -3353,6 +3382,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .preAnswerCall(newValue)}
   }
 
+  public var holdCall: Server_HoldCall {
+    get {
+      if case .holdCall(let v)? = _storage._payload {return v}
+      return Server_HoldCall()
+    }
+    set {_uniqueStorage()._payload = .holdCall(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -3405,6 +3442,7 @@ public struct Server_Msg {
     case iceRestartAnswer(Server_IceRestartAnswer)
     case groupFeedHistory(Server_GroupFeedHistory)
     case preAnswerCall(Server_PreAnswerCall)
+    case holdCall(Server_HoldCall)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -3558,6 +3596,10 @@ public struct Server_Msg {
       }()
       case (.preAnswerCall, .preAnswerCall): return {
         guard case .preAnswerCall(let l) = lhs, case .preAnswerCall(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.holdCall, .holdCall): return {
+        guard case .holdCall(let l) = lhs, case .holdCall(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -4401,13 +4443,15 @@ public struct Server_GroupFeedRerequest {
 
   public var rerequestType: Server_GroupFeedRerequest.RerequestType = .payload
 
+  public var contentType: Server_GroupFeedRerequest.ContentType = .unknown
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   /// To capture the type of decryption failure.
   public enum RerequestType: SwiftProtobuf.Enum {
     public typealias RawValue = Int
 
-    /// Unable to decrypt post/comment's payload
+    /// Unable to decrypt post/comment/history-resend payload
     case payload // = 0
 
     /// Unable to decrypt sender state.
@@ -4436,6 +4480,40 @@ public struct Server_GroupFeedRerequest {
 
   }
 
+  public enum ContentType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknown // = 0
+    case post // = 1
+    case comment // = 2
+    case historyResend // = 3
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknown
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknown
+      case 1: self = .post
+      case 2: self = .comment
+      case 3: self = .historyResend
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknown: return 0
+      case .post: return 1
+      case .comment: return 2
+      case .historyResend: return 3
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
   public init() {}
 }
 
@@ -4446,6 +4524,16 @@ extension Server_GroupFeedRerequest.RerequestType: CaseIterable {
   public static var allCases: [Server_GroupFeedRerequest.RerequestType] = [
     .payload,
     .senderState,
+  ]
+}
+
+extension Server_GroupFeedRerequest.ContentType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_GroupFeedRerequest.ContentType] = [
+    .unknown,
+    .post,
+    .comment,
+    .historyResend,
   ]
 }
 
@@ -7298,6 +7386,8 @@ extension Server_GroupFeedHistory: SwiftProtobuf.Message, SwiftProtobuf._Message
     4: .standard(proto: "enc_payload"),
     5: .standard(proto: "public_key"),
     6: .standard(proto: "one_time_pre_key_id"),
+    16: .standard(proto: "sender_log_info"),
+    17: .standard(proto: "sender_client_version"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -7312,6 +7402,8 @@ extension Server_GroupFeedHistory: SwiftProtobuf.Message, SwiftProtobuf._Message
       case 4: try { try decoder.decodeSingularBytesField(value: &self.encPayload) }()
       case 5: try { try decoder.decodeSingularBytesField(value: &self.publicKey) }()
       case 6: try { try decoder.decodeSingularInt32Field(value: &self.oneTimePreKeyID) }()
+      case 16: try { try decoder.decodeSingularStringField(value: &self.senderLogInfo) }()
+      case 17: try { try decoder.decodeSingularStringField(value: &self.senderClientVersion) }()
       default: break
       }
     }
@@ -7336,6 +7428,12 @@ extension Server_GroupFeedHistory: SwiftProtobuf.Message, SwiftProtobuf._Message
     if self.oneTimePreKeyID != 0 {
       try visitor.visitSingularInt32Field(value: self.oneTimePreKeyID, fieldNumber: 6)
     }
+    if !self.senderLogInfo.isEmpty {
+      try visitor.visitSingularStringField(value: self.senderLogInfo, fieldNumber: 16)
+    }
+    if !self.senderClientVersion.isEmpty {
+      try visitor.visitSingularStringField(value: self.senderClientVersion, fieldNumber: 17)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -7346,6 +7444,8 @@ extension Server_GroupFeedHistory: SwiftProtobuf.Message, SwiftProtobuf._Message
     if lhs.encPayload != rhs.encPayload {return false}
     if lhs.publicKey != rhs.publicKey {return false}
     if lhs.oneTimePreKeyID != rhs.oneTimePreKeyID {return false}
+    if lhs.senderLogInfo != rhs.senderLogInfo {return false}
+    if lhs.senderClientVersion != rhs.senderClientVersion {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -8418,6 +8518,8 @@ extension Server_HistoryResend: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     6: .standard(proto: "sender_state_bundles"),
     7: .standard(proto: "sender_state"),
     8: .standard(proto: "audience_hash"),
+    16: .standard(proto: "sender_log_info"),
+    17: .standard(proto: "sender_client_version"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -8433,6 +8535,8 @@ extension Server_HistoryResend: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       case 6: try { try decoder.decodeRepeatedMessageField(value: &self.senderStateBundles) }()
       case 7: try { try decoder.decodeSingularMessageField(value: &self._senderState) }()
       case 8: try { try decoder.decodeSingularBytesField(value: &self.audienceHash) }()
+      case 16: try { try decoder.decodeSingularStringField(value: &self.senderLogInfo) }()
+      case 17: try { try decoder.decodeSingularStringField(value: &self.senderClientVersion) }()
       default: break
       }
     }
@@ -8464,6 +8568,12 @@ extension Server_HistoryResend: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     if !self.audienceHash.isEmpty {
       try visitor.visitSingularBytesField(value: self.audienceHash, fieldNumber: 8)
     }
+    if !self.senderLogInfo.isEmpty {
+      try visitor.visitSingularStringField(value: self.senderLogInfo, fieldNumber: 16)
+    }
+    if !self.senderClientVersion.isEmpty {
+      try visitor.visitSingularStringField(value: self.senderClientVersion, fieldNumber: 17)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -8475,6 +8585,8 @@ extension Server_HistoryResend: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     if lhs.senderStateBundles != rhs.senderStateBundles {return false}
     if lhs._senderState != rhs._senderState {return false}
     if lhs.audienceHash != rhs.audienceHash {return false}
+    if lhs.senderLogInfo != rhs.senderLogInfo {return false}
+    if lhs.senderClientVersion != rhs.senderClientVersion {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -9233,6 +9345,50 @@ extension Server_IceRestartAnswer: SwiftProtobuf.Message, SwiftProtobuf._Message
     if lhs.callID != rhs.callID {return false}
     if lhs.idx != rhs.idx {return false}
     if lhs._webrtcAnswer != rhs._webrtcAnswer {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_HoldCall: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".HoldCall"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "call_id"),
+    2: .same(proto: "hold"),
+    3: .standard(proto: "timestamp_ms"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.callID) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.hold) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.timestampMs) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.callID.isEmpty {
+      try visitor.visitSingularStringField(value: self.callID, fieldNumber: 1)
+    }
+    if self.hold != false {
+      try visitor.visitSingularBoolField(value: self.hold, fieldNumber: 2)
+    }
+    if self.timestampMs != 0 {
+      try visitor.visitSingularInt64Field(value: self.timestampMs, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_HoldCall, rhs: Server_HoldCall) -> Bool {
+    if lhs.callID != rhs.callID {return false}
+    if lhs.hold != rhs.hold {return false}
+    if lhs.timestampMs != rhs.timestampMs {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -10116,6 +10272,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     41: .standard(proto: "ice_restart_answer"),
     42: .standard(proto: "group_feed_history"),
     43: .standard(proto: "pre_answer_call"),
+    44: .standard(proto: "hold_call"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -10646,6 +10803,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .preAnswerCall(v)
           }
         }()
+        case 44: try {
+          var v: Server_HoldCall?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .holdCall(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .holdCall(v)
+          }
+        }()
         default: break
         }
       }
@@ -10830,6 +11000,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .preAnswerCall?: try {
         guard case .preAnswerCall(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 43)
+      }()
+      case .holdCall?: try {
+        guard case .holdCall(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 44)
       }()
       default: break
       }
@@ -11668,6 +11842,7 @@ extension Server_GroupFeedRerequest: SwiftProtobuf.Message, SwiftProtobuf._Messa
     1: .same(proto: "gid"),
     2: .same(proto: "id"),
     3: .standard(proto: "rerequest_type"),
+    4: .standard(proto: "content_type"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -11679,6 +11854,7 @@ extension Server_GroupFeedRerequest: SwiftProtobuf.Message, SwiftProtobuf._Messa
       case 1: try { try decoder.decodeSingularStringField(value: &self.gid) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.id) }()
       case 3: try { try decoder.decodeSingularEnumField(value: &self.rerequestType) }()
+      case 4: try { try decoder.decodeSingularEnumField(value: &self.contentType) }()
       default: break
       }
     }
@@ -11694,6 +11870,9 @@ extension Server_GroupFeedRerequest: SwiftProtobuf.Message, SwiftProtobuf._Messa
     if self.rerequestType != .payload {
       try visitor.visitSingularEnumField(value: self.rerequestType, fieldNumber: 3)
     }
+    if self.contentType != .unknown {
+      try visitor.visitSingularEnumField(value: self.contentType, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -11701,6 +11880,7 @@ extension Server_GroupFeedRerequest: SwiftProtobuf.Message, SwiftProtobuf._Messa
     if lhs.gid != rhs.gid {return false}
     if lhs.id != rhs.id {return false}
     if lhs.rerequestType != rhs.rerequestType {return false}
+    if lhs.contentType != rhs.contentType {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -11710,6 +11890,15 @@ extension Server_GroupFeedRerequest.RerequestType: SwiftProtobuf._ProtoNameProvi
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "PAYLOAD"),
     1: .same(proto: "SENDER_STATE"),
+  ]
+}
+
+extension Server_GroupFeedRerequest.ContentType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN"),
+    1: .same(proto: "POST"),
+    2: .same(proto: "COMMENT"),
+    3: .same(proto: "HISTORY_RESEND"),
   ]
 }
 
