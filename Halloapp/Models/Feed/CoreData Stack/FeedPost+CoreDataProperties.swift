@@ -87,6 +87,10 @@ extension FeedPost {
         return media?.count ?? 0 > 0
     }
 
+    var hasSaveablePostMedia: Bool {
+        return media?.contains { [.image, .video].contains($0.type) } ?? false
+    }
+
     var canSaveMedia: Bool {
         return groupId != nil || userId == MainAppContext.shared.userData.userId
     }

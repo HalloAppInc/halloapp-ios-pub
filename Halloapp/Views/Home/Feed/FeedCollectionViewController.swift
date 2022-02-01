@@ -696,7 +696,7 @@ extension FeedCollectionViewController {
             
             let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
             
-            if feedPost.hasPostMedia && feedPost.canSaveMedia {
+            if feedPost.hasSaveablePostMedia && feedPost.canSaveMedia {
                 let saveMediaTitle = feedPost.media?.count ?? 0 > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
                 alert.addAction(UIAlertAction(title: saveMediaTitle, style: .default, handler:  { [weak self] _ in
                     PHPhotoLibrary.requestAuthorization { status in

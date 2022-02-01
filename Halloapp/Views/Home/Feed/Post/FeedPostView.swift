@@ -65,13 +65,7 @@ class FeedPostView: UIView {
     private let backgroundPanelView = FeedItemBackgroundPanelView()
     private let headerView = FeedItemHeaderView()
     private let itemContentView = FeedItemContentView()
-    
-    var contentViewDelegate: FeedItemContentViewDelegate? {
-        didSet {
-            itemContentView.delegate = contentViewDelegate
-        }
-    }
-    
+
     private let footerView = FeedItemFooterView()
     private var backgroundView: UIView?
     

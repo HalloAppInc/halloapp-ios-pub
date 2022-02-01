@@ -53,10 +53,6 @@ final class FeedItemBackgroundPanelView: UIView {
     }
 }
 
-protocol FeedItemContentViewDelegate {
-    func playMedia(media: [FeedMedia], index: Int?, delegate: MediaExplorerTransitionDelegate?, canSaveMedia: Bool)
-}
-
 final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private let scaleThreshold: CGFloat = 1.3
@@ -64,7 +60,6 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     private var isSizingView = false
     private var postId: FeedPostID? = nil
     private var feedPost: FeedPost?
-    var delegate: FeedItemContentViewDelegate?
 
     private enum LayoutConstants {
         static let topMargin: CGFloat = 5
@@ -389,12 +384,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private func presentMedia(_ media: [FeedMedia], index: Int, delegate transitionDelegate: MediaExplorerTransitionDelegate? = nil) {
         guard let post = feedPost else { return }
-        
-        if let delegate = delegate {
-            delegate.playMedia(media: media, index: index, delegate: transitionDelegate, canSaveMedia: post.canSaveMedia)
-            return
-        }
-        
+
         let explorerController = MediaExplorerController(media: media, index: index, canSaveMedia: post.canSaveMedia)
         explorerController.delegate = transitionDelegate
 
@@ -639,7 +629,7 @@ final class FeedItemHeaderView: UIView {
 
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
         
-        moreButton.isHidden = !(post.hasPostMedia && post.canSaveMedia) && post.userId != MainAppContext.shared.userData.userId
+        moreButton.isHidden = !(post.hasSaveablePostMedia && post.canSaveMedia) && post.userId != MainAppContext.shared.userData.userId
         configureGroupLabel(with: post.groupId, contentWidth: contentWidth, showGroupName: showGroupName)
         refreshTimestamp(with: post)
     }

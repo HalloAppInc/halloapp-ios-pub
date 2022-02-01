@@ -147,7 +147,7 @@ extension PostViewController {
 
             let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
-            if self.post.hasPostMedia && self.post.canSaveMedia {
+            if self.post.hasSaveablePostMedia && self.post.canSaveMedia {
                 let saveMediaTitle = self.post.media?.count ?? 0 > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
 
                 alert.addAction(UIAlertAction(title: saveMediaTitle, style: .default, handler:  { _ in
