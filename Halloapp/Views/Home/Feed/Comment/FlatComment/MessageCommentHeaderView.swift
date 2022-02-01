@@ -92,7 +92,7 @@ class MessageCommentHeaderView: UICollectionReusableView {
 
     let textLabel: TextLabel = {
         let label = TextLabel()
-        label.numberOfLines = 0
+        label.numberOfLines = 3
         label.isHidden = true
         return label
     }()
@@ -139,6 +139,7 @@ class MessageCommentHeaderView: UICollectionReusableView {
     }
 
     private func commonInit() {
+        backgroundColor = UIColor.primaryBg
         self.preservesSuperviewLayoutMargins = true
         self.addSubview(profilePictureButton)
         self.addSubview(vStack)
@@ -157,7 +158,7 @@ class MessageCommentHeaderView: UICollectionReusableView {
             vStack.leadingAnchor.constraint(equalTo: profilePictureButton.trailingAnchor, constant: LayoutConstants.profilePictureTrailingSpaceNormal),
             vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor),
             vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 8),
-            vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor),
+            vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8),
             separatorView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             separatorView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             separatorView.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale),

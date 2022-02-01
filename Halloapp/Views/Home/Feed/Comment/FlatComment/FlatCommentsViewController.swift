@@ -57,6 +57,60 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     private var feedPost: FeedPost?
 
+    // MARK: Jump Button
+
+    private var jumpButtonUnreadCount: Int = 0
+    private var jumpButtonConstraint: NSLayoutConstraint?
+
+    private lazy var jumpButton: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ jumpButtonUnreadCountLabel, jumpButtonImageView ])
+        view.axis = .horizontal
+        view.alignment = .center
+        view.spacing = 5
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            jumpButtonImageView.widthAnchor.constraint(equalToConstant: 30),
+            jumpButtonImageView.heightAnchor.constraint(equalToConstant: 30)
+        ])
+
+        let subView = UIView(frame: view.bounds)
+        subView.layer.cornerRadius = 10
+        subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner]
+
+        subView.clipsToBounds = true
+        subView.backgroundColor = UIColor.secondarySystemGroupedBackground.withAlphaComponent(0.9)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(subView, at: 0)
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(jumpDown))
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
+
+        return view
+    }()
+
+    private lazy var jumpButtonUnreadCountLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.textColor = .systemBlue
+        return label
+    }()
+
+    private lazy var jumpButtonImageView: UIImageView = {
+        let view = UIImageView()
+        view.image = UIImage(systemName: "chevron.down.circle")
+        view.contentMode = .scaleAspectFill
+        view.tintColor = .systemBlue
+
+        view.layer.masksToBounds = true
+
+        return view
+    }()
+
     private lazy var dataSource: CommentDataSource = {
         let dataSource = CommentDataSource(
             collectionView: collectionView,
@@ -90,6 +144,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                 if let messageCommentHeaderView = headerView as? MessageCommentHeaderView, let self = self, let feedPost = self.feedPost {
                     messageCommentHeaderView.configure(withPost: feedPost)
                     messageCommentHeaderView.delegate = self
+                    messageCommentHeaderView.textLabel.delegate = self
                     return messageCommentHeaderView
                 } else {
                     // TODO(@dini) add post loading here
@@ -172,6 +227,13 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         // TODO @dini check if post is available first
         MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
         resetCommentHighlightingIfNeeded()
+
+        // Add jump to last message button
+        guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
+        keyWindow.addSubview(jumpButton)
+        jumpButton.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor).isActive = true
+        jumpButtonConstraint = jumpButton.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: -100)
+        jumpButtonConstraint?.isActive = true
     }
 
     private func resetCommentHighlightingIfNeeded() {
@@ -216,6 +278,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         saveCommentDraft()
+        jumpButton.removeFromSuperview()
         messageInputView.willDisappear(in: self)
     }
 
@@ -266,7 +329,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         let sectionHeaderSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
         let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: sectionHeaderSize, elementKind: MessageTimeHeaderView.elementKind, alignment: .top)
         sectionHeader.pinToVisibleBounds = true
-
         let section = NSCollectionLayoutSection(group: group)
         section.boundarySupplementaryItems = [sectionHeader]
 
@@ -342,6 +404,14 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
         messageInputView.hideKeyboard()
+    }
+
+    @objc private func jumpDown() {
+        // Find the last comment and scroll to it
+        guard let lastComment = fetchedResultsController?.fetchedObjects?.last else {
+            return
+        }
+        scroll(toComment: lastComment.id, animated: true, highlightAfterScroll: nil)
     }
 
     // MARK: Input view
@@ -432,6 +502,25 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             }
         }
     }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        updateJumpButtonVisibility()
+    }
+
+    func updateJumpButtonVisibility() {
+        let windowHeight = view.window?.bounds.height ?? UIScreen.main.bounds.height
+        let fromTheBottom =  windowHeight*1.5 - messageInputView.bottomInset
+        if collectionView.contentSize.height - collectionView.contentOffset.y > fromTheBottom {
+            // using chatInput instead of tableView.contentInset.bottom since for some reason that changes when entering app from a notification
+            let aboveChatInput = messageInputView.bottomInset + 50
+            jumpButtonConstraint?.constant = -aboveChatInput
+            jumpButton.isHidden = false
+        } else {
+            jumpButton.isHidden = true
+            jumpButtonUnreadCount = 0
+            jumpButtonUnreadCountLabel.text = nil
+        }
+    }
 }
 
 extension FlatCommentsViewController: MessageCommentHeaderViewDelegate {
@@ -508,6 +597,8 @@ extension FlatCommentsViewController: TextLabelDelegate {
     }
 
     func textLabelDidRequestToExpand(_ label: TextLabel) {
+        label.numberOfLines = 0
+        collectionView.collectionViewLayout.invalidateLayout()
     }
 }
 
@@ -519,6 +610,7 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
             let bottomContentInset = inputView.bottomInset - collectionView.safeAreaInsets.bottom
             collectionView.contentInset.bottom = bottomContentInset
             collectionView.verticalScrollIndicatorInsets.bottom = bottomContentInset
+            updateJumpButtonVisibility()
         }
 
         func updateCollectionViewContentOffset(forKeyboardHeight keyboardHeight: CGFloat) {
