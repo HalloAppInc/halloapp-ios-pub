@@ -2007,6 +2007,8 @@ public struct Server_StartCall {
   /// Clears the value of `webrtcOffer`. Subsequent reads from it will return its default value.
   public mutating func clearWebrtcOffer() {self._webrtcOffer = nil}
 
+  public var rerequestCount: Int32 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -2161,6 +2163,31 @@ public struct Server_CallRinging {
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+}
+
+public struct Server_PreAnswerCall {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var callID: String = String()
+
+  public var webrtcAnswer: Server_WebRtcSessionDescription {
+    get {return _webrtcAnswer ?? Server_WebRtcSessionDescription()}
+    set {_webrtcAnswer = newValue}
+  }
+  /// Returns true if `webrtcAnswer` has been explicitly set.
+  public var hasWebrtcAnswer: Bool {return self._webrtcAnswer != nil}
+  /// Clears the value of `webrtcAnswer`. Subsequent reads from it will return its default value.
+  public mutating func clearWebrtcAnswer() {self._webrtcAnswer = nil}
+
+  public var timestampMs: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _webrtcAnswer: Server_WebRtcSessionDescription? = nil
 }
 
 public struct Server_AnswerCall {
@@ -2407,6 +2434,20 @@ extension Server_ExternalSharePost.Action: CaseIterable {
 }
 
 #endif  // swift(>=4.2)
+
+public struct Server_ExternalSharePostContainer {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var uid: Int64 = 0
+
+  public var blob: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
 
 public struct Server_Iq {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -3304,6 +3345,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .groupFeedHistory(newValue)}
   }
 
+  public var preAnswerCall: Server_PreAnswerCall {
+    get {
+      if case .preAnswerCall(let v)? = _storage._payload {return v}
+      return Server_PreAnswerCall()
+    }
+    set {_uniqueStorage()._payload = .preAnswerCall(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -3355,6 +3404,7 @@ public struct Server_Msg {
     case iceRestartOffer(Server_IceRestartOffer)
     case iceRestartAnswer(Server_IceRestartAnswer)
     case groupFeedHistory(Server_GroupFeedHistory)
+    case preAnswerCall(Server_PreAnswerCall)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -3504,6 +3554,10 @@ public struct Server_Msg {
       }()
       case (.groupFeedHistory, .groupFeedHistory): return {
         guard case .groupFeedHistory(let l) = lhs, case .groupFeedHistory(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.preAnswerCall, .preAnswerCall): return {
+        guard case .preAnswerCall(let l) = lhs, case .preAnswerCall(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -4292,6 +4346,7 @@ public struct Server_Rerequest {
     public typealias RawValue = Int
     case chat // = 0
     case call // = 1
+    case groupHistory // = 2
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -4302,6 +4357,7 @@ public struct Server_Rerequest {
       switch rawValue {
       case 0: self = .chat
       case 1: self = .call
+      case 2: self = .groupHistory
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -4310,6 +4366,7 @@ public struct Server_Rerequest {
       switch self {
       case .chat: return 0
       case .call: return 1
+      case .groupHistory: return 2
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -4326,6 +4383,7 @@ extension Server_Rerequest.ContentType: CaseIterable {
   public static var allCases: [Server_Rerequest.ContentType] = [
     .chat,
     .call,
+    .groupHistory,
   ]
 }
 
@@ -8613,6 +8671,7 @@ extension Server_StartCall: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     2: .standard(proto: "peer_uid"),
     3: .standard(proto: "call_type"),
     4: .standard(proto: "webrtc_offer"),
+    5: .standard(proto: "rerequest_count"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -8625,6 +8684,7 @@ extension Server_StartCall: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       case 2: try { try decoder.decodeSingularInt64Field(value: &self.peerUid) }()
       case 3: try { try decoder.decodeSingularEnumField(value: &self.callType) }()
       case 4: try { try decoder.decodeSingularMessageField(value: &self._webrtcOffer) }()
+      case 5: try { try decoder.decodeSingularInt32Field(value: &self.rerequestCount) }()
       default: break
       }
     }
@@ -8647,6 +8707,9 @@ extension Server_StartCall: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     try { if let v = self._webrtcOffer {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     } }()
+    if self.rerequestCount != 0 {
+      try visitor.visitSingularInt32Field(value: self.rerequestCount, fieldNumber: 5)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -8655,6 +8718,7 @@ extension Server_StartCall: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if lhs.peerUid != rhs.peerUid {return false}
     if lhs.callType != rhs.callType {return false}
     if lhs._webrtcOffer != rhs._webrtcOffer {return false}
+    if lhs.rerequestCount != rhs.rerequestCount {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -8922,6 +8986,54 @@ extension Server_CallRinging: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
   }
 }
 
+extension Server_PreAnswerCall: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PreAnswerCall"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "call_id"),
+    2: .standard(proto: "webrtc_answer"),
+    3: .standard(proto: "timestamp_ms"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.callID) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._webrtcAnswer) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.timestampMs) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.callID.isEmpty {
+      try visitor.visitSingularStringField(value: self.callID, fieldNumber: 1)
+    }
+    try { if let v = self._webrtcAnswer {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    if self.timestampMs != 0 {
+      try visitor.visitSingularInt64Field(value: self.timestampMs, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_PreAnswerCall, rhs: Server_PreAnswerCall) -> Bool {
+    if lhs.callID != rhs.callID {return false}
+    if lhs._webrtcAnswer != rhs._webrtcAnswer {return false}
+    if lhs.timestampMs != rhs.timestampMs {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Server_AnswerCall: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".AnswerCall"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -9181,6 +9293,44 @@ extension Server_ExternalSharePost.Action: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "STORE"),
     1: .same(proto: "DELETE"),
   ]
+}
+
+extension Server_ExternalSharePostContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ExternalSharePostContainer"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "uid"),
+    2: .same(proto: "blob"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self.blob) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.uid != 0 {
+      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 1)
+    }
+    if !self.blob.isEmpty {
+      try visitor.visitSingularBytesField(value: self.blob, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_ExternalSharePostContainer, rhs: Server_ExternalSharePostContainer) -> Bool {
+    if lhs.uid != rhs.uid {return false}
+    if lhs.blob != rhs.blob {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
 }
 
 extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -9965,6 +10115,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     40: .standard(proto: "ice_restart_offer"),
     41: .standard(proto: "ice_restart_answer"),
     42: .standard(proto: "group_feed_history"),
+    43: .standard(proto: "pre_answer_call"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -10482,6 +10633,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .groupFeedHistory(v)
           }
         }()
+        case 43: try {
+          var v: Server_PreAnswerCall?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .preAnswerCall(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .preAnswerCall(v)
+          }
+        }()
         default: break
         }
       }
@@ -10662,6 +10826,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .groupFeedHistory?: try {
         guard case .groupFeedHistory(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 42)
+      }()
+      case .preAnswerCall?: try {
+        guard case .preAnswerCall(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 43)
       }()
       default: break
       }
@@ -11490,6 +11658,7 @@ extension Server_Rerequest.ContentType: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "CHAT"),
     1: .same(proto: "CALL"),
+    2: .same(proto: "GROUP_HISTORY"),
   ]
 }
 
