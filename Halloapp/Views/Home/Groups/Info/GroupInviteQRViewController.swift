@@ -77,7 +77,9 @@ class GroupInviteQRViewController: UIViewController {
             primaryLabel.topAnchor.constraint(equalTo: containerView.topAnchor),
             primaryLabel.bottomAnchor.constraint(equalTo: secondaryLabel.topAnchor, constant: -Constants.labelSpacing),
             containerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            containerView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            containerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            containerView.leftAnchor.constraint(equalTo: QRImage.leftAnchor),
+            containerView.rightAnchor.constraint(equalTo: QRImage.rightAnchor)
         ])
     }
     
@@ -91,7 +93,15 @@ class GroupInviteQRViewController: UIViewController {
     }
     
     @objc private func pushedShare(_ button: UIBarButtonItem) {
-        let image = view.asImage()
+        let margin = view.bounds.maxX - containerView.frame.maxX
+        let cropRect = CGRect(x: 0,
+                              y: containerView.frame.minY,
+                          width: view.bounds.width,
+                         height: containerView.frame.height).insetBy(dx: 0, dy: -margin)
+        guard let image = view.asImage(cropRect) else {
+            return
+        }
+        
         let activityVC = UIActivityViewController(activityItems: [image], applicationActivities: nil)
         present(activityVC, animated: true, completion: nil)
     }
@@ -132,7 +142,7 @@ class GroupInviteQRViewController: UIViewController {
         label.textAlignment = .center
         label.numberOfLines = 0
         label.font = .gothamFont(forTextStyle: .subheadline, weight: .regular)
-        label.textColor = .lightGray
+        label.textColor = .gray
         label.sizeToFit()
         
         return label
@@ -140,10 +150,19 @@ class GroupInviteQRViewController: UIViewController {
 }
 
 fileprivate extension UIView {
-    func asImage() -> UIImage {
-        return UIGraphicsImageRenderer(bounds: self.bounds).image { _ in
-            self.drawHierarchy(in: self.bounds, afterScreenUpdates: true)
+    func asImage(_ portion: CGRect? = nil) -> UIImage? {
+        let portion = portion ?? bounds
+        UIGraphicsBeginImageContextWithOptions(portion.size, false, UIScreen.main.scale)
+        guard let context = UIGraphicsGetCurrentContext() else {
+            return nil
         }
+
+        context.translateBy(x: 0, y: -portion.minY)
+        drawHierarchy(in: bounds, afterScreenUpdates: true)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return image
     }
 }
 
@@ -163,5 +182,3 @@ extension Localizations {
                  comment: "Text shown to instruct using a QR code for joining a group")
     }
 }
-
-
