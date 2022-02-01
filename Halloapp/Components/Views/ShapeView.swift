@@ -60,9 +60,9 @@ class ShapeView: UIView {
         super.traitCollectionDidChange(previousTraitCollection)
         // It is necessary to re-apply fill and stroke colors when user interface changes between dark and light mode
         // because CALayer doesn't understand dynamic colors.
-        if traitCollection.userInterfaceStyle != previousTraitCollection?.userInterfaceStyle {
-            shapeLayer.fillColor = fillColor?.cgColor
-            shapeLayer.strokeColor = strokeColor?.cgColor
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            shapeLayer.fillColor = fillColor?.resolvedColor(with: traitCollection).cgColor
+            shapeLayer.strokeColor = strokeColor?.resolvedColor(with: traitCollection).cgColor
         }
     }
 }
