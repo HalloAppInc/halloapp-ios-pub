@@ -17,7 +17,7 @@ fileprivate extension GroupInviteQRViewController {
         /// Spacing between `primaryLabel` and `secondaryLabel'. `
         static let labelSpacing: CGFloat = 15
         /// Spacing between `secondaryLabel` and `QRImage`.
-        static let codeSpacing: CGFloat = 30
+        static let codeSpacing: CGFloat = 48
     }
 }
 
@@ -50,10 +50,11 @@ class GroupInviteQRViewController: UIViewController {
 
     private func setupView() {
         view.backgroundColor = .primaryBg
-        view.addSubview(QRImage)
-        view.addSubview(primaryLabel)
-        view.addSubview(secondaryLabel)
-        applyConstraints()
+        view.addSubview(containerView)
+        containerView.addSubview(QRImage)
+        containerView.addSubview(primaryLabel)
+        containerView.addSubview(secondaryLabel)
+        setupConstraints()
         
         if let link = inviteLink {
             if let code = HalloCode(size: CGSize(width: Constants.QRCodeSize, height: Constants.QRCodeSize), string: link) {
@@ -62,25 +63,22 @@ class GroupInviteQRViewController: UIViewController {
         }
     }
     
-    private func applyConstraints() {
-        QRImage.widthAnchor.constraint(equalToConstant: Constants.QRCodeSize).isActive = true
-        QRImage.heightAnchor.constraint(equalToConstant: Constants.QRCodeSize).isActive = true
-        QRImage.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        let imageCenter = QRImage.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        imageCenter.constant = primaryLabel.bounds.height + secondaryLabel.bounds.height + Constants.codeSpacing + Constants.labelSpacing
-        imageCenter.isActive = true
-        
-        secondaryLabel.widthAnchor.constraint(equalTo: QRImage.widthAnchor).isActive = true
-        secondaryLabel.centerXAnchor.constraint(equalTo: QRImage.centerXAnchor).isActive = true
-        let secondaryBottom = secondaryLabel.bottomAnchor.constraint(equalTo: QRImage.topAnchor)
-        secondaryBottom.constant = -Constants.codeSpacing
-        secondaryBottom.isActive = true
-        
-        primaryLabel.widthAnchor.constraint(equalTo: QRImage.widthAnchor).isActive = true
-        primaryLabel.centerXAnchor.constraint(equalTo: QRImage.centerXAnchor).isActive = true
-        let primaryBottom = primaryLabel.bottomAnchor.constraint(equalTo: secondaryLabel.topAnchor)
-        primaryBottom.constant = -Constants.labelSpacing
-        primaryBottom.isActive = true
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            QRImage.widthAnchor.constraint(equalToConstant: Constants.QRCodeSize),
+            QRImage.heightAnchor.constraint(equalToConstant: Constants.QRCodeSize),
+            QRImage.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            QRImage.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            secondaryLabel.widthAnchor.constraint(equalTo: QRImage.widthAnchor),
+            secondaryLabel.centerXAnchor.constraint(equalTo: QRImage.centerXAnchor),
+            secondaryLabel.bottomAnchor.constraint(equalTo: QRImage.topAnchor, constant: -Constants.codeSpacing),
+            primaryLabel.widthAnchor.constraint(equalTo: QRImage.widthAnchor),
+            primaryLabel.centerXAnchor.constraint(equalTo: QRImage.centerXAnchor),
+            primaryLabel.topAnchor.constraint(equalTo: containerView.topAnchor),
+            primaryLabel.bottomAnchor.constraint(equalTo: secondaryLabel.topAnchor, constant: -Constants.labelSpacing),
+            containerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            containerView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
     }
     
     private func addShareButton() {
@@ -97,6 +95,13 @@ class GroupInviteQRViewController: UIViewController {
         let activityVC = UIActivityViewController(activityItems: [image], applicationActivities: nil)
         present(activityVC, animated: true, completion: nil)
     }
+    
+    private lazy var containerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        return view
+    }()
     
     private lazy var QRImage: UIImageView = {
         let view = UIImageView()
@@ -136,8 +141,8 @@ class GroupInviteQRViewController: UIViewController {
 
 fileprivate extension UIView {
     func asImage() -> UIImage {
-        return UIGraphicsImageRenderer(bounds: self.bounds).image { context in
-            self.layer.render(in: context.cgContext)
+        return UIGraphicsImageRenderer(bounds: self.bounds).image { _ in
+            self.drawHierarchy(in: self.bounds, afterScreenUpdates: true)
         }
     }
 }

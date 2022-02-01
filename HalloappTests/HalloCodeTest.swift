@@ -19,9 +19,17 @@ extension HalloCodeTest {
 
 /// For testing the creation and scannability of our custom QR codes.
 class HalloCodeTest: XCTestCase {
-    private var codes = [HalloCode]()
+    /// Tests that our codes scan correctly.
+    func testDecoding() throws {
+        let codes = try createCodes()
+        for code in codes {
+            let decoded = decode(code)
+            XCTAssertEqual(decoded, code.string)
+        }
+    }
     
-    override func setUpWithError() throws {
+    private func createCodes() throws -> [HalloCode] {
+        var codes = [HalloCode]()
         for url in HalloCodeTest.strings {
             for size in HalloCodeTest.sizes {
                 // create the same code at different sizes
@@ -32,33 +40,8 @@ class HalloCodeTest: XCTestCase {
                 codes.append(code)
             }
         }
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
         
-    /// Tests that our codes scan correctly.
-    func testDecoding() throws {
-        for code in codes {
-            let decoded = decode(code)
-            XCTAssertEqual(decoded, code.string)
-        }
-    }
-
-    /// Tests the performance of creating a large code.
-    func testCodeCreationPerformance() throws {
-        let url = HalloCodeTest.strings.last!
-        let size = CGSize(width: 300, height: 300)
-        
-        let options = XCTMeasureOptions()
-        options.iterationCount = 40
-        
-        self.measure(options: options) {
-            guard let _ = HalloCode(size: size, string: url)?.image else {
-                fatalError()
-            }
-        }
+        return codes
     }
 
     private func decode(_ code: HalloCode) -> String? {
@@ -74,6 +57,21 @@ class HalloCodeTest: XCTestCase {
         }
         
         return features.first?.messageString
+    }
+    
+    /// Tests the performance of creating a large code.
+    func testCodeCreationPerformance() throws {
+        let url = HalloCodeTest.strings.last!
+        let size = CGSize(width: 300, height: 300)
+        
+        let options = XCTMeasureOptions()
+        options.iterationCount = 40
+        
+        self.measure(options: options) {
+            guard let _ = HalloCode(size: size, string: url)?.image else {
+                fatalError()
+            }
+        }
     }
 }
 
