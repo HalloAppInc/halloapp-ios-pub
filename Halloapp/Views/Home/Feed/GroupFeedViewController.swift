@@ -294,10 +294,16 @@ class GroupFeedViewController: FeedCollectionViewController {
         postLabel.text = Localizations.fabPostButton
         postLabel.textColor = .white
 
+        let labelContainer = UIView()
+        labelContainer.translatesAutoresizingMaskIntoConstraints = false
+        labelContainer.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 1, right: 0)
+        labelContainer.addSubview(postLabel)
+        postLabel.constrainMargins(to: labelContainer)
+
         return FloatingMenu(
             permanentButton: .rotatingToggleButton(
                 collapsedIconTemplate: UIImage(named: "icon_fab_compose_post")?.withRenderingMode(.alwaysTemplate),
-                accessoryView: postLabel,
+                accessoryView: labelContainer,
                 expandedRotation: 45),
             expandedButtons: expandedButtons)
     }()
