@@ -9,7 +9,8 @@
 import CocoaLumberjackSwift
 
 public protocol RegistrationService {
-    func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, RegistrationErrorResponse>) -> Void)
+    func requestHashcashChallenge(countryCode: String?, completion: @escaping (Result<String, Error>) -> Void)
+    func requestVerificationCode(for phoneNumber: String, byVoice: Bool, hashcash: HashcashSolution?, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, RegistrationErrorResponse>) -> Void)
     func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, groupInviteToken: String?, pushOS: String?, pushToken: String?, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
     func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void)
 }

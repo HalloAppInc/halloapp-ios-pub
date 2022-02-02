@@ -20,13 +20,36 @@ public protocol RegistrationManager: AnyObject {
     func getGroupName(groupInviteToken: String, completion: @escaping (Result<String?, Error>) -> Void)
 }
 
+enum RegistrationManagerError: Error {
+    case internalError
+}
+
 public final class DefaultRegistrationManager: RegistrationManager {
 
     public init(registrationService: RegistrationService) {
         self.registrationService = registrationService
+
+        // Precompute first hashcash
+        hashcashSolver.solveNext()
     }
 
     private let registrationService: RegistrationService
+
+    // Explicitly track country code provided by user for use in hashcash request
+    // (UserData provides a default country code that we don't want to fall back to).
+    private var userDefinedCountryCode: String?
+
+    private lazy var hashcashSolver: HashcashSolver = {
+        return HashcashSolver() { [weak self] completion in
+            guard let self = self else {
+                completion(.failure(RegistrationManagerError.internalError))
+                return
+            }
+            self.registrationService.requestHashcashChallenge(
+                countryCode: self.userDefinedCountryCode,
+                completion: completion)
+        }
+    }()
 
     public var contactsAccessStatus: CNAuthorizationStatus {
         return CNContactStore.authorizationStatus(for: .contacts)
@@ -37,6 +60,7 @@ public final class DefaultRegistrationManager: RegistrationManager {
     }
 
     public func set(countryCode: String, nationalNumber: String, userName: String) {
+        userDefinedCountryCode = countryCode
         let userData = AppContext.shared.userData
         userData.countryCode = countryCode
         userData.phoneInput = nationalNumber
@@ -45,20 +69,18 @@ public final class DefaultRegistrationManager: RegistrationManager {
         userData.save()
     }
 
-    /// Completion block includes retry delay
+    /// Completion block includes retry delay. May need to wait for hashcash solution to be computed before issuing request.
     public func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, RegistrationErrorResponse>) -> Void) {
-        let userData = AppContext.shared.userData
-        let phoneNumber = userData.countryCode.appending(userData.phoneInput)
-        let groupInviteToken = userData.groupInviteToken
-        registrationService.requestVerificationCode(for: phoneNumber, byVoice: byVoice, groupInviteToken: groupInviteToken, locale: Locale.current) { result in
+        hashcashSolver.solveNext() { [weak self] result in
+            guard let self = self else {
+                completion(.failure(RegistrationErrorResponse(error: VerificationCodeRequestError.requestCreationError)))
+                return
+            }
             switch result {
-            case .success(let response):
-                let userData = AppContext.shared.userData
-                userData.normalizedPhoneNumber = response.normalizedPhoneNumber
-                userData.save()
-                completion(.success(response.retryDelay))
-            case .failure(let errorResponse):
-                completion(.failure(errorResponse))
+            case .success(let hashcash):
+                self.requestVerificationCode(byVoice: byVoice, hashcash: hashcash, completion: completion)
+            case .failure(let error):
+                completion(.failure(RegistrationErrorResponse(error: error)))
             }
         }
     }
@@ -108,4 +130,22 @@ public final class DefaultRegistrationManager: RegistrationManager {
             }
         }
     }
+
+    private func requestVerificationCode(byVoice: Bool, hashcash: HashcashSolution?, completion: @escaping (Result<TimeInterval, RegistrationErrorResponse>) -> Void) {
+        let userData = AppContext.shared.userData
+        let phoneNumber = userData.countryCode.appending(userData.phoneInput)
+        let groupInviteToken = userData.groupInviteToken
+        registrationService.requestVerificationCode(for: phoneNumber, byVoice: byVoice, hashcash: hashcash, groupInviteToken: groupInviteToken, locale: Locale.current) { result in
+            switch result {
+            case .success(let response):
+                let userData = AppContext.shared.userData
+                userData.normalizedPhoneNumber = response.normalizedPhoneNumber
+                userData.save()
+                completion(.success(response.retryDelay))
+            case .failure(let errorResponse):
+                completion(.failure(errorResponse))
+            }
+        }
+    }
+
 }

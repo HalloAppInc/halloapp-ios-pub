@@ -32,12 +32,40 @@ public final class NoiseRegistrationService: RegistrationService {
         self.httpHostName = httpHostName
     }
 
-    public func requestVerificationCode(for phoneNumber: String, byVoice: Bool, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, RegistrationErrorResponse>) -> Void)
+    public func requestHashcashChallenge(countryCode: String?, completion: @escaping (Result<String, Error>) -> Void) {
+        var hashcash = Server_HashcashRequest()
+        if let countryCode = countryCode {
+            hashcash.countryCode = countryCode
+        }
+
+        var request = Server_RegisterRequest()
+        request.hashcashRequest = hashcash
+
+        enqueue(request) { result in
+            switch result {
+            case .success(let response):
+                let challenge = response.hashcashResponse.hashcashChallenge
+                DispatchQueue.main.async {
+                    completion(.success(challenge))
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
+    public func requestVerificationCode(for phoneNumber: String, byVoice: Bool, hashcash: HashcashSolution?, groupInviteToken: String?, locale: Locale, completion: @escaping (Result<RegistrationResponse, RegistrationErrorResponse>) -> Void)
     {
         var otpRequest = Server_OtpRequest()
         otpRequest.phone = phoneNumber
         otpRequest.method = byVoice ? .voiceCall : .sms
         otpRequest.userAgent = userAgent
+        if let hashcash = hashcash {
+            otpRequest.hashcashSolution = hashcash.solution
+            otpRequest.hashcashSolutionTimeTakenMs = Int64(hashcash.timeTaken * 1000)
+        }
         if let groupInviteToken = groupInviteToken {
             otpRequest.groupInviteToken = groupInviteToken
         }
