@@ -300,7 +300,6 @@ class MessageViewCell: UICollectionViewCell {
         isPreviousMessageOwnMessage = isPreviousMessageFromSameSender
         replyArrow.tintColor = userColorAssignment
         nameLabel.textColor = userColorAssignment
-        configureQuotedComment(comment: comment)
         timeLabel.text = comment.timestamp.chatTimestamp()
         setNameLabel(for: comment.userId)
         // Set up retracted comment
@@ -309,6 +308,7 @@ class MessageViewCell: UICollectionViewCell {
             configureRetractedComment()
             return
         }
+        configureQuotedComment(comment: comment)
         configureText(comment: comment)
         configureMedia(comment: comment)
         configureLinkPreviewView(comment: comment)
@@ -319,6 +319,8 @@ class MessageViewCell: UICollectionViewCell {
         hasText = true
         hasMedia = false
         hasAudio = false
+        hasQuotedComment = false
+        hasLinkPreview = false
         textLabel.text = Localizations.commentDeleted
         textLabel.textColor = UIColor.chatTime
     }
