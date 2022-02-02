@@ -368,7 +368,7 @@
 "composer.audio.instructions" = "Tik om op te nemen";
 
 /* Title for audio post composer */
-"composer.audio.title" = "Nieuw Audiobericht";
+"composer.audio.title" = "Nieuwe Audiopost";
 
 /* Title warning that a voice recording will be deleted */
 "composer.delete.recording.title" = "Spraakopname verwijderen?";

@@ -142,6 +142,12 @@
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "Lautsprecher";
 
+/* Title for call history event. Appears next to details of a successful call. */
+"call.history.voice.call" = "Sprachanruf";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.voice.call.missed" = "Verpasster Sprachanruf";
+
 /* Status displayed when outgoing call starts */
 "call.status.calling" = "ausgehender Anruf...";
 
@@ -287,7 +293,7 @@
 "chat.message.video" = "Video";
 
 /* Text shown in place of a received message we are not able to decrypt yet. */
-"chat.message.waiting" = "Auf Nachrichteneingang wird gewartet. Dies kann eine Weile dauern.";
+"chat.message.waiting" = "Warten auf Eingang dieser Nachricht. Dies kann eine Weile dauern.";
 
 /* Alert message when missing microphone access */
 "chat.mic.access.denied.message" = "Für Audioaufnahmen bitte in den Einstellungen das Mikrofon aktivieren";
@@ -463,6 +469,9 @@
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Beitrag";
 
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.comment.waiting" = "Warten auf Eingang dieses Kommentars. Dies kann eine Weile dauern.";
+
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "wird gelöscht...";
 
@@ -516,6 +525,9 @@
 
 /* Shown when receiving a new (unsupported) type of post. */
 "feed.post.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Beitrag nicht.";
+
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.post.waiting" = "Warten auf Eingang dieses Beitrags. Dies kann eine Weile dauern.";
 
 /* Shown while content is being posted to feed */
 "feed.posting" = "Beitrag wird geposted...";
@@ -757,6 +769,12 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Diese Version ist veraltet";
 
+/* Text shown to users on video call failure. */
+"home.video.calls.fail.text" = "In Kürze verfügbar ...";
+
+/* Title of failed video call screen alert. */
+"home.video.calls.fail.title" = "Videoanrufe werden derzeit nicht unterstützt.";
+
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "%@ einladen per ...";
 
@@ -921,6 +939,9 @@
 
 /* Alert text shown when max group size is reached when selecting/adding group members */
 "new.group.members.max.size.alert" = "Die max. Gruppengröße ist %d";
+
+/* Title for alert that pops up when user attempts to save an empty contact list */
+"no.contact.selected" = "Kein Kontakt ausgewählt";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Du bist nicht mehr in dieser Gruppe";
@@ -1185,6 +1206,9 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "Die Sicherheitsnummer für %@ wurde erfolgreich verifiziert!";
+
+/* Message that pops up when user attempts to save an empty contact list */
+"select.at.least.one.contact" = "Bitte wähle mindestens einen Kontakt aus.";
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Lade deine Freunde zu HalloApp ein!";
@@ -1464,6 +1488,9 @@
 
 /* Message asking if the user is sure they want to unblock this user */
 "user.unblock.message" = "Bist du dir sicher, dass du %@ auf HalloApp freigeben möchtest? Du kannst dies später jederzeit ändern.";
+
+/* Button to start voice call. Should be translated as verb. */
+"user.voice.call" = "Anrufen";
 
 /* Reference to the user, second person pronoun */
 "user.you" = "dich";

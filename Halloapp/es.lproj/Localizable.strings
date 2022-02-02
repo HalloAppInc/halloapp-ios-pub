@@ -142,6 +142,12 @@
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "altavoz";
 
+/* Title for call history event. Appears next to details of a successful call. */
+"call.history.voice.call" = "Llamada de voz";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.voice.call.missed" = "Llamada de voz perdida.";
+
 /* Status displayed when outgoing call starts */
 "call.status.calling" = "llamando...";
 
@@ -463,6 +469,9 @@
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Publicación";
 
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.comment.waiting" = "Esperando por este comentario. Esto puede llevar un poco de tiempo.";
+
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Eliminando...";
 
@@ -516,6 +525,9 @@
 
 /* Shown when receiving a new (unsupported) type of post. */
 "feed.post.unsupported" = "Tu versión de HalloApp no admite este tipo de publicación.";
+
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.post.waiting" = "Esperando por esta publicación. Esto puede llevar un poco de tiempo.";
 
 /* Shown while content is being posted to feed */
 "feed.posting" = "Publicando...";
@@ -757,6 +769,12 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Esta versión está desactualizada";
 
+/* Text shown to users on video call failure. */
+"home.video.calls.fail.text" = "Próximamente...";
+
+/* Title of failed video call screen alert. */
+"home.video.calls.fail.title" = "No se pueden realizar videollamadas en este momento.";
+
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "Invita a %@ mediante...";
 
@@ -921,6 +939,9 @@
 
 /* Alert text shown when max group size is reached when selecting/adding group members */
 "new.group.members.max.size.alert" = "El tamaño máximo de grupo es %d";
+
+/* Title for alert that pops up when user attempts to save an empty contact list */
+"no.contact.selected" = "No se ha seleccionado contacto";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Ya no formas parte de este grupo";
@@ -1185,6 +1206,9 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "¡Se ha verificado con éxito el número de seguridad de %@!";
+
+/* Message that pops up when user attempts to save an empty contact list */
+"select.at.least.one.contact" = "Por favor, selecciona al menos un contacto.";
 
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "¡Invita a tus amigos para que disfruten de HalloApp!";
@@ -1464,6 +1488,9 @@
 
 /* Message asking if the user is sure they want to unblock this user */
 "user.unblock.message" = "¿Seguro que quieres desbloquear a %@ en HalloApp? Siempre puedes cambiar esto más tarde.";
+
+/* Button to start voice call. Should be translated as verb. */
+"user.voice.call" = "Llamar";
 
 /* Reference to the user, second person pronoun */
 "user.you" = "tú";
