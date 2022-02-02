@@ -796,11 +796,11 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.setNeedsUpdateHeight()
     }
 
-    func showQuotedReplyPanel(comment: FeedPostComment) {
+    func showQuotedReplyPanel(comment: FeedPostComment, userColorAssignment: UIColor) {
         if !vStack.subviews.contains(quotedPanel){
             vStack.insertArrangedSubview(quotedPanel, at: 0)
         }
-        quotedCellView.configureWithComment(comment: comment)
+        quotedCellView.configureWithComment(comment: comment, userColorAssignment: userColorAssignment)
         textView.becomeFirstResponder()
     }
 

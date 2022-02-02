@@ -136,9 +136,15 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                     withReuseIdentifier: FlatCommentsViewController.messageViewCellReuseIdentifier,
                     for: indexPath)
                 if let itemCell = cell as? MessageViewCell, let self = self {
+                    // Get user name colors
                     let userColorAssignment = self.getUserColorAssignment(userId: comment.userId)
+                    var parentUserColorAssignment = UIColor.secondaryLabel
+                    if let parentCommentUserId = comment.parent?.userId {
+                        parentUserColorAssignment = self.getUserColorAssignment(userId: parentCommentUserId)
+                    }
+
                     let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(indexPath: indexPath, currentComment: comment)
-                    itemCell.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+                    itemCell.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
                     itemCell.textLabel.delegate = self
                     itemCell.delegate = self
                 }
@@ -274,7 +280,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     private func unhighlightComment(_ commentId: FeedPostCommentID) {
         for cell in collectionView.visibleCells.compactMap({ $0 as? MessageViewCell }) {
-            if cell.feedPostCommentID == commentId && cell.isCellHighlighted {
+            if cell.feedPostComment?.id == commentId && cell.isCellHighlighted {
                 UIView.animate(withDuration: Self.cellHighlightAnimationDuration) {
                     cell.isCellHighlighted = false
                 }
@@ -399,9 +405,14 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         confirmationActionSheet.addAction(UIAlertAction(title: Localizations.deleteCommentAction, style: .destructive) { _ in
             guard let comment = MainAppContext.shared.feedData.feedComment(with: comment.id) else { return }
             MainAppContext.shared.feedData.retract(comment: comment)
+            // Get user name colors
             let userColorAssignment = self.getUserColorAssignment(userId: comment.userId)
+            var parentUserColorAssignment = UIColor.secondaryLabel
+            if let parentCommentUserId = comment.parent?.userId {
+                parentUserColorAssignment = self.getUserColorAssignment(userId: parentCommentUserId)
+            }
             let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(indexPath: indexPath, currentComment: comment)
-            cell.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+            cell.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         })
         confirmationActionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
             cell.markViewUnselected()
@@ -488,7 +499,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         }) else { return }
 
         if let parentComment = draft.parentComment {
-            let parentCommentUserID = MainAppContext.shared.feedData.feedComment(with: parentComment)?.userId ?? ""
             parentCommentID = parentComment
         }
         messageInputView.mentionText = draft.text
@@ -592,7 +602,12 @@ extension FlatCommentsViewController: MessageViewDelegate {
         guard let comment = fetchedResultsController?.object(at: indexPath) else { return }
         guard !comment.isRetracted else { return }
         parentCommentID = comment.id
-        messageInputView.showQuotedReplyPanel(comment: comment)
+        let userColorAssignment = self.getUserColorAssignment(userId: comment.userId)
+        messageInputView.showQuotedReplyPanel(comment: comment, userColorAssignment: userColorAssignment)
+    }
+
+    func messageView(_ messageViewCell: MessageViewCell, didTapUserId userId: UserID) {
+        showUserFeed(for: userId)
     }
 }
 

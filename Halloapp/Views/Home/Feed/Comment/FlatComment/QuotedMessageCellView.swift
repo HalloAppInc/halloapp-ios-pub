@@ -28,7 +28,7 @@ class QuotedMessageCellView: UIView {
 
     var hasText: Bool = false  {
         didSet {
-            textView.isHidden = !hasText
+            textLabel.isHidden = !hasText
         }
     }
 
@@ -42,7 +42,7 @@ class QuotedMessageCellView: UIView {
         return mediaView
     }()
     
-    lazy var textView: TextLabel = {
+    lazy var textLabel: TextLabel = {
         let textLabel = TextLabel()
         textLabel.isUserInteractionEnabled = true
         textLabel.backgroundColor = .clear
@@ -70,7 +70,7 @@ class QuotedMessageCellView: UIView {
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.boldSystemFont(ofSize: 14)
+        label.font = UIFont.boldSystemFont(ofSize: 12)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -79,7 +79,7 @@ class QuotedMessageCellView: UIView {
     }()
 
     private lazy var nameTextRow: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ nameLabel, textView ])
+        let vStack = UIStackView(arrangedSubviews: [ nameLabel, textLabel ])
         vStack.axis = .vertical
         vStack.alignment = .fill
         vStack.isLayoutMarginsRelativeArrangement = true
@@ -129,21 +129,32 @@ class QuotedMessageCellView: UIView {
         bubbleView.layer.shadowPath = UIBezierPath(roundedRect: bubbleView.bounds, cornerRadius: 15).cgPath
     }
 
-    func configureWithComment(comment: FeedPostComment) {
+    func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor) {
         hasText = false
         hasMedia = false
-        setNameLabel(for: comment.userId)
+        setNameLabel(for: comment.userId, userColorAssignment: userColorAssignment)
         configureText(comment: comment)
         configureMedia(comment: comment)
     }
 
-    private func setNameLabel(for userID: String) {
+    private func setNameLabel(for userID: String, userColorAssignment: UIColor) {
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true)
+        nameLabel.textColor = userColorAssignment
     }
 
     private func configureText(comment: FeedPostComment) {
         if !comment.text.isEmpty  {
-            textView.text = comment.text
+            let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
+                comment.text,
+                mentions: Array(comment.mentions ?? Set()))
+
+            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+            let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
+            let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
+            if let attrText = textWithMentions?.with(font: font, color: .label) {
+                let ham = HAMarkdown(font: font, color: .label)
+                textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
+            }
             hasText = true
             return
         }
@@ -169,7 +180,7 @@ class QuotedMessageCellView: UIView {
             showMedia(media: media)
             // if quoted comment does not contain text, we need placeholder text
             if comment.text.isEmpty {
-                textView.attributedText = getPlaceholderMediaText(media: media)
+                textLabel.attributedText = getPlaceholderMediaText(media: media)
                 hasText = true
             }
         }
@@ -184,7 +195,7 @@ class QuotedMessageCellView: UIView {
     }
 
     private func configureAudio(media: FeedMedia) {
-        textView.attributedText = getPlaceholderMediaText(media: media)
+        textLabel.attributedText = getPlaceholderMediaText(media: media)
         hasText = true
     }
 

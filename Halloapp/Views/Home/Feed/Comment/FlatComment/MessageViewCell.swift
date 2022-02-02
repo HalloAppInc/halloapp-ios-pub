@@ -20,6 +20,7 @@ private extension Localizations {
 protocol MessageViewDelegate: AnyObject {
     func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
     func messageView(_ messageViewCell: MessageViewCell, replyTo feedPostCommentID: FeedPostCommentID)
+    func messageView(_ messageViewCell: MessageViewCell, didTapUserId userId: UserID)
 }
 
 class MessageViewCell: UICollectionViewCell {
@@ -29,12 +30,13 @@ class MessageViewCell: UICollectionViewCell {
     var MinWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.5 }
     var MediaViewDimention: CGFloat { return contentView.bounds.width * 0.7 }
 
-    var feedPostCommentID: FeedPostCommentID?
+    var feedPostComment: FeedPostComment?
     weak var delegate: MessageViewDelegate?
     private var isReplyTriggered = false // track if swiping gesture on cell is enough to trigger reply
 
     private var isOwnMessage: Bool = false
     private var isPreviousMessageOwnMessage: Bool = false
+    private var userNameColorAssignment: UIColor = UIColor.primaryBlue
 
     lazy var rightAlignedConstraint = messageRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
@@ -160,6 +162,7 @@ class MessageViewCell: UICollectionViewCell {
 
         label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
         label.textColor = .secondaryLabel
+        label.isUserInteractionEnabled = true
 
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -278,6 +281,8 @@ class MessageViewCell: UICollectionViewCell {
         messageRow.constrain(anchor: .bottom, to: contentView, priority: UILayoutPriority(rawValue: 999))
         setupConditionalConstraints()
 
+        // Tapping on user name should take you to the user's feed
+        nameLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showUserFeedForPostAuthor)))
         // Reply gesture
         let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(panGestureCellAction))
         panGestureRecognizer.delegate = self
@@ -293,13 +298,13 @@ class MessageViewCell: UICollectionViewCell {
         ])
     }
 
-    func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
+    func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         audioMediaStatusCancellable?.cancel()
-        feedPostCommentID = comment.id
+        feedPostComment = comment
         isOwnMessage = comment.userId == MainAppContext.shared.userData.userId
         isPreviousMessageOwnMessage = isPreviousMessageFromSameSender
-        replyArrow.tintColor = userColorAssignment
-        nameLabel.textColor = userColorAssignment
+        userNameColorAssignment = userColorAssignment
+        nameLabel.textColor = userNameColorAssignment
         timeLabel.text = comment.timestamp.chatTimestamp()
         setNameLabel(for: comment.userId)
         // Set up retracted comment
@@ -308,7 +313,7 @@ class MessageViewCell: UICollectionViewCell {
             configureRetractedComment()
             return
         }
-        configureQuotedComment(comment: comment)
+        configureQuotedComment(comment: comment, parentUserColorAssignment: parentUserColorAssignment)
         configureText(comment: comment)
         configureMedia(comment: comment)
         configureLinkPreviewView(comment: comment)
@@ -380,9 +385,9 @@ class MessageViewCell: UICollectionViewCell {
         hasText = false
     }
 
-    private func configureQuotedComment(comment: FeedPostComment) {
+    private func configureQuotedComment(comment: FeedPostComment, parentUserColorAssignment: UIColor) {
         if let parentComment = comment.parent {
-            quotedMessageView.configureWithComment(comment: parentComment)
+            quotedMessageView.configureWithComment(comment: parentComment, userColorAssignment: parentUserColorAssignment)
             hasQuotedComment = true
         } else {
             hasQuotedComment = false
@@ -463,7 +468,7 @@ extension MessageViewCell: MediaCarouselViewDelegate {
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
-        if let commentID = feedPostCommentID {
+        if let commentID = feedPostComment?.id {
             delegate?.messageView(view, forComment: commentID, didTapMediaAtIndex: index)
         }
     }
@@ -481,7 +486,7 @@ extension MessageViewCell: AudioViewDelegate {
         audioTimeLabel.text = time
     }
     func audioViewDidStartPlaying(_ view: AudioView) {
-        guard let commentId = feedPostCommentID else { return }
+        guard let commentId = feedPostComment?.id else { return }
         audioView.state = .played
         MainAppContext.shared.feedData.markCommentAsPlayed(commentId: commentId)
     }
@@ -547,7 +552,7 @@ extension MessageViewCell: UIGestureRecognizerDelegate {
         if !isReplyTriggered, isOriginXPastThreshold {
             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
             isReplyTriggered = true
-            replyArrow.tintColor = UIColor.primaryBlue
+            replyArrow.tintColor = userNameColorAssignment
         }
 
         if !isOriginXPastThreshold {
@@ -563,7 +568,7 @@ extension MessageViewCell: UIGestureRecognizerDelegate {
 
                 self.replyArrow.frame = CGRect(x: replyArrowOffset, y: self.replyArrow.frame.origin.y, width: self.replyArrow.frame.width, height: self.replyArrow.frame.height)
             } completion: { (finished) in
-                guard let feedPostCommentID = self.feedPostCommentID else { return }
+                guard let feedPostCommentID = self.feedPostComment?.id else { return }
 
                 if self.isReplyTriggered {
                     self.delegate?.messageView(self, replyTo: feedPostCommentID)
@@ -574,6 +579,12 @@ extension MessageViewCell: UIGestureRecognizerDelegate {
                     self.replyArrow.removeFromSuperview()
                 }
             }
+        }
+    }
+
+    @objc private func showUserFeedForPostAuthor() {
+        if let feedPostComment = feedPostComment {
+            delegate?.messageView(self, didTapUserId: feedPostComment.userId)
         }
     }
 }
