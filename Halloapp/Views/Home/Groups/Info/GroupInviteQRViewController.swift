@@ -12,8 +12,10 @@ import Core
 
 fileprivate extension GroupInviteQRViewController {
     struct Constants {
+        /// The margin we want to use when using the share button.
+        static let codeMargin: CGFloat = 25
         /// The width and height of `QRImage`.
-        static let QRCodeSize: CGFloat = 300
+        static let QRCodeSize: CGFloat = min(UIScreen.main.bounds.width - 2 * Self.codeMargin, 300)
         /// Spacing between `primaryLabel` and `secondaryLabel'. `
         static let labelSpacing: CGFloat = 15
         /// Spacing between `secondaryLabel` and `QRImage`.
@@ -93,11 +95,8 @@ class GroupInviteQRViewController: UIViewController {
     }
     
     @objc private func pushedShare(_ button: UIBarButtonItem) {
-        let margin = view.bounds.maxX - containerView.frame.maxX
-        let cropRect = CGRect(x: 0,
-                              y: containerView.frame.minY,
-                          width: view.bounds.width,
-                         height: containerView.frame.height).insetBy(dx: 0, dy: -margin)
+        let margin = Constants.codeMargin
+        let cropRect = containerView.frame.insetBy(dx: -margin, dy: -margin)
         guard let image = view.asImage(cropRect) else {
             return
         }
