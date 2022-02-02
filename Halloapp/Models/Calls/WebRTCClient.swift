@@ -81,8 +81,7 @@ final class WebRTCClient: NSObject {
         config.sdpSemantics = .unifiedPlan
         // Enables fast accelerate mode of jitter buffer.
         config.audioJitterBufferFastAccelerate = true
-        // gatherContinually will let WebRTC to listen to any network changes and send any new candidates to the other client
-        config.continualGatheringPolicy = .gatherContinually
+        config.continualGatheringPolicy = .gatherOnce
         // Define media constraints. DtlsSrtpKeyAgreement is required to be true to be able to connect with web browsers.
         let constraints = RTCMediaConstraints(mandatoryConstraints: nil,
                                               optionalConstraints: ["DtlsSrtpKeyAgreement":kRTCMediaConstraintsValueTrue])
