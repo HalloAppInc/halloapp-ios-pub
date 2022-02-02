@@ -60,7 +60,7 @@ struct MediaCarouselSupplementaryItem {
 
 fileprivate struct LayoutConstants {
     static let pageControlSpacingTop: CGFloat = 6
-    static let pageControlSpacingBottom: CGFloat = -12
+    static let pageControlSpacingBottom: CGFloat = 12
 }
 
 class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MediaExplorerTransitionDelegate {
@@ -83,7 +83,6 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                 pageControl.currentPage = currentIndex
                 pageControl.setNeedsLayout()
             }
-
 
             if oldValue != currentIndex {
                 if let videoCell = collectionView.cellForItem(at: IndexPath(row: oldValue, section: MediaSliderSection.main.rawValue)) as? MediaCarouselVideoCollectionViewCell {
@@ -142,11 +141,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
         guard let tallestItemAspectRatio = aspectRatios.max() else { return 0 }
 
-        var height = tallestItemAspectRatio * width
-        if media.count > 1 {
-            height += MediaCarouselView.pageControlAreaHeight
-        }
-
+        let height = tallestItemAspectRatio * width
         return min(maxHeight, height)
     }
 
@@ -166,7 +161,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             return invalidationContext
         }
     }
-
+    
     private lazy var collectionView: UICollectionView = {
         let layout = MediaCarouselCollectionViewLayout()
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
@@ -189,10 +184,10 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         collectionView.backgroundColor = .clear
         collectionView.allowsSelection = true
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-
+        
         return collectionView
     }()
-
+    
     private lazy var pageControlStack: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [])
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -201,7 +196,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
         return stack
     }()
-
+    
     private lazy var pageControl: UIPageControl = {
         let pageControl = UIPageControl()
         pageControl.translatesAutoresizingMaskIntoConstraints = false
@@ -211,11 +206,12 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
         return pageControl
     }()
+        
     public static let pageControlAreaHeight: CGFloat = {
         let pageControl = UIPageControl()
         pageControl.numberOfPages = 2
         pageControl.sizeToFit()
-        return max(pageControl.frame.height, 52) + LayoutConstants.pageControlSpacingBottom
+        return max(pageControl.frame.height, 52) - LayoutConstants.pageControlSpacingBottom
     }()
 
     private var dataSource: UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>?
@@ -243,31 +239,10 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         isUserInteractionEnabled = true
         layoutMargins = .zero
 
-        // Collection view container lets items remain visible when scrolling through "gutter" but clip at edge of card
-        let collectionViewContainer = UIView()
-        collectionViewContainer.translatesAutoresizingMaskIntoConstraints = false
-        collectionViewContainer.clipsToBounds = true
-
-        collectionViewContainer.addSubview(collectionView)
-        addSubview(collectionViewContainer)
-
-        collectionViewContainer.constrain([.top, .bottom], to: collectionView)
-        collectionViewContainer.constrain(anchor: .leading, to: self, constant: -configuration.gutterWidth)
-        collectionViewContainer.constrain(anchor: .trailing, to: self, constant: configuration.gutterWidth)
-
-        if configuration.isPagingEnabled {
-            collectionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -0.5*configuration.cellSpacing).isActive = true
-            collectionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0.5*configuration.cellSpacing).isActive = true
-        } else {
-            collectionView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
-            collectionView.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
-        }
-        collectionView.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
-        collectionView.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor).isActive = true
-
+        setupPageControlStack()
         updatePageControl()
-        collectionView.delegate = self
-
+        setupCollectionView()
+        
         let dataSource = UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>(collectionView: collectionView) { [weak self] collectionView, indexPath, feedMedia in
             guard let self = self else { return nil }
 
@@ -339,6 +314,54 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         let zoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(zoomAction))
         collectionView.addGestureRecognizer(zoomRecognizer)
     }
+    
+    private func setupCollectionView() {
+        let collectionViewContainer = UIView()
+        collectionViewContainer.translatesAutoresizingMaskIntoConstraints = false
+        collectionViewContainer.clipsToBounds = true
+        // Collection view container lets items remain visible when scrolling through "gutter" but clip at edge of card
+        collectionViewContainer.addSubview(collectionView)
+        addSubview(collectionViewContainer)
+
+        var containerConstraints = [
+            collectionViewContainer.topAnchor.constraint(equalTo: self.topAnchor),
+            collectionViewContainer.bottomAnchor.constraint(equalTo: pageControlStack.topAnchor),
+            collectionViewContainer.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: -configuration.gutterWidth),
+            collectionViewContainer.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: configuration.gutterWidth)
+        ]
+        
+        if configuration.isPagingEnabled {
+            containerConstraints += [
+                collectionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -0.5*configuration.cellSpacing),
+                collectionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0.5*configuration.cellSpacing)
+            ]
+        } else {
+            containerConstraints += [
+                collectionView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
+                collectionView.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor)
+            ]
+        }
+        
+        containerConstraints += [
+            collectionView.topAnchor.constraint(equalTo: collectionViewContainer.topAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: collectionViewContainer.bottomAnchor)
+        ]
+        
+        NSLayoutConstraint.activate(containerConstraints)
+        collectionView.delegate = self
+    }
+    
+    private func setupPageControlStack() {
+        guard pageControlStack.superview == nil else {
+            return
+        }
+        
+        addSubview(pageControlStack)
+        NSLayoutConstraint.activate([
+            pageControlStack.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+            pageControlStack.centerXAnchor.constraint(equalTo: self.centerXAnchor)
+        ])
+    }
 
     private func updatePageControl() {
         pageControl.numberOfPages = media.count
@@ -365,40 +388,39 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
 
         if pageControl.numberOfPages > 1 && configuration.isPagingEnabled {
-            // Putting UIPageControl in this container allows us to remove
-            // the padding/margins it has on both sides, so that adjacent
-            // views appear near the dots. Padding is different on different screen sizes
-
-            // TODO: Remove manual calculation dependency
-            // based on observation, required to avoid the padding
-            // works on current devices (iPhone 8 - 13, iOS 13 - 15)
-            let pageControlWidth = CGFloat(pageControl.numberOfPages) * CGFloat(9.67) + CGFloat(pageControl.numberOfPages - 1) * CGFloat(8)
-
-            let container = UIView()
-            container.translatesAutoresizingMaskIntoConstraints = false
-            container.addSubview(pageControl)
-
-            NSLayoutConstraint.activate([
-                container.widthAnchor.constraint(equalToConstant: pageControlWidth),
-                pageControl.topAnchor.constraint(equalTo: container.topAnchor),
-                pageControl.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-                pageControl.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            ])
-
-            pageControlStack.addArrangedSubview(container)
+            displayPageControl()
         }
 
         for view in trailingViews {
             pageControlStack.addArrangedSubview(view)
         }
+    }
+    
+    private func displayPageControl() {
+        // Putting UIPageControl in this container allows us to remove
+        // the padding/margins it has on both sides, so that adjacent
+        // views appear near the dots. Padding is different on different screen sizes
 
-        if pageControlStack.arrangedSubviews.count > 0 {
-            addSubview(pageControlStack)
-            pageControlStack.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor, constant: -LayoutConstants.pageControlSpacingBottom).isActive = true
-            pageControlStack.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-        } else {
-            pageControlStack.removeFromSuperview()
-        }
+        // TODO: Remove manual calculation dependency
+        // based on observation, required to avoid the padding
+        // works on current devices (iPhone 8 - 13, iOS 13 - 15)
+        let pageControlWidth = CGFloat(pageControl.numberOfPages) * CGFloat(9.67) + CGFloat(pageControl.numberOfPages - 1) * CGFloat(8)
+
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(pageControl)
+
+        NSLayoutConstraint.activate([
+            container.widthAnchor.constraint(equalToConstant: pageControlWidth),
+            pageControl.topAnchor.constraint(equalTo: container.topAnchor, constant: 0),
+            pageControl.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: 0),
+            pageControl.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+        ])
+
+        pageControlStack.isLayoutMarginsRelativeArrangement = true
+        pageControlStack.layoutMargins.top = LayoutConstants.pageControlSpacingTop
+        pageControlStack.layoutMargins.bottom = -LayoutConstants.pageControlSpacingBottom
+        pageControlStack.addArrangedSubview(container)
     }
 
     public func refreshData(media: [FeedMedia], index: Int, animated: Bool) {
@@ -489,22 +511,22 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         if configuration.isPagingEnabled {
-            var size = bounds.size
-            if pageControlStack.arrangedSubviews.count > 0 && size.height > Self.pageControlAreaHeight {
-                size.height -= Self.pageControlAreaHeight + LayoutConstants.pageControlSpacingTop
-            }
+            let size = CGSize(width: self.bounds.size.width, height: collectionView.bounds.height)
             return size
-        } else {
-            guard let mediaItem = dataSource?.itemIdentifier(for: indexPath),
-                  let collectionViewFlowLayout = collectionViewLayout as? UICollectionViewFlowLayout else {
-                return .zero
-            }
-            var cellHeight = collectionView.frame.height - collectionView.contentInset.top - collectionView.contentInset.bottom
-            cellHeight -= (collectionViewFlowLayout.sectionInset.top + collectionViewFlowLayout.sectionInset.bottom)
-
-            let cellWidth = ceil(cellHeight * (mediaItem.size.width / mediaItem.size.height))
-            return CGSize(width: cellWidth, height: cellHeight)
         }
+            
+        guard
+            let mediaItem = dataSource?.itemIdentifier(for: indexPath),
+            let collectionViewFlowLayout = collectionViewLayout as? UICollectionViewFlowLayout
+        else {
+            return .zero
+        }
+        
+        var cellHeight = collectionView.frame.height - collectionView.contentInset.top - collectionView.contentInset.bottom
+        cellHeight -= (collectionViewFlowLayout.sectionInset.top + collectionViewFlowLayout.sectionInset.bottom)
+
+        let cellWidth = ceil(cellHeight * (mediaItem.size.width / mediaItem.size.height))
+        return CGSize(width: cellWidth, height: cellHeight)
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
