@@ -68,26 +68,11 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
 
         contentView.preservesSuperviewLayoutMargins = false
 
-        contentView.addSubview(mainView)
+        contentView.addSubview(bubbleRow)
 
-        mainView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor).isActive = true
-        mainView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        mainView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-
-        let mainViewBottomConstraint = mainView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor)
-        mainViewBottomConstraint.priority = UILayoutPriority(rawValue: 999)
-        mainViewBottomConstraint.isActive = true
+        bubbleRow.constrainMargins([.top, .leading, .trailing], to: contentView)
+        bubbleRow.constrainMargin(anchor: .bottom, to: contentView, priority: UILayoutPriority(rawValue: 999))
     }
-
-    private lazy var mainView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ dateColumn, bubbleRow ])
-        view.axis = .vertical
-        view.spacing = 0
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        return view
-    }()
     
     private lazy var bubbleRow: UIStackView = {
         let spacer = UIView()

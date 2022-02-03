@@ -116,6 +116,7 @@
 		68B47B02260DBAD000D675FC /* InviteContactsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B47B01260DBAD000D675FC /* InviteContactsManager.swift */; };
 		68B5C22D264C6F3F004C7939 /* SafetyNumberViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B5C22C264C6F3F004C7939 /* SafetyNumberViewController.swift */; };
 		68B5C232264DC710004C7939 /* QRCodeScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B5C231264DC710004C7939 /* QRCodeScannerViewController.swift */; };
+		68C5696927AC600F00637B28 /* ChatDateMarkerCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C5696827AC600F00637B28 /* ChatDateMarkerCell.swift */; };
 		68C8264B251A77A000BB8F3A /* NUX.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C8264A251A77A000BB8F3A /* NUX.swift */; };
 		68CCB16726964851007015FA /* InitializingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CCB16626964851007015FA /* InitializingViewController.swift */; };
 		68CCE7AD275FDE8200C39B70 /* RootViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CCE7AC275FDE8200C39B70 /* RootViewController.swift */; };
@@ -750,6 +751,7 @@
 		68BB38DF26A7F94400C87D0F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		68BB38E026A7F94400C87D0F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = ru; path = ../HalloApp/ru.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		68BB38E126A7F94400C87D0F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		68C5696827AC600F00637B28 /* ChatDateMarkerCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatDateMarkerCell.swift; sourceTree = "<group>"; };
 		68C8264A251A77A000BB8F3A /* NUX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NUX.swift; sourceTree = "<group>"; };
 		68CCB16626964851007015FA /* InitializingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitializingViewController.swift; sourceTree = "<group>"; };
 		68CCE7AC275FDE8200C39B70 /* RootViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootViewController.swift; sourceTree = "<group>"; };
@@ -1683,6 +1685,7 @@
 				EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */,
 				EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */,
 				EA7B36432783C87100C82D2F /* ChatEventViewCell.swift */,
+				68C5696827AC600F00637B28 /* ChatDateMarkerCell.swift */,
 			);
 			path = Message;
 			sourceTree = "<group>";
@@ -2822,6 +2825,7 @@
 				E5CE660226B354EC0093944A /* SettingsArchiveViewController.swift in Sources */,
 				76B5B52C2501EE790055E712 /* NotificationMetadata.swift in Sources */,
 				F88E5C95275A14D500290A89 /* MediaPickerPreview.swift in Sources */,
+				68C5696927AC600F00637B28 /* ChatDateMarkerCell.swift in Sources */,
 				76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */,
 				765EB4EB24D92404002FA5D9 /* SafariView.swift in Sources */,
 				685B76CC24E4A37600BF666A /* FloatingMenu.swift in Sources */,

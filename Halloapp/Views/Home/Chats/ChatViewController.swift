@@ -47,6 +47,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     static private let outboundMsgViewCellReuseIdentifier = "OutboundMsgViewCell"
     static private let chatEventViewCellReuseIdentifier = "ChatEventViewCell"
     static private let chatCallViewCellReuseIdentifier = "ChatCallViewCell"
+    static private let chatDateMarkerCellReuseIdentifier = "ChatDateMarkerCell"
 
     private let waitForCellTimeout: TimeInterval = 0.25
 
@@ -140,8 +141,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                     var isNextMsgSameSender = false
                     var isNextMsgSameTime = false
 
-                    var isNextMsgDifferentDay = false
-
                     let previousRow = chatMsgData.indexPath.row - 1
                     let nextRow = chatMsgData.indexPath.row + 1
 
@@ -151,15 +150,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                             if previousChatMessage.fromUserId == chatMessage.fromUserId {
                                 isPreviousMsgSameSender = true
                             }
-
-                            if let previousMsgTime = previousChatMessage.timestamp, let currentMsgTime = chatMessage.timestamp  {
-                                if !Calendar.current.isDate(previousMsgTime, inSameDayAs: currentMsgTime) {
-                                    isNextMsgDifferentDay = true
-                                }
-                            }
                         }
-                    } else {
-                        isNextMsgDifferentDay = true
                     }
 
                     if nextRow < tableView.numberOfRows(inSection: 0) {
@@ -182,11 +173,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                             cell.tableIndexPath = indexPath
                             cell.indexPath = chatMsgData.indexPath
                             cell.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
-
-                            if isNextMsgDifferentDay {
-                                cell.addDateRow(timestamp: chatMessage.timestamp)
-                            }
-
                             cell.msgViewCellDelegate = self
                             cell.delegate = self
                             return cell
@@ -196,11 +182,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                             cell.tableIndexPath = indexPath
                             cell.indexPath = chatMsgData.indexPath
                             cell.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
-
-                            if isNextMsgDifferentDay {
-                                cell.addDateRow(timestamp: chatMessage.timestamp)
-                            }
-
                             cell.msgViewCellDelegate = self
                             cell.delegate = self
                             return cell
@@ -217,6 +198,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                     if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.chatCallViewCellReuseIdentifier, for: indexPath) as? ChatCallCell {
                         cell.configure(callData)
                         cell.delegate = self
+                        return cell
+                    }
+                case .dateMarker(let date):
+                    if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.chatDateMarkerCellReuseIdentifier, for: indexPath) as? ChatDateMarkerCell {
+                        cell.configure(for: date)
                         return cell
                     }
                 }
@@ -665,6 +651,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         tableView.register(OutboundMsgViewCell.self, forCellReuseIdentifier: ChatViewController.outboundMsgViewCellReuseIdentifier)
         tableView.register(ChatEventViewCell.self, forCellReuseIdentifier: ChatViewController.chatEventViewCellReuseIdentifier)
         tableView.register(ChatCallCell.self, forCellReuseIdentifier: ChatViewController.chatCallViewCellReuseIdentifier)
+        tableView.register(ChatDateMarkerCell.self, forCellReuseIdentifier: ChatViewController.chatDateMarkerCellReuseIdentifier)
         tableView.delegate = self
         return tableView
     }()
@@ -934,6 +921,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         var chatRows = [Row]()
 
+        // Add messages
         chatMessages.forEach { msg in
             if let indexPath = fetchedResultsController?.indexPath(forObject: msg) {
                 let chatMsgData = ChatMsgData(id: msg.id, cellHeight: msg.cellHeight, outgoingStatus: msg.outgoingStatus, incomingStatus: msg.incomingStatus, timestamp: msg.timestamp, indexPath: indexPath)
@@ -941,6 +929,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             }
         }
 
+        // Add key change events
         chatEvents.forEach { event in
             if let indexPath = chatEventFetchedResultsController?.indexPath(forObject: event) {
                 let chatEventData = ChatEventData(timestamp: event.timestamp, indexPath: indexPath)
@@ -948,12 +937,31 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             }
         }
 
+        // Add calls
         chatRows += calls
             .map { ChatCallData(userID: $0.peerUserID, timestamp: $0.timestamp, duration: $0.durationMs / 1000, wasSuccessful: $0.answered, wasIncoming: $0.direction == .incoming) }
             .map { Row.chatCall($0) }
 
+        // Sort by date
         chatRows = chatRows.sorted {
             ($0.timestamp ?? .distantFuture) < ($1.timestamp ?? .distantFuture)
+        }
+
+        // Add date markers
+        var rowIndex = 0
+        var previousDate = Date.distantPast
+        while rowIndex < chatRows.count {
+            guard let currentDate = chatRows[rowIndex].timestamp else {
+                rowIndex += 1
+                continue
+            }
+            if Calendar.current.isDate(currentDate, inSameDayAs: previousDate) {
+                rowIndex += 1
+            } else {
+                chatRows.insert(.dateMarker(currentDate), at: rowIndex)
+                rowIndex += 2
+            }
+            previousDate = currentDate
         }
 
         /* apply snapshot */
@@ -1285,6 +1293,7 @@ fileprivate enum Row: Hashable, Equatable {
     case chatCall(ChatCallData)
     case chatMsg(ChatMsgData)
     case chatEvent(ChatEventData)
+    case dateMarker(Date)
 
     var timestamp: Date? {
         switch self {
@@ -1294,6 +1303,8 @@ fileprivate enum Row: Hashable, Equatable {
             return data.timestamp
         case .chatCall(let data):
             return data.timestamp
+        case .dateMarker(let date):
+            return date
         }
     }
 }
@@ -1499,7 +1510,7 @@ extension ChatViewController: UITableViewDelegate {
             guard chatMessage.cellHeight != height else { return }
             DDLogVerbose("ChatViewController/willDisplay/updateCellHeight/\(chatMessage.id) from \(chatMessage.cellHeight) to \(height)")
             MainAppContext.shared.chatData.updateChatMessageCellHeight(for: chatMessage.id, with: height)
-        case .chatEvent, .chatCall: break
+        case .chatEvent, .chatCall, .dateMarker: break
         }
     }
 
@@ -1512,7 +1523,7 @@ extension ChatViewController: UITableViewDelegate {
             guard let chatMessage = fetchedResultsController?.optionalObject(at: chatMsgData.indexPath) else { break }
             guard chatMessage.cellHeight != 0 else { break }
             return CGFloat(chatMessage.cellHeight)
-        case .chatEvent, .chatCall:
+        case .chatEvent, .chatCall, .dateMarker:
             break
         }
 
