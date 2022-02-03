@@ -32,6 +32,16 @@ private extension Localizations {
     static var newPost: String {
         NSLocalizedString("share.destination.new", value: "New Post", comment: "Share on the home feed selection cell")
     }
+
+    static func missing(group name: String) -> String {
+        let format = NSLocalizedString("share.destination.missing.group", value: "Missing group %@", comment: "Alert title when a direct to group sharing is missing")
+        return String.localizedStringWithFormat(format, name)
+    }
+
+    static func missing(contact name: String) -> String {
+        let format = NSLocalizedString("share.destination.missing.group", value: "Missing contact %@", comment: "Alert title when a direct to contact sharing is missing")
+        return String.localizedStringWithFormat(format, name)
+    }
 }
 
 class ShareDestinationViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
@@ -154,6 +164,13 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
                 guard let contact = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: false).first(where: { contact in
                     contact.userId == conversationID.id
                 }) else {
+                    DDLogError("ShareDestinationViewController/intent/error missing contact userId=[\(conversationID.id)]")
+
+                    let title = Localizations.missing(contact: intent.speakableGroupName?.spokenPhrase ?? "")
+                    let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .default))
+                    present(alert, animated: true)
+
                     return
                 }
 
@@ -163,6 +180,13 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
                 guard let group = groups.first(where: { group in
                     group.id == conversationID.id
                 }) else {
+                    DDLogError("ShareDestinationViewController/intent/error missing group id=[\(conversationID.id)]")
+
+                    let title = Localizations.missing(group: intent.speakableGroupName?.spokenPhrase ?? "")
+                    let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .default))
+                    present(alert, animated: true)
+
                     return
                 }
 
