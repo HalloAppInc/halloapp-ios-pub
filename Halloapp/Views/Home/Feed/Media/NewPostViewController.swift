@@ -13,7 +13,7 @@ import Photos
 import UIKit
 import SwiftUI
 
-private extension Localizations {
+extension Localizations {
     static var newPost: String {
         NSLocalizedString("post.controller.picker.title", value: "New Post", comment: "Title for the picker screen.")
     }

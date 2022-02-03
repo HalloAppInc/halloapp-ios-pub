@@ -98,12 +98,16 @@ final class FloatingMenu: UIView {
     static var ButtonDiameter: CGFloat = 55
     static var ButtonSpacing: CGFloat = 15
     static var PermanentButtonExtraSpacing: CGFloat = 5
+    static var HeaderSpacing: CGFloat = 20
     static var ShadowOpacity: Float = 0.2
     static var ExpandedBackgroundColor: UIColor = .feedBackground.withAlphaComponent(0.9)
 
-    init(permanentButton: FloatingMenuButton, expandedButtons: [FloatingMenuButton] = []) {
+    init(permanentButton: FloatingMenuButton, expandedButtons: [FloatingMenuButton] = [], expandedHeader: String? = nil) {
         self.permanentButton = permanentButton
         self.expandedButtons = expandedButtons
+        if let expandedHeader = expandedHeader {
+            self.expandedHeader = Self.makeLabel(text: expandedHeader, textStyle: .body)
+        }
         super.init(frame: .zero)
         setup()
     }
@@ -178,6 +182,15 @@ final class FloatingMenu: UIView {
                 button.center.y -= deltaY
             }
         }
+
+        if let header = expandedHeader {
+            let topButton = orderedButtons.last ?? permanentButton
+            let headerCenterY = isCollapsed ? permanentButton.center.y : topButton.frame.minY - Self.HeaderSpacing - header.bounds.height/2
+            header.center = CGPoint(
+                x: permanentButton.center.x - (header.bounds.width - permanentButton.bounds.width) / 2,
+                y: headerCenterY)
+            header.alpha = isCollapsed ? 0 : 1
+        }
     }
 
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
@@ -207,6 +220,16 @@ final class FloatingMenu: UIView {
         case expanded
     }
 
+    static func makeLabel(text: String, textStyle: UIFont.TextStyle = .footnote) -> UILabel {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = UIApplication.shared.userInterfaceLayoutDirection == .rightToLeft ? .left : .right
+        label.textColor = .label
+        label.font = .gothamFont(forTextStyle: textStyle, weight: .medium)
+        label.text = text
+        return label
+    }
+
     // MARK: Private
 
     private var isCollapsed: Bool { self.state == .collapsed }
@@ -214,6 +237,8 @@ final class FloatingMenu: UIView {
     private var orderedButtons: [FloatingMenuButton] {
         [permanentButton] + expandedButtons
     }
+
+    private var expandedHeader: UIView?
 
     private func setup() {
 
@@ -225,6 +250,9 @@ final class FloatingMenu: UIView {
             button.layer.shadowRadius = 6
             button.layer.shadowOpacity = Self.ShadowOpacity
             button.layer.shadowOffset = CGSize(width: 0, height: 5)
+        }
+        if let header = expandedHeader {
+            addSubview(header)
         }
 
         permanentButton.constrainMargin(anchor: .bottom, to: self, constant: -4)
@@ -294,10 +322,11 @@ final class AccessorizedFloatingButton: UIControl {
 
 final class LabeledFloatingButton: UIControl {
     init(icon: UIImage?, text: String, isCollapsed: Bool = true) {
+        self.label = FloatingMenu.makeLabel(text: text)
+
         super.init(frame: .zero)
 
         label.alpha = isCollapsed ? 0 : 1
-        label.text = text
         imageView.image = icon
         circleView.layer.shadowOpacity = isCollapsed ? 0 : FloatingMenu.ShadowOpacity
 
@@ -346,12 +375,5 @@ final class LabeledFloatingButton: UIControl {
         return view
     }()
 
-    let label: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textAlignment = UIApplication.shared.userInterfaceLayoutDirection == .rightToLeft ? .left : .right
-        label.textColor = .label
-        label.font = .gothamFont(forTextStyle: .footnote, weight: .medium)
-        return label
-    }()
+    let label: UILabel
 }
