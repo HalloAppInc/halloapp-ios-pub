@@ -262,28 +262,30 @@ class MainAppContext: AppContext {
     private var backgroundTaskIds: [String: UIBackgroundTaskIdentifier] = [:]
 
     func beginBackgroundTask(_ itemId: String, expirationHandler: (() -> Void)? = nil) {
-        if backgroundTaskIds[itemId] != nil {
-            DDLogInfo("end existing background task: [\(itemId)]")
-            endBackgroundTask(itemId)
-        }
-        DDLogInfo("background task create [\(itemId)]")
-        backgroundTaskIds[itemId] = UIApplication.shared.beginBackgroundTask(withName: "background-task-\(itemId)") { [weak self] in
-            guard let self = self else { return }
+        DispatchQueue.global().async { [self] in
+            if backgroundTaskIds[itemId] != nil {
+                DDLogInfo("end existing background task: [\(itemId)]")
+                endBackgroundTask(itemId)
+            }
+            DDLogInfo("background task create [\(itemId)]")
+            backgroundTaskIds[itemId] = UIApplication.shared.beginBackgroundTask(withName: "background-task-\(itemId)") { [weak self] in
+                guard let self = self else { return }
 
-            DDLogInfo("background task expired [\(itemId)]")
-            self.endBackgroundTask(itemId)
+                DDLogInfo("background task expired [\(itemId)]")
+                self.endBackgroundTask(itemId)
 
-            if let handler = expirationHandler {
-                handler()
+                expirationHandler?()
             }
         }
     }
 
     func endBackgroundTask(_ itemId: String) {
-        guard let taskId = backgroundTaskIds[itemId] else { return }
-        DDLogInfo("background task ended [\(itemId)]")
+        DispatchQueue.global().async { [self] in
+            guard let taskId = backgroundTaskIds[itemId] else { return }
+            DDLogInfo("background task ended [\(itemId)]")
 
-        UIApplication.shared.endBackgroundTask(taskId)
-        backgroundTaskIds.removeValue(forKey: itemId)
+            UIApplication.shared.endBackgroundTask(taskId)
+            backgroundTaskIds.removeValue(forKey: itemId)
+        }
     }
 }
