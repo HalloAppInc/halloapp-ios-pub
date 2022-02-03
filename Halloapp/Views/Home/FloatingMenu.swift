@@ -189,11 +189,17 @@ final class FloatingMenu: UIView {
             let convertedPoint = self.convert(point, to: target)
             return hitView ?? target.hitTest(convertedPoint, with: event)
         }
-        if result == nil {
-            // Collapse menu if user interacts with view below
-            setState(.collapsed, animated: true)
+        if result == nil, !isCollapsed {
+            // Block interaction with view below
+            return self
         }
         return result
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if !isCollapsed {
+            setState(.collapsed, animated: true)
+        }
     }
 
     enum State {
