@@ -666,6 +666,14 @@ extension CallManager: HalloCallDelegate {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason videoUnsupportedError")
             } else if activeCallID == incomingCall.callID {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID) duplicate packet")
+                reportIncomingCall(id: callID, from: peerUserID) { result in
+                    switch result {
+                    case .success:
+                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/duplicate-success")
+                    case .failure(let error):
+                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/duplicate-failed: \(error)")
+                    }
+                }
             } else if activeCall != nil {
                 MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason busy")
@@ -676,8 +684,8 @@ extension CallManager: HalloCallDelegate {
                 activeCall = Call(id: callID, peerUserID: peerUserID)
                 activeCall?.stateDelegate = self
                 activeCall?.initializeWebRtcClient(iceServers: iceServers)
-                reportIncomingCall(id: callID, from: peerUserID) { error in
-                    switch error {
+                reportIncomingCall(id: callID, from: peerUserID) { result in
+                    switch result {
                     case .success:
                         DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/success")
                         reportIncomingCallCompletion()
