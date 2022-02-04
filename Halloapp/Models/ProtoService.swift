@@ -1745,46 +1745,48 @@ extension ProtoService: HalloService {
     }
 
     func answerCall(id callID: CallID, to peerUserID: UserID, payload: Data, completion: @escaping (Result<Void, RequestError>) -> Void) {
-        AppContext.shared.messageCrypter.encrypt(payload, for: peerUserID) { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .failure(let error):
-                DDLogError("ProtoService/startCall/\(callID)/failed encryption: \(peerUserID)/error: \(error)")
-                completion(.failure(.aborted))
-            case .success((let encryptedData, _)):
-                guard let fromUID = Int64(AppContext.shared.userData.userId) else {
-                    DDLogError("ProtoService/answerCall/\(callID)/error invalid sender uid")
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            AppContext.shared.messageCrypter.encrypt(payload, for: peerUserID) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .failure(let error):
+                    DDLogError("ProtoService/startCall/\(callID)/failed encryption: \(peerUserID)/error: \(error)")
                     completion(.failure(.aborted))
-                    return
-                }
-                guard let toUID = Int64(peerUserID) else {
-                    DDLogError("ProtoService/answerCall/\(callID)/error invalid to uid")
-                    completion(.failure(.aborted))
-                    return
-                }
+                case .success((let encryptedData, _)):
+                    guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+                        DDLogError("ProtoService/answerCall/\(callID)/error invalid sender uid")
+                        completion(.failure(.aborted))
+                        return
+                    }
+                    guard let toUID = Int64(peerUserID) else {
+                        DDLogError("ProtoService/answerCall/\(callID)/error invalid to uid")
+                        completion(.failure(.aborted))
+                        return
+                    }
 
-                let msgID = PacketID.generate()
-                var webrtcAnswer = Server_WebRtcSessionDescription()
-                webrtcAnswer.encPayload = encryptedData.data
-                webrtcAnswer.publicKey = encryptedData.identityKey ?? Data()
-                webrtcAnswer.oneTimePreKeyID = Int32(encryptedData.oneTimeKeyId)
+                    let msgID = PacketID.generate()
+                    var webrtcAnswer = Server_WebRtcSessionDescription()
+                    webrtcAnswer.encPayload = encryptedData.data
+                    webrtcAnswer.publicKey = encryptedData.identityKey ?? Data()
+                    webrtcAnswer.oneTimePreKeyID = Int32(encryptedData.oneTimeKeyId)
 
-                var answerCall = Server_AnswerCall()
-                answerCall.callID = callID
-                answerCall.webrtcAnswer = webrtcAnswer
-                var packet = Server_Packet()
-                packet.msg.fromUid = fromUID
-                packet.msg.id = msgID
-                packet.msg.toUid = toUID
-                packet.msg.payload = .answerCall(answerCall)
+                    var answerCall = Server_AnswerCall()
+                    answerCall.callID = callID
+                    answerCall.webrtcAnswer = webrtcAnswer
+                    var packet = Server_Packet()
+                    packet.msg.fromUid = fromUID
+                    packet.msg.id = msgID
+                    packet.msg.toUid = toUID
+                    packet.msg.payload = .answerCall(answerCall)
 
-                guard let packetData = try? packet.serializedData() else {
-                    DDLogError("ProtoService/answerCall/\(callID)/error could not serialize packet")
-                    return
+                    guard let packetData = try? packet.serializedData() else {
+                        DDLogError("ProtoService/answerCall/\(callID)/error could not serialize packet")
+                        return
+                    }
+                    DDLogInfo("ProtoService/answerCall/\(callID) sending")
+                    self.send(packetData)
+                    completion(.success(()))
                 }
-                DDLogInfo("ProtoService/answerCall/\(callID) sending")
-                self.send(packetData)
-                completion(.success(()))
             }
         }
     }
