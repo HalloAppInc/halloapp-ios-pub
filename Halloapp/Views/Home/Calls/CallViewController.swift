@@ -19,6 +19,7 @@ enum CallStatus {
     case connecting
     case reconnecting
     case failed
+    case held
 }
 
 class CallViewController: UIViewController {
@@ -118,6 +119,11 @@ class CallViewController: UIViewController {
     private var isCallActive: Bool {
         get {
             return callManager.activeCall?.isActive ?? false
+        }
+    }
+    private var isCallOnHold: Bool {
+        get {
+            return callManager.activeCall?.isOnHold ?? false
         }
     }
     private var callDurationSec: Int {
@@ -223,7 +229,9 @@ class CallViewController: UIViewController {
     }
 
     private func getCallStatusText() -> String {
-        if isCallActive {
+        if isCallOnHold && useCallStatus {
+            return Localizations.callStatus(callStatus, for: peerPhoneNumber)
+        } else if isCallActive {
             return durationString(seconds: callDurationSec)
         } else if isOutgoing || useCallStatus {
             return Localizations.callStatus(callStatus, for: peerPhoneNumber)
@@ -366,6 +374,16 @@ extension CallViewController: CallViewDelegate {
             self.updateCallStatusLabel()
         }
     }
+
+    func callHold(_ hold: Bool) {
+        if hold {
+            callStatus = .held
+        }
+        useCallStatus = hold
+        DispatchQueue.main.async {
+            self.updateCallStatusLabel()
+        }
+    }
 }
 
 final class CallViewButton: UIControl {
@@ -473,6 +491,8 @@ private extension Localizations {
             return NSLocalizedString("call.status.reconnecting", value: "reconnecting...", comment: "Status displayed when reconnecting during call")
         case .failed:
             return NSLocalizedString("call.status.failed", value: "failed", comment: "Status displayed when call fails.")
+        case .held:
+            return NSLocalizedString("call.status.held", value: "on hold", comment: "Status displayed when call is on hold.")
         }
     }
 }

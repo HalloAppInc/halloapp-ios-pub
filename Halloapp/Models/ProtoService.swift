@@ -986,6 +986,17 @@ final class ProtoService: ProtoServiceCore {
                 callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveIceAnswer: iceAnswer)
             }
 
+        case .holdCall(let holdCall):
+            if !readyToHandleCallMessages {
+                DDLogInfo("proto/didReceive/\(msg.id)/holdCall/\(holdCall.callID)/addedToPending")
+                var pendingMsgs = pendingCallMessages[holdCall.callID] ?? []
+                pendingMsgs.append(msg)
+                pendingCallMessages[holdCall.callID] = pendingMsgs
+            } else {
+                DDLogInfo("proto/didReceive/\(msg.id)/holdCall/\(holdCall.callID)")
+                callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveHoldCall: holdCall)
+            }
+
         case .inviteeNotice:
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .historyResend:
@@ -997,8 +1008,6 @@ final class ProtoService: ProtoServiceCore {
         case .groupFeedHistory(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .preAnswerCall(_):
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .holdCall(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
@@ -1022,6 +1031,8 @@ final class ProtoService: ProtoServiceCore {
                     callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveIceOffer: iceOffer)
                 case .iceRestartAnswer(let iceAnswer):
                     callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveIceAnswer: iceAnswer)
+                case .holdCall(let holdCall):
+                    callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveHoldCall: holdCall)
                 default:
                     DDLogError("proto/didReceive/unexpected call message: \(String(describing: pendingMsg.payload))")
                     break
@@ -1837,6 +1848,39 @@ extension ProtoService: HalloService {
                     completion(.success(()))
                 }
             }
+        }
+    }
+
+    func holdCall(id callID: CallID, to peerUserID: UserID, hold: Bool, completion: @escaping (Result<Void, RequestError>) -> Void) {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+                DDLogError("ProtoService/sendCallRinging/\(callID)/error invalid sender uid")
+                return
+            }
+            guard let toUID = Int64(peerUserID) else {
+                DDLogError("ProtoService/sendCallRinging/\(callID)/error invalid to uid")
+                return
+            }
+
+            let msgID = PacketID.generate()
+
+            var callHold = Server_HoldCall()
+            callHold.callID = callID
+            callHold.hold = hold
+
+            var packet = Server_Packet()
+            packet.msg.fromUid = fromUID
+            packet.msg.id = msgID
+            packet.msg.toUid = toUID
+            packet.msg.payload = .holdCall(callHold)
+
+            guard let packetData = try? packet.serializedData() else {
+                DDLogError("ProtoService/sendCallRinging/\(callID)/error could not serialize packet")
+                return
+            }
+
+            DDLogInfo("ProtoService/sendCallRinging/\(callID) sending")
+            self.send(packetData)
         }
     }
 

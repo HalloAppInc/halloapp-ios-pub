@@ -30,6 +30,7 @@ public struct ServerProperties {
         case callWaitTimeoutSec = "call_wait_timeout"
         case isflatCommentsEnabled = "flat_comments"
         case isVoicePostsEnabled = "voice_posts"
+        case canHoldCalls = "call_hold"
     }
 
     private struct UserDefaultsKey {
@@ -59,6 +60,7 @@ public struct ServerProperties {
         static let callWaitTimeoutSec = 60
         static let isflatCommentsEnabled = false
         static let isVoicePostsEnabled = false
+        static let canHoldCalls = false
     }
 
     // MARK: Storage
@@ -249,5 +251,9 @@ public struct ServerProperties {
 
     public static var isVoicePostsEnabled: Bool {
         ServerProperties.bool(forKey: .isVoicePostsEnabled) ?? Defaults.isVoicePostsEnabled
+    }
+
+    public static var canHoldCalls: Bool {
+        ServerProperties.bool(forKey: .canHoldCalls) ?? Defaults.canHoldCalls
     }
 }

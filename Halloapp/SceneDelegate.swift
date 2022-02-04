@@ -474,6 +474,10 @@ extension SceneDelegate: CallViewDelegate {
     func callFailed() {
         callViewController?.callFailed()
     }
+
+    func callHold(_ hold: Bool) {
+        callViewController?.callHold(hold)
+    }
 }
 
 // App expiration

@@ -28,6 +28,7 @@ protocol CallViewDelegate: AnyObject {
     func callEnded()
     func callReconnecting()
     func callFailed()
+    func callHold(_ hold: Bool)
 }
 
 public struct CallDetails {
@@ -374,7 +375,9 @@ final class CallManager: NSObject, CXProviderDelegate {
                         activeCall?.start { success in
                             DDLogInfo("CallManager/CXStartCallAction/result: \(success)")
                             if success {
-                                reportCallHoldUnavailable(id: details.callID)
+                                if !ServerProperties.canHoldCalls {
+                                    reportCallHoldUnavailable(id: details.callID)
+                                }
                                 action.fulfill()
                             } else {
                                 DDLogError("CallManager/CXStartCallAction/failed")
@@ -493,6 +496,11 @@ final class CallManager: NSObject, CXProviderDelegate {
         DDLogError("CallManager/CXSetHeldCallAction/\(action.callUUID)")
         if let details = callDetailsMap[action.callUUID],
            details.callID == activeCallID {
+            activeCall?.hold(action.isOnHold) { success in
+                if success {
+                    self.callViewDelegate?.callHold(action.isOnHold)
+                }
+            }
             DDLogInfo("CallManager/CXSetHeldCallAction/success")
             action.fulfill()
         } else {
@@ -507,7 +515,8 @@ final class CallManager: NSObject, CXProviderDelegate {
         let rtcAudioSession = RTCAudioSession.sharedInstance()
         rtcAudioSession.audioSessionDidActivate(audioSession)
         rtcAudioSession.isAudioEnabled = true
-        if isOutgoing ?? false {
+        if let isOutgoing = isOutgoing, let activeCall = activeCall,
+           isOutgoing, activeCall.canPlayRingtone {
             playCallRingtone()
         }
     }
@@ -536,7 +545,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         let update = CXCallUpdate()
         update.remoteHandle = handle(for: peerUserID)
         update.localizedCallerName = peerName(for: peerUserID)
-        update.supportsHolding = false
+        update.supportsHolding = ServerProperties.canHoldCalls
         provider.reportNewIncomingCall(with: callID.callUUID, update: update) { error in
             if let error = error {
                 DDLogError("CallManager/reportNewIncomingCall/callID: \(callID)/error: \(error)")
@@ -851,6 +860,18 @@ extension CallManager: HalloCallDelegate {
         }
     }
 
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveHoldCall holdCall: Server_HoldCall) {
+        DDLogInfo("CallManager/HalloCallDelegate/didReceiveHoldCall/begin")
+        let callID = holdCall.callID
+        let isOnHold = holdCall.hold
+
+        if activeCallID == callID {
+            self.activeCall?.didReceiveCallHold(isOnHold)
+            self.callViewDelegate?.callHold(isOnHold)
+            DDLogInfo("CallManager/HalloCallDelegate/didReceiveHoldCall/success")
+        }
+    }
+
 }
 
 
@@ -897,9 +918,6 @@ extension CallManager: CallStateDelegate {
         case .iceRestart:
             // Update UI to show reconnecting status
             callViewDelegate?.callReconnecting()
-
-        case .held:
-            break
 
         case .disconnected:
             stopCallRingtone()

@@ -71,6 +71,9 @@ class Call {
                     callFailTImer = nil
                     iceRestartTimer?.cancel()
                     iceRestartTimer = nil
+                } else if state == .active {
+                    // once active - we should never ring irrespective of call state.
+                    canPlayRingtone = false
                 }
             }
         }
@@ -95,6 +98,9 @@ class Call {
     var isActive: Bool {
         return state == .active
     }
+    var isOnHold: Bool = false
+    // keep track on whether we can play ringtone or not - irrespective of the state of the call.
+    var canPlayRingtone: Bool = false
 
     var isReadyToProcessRemoteIceCandidates: Bool {
         if isOutgoing {
@@ -140,6 +146,7 @@ class Call {
         self.peerUserID = peerUserID
         self.isOutgoing = direction == .outgoing
         MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID, type: .audio, direction: direction)
+        canPlayRingtone = true
     }
 
     func initializeWebRtcClient(iceServers: [RTCIceServer]) {
@@ -405,6 +412,27 @@ class Call {
         }
     }
 
+    func hold(_ hold: Bool, completion: @escaping ((_ success: Bool) -> Void)) {
+        DDLogInfo("Call/\(callID)/hold/hold: \(hold)/begin")
+        callQueue.async { [self] in
+            service.holdCall(id: callID, to: peerUserID, hold: hold) { result in
+                switch result {
+                case .success:
+                    DDLogInfo("Call/\(callID)/hold/success")
+                    isOnHold = hold
+                    DispatchQueue.main.async {
+                        completion(true)
+                    }
+                case .failure(let error):
+                    DDLogError("Call/\(callID)/hold/failed: \(error.localizedDescription)")
+                    DispatchQueue.main.async {
+                        completion(false)
+                    }
+                }
+            }
+        }
+    }
+
     func muteAudio() {
         DDLogInfo("Call/\(callID)/muteAudio/begin")
         callQueue.async { [self] in
@@ -558,6 +586,14 @@ class Call {
                 state = .ringing
             }
             DDLogInfo("Call/\(callID)/didReceiveCallRinging/success")
+        }
+    }
+
+    func didReceiveCallHold(_ hold: Bool) {
+        DDLogInfo("Call/\(callID)/didReceiveCallHold/begin/hold: \(hold)")
+        callQueue.async { [self] in
+            DDLogInfo("Call/\(callID)/didReceiveCallHold/success")
+            isOnHold = hold
         }
     }
 
