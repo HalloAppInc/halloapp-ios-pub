@@ -23,7 +23,10 @@ extension AppContext {
     public func uploadLogsToServer(completion: @escaping (Result<Void, Error>) -> Void) {
         // Run on a low priority queue.
         DispatchQueue.global(qos: .default).async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self else {
+                completion(.failure(RequestError.aborted))
+                return
+            }
             do {
                 DDLogInfo("AppContext/uploadLogsToServer/begin")
                 let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
@@ -39,10 +42,12 @@ extension AppContext {
                 urlComps?.queryItems = queryItems
                 guard let url = urlComps?.url else {
                     DDLogError("AppContext/uploadLogsToServer/failed to get url: \(String(describing: urlComps))")
+                    completion(.failure(RequestError.aborted))
                     return
                 }
                 guard let logData = try? Data(contentsOf: archiveURL) else {
                     DDLogError("AppContext/uploadLogsToServer/failed to get logData: \(archiveURL)")
+                    completion(.failure(RequestError.malformedRequest))
                     return
                 }
 
@@ -53,11 +58,13 @@ extension AppContext {
                 let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
                     guard let httpResponse = urlResponse as? HTTPURLResponse else {
                         DDLogError("AppContext/uploadLogsToServer/error Invalid response. [\(String(describing: urlResponse))]")
+                        completion(.failure(RequestError.malformedResponse))
                         return
                     }
                     guard let data = data,
                           let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
                               DDLogError("AppContext/uploadLogsToServer/error Invalid response. [\(data ?? Data())]")
+                              completion(.failure(RequestError.malformedResponse))
                               return
                     }
                     if let error = error {
@@ -70,7 +77,8 @@ extension AppContext {
                 }
                 task.resume()
             } catch {
-                DDLogError("Failed to archive log files: \(error)")
+                DDLogError("AppContext/uploadLogsToServer/Failed to archive log files: \(error)")
+                completion(.failure(RequestError.aborted))
             }
         }
     }

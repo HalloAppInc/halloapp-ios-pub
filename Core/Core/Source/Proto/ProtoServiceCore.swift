@@ -321,6 +321,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     public func uploadLogsToServer() {
         guard !isLogUploadInProgress else {
+            DDLogError("ProtoServiceCore/uploadLogsToServer/already uploading logs")
             return
         }
         isLogUploadInProgress = true
