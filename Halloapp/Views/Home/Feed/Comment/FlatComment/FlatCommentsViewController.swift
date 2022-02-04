@@ -146,6 +146,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                     let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(indexPath: indexPath, currentComment: comment)
                     itemCell.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
                     itemCell.delegate = self
+                    itemCell.textLabel.delegate = self
                 }
                 return cell
             })
@@ -167,6 +168,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                 if let messageCommentHeaderView = headerView as? MessageCommentHeaderView, let self = self, let feedPost = self.feedPost {
                     messageCommentHeaderView.configure(withPost: feedPost)
                     messageCommentHeaderView.delegate = self
+                    messageCommentHeaderView.textLabel.delegate = self
                     return messageCommentHeaderView
                 } else {
                     // TODO(@dini) add post loading here

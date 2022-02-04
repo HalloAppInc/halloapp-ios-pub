@@ -776,6 +776,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
             self.confirmResending(commentWithId: commentId)
         }
         cell.commentView.nameTextLabel.delegate = self
+        cell.commentView.textCommentLabel.delegate = self
         cell.isCellHighlighted = self.replyContext?.parentCommentId == commentId || self.highlightedCommentId == commentId
         if !isCommentingEnabled {
             cell.isReplyingEnabled = false

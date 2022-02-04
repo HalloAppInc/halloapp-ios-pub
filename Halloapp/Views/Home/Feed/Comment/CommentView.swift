@@ -83,7 +83,6 @@ class CommentView: UIView {
     let textCommentLabel: TextLabel = {
         let label = TextLabel()
         label.numberOfLines = 0
-        label.textColor = UIColor.red
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
