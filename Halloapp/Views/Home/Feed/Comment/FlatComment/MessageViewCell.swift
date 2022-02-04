@@ -21,6 +21,7 @@ protocol MessageViewDelegate: AnyObject {
     func messageView(_ view: MediaCarouselView, forComment feedPostCommentID: FeedPostCommentID, didTapMediaAtIndex index: Int)
     func messageView(_ messageViewCell: MessageViewCell, replyTo feedPostCommentID: FeedPostCommentID)
     func messageView(_ messageViewCell: MessageViewCell, didTapUserId userId: UserID)
+    func messageView(_ messageViewCell: MessageViewCell, jumpTo feedPostCommentID: FeedPostCommentID)
 }
 
 class MessageViewCell: UICollectionViewCell {
@@ -87,7 +88,6 @@ class MessageViewCell: UICollectionViewCell {
         hStack.isUserInteractionEnabled = true
         hStack.isLayoutMarginsRelativeArrangement = true
         hStack.layoutMargins = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
-        nameTextTimeRow.setContentHuggingPriority(.defaultHigh, for: .vertical)
         NSLayoutConstraint.activate([
             nameTextTimeRow.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(MaxWidthOfMessageBubble).rounded()),
             nameTextTimeRow.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfMessageBubble).rounded())
@@ -111,10 +111,10 @@ class MessageViewCell: UICollectionViewCell {
         let vStack = UIStackView(arrangedSubviews: [ nameRow, quotedMessageView, linkPreviewView, audioView, mediaCarouselView, textLabel, timeRow ])
         vStack.axis = .vertical
         vStack.alignment = .fill
-        vStack.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        vStack.layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         vStack.isLayoutMarginsRelativeArrangement = true
         vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.spacing = 5
+        vStack.spacing = 3
         // Set bubble background
         vStack.insertSubview(bubbleView, at: 0)
         return vStack
@@ -125,7 +125,7 @@ class MessageViewCell: UICollectionViewCell {
         bubbleView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         bubbleView.layer.borderWidth = 0.5
         bubbleView.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
-        bubbleView.layer.cornerRadius = 15
+        bubbleView.layer.cornerRadius = 16
         bubbleView.layer.shadowColor = UIColor.black.withAlphaComponent(0.08).cgColor
         bubbleView.layer.shadowOffset = CGSize(width: 0, height: 2)
         bubbleView.layer.shadowRadius = 1.5
@@ -165,7 +165,7 @@ class MessageViewCell: UICollectionViewCell {
         label.isUserInteractionEnabled = true
 
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         return label
     }()
@@ -174,10 +174,11 @@ class MessageViewCell: UICollectionViewCell {
         let textLabel = TextLabel()
         textLabel.isUserInteractionEnabled = true
         textLabel.backgroundColor = .clear
-        textLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        textLabel.font = UIFont.systemFont(ofSize: 15)
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.isHidden = true
         textLabel.numberOfLines = 0
+        textLabel.textColor = UIColor.primaryBlackWhite.withAlphaComponent(0.8)
         return textLabel
     }()
 
@@ -287,6 +288,11 @@ class MessageViewCell: UICollectionViewCell {
         let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(panGestureCellAction))
         panGestureRecognizer.delegate = self
         self.addGestureRecognizer(panGestureRecognizer)
+        // Tapping on quoted comment should take you to the original comment
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(jumpToQuotedMsg(_:)))
+        quotedMessageView.isUserInteractionEnabled = true
+        quotedMessageView.addGestureRecognizer(tapGesture)
+        
     }
     
     private func setupConditionalConstraints() {
@@ -342,12 +348,15 @@ class MessageViewCell: UICollectionViewCell {
         } else {
             bubbleView.backgroundColor = .secondarySystemGroupedBackground
             textLabel.textColor = UIColor.primaryBlackWhite
-            nameRow.isHidden = false
             rightAlignedConstraint.priority = UILayoutPriority(1)
             leftAlignedConstraint.priority = UILayoutPriority(800)
-        }
-        if isPreviousMessageOwnMessage {
-            nameRow.isHidden = true
+            // If the message contains media, always show name
+            // If the previous message was from the same user, hide name
+            if hasMedia || !isPreviousMessageOwnMessage {
+                nameRow.isHidden = false
+            } else {
+                nameRow.isHidden = true
+            }
         }
     }
 
@@ -586,5 +595,12 @@ extension MessageViewCell: UIGestureRecognizerDelegate {
         if let feedPostComment = feedPostComment {
             delegate?.messageView(self, didTapUserId: feedPostComment.userId)
         }
+    }
+    
+    @objc private func jumpToQuotedMsg(_ sender: UIView) {
+        if let parentCommentId = feedPostComment?.parent?.id {
+            delegate?.messageView(self, jumpTo: parentCommentId)
+        }
+        
     }
 }

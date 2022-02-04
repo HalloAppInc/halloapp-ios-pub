@@ -227,52 +227,62 @@ extension UIColor {
     class var voiceNoteInputField: UIColor {
         UIColor(named: "voiceNoteInputField")!
     }
+    
+    // MARK: Messages
 
-    class var UserColor1: UIColor {
+    class var userColor1: UIColor {
         UIColor(named: "UserColor1")!
     }
 
-    class var UserColor2: UIColor {
+    class var userColor2: UIColor {
         UIColor(named: "UserColor2")!
     }
 
-    class var UserColor3: UIColor {
+    class var userColor3: UIColor {
         UIColor(named: "UserColor3")!
     }
 
-    class var UserColor4: UIColor {
+    class var userColor4: UIColor {
         UIColor(named: "UserColor4")!
     }
 
-    class var UserColor5: UIColor {
+    class var userColor5: UIColor {
         UIColor(named: "UserColor5")!
     }
 
-    class var UserColor6: UIColor {
+    class var userColor6: UIColor {
         UIColor(named: "UserColor6")!
     }
 
-    class var UserColor7: UIColor {
+    class var userColor7: UIColor {
         UIColor(named: "UserColor7")!
     }
 
-    class var UserColor8: UIColor {
+    class var userColor8: UIColor {
         UIColor(named: "UserColor8")!
     }
 
-    class var UserColor9: UIColor {
+    class var userColor9: UIColor {
         UIColor(named: "UserColor9")!
     }
 
-    class var UserColor10: UIColor {
+    class var userColor10: UIColor {
         UIColor(named: "UserColor10")!
     }
 
-    class var UserColor11: UIColor {
+    class var userColor11: UIColor {
         UIColor(named: "UserColor11")!
     }
 
-    class var UserColor12: UIColor {
+    class var userColor12: UIColor {
         UIColor(named: "UserColor12")!
+    }
+    
+    class var quotedMessageBackground: UIColor {
+        UIColor(named: "QuotedMessageBackground")!
+    }
+
+    class var timeHeaderBackground: UIColor {
+        UIColor(named: "TimeHeaderBackground")!
     }
 }

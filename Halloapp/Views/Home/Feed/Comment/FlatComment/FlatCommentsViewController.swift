@@ -51,18 +51,18 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     // List of colors to cycle through while setting user names
     private var colors: [UIColor] = [
-        UIColor.UserColor1,
-        UIColor.UserColor2,
-        UIColor.UserColor3,
-        UIColor.UserColor4,
-        UIColor.UserColor5,
-        UIColor.UserColor6,
-        UIColor.UserColor7,
-        UIColor.UserColor8,
-        UIColor.UserColor9,
-        UIColor.UserColor10,
-        UIColor.UserColor11,
-        UIColor.UserColor12
+        UIColor.userColor1,
+        UIColor.userColor2,
+        UIColor.userColor3,
+        UIColor.userColor4,
+        UIColor.userColor5,
+        UIColor.userColor6,
+        UIColor.userColor7,
+        UIColor.userColor8,
+        UIColor.userColor9,
+        UIColor.userColor10,
+        UIColor.userColor11,
+        UIColor.userColor12
     ]
 
     private var feedPostId: FeedPostID {
@@ -533,6 +533,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                     cell.isCellHighlighted = true
                 }
                 commentToScrollTo = nil
+                resetCommentHighlightingIfNeeded()
             } else {
                 // comment does not need highlighting, we can safely reset commentToScrollTo
                 commentToScrollTo = nil
@@ -608,6 +609,12 @@ extension FlatCommentsViewController: MessageViewDelegate {
 
     func messageView(_ messageViewCell: MessageViewCell, didTapUserId userId: UserID) {
         showUserFeed(for: userId)
+    }
+    
+    func messageView(_ messageViewCell: MessageViewCell, jumpTo feedPostCommentID: FeedPostCommentID) {
+        highlightedCommentId = feedPostCommentID
+        commentToScrollTo = feedPostCommentID
+        scrollToTarget(withAnimation: true)
     }
 }
 

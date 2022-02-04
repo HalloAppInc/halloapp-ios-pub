@@ -15,7 +15,7 @@ class MessageTimeHeaderView: UICollectionReusableView {
         return String(describing: MessageTimeHeaderView.self)
     }
 
-    private let timestampLabel: UILabel = {
+    private lazy var timestampLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12, weight: .bold)
         label.alpha = 0.75
@@ -23,6 +23,21 @@ class MessageTimeHeaderView: UICollectionReusableView {
         label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+
+    private lazy var timestampView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ timestampLabel])
+        view.layoutMargins = UIEdgeInsets(top: 3, left: 18, bottom: 3, right: 18)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        let subView = UIView(frame: view.bounds)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.backgroundColor = UIColor.timeHeaderBackground
+        subView.layer.cornerRadius = 10
+        subView.layer.masksToBounds = true
+        view.insertSubview(subView, at: 0)
+        return view
     }()
 
     override init(frame: CGRect) {
@@ -37,10 +52,10 @@ class MessageTimeHeaderView: UICollectionReusableView {
 
     private func commonInit() {
         self.preservesSuperviewLayoutMargins = true
-        self.addSubview(timestampLabel)
+        self.addSubview(timestampView)
         NSLayoutConstraint.activate([
-            timestampLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            timestampLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            timestampView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            timestampView.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
     }
 

@@ -42,23 +42,25 @@ class QuotedMessageCellView: UIView {
         return mediaView
     }()
     
-    lazy var textLabel: TextLabel = {
-        let textLabel = TextLabel()
+    // For quoted messages, we truncate the message at 3 lines.
+    lazy var textLabel: UILabel = {
+        let textLabel = UILabel()
         textLabel.isUserInteractionEnabled = true
         textLabel.backgroundColor = .clear
-        textLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        textLabel.font = UIFont.systemFont(ofSize: 12)
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.isHidden = true
-        textLabel.numberOfLines = 0
+        textLabel.numberOfLines = 3
+        textLabel.textColor = UIColor.primaryBlackWhite.withAlphaComponent(0.5)
         return textLabel
     }()
     
     private lazy var bubbleView: UIView = {
         let bubbleView = UIView()
-        bubbleView.backgroundColor = .commentVoiceNoteBackground
+        bubbleView.backgroundColor = UIColor.quotedMessageBackground
         bubbleView.layer.borderWidth = 0.5
         bubbleView.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
-        bubbleView.layer.cornerRadius = 15
+        bubbleView.layer.cornerRadius = 12
         bubbleView.layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
         bubbleView.layer.shadowOffset = CGSize(width: 0, height: 2)
         bubbleView.layer.shadowRadius = 4
@@ -71,7 +73,7 @@ class QuotedMessageCellView: UIView {
         let label = UILabel()
         label.numberOfLines = 1
         label.font = UIFont.boldSystemFont(ofSize: 12)
-        label.textColor = .secondaryLabel
+        label.textColor = .secondaryLabel.withAlphaComponent(0.8)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
@@ -84,7 +86,7 @@ class QuotedMessageCellView: UIView {
         vStack.alignment = .fill
         vStack.isLayoutMarginsRelativeArrangement = true
         vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.spacing = 5
+        vStack.spacing = 3
         // Set bubble background
         vStack.insertSubview(bubbleView, at: 0)
         return vStack
@@ -94,7 +96,7 @@ class QuotedMessageCellView: UIView {
         let quotedView = UIStackView(arrangedSubviews: [mediaView, nameTextRow])
         quotedView.axis = .horizontal
         quotedView.alignment = .fill
-        quotedView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        quotedView.layoutMargins = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
         quotedView.isLayoutMarginsRelativeArrangement = true
         quotedView.translatesAutoresizingMaskIntoConstraints = false
         quotedView.spacing = 5
@@ -135,11 +137,21 @@ class QuotedMessageCellView: UIView {
         setNameLabel(for: comment.userId, userColorAssignment: userColorAssignment)
         configureText(comment: comment)
         configureMedia(comment: comment)
+        configureCell()
+    }
+
+    // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
+    private func configureCell() {
+        if hasMedia {
+            mediaHeightConstraint.priority = UILayoutPriority.defaultHigh
+        } else {
+            mediaHeightConstraint.priority = UILayoutPriority.defaultLow
+        }
     }
 
     private func setNameLabel(for userID: String, userColorAssignment: UIColor) {
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, showPushNumber: true)
-        nameLabel.textColor = userColorAssignment
+        nameLabel.textColor = userColorAssignment.withAlphaComponent(0.8)
     }
 
     private func configureText(comment: FeedPostComment) {
