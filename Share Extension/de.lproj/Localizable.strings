@@ -119,7 +119,7 @@
 "share.composer.subtitle.contact" = "Versendet an %@";
 
 /* Composer subtitle for group posts */
-"share.composer.subtitle.group" = "Geteilt mit %@";
+"share.composer.subtitle.group" = "Teilen mit %@";
 
 /* Composer title when sharing with a contact */
 "share.composer.title.contact" = "Neue Nachricht";

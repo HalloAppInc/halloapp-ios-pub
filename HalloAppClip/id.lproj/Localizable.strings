@@ -4,6 +4,9 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Harap pastikan kamu punya konektivitas internet, lalu cobalah kembali.";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Tambah";
 
@@ -30,6 +33,9 @@
 
 /* Title for Install button, takes the user to the HalloApp app store view where they can download the app. */
 "button.install" = "Instal";
+
+/* Title for generic Invite button. */
+"button.invite" = "Undang";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Pelajari Lebih Lanjut";
@@ -58,11 +64,29 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Bagikan";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Stop";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Perbarui";
 
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Untuk mengaktifkan perekaman audio, silakan ketuk Pengaturan lalu nyalakan Mikrofon";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Gagal mengakses mikrofon";
+
 /* Title for generic delete button. */
 "Delete" = "Hapus";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Bagikan dengan semua kontak";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Bagikan dengan kontak kecuali orang yang saya pilih";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Hanya bagikan dengan kontak pilihan saya";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Keluar";
@@ -82,8 +106,14 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Perbarui aplikasimu.";
 
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Memuat Pratinjau...";
+
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Saya";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Buang";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Kamu akan menerima kode verifikasi.\nDapat berlaku biaya operator.";
@@ -153,6 +183,12 @@
 
 /* Alert title telling the user that their account was successfully deleted */
 "settings.account.deleted.title" = "Akun berhasil dihapus";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "Bergabunglah dengan jaringan relasi sungguhan saya di HalloApp. Unduh gratis di halloapp.com/dl";
+
+/* Row in Settings screen */
+"title.privacy" = "Privasi";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Kontak Tidak Dikenal";

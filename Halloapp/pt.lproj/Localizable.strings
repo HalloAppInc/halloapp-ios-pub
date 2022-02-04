@@ -814,6 +814,9 @@
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "Convidar por link";
 
+/* Text shown when inviting to a group using a QR code */
+"join.group.using.qr.code" = "Junte-se ao meu grupo no HalloApp!";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Buscar";
 
@@ -1206,6 +1209,9 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "Número de segurança de %@ verificado com sucesso!";
+
+/* Text shown to instruct using a QR code for joining a group */
+"scan.to.join.group.using.qr.code" = "Para participar, escaneie este código QR com a câmera do seu telefone.";
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor selecione pelo menos um contato.";

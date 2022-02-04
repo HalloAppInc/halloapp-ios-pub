@@ -814,6 +814,9 @@
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "دعوت از طریق لینک";
 
+/* Text shown when inviting to a group using a QR code */
+"join.group.using.qr.code" = "به گروه من در هالواپ بپیوندید!";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "جستجو";
 
@@ -1206,6 +1209,9 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "کد امنیتی با موفقیت تأیید شد برای %@!";
+
+/* Text shown to instruct using a QR code for joining a group */
+"scan.to.join.group.using.qr.code" = "برای پیوستن، کد کیو آر را با دوربین موبایل خود اسکن کنید.";
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "لطفاً حداقل یک مخاطب انتخاب کنید.";

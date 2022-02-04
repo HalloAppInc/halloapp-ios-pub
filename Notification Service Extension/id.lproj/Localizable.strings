@@ -4,6 +4,9 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Periksa apakah Anda tersambung ke internet, lalu coba lagi.";
 
+/* Company name */
+"app.name.halloapp" = "HalloApp";
+
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Tambah";
 
@@ -27,6 +30,9 @@
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
 "button.go.to.settings" = "Ke Pengaturan";
+
+/* Title for generic Invite button. */
+"button.invite" = "Undang";
 
 /* Title for generic Learn More button. Used to provide user with additional context to actions requested. */
 "button.learn.more" = "Selengkapnya";
@@ -55,11 +61,29 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Bagikan";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Stop";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Perbarui";
 
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Untuk mengaktifkan perekaman audio, silakan ketuk Pengaturan lalu nyalakan Mikrofon";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Gagal mengakses mikrofon";
+
 /* Title for generic delete button. */
 "Delete" = "Hapus";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Bagikan dengan semua kontak";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Bagikan dengan kontak kecuali orang yang saya pilih";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Hanya bagikan dengan kontak pilihan";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Anda ditambahkan ke grup baru";
@@ -73,8 +97,14 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Perbarui aplikasimu.";
 
+/* Displayed while waiting for link preview to load */
+"loading.preview" = "Memuat Pratinjau...";
+
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Saya";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Buang";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Berkomentar: %@";
@@ -114,6 +144,12 @@
 
 /* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Pesan suara";
+
+/* String to auto-fill if a user tried to share to a friend. */
+"settings.share.text" = "Bergabunglah dengan jaringan relasi sungguhan saya di HalloApp. Unduh gratis di halloapp.com/dl";
+
+/* Row in Settings screen */
+"title.privacy" = "Privasi";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Kontak Tak Dikenal";

@@ -8,7 +8,7 @@
 "NSContactsUsageDescription" = "Unggah kontak Anda ke server HalloApp untuk melihat postingan teman Anda dan izinkan mereka untuk melihat postingan Anda.";
 
 /* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Dengan ini Anda dapat merekam video dengan suara.";
+"NSMicrophoneUsageDescription" = "Ini memungkinkanmu membuat panggilan, mengirim postingan dan pesan audio, dan merekam video dengan suara.";
 
 /* Privacy - Photo Library Usage Description */
 "NSPhotoLibraryUsageDescription" = "Dengan ini Anda dapat membagikan foto dan video dari galeri Anda dan menyimpan foto dan video yang Anda ambil.";
