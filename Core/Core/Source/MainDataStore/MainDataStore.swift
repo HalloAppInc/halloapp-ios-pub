@@ -113,7 +113,7 @@ open class MainDataStore {
     // MARK: Calls
     // TODO: We dont store end-call reason for each call, we can add this later.
 
-    public func saveCall(callID: CallID, peerUserID: UserID, type: CallType, direction: CallDirection, completion: ((Call) -> Void)? = nil) {
+    public func saveCall(callID: CallID, peerUserID: UserID, type: CallType, direction: CallDirection, timestamp: Date, completion: ((Call) -> Void)? = nil) {
         performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
             guard let self = self else { return }
 
@@ -122,7 +122,7 @@ open class MainDataStore {
             call.peerUserID = peerUserID
             call.type = type
             call.direction = direction
-            call.timestamp = Date()
+            call.timestamp = timestamp
             call.answered = false
             call.durationMs = 0.0
             call.endReason = .unknown
@@ -135,8 +135,8 @@ open class MainDataStore {
         }
     }
 
-    public func saveMissedCall(callID: CallID, peerUserID: UserID, type: CallType, completion: ((Call) -> Void)? = nil) {
-        saveCall(callID: callID, peerUserID: peerUserID, type: type, direction: .incoming, completion: completion)
+    public func saveMissedCall(callID: CallID, peerUserID: UserID, type: CallType, timestamp: Date, completion: ((Call) -> Void)? = nil) {
+        saveCall(callID: callID, peerUserID: peerUserID, type: type, direction: .incoming, timestamp: timestamp, completion: completion)
     }
 
     public func updateCall(with callID: CallID, block: @escaping (Call) -> Void) {

@@ -146,7 +146,7 @@ class Call {
         self.callID = id
         self.peerUserID = peerUserID
         self.isOutgoing = direction == .outgoing
-        MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID, type: .audio, direction: direction)
+        MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID, type: .audio, direction: direction, timestamp: Date())
         canPlayRingtone = true
     }
 

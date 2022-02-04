@@ -919,7 +919,8 @@ final class ProtoService: ProtoServiceCore {
                     DDLogError("proto/didReceive/\(msg.id)/incomingCall/\(incomingCall.callID)/invalid CallType")
                     return
                 }
-                MainAppContext.shared.mainDataStore.saveMissedCall(callID: incomingCall.callID, peerUserID: UserID(msg.fromUid), type: callType)
+                let timestamp = Date(timeIntervalSince1970: Double(incomingCall.timestampMs) / 1000.0)
+                MainAppContext.shared.mainDataStore.saveMissedCall(callID: incomingCall.callID, peerUserID: UserID(msg.fromUid), type: callType, timestamp: timestamp)
             }
 
         case .answerCall(let answerCall):
