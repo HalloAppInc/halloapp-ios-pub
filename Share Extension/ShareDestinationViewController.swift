@@ -79,9 +79,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
             guard let self = self else { return }
 
             self.selected.remove(at: index)
-            self.updateNextBtn()
-            self.updateSelectionRow()
-            self.tableView.reloadData()
+            self.onSelectionChange(destinations: self.selected)
         }
 
         return rowView
@@ -175,7 +173,9 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
                 }
 
                 let destination = ShareDestination.contact(contact)
-                navigationController?.pushViewController(ShareComposerViewController(destinations: [destination]), animated: false)
+                navigationController?.pushViewController(ShareComposerViewController(destinations: [destination]) { [weak self] destinations in
+                    self?.onSelectionChange(destinations: destinations)
+                }, animated: false)
             } else if conversationID.conversationType == .group {
                 guard let group = groups.first(where: { group in
                     group.id == conversationID.id
@@ -191,7 +191,9 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
                 }
 
                 let destination = ShareDestination.group(group)
-                navigationController?.pushViewController(ShareComposerViewController(destinations: [destination]), animated: false)
+                navigationController?.pushViewController(ShareComposerViewController(destinations: [destination]) { [weak self] destinations in
+                    self?.onSelectionChange(destinations: destinations)
+                }, animated: false)
             }
         }
 
@@ -270,7 +272,16 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
 
     @objc private func nextAction() {
         guard selected.count > 0 else { return }
-        navigationController?.pushViewController(ShareComposerViewController(destinations: selected), animated: true)
+        navigationController?.pushViewController(ShareComposerViewController(destinations: selected) { [weak self] destinations in
+            self?.onSelectionChange(destinations: destinations)
+        }, animated: true)
+    }
+
+    private func onSelectionChange(destinations: [ShareDestination]) {
+        selected = destinations
+        updateNextBtn()
+        updateSelectionRow()
+        tableView.reloadData()
     }
 
     private func destinationForRow(at indexPath: IndexPath) -> ShareDestination? {
@@ -377,17 +388,16 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
     func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
         guard let destination = destinationForRow(at: indexPath) else { return nil }
 
+        searchController.searchBar.text = ""
+        searchController.isActive = false
+
         if let idx = selected.firstIndex(where: { $0 == destination }) {
             selected.remove(at: idx)
         } else {
             selected.append(destination)
         }
 
-        updateNextBtn()
-        updateSelectionRow()
-        searchController.searchBar.text = ""
-        searchController.isActive = false
-        tableView.reloadData()
+        onSelectionChange(destinations: selected)
 
         return nil
     }

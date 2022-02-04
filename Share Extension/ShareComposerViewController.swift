@@ -78,6 +78,7 @@ class ShareComposerViewController: UIViewController {
     }()
 
     private var destinations: [ShareDestination]
+    private var completion: ([ShareDestination]) -> Void
     private var media: [PendingMedia] = []
     private var text: String = ""
     private var textView: UITextView!
@@ -134,8 +135,9 @@ class ShareComposerViewController: UIViewController {
         return rowView
     } ()
 
-    init(destinations: [ShareDestination]) {
+    init(destinations: [ShareDestination], completion: @escaping ([ShareDestination]) -> Void) {
         self.destinations = destinations
+        self.completion = completion
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -609,6 +611,7 @@ class ShareComposerViewController: UIViewController {
 
     @objc func backAction() {
         navigationController?.popViewController(animated: true)
+        completion(destinations)
     }
 
     @objc func pageChangeAction() {
