@@ -293,6 +293,8 @@ final class CallManager: NSObject, CXProviderDelegate {
         if let activeCallID = activeCallID {
             callDetailsMap[activeCallID.callUUID] = nil
         }
+        callTimer?.invalidate()
+        callTimer = nil
         cancelTimer?.cancel()
         cancelTimer = nil
         activeCall?.logPeerConnectionStats()
@@ -326,9 +328,12 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     private func startCallDurationTimer() {
         DDLogInfo("CallManager/startCallDurationTimer")
-        DispatchQueue.main.async {
-            self.startDate = Date()
-            self.callTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] timer in
+        DispatchQueue.main.async { [self] in
+            guard startDate == nil, callTimer == nil else {
+                return
+            }
+            startDate = Date()
+            callTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
                 guard let self = self else { return }
                 let callDurationSec = Int(self.callDurationMs / 1000)
                 self.callViewDelegate?.callDurationChanged(seconds: callDurationSec)
@@ -879,6 +884,10 @@ extension CallManager: CallStateDelegate {
 
     func stateChanged(oldState: CallState, newState: CallState) {
         DDLogInfo("CallManager/stateChanged/oldState: \(oldState)/newState: \(newState)")
+        guard newState != oldState else {
+            DDLogInfo("CallManager/stateChanged/oldState: \(oldState)/newState: \(newState) - no real change")
+            return
+        }
         switch newState {
         case .inactive:
             stopCallRingtone()
@@ -911,9 +920,7 @@ extension CallManager: CallStateDelegate {
             // Cancel timer if call is active.
             cancelTimer?.cancel()
             cancelTimer = nil
-            if callTimer == nil {
-                startCallDurationTimer()
-            }
+            startCallDurationTimer()
 
         case .iceRestart:
             // Update UI to show reconnecting status

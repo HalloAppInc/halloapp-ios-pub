@@ -82,6 +82,7 @@ class Call {
     private var pendingLocalIceCandidates: [IceCandidateInfo] = []
     private var pendingRemoteIceCandidates: [IceCandidateInfo] = []
     private var pendingEndCallAction: DispatchWorkItem? = nil
+    private var lastReport: [String: RTCStatistics]? = nil
 
     var stateDelegate: CallStateDelegate? = nil
 
@@ -600,16 +601,40 @@ class Call {
     func logPeerConnectionStats() {
         callQueue.async { [self] in
             webRTCClient?.fetchPeerConnectionStats() { report in
-                report.statistics.forEach { (key, stats) in
+                var currentReport: [String: RTCStatistics] = [:]
+                for (key, stats) in report.statistics {
                     if stats.type == "inbound-rtp" || stats.type == "outbound-rtp" {
-                        var statString = stats.type + "/"
-                        let values = stats.values.filter { (statKey, statValue) in
+                        if currentReport[key] != nil {
+                            continue
+                        }
+                        currentReport[key] = stats
+                        var statString = key + ":" + stats.type + "/[ "
+                        let impStats = stats.values.filter { (statKey, statValue) in
                             return importantStatKeys.contains(statKey)
                         }
-                        statString += values.description
-                        DDLogInfo("Call/\(callID)/logPeerConnectionStats/report: \(statString)")
+
+                        // Fetch oldStats
+                        let oldStats = lastReport?[key]
+                        let oldImpStats = oldStats?.values.filter { (statKey, statValue) in
+                            return importantStatKeys.contains(statKey)
+                        }
+
+                        // Log difference in stats - easier to notice what happened in the recent few seconds.
+                        // Sort keys for easy debugging.
+                        for (statKey, statValue) in Array(impStats).sorted(by: {$0.key < $1.key}) {
+                            if let oldImpStats = oldImpStats,
+                               let oldStatValue = oldImpStats[statKey] as? Double,
+                               let newStatValue = statValue as? Double {
+                                statString += "\"\(statKey)\": \(newStatValue - oldStatValue) , "
+                            } else {
+                                statString += "\"\(statKey)\": \(statValue) , "
+                            }
+                        }
+                        DDLogInfo("Call/\(callID)/logPeerConnectionStats/report: \(statString)]")
                     }
                 }
+                // Hold latest report
+                lastReport = currentReport
             }
         }
     }
