@@ -1637,6 +1637,8 @@ extension ChatInputView: AudioRecorderDelegate {
     }
 
     func audioRecorderStopped(_ recorder: AudioRecorder) {
+        guard !isShowingVoiceNote else { return }
+
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.recordVoiceNoteControl.hide()
