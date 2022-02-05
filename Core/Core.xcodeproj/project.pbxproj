@@ -1198,7 +1198,7 @@
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
 			requirement = {
 				kind = exactVersion;
-				version = 8.10.0;
+				version = 8.11.0;
 			};
 		};
 		686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */ = {
