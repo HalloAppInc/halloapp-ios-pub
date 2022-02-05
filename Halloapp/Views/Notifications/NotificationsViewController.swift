@@ -254,7 +254,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         let notification = displayedNotifications[indexPath.row]
         tableView.deselectRow(at: indexPath, animated: true)
         
-        guard let postId = notification.postId, let feedPost = MainAppContext.shared.feedData.feedPost(with: postId) else {
+        guard let postId = notification.postId, MainAppContext.shared.feedData.feedPost(with: postId) != nil else {
             return
         }
         

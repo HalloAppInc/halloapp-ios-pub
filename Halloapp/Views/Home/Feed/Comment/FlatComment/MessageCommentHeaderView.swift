@@ -28,7 +28,7 @@ class MessageCommentHeaderView: UICollectionReusableView {
 
     weak var delegate: MessageCommentHeaderViewDelegate?
 
-    let profilePictureButton: AvatarViewButton = {
+    lazy var profilePictureButton: AvatarViewButton = {
         let button = AvatarViewButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(showUserFeedForPostAuthor), for: .touchUpInside)

@@ -248,7 +248,7 @@ class Call {
     func start(completion: @escaping ((_ success: Bool) -> Void)) {
         DDLogInfo("Call/\(callID)/start/begin")
         callQueue.async { [self] in
-            webRTCClient?.offer { sdpInfo in
+            webRTCClient?.offer { [self] sdpInfo in
                 guard let payload = sdpInfo.sdp.data(using: .utf8) else {
                     state = .inactive
                     DDLogError("Call/\(callID)/start/failed")
@@ -257,7 +257,7 @@ class Call {
                     }
                     return
                 }
-                service.startCall(id: callID, to: peerUserID, callType: .audio, payload: payload) { result in
+                service.startCall(id: callID, to: peerUserID, callType: .audio, payload: payload) { [self] result in
                     switch result {
                     case .success(_):
                         state = .connecting
@@ -286,7 +286,7 @@ class Call {
         callQueue.async { [self] in
             iceIdx += 1
             webRTCClient?.restartIce()
-            webRTCClient?.offer { sdpInfo in
+            webRTCClient?.offer { [self] sdpInfo in
                 guard let payload = sdpInfo.sdp.data(using: .utf8) else {
                     state = .iceRestart
                     DDLogError("Call/\(callID)/iceRestartOffer/failed")
@@ -295,7 +295,7 @@ class Call {
                     }
                     return
                 }
-                service.iceRestartOfferCall(id: callID, to: peerUserID, payload: payload, iceIdx: iceIdx) { result in
+                service.iceRestartOfferCall(id: callID, to: peerUserID, payload: payload, iceIdx: iceIdx) { [self] result in
                     switch result {
                     case .success:
                         if rtcIceState == .connected {
@@ -323,7 +323,7 @@ class Call {
     func answer(completion: @escaping ((_ success: Bool) -> Void)) {
         DDLogInfo("Call/\(callID)/answer/begin")
         callQueue.async { [self] in
-            webRTCClient?.answer { sdpInfo in
+            webRTCClient?.answer { [self] sdpInfo in
                 guard let payload = sdpInfo.sdp.data(using: .utf8) else {
                     state = .inactive
                     DDLogError("Call/\(callID)/answer/failed")
@@ -332,7 +332,7 @@ class Call {
                     }
                     return
                 }
-                service.answerCall(id: callID, to: peerUserID, payload: payload) { result in
+                service.answerCall(id: callID, to: peerUserID, payload: payload) { [self] result in
                     switch result {
                     case .success:
                         state = .connected
@@ -357,7 +357,7 @@ class Call {
         DDLogInfo("Call/\(callID)/iceRestartAnswer/begin")
         callQueue.async { [self] in
             iceIdx += 1
-            webRTCClient?.answer { sdpInfo in
+            webRTCClient?.answer { [self] sdpInfo in
                 guard let payload = sdpInfo.sdp.data(using: .utf8) else {
                     state = .iceRestart
                     DDLogError("Call/\(callID)/iceRestartAnswer/failed")
@@ -366,7 +366,7 @@ class Call {
                     }
                     return
                 }
-                service.iceRestartAnswerCall(id: callID, to: peerUserID, payload: payload, iceIdx: iceIdx) { result in
+                service.iceRestartAnswerCall(id: callID, to: peerUserID, payload: payload, iceIdx: iceIdx) { [self] result in
                     switch result {
                     case .success:
                         if rtcIceState == .connected {
@@ -395,7 +395,7 @@ class Call {
         DDLogInfo("Call/\(callID)/end/reason: \(reason)/begin")
         let durationMs = MainAppContext.shared.callManager.callDurationMs
         callQueue.async { [self] in
-            pendingEndCallAction = DispatchWorkItem {
+            pendingEndCallAction = DispatchWorkItem { [self] in
                 endCall(durationMs: durationMs, reason: reason)
             }
             if isReadyToEndCall {
@@ -405,7 +405,7 @@ class Call {
                 // We are in an inactive state.
                 // So we'll check and process pendingEndCallAction on connecting.
                 // Otherwise run in 5 seconds to end the call anyways.
-                callQueue.asyncAfter(deadline: .now() + 5) {
+                callQueue.asyncAfter(deadline: .now() + 5) { [self] in
                     pendingEndCallAction?.perform()
                     pendingEndCallAction = nil
                 }
@@ -416,7 +416,7 @@ class Call {
     func hold(_ hold: Bool, completion: @escaping ((_ success: Bool) -> Void)) {
         DDLogInfo("Call/\(callID)/hold/hold: \(hold)/begin")
         callQueue.async { [self] in
-            service.holdCall(id: callID, to: peerUserID, hold: hold) { result in
+            service.holdCall(id: callID, to: peerUserID, hold: hold) { [self] result in
                 switch result {
                 case .success:
                     DDLogInfo("Call/\(callID)/hold/success")
@@ -475,7 +475,7 @@ class Call {
         callQueue.async { [self] in
             state = .connecting
             service.sendCallRinging(id: callID, to: peerUserID)
-            webRTCClient?.set(remoteSdp: RTCSessionDescription(type: .offer, sdp: sdpInfo)) { error in
+            webRTCClient?.set(remoteSdp: RTCSessionDescription(type: .offer, sdp: sdpInfo)) { [self] error in
                 if let error = error {
                     DDLogError("Call/\(callID)/didReceiveIncomingCall/error: \(error.localizedDescription)")
                     DispatchQueue.main.async {
@@ -496,7 +496,7 @@ class Call {
     func didReceiveIceOffer(sdpInfo: String) {
         DDLogInfo("Call/\(callID)/didReceiveIceOffer/begin")
         callQueue.async { [self] in
-            webRTCClient?.set(remoteSdp: RTCSessionDescription(type: .offer, sdp: sdpInfo)) { error in
+            webRTCClient?.set(remoteSdp: RTCSessionDescription(type: .offer, sdp: sdpInfo)) { [self] error in
                 if let error = error {
                     DDLogError("Call/\(callID)didReceiveIceOffer/error: \(error.localizedDescription)")
                 } else {
@@ -516,7 +516,7 @@ class Call {
     func didReceiveAnswer(sdpInfo: String) {
         DDLogInfo("Call/\(callID)/didReceiveAnswer/begin")
         callQueue.async { [self] in
-            webRTCClient?.set(remoteSdp: RTCSessionDescription(type: .answer, sdp: sdpInfo)) { error in
+            webRTCClient?.set(remoteSdp: RTCSessionDescription(type: .answer, sdp: sdpInfo)) { [self] error in
                 if let error = error {
                     DDLogError("Call/\(callID)didReceiveAnswer/error: \(error.localizedDescription)")
                 } else {
@@ -531,7 +531,7 @@ class Call {
     func didReceiveIceAnswer(sdpInfo: String) {
         DDLogInfo("Call/\(callID)/didReceiveIceAnswer/begin")
         callQueue.async { [self] in
-            webRTCClient?.set(remoteSdp: RTCSessionDescription(type: .answer, sdp: sdpInfo)) { error in
+            webRTCClient?.set(remoteSdp: RTCSessionDescription(type: .answer, sdp: sdpInfo)) { [self] error in
                 if let error = error {
                     DDLogError("Call/\(callID)didReceiveIceAnswer/error: \(error.localizedDescription)")
                 } else {
@@ -556,7 +556,7 @@ class Call {
                 DDLogInfo("Call/\(callID)/didReceiveRemoteIceInfo/queue this to pendingRemoteIceCandidates")
                 pendingRemoteIceCandidates.append(iceCandidateInfo)
             } else {
-                webRTCClient?.set(remoteCandidate: iceCandidateInfo.rtcIceCandidate) { error in
+                webRTCClient?.set(remoteCandidate: iceCandidateInfo.rtcIceCandidate) { [self] error in
                     if let error = error {
                         DDLogError("Call/\(callID)/didReceiveRemoteIceInfo/error: \(String(describing: error))")
                         pendingRemoteIceCandidates.append(iceCandidateInfo)
@@ -600,7 +600,7 @@ class Call {
 
     func logPeerConnectionStats() {
         callQueue.async { [self] in
-            webRTCClient?.fetchPeerConnectionStats() { report in
+            webRTCClient?.fetchPeerConnectionStats() { [self] report in
                 var currentReport: [String: RTCStatistics] = [:]
                 for (key, stats) in report.statistics {
                     if stats.type == "inbound-rtp" || stats.type == "outbound-rtp" {
@@ -657,7 +657,7 @@ class Call {
         DDLogInfo("Call/\(callID)/processPendingRemoteIceCandidateInfo/count: \(pendingRemoteIceCandidates.count)")
         callQueue.async { [self] in
             pendingRemoteIceCandidates.forEach { iceCandidateInfo in
-                webRTCClient?.set(remoteCandidate: iceCandidateInfo.rtcIceCandidate) { error in
+                webRTCClient?.set(remoteCandidate: iceCandidateInfo.rtcIceCandidate) { [self] error in
                     if let error = error {
                         DDLogError("Call/\(callID)/processPendingRemoteIceCandidateInfo/error: \(String(describing: error))")
                     }

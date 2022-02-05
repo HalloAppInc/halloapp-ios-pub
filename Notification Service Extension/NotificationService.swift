@@ -72,7 +72,7 @@ class NotificationService: UNNotificationServiceExtension  {
         DispatchQueue.main.asyncAfter(deadline: .now() + extensionRunTimeSec) { [self] in
             DDLogInfo("disconnect now")
             service?.disconnect()
-            DispatchQueue.main.asyncAfter(deadline: .now() + finalCleanupRunTimeSec) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + finalCleanupRunTimeSec) { [self] in
                 DDLogInfo("Invoking completion handler now")
                 terminateNseAndInvokeHandler()
             }

@@ -371,13 +371,13 @@ final class CallManager: NSObject, CXProviderDelegate {
 
             // set startCall work item.
             pendingStartCallAction = DispatchWorkItem { [self] in
-                service.getCallServers(id: details.callID, for: details.peerUserID, callType: .audio) { callServersResult in
+                service.getCallServers(id: details.callID, for: details.peerUserID, callType: .audio) { [self] callServersResult in
                     switch callServersResult {
                     case .success(let callServers):
                         let iceServers = WebRTCClient.getIceServers(stunServers: callServers.stunServers, turnServers: callServers.turnServers)
                         activeCall?.initializeWebRtcClient(iceServers: iceServers)
                         DDLogInfo("CallManager/CXStartCallAction/callID: \(details.callID)/to: \(details.peerUserID)/iceServers success")
-                        activeCall?.start { success in
+                        activeCall?.start { [self] success in
                             DDLogInfo("CallManager/CXStartCallAction/result: \(success)")
                             if success {
                                 if !ServerProperties.canHoldCalls {
@@ -441,7 +441,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                 if (granted) {
                     // Show call UI to the user
                     callViewDelegate?.callAccepted(call: displayCall)
-                    activeCall?.answer { success in
+                    activeCall?.answer { [self] success in
                         if success {
                             DDLogInfo("CallManager/CXAnswerCallAction/result: \(success)")
                             action.fulfill()
