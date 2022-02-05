@@ -18,24 +18,20 @@ fileprivate struct Constants {
     static let MaxDescriptionLength = 500
 }
 
-protocol CreateGroupViewControllerDelegate: AnyObject {
-    func createGroupViewController(_ controller: CreateGroupViewController, didCreateGroup: GroupID)
-}
-
 class CreateGroupViewController: UIViewController {
-    weak var delegate: CreateGroupViewControllerDelegate?
 
-    private var selectedMembers: [UserID] = []
-    private var groupNamePlaceholderText = Localizations.createGroupNamePlaceholder
-    private var groupDescriptionPlaceholderText = Localizations.createGroupDescriptionPlaceholder
     private var cancellableSet: Set<AnyCancellable> = []
 
     private var avatarData: Data? = nil
 
-    init(selectedMembers: [UserID]) {
-        self.selectedMembers.append(MainAppContext.shared.userData.userId)
-        self.selectedMembers.append(contentsOf: selectedMembers)
+    private var selectedMembers: [UserID] = []
+
+    private var completion: (GroupID) -> Void
+
+    init(completion: @escaping (GroupID) -> Void) {
+        self.completion = completion
         super.init(nibName: nil, bundle: nil)
+        hidesBottomBarWhenPushed = true
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
@@ -43,305 +39,210 @@ class CreateGroupViewController: UIViewController {
     override func viewDidLoad() {
         DDLogInfo("CreateGroupViewController/viewDidLoad")
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonCreate, style: .done, target: self, action: #selector(createAction))
-        navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
-        navigationItem.rightBarButtonItem?.isEnabled = canCreate
+        navigationItem.rightBarButtonItem = nextBarButtonItem
 
         navigationItem.title = Localizations.createGroupTitle
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.primaryBg
 
-        setupView()
+        view.backgroundColor = UIColor.feedBackground
+
+        view.addSubview(avatarImageView)
+
+        view.addSubview(cameraIconView)
+
+        let groupNameStackView = UIStackView(arrangedSubviews: [groupNameLabel, groupNameTextField, groupNameLengthLabel])
+        groupNameStackView.axis = .vertical
+        groupNameStackView.spacing = 8
+        groupNameStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(groupNameStackView)
+
+        NSLayoutConstraint.activate([
+            avatarImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 100),
+            avatarImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+
+            cameraIconView.centerXAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: -6),
+            cameraIconView.centerYAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: -6),
+
+            groupNameStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
+            groupNameStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
+            groupNameStackView.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 32),
+        ])
+
+        if MainAppContext.shared.nux.state == .zeroZone {
+            groupNameTextField.text = Localizations.createGroupDefaultNameMyNewGroup
+        }
+
+        groupNameChanged()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        groupNameTextField.becomeFirstResponder()
     }
 
     deinit {
         DDLogDebug("CreateGroupViewController/deinit ")
     }
 
-    var canCreate: Bool {
-        return !groupNameTextView.text.isEmpty
-    }
-
-    func setupView() {
-        view.addSubview(mainView)
-        view.backgroundColor = UIColor.feedBackground
-        mainView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-        
-        if MainAppContext.shared.nux.state == .zeroZone {
-            groupNameTextView.text = Localizations.createGroupDefaultNameMyNewGroup
-            navigationItem.rightBarButtonItem?.isEnabled = canCreate
-        } else {
-            groupNameTextView.text = groupNamePlaceholderText
-            groupNameTextView.textColor = .placeholderText
-            groupNameTextView.selectedTextRange = groupNameTextView.textRange(from: groupNameTextView.beginningOfDocument, to: groupNameTextView.beginningOfDocument)
-        }
-        groupNameTextView.becomeFirstResponder()
-
-        groupDescriptionTextView.text = groupDescriptionPlaceholderText
-        groupDescriptionTextView.textColor = .placeholderText
-        groupDescriptionTextView.selectedTextRange = groupDescriptionTextView.textRange(from: groupDescriptionTextView.beginningOfDocument, to: groupDescriptionTextView.beginningOfDocument)
-
-        updateCounts()
-    }
-    
-    private lazy var mainView: UIStackView = {
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-
-        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextView, countRow, membersRow, tableView ])
-
-        view.axis = .vertical
-        view.spacing = 20
-        view.setCustomSpacing(0, after: groupNameLabelRow)
-        view.setCustomSpacing(0, after: groupNameTextView)
-        view.setCustomSpacing(0, after: membersRow)
-        
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        return view
-    }()
-    
-    private lazy var avatarRow: UIStackView = {
-        let leftSpacer = UIView()
-        leftSpacer.translatesAutoresizingMaskIntoConstraints = false
-    
-        let rightSpacer = UIView()
-        rightSpacer.translatesAutoresizingMaskIntoConstraints = false
-        
-        let view = UIStackView(arrangedSubviews: [ leftSpacer, avatarBox, rightSpacer ])
-
-        view.axis = .horizontal
-        view.distribution = .equalCentering
-        
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        return view
-    }()
-    
-    private lazy var avatarBox: UIView = {
-        let viewWidth = Constants.AvatarSize + 40
-        let viewHeight = Constants.AvatarSize
-        let view = UIView()
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.widthAnchor.constraint(equalToConstant: viewWidth).isActive = true
-        view.heightAnchor.constraint(equalToConstant: viewHeight).isActive = true
-        
-        view.addSubview(avatarView)
-        
-        avatarView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        avatarView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
-        
-        photoIcon.frame = CGRect(x: 0 - Constants.PhotoIconSize, y: viewHeight - Constants.PhotoIconSize, width: Constants.PhotoIconSize, height: Constants.PhotoIconSize)
-        view.addSubview(photoIcon)
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(chooseAvatar))
-        view.isUserInteractionEnabled = true
-        view.addGestureRecognizer(tapGesture)
-        
-        return view
+    private lazy var nextBarButtonItem: UIBarButtonItem = {
+        let nextBarButtonItem = UIBarButtonItem(title: Localizations.buttonNext,
+                                                style: .done,
+                                                target: self,
+                                                action: #selector(nextAction))
+        nextBarButtonItem.tintColor = .systemBlue
+        return nextBarButtonItem
     }()
 
-    private lazy var avatarView: UIImageView = {
-        let view = UIImageView()
-        view.image = AvatarView.defaultGroupImage
-        view.backgroundColor = .avatarDefaultBg
-        view.contentMode = .scaleAspectFit
+    private lazy var avatarImageView: UIImageView = {
+        let avatarImageView = UIImageView(image: AvatarView.defaultGroupImage)
+        avatarImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(chooseAvatar)))
+        avatarImageView.clipsToBounds = true
+        avatarImageView.contentMode = .scaleAspectFit
+        avatarImageView.isUserInteractionEnabled = true
+        avatarImageView.layer.cornerRadius = 20
+        avatarImageView.translatesAutoresizingMaskIntoConstraints = false
 
-        let radiusRatio: CGFloat = 16/52
+        NSLayoutConstraint.activate([
+            avatarImageView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize),
+            avatarImageView.heightAnchor.constraint(equalToConstant: Constants.AvatarSize),
+        ])
 
-        view.layer.masksToBounds = false
-        view.layer.cornerRadius = Constants.AvatarSize*radiusRatio
-        view.clipsToBounds = true
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
-        view.heightAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
-
-        return view
-    }()
-    
-    private lazy var photoIcon: UIImageView = {
-        let icon = UIImageView()
-        let image = UIImage(named: "ProfileHeaderCamera")
-        icon.image = image?.imageResized(to: CGSize(width: 20, height: 20)).withRenderingMode(.alwaysTemplate)
-
-        icon.contentMode = .center
-        icon.tintColor = UIColor.secondarySystemGroupedBackground
-        icon.backgroundColor = UIColor.systemBlue
-        icon.layer.masksToBounds = false
-        icon.layer.cornerRadius = Constants.PhotoIconSize/2
-        icon.clipsToBounds = true
-        icon.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
-
-        return icon
+        return avatarImageView
     }()
 
-    private lazy var groupNameLabelRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [groupNameLabel])
-        view.axis = .horizontal
+    private lazy var cameraIconView: UIView = {
+        let cameraIconBackground = UIView()
+        cameraIconBackground.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(chooseAvatar)))
+        cameraIconBackground.backgroundColor = .systemBlue
+        cameraIconBackground.isUserInteractionEnabled = true
+        cameraIconBackground.layer.cornerRadius = 0.5 * Constants.PhotoIconSize
+        cameraIconBackground.translatesAutoresizingMaskIntoConstraints = false
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 5, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
+        let cameraIconImageView = UIImageView()
+        cameraIconImageView.contentMode = .scaleAspectFill
+        cameraIconImageView.image = UIImage(named: "ProfileHeaderCamera")?.withRenderingMode(.alwaysTemplate)
+        cameraIconImageView.tintColor = .secondarySystemGroupedBackground
+        cameraIconImageView.translatesAutoresizingMaskIntoConstraints = false
+        cameraIconBackground.addSubview(cameraIconImageView)
 
-        return view
+        NSLayoutConstraint.activate([
+            cameraIconImageView.widthAnchor.constraint(equalToConstant: 0.5 * Constants.PhotoIconSize),
+            cameraIconImageView.heightAnchor.constraint(equalToConstant: 0.5 * Constants.PhotoIconSize),
+            cameraIconImageView.centerXAnchor.constraint(equalTo: cameraIconBackground.centerXAnchor),
+            cameraIconImageView.centerYAnchor.constraint(equalTo: cameraIconBackground.centerYAnchor),
+
+            cameraIconBackground.widthAnchor.constraint(equalToConstant: Constants.PhotoIconSize),
+            cameraIconBackground.heightAnchor.constraint(equalToConstant: Constants.PhotoIconSize),
+        ])
+
+        return cameraIconBackground
     }()
 
     private lazy var groupNameLabel: UILabel = {
         let label = UILabel()
-        label.textAlignment = .left
         label.textColor = .secondaryLabel
         label.font = UIFont.preferredFont(forTextStyle: .caption1)
         label.text = Localizations.chatGroupNameLabel.uppercased()
         label.translatesAutoresizingMaskIntoConstraints = false
-
-        return label
-    }()
-    
-    private lazy var groupNameTextView: UITextView = {
-        let view = UITextView()
-        view.isScrollEnabled = false
-        view.delegate = self
-
-        view.backgroundColor = .secondarySystemGroupedBackground
-        view.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-        view.font = UIFont.preferredFont(forTextStyle: .body)
-        view.tintColor = .systemBlue
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        return view
-    }()
-    
-    private lazy var countRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [characterCounter])
-        view.axis = .horizontal
-
-        view.layoutMargins = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 5)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        return view
-    }()
-    
-    private lazy var characterCounter: UILabel = {
-        let label = UILabel()
-        label.textAlignment = .right
-        label.textColor = .secondaryLabel
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
-
-        label.translatesAutoresizingMaskIntoConstraints = false
-
-        return label
-    }()
-    
-    private lazy var groupDescriptionLabelRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [groupDescriptionLabel])
-        view.axis = .horizontal
-
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 5, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-
-        return view
-    }()
-    
-    private lazy var groupDescriptionLabel: UILabel = {
-        let label = UILabel()
-        label.textAlignment = .left
-        label.textColor = .secondaryLabel
-        label.font = UIFont.preferredFont(forTextStyle: .caption1)
-        label.text = Localizations.createGroupDescriptionLabel.uppercased()
-        label.translatesAutoresizingMaskIntoConstraints = false
-
-        return label
-    }()
-    
-    private lazy var groupDescriptionTextView: UITextView = {
-        let view = UITextView()
-        view.isScrollEnabled = false
-        view.delegate = self
-
-        view.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-        view.backgroundColor = .secondarySystemGroupedBackground
-        view.font = UIFont.preferredFont(forTextStyle: .body)
-        view.tintColor = .systemBlue
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        return view
-    }()
-
-    private lazy var membersRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ membersLabel ])
-        view.axis = .horizontal
-        view.spacing = 20
-
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 5, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private lazy var membersLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        
-        label.font = UIFont.preferredFont(forTextStyle: .caption1)
-        label.textColor = .secondaryLabel
-        label.text = Localizations.groupMembersLabel.uppercased() + " (\(String(selectedMembers.count)))"
-      
-        label.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-      
-        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
-    private let cellReuseIdentifier = "TableViewCell"
-    private lazy var tableView: UITableView = {
-        let view = UITableView()
+    private lazy var groupNameTextField: UITextField = {
+        class GroupNameTextField: UITextField {
 
-        view.backgroundColor = .primaryBg
-        view.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
-        view.delegate = self
-        view.dataSource = self
+            override func layoutSubviews() {
+                super.layoutSubviews()
+                let cornerRadius = min(bounds.height, bounds.width) / 2.0
+                layer.cornerRadius = cornerRadius
+                layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: cornerRadius).cgPath
+            }
 
-        view.tableFooterView = UIView()
+            override func textRect(forBounds bounds: CGRect) -> CGRect {
+                return bounds.insetBy(dx: 20, dy: 10)
+            }
 
-        view.translatesAutoresizingMaskIntoConstraints = false
+            override func placeholderRect(forBounds bounds: CGRect) -> CGRect {
+                return textRect(forBounds: bounds)
+            }
 
-        return view
+            override func editingRect(forBounds bounds: CGRect) -> CGRect {
+                return textRect(forBounds: bounds)
+            }
+        }
+
+        let groupNameTextField = GroupNameTextField()
+        groupNameTextField.addTarget(self, action: #selector(groupNameChanged), for: .editingChanged)
+        groupNameTextField.backgroundColor = .systemBackground
+        groupNameTextField.delegate = self
+        groupNameTextField.font = UIFont.preferredFont(forTextStyle: .body)
+        groupNameTextField.layer.borderColor = UIColor.black.withAlphaComponent(0.12).cgColor
+        groupNameTextField.layer.borderWidth = 0.5
+        groupNameTextField.layer.shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.04).cgColor
+        groupNameTextField.layer.shadowOpacity = 1
+        groupNameTextField.layer.shadowRadius = 1
+        groupNameTextField.layer.shadowOffset = CGSize(width: 0, height: 1)
+        groupNameTextField.placeholder = Localizations.createGroupNamePlaceholder
+        groupNameTextField.tintColor = .systemBlue
+        groupNameTextField.translatesAutoresizingMaskIntoConstraints = false
+        return groupNameTextField
+    }()
+
+    private lazy var groupNameLengthLabel: UILabel = {
+        let groupNameLengthLabel = UILabel()
+        groupNameLengthLabel.textAlignment = .right
+        groupNameLengthLabel.textColor = .secondaryLabel
+        groupNameLengthLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
+        groupNameLengthLabel.translatesAutoresizingMaskIntoConstraints = false
+        return groupNameLengthLabel
     }()
 
     // MARK: Actions
 
-    @objc private func createAction() {
+    @objc private func groupNameChanged() {
+        let groupNameCharacterCount = groupNameTextField.text?.lengthOfBytes(using: .utf8) ?? 0
+
+        nextBarButtonItem.isEnabled = groupNameCharacterCount > 0
+
+        groupNameLengthLabel.isHidden = groupNameCharacterCount < (Constants.MaxNameLength - Constants.NearMaxNameLength)
+        if !groupNameLengthLabel.isHidden {
+            groupNameLengthLabel.text = "\(groupNameCharacterCount)/\(Constants.MaxNameLength)"
+        }
+    }
+
+    @objc private func nextAction() {
+        let viewController = NewGroupMembersViewController(isNewCreationFlow: true,
+                                                           currentMembers: selectedMembers,
+                                                           completion: { [weak self] (groupMembersViewController, didComplete, userIds) in
+            guard let self = self else {
+                return
+            }
+            // always save selectedMembers to repopulate NewGroupMembersViewController
+            self.selectedMembers = userIds
+            if didComplete {
+                self.createAction(groupMembersViewController: groupMembersViewController, userIds: userIds)
+            }
+        })
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+
+    private func createAction(groupMembersViewController: NewGroupMembersViewController, userIds: [UserID]) {
         guard proceedIfConnected() else { return }
 
-        navigationItem.rightBarButtonItem?.isEnabled = false
+        groupMembersViewController.disableCreateOrAddAction = true
 
-        let name = groupNameTextView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-        let description = ""
+        let name = groupNameTextField.text?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) ?? ""
 
-        MainAppContext.shared.chatData.createGroup(name: name, description: description, members: selectedMembers, data: avatarData) { [weak self] result in
+        var selectedMembers = userIds
+        selectedMembers.append(MainAppContext.shared.userData.userId)
+
+        MainAppContext.shared.chatData.createGroup(name: name, description: "", members: selectedMembers, data: avatarData) { [weak self] result in
             guard let self = self else { return }
 
             switch result {
             case .success(let groupID):
-                // 0.5 seconds is needed so group feed can get the group during load,
-                // group creation is done in the bg context and group feed fetches group info with viewcontext,
-                // some milliseconds are needed for core data's contexts to auto merge
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                    guard let self = self else { return }
-                    self.delegate?.createGroupViewController(self, didCreateGroup: groupID)
+                DispatchQueue.main.async { [weak self] in
+                    self?.completion(groupID)
                 }
             case .failure(let error):
                 DDLogError("CreateGroupViewController/createAction/error \(error)")
@@ -349,7 +250,7 @@ class CreateGroupViewController: UIViewController {
                 alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: UIAlertAction.Style.default, handler: nil))
                 self.present(alert, animated: true, completion: nil)
 
-                self.navigationItem.rightBarButtonItem?.isEnabled = true
+                groupMembersViewController.disableCreateOrAddAction = false
             }
         }
     }
@@ -359,8 +260,7 @@ class CreateGroupViewController: UIViewController {
         actionSheet.view.tintColor = UIColor.systemBlue
 
         actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupTakeOrChoosePhoto, style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            self.presentPhotoLibraryPicker()
+            self?.presentPhotoLibraryPicker()
         })
 
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
@@ -368,21 +268,6 @@ class CreateGroupViewController: UIViewController {
     }
 
     // MARK: Helpers
-
-    private func updateCounts() {
-        guard groupNameTextView.textColor != .placeholderText else {
-            characterCounter.text = ""
-            return
-        }
-        
-        let count = groupNameTextView.text.count
-        if count >= Constants.MaxNameLength - Constants.NearMaxNameLength {
-            let countStr = String(count)
-            characterCounter.text = "\(countStr)/\(Constants.MaxNameLength)"
-        } else {
-            characterCounter.text = ""
-        }
-    }
 
     private func presentPhotoLibraryPicker() {
         let pickerController = MediaPickerViewController(filter: .image, multiselect: false, camera: true) { [weak self] controller, media, cancel in
@@ -428,113 +313,16 @@ class CreateGroupViewController: UIViewController {
 
         let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
 
-        avatarView.image =  UIImage(data: data)
+        avatarImageView.image =  UIImage(data: data)
         avatarData = data
     }
 }
 
-extension CreateGroupViewController: UITextViewDelegate {
+extension CreateGroupViewController: UITextFieldDelegate {
 
-    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        guard text.rangeOfCharacter(from: CharacterSet.newlines) == nil else { return false }
-        let isTextTooLong = textView.text.count + (text.count - range.length) > Constants.MaxNameLength
-        guard !isTextTooLong else { return false }
-        
-        let currentText:String = textView.text
-        let updatedText = (currentText as NSString).replacingCharacters(in: range, with: text)
-        let isGroupNameTextView = textView == groupNameTextView
-        let placeholderText = isGroupNameTextView ? groupNamePlaceholderText : groupDescriptionPlaceholderText
-
-        if updatedText.isEmpty {
-            textView.text = placeholderText
-            textView.textColor = .placeholderText
-            textView.selectedTextRange = textView.textRange(from: textView.beginningOfDocument, to: textView.beginningOfDocument)
-            navigationItem.rightBarButtonItem?.isEnabled = false
-        } else if textView.textColor == .placeholderText && !text.isEmpty {
-            textView.textColor = .label
-            DispatchQueue.main.async { [weak self] in // workaround for bug in iOS that causes double capitalizations
-                textView.text = text
-                self?.updateCounts()
-            }
-
-            if isGroupNameTextView {
-                navigationItem.rightBarButtonItem?.isEnabled = canCreate
-            }
-        } else {
-            return true
-        }
-
-        updateCounts()
-        return false
-    }
-
-    func textViewDidChangeSelection(_ textView: UITextView) {
-        if view.window != nil {
-            if textView.textColor == .placeholderText {
-                textView.selectedTextRange = textView.textRange(from: textView.beginningOfDocument, to: textView.beginningOfDocument)
-            }
-        }
-    }
-
-    func textViewDidChange(_ textView: UITextView) {
-        updateCounts()
-        if textView == groupNameTextView {
-            navigationItem.rightBarButtonItem?.isEnabled = canCreate
-        }
-    }
-
-}
-
-extension CreateGroupViewController: UITableViewDelegate, UITableViewDataSource {
-
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
-
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return selectedMembers.count
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as? ContactTableViewCell else {
-            return UITableViewCell()
-        }
-        let index = indexPath.row
-        guard selectedMembers.count > index else { return cell }
-        cell.configure(with: selectedMembers[index])
-        cell.isUserInteractionEnabled = false
-        return cell
-    }
-
-    // resign keyboard so the entire tableview can be seen
-    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        groupNameTextView.resignFirstResponder()
-    }
-
-}
-
-private extension ContactTableViewCell {
-
-    func configure(with userID: UserID) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
-
-        if userID == MainAppContext.shared.userData.userId {
-            subtitleLabel.text = MainAppContext.shared.userData.formattedPhoneNumber
-        } else {
-            let abContacts = MainAppContext.shared.contactStore.contacts(withUserIds: [userID])
-            if let contact = abContacts.first {
-                subtitleLabel.text = contact.phoneNumber
-            }
-        }
-        contactImage.configure(with: userID, using: MainAppContext.shared.avatarStore)
-    }
-}
-
-fileprivate extension UIImage {
-    func imageResized(to size: CGSize) -> UIImage {
-        return UIGraphicsImageRenderer(size: size).image { _ in
-            draw(in: CGRect(origin: .zero, size: size))
-        }
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        let length = (textField.text as NSString?)?.replacingCharacters(in: range, with: string).lengthOfBytes(using: .utf8) ?? 0
+        return length <= Constants.MaxNameLength
     }
 }
 
@@ -551,11 +339,7 @@ private extension Localizations {
     static var createGroupNamePlaceholder: String {
         NSLocalizedString("create.group.name.placeholder", value: "Name your group", comment: "Placeholder text shown inside the group name input box when it's empty")
     }
-    
-    static var createGroupDescriptionLabel: String {
-        NSLocalizedString("create.group.description.label", value: "Description", comment: "Text label for group description text box")
-    }
-    
+
     static var createGroupDescriptionPlaceholder: String {
         NSLocalizedString("create.group.description.placeholder", value: "Add a description (optional)", comment: "Placeholder text shown inside the group description input box when it's empty")
     }
@@ -563,5 +347,4 @@ private extension Localizations {
     static var createGroupError: String {
         NSLocalizedString("create.group.error", value: "There was an error creating the group, please try again", comment: "Alert message telling the user to try creating the group again after an error")
     }
-
 }

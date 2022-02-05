@@ -35,13 +35,15 @@ class GroupFeedViewController: FeedCollectionViewController {
     private var currentUnseenGroupFeedList: [GroupID: Int] = [:]
 
     private var isTopNavShadowShown: Bool = false
+    private var shouldShowInviteSheet = false
 
     private var cancellableSet: Set<AnyCancellable> = []
 
-    init(groupId: GroupID) {
+    init(groupId: GroupID, shouldShowInviteSheet: Bool = false) {
         self.groupId = groupId
         self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupId)
         self.theme = group?.background ?? 0
+        self.shouldShowInviteSheet = shouldShowInviteSheet
         super.init(title: nil, fetchRequest: FeedDataSource.groupFeedRequest(groupID: groupId))
         self.hidesBottomBarWhenPushed = true
         self.setupDatasource()
@@ -58,10 +60,6 @@ class GroupFeedViewController: FeedCollectionViewController {
         super.viewDidLoad()
 
         setThemeColors(theme: theme)
-
-        NSLayoutConstraint.activate([
-            titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))
-        ])
 
         navigationItem.titleView = titleView
         titleView.translatesAutoresizingMaskIntoConstraints = false
@@ -91,12 +89,14 @@ class GroupFeedViewController: FeedCollectionViewController {
 
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetAGroupEvent.sink { [weak self] (groupID) in
-                guard let self = self else { return }
-                guard groupID == self.groupId else { return }
-                DispatchQueue.main.async {
+                guard groupID == self?.groupId else { return }
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
                     self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupID)
                     self.theme = self.group?.background ?? 0
                     self.populateEvents()
+                    self.titleView.update(with: groupID)
+                    self.updateFloatingActionMenu()
                 }
             }
         )
@@ -118,6 +118,24 @@ class GroupFeedViewController: FeedCollectionViewController {
         MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
         UNUserNotificationCenter.current().removeDeliveredChatNotifications(groupId: groupId)
         updateFloatingActionMenu()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        if shouldShowInviteSheet {
+            shouldShowInviteSheet = false
+
+            let member = MainAppContext.shared.chatData.chatGroupMember(groupId: groupId,
+                                                                        memberUserId: MainAppContext.shared.userData.userId)
+
+            guard member?.type == .admin, let groupInviteLink = group?.inviteLink.map({ ChatData.formatGroupInviteLink($0) }) else {
+                DDLogError("GroupFeedViewController/Failed fetch group invite link")
+                return
+            }
+
+            present(GroupInviteSheetViewController(groupInviteLink: groupInviteLink), animated: true)
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {

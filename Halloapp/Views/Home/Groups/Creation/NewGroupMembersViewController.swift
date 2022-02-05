@@ -11,15 +11,8 @@ import Core
 import CoreData
 import UIKit
 
-protocol NewGroupMembersViewControllerDelegate: AnyObject {
-    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, selected: [UserID])
-    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, didCreateGroup: GroupID)
-}
-
 class NewGroupMembersViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
-    weak var delegate: NewGroupMembersViewControllerDelegate?
-    
     let cellReuseIdentifier = "NewGroupMembersViewCell"
     
     private var fetchedResultsController: NSFetchedResultsController<ABContact>?
@@ -32,32 +25,45 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     var isFiltering: Bool {
         return searchController.isActive && !isSearchBarEmpty
     }
+
+    var disableCreateOrAddAction = false {
+        didSet {
+            navigationItem.rightBarButtonItem?.isEnabled = !disableCreateOrAddAction
+        }
+    }
+
     private var filteredContacts: [ABContact] = []
     
     private var trackedContacts: [String:TrackedContact] = [:]
 
     private var selectedMembers: [UserID] = [] {
         didSet {
-            if selectedMembers.count == 0 {
-                memberAvatarsRow.isHidden = true
-            } else {
-                memberAvatarsRow.isHidden = false
-            }
+            updateMemberAvatarsRowVisibility()
         }
     }
 
     private var isNewCreationFlow: Bool = false
     private var currentMembers: [UserID] = []
     private var groupID: GroupID? = nil
+    private var completion: (NewGroupMembersViewController, Bool, [UserID]) -> Void
 
     private let sharedNUX = MainAppContext.shared.nux
     private let isZeroZone: Bool
     private var cancellableSet: Set<AnyCancellable> = []
 
-    init(currentMembers: [UserID] = [], groupID: GroupID? = nil) {
-        self.currentMembers = currentMembers
+    init(isNewCreationFlow: Bool,
+         currentMembers: [UserID] = [],
+         groupID: GroupID? = nil,
+         completion: @escaping (NewGroupMembersViewController, Bool, [UserID]) -> Void) {
+        self.isNewCreationFlow = isNewCreationFlow
+        // We should be able to modify current members if this is the new group creation flow
+        if isNewCreationFlow {
+            self.selectedMembers = currentMembers
+        } else {
+            self.currentMembers = currentMembers
+        }
         self.groupID = groupID
-        self.isNewCreationFlow = self.currentMembers.count == 0 ? true : false
+        self.completion = completion
 
         self.isZeroZone = sharedNUX.state == .zeroZone
         super.init(nibName: nil, bundle: nil)
@@ -68,13 +74,23 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     override func viewDidLoad() {
         DDLogInfo("NewGroupMembersViewController/viewDidLoad")
 
-        if !isNewCreationFlow {
-            navigationItem.title = Localizations.titleSelectGroupMembers
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonAdd, style: .done, target: self, action: #selector(addAction))
-        } else {
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarBack"),
+                                                           style: .plain,
+                                                           target: self,
+                                                           action: #selector(cancelAction))
+
+        if isNewCreationFlow {
             navigationItem.title = Localizations.titleSelectGroupMembersCreateGroup
-            navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonNext, style: .done, target: self, action: #selector(nextAction))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonCreate,
+                                                                style: .done,
+                                                                target: self,
+                                                                action: #selector(createAction))
+        } else {
+            navigationItem.title = Localizations.titleSelectGroupMembers
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonAdd,
+                                                                style: .done,
+                                                                target: self,
+                                                                action: #selector(addAction))
         }
 
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
@@ -123,6 +139,8 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
 
+        updateMemberAvatarsRowVisibility()
+
         cancellableSet.insert(
             MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] _ in
                 guard let self = self else { return }
@@ -157,6 +175,10 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         animateWithKeyboard(notification: notification) { (keyboardFrame) in
             self.mainView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 10, right: 0)
         }
+    }
+
+    private func updateMemberAvatarsRowVisibility() {
+        memberAvatarsRow.isHidden = (selectedMembers.count == 0)
     }
 
     private lazy var emptyPlaceholderView: UIView = {
@@ -233,7 +255,10 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         topBorder.autoresizingMask = [.flexibleWidth]
         view.insertSubview(topBorder, at: 1)
 
-        view.isHidden = true
+        if !self.selectedMembers.isEmpty {
+            self.groupMemberAvatars.insert(with: self.selectedMembers)
+        }
+
         return view
     }()
 
@@ -260,20 +285,29 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     // MARK: Top Nav Button Actions
 
     @objc private func cancelAction() {
-        searchController.isActive = false
-        dismiss(animated: true)
+        let navigateBackAndCallCompletion = { [weak self] in
+            guard let self = self else {
+                return
+            }
+            self.navigationController?.popViewController(animated: true)
+            self.completion(self, false, self.selectedMembers)
+        }
+        if searchController.isActive {
+            searchController.dismiss(animated: true) {
+                navigateBackAndCallCompletion()
+            }
+        } else {
+            navigateBackAndCallCompletion()
+        }
     }
 
-    @objc private func nextAction() {
-        let controller = CreateGroupViewController(selectedMembers: selectedMembers)
-        controller.isModalInPresentation = true
-        controller.delegate = self
-        navigationController?.pushViewController(controller, animated: true)
+    @objc private func createAction() {
+        completion(self, true, selectedMembers)
     }
 
     @objc private func addAction() {
         navigationController?.popViewController(animated: true)
-        delegate?.newGroupMembersViewController(self, selected: selectedMembers)
+        completion(self, true, selectedMembers)
     }
 
     // MARK: Customization
@@ -601,12 +635,6 @@ extension NewGroupMembersViewController: GroupMemberAvatarsDelegate {
     func groupMemberAvatarsDelegate(_ view: GroupMemberAvatars, selectedUser: String) {
         selectedMembers.removeAll(where: { $0 == selectedUser })
         tableView.reloadData()
-    }
-}
-
-extension NewGroupMembersViewController: CreateGroupViewControllerDelegate {
-    func createGroupViewController(_ controller: CreateGroupViewController, didCreateGroup: GroupID) {
-        delegate?.newGroupMembersViewController(self, didCreateGroup: didCreateGroup)
     }
 }
 

@@ -29,7 +29,7 @@ extension Localizations {
     }
 
     static var titleSelectGroupMembersCreateGroup: String {
-        NSLocalizedString("title.select.group.members.create.group", value: "Create New Group", comment: "Title of screen where user chooses members to add to either a new group or an existing one")
+        NSLocalizedString("title.select.group.members.create.title", value: "Add Members", comment: "Title of screen where user can add members during group creation flow")
     }
 
     static var titleSelectGroupMembers: String {

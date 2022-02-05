@@ -108,10 +108,6 @@ class NewChatViewController: NewChatTableViewController {
         dismiss(animated: true)
     }
 
-    @objc private func createNewGroup() {
-        navigationController?.pushViewController(NewGroupMembersViewController(), animated: true)
-    }
-
     private func reloadContacts() {
         let allContacts = fetchedResultsController.fetchedObjects ?? []
         let uniqueContacts = ABContact.contactsWithUniquePhoneNumbers(allContacts: allContacts)
@@ -171,63 +167,6 @@ private class NewChatSearchResultsController: NewChatTableViewController {
 
     override func didSelectContact(with userId: UserID) {
         delegate?.newChatSearchResultsController(self, didSelect: userId)
-    }
-}
-
-private class TableHeaderView: UIView {
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setup()
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("Use init(delegate:)")
-    }
-
-    private(set) var button: UIButton!
-
-    private func setup() {
-        preservesSuperviewLayoutMargins = true
-        backgroundColor = UIColor.secondarySystemGroupedBackground
-        
-        let groupIcon = UIImageView()
-        groupIcon.image = AvatarView.defaultGroupImage
-        groupIcon.contentMode = .scaleAspectFit
-        groupIcon.tintColor = UIColor.systemBlue
-        
-        groupIcon.layer.masksToBounds = false
-        groupIcon.layer.cornerRadius = 30/2
-        groupIcon.clipsToBounds = true
-     
-        groupIcon.translatesAutoresizingMaskIntoConstraints = false
-        groupIcon.widthAnchor.constraint(equalToConstant: 30).isActive = true
-        groupIcon.heightAnchor.constraint(equalToConstant: 30).isActive = true
-        
-        button = UIButton(type: .system)
-        button.isUserInteractionEnabled = false
-        button.titleLabel?.font = .gothamFont(forTextStyle: .headline, weight: .medium)
-        button.setTitle(Localizations.chatCreateNewGroup, for: .normal)
-        button.tintColor = .systemBlue
-        button.contentHorizontalAlignment = .leading
-        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 10, bottom: 8, right: layoutMargins.right)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        
-        addSubview(groupIcon)
-        addSubview(button)
-        
-        groupIcon.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20).isActive = true
-        groupIcon.topAnchor.constraint(equalTo: topAnchor, constant: 7).isActive = true
-        
-        button.leadingAnchor.constraint(equalTo: groupIcon.trailingAnchor).isActive = true
-        button.topAnchor.constraint(equalTo: topAnchor).isActive = true
-        button.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
-        button.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
-    }
-
-    override func layoutMarginsDidChange() {
-        super.layoutMarginsDidChange()
-        button.contentEdgeInsets.right = layoutMargins.right
     }
 }
 

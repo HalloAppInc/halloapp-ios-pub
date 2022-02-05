@@ -23,8 +23,6 @@ class GroupTitleView: UIView {
 
     weak var delegate: GroupTitleViewDelegate?
 
-    public var isShowingTypingIndicator: Bool = false
-
     override init(frame: CGRect){
         super.init(frame: frame)
         setup()
@@ -54,17 +52,6 @@ class GroupTitleView: UIView {
                 })
             })
         }
-    }
-
-    func showChatState(with typingIndicatorStr: String?) {
-        let show: Bool = typingIndicatorStr != nil
-
-        infoLabel.isHidden = show
-        typingLabel.isHidden = !show
-        isShowingTypingIndicator = show
-
-        guard let typingStr = typingIndicatorStr else { return }
-        typingLabel.text = typingStr
     }
 
     private func setup() {
@@ -101,7 +88,7 @@ class GroupTitleView: UIView {
     private var avatarView: AvatarViewButton!
 
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [nameLabel, infoLabel, typingLabel])
+        let view = UIStackView(arrangedSubviews: [nameLabel, infoLabel])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .vertical
         view.spacing = 0
@@ -126,16 +113,6 @@ class GroupTitleView: UIView {
         label.isHidden = true
         return label
     }()
-    
-    private lazy var typingLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 13)
-        label.textColor = .secondaryLabel
-        label.isHidden = true
-        return label
-    }()
 
     @objc func handleSingleTap(gesture: UITapGestureRecognizer) {
         if gesture.state == .ended {
@@ -145,6 +122,10 @@ class GroupTitleView: UIView {
 
     @objc private func avatarButtonTapped() {
         delegate?.groupTitleViewRequestsOpenGroupFeed(self)
+    }
+
+    override var intrinsicContentSize: CGSize {
+        return CGSize(width: .greatestFiniteMagnitude, height: UIView.noIntrinsicMetric)
     }
 }
 

@@ -474,9 +474,23 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
             present(UINavigationController(rootViewController: NewGroupMembersPermissionDeniedController()), animated: true)
             return
         }
-        let viewController = NewGroupMembersViewController(currentMembers: [])
-        viewController.delegate = self
-        present(UINavigationController(rootViewController: viewController), animated: true)
+
+        navigationController?.pushViewController(CreateGroupViewController(completion: didCreateNewGroup(_:)), animated: true)
+    }
+
+    private func didCreateNewGroup(_ groupId: GroupID) {
+        guard let navigationController = navigationController else {
+            return
+        }
+
+        // Use setViewControllers to animate in the GroupFeedViewController while removing the group creation assiciated ones.
+        var viewControllers = navigationController.viewControllers
+        while viewControllers.last != self {
+            viewControllers.removeLast()
+        }
+        viewControllers.append(GroupFeedViewController(groupId: groupId, shouldShowInviteSheet: true))
+
+        navigationController.setViewControllers(viewControllers, animated: true)
     }
 }
 
@@ -646,20 +660,6 @@ extension GroupsListViewController: UISearchResultsUpdating {
         }
 
         reloadData(animated: false)
-    }
-}
-
-// MARK: NewGroupMembersViewController Delegates
-extension GroupsListViewController: NewGroupMembersViewControllerDelegate {
-    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, selected: [UserID]) {}
-    
-    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, didCreateGroup: GroupID) {
-        let vc = GroupFeedViewController(groupId: didCreateGroup)
-        vc.delegate = self
-        view.window?.rootViewController?.dismiss(animated: true, completion: nil)
-
-        // skip animation to prevent user from having to see the groups list first
-        navigationController?.pushViewController(vc, animated: false)
     }
 }
 

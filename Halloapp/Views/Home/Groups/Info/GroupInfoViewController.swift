@@ -378,8 +378,18 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
             navigationController?.pushViewController(vController, animated: true)
             return
         }
-        let vController = NewGroupMembersViewController(currentMembers: currentMembers, groupID: groupID)
-        vController.delegate = self
+        let vController = NewGroupMembersViewController(isNewCreationFlow: false,
+                                                        currentMembers: currentMembers,
+                                                        groupID: groupID) { [weak self, groupID] (_, didComplete, selectedMembers) in
+            if didComplete {
+                MainAppContext.shared.service.modifyGroup(groupID: groupID,
+                                                          with: selectedMembers,
+                                                          groupAction: .modifyMembers,
+                                                          action: .add) { [weak self] _ in
+                    self?.refreshGroupInfo()
+                }
+            }
+        }
         self.navigationController?.pushViewController(vController, animated: true)
     }
 
@@ -722,19 +732,6 @@ extension GroupInfoViewController: GroupInfoFooterViewDelegate {
          actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
          self.present(actionSheet, animated: true)
     }
-}
-
-extension GroupInfoViewController: NewGroupMembersViewControllerDelegate {
-
-    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, selected selectedMembers: [UserID]) {
-        MainAppContext.shared.service.modifyGroup(groupID: groupID, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.add) { [weak self] result in
-            guard let self = self else { return }
-            
-            self.refreshGroupInfo()
-        }
-    }
-    
-    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, didCreateGroup: GroupID) {}
 }
 
 protocol GroupInfoHeaderViewDelegate: AnyObject {
