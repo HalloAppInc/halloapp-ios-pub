@@ -309,6 +309,8 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         saveCommentDraft()
         jumpButton.removeFromSuperview()
         messageInputView.willDisappear(in: self)
+        // TODO @Dini check if post is available first
+        MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
     }
 
     private func initFetchedResultsController() {
