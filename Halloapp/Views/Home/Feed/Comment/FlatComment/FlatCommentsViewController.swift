@@ -243,9 +243,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(getMessageOptions))
         longPressGesture.delaysTouchesBegan = true
         collectionView.addGestureRecognizer(longPressGesture)
-        // Dismiss keyboard when user taps comments
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
-        view.addGestureRecognizer(tapGesture)
     }
 
     override func viewWillAppear(_ animated: Bool) {

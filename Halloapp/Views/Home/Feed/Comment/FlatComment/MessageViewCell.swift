@@ -29,7 +29,7 @@ class MessageViewCell: UICollectionViewCell {
 
     var MaxWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.8 }
     var MinWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.5 }
-    var MediaViewDimention: CGFloat { return contentView.bounds.width * 0.7 }
+    var MediaViewDimention: CGFloat { return 170.0 }
 
     var feedPostComment: FeedPostComment?
     weak var delegate: MessageViewDelegate?
@@ -165,7 +165,7 @@ class MessageViewCell: UICollectionViewCell {
         label.isUserInteractionEnabled = true
 
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         return label
     }()
