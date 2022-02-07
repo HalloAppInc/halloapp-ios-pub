@@ -112,12 +112,7 @@ extension FeedMediaProtocol {
             media.encryptionKey = Data(base64Encoded: key)!
             media.ciphertextHash = Data(base64Encoded: sha256)!
             media.downloadURL = url.absoluteString
-            media.blobVersion = {
-                switch blobVersion {
-                case .default: return .default
-                case .chunked: return .chunked
-                }
-            }()
+            media.blobVersion = blobVersion.protoBlobVersion
             media.chunkSize = chunkSize
             media.blobSize = blobSize
             return media
@@ -171,12 +166,7 @@ extension FeedMediaProtocol {
             vid.width = Int32(size.width)
             vid.height = Int32(size.height)
             var streamingInfo = Clients_StreamingInfo()
-            streamingInfo.blobVersion = {
-                switch blobVersion {
-                case .default: return .default
-                case .chunked: return .chunked
-                }
-            }()
+            streamingInfo.blobVersion = blobVersion.protoBlobVersion
             streamingInfo.chunkSize = chunkSize
             streamingInfo.blobSize = blobSize
             vid.streamingInfo = streamingInfo

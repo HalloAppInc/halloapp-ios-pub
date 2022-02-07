@@ -64,10 +64,6 @@ public class MediaHashStore {
         return self.persistentContainer.newBackgroundContext()
     } ()
 
-    private static func getBlobVersionValue(_ blobVersion: BlobVersion) -> Int16 {
-        return blobVersion == .chunked ? 1 : 0
-    }
-
     private func performSeriallyOnBackgroundContext(_ action: @escaping (NSManagedObjectContext) -> Void) {
         backgroundQueue.async { [weak self] in
             guard let self = self else { return }
@@ -113,7 +109,7 @@ public class MediaHashStore {
     private func fetch(hash: String, blobVersion: BlobVersion, in context: NSManagedObjectContext) -> MediaHash? {
         let request: NSFetchRequest<MediaHash> = MediaHash.fetchRequest()
         request.returnsObjectsAsFaults = false
-        request.predicate = NSPredicate(format: "dataHash = %@ AND blobVersionValue = %d", hash, MediaHashStore.getBlobVersionValue(blobVersion))
+        request.predicate = NSPredicate(format: "dataHash = %@ AND blobVersionValue = %d", hash, blobVersion.rawValue)
         do {
             return try context.fetch(request).first
         } catch {
@@ -153,7 +149,7 @@ public class MediaHashStore {
             }
 
             mediaHash.dataHash = hash
-            mediaHash.blobVersionValue = MediaHashStore.getBlobVersionValue(blobVersion)
+            mediaHash.blobVersionValue = Int16(blobVersion.rawValue)
             mediaHash.key = key
             mediaHash.sha256 = sha256
             mediaHash.timestamp = Date()

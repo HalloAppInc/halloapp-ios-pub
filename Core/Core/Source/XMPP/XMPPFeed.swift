@@ -278,12 +278,7 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.size = CGSize(width: width, height: height)
         self.key = protoMedia.encryptionKey.base64EncodedString()
         self.sha256 = protoMedia.ciphertextHash.base64EncodedString()
-        self.blobVersion = {
-            switch protoMedia.blobVersion {
-            case .chunked: return .chunked
-            default: return .default
-            }
-        }()
+        self.blobVersion = BlobVersion.init(fromProto: protoMedia.blobVersion)
         self.chunkSize = protoMedia.chunkSize
         self.blobSize = protoMedia.blobSize
     }
@@ -328,12 +323,7 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.size = size
         self.key = clientVideo.video.encryptionKey.base64EncodedString()
         self.sha256 = clientVideo.video.ciphertextHash.base64EncodedString()
-        self.blobVersion = {
-            switch clientVideo.streamingInfo.blobVersion {
-            case .chunked: return .chunked
-            default: return .default
-            }
-        }()
+        self.blobVersion = BlobVersion.init(fromProto: clientVideo.streamingInfo.blobVersion)
         self.chunkSize = clientVideo.streamingInfo.chunkSize
         self.blobSize = clientVideo.streamingInfo.blobSize
     }

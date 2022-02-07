@@ -138,10 +138,11 @@ public class FeedDownloadManager {
                         task.encryptedFilePath = self.relativePath(from: fileURL)
                         self.cleanUpResumeData(for: task)
                         self.decryptionQueue.async {
-                            if task.mediaData.blobVersion == .chunked {
-                                self.decryptChunkedMedia(for: task)
-                            } else {
+                            switch task.mediaData.blobVersion {
+                            case .default:
                                 self.decryptDataInChunks(for: task)
+                            case .chunked:
+                                self.decryptChunkedMedia(for: task)
                             }
                         }
                     } else {

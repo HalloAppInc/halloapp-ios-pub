@@ -234,12 +234,7 @@ public extension ChatMediaProtocol {
             media.encryptionKey = encryptionKey
             media.ciphertextHash = ciphertextHash
             media.downloadURL = url.absoluteString
-            media.blobVersion = {
-                switch blobVersion {
-                case .default: return .default
-                case .chunked: return .chunked
-                }
-            }()
+            media.blobVersion = blobVersion.protoBlobVersion
             media.chunkSize = chunkSize
             media.blobSize = blobSize
             return media
@@ -295,12 +290,7 @@ public extension ChatMediaProtocol {
             vid.width = Int32(size.width)
             vid.height = Int32(size.height)
             var streamingInfo = Clients_StreamingInfo()
-            streamingInfo.blobVersion = {
-                switch blobVersion {
-                case .default: return .default
-                case .chunked: return .chunked
-                }
-            }()
+            streamingInfo.blobVersion = blobVersion.protoBlobVersion
             streamingInfo.chunkSize = chunkSize
             streamingInfo.blobSize = blobSize
             vid.streamingInfo = streamingInfo
@@ -403,12 +393,7 @@ public struct XMPPChatMedia {
         self.size = CGSize(width: width, height: height)
         self.key = protoMedia.encryptionKey.base64EncodedString()
         self.sha256 = protoMedia.ciphertextHash.base64EncodedString()
-        self.blobVersion = {
-            switch protoMedia.blobVersion {
-            case .chunked: return .chunked
-            default: return .default
-            }
-        }()
+        self.blobVersion = BlobVersion.init(fromProto: protoMedia.blobVersion)
         self.chunkSize = protoMedia.chunkSize
         self.blobSize = protoMedia.blobSize
     }
@@ -440,12 +425,7 @@ public struct XMPPChatMedia {
             size = CGSize(width: width, height: height)
             key = video.video.encryptionKey.base64EncodedString()
             sha256 = video.video.ciphertextHash.base64EncodedString()
-            blobVersion = {
-                switch video.streamingInfo.blobVersion {
-                case .chunked: return .chunked
-                default: return .default
-                }
-            }()
+            blobVersion = BlobVersion.init(fromProto: video.streamingInfo.blobVersion)
             self.chunkSize = video.streamingInfo.chunkSize
             self.blobSize = video.streamingInfo.blobSize
         }
