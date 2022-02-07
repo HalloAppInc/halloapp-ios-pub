@@ -672,7 +672,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
         guard !isVoiceNoteRecordingLocked && !isShowingVoiceNote else { return }
 
-        if !mentionText.isNonMentionTextEmpty() || mediaPanel.superview != nil {
+        if !mentionText.isEmpty() || mediaPanel.superview != nil {
             if ServerProperties.isMediaCommentsEnabled {
                 pickMediaButton.isHidden = false
             }
