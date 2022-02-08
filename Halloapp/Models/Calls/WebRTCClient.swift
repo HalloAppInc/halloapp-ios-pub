@@ -378,7 +378,7 @@ extension WebRTCClient: RTCAudioSessionDelegate {
     }
 
     func audioSessionDidChangeRoute(_ session: RTCAudioSession, reason: AVAudioSession.RouteChangeReason, previousRoute: AVAudioSessionRouteDescription) {
-        DDLogDebug("WebRTCClient/audioSessionDidChangeRoute/\(session.description): \(reason.rawValue)")
+        DDLogDebug("WebRTCClient/audioSessionDidChangeRoute/\(session.description): \(reason.rawValue): \(previousRoute.description)")
     }
 
 }

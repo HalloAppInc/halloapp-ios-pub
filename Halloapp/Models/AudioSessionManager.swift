@@ -259,6 +259,15 @@ class AudioSessionManager {
         default:
             break
         }
+
+
+        if #available(iOS 14.5, *) {
+            guard let reasonValue = notification.userInfo?[AVAudioSessionInterruptionReasonKey] as? UInt,
+                  let reason = AVAudioSession.InterruptionReason(rawValue: reasonValue) else {
+                      return
+                  }
+            DDLogInfo("AudioSessionManager/handleInterruption/reason: \(reason.rawValue)")
+        }
     }
 
     static func unmanagedAudioSessionDidActivate() {
