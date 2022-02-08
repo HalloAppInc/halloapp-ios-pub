@@ -374,6 +374,12 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             return
         }
         startCallIfPossible(with: peerUserID)
+
+        // Clear search if user called from this screen.
+        if !firstActionHappened {
+            delegate?.chatViewController(self, userActioned: true)
+            firstActionHappened = true
+        }
     }
 
     private func startCallIfPossible(with peerUserID: UserID) {
