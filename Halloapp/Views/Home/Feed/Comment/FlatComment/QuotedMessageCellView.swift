@@ -51,7 +51,7 @@ class QuotedMessageCellView: UIView {
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.isHidden = true
         textLabel.numberOfLines = 3
-        textLabel.textColor = UIColor.primaryBlackWhite.withAlphaComponent(0.5)
+        textLabel.textColor = UIColor.chatTime
         return textLabel
     }()
     
@@ -73,7 +73,7 @@ class QuotedMessageCellView: UIView {
         let label = UILabel()
         label.numberOfLines = 1
         label.font = UIFont.boldSystemFont(ofSize: 12)
-        label.textColor = .secondaryLabel.withAlphaComponent(0.8)
+        label.textColor = .secondaryLabel.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
@@ -138,6 +138,8 @@ class QuotedMessageCellView: UIView {
         configureText(comment: comment)
         configureMedia(comment: comment)
         configureCell()
+
+        textLabel.textColor = UIColor.quotedMessageText
     }
 
     // Adjusting constraint priorities here in a single place to be able to easily see relative priorities.
@@ -161,10 +163,10 @@ class QuotedMessageCellView: UIView {
                 mentions: Array(comment.mentions ?? Set()))
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
-            let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
+            let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 3)
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
             if let attrText = textWithMentions?.with(font: font, color: .label) {
-                let ham = HAMarkdown(font: font, color: .label)
+                let ham = HAMarkdown(font: font, color: UIColor.chatTime)
                 textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
             }
             hasText = true

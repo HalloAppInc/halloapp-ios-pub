@@ -285,4 +285,28 @@ extension UIColor {
     class var timeHeaderBackground: UIColor {
         UIColor(named: "TimeHeaderBackground")!
     }
+
+    class var messageOwnBackground: UIColor {
+        UIColor(named: "MessageOwnBackground")!
+    }
+
+    class var messageNotOwnBackground: UIColor {
+        UIColor(named: "MessageNotOwnBackground")!
+    }
+
+    class var messageOwnText: UIColor {
+        UIColor(named: "MessageOwnText")!
+    }
+
+    class var messageNotOwnText: UIColor {
+        UIColor(named: "MessageNotOwnText")!
+    }
+
+    class var quotedMessageText: UIColor {
+        UIColor(named: "QuotedMessageText")!
+    }
+
+    class var timeHeaderText: UIColor {
+        UIColor(named: "TimeHeaderText")!
+    }
 }

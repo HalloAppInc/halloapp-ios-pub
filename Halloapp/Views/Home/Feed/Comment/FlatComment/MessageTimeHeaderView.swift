@@ -19,7 +19,7 @@ class MessageTimeHeaderView: UICollectionReusableView {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12, weight: .bold)
         label.alpha = 0.75
-        label.textColor = UIColor.black.withAlphaComponent(0.5)
+        label.textColor = UIColor.timeHeaderText
         label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false
         return label

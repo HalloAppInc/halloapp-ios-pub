@@ -125,7 +125,7 @@ class MessageViewCell: UICollectionViewCell {
         bubbleView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         bubbleView.layer.borderWidth = 0.5
         bubbleView.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
-        bubbleView.layer.cornerRadius = 16
+        bubbleView.layer.cornerRadius = 14
         bubbleView.layer.shadowColor = UIColor.black.withAlphaComponent(0.08).cgColor
         bubbleView.layer.shadowOffset = CGSize(width: 0, height: 2)
         bubbleView.layer.shadowRadius = 1.5
@@ -340,14 +340,14 @@ class MessageViewCell: UICollectionViewCell {
     private func configureCell() {
         updateMediaConstraints()
         if isOwnMessage {
-            bubbleView.backgroundColor = UIColor.chatOwnBubbleBg
-            textLabel.textColor = UIColor.chatOwnMsg
+            bubbleView.backgroundColor = UIColor.messageOwnBackground
+            textLabel.textColor = UIColor.messageOwnText
             nameRow.isHidden = true
             rightAlignedConstraint.priority = UILayoutPriority(800)
             leftAlignedConstraint.priority = UILayoutPriority(1)
         } else {
-            bubbleView.backgroundColor = .secondarySystemGroupedBackground
-            textLabel.textColor = UIColor.primaryBlackWhite
+            bubbleView.backgroundColor = UIColor.messageNotOwnBackground
+            textLabel.textColor = UIColor.messageNotOwnText
             rightAlignedConstraint.priority = UILayoutPriority(1)
             leftAlignedConstraint.priority = UILayoutPriority(800)
             // If the message contains media, always show name
@@ -382,7 +382,7 @@ class MessageViewCell: UICollectionViewCell {
                 mentions: Array(comment.mentions ?? Set()))
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
-            let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
+            let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize)
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
             if let attrText = textWithMentions?.with(font: font, color: .label) {
                 let ham = HAMarkdown(font: font, color: .label)
