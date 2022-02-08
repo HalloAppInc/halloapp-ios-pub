@@ -116,6 +116,7 @@ open class MainDataStore {
     public func saveCall(callID: CallID, peerUserID: UserID, type: CallType, direction: CallDirection, timestamp: Date, completion: ((Call) -> Void)? = nil) {
         performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
             guard let self = self else { return }
+            DDLogInfo("MainDataStore/saveCall/callID: \(callID)")
 
             let call = Call(context: managedObjectContext)
             call.callID = callID
@@ -142,6 +143,7 @@ open class MainDataStore {
     public func updateCall(with callID: CallID, block: @escaping (Call) -> Void) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
+            DDLogInfo("MainDataStore/updateCall/callID: \(callID)")
 
             guard let call = self.call(with: callID, in: managedObjectContext) else {
                 DDLogVerbose("ChatData/updateChatThreadStatus - missing")
@@ -174,6 +176,7 @@ open class MainDataStore {
     public func saveGroupHistoryInfo(id: String, groupID: GroupID, payload: Data) {
         performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
             guard let self = self else { return }
+            DDLogInfo("MainDataStore/saveGroupHistoryInfo/id: \(id)")
             let groupHistoryInfo = GroupHistoryInfo(context: managedObjectContext)
             groupHistoryInfo.id = id
             groupHistoryInfo.groupId = groupID
