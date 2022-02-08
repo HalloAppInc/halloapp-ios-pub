@@ -413,6 +413,19 @@ public extension PostData {
         }
         return container
     }
+
+    var serverPost: Server_Post? {
+        guard let payloadData = try? clientContainer.serializedData() else {
+            return nil
+        }
+
+        var serverPost = Server_Post()
+        serverPost.id = id
+        serverPost.payload = payloadData
+        serverPost.publisherUid = Int64(userId) ?? 0
+        serverPost.timestamp = Int64(timestamp.timeIntervalSince1970)
+        return serverPost
+    }
 }
 
 // MARK: Feed Comment

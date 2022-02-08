@@ -15,7 +15,26 @@
             </uniquenessConstraint>
         </uniquenessConstraints>
     </entity>
+    <entity name="ContentResendInfo" representedClassName="ContentResendInfo" syncable="YES">
+        <attribute name="contentID" optional="YES" attributeType="String"/>
+        <attribute name="retryCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userID" optional="YES" attributeType="String"/>
+        <relationship name="groupHistoryInfo" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="GroupHistoryInfo" inverseName="contentResendInfo" inverseEntity="GroupHistoryInfo"/>
+    </entity>
+    <entity name="GroupHistoryInfo" representedClassName="GroupHistoryInfo" syncable="YES">
+        <attribute name="groupId" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="payload" optional="YES" attributeType="Binary"/>
+        <relationship name="contentResendInfo" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ContentResendInfo" inverseName="groupHistoryInfo" inverseEntity="ContentResendInfo"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
     <elements>
         <element name="Call" positionX="-63" positionY="-18" width="128" height="149"/>
+        <element name="GroupHistoryInfo" positionX="-63" positionY="45" width="128" height="89"/>
+        <element name="ContentResendInfo" positionX="-63" positionY="45" width="128" height="89"/>
     </elements>
 </model>

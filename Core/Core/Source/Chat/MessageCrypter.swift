@@ -13,6 +13,7 @@ public typealias OutboundCompletion = (Result<KeyBundle, EncryptionError>) -> Vo
 public typealias EncryptionCompletion = (Result<(EncryptedData, EncryptionLogInfo), EncryptionError>) -> Void
 public typealias DecryptionCompletion = (Result<Data, DecryptionFailure>) -> Void
 public typealias GroupFeedRerequestType = Server_GroupFeedRerequest.RerequestType
+public typealias GroupFeedRerequestContentType = Server_GroupFeedRerequest.ContentType
 
 public final class MessageCrypter: KeyStoreDelegate {
 

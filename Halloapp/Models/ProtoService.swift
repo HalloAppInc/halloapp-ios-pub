@@ -9,6 +9,7 @@
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CryptoKit
 import SwiftProtobuf
 
 fileprivate let userDefaultsKeyForAPNSToken = "apnsPushToken"
@@ -325,7 +326,7 @@ final class ProtoService: ProtoServiceCore {
             case .post(let serverPost):
                 switch pbFeedItem.action {
                 case .publish, .share:
-                    if let post = PostData(serverPost, status: .received, isShared: pbFeedItem.action == .share) {
+                    if let post = PostData(serverPost, status: .received, itemAction: pbFeedItem.itemAction, isShared: pbFeedItem.action == .share) {
                         elements.append(.post(post))
                     }
                 case .retract:
@@ -336,7 +337,7 @@ final class ProtoService: ProtoServiceCore {
             case .comment(let serverComment):
                 switch pbFeedItem.action {
                 case .publish, .share:
-                    if let comment = CommentData(serverComment, status: .received) {
+                    if let comment = CommentData(serverComment, status: .received, itemAction: pbFeedItem.itemAction) {
                         elements.append(.comment(comment, publisherName: serverComment.publisherName))
                     }
                 case .retract:
@@ -374,32 +375,29 @@ final class ProtoService: ProtoServiceCore {
         // So, use serverProp value to decide whether to fallback to plainTextContent when status is .rerequesting
         let fallback: Bool = status == .rerequesting ? ServerProperties.useClearTextGroupFeedContent : true
         for item in items {
+            let isShared: Bool = item.isResentHistory ? true : item.action == .share
             switch item.item {
             case .post(let serverPost):
-                switch item.action {
-                case .publish, .share:
-                    guard let post = PostData(serverPost, status: status, usePlainTextPayload: fallback, isShared: item.action == .share) else {
+                if !isShared && item.action == .retract {
+                    retracts.append(.post(serverPost.id))
+                } else {
+                    guard let post = PostData(serverPost, status: status, itemAction: item.itemAction,
+                                              usePlainTextPayload: fallback, isShared: isShared) else {
                         DDLogError("proto/payloadContents/\(serverPost.id)/error could not make post object")
                         continue
                     }
                     elements.append(.post(post))
-                case .retract:
-                    retracts.append(.post(serverPost.id))
-                case .UNRECOGNIZED(let action):
-                    DDLogError("proto/payloadContents/\(serverPost.id)/error unrecognized post action \(action)")
                 }
             case .comment(let serverComment):
-                switch item.action {
-                case .publish, .share:
-                    guard let comment = CommentData(serverComment, status: status, usePlainTextPayload: fallback) else {
+                if !isShared && item.action == .retract {
+                    retracts.append(.comment(serverComment.id))
+                } else {
+                    guard let comment = CommentData(serverComment, status: status, itemAction: item.itemAction,
+                                                    usePlainTextPayload: fallback, isShared: isShared) else {
                         DDLogError("proto/payloadContents/\(serverComment.id)/error could not make comment object")
                         continue
                     }
                     elements.append(.comment(comment, publisherName: serverComment.publisherName))
-                case .retract:
-                    retracts.append(.comment(serverComment.id))
-                case .UNRECOGNIZED(let action):
-                    DDLogError("proto/payloadContents/\(serverComment.id)/error unrecognized comment action \(action)")
                 }
             case .none:
                 DDLogError("ProtoService/payloadContents/error missing item")
@@ -705,8 +703,11 @@ final class ProtoService: ProtoServiceCore {
                     messageEphemeralKey: rerequest.messageEphemeralKey),
                 from: userID)
             DDLogInfo("proto/didReceive/\(msg.id)/rerequest/contentType: \(rerequest.contentType)")
-            if let delegate = chatDelegate, rerequest.contentType == .chat {
-                delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID, ack: ack)
+            if let chatDelegate = chatDelegate, rerequest.contentType == .chat {
+                chatDelegate.halloService(self, didRerequestMessage: rerequest.id, from: userID, ack: ack)
+                hasAckBeenDelegated = true
+            } else if let feedDelegate = feedDelegate, rerequest.contentType == .groupHistory {
+                feedDelegate.halloService(self, didRerequestGroupFeedHistory: rerequest.id, from: userID, ack: ack)
                 hasAckBeenDelegated = true
             }
         case .chatRetract(let pbChatRetract):
@@ -761,6 +762,7 @@ final class ProtoService: ProtoServiceCore {
             case .publish:
                 // Dont process groupFeedItems that were already decrypted and saved.
                 if isGroupFeedItemDecryptedAndSaved(contentID: contentID) {
+                    DDLogInfo("proto/didReceive/\(msg.id)/isGroupFeedItemDecryptedAndSaved/\(contentID)/already saved - skip")
                     return
                 }
                 hasAckBeenDelegated = true
@@ -785,9 +787,10 @@ final class ProtoService: ProtoServiceCore {
                             }
                         }
                     }
-                    if let failure = groupDecryptionFailure {
+                    if let failure = groupDecryptionFailure,
+                       let contentType = item.contentType {
                         DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/error \(failure.error)")
-                        self.rerequestGroupFeedItemIfNecessary(id: contentID, groupID: item.gid, failure: failure) { result in
+                        self.rerequestGroupFeedItemIfNecessary(id: contentID, groupID: item.gid, contentType: contentType, failure: failure) { result in
                             switch result {
                             case .success:
                                 self.updateMessageStatus(id: msg.id, status: .rerequested)
@@ -801,7 +804,7 @@ final class ProtoService: ProtoServiceCore {
                     self.reportGroupDecryptionResult(
                         error: groupDecryptionFailure?.error,
                         contentID: contentID,
-                        itemType: itemType,
+                        contentType: itemType.rawString,
                         groupID: item.gid,
                         timestamp: receiptTimestamp,
                         sender: UserAgent(string: item.senderClientVersion),
@@ -838,13 +841,13 @@ final class ProtoService: ProtoServiceCore {
 
             switch rerequest.rerequestType {
             case .payload:
-                delegate.halloService(self, didRerequestGroupFeedItem: rerequest.id, from: userID, ack: ack)
+                delegate.halloService(self, didRerequestGroupFeedItem: rerequest.id, contentType: rerequest.contentType, from: userID, ack: ack)
                 hasAckBeenDelegated = true
             case .senderState:
                 hasAckBeenDelegated = true
                 AppContext.shared.messageCrypter.resetWhisperSession(for: userID)
                 // we are acking the message here - what if we fail to reset the session properly
-                delegate.halloService(self, didRerequestGroupFeedItem: rerequest.id, from: userID, ack: ack)
+                delegate.halloService(self, didRerequestGroupFeedItem: rerequest.id, contentType: rerequest.contentType, from: userID, ack: ack)
             case .UNRECOGNIZED(_):
                 return
             }
@@ -860,6 +863,7 @@ final class ProtoService: ProtoServiceCore {
                 delegate.halloService(self, didReceiveFeedPayload: payload, ack: ack)
                 hasAckBeenDelegated = true
             }
+
         case .contactHash(let pbContactHash):
             if pbContactHash.hash.isEmpty {
                 // Trigger full sync
@@ -876,13 +880,92 @@ final class ProtoService: ProtoServiceCore {
         case .groupStanza(let pbGroup):
             if let group = HalloGroup(protoGroup: pbGroup, msgId: msg.id, retryCount: msg.retryCount) {
                 hasAckBeenDelegated = true
-                processGroupStanza(for: pbGroup, in: pbGroup.gid) { [weak self] in
+                processGroupStanza(for: pbGroup, in: pbGroup.gid) { [weak self] (groupHistoryPayload, shouldSendAck) in
                     guard let self = self else { return }
+                    DDLogInfo("proto/didReceive/\(msg.id)/processGroupStanza/notify chat delegate to update group")
                     self.chatDelegate?.halloService(self, didReceiveGroupMessage: group)
-                    ack()
+                    DDLogInfo("proto/didReceive/\(msg.id)/processGroupStanza/notify chat delegate to share group feed history")
+                    self.chatDelegate?.halloService(self, didReceiveHistoryResendPayload: groupHistoryPayload, withGroupMessage: group)
+                    DDLogInfo("proto/didReceive/\(msg.id)/processGroupStanza/finished processing")
+
+                    // observe things around here and enable this.
+                    if !shouldSendAck {
+                        DDLogError("proto/didReceive/\(msg.id)/skipping an ack here - failed to process groupStanza")
+                    } else {
+                        ack()
+                    }
                 }
             } else {
                 DDLogError("proto/didReceive/\(msg.id)/error could not read group stanza")
+            }
+        case .historyResend(let historyResend):
+            // Dont process historyResend that was already decrypted and saved.
+            if isGroupFeedItemDecryptedAndSaved(contentID: historyResend.id) {
+                DDLogInfo("proto/didReceive/\(msg.id)/isGroupFeedItemDecryptedAndSaved/\(historyResend.id)/already saved - skip")
+                return
+            }
+            processHistoryResendStanza(historyResend: historyResend, fromUserId: UserID(msg.fromUid), rerequestCount: msg.rerequestCount) { [weak self] (groupHistoryPayload, shouldSendAck) in
+                guard let self = self else { return }
+                DDLogInfo("proto/didReceive/\(msg.id)/processGroupStanza/notify chat delegate to share group feed history")
+                if let groupHistoryPayload = groupHistoryPayload {
+                    self.chatDelegate?.halloService(self, didReceiveHistoryResendPayload: groupHistoryPayload, for: historyResend.gid, from: UserID(msg.fromUid))
+                } else {
+                    DDLogError("proto/didReceive/\(msg.id)/unexpected - empty groupHistoryPayload")
+                }
+                // observe things around here and enable this.
+                if !shouldSendAck {
+                    DDLogError("proto/didReceive/\(msg.id)/skipping an ack here - failed to process groupStanza")
+                } else {
+                    ack()
+                }
+            }
+        case .groupFeedHistory(let groupFeedHistory):
+            DDLogInfo("proto/didReceive/\(msg.id)/groupFeedHistory/\(groupFeedHistory.gid)/begin")
+            let fromUserID = UserID(msg.fromUid)
+            let groupID = groupFeedHistory.gid
+            // Dont process groupFeedHistory that was already decrypted and saved.
+            if isOneToOneContentDecryptedAndSaved(contentID: groupFeedHistory.id) {
+                DDLogInfo("proto/didReceive/\(msg.id)/groupFeedHistory/\(groupFeedHistory.gid)/already saved - skip")
+                return
+            }
+            hasAckBeenDelegated = true
+            decryptGroupFeedHistory(groupFeedHistory, from: fromUserID) { [weak self] result in
+                guard let self = self else { return }
+                var decryptionFailure: DecryptionFailure?
+                switch result {
+                case .failure(let failure):
+                    DDLogError("proto/didReceive/\(msg.id)/groupFeedHistory/\(groupID)/ failed decryption: \(failure)")
+                    self.rerequestMessage(groupFeedHistory.id,
+                                          senderID: fromUserID,
+                                          failedEphemeralKey: failure.ephemeralKey,
+                                          contentType: .groupHistory) { result in
+                        switch result {
+                        case .success:
+                            DDLogInfo("ProtoService/rerequest-groupFeedHistory/\(groupID)/success")
+                            ack()
+                        case .failure(let error):
+                            DDLogError("ProtoService/rerequest-groupFeedHistory/\(groupID)/failure, error: \(error)")
+                        }
+                    }
+                    decryptionFailure = failure
+                case .success(let items):
+                    DDLogInfo("proto/didReceive/\(msg.id)/groupFeedHistory/success/begin processing items, count: \(items.items.count)")
+                    let group = HalloGroup(id: items.gid, name: items.name, avatarID: items.avatarID)
+                    for content in self.payloadContents(for: items.items, status: .received) {
+                        let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: isEligibleForNotification)
+                        self.feedDelegate?.halloService(self, didReceiveFeedPayload: payload, ack: nil)
+                    }
+                    DDLogInfo("proto/didReceive/\(msg.id)/groupFeedHistory/success/finished processing items, count: \(items.items.count)")
+                    ack()
+                    decryptionFailure = nil
+                }
+                self.reportDecryptionResult(
+                    error: decryptionFailure?.error,
+                    messageID: groupFeedHistory.id,
+                    timestamp: Date(),
+                    sender: UserAgent(string: groupFeedHistory.senderClientVersion),
+                    rerequestCount: Int(msg.rerequestCount),
+                    isSilent: false)
             }
         case .groupChat(let pbGroupChat):
             if HalloGroupChatMessage(pbGroupChat, id: msg.id, retryCount: msg.retryCount) != nil {
@@ -1000,13 +1083,9 @@ final class ProtoService: ProtoServiceCore {
 
         case .inviteeNotice:
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .historyResend:
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .homeFeedRerequest(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .marketingAlert(_):
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .groupFeedHistory(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .preAnswerCall(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
@@ -1091,23 +1170,6 @@ final class ProtoService: ProtoServiceCore {
         } else {
             DDLogError("proto/didReceive/\(messageID)/decrypt/stats/error missing sender user agent")
         }
-    }
-
-    private func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, itemType: FeedElementType, groupID: GroupID, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
-        if (error == .missingPayload) {
-            DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(itemType)/\(groupID)/payload is missing - not error.")
-            return
-        }
-        let errorString = error?.rawValue ?? ""
-        DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(itemType)/\(groupID)/error value: \(errorString)")
-        AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemType: itemType, sender: sender))
-        MainAppContext.shared.cryptoData.update(contentID: contentID,
-                                                contentType: itemType.rawString,
-                                                groupID: groupID,
-                                                timestamp: timestamp,
-                                                error: errorString,
-                                                sender: sender,
-                                                rerequestCount: rerequestCount)
     }
 
     // i dont think this is the right place to generate local notifications.
@@ -1280,6 +1342,20 @@ extension ProtoService: HalloService {
 
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoSharePostsRequest(postIDs: postIds, userID: userId, completion: completion))
+    }
+
+    func shareGroupHistory(items: Server_GroupFeedItems, with userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        let groupID = items.gid
+        do {
+            DDLogInfo("ProtoService/shareGroupHistory/\(groupID)/begin")
+            let payload = try items.serializedData()
+            let groupFeedHistoryID = PacketID.generate()
+            MainAppContext.shared.mainDataStore.saveGroupHistoryInfo(id: groupFeedHistoryID, groupID: groupID, payload: payload)
+            sendGroupFeedHistoryPayload(id: groupFeedHistoryID, groupID: groupID, payload: payload, to: userID, rerequestCount: 0, completion: completion)
+        } catch {
+            DDLogError("ProtoService/shareGroupHistory/\(groupID)/error could not serialize items")
+            completion(.failure(.aborted))
+        }
     }
 
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID) {
@@ -1618,15 +1694,144 @@ extension ProtoService: HalloService {
     func getGroupsList(completion: @escaping ServiceRequestCompletion<HalloGroups>) {
         enqueue(request: ProtoGroupsListRequest(completion: completion))
     }
-    
+
+    // Get groupMemberIdentityKeys and dispatch work to fetch keys for potential members.
+    // After fetching all of that: we have the necessary member info.
+    // then fetch group-history data - compute hashes and the construct the history-resend payload.
+    // Construct the iq to add members with history-resend and send the data.
     func modifyGroup(groupID: GroupID, with members: [UserID], groupAction: ChatGroupAction,
                      action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoGroupModifyRequest(
-            groupID: groupID,
-            members: members,
-            groupAction: groupAction,
-            action: action,
-            completion: completion))
+        switch action {
+        case .add:
+            // Fetch identity keys if necessary for members to be added.
+            var newMembersDetails: [Clients_MemberDetails] = []
+            var numberOfFailedFetches = 0
+            let fetchMemberKeysGroup = DispatchGroup()
+            let fetchMemberKeysCompletion: (Result<KeyBundle, EncryptionError>) -> Void = { result in
+                switch result {
+                case .failure(_):
+                    numberOfFailedFetches += 1
+                    DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/fetchMemberKeysCompletion/error - num: \(numberOfFailedFetches)")
+                default:
+                    break
+                }
+                fetchMemberKeysGroup.leave()
+            }
+
+            for member in members {
+                guard member != credentials?.userID else {
+                    continue
+                }
+                guard let memberIntUserID = Int64(member) else {
+                    continue
+                }
+                fetchMemberKeysGroup.enter()
+                MainAppContext.shared.messageCrypter.setupOutbound(for: member) { result in
+                    switch result {
+                    case .success(let keyBundle):
+                        var memberDetails = Clients_MemberDetails()
+                        memberDetails.uid = memberIntUserID
+                        memberDetails.publicIdentityKey = keyBundle.inboundIdentityPublicEdKey
+                        newMembersDetails.append(memberDetails)
+                    case .failure(_):
+                        break
+                    }
+                    fetchMemberKeysCompletion(result)
+                }
+            }
+
+            fetchMemberKeysGroup.notify(queue: .main) {
+                if numberOfFailedFetches > 0 {
+                    DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/fetchMemberKeysCompletion/error - num: \(numberOfFailedFetches)")
+                    completion(.failure(.aborted))
+                } else {
+                    // After successfully obtaining the memberKeys
+                    // Now fetch feedHistory, compute the hashes and construct the history resend stanza.
+                    // Get feedHistory
+                    let (postsData, commentsData) = MainAppContext.shared.feedData.feedHistory(for: groupID)
+
+                    DDLogInfo("ProtoServiceCore/modifyGroup/\(groupID)/fetchMemberKeysCompletion/success - \(newMembersDetails.count)")
+                    var feedContentDetails: [Clients_ContentDetails] = []
+                    do {
+                        for post in postsData {
+                            var contentDetails = Clients_ContentDetails()
+                            var postIdContext = Clients_PostIdContext()
+                            postIdContext.feedPostID = post.id
+                            contentDetails.postIDContext = postIdContext
+                            let contentData = try post.clientContainer.serializedData()
+                            contentDetails.contentHash = SHA256.hash(data: contentData).data
+                            feedContentDetails.append(contentDetails)
+                        }
+                        for comment in commentsData {
+                            var contentDetails = Clients_ContentDetails()
+                            var commentIdContext = Clients_CommentIdContext()
+                            commentIdContext.commentID = comment.id
+                            commentIdContext.feedPostID = comment.feedPostId
+                            if let parentID = comment.parentId {
+                                commentIdContext.parentCommentID = parentID
+                            }
+                            contentDetails.commentIDContext = commentIdContext
+                            let contentData = try comment.clientContainer.serializedData()
+                            contentDetails.contentHash = SHA256.hash(data: contentData).data
+                            feedContentDetails.append(contentDetails)
+                        }
+
+                        var groupHistoryPayload = Clients_GroupHistoryPayload()
+                        groupHistoryPayload.contentDetails = feedContentDetails
+                        groupHistoryPayload.memberDetails = newMembersDetails
+
+                        let payloadData = try groupHistoryPayload.serializedData()
+                        let historyResendID = PacketID.generate()
+                        MainAppContext.shared.mainDataStore.saveGroupHistoryInfo(id: historyResendID, groupID: groupID, payload: payloadData)
+
+                        // Encrypt the containerPayload
+                        AppContext.shared.messageCrypter.encrypt(payloadData, in: groupID, potentialMemberUids: members) { [weak self] result in
+                            guard let self = self else {
+                                DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/encryptHistoryContainer/error: aborted")
+                                completion(.failure(.aborted))
+                                return
+                            }
+                            switch result {
+                            case .failure(let error):
+                                DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/encryptHistoryContainer/error: \(error)")
+                                completion(.failure(.aborted))
+                            case .success(let groupEncryptedData):
+                                var historyResend = Server_HistoryResend()
+                                historyResend.id = historyResendID
+                                historyResend.gid = groupID
+                                historyResend.senderStateBundles = groupEncryptedData.senderStateBundles
+                                historyResend.audienceHash = groupEncryptedData.audienceHash
+                                var clientEncryptedPayload = Clients_EncryptedPayload()
+                                clientEncryptedPayload.senderStateEncryptedPayload = groupEncryptedData.data
+                                guard let encPayload = try? clientEncryptedPayload.serializedData() else {
+                                    DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/error could not serialize payload")
+                                    completion(.failure(.aborted))
+                                    return
+                                }
+                                historyResend.encPayload = encPayload
+                                historyResend.payload = payloadData
+                                historyResend.senderClientVersion = AppContext.userAgent
+                                DDLogInfo("ProtoServiceCore/modifyGroup/\(groupID)/encryptHistoryContainer/success - enqueuing request")
+                                self.enqueue(request: ProtoGroupAddMemberRequest(groupID: groupID,
+                                                                                 members: members,
+                                                                                 historyResend: historyResend,
+                                                                                 completion: completion))
+                            }
+                        }
+                    } catch {
+                        DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/fetchHistoryContainer/failed serialization")
+                        completion(.failure(.aborted))
+                    }
+                }
+            }
+        default:
+            enqueue(request: ProtoGroupModifyRequest(
+                groupID: groupID,
+                members: members,
+                groupAction: groupAction,
+                action: action,
+                completion: completion))
+        }
     }
 
     func changeGroupName(groupID: GroupID, name: String, completion: @escaping ServiceRequestCompletion<Void>) {

@@ -344,10 +344,11 @@ final class NotificationProtoService: ProtoServiceCore {
             } else {
                 DDLogError("NotificationExtension/decryptAndProcessGroupFeedItem/contentID/\(contentID)/failure \(groupDecryptionFailure.debugDescription)")
                 if let groupId = metadata.groupId,
-                   let decryptionFailure = groupDecryptionFailure {
+                   let decryptionFailure = groupDecryptionFailure,
+                   let rerequestContentType = item.contentType {
                     // Use serverProp value to decide whether to fallback to plainTextContent.
                     let fallback = ServerProperties.useClearTextGroupFeedContent
-                    self.rerequestGroupFeedItemIfNecessary(id: contentID, groupID: groupId, failure: decryptionFailure) { result in
+                    self.rerequestGroupFeedItemIfNecessary(id: contentID, groupID: groupId, contentType: rerequestContentType, failure: decryptionFailure) { result in
                         switch result {
                         case .success: break
                         case .failure(let error):
@@ -365,29 +366,12 @@ final class NotificationProtoService: ProtoServiceCore {
             self.reportGroupDecryptionResult(
                 error: groupDecryptionFailure?.error,
                 contentID: contentID,
-                itemType: contentType,
+                contentType: contentType.rawString,
                 groupID: item.gid,
                 timestamp: Date(),
                 sender: UserAgent(string: item.senderClientVersion),
                 rerequestCount: Int(metadata.rerequestCount))
         }
-    }
-
-    private func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, itemType: FeedElementType, groupID: GroupID, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
-        if (error == .missingPayload) {
-            DDLogInfo("NotificationExtension/reportGroupDecryptionResult/\(contentID)/\(itemType)/\(groupID)/payload is missing - not error.")
-            return
-        }
-        let errorString = error?.rawValue ?? ""
-        DDLogInfo("NotificationExtension/reportGroupDecryptionResult/\(contentID)/\(itemType)/\(groupID)/error value: \(errorString)")
-        AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemType: itemType, sender: sender))
-        AppContext.shared.cryptoData.update(contentID: contentID,
-                                            contentType: itemType.rawString,
-                                            groupID: groupID,
-                                            timestamp: timestamp,
-                                            error: errorString,
-                                            sender: sender,
-                                            rerequestCount: rerequestCount)
     }
 
     // MARK: Handle Chat Messages.

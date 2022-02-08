@@ -64,7 +64,9 @@ public protocol CoreService {
     func resendComment(_ comment: CommentData, groupId: GroupID?, rerequestCount: Int32, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
     func decryptGroupFeedPayload(for item: Server_GroupFeedItem, in groupID: GroupID, completion: @escaping (FeedContent?, GroupDecryptionFailure?) -> Void)
     func processGroupFeedRetract(for item: Server_GroupFeedItem, in groupID: GroupID, completion: @escaping () -> Void)
-    func rerequestGroupFeedItemIfNecessary(id contentID: String, groupID: GroupID, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>)
+    func rerequestGroupFeedItemIfNecessary(id contentID: String, groupID: GroupID, contentType: GroupFeedRerequestContentType, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>)
+    func resendHistoryResendPayload(id historyResendID: String, groupID: GroupID, payload: Data, to toUserID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>)
+    func sendGroupFeedHistoryPayload(id groupFeedHistoryID: String, groupID: GroupID, payload: Data, to toUserID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Keys
     func getGroupMemberIdentityKeys(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupStanza>)

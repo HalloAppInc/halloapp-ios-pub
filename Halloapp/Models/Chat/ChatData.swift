@@ -8,6 +8,7 @@
 import CocoaLumberjackSwift
 import Combine
 import Core
+import CryptoKit
 import CoreData
 import Foundation
 import Intents
@@ -4726,6 +4727,174 @@ extension ChatData: HalloChatDelegate {
 
     func halloService(_ halloService: HalloService, didReceiveGroupMessage group: HalloGroup) {
         processIncomingXMPPGroup(group)
+    }
+
+    func halloService(_ halloService: HalloService, didReceiveHistoryResendPayload historyPayload: Clients_GroupHistoryPayload?,
+                      withGroupMessage group: HalloGroup) {
+        guard let sender = group.sender else {
+            DDLogError("ChatData/didReceiveHistoryPayload/invalid group here: \(group)")
+            return
+        }
+        let groupID = group.groupId
+
+        // Check if self is a newly added member to the group
+        let memberDetails = historyPayload?.memberDetails
+        let ownUserID = userData.userId
+        let isSelfANewMember = memberDetails?.contains(where: { $0.uid == Int64(ownUserID) }) ?? false
+
+        // If self is a new member then we can just ignore.
+        // Nothing to share with anyone else.
+        if isSelfANewMember {
+            DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/self is newly added member - ignore historyResend stanza")
+
+        } else if let historyPayload = historyPayload,
+                  sender != userData.userId {
+            // Members of the group on receiving a historyPayload stanza
+            // Must verify keys and hashes and then share the content.
+            DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/from: \(sender)/processing")
+            processGroupFeedHistoryResend(historyPayload, for: group.groupId, fromUserID: sender)
+
+        } else if sender == userData.userId {
+            // For admin who added the members
+            // share authored group feed history to all new member uids.
+            let newlyAddedMembers = group.members?.filter { $0.action == .add } ?? []
+            let newMemberUids = newlyAddedMembers.map{ $0.userId }
+            let (postsData, commentsData) = MainAppContext.shared.feedData.authoredFeedHistory(for: groupID)
+            DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/from self/processing")
+            shareGroupFeedItems(posts: postsData, comments: commentsData, in: groupID, to: newMemberUids)
+
+        } else {
+            DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/error - unexpected stanza")
+        }
+
+    }
+
+    func halloService(_ halloService: HalloService, didReceiveHistoryResendPayload historyPayload: Clients_GroupHistoryPayload, for groupID: GroupID, from fromUserID: UserID) {
+        // Members of the group on receiving a historyPayload stanza
+        // Must verify keys and hashes and then share the content.
+        DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/from: \(fromUserID)/processing")
+        processGroupFeedHistoryResend(historyPayload, for: groupID, fromUserID: fromUserID)
+    }
+
+    func processGroupFeedHistoryResend(_ historyPayload: Clients_GroupHistoryPayload, for groupID: GroupID, fromUserID: UserID) {
+        // Check if sender is in the address book.
+        // If yes - then verify the hash of the contents and send them to the new members.
+        // Else - log and return
+        guard contactStore.isContactInAddressBook(userId: fromUserID) else {
+            DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/sendingAdmin is not in address book - ignore historyResend stanza")
+            return
+        }
+
+        let contentsDetails = historyPayload.contentDetails
+        var contentsHashDict = [String: Data]()
+        contentsDetails.forEach { contentDetails in
+            switch contentDetails.contentID {
+            case .postIDContext(let postIdContext):
+                contentsHashDict[postIdContext.feedPostID] = contentDetails.contentHash
+            case .commentIDContext(let commentIdContext):
+                contentsHashDict[commentIdContext.commentID] = contentDetails.contentHash
+            case .none:
+                break
+            }
+        }
+
+        let (postsData, commentsData) = MainAppContext.shared.feedData.authoredFeedHistory(for: groupID)
+        var postsToShare: [PostData] = []
+        var commentsToShare: [CommentData] = []
+        do {
+            for post in postsData {
+                let contentData = try post.clientContainer.serializedData()
+                let actualHash = SHA256.hash(data: contentData).data
+                let expectedHash = contentsHashDict[post.id]
+                if let expectedHash = expectedHash,
+                   expectedHash == actualHash {
+                    postsToShare.append(post)
+                } else {
+                    DDLogError("ChatData/processGroupFeedHistory/\(groupID)/post: \(post.id)/hash mismatch/expected: \(String(describing: expectedHash))/actual: \(actualHash)")
+                }
+            }
+            for comment in commentsData {
+                let contentData = try comment.clientContainer.serializedData()
+                let actualHash = SHA256.hash(data: contentData).data
+                let expectedHash = contentsHashDict[comment.id]
+                if let expectedHash = expectedHash,
+                   expectedHash == actualHash {
+                    commentsToShare.append(comment)
+                } else {
+                    DDLogError("ChatData/processGroupFeedHistory/\(groupID)/comment: \(comment.id)/hash mismatch/expected: \(String(describing: expectedHash))/actual: \(actualHash)")
+                }
+            }
+            // Fetch identity keys of new members and compare with received keys.
+            // TODO: will do this after the first version!
+            let newMemberUids = historyPayload.memberDetails.map{ UserID($0.uid) }
+
+            // For now, encrypt and send the stanza to all the new members.
+            DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/postsToShare: \(postsToShare.count)/commentsToShare: \(commentsToShare.count)")
+            shareGroupFeedItems(posts: postsToShare, comments: commentsToShare, in: groupID, to: newMemberUids)
+        } catch {
+            DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed serializing content: \(error)")
+        }
+    }
+
+    func shareGroupFeedItems(posts: [PostData], comments: [CommentData], in groupID: GroupID, to memberUids: [UserID]) {
+        var groupFeedItemsToShare: [Server_GroupFeedItem] = []
+        for post in posts {
+            if let serverPost = post.serverPost {
+                var serverGroupFeedItem = Server_GroupFeedItem()
+                switch post.content {
+                case .unsupported, .waiting:
+                    // This cannot happen - since we are always sharing our own content.
+                    // our own content can never be unsupported or waiting
+                    DDLogError("ChatData/shareGroupFeedItems/\(groupID)/post: \(post.id)/invalid content here: \(post.content)")
+                    continue
+                case .retracted:
+                    serverGroupFeedItem.action = .retract
+                case .album, .text, .voiceNote:
+                    serverGroupFeedItem.action = .publish
+                }
+                serverGroupFeedItem.post = serverPost
+                serverGroupFeedItem.isResentHistory = true
+                groupFeedItemsToShare.append(serverGroupFeedItem)
+            } else {
+                DDLogError("ChatData/shareGroupFeedItems/\(groupID)/post: \(post.id)/invalid proto")
+            }
+        }
+        for comment in comments {
+           if let serverComment = comment.serverComment {
+                var serverGroupFeedItem = Server_GroupFeedItem()
+               switch comment.content {
+               case .unsupported, .waiting:
+                   // This cannot happen - since we are always sharing our own content.
+                   // our own content can never be unsupported or waiting
+                   DDLogError("ChatData/shareGroupFeedItems/\(groupID)/comment: \(comment.id)/invalid content here: \(comment.content)")
+                   continue
+               case .retracted:
+                   serverGroupFeedItem.action = .retract
+               case .album, .text, .voiceNote:
+                   serverGroupFeedItem.action = .publish
+               }
+                serverGroupFeedItem.comment = serverComment
+               serverGroupFeedItem.isResentHistory = true
+                groupFeedItemsToShare.append(serverGroupFeedItem)
+            } else {
+                DDLogError("ChatData/shareGroupFeedItems/\(groupID)/comment: \(comment.id)/invalid proto")
+            }
+        }
+        DDLogInfo("ChatData/shareGroupFeedItems/\(groupID)/items count: \(groupFeedItemsToShare.count)")
+        var groupFeedItemsStanza = Server_GroupFeedItems()
+        groupFeedItemsStanza.gid = groupID
+        groupFeedItemsStanza.items = groupFeedItemsToShare
+        // We need to encrypt this stanza and send it to all the new member uids.
+        memberUids.forEach { memberUid in
+            service.shareGroupHistory(items: groupFeedItemsStanza, with: memberUid) { result in
+                switch result {
+                case .success:
+                    DDLogInfo("ChatData/shareGroupFeedItems/\(groupID)/sent successfully to \(memberUid)")
+                case .failure(let error):
+                    DDLogError("ChatData/shareGroupFeedItems/\(groupID)/failed sending to \(memberUid)/error: \(error)")
+                }
+            }
+        }
     }
 }
 

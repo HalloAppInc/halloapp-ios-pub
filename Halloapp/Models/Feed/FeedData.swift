@@ -488,6 +488,62 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Fetching Feed Data
 
+    public func feedHistory(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext? = nil) -> ([PostData], [CommentData]) {
+        let managedObjectContext = managedObjectContext ?? self.viewContext
+        let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+        // Fetch all feedposts in the group that have not expired yet.
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "groupId == %@", groupID),
+            NSPredicate(format: "timestamp >= %@", Self.cutoffDate as NSDate)
+        ])
+        // Fetch feedposts in reverse timestamp order.
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false)]
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            // Fetch posts and extract postData
+            let posts = try managedObjectContext.fetch(fetchRequest)
+            let postsData = posts.map{ $0.postData }
+
+            // Fetch comments and extract commentData
+            var comments: [FeedPostComment] = []
+            for post in posts {
+                guard let postComments = post.comments else {
+                    break
+                }
+                comments.append(contentsOf: postComments)
+            }
+            let commentsData = comments.map{ $0.commentData }
+
+            let postIds = posts.map { $0.id }
+            let commentIds = comments.map { $0.id }
+
+            // TODO: remove this log eventually.
+            DDLogDebug("FeedData/feedHistory/group: \(groupID)/postIds: \(postIds)/commentIds: \(commentIds)")
+
+            DDLogInfo("FeedData/feedHistory/group: \(groupID)/posts: \(posts.count)/comments: \(comments.count)")
+            return (postsData, commentsData)
+        } catch {
+            DDLogError("FeedData/fetch-posts/error  [\(error)]")
+            fatalError("Failed to fetch feed posts.")
+        }
+    }
+
+    public func authoredFeedHistory(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext? = nil) -> ([PostData], [CommentData]) {
+        // Fetch all feed history and then filter authored content.
+        let (postsData, commentsData) = feedHistory(for: groupID, in: managedObjectContext)
+        let ownUserID = userData.userId
+        let authoredPostsData = postsData.filter{ $0.userId == ownUserID }
+        let authoredCommentsData = commentsData.filter{ $0.userId == ownUserID }
+
+        let authoredPostIds = authoredPostsData.map { $0.id }
+        let authoredCommentIds = authoredCommentsData.map { $0.id }
+        // TODO: remove this log eventually.
+        DDLogDebug("FeedData/authoredFeedHistory/group: \(groupID)/authoredPostIds: \(authoredPostIds)/authoredCommentIds: \(authoredCommentIds)")
+
+        DDLogInfo("FeedData/authoredFeedHistory/group: \(groupID)/authoredPosts: \(authoredPostsData.count)/authoredComments: \(authoredCommentsData.count)")
+        return (authoredPostsData, authoredCommentsData)
+    }
+
     private func feedPosts(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil, archived: Bool = false) -> [FeedPost] {
         let managedObjectContext = managedObjectContext ?? self.viewContext
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
@@ -759,8 +815,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // We only override status attribute if we encounter a successfully encrypted duplicate post.
             // Since we already obtained content using the unencrypted part of the payload.
             if let existingPost = existingPosts[xmppPost.id] {
-                guard existingPost.status == .rerequesting && xmppPost.status == .received else {
-                    DDLogError("FeedData/process-posts/existing [\(xmppPost.id)], ignoring")
+                if !(existingPost.status == .none) && !(existingPost.status == .rerequesting && xmppPost.status == .received) {
+                    DDLogError("FeedData/process-posts/existing [\(existingPost.id)], ignoring")
                     continue
                 }
             }
@@ -770,7 +826,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             let feedPost: FeedPost
-            // Fetch or Create new post and update timestamp for new post.
+            // Fetch or Create new post.
             if let existingPost = existingPosts[xmppPost.id] {
                 DDLogError("FeedData/process-posts/existing [\(xmppPost.id)]")
                 feedPost = existingPost
@@ -778,7 +834,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Add new FeedPost to database.
                 DDLogDebug("FeedData/process-posts/new [\(xmppPost.id)]")
                 feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
-                feedPost.timestamp = xmppPost.timestamp
             }
 
             switch feedPost.status {
@@ -795,6 +850,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.userId = xmppPost.userId
             feedPost.groupId = groupID
             feedPost.text = xmppPost.text
+            feedPost.timestamp = xmppPost.timestamp
 
             switch xmppPost.content {
             case .album, .text, .voiceNote:
@@ -919,7 +975,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         guard !xmppComments.isEmpty else { return [] }
 
         let feedPostIds = Set(xmppComments.map{ $0.feedPostId })
-        let posts = feedPosts(with: feedPostIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+        var posts = feedPosts(with: feedPostIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         let commentIds = Set(xmppComments.map{ $0.id }).union(Set(xmppComments.compactMap{ $0.parentId }))
         var comments = feedComments(with: commentIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         var ignoredCommentIds: Set<String> = []
@@ -930,17 +986,26 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             for xmppComment in xmppCommentsMutable {
 
                 if let existingComment = comments[xmppComment.id] {
-                    guard existingComment.status == .rerequesting && xmppComment.status == .received else {
+                    if !(existingComment.status == .none) && !(existingComment.status == .rerequesting && xmppComment.status == .received) {
                         DDLogError("FeedData/process-comments/existing [\(xmppComment.id)], ignoring")
                         continue
                     }
                 }
 
                 // Find comment's post.
-                guard let feedPost = posts[xmppComment.feedPostId] else {
-                    DDLogError("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]")
-                    ignoredCommentIds.insert(xmppComment.id)
-                    continue
+                let feedPost: FeedPost
+                if let post = posts[xmppComment.feedPostId] {
+                    DDLogInfo("FeedData/process-comments/existing-post [\(xmppComment.feedPostId)]")
+                    feedPost = post
+                } else {
+                    DDLogInfo("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]/creating one")
+                    feedPost = FeedPost(context: managedObjectContext)
+                    feedPost.id = xmppComment.feedPostId
+                    feedPost.status = .rerequesting
+                    feedPost.userId = ""
+                    feedPost.timestamp = Date()
+                    feedPost.groupId = groupID
+                    posts[xmppComment.feedPostId] = feedPost
                 }
 
                 // Additional check: post's groupId must match groupId of the comment.
@@ -962,8 +1027,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 if let parentId = xmppComment.parentId, !parentId.isEmpty {
                     parentComment = comments[parentId]
                     if parentComment == nil {
-                        DDLogInfo("FeedData/process-comments/missing-parent/skip [\(xmppComment.id)] - [\(parentId)]")
-                        continue
+                        DDLogInfo("FeedData/process-comments/missing-parent/[\(xmppComment.id)] - [\(parentId)]/creating one")
+                        parentComment = FeedPostComment(context: managedObjectContext)
+                        parentComment?.id = parentId
+                        parentComment?.post = feedPost
+                        parentComment?.timestamp = Date()
+                        parentComment?.userId = ""
+                        parentComment?.text = ""
+                        parentComment?.status = .rerequesting
+                        comments[parentId] = parentComment
                     }
                 }
 
@@ -971,10 +1043,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                 if let existingComment = comments[xmppComment.id] {
                     switch existingComment.status {
-                    case .unsupported, .rerequesting:
+                    case .unsupported, .rerequesting, .none:
                         DDLogInfo("FeedData/process-comments/updating [\(xmppComment.id)] current status: \(existingComment.status)")
                         comment = existingComment
-                    case .incoming, .none, .retracted, .retracting, .sent, .sending, .sendError, .played:
+                    case .incoming, .retracted, .retracting, .sent, .sending, .sendError, .played:
                         duplicateCount += 1
                         DDLogError("FeedData/process-comments/duplicate [\(xmppComment.id)] current status: \(existingComment.status)")
                         continue
@@ -983,13 +1055,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     // Add new FeedPostComment to database.
                     DDLogDebug("FeedData/process-comments/new [\(xmppComment.id)]")
                     comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
-                    comment.timestamp = xmppComment.timestamp
                 }
 
                 comment.id = xmppComment.id
                 comment.userId = xmppComment.userId
                 comment.parent = parentComment
                 comment.post = feedPost
+                comment.timestamp = xmppComment.timestamp
                 // Clear cached media if any.
                 cachedMedia[comment.id] = nil
 
@@ -1081,6 +1153,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 case .retracted:
                     DDLogError("FeedData/process-comments/incoming-retracted-comment [\(xmppComment.id)]")
                     comment.status = .retracted
+                    comment.text = ""
                 case .unsupported(let data):
                     comment.status = .unsupported
                     comment.rawData = data
@@ -2510,91 +2583,122 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         send(comment: comment)
     }
 
-    private func handleRerequest(for contentID: String, from userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else {
-                completion(.failure(.aborted))
-                return
+    private func handleRerequest(for contentID: String, contentType: GroupFeedRerequestContentType, from userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        if contentType == .historyResend {
+            let mainDataStore = MainAppContext.shared.mainDataStore
+            mainDataStore.performSeriallyOnBackgroundContext{ managedObjectContext in
+                let resendInfo = mainDataStore.fetchContentResendInfo(for: contentID, userID: userID, in: managedObjectContext)
+                resendInfo.retryCount += 1
+                // retryCount indicates number of times content has been rerequested until now: increment and use it when sending.
+                let rerequestCount = resendInfo.retryCount
+                DDLogInfo("FeedData/handleRerequest/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                guard rerequestCount <= 5 else {
+                    DDLogError("FeedData/handleRerequest/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount) - aborting")
+                    completion(.failure(.aborted))
+                    return
+                }
+                guard let content = mainDataStore.groupHistoryInfo(for: contentID, in: managedObjectContext) else {
+                    DDLogError("FeedData/handleRerequest/\(contentID)/error could not find groupHistoryInfo")
+                    completion(.failure(.aborted))
+                    return
+                }
+                resendInfo.groupHistoryInfo = content
+                self.service.resendHistoryResendPayload(id: contentID, groupID: content.groupId, payload: content.payload, to: userID, rerequestCount: rerequestCount) { result in
+                    switch result {
+                    case .success():
+                        DDLogInfo("FeedData/handleRerequest/\(contentID) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                        // TODO: murali@: update rerequestCount only on success.
+                    case .failure(let error):
+                        DDLogError("FeedData/handleRerequest/\(contentID) error \(error)")
+                    }
+                    completion(result)
+                }
             }
-
-            let resendAttempt = self.fetchResendAttempt(for: contentID, userID: userID, in: managedObjectContext)
-            resendAttempt.retryCount += 1
-            // retryCount indicates number of times content has been rerequested until now: increment and use it when sending.
-            let rerequestCount = resendAttempt.retryCount
-            DDLogInfo("FeedData/fetchResendAttempt/contentID: \(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount)")
-            guard rerequestCount <= 5 else {
-                DDLogError("FeedData/fetchResendAttempt/contentID: \(contentID)/userID: \(userID)/retryCount: \(rerequestCount) - aborting")
-                completion(.failure(.aborted))
-                return
-            }
-            self.save(managedObjectContext)
-
-            // Check if contentID is a post
-            guard let post = self.feedPost(with: contentID, in: managedObjectContext) else {
-
-                // Check if contentID is a comment
-                guard let comment = self.feedComment(with: contentID, in: managedObjectContext) else {
-                    DDLogError("FeedData/handleRerequest/\(contentID)/error could not find post/comment")
+        } else {
+            // TODO: switch this to a case after 2months on 04-01-2022.
+            performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                guard let self = self else {
                     completion(.failure(.aborted))
                     return
                 }
 
-                DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
-                resendAttempt.comment = comment
-                comment.addToResendAttempts(resendAttempt)
-                self.save(managedObjectContext)
-
-                guard let groupId = comment.post.groupId else {
-                    DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) /groupId is missing")
+                let resendAttempt = self.fetchResendAttempt(for: contentID, userID: userID, in: managedObjectContext)
+                resendAttempt.retryCount += 1
+                // retryCount indicates number of times content has been rerequested until now: increment and use it when sending.
+                let rerequestCount = resendAttempt.retryCount
+                DDLogInfo("FeedData/fetchResendAttempt/contentID: \(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                guard rerequestCount <= 5 else {
+                    DDLogError("FeedData/fetchResendAttempt/contentID: \(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount) - aborting")
+                    completion(.failure(.aborted))
                     return
                 }
-                // Handle rerequests for comments based on status.
-                switch comment.status {
-                case .retracting, .retracted:
-                    DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id)/userID: \(userID)/sending retract")
-                    self.service.retractComment(comment.id, postID: comment.post.id, in: groupId, to: userID)
-                    completion(.success(()))
-                default:
-                    self.service.resendComment(comment.commentData, groupId: groupId, rerequestCount: rerequestCount, to: userID) { result in
-                        switch result {
-                        case .success():
-                            DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
-                            // TODO: murali@: update rerequestCount only on success.
-                        case .failure(let error):
-                            DDLogError("FeedData/handleRerequest/commentID: \(comment.id) error \(error)")
+                self.save(managedObjectContext)
+
+                // Check if contentID is a post
+                if let post = self.feedPost(with: contentID, in: managedObjectContext) {
+                    DDLogInfo("FeedData/handleRerequest/postID: \(post.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                    guard let groupId = post.groupId else {
+                        DDLogInfo("FeedData/handleRerequest/postID: \(post.id) /groupId is missing")
+                        completion(.failure(.aborted))
+                        return
+                    }
+                    let feed: Feed = .group(groupId)
+                    resendAttempt.post = post
+                    post.addToResendAttempts(resendAttempt)
+                    self.save(managedObjectContext)
+
+                    // Handle rerequests for posts based on status.
+                    switch post.status {
+                    case .retracting, .retracted:
+                        DDLogInfo("FeedData/handleRerequest/postID: \(post.id)/userID: \(userID)/sending retract")
+                        self.service.retractPost(post.id, in: groupId, to: userID)
+                        completion(.success(()))
+                    default:
+                        self.service.resendPost(post.postData, feed: feed, rerequestCount: rerequestCount, to: userID) { result in
+                            switch result {
+                            case .success():
+                                DDLogInfo("FeedData/handleRerequest/postID: \(post.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                                // TODO: murali@: update rerequestCount only on success.
+                            case .failure(let error):
+                                DDLogError("FeedData/handleRerequest/postID: \(post.id) error \(error)")
+                            }
+                            completion(result)
                         }
-                        completion(result)
                     }
-                }
-                return
-            }
 
-            DDLogInfo("FeedData/handleRerequest/postID: \(post.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
-            guard let groupId = post.groupId else {
-                DDLogInfo("FeedData/handleRerequest/postID: \(post.id) /groupId is missing")
-                return
-            }
-            let feed: Feed = .group(groupId)
-            resendAttempt.post = post
-            post.addToResendAttempts(resendAttempt)
-            self.save(managedObjectContext)
+                } else if let comment = self.feedComment(with: contentID, in: managedObjectContext) {
+                    DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) begin/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                    resendAttempt.comment = comment
+                    comment.addToResendAttempts(resendAttempt)
+                    self.save(managedObjectContext)
 
-            // Handle rerequests for posts based on status.
-            switch post.status {
-            case .retracting, .retracted:
-                DDLogInfo("FeedData/handleRerequest/postID: \(post.id)/userID: \(userID)/sending retract")
-                self.service.retractPost(post.id, in: groupId, to: userID)
-                completion(.success(()))
-            default:
-                self.service.resendPost(post.postData, feed: feed, rerequestCount: rerequestCount, to: userID) { result in
-                    switch result {
-                    case .success():
-                        DDLogInfo("FeedData/handleRerequest/postID: \(post.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
-                        // TODO: murali@: update rerequestCount only on success.
-                    case .failure(let error):
-                        DDLogError("FeedData/handleRerequest/postID: \(post.id) error \(error)")
+                    guard let groupId = comment.post.groupId else {
+                        DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) /groupId is missing")
+                        completion(.failure(.aborted))
+                        return
                     }
-                    completion(result)
+                    // Handle rerequests for comments based on status.
+                    switch comment.status {
+                    case .retracting, .retracted:
+                        DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id)/userID: \(userID)/sending retract")
+                        self.service.retractComment(comment.id, postID: comment.post.id, in: groupId, to: userID)
+                        completion(.success(()))
+                    default:
+                        self.service.resendComment(comment.commentData, groupId: groupId, rerequestCount: rerequestCount, to: userID) { result in
+                            switch result {
+                            case .success():
+                                DDLogInfo("FeedData/handleRerequest/commentID: \(comment.id) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                                // TODO: murali@: update rerequestCount only on success.
+                            case .failure(let error):
+                                DDLogError("FeedData/handleRerequest/commentID: \(comment.id) error \(error)")
+                            }
+                            completion(result)
+                        }
+                    }
+                } else {
+                    // Check if contentID is a comment
+                    DDLogError("FeedData/handleRerequest/\(contentID)/error could not find post/comment")
+                    completion(.failure(.aborted))
                 }
             }
         }
@@ -4074,16 +4178,50 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
 extension FeedData: HalloFeedDelegate {
 
-    func halloService(_ halloService: HalloService, didRerequestGroupFeedItem contentID: String, from userID: UserID, ack: (() -> Void)?) {
-        DDLogDebug("FeedData/didRerequestContent [\(contentID)] from: \(userID)")
+    func halloService(_ halloService: HalloService, didRerequestGroupFeedItem contentID: String, contentType: GroupFeedRerequestContentType, from userID: UserID, ack: (() -> Void)?) {
+        DDLogDebug("FeedData/didRerequestContent [\(contentID)] - [\(contentType)] - from: \(userID)")
 
-        handleRerequest(for: contentID, from: userID) { result in
+        handleRerequest(for: contentID, contentType: contentType, from: userID) { result in
             switch result {
             case .failure(let error):
-                DDLogError("FeedData/didRerequestGroupFeedItem/\(contentID)/error: \(error)/from: \(userID)")
+                DDLogError("FeedData/didRerequestGroupFeedItem/\(contentID)/\(contentType)/error: \(error)/from: \(userID)")
             case .success:
-                DDLogInfo("FeedData/didRerequestGroupFeedItem/\(contentID)/success/from: \(userID)")
+                DDLogInfo("FeedData/didRerequestGroupFeedItem/\(contentID)/\(contentType)success/from: \(userID)")
                 ack?()
+            }
+        }
+    }
+
+    func halloService(_ halloService: HalloService, didRerequestGroupFeedHistory contentID: String, from userID: UserID, ack: (() -> Void)?) {
+        let mainDataStore = MainAppContext.shared.mainDataStore
+        mainDataStore.performSeriallyOnBackgroundContext{ managedObjectContext in
+            let resendInfo = mainDataStore.fetchContentResendInfo(for: contentID, userID: userID, in: managedObjectContext)
+            resendInfo.retryCount += 1
+            // retryCount indicates number of times content has been rerequested until now: increment and use it when sending.
+            let rerequestCount = resendInfo.retryCount
+            DDLogInfo("FeedData/didRerequestGroupFeedHistory/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount)")
+
+            guard rerequestCount <= 5 else {
+                DDLogError("FeedData/didRerequestGroupFeedHistory/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount) - aborting")
+                ack?()
+                return
+            }
+
+            guard let content = mainDataStore.groupHistoryInfo(for: contentID, in: managedObjectContext) else {
+                DDLogError("FeedData/didRerequestGroupFeedHistory/\(contentID)/error could not find groupHistoryInfo")
+                ack?()
+                return
+            }
+
+            resendInfo.groupHistoryInfo = content
+            self.service.sendGroupFeedHistoryPayload(id: contentID, groupID: content.groupId, payload: content.payload, to: userID, rerequestCount: rerequestCount) { result in
+                switch result {
+                case .success():
+                    DDLogInfo("FeedData/didRerequestGroupFeedHistory/\(contentID) success/userID: \(userID)/rerequestCount: \(rerequestCount)")
+                    ack?()
+                case .failure(let error):
+                    DDLogError("FeedData/didRerequestGroupFeedHistory/\(contentID) error \(error)")
+                }
             }
         }
     }

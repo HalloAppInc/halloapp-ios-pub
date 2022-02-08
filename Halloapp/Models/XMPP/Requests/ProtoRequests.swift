@@ -307,6 +307,23 @@ final class ProtoGroupLeaveRequest: ProtoRequest<Void> {
     }
 }
 
+final class ProtoGroupAddMemberRequest: ProtoRequest<Void> {
+
+    init(groupID: GroupID, members: [UserID], historyResend: Server_HistoryResend? = nil, completion: @escaping Completion) {
+        var group = Server_GroupStanza()
+        group.gid = groupID
+        group.action = .init(.modifyMembers)
+        group.members = members.compactMap { Server_GroupMember(userID: $0, action: .init(.add)) }
+        if let historyResend = historyResend {
+            group.historyResend = historyResend
+        }
+
+        super.init(
+            iqPacket: .iqPacket(type: .set, payload: .groupStanza(group)),
+            transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
 
 final class ProtoGroupModifyRequest: ProtoRequest<Void> {
 

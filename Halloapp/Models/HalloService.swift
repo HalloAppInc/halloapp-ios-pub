@@ -38,6 +38,7 @@ protocol HalloService: CoreService {
     func retractPost(_ id: FeedPostID, in groupID: GroupID, to toUserID: UserID)
     func retractComment(_ id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID, to toUserID: UserID)
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
+    func shareGroupHistory(items: Server_GroupFeedItems, with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Receipts
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID)
@@ -111,7 +112,8 @@ protocol HalloService: CoreService {
 
 protocol HalloFeedDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didReceiveFeedPayload payload: HalloServiceFeedPayload, ack: (() -> Void)?)
-    func halloService(_ halloService: HalloService, didRerequestGroupFeedItem contentID: String, from userID: UserID, ack: (() -> Void)?)
+    func halloService(_ halloService: HalloService, didRerequestGroupFeedItem contentID: String, contentType: GroupFeedRerequestContentType, from userID: UserID, ack: (() -> Void)?)
+    func halloService(_ halloService: HalloService, didRerequestGroupFeedHistory contentID: String, from userID: UserID, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didReceiveFeedReceipt receipt: HalloReceipt, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt)
 }
@@ -121,6 +123,8 @@ protocol HalloChatDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt)
     func halloService(_ halloService: HalloService, didReceiveGroupMessage group: HalloGroup)
+    func halloService(_ halloService: HalloService, didReceiveHistoryResendPayload historyPayload: Clients_GroupHistoryPayload?, withGroupMessage group: HalloGroup)
+    func halloService(_ halloService: HalloService, didReceiveHistoryResendPayload historyPayload: Clients_GroupHistoryPayload, for groupID: GroupID, from fromUserID: UserID)
 }
 
 protocol HalloCallDelegate: AnyObject {

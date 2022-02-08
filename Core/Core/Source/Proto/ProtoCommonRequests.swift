@@ -99,11 +99,13 @@ public final class ProtoGetServerPropertiesRequest: ProtoRequest<ServerPropertie
 
 public final class ProtoGroupFeedRerequest: ProtoRequest<Void> {
 
-    public init(groupID: String, contentId: String, fromUserID: UserID, toUserID: UserID, rerequestType: GroupFeedRerequestType, completion: @escaping Completion) {
+    public init(groupID: String, contentId: String, fromUserID: UserID, toUserID: UserID, rerequestType: GroupFeedRerequestType, contentType: GroupFeedRerequestContentType, completion: @escaping Completion) {
+        // TODO: change this to be a message stanza asap.
         var rerequest = Server_GroupFeedRerequest()
         rerequest.gid = groupID
         rerequest.id = contentId
         rerequest.rerequestType = rerequestType
+        rerequest.contentType = contentType
 
         super.init(
             iqPacket: .msgPacket(from: fromUserID, to: toUserID, type: .groupchat, payload: .groupFeedRerequest(rerequest)),
@@ -254,8 +256,10 @@ private extension DiscreteEvent {
             report.gid = gid
             if contentType == "post" {
                 report.itemType = .post
-            } else {
+            } else if contentType == "comment" {
                 report.itemType = .comment
+            } else if contentType == "historyResend" {
+                report.itemType = .historyResend
             }
             if error.isEmpty {
                 report.result = .ok

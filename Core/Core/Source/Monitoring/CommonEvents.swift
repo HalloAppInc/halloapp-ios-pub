@@ -21,13 +21,13 @@ public extension CountableEvent {
         return CountableEvent(namespace: "crypto", metric: "encryption", extraDimensions: ["result": result])
     }
 
-    static func groupDecryption(error: DecryptionError?, itemType: FeedElementType, sender: UserAgent?) -> CountableEvent {
+    static func groupDecryption(error: DecryptionError?, itemTypeString: String, sender: UserAgent?) -> CountableEvent {
         var extraDimensions = ["result": error == nil ? "ok" : "fail"]
         if let error = error {
             extraDimensions["failure_reason"] = error.rawValue
         }
         extraDimensions["version"] = AppContext.appVersionForService
-        extraDimensions["item_type"] = itemType.rawString
+        extraDimensions["item_type"] = itemTypeString
         extraDimensions["senderPlatform"] = sender?.platform.rawValue.lowercased()
         extraDimensions["senderVersion"] = sender?.version
         return CountableEvent(namespace: "crypto", metric: "group_decryption", extraDimensions: extraDimensions)

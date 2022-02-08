@@ -311,7 +311,7 @@ public final class CryptoData {
         managedObjectContext.performAndWait { block(managedObjectContext) }
     }
 
-    private func fetchMessageDecryption(id: String, in context: NSManagedObjectContext) -> MessageDecryption? {
+    public func fetchMessageDecryption(id: String, in context: NSManagedObjectContext) -> MessageDecryption? {
         let fetchRequest: NSFetchRequest<MessageDecryption> = MessageDecryption.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "messageID == %@", id)
         fetchRequest.returnsObjectsAsFaults = false
@@ -462,6 +462,10 @@ extension MessageDecryption {
             rerequestCount: Int(rerequestCount),
             timeTaken: timeTaken,
             isSilent: isSilent)
+    }
+
+    public func isSuccess() -> Bool {
+        return decryptionResult == "success"
     }
 }
 

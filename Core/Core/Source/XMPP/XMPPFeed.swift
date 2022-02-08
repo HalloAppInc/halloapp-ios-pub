@@ -134,14 +134,25 @@ public struct PostData {
         self.isShared = isShared
     }
 
-    public init?(_ serverPost: Server_Post, status: FeedItemStatus, usePlainTextPayload: Bool = true, isShared: Bool = false) {
+    public init?(_ serverPost: Server_Post, status: FeedItemStatus, itemAction: ItemAction, usePlainTextPayload: Bool = true,
+                 isShared: Bool = false) {
 
         let postId = serverPost.id
         let userId = UserID(serverPost.publisherUid)
         let timestamp = Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp))
         // Fallback to plainText payload depending on the boolean here.
         if usePlainTextPayload {
-            self.init(id: postId, userId: userId, timestamp: timestamp, payload: serverPost.payload, status: status, isShared: isShared)
+            // If it is shared - then action could be retract and content must be set to retracted.
+            if isShared {
+                switch itemAction {
+                case .none, .publish, .share:
+                    self.init(id: postId, userId: userId, timestamp: timestamp, payload: serverPost.payload, status: status, isShared: isShared)
+                case .retract:
+                    self.init(id: postId, userId: userId, content: .retracted, timestamp: timestamp, status: status, isShared: isShared)
+                }
+            } else {
+                self.init(id: postId, userId: userId, timestamp: timestamp, payload: serverPost.payload, status: status, isShared: isShared)
+            }
         } else {
             self.init(id: postId, userId: userId, content: .waiting, timestamp: timestamp, status: status, isShared: isShared)
         }
@@ -429,15 +440,26 @@ public struct CommentData {
         self.status = status
     }
 
-    public init?(_ serverComment: Server_Comment, status: FeedItemStatus, usePlainTextPayload: Bool = true) {
+    public init?(_ serverComment: Server_Comment, status: FeedItemStatus, itemAction: ItemAction, usePlainTextPayload: Bool = true, isShared: Bool = false) {
         let commentId = serverComment.id
         let userId = UserID(serverComment.publisherUid)
         let timestamp = Date(timeIntervalSince1970: TimeInterval(serverComment.timestamp))
         let feedPostId = serverComment.postID
         let parentId = serverComment.parentCommentID.isEmpty ? nil : serverComment.parentCommentID
+
         // Fallback to plainText payload depending on the boolean here.
         if usePlainTextPayload {
-            self.init(id: commentId, userId: userId, feedPostId: feedPostId, parentId: parentId, timestamp: timestamp, payload: serverComment.payload, status: status)
+            // If it is shared - then action could be retract and content must be set to retracted.
+            if isShared {
+                switch itemAction {
+                case .none, .publish, .share:
+                    self.init(id: commentId, userId: userId, feedPostId: feedPostId, parentId: parentId, timestamp: timestamp, payload: serverComment.payload, status: status)
+                case .retract:
+                    self.init(id: commentId, userId: userId, timestamp: timestamp, feedPostId: feedPostId, parentId: parentId, content: .retracted, status: status)
+                }
+            } else {
+                self.init(id: commentId, userId: userId, feedPostId: feedPostId, parentId: parentId, timestamp: timestamp, payload: serverComment.payload, status: status)
+            }
         } else {
             self.init(id: commentId, userId: userId, timestamp: timestamp, feedPostId: feedPostId, parentId: parentId, content: .waiting, status: status)
         }
@@ -501,6 +523,13 @@ public struct CommentData {
     }
 }
 
+public enum ItemAction {
+    case none
+    case publish
+    case retract
+    case share
+}
+
 
 extension Server_GroupFeedItem {
     var contentId: String? {
@@ -524,6 +553,42 @@ extension Server_GroupFeedItem {
         case .post(let post): return post.encPayload.isEmpty ? nil : post.encPayload
         case .comment(let comment): return comment.encPayload.isEmpty ? nil : comment.encPayload
         default: return nil
+        }
+    }
+
+    public var contentType: GroupFeedRerequestContentType? {
+        switch self.item {
+        case .post: return .post
+        case .comment: return .comment
+        default: return nil
+        }
+    }
+
+    public var itemAction: ItemAction {
+        switch self.action {
+        case .retract:
+            return .retract
+        case .publish:
+            return .publish
+        case .share:
+            return .share
+        case .UNRECOGNIZED(_):
+            return .none
+        }
+    }
+}
+
+extension Server_FeedItem {
+    public var itemAction: ItemAction {
+        switch self.action {
+        case .retract:
+            return .retract
+        case .publish:
+            return .publish
+        case .share:
+            return .share
+        case .UNRECOGNIZED(_):
+            return .none
         }
     }
 }

@@ -166,8 +166,57 @@ open class MainDataStore {
             let calls = try managedObjectContext.fetch(fetchRequest)
             return calls.first
         } catch {
-            DDLogError("KeyStore/fetch-keyBundle/error  [\(error)]")
-            fatalError("Failed to fetch key bundle")
+            DDLogError("MainDataStore/fetch-call/error  [\(error)]")
+            fatalError("Failed to fetch call")
+        }
+    }
+
+    public func saveGroupHistoryInfo(id: String, groupID: GroupID, payload: Data) {
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
+            let groupHistoryInfo = GroupHistoryInfo(context: managedObjectContext)
+            groupHistoryInfo.id = id
+            groupHistoryInfo.groupId = groupID
+            groupHistoryInfo.payload = payload
+
+            managedObjectContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
+            self.save(managedObjectContext)
+        }
+    }
+
+    public func groupHistoryInfo(for id: String, in managedObjectContext: NSManagedObjectContext) -> GroupHistoryInfo? {
+        let managedObjectContext = managedObjectContext
+        let fetchRequest: NSFetchRequest<GroupHistoryInfo> = GroupHistoryInfo.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id)
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let groupHistoryInfos = try managedObjectContext.fetch(fetchRequest)
+            return groupHistoryInfos.first
+        } catch {
+            DDLogError("MainDataStore/fetch-groupHistoryInfo/error  [\(error)]")
+            fatalError("Failed to fetch groupHistoryInfo")
+        }
+    }
+
+    public func fetchContentResendInfo(for contentID: String, userID: UserID, in managedObjectContext: NSManagedObjectContext) -> ContentResendInfo {
+        let managedObjectContext = managedObjectContext
+        let fetchRequest: NSFetchRequest<ContentResendInfo> = ContentResendInfo.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "contentID == %@ AND userID == %@", contentID, userID)
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            if let result = try managedObjectContext.fetch(fetchRequest).first {
+                return result
+            } else {
+                let result = ContentResendInfo(context: managedObjectContext)
+                result.contentID = contentID
+                result.userID = userID
+                result.retryCount = 0
+                return result
+            }
+        } catch {
+            DDLogError("FeedData/fetchAndUpdateRetryCount/error  [\(error)]")
+            fatalError("Failed to fetchAndUpdateRetryCount.")
         }
     }
 

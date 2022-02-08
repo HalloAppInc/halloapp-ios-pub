@@ -105,7 +105,9 @@ extension FeedPostComment {
         let mentionText = self.mentionText ?? MentionText(collapsedText: "", mentions: [:])
         let content: CommentContent
 
-        if let media = self.media, !media.isEmpty {
+        if status == .retracted {
+            content = .retracted
+        } else if let media = self.media, !media.isEmpty {
             var mediaItems = [FeedMediaData]()
             media.forEach{ (media) in
                 let mediaData = FeedMediaData(

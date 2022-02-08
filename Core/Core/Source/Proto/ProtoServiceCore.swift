@@ -483,6 +483,112 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func sendGroupFeedHistoryPayload(id groupFeedHistoryID: String, groupID: GroupID, payload: Data, to userID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let ownUserID = credentials?.userID,
+              let fromUID = Int64(ownUserID),
+              self.isConnected else {
+            DDLogInfo("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID) skipping (disconnected)")
+            completion(.failure(RequestError.notConnected))
+            return
+        }
+        guard let toUID = Int64(userID) else {
+            DDLogError("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID) error invalid to uid")
+            completion(.failure(.aborted))
+            return
+        }
+        AppContext.shared.messageCrypter.encrypt(payload, for: userID) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .failure(let error):
+                DDLogError("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID)/failed to encrypt packet for \(userID): \(error)")
+                completion(.failure(.aborted))
+            case .success((let encryptedData, _)):
+                var groupFeedHistory = Server_GroupFeedHistory()
+                groupFeedHistory.gid = groupID
+                groupFeedHistory.id = groupFeedHistoryID
+                groupFeedHistory.encPayload = encryptedData.data
+                groupFeedHistory.publicKey = encryptedData.identityKey ?? Data()
+                groupFeedHistory.oneTimePreKeyID = Int32(encryptedData.oneTimeKeyId)
+                groupFeedHistory.senderClientVersion = AppContext.userAgent
+
+                var packet = Server_Packet()
+                packet.msg.toUid = toUID
+                packet.msg.fromUid = fromUID
+                packet.msg.id = PacketID.generate()
+                packet.msg.type = .chat
+                packet.msg.rerequestCount = rerequestCount
+                packet.msg.payload = .groupFeedHistory(groupFeedHistory)
+
+                guard let packetData = try? packet.serializedData() else {
+                    DDLogError("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID)/error could not serialize packet")
+                    completion(.failure(.aborted))
+                    return
+                }
+
+                DDLogInfo("ProtoServiceCore/sendGroupFeedHistoryPayload/\(groupFeedHistoryID)/\(groupID)/success")
+                self.send(packetData)
+                completion(.success(()))
+            }
+        }
+    }
+
+    public func resendHistoryResendPayload(id historyResendID: String, groupID: GroupID, payload: Data, to userID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let ownUserID = credentials?.userID,
+              let fromUID = Int64(ownUserID),
+              self.isConnected else {
+            DDLogInfo("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID) skipping (disconnected)")
+            completion(.failure(RequestError.notConnected))
+            return
+        }
+        guard let toUID = Int64(userID) else {
+            DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID) error invalid to uid")
+            completion(.failure(.aborted))
+            return
+        }
+
+        makeGroupRerequestEncryptedPayload(payloadData: payload, groupID: groupID, for: userID) { result in
+            switch result {
+            case .failure(let error):
+                DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/failed to encrypt packet for \(userID): \(error)")
+                completion(.failure(.aborted))
+            case .success((let clientEncryptedPayload, let senderStateWithKeyInfo)):
+                var historyResend = Server_HistoryResend()
+                historyResend.id = historyResendID
+                historyResend.gid = groupID
+                if let senderStateWithKeyInfo = senderStateWithKeyInfo {
+                    historyResend.senderState = senderStateWithKeyInfo
+                }
+                guard let encPayload = try? clientEncryptedPayload.serializedData() else {
+                    DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/error could not serialize payload")
+                    completion(.failure(.aborted))
+                    return
+                }
+                historyResend.encPayload = encPayload
+                historyResend.payload = payload
+                historyResend.senderClientVersion = AppContext.userAgent
+                let messageID = PacketID.generate()
+
+                var packet = Server_Packet()
+                packet.msg.toUid = toUID
+                packet.msg.fromUid = fromUID
+                packet.msg.id = messageID
+                packet.msg.type = .groupchat
+                packet.msg.rerequestCount = rerequestCount
+                packet.msg.payload = .historyResend(historyResend)
+
+                guard let packetData = try? packet.serializedData() else {
+                    DDLogError("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/error could not serialize packet")
+                    completion(.failure(.aborted))
+                    return
+                }
+
+                DDLogInfo("ProtoServiceCore/resendHistoryResendPayload/\(historyResendID)/\(groupID)/success")
+                self.send(packetData)
+                completion(.success(()))
+            }
+        }
+    }
+
     public func publishPost(_ post: PostData, feed: Feed, completion: @escaping ServiceRequestCompletion<Date>) {
         // TODO: murali@: this code is not great.
         // Ideally we should have a more general framework to retry iqs on specific errors.
@@ -572,7 +678,7 @@ extension ProtoServiceCore: CoreService {
             return
         }
 
-        makeGroupFeedMessage(post, feed: feed, to: toUserID) { result in
+        makeGroupRerequestFeedItem(post, feed: feed, to: toUserID) { result in
             switch result {
             case .failure(let failure):
                 DDLogInfo("ProtoServiceCore/resendPost/\(post.id)/failure: \(failure), aborting to: \(toUserID)")
@@ -619,7 +725,7 @@ extension ProtoServiceCore: CoreService {
             return
         }
 
-        makeGroupFeedMessage(comment, groupID: groupId, to: toUserID) { result in
+        makeGroupRerequestFeedItem(comment, groupID: groupId, to: toUserID) { result in
             switch result {
             case .failure(let failure):
                 DDLogInfo("ProtoServiceCore/resendComment/\(comment.id)/failure: \(failure), aborting to: \(toUserID)")
@@ -858,14 +964,10 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    private func makeGroupRerequestEncryptedPayload(payloadData: Data, groupID: GroupID, for userID: UserID, oneOfItem: Server_GroupFeedItem.OneOf_Item, completion: @escaping (Result<Server_GroupFeedItem, EncryptionError>) -> Void) {
-        var item = Server_GroupFeedItem()
-        item.action = .publish
-        item.gid = groupID
-        item.senderClientVersion = AppContext.userAgent
+    private func makeGroupRerequestEncryptedPayload(payloadData: Data, groupID: GroupID, for userID: UserID, completion: @escaping (Result<(Clients_EncryptedPayload, Server_SenderStateWithKeyInfo?), EncryptionError>) -> Void) {
 
         // Block to encrypt item payload using 1-1 channel.
-        let itemPayloadEncryptionCompletion: (() -> Void) = {
+        let itemPayloadEncryptionCompletion: ((Server_SenderStateWithKeyInfo?) -> Void) = { senderStateWithKeyInfo in
             // Set group feed post/comment properly.
             AppContext.shared.messageCrypter.encrypt(payloadData, for: userID) { result in
                 switch result {
@@ -875,25 +977,9 @@ extension ProtoServiceCore: CoreService {
                     return
                 case .success((let oneToOneEncryptedData, _)):
                     DDLogError("ProtoServiceCore/makeGroupRerequestEncryptedPayload/\(groupID)/success for userID: \(userID)")
-                    do {
-                        switch oneOfItem {
-                        case .comment(var serverComment):
-                            var clientEncryptedPayload = Clients_EncryptedPayload()
-                            clientEncryptedPayload.oneToOneEncryptedPayload = oneToOneEncryptedData.data
-                            serverComment.encPayload = try clientEncryptedPayload.serializedData()
-                            item.item = .comment(serverComment)
-                        case .post(var serverPost):
-                            var clientEncryptedPayload = Clients_EncryptedPayload()
-                            clientEncryptedPayload.oneToOneEncryptedPayload = oneToOneEncryptedData.data
-                            serverPost.encPayload = try clientEncryptedPayload.serializedData()
-                            item.item = .post(serverPost)
-                        }
-                        completion(.success(item))
-                    } catch {
-                        DDLogError("proto/makeGroupRerequestEncryptedPayload/\(groupID)/payload-serialization/error \(error)")
-                        completion(.failure(.serialization))
-                        return
-                    }
+                    var clientEncryptedPayload = Clients_EncryptedPayload()
+                    clientEncryptedPayload.oneToOneEncryptedPayload = oneToOneEncryptedData.data
+                    completion(.success((clientEncryptedPayload, senderStateWithKeyInfo)))
                 }
             }
         }
@@ -928,8 +1014,7 @@ extension ProtoServiceCore: CoreService {
                                 senderStateWithKeyInfo.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
                             }
                             senderStateWithKeyInfo.encSenderState = encryptedData.data
-                            item.senderState = senderStateWithKeyInfo
-                            itemPayloadEncryptionCompletion()
+                            itemPayloadEncryptionCompletion(senderStateWithKeyInfo)
                         }
                     }
                 } catch {
@@ -973,7 +1058,7 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    private func makeGroupFeedMessage(_ post: PostData, feed: Feed, to toUserID: UserID, completion: @escaping (Result<Server_GroupFeedItem, EncryptionError>) -> Void) {
+    private func makeGroupRerequestFeedItem(_ post: PostData, feed: Feed, to toUserID: UserID, completion: @escaping (Result<Server_GroupFeedItem, EncryptionError>) -> Void) {
         guard let payloadData = try? post.clientContainer.serializedData() else {
             completion(.failure(.serialization))
             return
@@ -994,21 +1079,36 @@ extension ProtoServiceCore: CoreService {
             if !ServerProperties.sendClearTextGroupFeedContent {
                 serverPost.payload = Data()
             }
-            makeGroupRerequestEncryptedPayload(payloadData: payloadData, groupID: groupID, for: toUserID, oneOfItem: .post(serverPost)) { result in
+            var item = Server_GroupFeedItem()
+            item.action = .publish
+            item.gid = groupID
+            item.senderClientVersion = AppContext.userAgent
+            makeGroupRerequestEncryptedPayload(payloadData: payloadData, groupID: groupID, for: toUserID) { result in
                 switch result {
                 case .failure(let failure):
                     completion(.failure(failure))
-                case .success(let serverGroupFeedItem):
-                    completion(.success(serverGroupFeedItem))
+                case .success((let clientEncryptedPayload, let senderStateWithKeyInfo)):
+                    do {
+                        serverPost.encPayload = try clientEncryptedPayload.serializedData()
+                        item.item = .post(serverPost)
+                        if let senderStateWithKeyInfo = senderStateWithKeyInfo {
+                            item.senderState = senderStateWithKeyInfo
+                        }
+                        completion(.success(item))
+                    } catch {
+                        DDLogError("ProtoServiceCore/makeGroupRerequestFeedItem/\(groupID)/payload-serialization/error \(error)")
+                        completion(.failure(.serialization))
+                        return
+                    }
                 }
             }
         case .personal(_):
-            DDLogError("ProtoServiceCore/makeGroupFeedMessage/post/unsupported resending messages")
+            DDLogError("ProtoServiceCore/makeGroupRerequestFeedItem/post/unsupported resending messages")
             completion(.failure(.missingKeyBundle))
         }
     }
 
-    private func makeGroupFeedMessage(_ comment: CommentData, groupID: GroupID?, to toUserID: UserID, completion: @escaping (Result<Server_GroupFeedItem, EncryptionError>) -> Void) {
+    private func makeGroupRerequestFeedItem(_ comment: CommentData, groupID: GroupID?, to toUserID: UserID, completion: @escaping (Result<Server_GroupFeedItem, EncryptionError>) -> Void) {
         guard var serverComment = comment.serverComment else {
             completion(.failure(.serialization))
             return
@@ -1023,16 +1123,31 @@ extension ProtoServiceCore: CoreService {
         serverComment.mediaCounters = comment.serverMediaCounters
 
         if let groupID = groupID {
-            makeGroupRerequestEncryptedPayload(payloadData: payloadData, groupID: groupID, for: toUserID, oneOfItem: .comment(serverComment)) { result in
+            var item = Server_GroupFeedItem()
+            item.action = .publish
+            item.gid = groupID
+            item.senderClientVersion = AppContext.userAgent
+            makeGroupRerequestEncryptedPayload(payloadData: payloadData, groupID: groupID, for: toUserID) { result in
                 switch result {
                 case .failure(let failure):
                     completion(.failure(failure))
-                case .success(let serverGroupFeedItem):
-                    completion(.success(serverGroupFeedItem))
+                case .success((let clientEncryptedPayload, let senderStateWithKeyInfo)):
+                    do {
+                        serverComment.encPayload = try clientEncryptedPayload.serializedData()
+                        item.item = .comment(serverComment)
+                        if let senderStateWithKeyInfo = senderStateWithKeyInfo {
+                            item.senderState = senderStateWithKeyInfo
+                        }
+                        completion(.success(item))
+                    } catch {
+                        DDLogError("ProtoServiceCore/makeGroupRerequestFeedItem/\(groupID)/payload-serialization/error \(error)")
+                        completion(.failure(.serialization))
+                        return
+                    }
                 }
             }
         } else {
-            DDLogError("ProtoServiceCore/makeGroupFeedMessage/comment/unsupported resending messages")
+            DDLogError("ProtoServiceCore/makeGroupRerequestFeedItem/comment/unsupported resending messages")
             completion(.failure(.missingKeyBundle))
         }
     }
@@ -1063,10 +1178,11 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func processGroupStanza(for groupStanza: Server_GroupStanza, in groupID: GroupID, completion: @escaping () -> Void) {
-        let newCompletion: () -> Void = { [weak self] in
+    public func processGroupStanza(for groupStanza: Server_GroupStanza, in groupID: GroupID,
+                                   completion: @escaping (Clients_GroupHistoryPayload?, Bool) -> Void) {
+        let newCompletion: (Clients_GroupHistoryPayload?, Bool) -> Void = { [weak self] (groupHistoryPayload, shouldSendAck)  in
             guard let self = self else { return }
-            completion()
+            completion(groupHistoryPayload, shouldSendAck)
             DispatchQueue.main.async {
                 self.groupStates[groupID] = .ready
                 self.executePendingWorkItems(for: groupID)
@@ -1074,7 +1190,15 @@ extension ProtoServiceCore: CoreService {
         }
 
         let work = DispatchWorkItem {
-            newCompletion()
+            guard !groupStanza.historyResend.encPayload.isEmpty else {
+                newCompletion(nil, true)
+                DDLogWarn("ProtoServiceCore/processGroupStanza/group: \(groupID)/historyResend payload is invalid")
+                return
+            }
+            DDLogInfo("ProtoServiceCore/processGroupStanza/historyResend/group: \(groupID)/begin")
+            let historyResend = groupStanza.historyResend
+            let publisherUid = UserID(groupStanza.senderUid)
+            self.processHistoryResendStanza(historyResend: historyResend, fromUserId: publisherUid, rerequestCount: 0, completion: newCompletion)
         }
 
         DispatchQueue.main.async { [self] in
@@ -1086,6 +1210,50 @@ extension ProtoServiceCore: CoreService {
                 pendingWorkItems[groupID] = [work]
             }
             executePendingWorkItems(for: groupID)
+        }
+    }
+
+    public func processHistoryResendStanza(historyResend: Server_HistoryResend, fromUserId: UserID, rerequestCount: Int32, completion: @escaping (Clients_GroupHistoryPayload?, Bool) -> Void) {
+        let groupID = historyResend.gid
+        DDLogInfo("ProtoServiceCore/processGroupStanza/historyResend/group: \(groupID)/begin")
+        decryptGroupPayloadAndSenderState(historyResend.encPayload,
+                                          contentId: historyResend.id,
+                                          in: groupID,
+                                          with: historyResend.senderState,
+                                          from: fromUserId) { result in
+            var groupDecryptionFailure: GroupDecryptionFailure?
+            switch result {
+            case .failure(let failure):
+                DDLogError("ProtoServiceCore/processGroupStanza/historyResend/group: \(groupID)/failed: \(failure)")
+                self.rerequestGroupFeedItemIfNecessary(id: historyResend.id, groupID: groupID, contentType: .historyResend, failure: failure) { result in
+                    switch result {
+                    case .success:
+                        DDLogInfo("ProtoServiceCore/processGroupStanza/historyResend/\(historyResend.id)/sent rerequest")
+                        completion(nil, true)
+                    case .failure(let error):
+                        DDLogError("ProtoServiceCore/processGroupStanza/historyResend/\(historyResend.id)/failed rerequesting: \(error)")
+                        completion(nil, false)
+                    }
+                }
+                groupDecryptionFailure = failure
+            case .success(let decryptedPayload):
+                guard let groupHistoryPayload = try? Clients_GroupHistoryPayload(serializedData: decryptedPayload) else {
+                    DDLogError("ProtoServiceCore/processGroupStanza/historyResend/Could not deserialize groupHistoryPayload [\(groupID)]")
+                    completion(nil, true)
+                    return
+                }
+                DDLogInfo("ProtoServiceCore/processGroupStanza/historyResend/group: \(groupID)/success")
+                completion(groupHistoryPayload, true)
+                groupDecryptionFailure = nil
+            }
+            self.reportGroupDecryptionResult(
+                error: groupDecryptionFailure?.error,
+                contentID: historyResend.id,
+                contentType: "historyResend",
+                groupID: groupID,
+                timestamp: Date(),
+                sender: UserAgent(string: historyResend.senderClientVersion),
+                rerequestCount: Int(rerequestCount))
         }
     }
 
@@ -1297,6 +1465,43 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func reportGroupDecryptionResult(error: DecryptionError?, contentID: String, contentType: String, groupID: GroupID, timestamp: Date, sender: UserAgent?, rerequestCount: Int) {
+        if (error == .missingPayload) {
+            DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(contentType)/\(groupID)/payload is missing - not error.")
+            return
+        }
+        let errorString = error?.rawValue ?? ""
+        DDLogInfo("proto/reportGroupDecryptionResult/\(contentID)/\(contentType)/\(groupID)/error value: \(errorString)")
+        AppContext.shared.eventMonitor.count(.groupDecryption(error: error, itemTypeString: contentType, sender: sender))
+        AppContext.shared.cryptoData.update(contentID: contentID,
+                                            contentType: contentType,
+                                            groupID: groupID,
+                                            timestamp: timestamp,
+                                            error: errorString,
+                                            sender: sender,
+                                            rerequestCount: rerequestCount)
+    }
+
+    // Checks if the oneToOne content is decrypted and saved in the stats dataStore.
+    public func isOneToOneContentDecryptedAndSaved(contentID: String) -> Bool {
+        var isOneToOneContentDecrypted = false
+        AppContext.shared.cryptoData.performOnBackgroundContextAndWait { managedObjectContext in
+            guard let result = AppContext.shared.cryptoData.fetchMessageDecryption(id: contentID, in: managedObjectContext) else {
+                isOneToOneContentDecrypted = false
+                return
+            }
+            isOneToOneContentDecrypted = result.isSuccess()
+        }
+        if isOneToOneContentDecrypted {
+            DDLogInfo("ProtoService/isOneToOneContentDecrypted/contentID \(contentID) success")
+            return true
+        }
+        DDLogInfo("ProtoService/isOneToOneContentDecrypted/contentID \(contentID) - content is missing.")
+        return false
+
+        // Lets try using only the stats store this time and see how it works out.
+    }
+
     // Checks if the groupFeedItem is decrypted and saved in the stats dataStore.
     public func isGroupFeedItemDecryptedAndSaved(contentID: String) -> Bool {
         var isGroupFeedItemDecrypted = false
@@ -1317,7 +1522,7 @@ extension ProtoServiceCore: CoreService {
         // Lets try using only the stats store this time and see how it works out.
     }
 
-    public func rerequestGroupFeedItemIfNecessary(id contentID: String, groupID: GroupID, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>) {
+    public func rerequestGroupFeedItemIfNecessary(id contentID: String, groupID: GroupID, contentType: GroupFeedRerequestContentType, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>) {
         guard let authorUserID = failure.fromUserId else {
             DDLogError("proto/rerequestGroupFeedItemIfNecessary/\(contentID)/decrypt/authorUserID missing")
             return
@@ -1329,26 +1534,75 @@ extension ProtoServiceCore: CoreService {
                                         groupID: groupID,
                                         authorUserID: authorUserID,
                                         rerequestType: failure.rerequestType,
+                                        contentType: contentType,
                                         completion: completion)
         }
     }
 
-    private func rerequestGroupFeedItem(contentId: String, groupID: String, authorUserID: UserID, rerequestType: Server_GroupFeedRerequest.RerequestType, completion: @escaping ServiceRequestCompletion<Void>) {
+    private func rerequestGroupFeedItem(contentId: String, groupID: String, authorUserID: UserID, rerequestType: Server_GroupFeedRerequest.RerequestType, contentType: GroupFeedRerequestContentType, completion: @escaping ServiceRequestCompletion<Void>) {
         guard let fromUserID = credentials?.userID else {
-            DDLogError("proto/rerequestGroupFeedItem/error no-user-id")
-            completion(.failure(.notConnected))
+            DDLogError("ProtoServiceCore/rerequestGroupFeedItem/error no-user-id")
+            completion(.failure(.aborted))
             return
         }
-        // TODO: murali@: why are we using ProtoRequest based on iqs? -- fix this?
-        enqueue(request: ProtoGroupFeedRerequest(groupID: groupID,
-                                                 contentId: contentId,
-                                                 fromUserID: fromUserID,
-                                                 toUserID: authorUserID,
-                                                 rerequestType: rerequestType,
-                                                 completion: completion))
+
+        var groupFeedRerequest = Server_GroupFeedRerequest()
+        groupFeedRerequest.gid = groupID
+        groupFeedRerequest.id = contentId
+        groupFeedRerequest.rerequestType = rerequestType
+        groupFeedRerequest.contentType = contentType
+        DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) rerequesting")
+
+        let packet = Server_Packet.msgPacket(
+            from: fromUserID,
+            to: authorUserID,
+            id: PacketID.generate(),
+            type: .groupchat,
+            rerequestCount: 0,
+            payload: .groupFeedRerequest(groupFeedRerequest))
+
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoServiceCore/rerequestGroupFeedItem/\(contentId)/error could not serialize rerequest stanza!")
+            completion(.failure(.malformedRequest))
+            return
+        }
+
+        DispatchQueue.main.async {
+            guard self.isConnected else {
+                DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) aborting (disconnected)")
+                completion(.failure(.notConnected))
+                return
+            }
+
+            DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) sending")
+            self.send(packetData)
+            DDLogInfo("ProtoServiceCore/rerequestGroupFeedItem/\(contentId) success")
+            completion(.success(()))
+        }
     }
 
     // MARK: Decryption
+
+    public func decryptGroupFeedHistory(_ groupFeedHistory: Server_GroupFeedHistory, from fromUserID: UserID,
+                                        completion: @escaping (Result<Server_GroupFeedItems, DecryptionFailure>) -> Void) {
+        AppContext.shared.messageCrypter.decrypt(
+            EncryptedData(
+                data: groupFeedHistory.encPayload,
+                identityKey: groupFeedHistory.publicKey.isEmpty ? nil : groupFeedHistory.publicKey,
+                oneTimeKeyId: Int(groupFeedHistory.oneTimePreKeyID)),
+            from: fromUserID) { result in
+            switch result {
+            case .success(let decryptedData):
+                if let groupFeedItems = try? Server_GroupFeedItems(serializedData: decryptedData) {
+                    completion(.success(groupFeedItems))
+                } else {
+                    completion(.failure(DecryptionFailure(.deserialization)))
+                }
+            case .failure(let failure):
+                completion(.failure(failure))
+            }
+        }
+    }
 
     /// TODO: Convert to Result now that success and failure are mutually exclusive (no more plaintext)
     public func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (ChatContent?, ChatContext?, DecryptionFailure?) -> Void) {
