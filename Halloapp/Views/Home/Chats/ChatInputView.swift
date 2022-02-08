@@ -126,46 +126,24 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         resetTypingTimers()
     }
 
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        backgroundView.layer.borderColor = UIColor.chatTextFieldStroke.cgColor
+    }
+
     // Only one of these should be active at a time
     private var mentionPickerTopConstraint: NSLayoutConstraint?
     private var vStackTopConstraint: NSLayoutConstraint?
 
-    private var borderMaskLayer: CAShapeLayer?
-    private var borderFrameLayer: CAShapeLayer?
+    private lazy var backgroundView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = UIColor.messageFooterBackground
+        view.layer.borderColor = UIColor.chatTextFieldStroke.cgColor
+        view.layer.borderWidth = 1
 
-    func setBorder(radius: CGFloat = 0) {
-        borderMaskLayer?.removeFromSuperlayer()
-        borderFrameLayer?.removeFromSuperlayer()
-        borderMaskLayer = nil
-        borderFrameLayer = nil
-
-        var frame = bounds
-        frame.size.height += 1024
-
-        let corners: UIRectCorner = [UIRectCorner.topLeft, UIRectCorner.topRight]
-        let cornerRadii = CGSize(width: radius, height: radius)
-
-        if radius > 0 {
-            let maskPath = UIBezierPath(roundedRect: frame.insetBy(dx: -2, dy: 0), byRoundingCorners: corners, cornerRadii: cornerRadii)
-            let maskLayer = CAShapeLayer()
-            maskLayer.frame = frame
-            maskLayer.path = maskPath.cgPath
-
-            layer.mask = maskLayer
-            borderMaskLayer = maskLayer
-        }
-
-        let borderPath = UIBezierPath(roundedRect: frame.insetBy(dx: -1, dy: 0), byRoundingCorners: corners, cornerRadii: cornerRadii)
-        let borderLayer = CAShapeLayer()
-        borderLayer.frame = frame
-        borderLayer.path = borderPath.cgPath
-        borderLayer.strokeColor = UIColor.chatTextFieldStroke.cgColor
-        borderLayer.lineWidth = 1
-        borderLayer.fillColor = UIColor.clear.cgColor
-
-        layer.addSublayer(borderLayer)
-        borderFrameLayer = borderLayer
-    }
+        return view
+    }()
 
     private func setup() {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
@@ -174,7 +152,12 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidHide), name: UIResponder.keyboardDidHideNotification, object: nil)
 
         autoresizingMask = .flexibleHeight
-        backgroundColor = UIColor.messageFooterBackground
+
+        addSubview(backgroundView)
+        backgroundView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -1).isActive = true
+        backgroundView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 1).isActive = true
+        backgroundView.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        backgroundView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 50).isActive = true
 
         addSubview(containerView)
         containerView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
@@ -242,8 +225,17 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
         voiceNoteRecorder.delegate = self
         recordVoiceNoteControl.delegate = self
+    }
 
-        setBorder()
+    private func updateBorderRadius() {
+        let isLinkPreviewHidden = linkPreviewPanel.superview == nil || linkPreviewPanel.isHidden
+        let isQuotedPanelHidden = quoteFeedPanel.superview == nil || quoteFeedPanel.isHidden
+
+        if isLinkPreviewHidden && isQuotedPanelHidden {
+            backgroundView.layer.cornerRadius = 0
+        } else {
+            backgroundView.layer.cornerRadius = 20
+        }
     }
 
     private func updatePostButtons() {
@@ -506,6 +498,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                         self.linkPreviewTitleLabel.text = data.title
                         self.linkPreviewURLLabel.text = data.url?.host
                         self.linkPreviewData = LinkPreviewData(id : nil, url: url, title: data.title ?? "", description: "", previewImages: [])
+                        self.updateBorderRadius()
                     }
                 }
             } else {
@@ -519,11 +512,13 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                     self.linkPreviewTitleLabel.text = data.title
                     self.linkPreviewURLLabel.text = data.url?.host
                     self.linkPreviewData = LinkPreviewData(id : nil, url: data.url, title: data.title ?? "", description: "", previewImages: [])
+                    self.updateBorderRadius()
                 }
             }
         }
         self.linkPreviewPanel.isHidden = false
         self.activityIndicator.startAnimating()
+        updateBorderRadius()
     }
 
     private func resetLinkDetection() {
@@ -542,7 +537,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         linkPreviewPanel.isHidden = true
         updatePostButtons()
         setNeedsUpdateHeight()
-        setBorder()
+        updateBorderRadius()
     }
 
     @objc private func didTapCloseLinkPreviewPanel() {
@@ -986,7 +981,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     func setInputViewWidth(_ width: CGFloat) {
         guard bounds.size.width != width else { return }
         bounds = CGRect(origin: .zero, size: CGSize(width: width, height: containerView.preferredHeight(for: width)))
-        setBorder()
     }
 
     func containerView(_ containerView: ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat {
@@ -1154,14 +1148,14 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         }
 
         vStack.layoutMargins.top = 16
-        setBorder(radius: 20)
+        updateBorderRadius()
     }
 
     @objc func closeQuoteFeedPanel() {
         quoteFeedPanel.isHidden = true
         delegate?.chatInputViewCloseQuotePanel(self)
         vStack.layoutMargins.top = 5
-        setBorder()
+        updateBorderRadius()
     }
     
     private func resetTypingTimers() {

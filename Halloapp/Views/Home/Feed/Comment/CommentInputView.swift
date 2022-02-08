@@ -550,8 +550,15 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         return closeButton
     }()
 
-    private var borderMaskLayer: CAShapeLayer?
-    private var borderFrameLayer: CAShapeLayer?
+    private lazy var backgroundView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = UIColor.messageFooterBackground
+        view.layer.borderColor = UIColor.chatTextFieldStroke.cgColor
+        view.layer.borderWidth = 1
+
+        return view
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -564,40 +571,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         setupView()
     }
 
-    func setBorder(radius: CGFloat = 0) {
-        borderMaskLayer?.removeFromSuperlayer()
-        borderFrameLayer?.removeFromSuperlayer()
-        borderMaskLayer = nil
-        borderFrameLayer = nil
-
-        var frame = bounds
-        frame.size.height += 1024
-
-        let corners: UIRectCorner = [UIRectCorner.topLeft, UIRectCorner.topRight]
-        let cornerRadii = CGSize(width: radius, height: radius)
-
-        if radius > 0 {
-            let maskPath = UIBezierPath(roundedRect: frame.insetBy(dx: -2, dy: 0), byRoundingCorners: corners, cornerRadii: cornerRadii)
-            let maskLayer = CAShapeLayer()
-            maskLayer.frame = frame
-            maskLayer.path = maskPath.cgPath
-
-            layer.mask = maskLayer
-            borderMaskLayer = maskLayer
-        }
-
-        let borderPath = UIBezierPath(roundedRect: frame.insetBy(dx: -1, dy: 0), byRoundingCorners: corners, cornerRadii: cornerRadii)
-        let borderLayer = CAShapeLayer()
-        borderLayer.frame = frame
-        borderLayer.path = borderPath.cgPath
-        borderLayer.strokeColor = UIColor.chatTextFieldStroke.cgColor
-        borderLayer.lineWidth = 1
-        borderLayer.fillColor = UIColor.clear.cgColor
-
-        layer.addSublayer(borderLayer)
-        borderFrameLayer = borderLayer
-    }
-
     private func setupView() {
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardDidShow), name: UIResponder.keyboardDidShowNotification, object: nil)
@@ -605,7 +578,12 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardDidHide), name: UIResponder.keyboardDidHideNotification, object: nil)
 
         self.autoresizingMask = .flexibleHeight
-        backgroundColor = UIColor.messageFooterBackground
+
+        addSubview(backgroundView)
+        backgroundView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -1).isActive = true
+        backgroundView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 1).isActive = true
+        backgroundView.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        backgroundView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 50).isActive = true
 
         // Container view - needs for correct size calculations.
         self.addSubview(self.containerView)
@@ -661,8 +639,17 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         recordVoiceNoteControl.delegate = self
 
         updatePostButtons()
+    }
 
-        setBorder()
+    private func updateBorderRadius() {
+        let isLinkPreviewHidden = linkPreviewPanel.superview == nil || linkPreviewPanel.isHidden
+        let isMediaPanelHidden = mediaPanel.superview == nil || mediaPanel.isHidden
+
+        if isLinkPreviewHidden && isMediaPanelHidden {
+            backgroundView.layer.cornerRadius = 0
+        } else {
+            backgroundView.layer.cornerRadius = 20
+        }
     }
 
     private func updatePostButtons() {
@@ -736,6 +723,11 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         } else {
             self.resignFirstResponderOnDisappear(in: viewController)
         }
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        backgroundView.layer.borderColor = UIColor.chatTextFieldStroke.cgColor
     }
 
     private func resignFirstResponderOnDisappear(in viewController: UIViewController) {
@@ -897,7 +889,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         mediaPanel.addGestureRecognizer(tapRecognizer)
         postButton.isEnabled = isPostButtonEnabled
         updatePostButtons()
-        setBorder(radius: 20)
+        updateBorderRadius()
     }
 
     func removeMediaPanel() {
@@ -910,7 +902,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         postButton.isEnabled = isPostButtonEnabled
         updatePostButtons()
         setNeedsUpdateHeight()
-        setBorder()
+        updateBorderRadius()
     }
 
     // MARK: Link Preview
@@ -1144,6 +1136,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         }
         self.vStack.insertArrangedSubview(self.linkPreviewPanel, at: vStack.arrangedSubviews.firstIndex(of: textFieldPanel)!)
         self.activityIndicator.startAnimating()
+        updateBorderRadius()
     }
 
     private func resetLinkDetection() {
@@ -1163,7 +1156,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         postButton.isEnabled = isPostButtonEnabled
         updatePostButtons()
         setNeedsUpdateHeight()
-        setBorder()
+        updateBorderRadius()
     }
 
     @objc private func didTapCloseLinkPreviewPanel() {
@@ -1529,8 +1522,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             }
         }
         self.bounds = CGRect(origin: .zero, size: CGSize(width: width, height: height + bottomSafeAreaInset))
-
-        setBorder()
     }
 
     // MARK: ContainerViewDelegate
