@@ -14,7 +14,7 @@ class DataStore: ShareExtensionDataStore {
 
     private let service: CoreService
     let mediaUploader: MediaUploader
-    private let imageServer = ImageServer()
+    let mediaProcessingId = "shared-media-processing-id"
 
     init(service: CoreService) {
         self.service = service
@@ -62,11 +62,13 @@ class DataStore: ShareExtensionDataStore {
                 let path = Self.relativeFilePath(forFilename: UUID().uuidString + ".processed", mediaType: mediaItem.type)
                 let output = fileURL(forRelativeFilePath: path)
 
-                imageServer.prepare(mediaItem.type, url: url, output: output, for: postOrMessageOrLinkPreviewId) { [weak self] in
+                ImageServer.shared.prepare(mediaItem.type, url: url, for: mediaProcessingId, index: Int(mediaIndex)) { [weak self] in
                     guard let self = self else { return }
 
                     switch $0 {
                     case .success(let result):
+                        result.copy(to: output)
+
                         mediaItem.size = result.size
                         mediaItem.key = result.key
                         mediaItem.sha256 = result.sha256
@@ -95,7 +97,6 @@ class DataStore: ShareExtensionDataStore {
         }
 
         uploadGroup.notify(queue: .main) {
-            ImageServer.clearProgress(for: postOrMessageOrLinkPreviewId)
             self.mediaUploader.clearTasks(withGroupID: postOrMessageOrLinkPreviewId)
             guard !self.isSendingCanceled else {
                 DDLogWarn("SharedDataStore/upload-media/canceled Will not call completion handler")

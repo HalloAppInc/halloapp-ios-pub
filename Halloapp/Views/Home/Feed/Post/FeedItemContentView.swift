@@ -895,7 +895,7 @@ final class FeedItemFooterView: UIView {
 
                 progressView.isIndeterminate = false
 
-                processingProgressCancellable = ImageServer.progress.receive(on: DispatchQueue.main).sink { [weak self] id in
+                processingProgressCancellable = ImageServer.shared.progress.receive(on: DispatchQueue.main).sink { [weak self] id in
                     guard let self = self else { return }
                     guard postId == id else { return }
                     self.updateSendingProgress(for: post)
@@ -920,7 +920,7 @@ final class FeedItemFooterView: UIView {
     private func updateSendingProgress(for post: FeedPost) {
         guard let count = post.media?.count, count > 0 else { return }
 
-        var (processingCount, processingProgress) = ImageServer.progress(for: post.id)
+        var (processingCount, processingProgress) = ImageServer.shared.progress(for: post.id)
         var (uploadCount, uploadProgress) = MainAppContext.shared.feedData.mediaUploader.uploadProgress(forGroupId: post.id)
 
         processingProgress = processingProgress * Float(processingCount) / Float(count)

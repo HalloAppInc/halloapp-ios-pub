@@ -437,6 +437,8 @@ fileprivate struct PostComposerView: View {
     private var mediaReadyPublisher: AnyPublisher<Bool, Never>!
     private var mediaErrorPublisher: AnyPublisher<Error, Never>!
 
+    private var mediaItemsChangeCancellable: AnyCancellable?
+
     private var mediaCount: Int {
         mediaItems.value.count
     }
@@ -555,6 +557,34 @@ fileprivate struct PostComposerView: View {
         self.numberOfFailedItemsBinding = self.$mediaState.numberOfFailedItems
         self.linkBinding = self.$link.value
         self.shouldAutoPlayBinding = self.$shouldAutoPlay.value
+
+        // handle early processing of media items
+        var mediaItemsReadyCancellableSet: Set<AnyCancellable> = []
+        mediaItemsChangeCancellable = self.mediaItems.$value.sink { items in
+            mediaItemsReadyCancellableSet.removeAll()
+
+            let original = Set(mediaItems.value.compactMap { $0.fileURL })
+            let current = Set(items.compactMap { $0.fileURL })
+            let removed = original.subtracting(current)
+
+            for url in removed {
+                ImageServer.shared.clearTask(for: url)
+            }
+
+            for item in items {
+                let previous = item.fileURL
+                mediaItemsReadyCancellableSet.insert(item.ready.sink { ready in
+                    guard ready else { return }
+                    guard let url = item.fileURL else { return }
+
+                    if previous != url, let previous = previous {
+                        ImageServer.shared.clearTask(for: previous)
+                    }
+
+                    ImageServer.shared.prepare(item.type, url: url)
+                })
+            }
+        }
     }
 
     static func stopTextEdit() {

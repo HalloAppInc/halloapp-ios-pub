@@ -106,6 +106,7 @@ class ShareViewController: UINavigationController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        ImageServer.shared.clearAllTasks()
         ShareDataLoader.shared.load(from: extensionContext)
     }
 

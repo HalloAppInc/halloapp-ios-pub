@@ -56,7 +56,6 @@ class ChatData: ObservableObject {
     private let contactStore: ContactStoreMain
     private var service: HalloService
     private let mediaUploader: MediaUploader
-    private let imageServer = ImageServer()
     private let groupListSync = GroupListSync()
     private let chatListSync = ChatListSync()
     
@@ -160,7 +159,7 @@ class ChatData: ObservableObject {
         )
 
         cancellableSet.insert(
-            ImageServer.progress.receive(on: DispatchQueue.main).sink { [weak self] id in
+            ImageServer.shared.progress.receive(on: DispatchQueue.main).sink { [weak self] id in
                 guard let self = self else { return }
                 guard let chatMessage = self.chatMessage(with: id, in: self.viewContext) else { return }
                 self.updateSendingProgress(for: chatMessage)
@@ -467,7 +466,7 @@ class ChatData: ObservableObject {
     private func updateSendingProgress(for message: ChatMessage) {
         guard let count = message.media?.count, count > 0 else { return }
 
-        var (processingCount, processingProgress) = ImageServer.progress(for: message.id)
+        var (processingCount, processingProgress) = ImageServer.shared.progress(for: message.id)
         var (uploadCount, uploadProgress) = mediaUploader.uploadProgress(forGroupId: message.id)
 
         processingProgress = processingProgress * Float(processingCount) / Float(count)
@@ -2261,11 +2260,16 @@ extension ChatData {
                     }
                 } ()
 
-                imageServer.prepare(type, url: url, output: output, for: msgID) { [weak self] in
+                ImageServer.shared.prepare(type, url: url, for: msgID, index: Int(mediaIndex)) { [weak self] in
                     guard let self = self else { return }
 
                     switch $0 {
                     case .success(let result):
+                        result.copy(to: output)
+                        if result.url != url {
+                            result.clear()
+                        }
+
                         let path = self.relativePath(from: output)
                         DDLogDebug("ChatData/process-mediaItem/success: \(msgID)/\(mediaIndex)")
                         self.updateChatMessage(with: msgID, block: { msg in
@@ -2324,7 +2328,7 @@ extension ChatData {
         uploadGroup.notify(queue: backgroundProcessingQueue) { [weak self] in
             guard let self = self else { return }
             DDLogInfo("ChatData/uploadChatMsgMediaAndSend/finish/\(msgID) failed/total: \(numberOfFailedUploads)/\(totalUploads)")
-            ImageServer.clearProgress(for: msgID)
+            ImageServer.shared.clearAllTasks(for: msgID)
             self.mediaUploader.clearTasks(withGroupID: msgID)
             if numberOfFailedUploads > 0 {
                 if isMsgStale {

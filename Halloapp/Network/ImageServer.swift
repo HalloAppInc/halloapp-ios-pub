@@ -25,9 +25,41 @@ enum VideoProcessingError: Error {
 }
 
 struct ImageServerResult {
+    var url: URL
     var size: CGSize
     var key: String
     var sha256: String
+
+    func copy(to destination: URL) {
+        let manager = FileManager.default
+        let encrypted = url.appendingPathExtension("enc")
+        let encryptedDestination = destination.appendingPathExtension("enc")
+
+        do {
+            try manager.copyItem(at: url, to: destination)
+            DDLogInfo("ImageServer/result copied from=[\(url)] to=[\(destination)]")
+
+            try manager.copyItem(at: encrypted, to: encryptedDestination)
+            DDLogInfo("ImageServer/result copied from=[\(encrypted)] to=[\(encryptedDestination)]")
+        } catch {
+            DDLogError("ImageServer/result/copy/error [\(error)]")
+        }
+    }
+
+    func clear() {
+        let manager = FileManager.default
+        let encrypted = url.appendingPathExtension("enc")
+
+        do {
+            try manager.removeItem(at: url)
+            DDLogInfo("ImageServer/result deleted url=[\(url)]")
+
+            try manager.removeItem(at: encrypted)
+            DDLogInfo("ImageServer/result deleted url=[\(encrypted)]")
+        } catch {
+            DDLogError("ImageServer/result/clear/error [\(error)]")
+        }
+    }
 }
 
 class ImageServer {
@@ -36,96 +68,188 @@ class ImageServer {
         static let maxImageSize: CGFloat = 1600
     }
 
-    private class Task {
-        var id: String
-        var url: URL
-        var progress: Float
+    typealias Completion = (Result<ImageServerResult, Error>) -> ()
 
-        internal init(id: String, url: URL) {
+    private class Task {
+        var id: String?
+        var index: Int?
+        var url: URL
+        var progress: Float {
+            didSet {
+                if let id = self.id {
+                    ImageServer.shared.progress.send(id)
+                }
+            }
+        }
+        var result: Result<ImageServerResult, Error>? {
+            didSet {
+                guard let result = self.result else { return }
+
+                if case .success(_) = result {
+                    progress = 1
+                }
+
+                for completion in callbacks {
+                    completion(result)
+                }
+            }
+        }
+        var callbacks: [Completion] = []
+        var videoExporter: CancelableExporter?
+
+        internal init(id: String?, index: Int?, url: URL, completion: Completion?) {
+            if let completion = completion {
+                self.callbacks.append(completion)
+            }
+
             self.id = id
+            self.index = index
             self.url = url
             self.progress = 0
         }
     }
 
-    private static let queue = DispatchQueue(label: "ImageServer.MediaProcessing", qos: .userInitiated)
-    private static var tasks = [Task]()
-    public static let progress = PassthroughSubject<String, Never>()
+    static let shared = ImageServer()
 
-    public static func progress(for id: String) -> (Int, Float) {
-        let items = tasks.filter { $0.id == id }
-        guard items.count > 0 else { return (0, 0) }
+    private let queue = DispatchQueue(label: "ImageServer.MediaProcessing", qos: .userInitiated)
+    private var tasks = [Task]()
+    public let progress = PassthroughSubject<String, Never>()
 
-        let total = items.reduce(into: Float(0)) { $0 += $1.progress }
-        return (items.count, total / Float(items.count))
-    }
+    private init() {}
 
-    public static func clearProgress(for id: String) {
-        queue.async {
-            tasks.removeAll { $0.id == id }
+    public func progress(for id: String) -> (Int, Float) {
+        queue.sync {
+            let items = self.tasks.filter { $0.id == id }
+            guard items.count > 0 else { return (0, 0) }
+
+            let total = items.reduce(into: Float(0)) { $0 += $1.progress }
+            return (items.count, total / Float(items.count))
         }
     }
 
-    private static let mediaProcessingSemaphore = DispatchSemaphore(value: 3) // Prevents having more than 3 instances of AVAssetReader
+    public func clearAllTasks(keepFiles: Bool = true) {
+        queue.async { [weak self] in
+            guard let self = self else { return }
 
-    private var isCancelled = false
-
-    func cancel() {
-        isCancelled = true
-    }
-
-    func prepare(_ type: FeedMediaType, url: URL, output: URL, for id: String, completion: @escaping (Result<ImageServerResult, Error>) -> Void) {
-        let task: Task
-        if let existingTask = ImageServer.tasks.first(where: { $0.id == id && $0.url == url }) {
-            task = existingTask
-        } else {
-            task = Task(id: id, url: url)
-            ImageServer.tasks.append(task)
-        }
-
-        let processingProgress: (Float) -> Void = { progress in
-            task.progress = progress
-            ImageServer.progress.send(id)
-        }
-
-        let processingCompletion: (Result<(URL, CGSize), Error>) -> Void = { [weak self] result in
-            guard let self = self, !self.isCancelled else { return }
-
-            switch result {
-            case .success((let tmp, let size)):
-                do {
-                    try FileManager.default.copyItem(at: tmp, to: output)
-                    DDLogInfo("ImageServer/prepare/media/processed copied from=[\(tmp.description)] to=[\(output.description)]")
-
-                    if tmp != url {
-                        try FileManager.default.removeItem(at: tmp)
-                        DDLogInfo("ImageServer/prepare/media/deleted url=[\(tmp.description)]")
+            if !keepFiles {
+                for task in self.tasks {
+                    if case .success(let reseult) = task.result {
+                        reseult.clear()
                     }
-                } catch {
-                    DDLogError("ImageServer/preapre/media/error error=[\(error)]")
                 }
+            }
 
-                processingProgress(1)
-                completion(
-                    self.encrypt(type, input: output, output: output.appendingPathExtension("enc"))
-                        .map { ImageServerResult(size: size, key: $0.key, sha256: $0.sha256) }
-                )
-            case .failure(let error):
-                completion(.failure(error))
+            self.tasks.removeAll()
+        }
+    }
+
+    public func clearAllTasks(for id: String, keepFiles: Bool = true) {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+
+            for task in self.tasks {
+                guard task.id == id else { return }
+                task.videoExporter?.cancel()
+
+                if !keepFiles {
+                    if case .success(let reseult) = task.result {
+                        reseult.clear()
+                    }
+                }
+            }
+
+            self.tasks.removeAll { $0.id == id }
+        }
+    }
+
+    public func clearTask(for url: URL, keepFiles: Bool = true) {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+
+            for task in self.tasks {
+                guard task.url == url else { return }
+                task.videoExporter?.cancel()
+
+                if !keepFiles {
+                    if case .success(let reseult) = task.result {
+                        reseult.clear()
+                    }
+                }
+            }
+
+            self.tasks.removeAll { $0.url == url }
+        }
+    }
+
+    // Prevents having more than 3 instances of AVAssetReader
+    private static let mediaProcessingSemaphore = DispatchSemaphore(value: 3)
+
+    private func find(url: URL, id: String? = nil, index: Int? = nil) -> Task? {
+        if let t = (tasks.first { $0.url == url }) {
+            return t
+        } else if let t = (tasks.first { $0.id == id && $0.index == index }) {
+            return t
+        }
+
+        return nil
+    }
+
+    func attach(for url: URL, id: String? = nil, index: Int? = nil, completion: Completion? = nil) {
+        queue.async {
+            if let task = self.find(url: url, id: id, index: index) {
+                task.id = id
+                task.index = index
+
+                if let completion = completion {
+                    task.callbacks.append(completion)
+                }
             }
         }
+    }
 
-        processingProgress(0)
-        ImageServer.queue.async { [weak self] in
-            guard let self = self, !self.isCancelled else { return }
+    func prepare(_ type: FeedMediaType, url: URL, for id: String? = nil, index: Int? = nil, completion: Completion? = nil) {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+
+            if let task = self.find(url: url, id: id, index: index) {
+                task.id = id
+                task.index = index
+
+                if let completion = completion {
+                    task.callbacks.append(completion)
+
+                    if let result = task.result {
+                        completion(result)
+                    }
+                }
+
+                return
+            }
+
+            let task = Task(id: id, index: index, url: url, completion: completion)
+            self.tasks.append(task)
+
+            let onCompletion: (Result<(URL, CGSize), Error>) -> Void = { [weak self] result in
+                guard let self = self else { return }
+
+                switch result {
+                case .success((let processed, let size)):
+                    let encrypted = processed.appendingPathExtension("enc")
+                    task.result = self.encrypt(type, input: processed, output: encrypted).map {
+                        ImageServerResult(url: processed, size: size, key: $0.key, sha256: $0.sha256)
+                    }
+                case .failure(let error):
+                    task.result = .failure(error)
+                }
+            }
 
             switch type {
             case .image:
-                self.process(image: url, progress: processingProgress, completion: processingCompletion)
+                self.process(image: url, completion: onCompletion)
             case .video:
-                self.resize(video: url, progress: processingProgress, completion: processingCompletion)
+                self.resize(video: task, completion: onCompletion)
             case .audio:
-                processingCompletion(.success((url, .zero)))
+                onCompletion(.success((url, .zero)))
             }
         }
     }
@@ -161,7 +285,7 @@ class ImageServer {
         }
     }
 
-    private func process(image url: URL, progress: @escaping ((Float) -> Void), completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
+    private func process(image url: URL, completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
         completion(self.resize(image: url).flatMap(self.save(image:)))
     }
 
@@ -192,21 +316,21 @@ class ImageServer {
         }
     }
 
-    private func resize(video url: URL, progress: @escaping ((Float) -> Void), completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
-        guard shouldConvert(video: url) else {
-            DDLogInfo("ImageServer/video/prepare/ready  conversion not required [\(url.description)]")
+    private func resize(video task: Task, completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {
+        guard shouldConvert(video: task.url) else {
+            DDLogInfo("ImageServer/video/prepare/ready  conversion not required [\(task.url)]")
 
-            VideoUtils.optimizeForStreaming(url: url) {
+            VideoUtils.optimizeForStreaming(url: task.url) {
                 switch $0 {
                 case .success(let url):
                     if let resolution = VideoUtils.resolutionForLocalVideo(url: url) {
                         return completion(.success((url, resolution)))
                     } else {
-                        DDLogError("ImageServer/video/prepare/error  Failed to get resolution. \(url.description)")
+                        DDLogError("ImageServer/video/prepare/error  Failed to get resolution. \(url)")
                         return completion(.failure(VideoProcessingError.failedToLoad))
                     }
                 case .failure(let err):
-                    DDLogError("ImageServer/video/prepare/error  Failed to optimize [\(err)] \(url.description)")
+                    DDLogError("ImageServer/video/prepare/error  Failed to optimize [\(err)] \(task.url)")
                     return completion(.failure(VideoProcessingError.failedToLoad))
                 }
             }
@@ -214,29 +338,29 @@ class ImageServer {
             return
         }
 
-        guard let fileAttrs = try? FileManager.default.attributesOfItem(atPath: url.path) else {
-            DDLogError("ImageServer/video/prepare/error  Failed to get file attributes. \(url.description)")
+        guard let fileAttrs = try? FileManager.default.attributesOfItem(atPath: task.url.path) else {
+            DDLogError("ImageServer/video/prepare/error  Failed to get file attributes. \(task.url)")
             return completion(.failure(VideoProcessingError.failedToLoad))
         }
 
         let fileSize = fileAttrs[FileAttributeKey.size] as! NSNumber
-        DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(fileSize)] url=[\(url.description)]")
+        DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(fileSize)] url=[\(task.url)]")
 
         ImageServer.mediaProcessingSemaphore.wait()
-        VideoUtils.resizeVideo(inputUrl: url) { (result) in
+        task.videoExporter = VideoUtils.resizeVideo(inputUrl: task.url, progress: { task.progress = $0 }) { (result) in
             ImageServer.mediaProcessingSemaphore.signal()
 
             switch result {
             case .success(let (outputUrl, videoResolution)):
-                DDLogInfo("ImageServer/video/prepare/ready  New video resolution: [\(videoResolution)] [\(url.description)]")
+                DDLogInfo("ImageServer/video/prepare/ready  New video resolution: [\(videoResolution)] [\(task.url)]")
 
                 do {
                     try self.clearTimestamps(video: outputUrl)
                 } catch {
-                    DDLogError("ImageServer/video/prepare/error clearing timestamps [\(error)] [\(url.description)]")
+                    DDLogError("ImageServer/video/prepare/error clearing timestamps [\(error)] [\(task.url)]")
                 }
             case .failure(let error):
-                DDLogError("ImageServer/video/prepare/error [\(error)] [\(url.description)]")
+                DDLogError("ImageServer/video/prepare/error [\(error)] [\(task.url)]")
             }
 
             completion(result)

@@ -664,6 +664,12 @@ class ShareComposerViewController: UIViewController {
         let uploadDispatchGroup = DispatchGroup()
         var results = [Result<String, Error>]()
 
+        for (index, item) in media.enumerated() {
+            if let url = item.fileURL {
+                ImageServer.shared.attach(for: url, id: ShareExtensionContext.shared.dataStore.mediaProcessingId, index: index)
+            }
+        }
+
         for destination in destinations {
             uploadDispatchGroup.enter()
 
@@ -715,6 +721,7 @@ class ShareComposerViewController: UIViewController {
                 self.dismiss(animated: false)
                 self.showUploadingFailedAlert()
             } else {
+                ImageServer.shared.clearAllTasks(keepFiles: false)
                 self.progressUploadMonitor?.setProgress(1, animated: true)
 
                 // let the user observe the full progress
@@ -1051,7 +1058,7 @@ fileprivate class ProgressUploadMonitor {
     }
 
     private func listenForProgress() {
-        processingProgressCancellable = ImageServer.progress.receive(on: DispatchQueue.main).sink { [weak self] id in
+        processingProgressCancellable = ImageServer.shared.progress.receive(on: DispatchQueue.main).sink { [weak self] id in
             guard let self = self else { return }
             self.updateProgress(for: id)
         }
@@ -1063,7 +1070,7 @@ fileprivate class ProgressUploadMonitor {
     }
 
     private func updateProgress(for id: String) {
-        var (processingCount, processingProgress) = ImageServer.progress(for: id)
+        var (processingCount, processingProgress) = ImageServer.shared.progress(for: id)
         var (uploadCount, uploadProgress) = mediaUploader.uploadProgress(forGroupId: id)
 
         processingProgress = processingProgress * Float(processingCount) / Float(mediaCount)

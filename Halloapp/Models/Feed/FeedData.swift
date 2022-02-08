@@ -52,7 +52,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }()
 
     let mediaUploader: MediaUploader
-    private let imageServer = ImageServer()
 
     private var contentInFlight: Set<String> = []
 
@@ -2292,14 +2291,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedMedia.order = Int16(index)
             feedMedia.post = feedPost
 
+            if let url = mediaItem.fileURL {
+                ImageServer.shared.attach(for: url, id: postId, index: index)
+            }
+
             // Copying depends on all data fields being set, so do this last.
             do {
                 try downloadManager.copyMedia(from: mediaItem, to: feedMedia)
-
-                if let encryptedFileURL = mediaItem.encryptedFileUrl {
-                    try FileManager.default.removeItem(at: encryptedFileURL)
-                    DDLogInfo("FeedData/new-post/removed-temporary-file [\(encryptedFileURL.absoluteString)]")
-                }
             }
             catch {
                 DDLogError("FeedData/new-post/copy-media/error [\(error)]")
@@ -2329,11 +2327,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Copying depends on all data fields being set, so do this last.
                 do {
                     try downloadManager.copyMedia(from: linkPreviewMedia, to: previewMedia)
-
-                    if let encryptedFileURL = linkPreviewMedia.encryptedFileUrl {
-                        try FileManager.default.removeItem(at: encryptedFileURL)
-                        DDLogInfo("FeedData/new-post/removed-temporary-file [\(encryptedFileURL.absoluteString)]")
-                    }
                 }
                 catch {
                     DDLogError("FeedData/new-post/copy-likePreviewmedia/error [\(error)]")
@@ -2441,11 +2434,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Copying depends on all data fields being set, so do this last.
             do {
                 try downloadManager.copyMedia(from: mediaItem, to: feedMedia)
-
-                if let encryptedFileURL = mediaItem.encryptedFileUrl {
-                    try FileManager.default.removeItem(at: encryptedFileURL)
-                    DDLogInfo("FeedData/new-comment/removed-temporary-file [\(encryptedFileURL.absoluteString)]")
-                }
             }
             catch {
                 DDLogError("FeedData/new-comment/copy-media/error [\(error)]")
@@ -2475,11 +2463,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Copying depends on all data fields being set, so do this last.
                 do {
                     try downloadManager.copyMedia(from: linkPreviewMedia, to: previewMedia)
-
-                    if let encryptedFileURL = linkPreviewMedia.encryptedFileUrl {
-                        try FileManager.default.removeItem(at: encryptedFileURL)
-                        DDLogInfo("FeedData/new-comment/removed-temporary-file [\(encryptedFileURL.absoluteString)]")
-                    }
                 }
                 catch {
                     DDLogError("FeedData/new-comment/copy-likePreviewmedia/error [\(error)]")
@@ -2791,10 +2774,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
-                imageServer.prepare(mediaItem.type, url: url, output: output, for: postId) { [weak self] in
+                ImageServer.shared.prepare(mediaItem.type, url: url, for: postId, index: Int(mediaIndex)) { [weak self] in
                     guard let self = self else { return }
                     switch $0 {
                     case .success(let result):
+                        result.copy(to: output)
+                        if result.url != url {
+                            result.clear()
+                        }
+
                         let path = self.downloadManager.relativePath(from: output)
                         DDLogDebug("FeedData/process-mediaItem/success: \(postId)/\(mediaIndex)")
                         self.updateFeedPost(with: postId, block: { (feedPost) in
@@ -2828,7 +2816,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         uploadGroup.notify(queue: .main) {
             DDLogInfo("FeedData/upload-media/\(postId)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
-            ImageServer.clearProgress(for: postId)
+            ImageServer.shared.clearAllTasks(for: postId)
             self.mediaUploader.clearTasks(withGroupID: postId)
             if numberOfFailedUploads > 0 {
                 self.updateFeedPost(with: postId) { (feedPost) in
@@ -2904,10 +2892,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
-                imageServer.prepare(mediaItemToUpload.type, url: url, output: output, for: feedLinkPreview.id) { [weak self] in
+                ImageServer.shared.prepare(mediaItemToUpload.type, url: url, for: feedLinkPreview.id, index: Int(mediaIndex)) { [weak self] in
                     guard let self = self else { return }
                     switch $0 {
                     case .success(let result):
+                        result.copy(to: output)
+                        if result.url != url {
+                            result.clear()
+                        }
+
                         let path = self.downloadManager.relativePath(from: output)
                         DDLogDebug("FeedData/process-feedLinkPreview-mediaItem/success: \(feedLinkPreview.id)/ index: \(mediaIndex)")
                         self.updateFeedLinkPreview(with: feedLinkPreview.id, block: { (feedLinkPreview) in
@@ -2943,7 +2936,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             MainAppContext.shared.endBackgroundTask(feedLinkPreview.id)
 
             DDLogInfo("FeedData/upload-feedLinkPreview-media/\(feedLinkPreview.id)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
-            ImageServer.clearProgress(for: feedLinkPreview.id)
+            ImageServer.shared.clearAllTasks(for: feedLinkPreview.id)
             self.mediaUploader.clearTasks(withGroupID: feedLinkPreview.id)
             if numberOfFailedUploads > 0 {
                 if let commentId = feedLinkPreview.comment?.id {
@@ -3016,10 +3009,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     let url = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                     let output = url.deletingPathExtension().appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
 
-                    imageServer.prepare(mediaItemToUpload.type, url: url, output: output, for: feedComment.id) { [weak self] in
+                    ImageServer.shared.prepare(mediaItemToUpload.type, url: url, for: feedComment.id, index: Int(mediaIndex)) { [weak self] in
                         guard let self = self else { return }
                         switch $0 {
                         case .success(let result):
+                            result.copy(to: output)
+                            if result.url != url {
+                                result.clear()
+                            }
+
                             let path = self.downloadManager.relativePath(from: output)
                             DDLogDebug("FeedData/process-comment-mediaItem/success: comment \(feedComment.id)/ commment:\(feedComment.id)\(mediaIndex)")
                             self.updateFeedPostComment(with: feedComment.id, block: { (feedPostComment) in
@@ -3053,7 +3051,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         uploadGroup.notify(queue: .main) {
             DDLogInfo("FeedData/upload-comment-media/\(feedComment.id)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
-            ImageServer.clearProgress(for: feedComment.id)
+            ImageServer.shared.clearAllTasks(for: feedComment.id)
             self.mediaUploader.clearTasks(withGroupID: feedComment.id)
             if numberOfFailedUploads > 0 {
                 self.updateFeedPostComment(with: feedComment.id, block: { (feedComment) in

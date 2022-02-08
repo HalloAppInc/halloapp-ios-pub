@@ -95,11 +95,11 @@ public enum VideoUtilsError: Error, CustomStringConvertible {
 
 final class VideoUtils {
 
-    static func resizeVideo(inputUrl: URL, progress: ((Float) -> Void)? = nil, completion: @escaping (Swift.Result<(URL, CGSize), Error>) -> Void) {
+    static func resizeVideo(inputUrl: URL, progress: ((Float) -> Void)? = nil, completion: @escaping (Swift.Result<(URL, CGSize), Error>) -> Void) -> CancelableExporter {
 
         let avAsset = AVURLAsset(url: inputUrl, options: nil)
         
-        let exporter = NextLevelSessionExporter(withAsset: avAsset)
+        let exporter = CancelableExporter(withAsset: avAsset)
         exporter.outputFileType = AVFileType.mp4
         // todo: remove temporary files manually with a timestamp format in the filename
         let tmpURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
@@ -212,6 +212,8 @@ final class VideoUtils {
                 completion(.failure(error))
             }
         }
+
+        return exporter
     }
     
     static func resolutionForLocalVideo(url: URL) -> CGSize? {
@@ -386,17 +388,29 @@ final class VideoUtils {
     }
 }
 
-private extension NextLevelSessionExporter {
+class CancelableExporter : NextLevelSessionExporter {
+    private var canceledByUser = false
+
+    func cancel() {
+        canceledByUser = true
+        cancelExport()
+    }
+
+    // Sometimes iOS sends a cancel event while processing videos even on
+    // videos which otherwise are processed without problems. This function
+    // adds basic retry functionality.
     func export(retryOnCancel times: Int,
                 renderHandler: RenderHandler? = nil,
                 progressHandler: ProgressHandler? = nil,
                 completionHandler: CompletionHandler? = nil) {
 
         export(renderHandler: renderHandler, progressHandler: progressHandler) { [weak self] result in
+            guard let self = self else { return }
+
             switch result {
-            case .failure(let error as NextLevelSessionExporterError) where error == NextLevelSessionExporterError.cancelled && times > 0:
-                DDLogWarn("VideoUtils/export/retryOnCancel times=[\(times)] url=[\(self?.outputURL?.description ?? "")]")
-                self?.export(retryOnCancel: times - 1, renderHandler: renderHandler, progressHandler: progressHandler, completionHandler: completionHandler)
+            case .failure(let error as NextLevelSessionExporterError) where error == NextLevelSessionExporterError.cancelled && times > 0 && !self.canceledByUser:
+                DDLogWarn("VideoUtils/export/retryOnCancel times=[\(times)] url=[\(self.outputURL?.description ?? "")]")
+                self.export(retryOnCancel: times - 1, renderHandler: renderHandler, progressHandler: progressHandler, completionHandler: completionHandler)
             default:
                 if let handler = completionHandler {
                     handler(result)
@@ -404,5 +418,4 @@ private extension NextLevelSessionExporter {
             }
         }
     }
-
 }
