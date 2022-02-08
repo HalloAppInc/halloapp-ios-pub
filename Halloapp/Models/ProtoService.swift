@@ -900,8 +900,8 @@ final class ProtoService: ProtoServiceCore {
             uploadLogsToServer()
         case .wakeup(_):
             DDLogInfo("proto/didReceive/\(msg.id)/wakeup")
-        case .endOfQueue:
-            DDLogInfo("proto/didReceive/\(msg.id)/endOfQueue")
+        case .endOfQueue(let endOfQueue):
+            DDLogInfo("proto/didReceive/\(msg.id)/endOfQueue/trimmed: \(endOfQueue.trimmed)")
             readyToHandleCallMessages = true
         case .errorStanza(let error):
             DDLogError("proto/didReceive/\(msg.id) received message with error \(error)")
