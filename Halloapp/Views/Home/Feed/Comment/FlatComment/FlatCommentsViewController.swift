@@ -779,6 +779,7 @@ extension FlatCommentsViewController: CommentInputViewDelegate {
             sendMedia.append(media)
         }
         commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, media: sendMedia, linkPreviewData: linkPreviewData, linkPreviewMedia : linkPreviewMedia, to: feedPostId, replyingTo: parentCommentID)
+        parentCommentID = nil
         messageInputView.clear()
     }
 }
