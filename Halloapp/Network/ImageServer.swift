@@ -320,19 +320,21 @@ class ImageServer {
         guard shouldConvert(video: task.url) else {
             DDLogInfo("ImageServer/video/prepare/ready  conversion not required [\(task.url)]")
 
-            VideoUtils.optimizeForStreaming(url: task.url) {
-                switch $0 {
-                case .success(let url):
-                    if let resolution = VideoUtils.resolutionForLocalVideo(url: url) {
-                        return completion(.success((url, resolution)))
-                    } else {
-                        DDLogError("ImageServer/video/prepare/error  Failed to get resolution. \(url)")
-                        return completion(.failure(VideoProcessingError.failedToLoad))
+            if let resolution = VideoUtils.resolutionForLocalVideo(url: task.url) {
+                VideoUtils.optimizeForStreaming(url: task.url) {
+                    switch $0 {
+                    case .success(let optimized):
+                        DDLogInfo("ImageServer/video/optimize success \(optimized.description)")
+                        completion(.success((optimized, resolution)))
+                    case .failure(let err):
+                        DDLogError("ImageServer/video/optimize/error [\(err)] \(task.url.description)")
+                        AppContext.shared.errorLogger?.logError(err)
+                        completion(.success((task.url, resolution)))
                     }
-                case .failure(let err):
-                    DDLogError("ImageServer/video/prepare/error  Failed to optimize [\(err)] \(task.url)")
-                    return completion(.failure(VideoProcessingError.failedToLoad))
                 }
+            } else {
+                DDLogError("ImageServer/video/prepare/error  Failed to get resolution. \(task.url.description)")
+                completion(.failure(VideoProcessingError.failedToLoad))
             }
 
             return
