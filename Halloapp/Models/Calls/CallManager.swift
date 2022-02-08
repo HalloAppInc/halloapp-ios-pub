@@ -362,6 +362,12 @@ final class CallManager: NSObject, CXProviderDelegate {
         if activeCallID == nil,
            let details = callDetailsMap[action.callUUID] {
 
+            // Save call to mainDataStore.
+            MainAppContext.shared.mainDataStore.saveCall(callID: details.callID,
+                                                         peerUserID: details.peerUserID,
+                                                         type: .audio,
+                                                         direction: .outgoing,
+                                                         timestamp: Date())
             activeCall = Call(id: details.callID, peerUserID: details.peerUserID, direction: .outgoing)
             activeCall?.stateDelegate = self
             // Show call UI to the user
@@ -671,6 +677,12 @@ extension CallManager: HalloCallDelegate {
         // Running this operation serially on the queue -- should sync things up and we will discard the second incomingCall packet.
         // Things should work fine after that.
         delegateQueue.sync {
+
+            // Save call to mainDataStore.
+            if let callType = incomingCall.type {
+                MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID, type: callType, direction: .incoming, timestamp: Date())
+            }
+
             // Try to decrypt offer if no call is active and report to callkit provider.
             // Check if call is supported or if we have an active call already.
             if incomingCall.callType != .audio {
@@ -690,6 +702,9 @@ extension CallManager: HalloCallDelegate {
                 }
             } else if activeCall != nil {
                 MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
+                MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                    call.endReason = .busy
+                }
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason busy")
             } else {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID)/callUUID: \(callID.callUUID)")
@@ -747,6 +762,9 @@ extension CallManager: HalloCallDelegate {
         } else {
             DDLogError("CallManager/HalloCallDelegate/didReceiveAnswerCall: \(callID) from: \(peerUserID)/end with reason busy")
             MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
+            MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                call.endReason = .busy
+            }
         }
     }
 
@@ -823,6 +841,9 @@ extension CallManager: HalloCallDelegate {
         } else {
             DDLogError("CallManager/HalloCallDelegate/didReceiveIceOffer: \(callID) from: \(peerUserID)/end with reason busy")
             MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
+            MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                call.endReason = .busy
+            }
         }
     }
 
@@ -862,6 +883,9 @@ extension CallManager: HalloCallDelegate {
         } else {
             DDLogError("CallManager/HalloCallDelegate/didReceiveIceAnswer: \(callID) from: \(peerUserID)/end with reason busy")
             MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
+            MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                call.endReason = .busy
+            }
         }
     }
 

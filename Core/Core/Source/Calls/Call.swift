@@ -202,4 +202,12 @@ extension Server_IncomingCall {
         // This call is late and should be considered as a missed call.
         return (serverSentTsMs - timestampMs) > ServerProperties.callWaitTimeoutSec * 1000
     }
+
+    public var type: CallType? {
+        switch self.callType {
+        case .audio: return .audio
+        case .video: return .video
+        case .unknownType, .UNRECOGNIZED: return nil
+        }
+    }
 }
