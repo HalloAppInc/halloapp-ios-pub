@@ -40,6 +40,11 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         return 320
     }
 
+    override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
+        layoutAttributes.size.height = height()
+        return layoutAttributes
+    }
+
     private lazy var maxWidthConstraint: NSLayoutConstraint = {
         widthAnchor.constraint(equalToConstant: maxWidth)
     }()

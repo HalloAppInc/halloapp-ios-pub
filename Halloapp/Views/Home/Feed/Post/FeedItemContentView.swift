@@ -445,7 +445,7 @@ final class FeedItemHeaderView: UIView {
         avatarViewButton.addTarget(self, action: #selector(showUser), for: .touchUpInside)
 
         avatarViewButton.widthAnchor.constraint(equalToConstant: avatarButtonSize).isActive = true
-        avatarViewButton.heightAnchor.constraint(equalTo: avatarViewButton.widthAnchor).isActive = true
+        avatarViewButton.heightAnchor.constraint(equalToConstant: avatarButtonSize).isActive = true
         return avatarViewButton
     }()
 
@@ -594,8 +594,8 @@ final class FeedItemHeaderView: UIView {
         hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
         hStack.constrain(anchor: .centerY, to: avatarViewButton, priority: .defaultLow)
 
-        userAndGroupNameRow.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
-        timestampLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor).isActive = true
+        hStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
+        hStack.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor).isActive = true
 
         contentSizeCategoryDidChangeCancellable = NotificationCenter.default
             .publisher(for: UIContentSizeCategory.didChangeNotification)

@@ -25,7 +25,19 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     // TODO: Remove this implicitly unwrapped optional
     private(set) var collectionView: UICollectionView!
     private(set) var dataSource: FeedDataSource?
-    private let feedLayout = FeedLayout()
+    private let feedLayout: FeedLayout = {
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                              heightDimension: .estimated(44))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                               heightDimension: .estimated(44))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+
+        let section = NSCollectionLayoutSection(group: group)
+
+        return FeedLayout(section: section)
+    }()
 
     private var cancellableSet: Set<AnyCancellable> = []
 
@@ -57,9 +69,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         DDLogInfo("FeedCollectionView/viewDidLoad")
 
         view.backgroundColor = .feedBackground
-
-        feedLayout.minimumInteritemSpacing = 0
-        feedLayout.minimumLineSpacing = 0
 
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: feedLayout)
         collectionViewDataSource = makeCollectionViewDataSource()
@@ -168,7 +177,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
             }
         )
 
-        update(with: feedDataSource.displayItems)
+        update(with: feedDataSource.displayItems, animated: false)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -201,7 +210,8 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         // We should skip recomputing cell heights in this scenario to avoid slowing down the animation.
         guard presentedViewController == nil else { return }
         cachedCellHeights.removeAll()
-        collectionView?.reloadData()
+
+        feedLayout.invalidateLayout()
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -242,7 +252,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     private var waitingPostIds = Set<FeedPostID>()
     
-    private func update(with items: [FeedDisplayItem]) {
+    private func update(with items: [FeedDisplayItem], animated: Bool = true) {
         willUpdate(with: items)
 
         let updatedPostIDs = Set(items.compactMap { $0.post?.id })
@@ -291,7 +301,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         deletedPostIDs.formUnion(newlyDeletedPosts.compactMap { $0.post?.id })
         waitingPostIds = waitingPostIds.subtracting(newlyDecryptedPosts.compactMap { $0.post?.id })
 
-        collectionViewDataSource?.apply(snapshot, animatingDifferences: true) { [weak self] in
+        collectionViewDataSource?.apply(snapshot, animatingDifferences: animated) { [weak self] in
             self?.loadedPostIDs = updatedPostIDs
             self?.feedLayout.maintainVisualPosition = false
             self?.didUpdateItems()
@@ -879,48 +889,6 @@ extension FeedCollectionViewController: UICollectionViewDelegate {
 
 }
 
-extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
-
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-
-        guard let displayItem = feedDataSource.item(at: indexPath.item) else {
-            DDLogError("FeedCollectionView Automatic size for index path [\(indexPath)]")
-            return UICollectionViewFlowLayout.automaticSize
-        }
-
-        let cellWidth = collectionView.frame.width
-        if let cachedCellHeight = cachedCellHeights[displayItem] {
-            return CGSize(width: cellWidth, height: cachedCellHeight)
-        }
-
-        switch displayItem {
-        case .event(let event):
-            let height = FeedEventCollectionViewCell.height(for: event.description, width: cellWidth)
-            cachedCellHeights[displayItem] = height
-            return CGSize(width: cellWidth, height: height)
-        case .post(let feedPost):
-            let cellHeight: CGFloat = {
-                if feedPost.isPostRetracted {
-                    let text = Localizations.deletedPost(from: feedPost.userId)
-                    return FeedEventCollectionViewCell.height(for: text, width: cellWidth)
-                } else {
-                    let contentWidth = cellWidth - collectionView.layoutMargins.left - collectionView.layoutMargins.right
-                    return FeedPostCollectionViewCell.height(forPost: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: postDisplayData[feedPost.id], showGroupName: showGroupName())
-                }
-            }()
-            DDLogDebug("FeedCollectionView Calculated cell height [\(cellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
-            cachedCellHeights[displayItem] = cellHeight
-            return CGSize(width: cellWidth, height: cellHeight)
-        case .welcome:
-            let contentWidth = cellWidth
-            return CGSize(width: contentWidth, height: FeedWelcomeCell().height())
-        case .groupWelcome:
-            let contentWidth = cellWidth
-            return CGSize(width: contentWidth, height: GroupFeedWelcomeCell().height())
-        }
-    }
-}
-
 extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
 
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didRequestOpen url: URL) {
@@ -987,7 +955,7 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate {
     }
 }
 
-private class FeedLayout: UICollectionViewFlowLayout {
+private class FeedLayout: UICollectionViewCompositionalLayout {
 
     var maintainVisualPosition: Bool = false
     var newItemsHeight: CGFloat = 0.0

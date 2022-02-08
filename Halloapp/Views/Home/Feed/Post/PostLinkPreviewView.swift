@@ -14,36 +14,33 @@ import SwiftUI
 class PostLinkPreviewView: UIView {
 
     private var imageLoadingCancellable: AnyCancellable?
-    private var media: FeedMedia?
     private var feedLinkPreview: FeedLinkPreview?
+    private lazy var vStackHeightConstraint = vStack.heightAnchor.constraint(equalToConstant: 250)
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        commonInit()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-    }
-
-    func configure(feedLinkPreview: FeedLinkPreview) {
-        if feedLinkPreview.media != nil {
-            let media = MainAppContext.shared.feedData.media(feedLinkPreviewID: feedLinkPreview.id)
-            self.media = media?.first
-        }
-        self.feedLinkPreview  = feedLinkPreview
         commonInit()
     }
 
     private lazy var placeholderImageView: UIImageView = {
         let placeholderImageView = UIImageView()
         placeholderImageView.contentMode = .center
-        placeholderImageView.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        placeholderImageView.heightAnchor.constraint(equalToConstant: 90).isActive = true
-        placeholderImageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         placeholderImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
         placeholderImageView.image = UIImage(systemName: "photo")
         placeholderImageView.tintColor = .systemGray3
         placeholderImageView.isHidden = true
+        placeholderImageView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            placeholderImageView.widthAnchor.constraint(equalToConstant: 50),
+            placeholderImageView.heightAnchor.constraint(equalToConstant: 90),
+        ])
+
         return placeholderImageView
     }()
 
@@ -82,7 +79,7 @@ class PostLinkPreviewView: UIView {
     }()
 
     private var linkPreviewLinkStack: UIStackView {
-        let linkStack = UIStackView(arrangedSubviews: [ linkImageView, urlLabel, UIView() ])
+        let linkStack = UIStackView(arrangedSubviews: [ linkImageView, urlLabel ])
         linkStack.translatesAutoresizingMaskIntoConstraints = false
         linkStack.spacing = 2
         linkStack.alignment = .center
@@ -93,6 +90,7 @@ class PostLinkPreviewView: UIView {
     private lazy var textStack: UIStackView = {
         let textStack = UIStackView(arrangedSubviews: [ titleLabel, linkPreviewLinkStack ])
         textStack.translatesAutoresizingMaskIntoConstraints = false
+        textStack.alignment = .leading
         textStack.axis = .vertical
         textStack.spacing = 2
         textStack.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
@@ -126,35 +124,36 @@ class PostLinkPreviewView: UIView {
 
     private func commonInit() {
         preservesSuperviewLayoutMargins = true
-        guard let feedLinkPreview = feedLinkPreview else { return }
 
-        titleLabel.text = feedLinkPreview.title
         // We want the text to be visible and the image to fill up remaining available s pace.
-        titleLabel.setContentCompressionResistancePriority(.defaultHigh + 1000, for: .vertical)
-        urlLabel.setContentCompressionResistancePriority(.defaultHigh + 1000, for: .vertical)
-        urlLabel.text = feedLinkPreview.url?.host
-        if let media = media {
-            configureMedia(media: media)
-            vStack.heightAnchor.constraint(equalToConstant: 250).isActive = true
-            textStack.topAnchor.constraint(equalTo: mediaView.bottomAnchor).isActive = true
-        } else {
-            placeholderImageView.isHidden = true
-            mediaView.isHidden = true
-        }
-        
-        self.addSubview(vStack)
+        titleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+        urlLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+
+        addSubview(vStack)
         
         vStack.constrainMargins(to: self)
 
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(previewTapped(sender:)))
-        self.addGestureRecognizer(tapGestureRecognizer)
-        self.isUserInteractionEnabled = true
+        addGestureRecognizer(tapGestureRecognizer)
+        isUserInteractionEnabled = true
     }
 
-    @objc private func previewTapped(sender: UITapGestureRecognizer) {
-        if let url = feedLinkPreview?.url {
-            guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { return }
-            UIApplication.shared.open(url)
+    func configure(feedLinkPreview: FeedLinkPreview) {
+        self.feedLinkPreview = feedLinkPreview
+
+        urlLabel.text = feedLinkPreview.url?.host
+        titleLabel.text = feedLinkPreview.title
+
+        if feedLinkPreview.media != nil, let media = MainAppContext.shared.feedData.media(feedLinkPreviewID: feedLinkPreview.id)?.first {
+            configureMedia(media: media)
+            vStackHeightConstraint.isActive = true
+            vStack.setCustomSpacing(0, after: mediaView)
+            textStack.topAnchor.constraint(equalTo: mediaView.bottomAnchor).isActive = true
+        } else {
+            vStackHeightConstraint.isActive = false
+            vStack.setCustomSpacing(vStack.spacing, after: mediaView)
+            placeholderImageView.isHidden = true
+            mediaView.isHidden = true
         }
     }
 
@@ -187,5 +186,12 @@ class PostLinkPreviewView: UIView {
         // Loading cancellable is no longer needed
         imageLoadingCancellable?.cancel()
         imageLoadingCancellable = nil
+    }
+
+    @objc private func previewTapped(sender: UITapGestureRecognizer) {
+        if let url = feedLinkPreview?.url {
+            guard MainAppContext.shared.chatData.proceedIfNotGroupInviteLink(url) else { return }
+            UIApplication.shared.open(url)
+        }
     }
 }

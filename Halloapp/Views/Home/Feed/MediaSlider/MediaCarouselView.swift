@@ -324,10 +324,10 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         addSubview(collectionViewContainer)
 
         var containerConstraints = [
-            collectionViewContainer.topAnchor.constraint(equalTo: self.topAnchor),
+            collectionViewContainer.topAnchor.constraint(equalTo: topAnchor),
             collectionViewContainer.bottomAnchor.constraint(equalTo: pageControlStack.topAnchor),
-            collectionViewContainer.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: -configuration.gutterWidth),
-            collectionViewContainer.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: configuration.gutterWidth)
+            collectionViewContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -configuration.gutterWidth),
+            collectionViewContainer.trailingAnchor.constraint(equalTo: trailingAnchor, constant: configuration.gutterWidth)
         ]
         
         if configuration.isPagingEnabled {
@@ -352,14 +352,19 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     }
     
     private func setupPageControlStack() {
-        guard pageControlStack.superview == nil else {
-            return
-        }
-        
         addSubview(pageControlStack)
+
+        // Minimize size if all contents are hidden
+        let minimumHeightContstraint = pageControlStack.heightAnchor.constraint(equalToConstant: 0)
+        minimumHeightContstraint.priority = UILayoutPriority(1)
+        let minimumWidthContstraint = pageControlStack.widthAnchor.constraint(equalToConstant: 0)
+        minimumWidthContstraint.priority = UILayoutPriority(1)
+
         NSLayoutConstraint.activate([
-            pageControlStack.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            pageControlStack.centerXAnchor.constraint(equalTo: self.centerXAnchor)
+            minimumHeightContstraint,
+            minimumWidthContstraint,
+            pageControlStack.bottomAnchor.constraint(equalTo: bottomAnchor),
+            pageControlStack.centerXAnchor.constraint(equalTo: centerXAnchor),
         ])
     }
 

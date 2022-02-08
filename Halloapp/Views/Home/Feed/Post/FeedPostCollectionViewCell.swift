@@ -133,10 +133,17 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor)
         contentTopConstraint?.isActive = true
 
-        contentView.addConstraints([
+        let verticalContentPadding = LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing / 2
+        let footerBottomAnchor = footerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,
+                                                                    constant: -verticalContentPadding)
+        // On initial cell sizing, our height is set to the estimatedItemHeight, which causes
+        // constraint violations. Allow overflow at the bottom to prevent this.
+        footerBottomAnchor.priority = UILayoutPriority(999)
+
+        NSLayoutConstraint.activate([
             // HEADER
             headerView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            headerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing / 2),
+            headerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: verticalContentPadding),
             headerView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
 
             // CONTENT
@@ -147,13 +154,11 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
             footerView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
             footerView.topAnchor.constraint(equalTo: itemContentView.bottomAnchor),
             footerView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
-            footerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -LayoutConstants.backgroundPanelViewOutsetV - LayoutConstants.interCardSpacing / 2)
-        ])
+            footerBottomAnchor,
 
-        // Separator in the footer view needs to be extended past view bounds to be the same width as background "card".
-        addConstraints([
+            // Separator in the footer view needs to be extended past view bounds to be the same width as background "card".
             footerView.separator.leadingAnchor.constraint(equalTo: backgroundPanelView.leadingAnchor),
-            footerView.separator.trailingAnchor.constraint(equalTo: backgroundPanelView.trailingAnchor)
+            footerView.separator.trailingAnchor.constraint(equalTo: backgroundPanelView.trailingAnchor),
         ])
 
         // Connect actions of footer view buttons
@@ -460,6 +465,11 @@ final class FeedEventCollectionViewCell: UICollectionViewCell {
         bubble.layer.cornerRadius = 15
         bubble.directionalLayoutMargins = Self.bubbleMargins
         return bubble
+    }
+
+    override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
+        layoutAttributes.size.height = Self.height(for: textLabel.text ?? "", width: layoutAttributes.size.width)
+        return layoutAttributes
     }
 }
 

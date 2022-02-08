@@ -145,9 +145,9 @@ public class AvatarView: UIView {
     
     private func applyCornerRadius() {
         avatarContainerView.frame = bounds
-        let maskLayer = CAShapeLayer()
-        maskLayer.path = UIBezierPath(ovalIn: avatarContainerView.bounds).cgPath
-        avatarContainerView.layer.mask = maskLayer
+        let avatarBounds = avatarContainerView.bounds
+        avatarContainerView.layer.cornerRadius = min(avatarBounds.width, avatarBounds.height) / 2
+        avatarContainerView.clipsToBounds = true
     }
     
     private func applyBorder() {

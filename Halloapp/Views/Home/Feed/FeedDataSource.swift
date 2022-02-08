@@ -182,6 +182,7 @@ extension FeedDataSource {
                                              FeedPost.Status.retracted.rawValue,
                                              FeedData.cutoffDate as NSDate)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
+        fetchRequest.relationshipKeyPathsForPrefetching = ["mentions", "media", "linkPreviews"]
         return fetchRequest
     }
 
