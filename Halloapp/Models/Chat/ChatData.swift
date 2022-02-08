@@ -4699,6 +4699,9 @@ extension ChatData: HalloChatDelegate {
             switch result {
             case .failure(let error):
                 DDLogError("ChatData/didRerequestMessage/\(messageID)/error: \(error)/from: \(userID)")
+                if error.canAck {
+                    ack?()
+                }
             case .success:
                 DDLogInfo("ChatData/didRerequestMessage/\(messageID)/success/from: \(userID)")
                 ack?()

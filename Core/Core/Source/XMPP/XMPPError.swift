@@ -30,4 +30,13 @@ extension RequestError {
             return true
         }
     }
+
+    public var canAck: Bool {
+        switch self {
+        case .aborted, .canceled:
+            return true
+        case .timeout, .malformedRequest, .malformedResponse, .retryDelay, .serverError, .notConnected, .audienceHashMismatch:
+            return false
+        }
+    }
 }

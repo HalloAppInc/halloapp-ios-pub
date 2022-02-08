@@ -4185,6 +4185,9 @@ extension FeedData: HalloFeedDelegate {
             switch result {
             case .failure(let error):
                 DDLogError("FeedData/didRerequestGroupFeedItem/\(contentID)/\(contentType)/error: \(error)/from: \(userID)")
+                if error.canAck {
+                    ack?()
+                }
             case .success:
                 DDLogInfo("FeedData/didRerequestGroupFeedItem/\(contentID)/\(contentType)success/from: \(userID)")
                 ack?()
