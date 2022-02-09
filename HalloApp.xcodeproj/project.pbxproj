@@ -144,6 +144,7 @@
 		6ABBD2502601DE890041B9ED /* FeedMigration.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6ABBD24F2601DE890041B9ED /* FeedMigration.xcmappingmodel */; };
 		6ABBD25F2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABBD25E2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift */; };
 		6AC68EF726399BAE0073CBE9 /* ServerStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC68EF626399BAE0073CBE9 /* ServerStrings.swift */; };
+		6ACF5ACF27B32452003B7B3C /* endcalltone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6ACF5ACD27B32452003B7B3C /* endcalltone.mp3 */; };
 		761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */; };
 		761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
 		761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C4245D32C200DD9D1A /* UIDevice.swift */; };
@@ -792,6 +793,7 @@
 		6ABBD24F2601DE890041B9ED /* FeedMigration.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = FeedMigration.xcmappingmodel; sourceTree = "<group>"; };
 		6ABBD25E2601DEF80041B9ED /* FeedPostToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
 		6AC68EF626399BAE0073CBE9 /* ServerStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStrings.swift; sourceTree = "<group>"; };
+		6ACF5ACD27B32452003B7B3C /* endcalltone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = endcalltone.mp3; sourceTree = "<group>"; };
 		6AF7594C26F2BB110087078A /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VerificationCodeViewController.swift; path = HalloApp/Views/Registration/VerificationCodeViewController.swift; sourceTree = SOURCE_ROOT; };
 		761442C2245CF4FC00DD9D1A /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIColor.swift; path = HalloApp/Components/Extensions/UIColor.swift; sourceTree = SOURCE_ROOT; };
@@ -1290,6 +1292,7 @@
 		6A081C58273F975600E9E29A /* Calls */ = {
 			isa = PBXGroup;
 			children = (
+				6ACF5ACD27B32452003B7B3C /* endcalltone.mp3 */,
 				6A218964278E55C7008D7B7C /* us_ringtone.mp3 */,
 				6A081C5A273F976E00E9E29A /* us_ringback_tone.mp3 */,
 			);
@@ -2475,6 +2478,7 @@
 			files = (
 				762EDBD5244E2EB700986617 /* Gotham-LightIta.otf in Resources */,
 				68A0A0F126436CA600E9431E /* InfoPlist.strings in Resources */,
+				6ACF5ACF27B32452003B7B3C /* endcalltone.mp3 in Resources */,
 				762EDBD0244E2EB700986617 /* Gotham-Ultra.otf in Resources */,
 				6A081C5B273F976E00E9E29A /* us_ringback_tone.mp3 in Resources */,
 				762EDBCD244E2EB700986617 /* Gotham-XLightIta.otf in Resources */,
