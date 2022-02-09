@@ -14,7 +14,7 @@ final class FloatingMenuButton: UIView {
     init(
         button: UIControl,
         action: ((FloatingMenu) -> Future<Void, Never>)?,
-        transition: ((FloatingMenu.State) -> Void)? = nil)
+        transition: ((FloatingMenu.ExpansionState, FloatingMenu.AccessoryState) -> Void)? = nil)
     {
         self.button = button
         self.action = action
@@ -37,7 +37,7 @@ final class FloatingMenuButton: UIView {
     let action: ((FloatingMenu) -> Future<Void, Never>)?
 
     /// Closure called by menu when its state changes (e.g., so we can animate button color or icon change alongside menu)
-    let transition: ((FloatingMenu.State) -> Void)?
+    let transition: ((FloatingMenu.ExpansionState, FloatingMenu.AccessoryState) -> Void)?
 
     weak var menu: FloatingMenu?
 
@@ -56,13 +56,20 @@ final class FloatingMenuButton: UIView {
         return FloatingMenuButton(
             button: button,
             action: { menu in menu.toggleExpanded() },
-            transition: { state in
-                switch state {
+            transition: { expansionState, accessoryState in
+                switch expansionState {
                 case .collapsed:
                     button.pillView.backgroundColor = .lavaOrange
                     button.imageView.tintColor = .white
                     button.imageView.transform = .init(rotationAngle: 0)
-                    button.accessoryView.isHidden = false
+                    let shouldHideAccessory = accessoryState == .plain
+                    if button.accessoryView.isHidden != shouldHideAccessory {
+                        // NB: Encountered a weird issue in iOS 15.2: Setting isHidden to
+                        //     true when it was already true made the setting permanent;
+                        //     later attempts to set isHidden to false had no effect. Therefore
+                        //     we check and only set isHidden if it needs to change.
+                        button.accessoryView.isHidden = shouldHideAccessory
+                    }
                 case .expanded:
                     button.pillView.backgroundColor = .white
                     button.imageView.tintColor = .lavaOrange
@@ -79,8 +86,8 @@ final class FloatingMenuButton: UIView {
             button: button,
             action: { menu in
                 action()
-                return menu.setState(.collapsed, animated: true) },
-            transition: { state in
+                return menu.setExpansionState(.collapsed, animated: true) },
+            transition: { (state, _) in
                 switch state {
                 case .collapsed:
                     button.label.alpha = 0
@@ -119,14 +126,9 @@ final class FloatingMenu: UIView {
     let permanentButton: FloatingMenuButton
     let expandedButtons: [FloatingMenuButton]
 
-    // NB: This is private(set) so we can update it in a custom animation block.
-    private(set) var state = State.collapsed {
-        didSet {
-            orderedButtons.forEach { $0.transition?(state) }
-            backgroundColor = (state == .collapsed) ? .clear : Self.ExpandedBackgroundColor
-            layoutSubviews()
-        }
-    }
+    // NB: These are private(set) so we can update them in a custom animation block.
+    private(set) var expansionState = ExpansionState.collapsed
+    private(set) var accessoryState = AccessoryState.accessorized
 
     var suggestedContentInsetHeight: CGFloat {
         layoutIfNeeded()
@@ -136,21 +138,42 @@ final class FloatingMenu: UIView {
 
     @discardableResult
     func toggleExpanded() -> Future<Void, Never> {
-        return setState(isCollapsed ? .expanded : .collapsed, animated: true)
+        return setExpansionState(isCollapsed ? .expanded : .collapsed, animated: true)
     }
 
     @discardableResult
-    func setState(_ newState: State, animated: Bool) -> Future<Void, Never> {
-        guard newState != state else {
+    func setExpansionState(_ newState: ExpansionState, animated: Bool) -> Future<Void, Never> {
+        guard newState != expansionState else {
             return Future<Void, Never>.guarantee(())
         }
-        guard animated else {
-            state = newState
+        expansionState = newState
+        if animated {
+            return animateLayout()
+        } else {
+            layoutSubviews()
             return Future<Void, Never>.guarantee(())
         }
+    }
 
-        // Use full damping if expanded (i.e., don't bounce buttons when collapsing menu)
-        let damping: CGFloat = isCollapsed ? 0.75 : 1
+    @discardableResult
+    func setAccessoryState(_ newState: AccessoryState, animated: Bool) -> Future<Void, Never> {
+        guard newState != accessoryState else {
+            return Future<Void, Never>.guarantee(())
+        }
+        accessoryState = newState
+        if animated {
+            return animateLayout()
+        } else {
+            layoutSubviews()
+            return Future<Void, Never>.guarantee(())
+        }
+    }
+
+    @discardableResult
+    private func animateLayout() -> Future<Void, Never> {
+
+        // Use full damping (i.e., don't bounce) when collapsing
+        let damping: CGFloat = isCollapsed ? 1 : 0.75
         let animationDuration: TimeInterval = 0.3
         
         return Future { promise in
@@ -160,7 +183,7 @@ final class FloatingMenu: UIView {
                 usingSpringWithDamping: damping,
                 initialSpringVelocity: 0,
                 options: .allowUserInteraction,
-                animations: { self.state = newState },
+                animations: { self.layoutSubviews() },
                 completion: { _ in promise(.success(())) })
         }
     }
@@ -169,6 +192,9 @@ final class FloatingMenu: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+
+        orderedButtons.forEach { $0.transition?(expansionState, accessoryState) }
+        backgroundColor = isCollapsed ? .clear : Self.ExpandedBackgroundColor
 
         for (i, button) in orderedButtons.enumerated() {
             let castsShadow = button == permanentButton
@@ -211,13 +237,18 @@ final class FloatingMenu: UIView {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if !isCollapsed {
-            setState(.collapsed, animated: true)
+            setExpansionState(.collapsed, animated: true)
         }
     }
 
-    enum State {
+    enum ExpansionState {
         case collapsed
         case expanded
+    }
+
+    enum AccessoryState {
+        case accessorized
+        case plain
     }
 
     static func makeLabel(text: String, textStyle: UIFont.TextStyle = .footnote) -> UILabel {
@@ -232,7 +263,7 @@ final class FloatingMenu: UIView {
 
     // MARK: Private
 
-    private var isCollapsed: Bool { self.state == .collapsed }
+    private var isCollapsed: Bool { self.expansionState == .collapsed }
 
     private var orderedButtons: [FloatingMenuButton] {
         [permanentButton] + expandedButtons

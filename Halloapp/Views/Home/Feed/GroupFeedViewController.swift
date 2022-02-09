@@ -138,6 +138,12 @@ class GroupFeedViewController: FeedCollectionViewController {
         return false
     }
 
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        super.scrollViewDidScroll(scrollView)
+        let fabAccessoryState: FloatingMenu.AccessoryState = scrollView.contentOffset.y <= 0 ? .accessorized : .plain
+        floatingMenu.setAccessoryState(fabAccessoryState, animated: true)
+    }
+
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         updateTopNavShadow()
     }
