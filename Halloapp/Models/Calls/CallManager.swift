@@ -740,6 +740,8 @@ extension CallManager: HalloCallDelegate {
                         reportIncomingCallCompletion()
                     case .failure(let error):
                         DDLogError("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/failed: \(error)")
+                        self.checkAndReportCallEnded(id: callID, reason: .failed)
+                        self.endActiveCall(reason: .systemError)
                     }
                 }
             }
