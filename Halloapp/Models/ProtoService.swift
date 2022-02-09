@@ -24,6 +24,7 @@ final class ProtoService: ProtoServiceCore {
 
     var readyToHandleCallMessages = false {
         didSet {
+            DDLogInfo("protoService/didSet/readyToHandleCallMessages: \(readyToHandleCallMessages)")
             if readyToHandleCallMessages {
                 handlePendingCallMessages()
             }
@@ -35,8 +36,10 @@ final class ProtoService: ProtoServiceCore {
         super.init(credentials: credentials, passiveMode: passiveMode, automaticallyReconnect: automaticallyReconnect)
         self.cancellableSet.insert(
             didDisconnect.sink {
-                // reset our call handling state.
-                self.readyToHandleCallMessages = false
+                // reset our call handling state if no calls are active.
+                if !MainAppContext.shared.callManager.isAnyCallActive {
+                    self.readyToHandleCallMessages = false
+                }
             })
     }
 
