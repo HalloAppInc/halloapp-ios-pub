@@ -161,7 +161,7 @@ class CallViewController: UIViewController {
         let buttonPanel = UIStackView()
         buttonPanel.translatesAutoresizingMaskIntoConstraints = false
         buttonPanel.axis = .horizontal
-        buttonPanel.distribution  = .equalSpacing
+        buttonPanel.distribution  = .fillEqually
         buttonPanel.alignment = UIStackView.Alignment.center
         buttonPanel.addArrangedSubview(micButton)
         buttonPanel.addArrangedSubview(chatButton)
@@ -181,7 +181,7 @@ class CallViewController: UIViewController {
         peerNameLabel.translatesAutoresizingMaskIntoConstraints = false
 
         // Full stack view: contains all the components
-        let fullCallView = UIStackView(arrangedSubviews: [stationIdentification, avatarView, peerNameLabel, callStatusLabel, buttonPanel])
+        let fullCallView = UIStackView(arrangedSubviews: [stationIdentification, avatarView, peerNameLabel, callStatusLabel])
         fullCallView.translatesAutoresizingMaskIntoConstraints = false
         fullCallView.axis = .vertical
         fullCallView.distribution = .fill
@@ -190,16 +190,20 @@ class CallViewController: UIViewController {
         fullCallView.setCustomSpacing(8, after: peerNameLabel)
 
         view.addSubview(fullCallView)
+        view.addSubview(buttonPanel)
         view.addSubview(endCallButton)
 
         fullCallView.constrain(anchor: .leading, to: view, constant: 36)
         fullCallView.constrain(anchor: .trailing, to: view, constant: -36)
-        buttonPanel.constrain(dimension: .width, to: fullCallView)
+
+        buttonPanel.topAnchor.constraint(equalTo: fullCallView.bottomAnchor, constant: 36).isActive = true
+        buttonPanel.constrain(anchor: .leading, to: view, constant: 16)
+        buttonPanel.constrain(anchor: .trailing, to: view, constant: -16)
 
         endCallButton.constrain([.centerX], to: view)
         NSLayoutConstraint.activate([
             // Give end call button at least 16px of top padding...
-            endCallButton.topAnchor.constraint(greaterThanOrEqualTo: fullCallView.bottomAnchor, constant: 16),
+            endCallButton.topAnchor.constraint(greaterThanOrEqualTo: buttonPanel.bottomAnchor, constant: 16),
             // ... and make sure bottom is inside margins...
             endCallButton.bottomAnchor.constraint(lessThanOrEqualTo: view.layoutMarginsGuide.bottomAnchor),
             // ... but has at most 64px of bottom padding.
@@ -427,7 +431,8 @@ final class CallViewButton: UIControl {
         addSubview(label)
         imageView.heightAnchor.constraint(equalToConstant: style.iconHeight).isActive = true
         circleView.isUserInteractionEnabled = false
-        circleView.constrain([.top, .leading, .trailing], to: self)
+        circleView.constrain([.top, .centerX], to: self)
+        circleView.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor).isActive = true
         label.topAnchor.constraint(equalTo: circleView.bottomAnchor, constant: 4).isActive = true
         label.constrain([.bottom, .leading, .trailing], to: self)
     }
