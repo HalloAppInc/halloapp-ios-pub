@@ -9,11 +9,6 @@
 import Combine
 import Core
 
-public enum PresenceType: String {
-    case available = "available"
-    case away = "away"
-}
-
 public struct HalloServiceFeedPayload {
     let content: FeedContent
     let group: HalloGroup?
@@ -51,7 +46,6 @@ protocol HalloService: CoreService {
     var didGetChatState: PassthroughSubject<ChatStateInfo, Never> { get }
     var didGetChatRetract: PassthroughSubject<ChatRetractInfo, Never> { get }
     func retractChatMessage(messageID: String, toUserID: UserID, messageToRetractID: String)
-    func sendPresenceIfPossible(_ presenceType: PresenceType)
     func sendChatStateIfPossible(type: ChatType, id: String, state: ChatState)
 
     // MARK: Groups

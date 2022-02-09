@@ -724,6 +724,10 @@ class ShareComposerViewController: UIViewController {
                 ImageServer.shared.clearAllTasks(keepFiles: false)
                 self.progressUploadMonitor?.setProgress(1, animated: true)
 
+                // We need to update presence after successfully posting.
+                ShareExtensionContext.shared.coreService.sendPresenceIfPossible(.available)
+                ShareExtensionContext.shared.coreService.sendPresenceIfPossible(.away)
+
                 // let the user observe the full progress
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                     self.extensionContext?.completeRequest(returningItems: nil)

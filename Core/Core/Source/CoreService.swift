@@ -26,6 +26,11 @@ public enum Feed {
     case group(GroupID)
 }
 
+public enum PresenceType: String {
+    case available = "available"
+    case away = "away"
+}
+
 public typealias ServiceRequestCompletion<T> = (Result<T, RequestError>) -> Void
 
 public typealias AvatarInfo = (userID: UserID, avatarID: AvatarID)
@@ -75,6 +80,7 @@ public protocol CoreService {
     func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Chat
+    func sendPresenceIfPossible(_ presenceType: PresenceType)
     func sendChatMessage(_ message: ChatMessageProtocol, completion: @escaping ServiceRequestCompletion<Void>)
     func sendAck(messageId: String, completion: @escaping ServiceRequestCompletion<Void>)
     func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (ChatContent?, ChatContext?, DecryptionFailure?) -> Void)

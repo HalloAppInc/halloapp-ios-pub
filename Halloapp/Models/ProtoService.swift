@@ -1391,33 +1391,6 @@ extension ProtoService: HalloService {
         DDLogInfo("ProtoService/retractChatMessage")
         send(packetData)
     }
-    
-    func sendPresenceIfPossible(_ presenceType: PresenceType) {
-        guard isConnected else { return }
-        
-        var presence = Server_Presence()
-        presence.id = PacketID.generate(short: true)
-        presence.type = {
-            switch presenceType {
-            case .away:
-                return .away
-            case .available:
-                return .available
-            }
-        }()
-        if let uid = Int64(AppContext.shared.userData.userId) {
-            presence.toUid = uid
-        }
-
-        var packet = Server_Packet()
-        packet.presence = presence
-
-        guard let packetData = try? packet.serializedData() else {
-            DDLogError("ProtoService/sendPresenceIfPossible/error could not serialize")
-            return
-        }
-        send(packetData)
-    }
 
     func subscribeToPresenceIfPossible(to userID: UserID) -> Bool {
         guard isConnected else { return false }
