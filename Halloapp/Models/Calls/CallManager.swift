@@ -94,6 +94,7 @@ final class CallManager: NSObject, CXProviderDelegate {
     }
     private var endReason: EndCallReason? = nil
     private var callRingtonePlayer: AVAudioPlayer?
+    private var callEndtonePlayer: AVAudioPlayer?
     private var pendingStartCallAction: DispatchWorkItem? = nil
 
     // UUID to callID and peerUserID map: for all possible calls.
@@ -307,7 +308,6 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     private func checkAndPlayEndCallToneAndVibrate() {
         if activeCall?.isAnswered == true {
-            // TODO: We should also play an audio tune here.
             AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
         }
     }
@@ -616,6 +616,26 @@ final class CallManager: NSObject, CXProviderDelegate {
         callRingtonePlayer = nil
     }
 
+    private func setupCallEndtone() {
+        DDLogInfo("CallManager/setupCallEndtone")
+        do {
+            // Play endtone once.
+            callEndtonePlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "endcalltone", ofType: "mp3")!))
+            callEndtonePlayer?.prepareToPlay()
+            callEndtonePlayer?.numberOfLoops = 0
+        } catch {
+            DDLogError("CallManager/setupCallEndtone/failed: \(error)")
+        }
+    }
+
+    private func playCallEndtone() {
+        DDLogInfo("CallManager/playCallEndtone/\(String(describing: callEndtonePlayer))")
+        if callEndtonePlayer == nil {
+            setupCallEndtone()
+        }
+        callEndtonePlayer?.play()
+    }
+
 }
 
 
@@ -790,7 +810,8 @@ extension CallManager: HalloCallDelegate {
         DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/begin/reason: \(endCall.reason)")
         let callID = endCall.callID
         if activeCallID == callID {
-            reportCallEnded(id: callID, reason: endCall.cxEndCallReason)
+            checkAndPlayEndCallToneAndVibrate()
+            playCallEndtone()
             activeCall?.logPeerConnectionStats()
             endDate = Date()
             if endCall.shouldResetWhisperSession,
@@ -798,10 +819,13 @@ extension CallManager: HalloCallDelegate {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/resetWhisperSession")
                 AppContext.shared.messageCrypter.resetWhisperSession(for: peerUserID)
             }
-            checkAndPlayEndCallToneAndVibrate()
             activeCall?.didReceiveEndCall(reason: endCall.endCallReason)
             activeCall = nil
-            DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
+            // Adding small delay to play the end call tone.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [self] in
+                reportCallEnded(id: callID, reason: endCall.cxEndCallReason)
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
+            }
         }
     }
 
@@ -940,6 +964,7 @@ extension CallManager: CallStateDelegate {
 
         case .active:
             stopCallRingtone()
+            setupCallEndtone()
             callViewDelegate?.callActive()
             // Cancel timer if call is active.
             cancelTimer?.cancel()
