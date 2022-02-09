@@ -527,6 +527,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         quotedPanel.addSubview(quotedPanelCloseButton)
         quotedCellView.constrainMargins(to: quotedPanel)
         NSLayoutConstraint.activate([
+            quotedCellView.leadingAnchor.constraint(equalTo: quotedPanel.leadingAnchor, constant: 8),
+            quotedCellView.trailingAnchor.constraint(equalTo: quotedPanel.trailingAnchor, constant: -8),
             quotedPanelCloseButton.trailingAnchor.constraint(equalTo: quotedCellView.trailingAnchor, constant: -6),
             quotedPanelCloseButton.topAnchor.constraint(equalTo: quotedCellView.topAnchor, constant: 6),
         ])
