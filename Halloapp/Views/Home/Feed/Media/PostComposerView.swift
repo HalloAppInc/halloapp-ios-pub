@@ -157,6 +157,7 @@ class PostComposerViewController: UIViewController {
     private var barState: NavigationBarState?
     
     private var cancellableSet: Set<AnyCancellable> = []
+    private var mediaItemsReadyCancellableSet: Set<AnyCancellable> = []
 
     init(
         mediaToPost media: [PendingMedia],
@@ -185,6 +186,44 @@ class PostComposerViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        // handle early processing of media items
+        cancellableSet.insert(self.mediaItems.$value.sink { [weak self] items in
+            guard let self = self else { return }
+            self.mediaItemsReadyCancellableSet.forEach { $0.cancel() }
+            self.mediaItemsReadyCancellableSet.removeAll()
+
+            let original = Set(self.mediaItems.value.compactMap { $0.fileURL })
+            let current = Set(items.compactMap { $0.fileURL })
+            let removed = original.subtracting(current)
+
+            for url in removed {
+                ImageServer.shared.clearTask(for: url)
+            }
+
+            for item in items {
+                let previous = item.fileURL
+
+                let onReady = {
+                    guard let url = item.fileURL else { return }
+
+                    if previous != url, let previous = previous {
+                        ImageServer.shared.clearTask(for: previous)
+                    }
+
+                    ImageServer.shared.prepare(item.type, url: url, shouldStreamVideo: false)
+                }
+
+                if item.ready.value {
+                    onReady()
+                } else {
+                    self.mediaItemsReadyCancellableSet.insert(item.ready.sink { ready in
+                        guard ready else { return }
+                        onReady()
+                    })
+                }
+            }
+        })
 
         postComposerView = PostComposerView(
             mediaItems: mediaItems,
@@ -286,6 +325,7 @@ class PostComposerViewController: UIViewController {
     }
 
     @objc private func backAction() {
+        ImageServer.shared.clearUnattachedTasks(keepFiles: false)
         delegate?.composerDidTapBack(controller: self,
                                      destination: configuration.destination,
                                      media: mediaItems.invalidated ? [] : mediaItems.value,
@@ -437,8 +477,6 @@ fileprivate struct PostComposerView: View {
     private var mediaReadyPublisher: AnyPublisher<Bool, Never>!
     private var mediaErrorPublisher: AnyPublisher<Error, Never>!
 
-    private var mediaItemsChangeCancellable: AnyCancellable?
-
     private var mediaCount: Int {
         mediaItems.value.count
     }
@@ -557,34 +595,6 @@ fileprivate struct PostComposerView: View {
         self.numberOfFailedItemsBinding = self.$mediaState.numberOfFailedItems
         self.linkBinding = self.$link.value
         self.shouldAutoPlayBinding = self.$shouldAutoPlay.value
-
-        // handle early processing of media items
-        var mediaItemsReadyCancellableSet: Set<AnyCancellable> = []
-        mediaItemsChangeCancellable = self.mediaItems.$value.sink { items in
-            mediaItemsReadyCancellableSet.removeAll()
-
-            let original = Set(mediaItems.value.compactMap { $0.fileURL })
-            let current = Set(items.compactMap { $0.fileURL })
-            let removed = original.subtracting(current)
-
-            for url in removed {
-                ImageServer.shared.clearTask(for: url)
-            }
-
-            for item in items {
-                let previous = item.fileURL
-                mediaItemsReadyCancellableSet.insert(item.ready.sink { ready in
-                    guard ready else { return }
-                    guard let url = item.fileURL else { return }
-
-                    if previous != url, let previous = previous {
-                        ImageServer.shared.clearTask(for: previous)
-                    }
-
-                    ImageServer.shared.prepare(item.type, url: url, shouldStreamVideo: false)
-                })
-            }
-        }
     }
 
     static func stopTextEdit() {

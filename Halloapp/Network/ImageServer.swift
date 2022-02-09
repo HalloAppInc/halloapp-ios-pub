@@ -142,11 +142,11 @@ class ImageServer {
         queue.async { [weak self] in
             guard let self = self else { return }
 
-            if !keepFiles {
-                for task in self.tasks {
-                    if case .success(let reseult) = task.result {
-                        reseult.clear()
-                    }
+            for task in self.tasks {
+                task.videoExporter?.cancel()
+
+                if case .success(let result) = task.result, !keepFiles {
+                    result.clear()
                 }
             }
 
@@ -162,10 +162,8 @@ class ImageServer {
                 guard task.id == id else { return }
                 task.videoExporter?.cancel()
 
-                if !keepFiles {
-                    if case .success(let reseult) = task.result {
-                        reseult.clear()
-                    }
+                if case .success(let result) = task.result, !keepFiles {
+                    result.clear()
                 }
             }
 
@@ -181,14 +179,29 @@ class ImageServer {
                 guard task.url == url else { return }
                 task.videoExporter?.cancel()
 
-                if !keepFiles {
-                    if case .success(let reseult) = task.result {
-                        reseult.clear()
-                    }
+                if case .success(let result) = task.result, !keepFiles {
+                    result.clear()
                 }
             }
 
             self.tasks.removeAll { $0.url == url }
+        }
+    }
+
+    public func clearUnattachedTasks(keepFiles: Bool = true) {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+
+            for task in self.tasks {
+                guard task.id == nil else { return }
+                task.videoExporter?.cancel()
+
+                if case .success(let result) = task.result, !keepFiles {
+                    result.clear()
+                }
+            }
+
+            self.tasks.removeAll { $0.id == nil }
         }
     }
 
@@ -198,7 +211,7 @@ class ImageServer {
     private func find(url: URL, id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool? = nil) -> Task? {
         if let t = (tasks.first { $0.url == url && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
             return t
-        } else if let t = (tasks.first { $0.id == id && $0.index == index && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
+        } else if let id = id, let index = index, let t = (tasks.first { $0.id == id && $0.index == index && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
             return t
         }
 
