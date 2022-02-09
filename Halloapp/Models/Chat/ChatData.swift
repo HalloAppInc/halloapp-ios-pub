@@ -50,6 +50,7 @@ class ChatData: ObservableObject {
     let didGetAChatMsg = PassthroughSubject<UserID, Never>()
     let didGetAGroupEvent = PassthroughSubject<GroupID, Never>()
     let didResetGroupInviteLink = PassthroughSubject<GroupID, Never>()
+    let didUserPresenceChange = PassthroughSubject<PresenceType, Never>()
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
@@ -189,6 +190,14 @@ class ChatData: ObservableObject {
             }
         )
 
+        cancellableSet.insert(
+            // TODO: Move all presence logic to its own file.
+            didUserPresenceChange.sink(receiveValue: { [weak self] presenceType in
+                DDLogInfo("ChatData/didUserPresenceChange: \(presenceType)")
+                self?.service.sendPresenceIfPossible(presenceType)
+            })
+        )
+
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.cancellableSet.insert(
@@ -308,7 +317,7 @@ class ChatData: ObservableObject {
                 // include inactive as app is still in foreground (one case found is when app is freshly installed and the scene is in transition)
                 if ([.active, .inactive].contains(UIApplication.shared.applicationState)) {
                     DDLogInfo("ChatData/didConnect/sendPresence \(UIApplication.shared.applicationState.rawValue)")
-                    self.sendPresence(type: .available)
+                    self.checkViewAndSendPresence(type: .available)
 
                     if let currentUser = self.currentlyChattingWithUserId {
                         if !self.isSubscribedToCurrentUser {
@@ -391,7 +400,7 @@ class ChatData: ObservableObject {
         cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] notification in
                 guard let self = self else { return }
-                self.sendPresence(type: .available)
+                self.checkViewAndSendPresence(type: .available)
                 if let currentlyChattingWithUserId = self.currentlyChattingWithUserId {
                     self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                         guard let self = self else { return }
@@ -408,7 +417,7 @@ class ChatData: ObservableObject {
         cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { [weak self] notification in
                 guard let self = self else { return }
-                self.sendPresence(type: .away)
+                self.checkViewAndSendPresence(type: .away)
             }
         )
 
@@ -3264,8 +3273,28 @@ extension ChatData {
         self.isSubscribedToCurrentUser = service.subscribeToPresenceIfPossible(to: chatWithUserId)
     }
     
-    private func sendPresence(type: PresenceType) {
-        MainAppContext.shared.service.sendPresenceIfPossible(type)
+    private func checkViewAndSendPresence(type: PresenceType) {
+        let isCallViewControllerActive = isCallViewControllerActive()
+        if !isCallViewControllerActive {
+            MainAppContext.shared.service.sendPresenceIfPossible(type)
+        } else {
+            // CallViewController is active - so just send away and ignore input presence type.
+            MainAppContext.shared.service.sendPresenceIfPossible(.away)
+        }
+    }
+
+    func isCallViewControllerActive() -> Bool {
+        guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }),
+              let rootViewController = window.rootViewController else {
+            return false
+        }
+
+        var topViewController = rootViewController
+        while let newTopViewController = topViewController.presentedViewController {
+            topViewController = newTopViewController
+        }
+
+        return (topViewController as? CallViewController) != nil
     }
     
     // MARK: 1-1 Process Inbound Presence

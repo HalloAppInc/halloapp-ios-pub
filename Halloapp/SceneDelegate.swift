@@ -57,6 +57,7 @@ class SceneDelegate: UIResponder {
                 self.callWindow = nil
                 self.callViewController = nil
             })
+        MainAppContext.shared.coreService.sendPresenceIfPossible(.available)
     }
 
     private func showCallViewController(for call: Call, completion: (() -> Void)? = nil) {
@@ -79,6 +80,7 @@ class SceneDelegate: UIResponder {
 
         self.callWindow = callWindow
         self.callViewController = callViewController
+        MainAppContext.shared.coreService.sendPresenceIfPossible(.away)
     }
 
 }

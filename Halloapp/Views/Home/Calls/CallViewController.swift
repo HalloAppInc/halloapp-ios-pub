@@ -228,6 +228,18 @@ class CallViewController: UIViewController {
         return .portrait
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        DDLogInfo("CallViewController/viewDidAppear")
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        DDLogInfo("CallViewController/viewDidDisappear")
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        DDLogInfo("CallViewController/viewWillDisappear")
+    }
+
     private func getCallStatusText() -> String {
         if isCallOnHold && useCallStatus {
             return Localizations.callStatus(callStatus, for: peerPhoneNumber)
