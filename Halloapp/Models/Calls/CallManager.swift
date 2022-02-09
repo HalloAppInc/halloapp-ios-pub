@@ -250,12 +250,17 @@ final class CallManager: NSObject, CXProviderDelegate {
     // MARK: Private functions
 
     private func requestTransaction(_ transaction: CXTransaction, completion: ((Result<Void, CallError>) -> Void)? = nil) {
-        callController.request(transaction) { error in
-            if let error = error {
-                DDLogError("CallManager/requestTransaction/Error requesting transaction: \(transaction)/error: \(error)")
-                completion?(.failure(.systemError))
-            } else {
-                completion?(.success(()))
+        // We could be starting the call when the app is transitioning from background to foreground.
+        // For some reason - callKit always fails with an error if we dont delay it by a tiny amount.
+        // https://stackoverflow.com/questions/60346953/callkit-cxcallcontroller-request-error-com-apple-callkit-error-requesttransactio
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.callController.request(transaction) { error in
+                if let error = error {
+                    DDLogError("CallManager/requestTransaction/Error requesting transaction: \(transaction)/error: \(error)")
+                    completion?(.failure(.systemError))
+                } else {
+                    completion?(.success(()))
+                }
             }
         }
     }
@@ -589,6 +594,28 @@ final class CallManager: NSObject, CXProviderDelegate {
         provider.reportOutgoingCall(with: callID.callUUID, connectedAt: nil)
     }
 
+    // MARK: Notification
+
+    func presentMissedCallNotification(id callID: CallID, from peerUserID: UserID) {
+        DDLogInfo("CallManager/presentMissedCallNotification/callID: \(callID)")
+        let peerName = peerName(for: peerUserID)
+        let metadata = NotificationMetadata(contentId: callID,
+                                            contentType: .missedCall,
+                                            fromId: peerUserID,
+                                            timestamp: Date(),
+                                            data: nil,
+                                            messageId: nil,
+                                            pushName: peerName)
+        AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: metadata.contentId) {
+            let notificationContent = UNMutableNotificationContent()
+            notificationContent.populateMissedCallBody(using: metadata, contactStore: MainAppContext.shared.contactStore)
+            let request = UNNotificationRequest(identifier: metadata.contentId, content: notificationContent, trigger: nil)
+            let notificationCenter = UNUserNotificationCenter.current()
+            notificationCenter.add(request, withCompletionHandler: nil)
+            AppContext.shared.notificationStore.save(id: metadata.contentId, type: metadata.contentType.rawValue)
+            DDLogInfo("CallManager/presentMissedCallNotification/callID: \(callID)/success")
+        }
+    }
     // MARK: Ringtone
     private func setupCallRingtone() {
         DDLogInfo("CallManager/setupCallRingtone")
@@ -821,6 +848,9 @@ extension CallManager: HalloCallDelegate {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/resetWhisperSession")
                 AppContext.shared.messageCrypter.resetWhisperSession(for: peerUserID)
             }
+            if activeCall?.isMissedCall == true {
+                presentMissedCallNotification(id: callID, from: peerUserID)
+            }
             activeCall?.didReceiveEndCall(reason: endCall.endCallReason)
             activeCall = nil
             // Adding small delay to play the end call tone.
@@ -828,6 +858,7 @@ extension CallManager: HalloCallDelegate {
                 reportCallEnded(id: callID, reason: endCall.cxEndCallReason)
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
             }
+            DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
         }
     }
 
@@ -870,6 +901,7 @@ extension CallManager: HalloCallDelegate {
             MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
                 call.endReason = .busy
             }
+            presentMissedCallNotification(id: callID, from: peerUserID)
         }
     }
 
@@ -912,6 +944,7 @@ extension CallManager: HalloCallDelegate {
             MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
                 call.endReason = .busy
             }
+            presentMissedCallNotification(id: callID, from: peerUserID)
         }
     }
 

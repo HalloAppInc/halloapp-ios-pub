@@ -99,6 +99,9 @@ class Call {
     var isActive: Bool {
         return state == .active
     }
+    var isMissedCall: Bool {
+        return !isOutgoing && !isAnswered
+    }
     var isOnHold: Bool = false
     // keep track on whether we can play ringtone or not - irrespective of the state of the call.
     var canPlayRingtone: Bool = false

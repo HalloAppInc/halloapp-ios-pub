@@ -273,8 +273,34 @@ class HomeViewController: UITabBarController {
         } else if metadata.isChatNotification || metadata.isContactNotification {
             // we need to show the chatscreen when the notification tapped is chat/friend/inviter notification.
             selectedIndex = 2
+        } else if metadata.isMissedCallNotification {
+            metadata.removeFromUserDefaults()
+            MainAppContext.shared.callManager.startCall(to: metadata.fromId) { [weak self] result in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success:
+                        DDLogInfo("HomeViewController/startCall/success")
+                    case .failure:
+                        DDLogInfo("HomeViewController/startCall/failure")
+                        let alert = self.getFailedCallAlertController()
+                        self.present(alert, animated: true)
+                    }
+                }
+            }
         }
         DDLogDebug("HomeViewController/processNotification/selectedIndex: \(selectedIndex)")
+    }
+
+    private func getFailedCallAlertController() -> UIAlertController {
+        let alert = UIAlertController(
+            title: Localizations.failedCallTitle,
+            message: Localizations.failedCallNoticeText,
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
+            self.dismiss(animated: true, completion: nil)
+        }))
+        return alert
     }
 
     private func presentGroupPreviewIfNeeded() {

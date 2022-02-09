@@ -300,9 +300,10 @@ extension SceneDelegate: UIWindowSceneDelegate {
             let contactIdentifier = userActivity.contactIdentifier
             let peerNumber = userActivity.phoneNumber
 
-            if let peerNumber = peerNumber {
-                peerUserID = MainAppContext.shared.contactStore.userID(for: peerNumber)
-                DDLogInfo("appdelegate/scene/continueUserActivity/using peerNumber: \(peerNumber)/peerUserID: \(String(describing: peerUserID))")
+            if let peerNumber = peerNumber,
+               let peerContactUserID = MainAppContext.shared.contactStore.userID(for: peerNumber) {
+                peerUserID = peerContactUserID
+                DDLogInfo("appdelegate/scene/continueUserActivity/using peerNumber: \(peerNumber)/peerUserID: \(String(describing: peerContactUserID))")
             } else if let contactIdentifier = contactIdentifier {
                 let peerContact = MainAppContext.shared.contactStore.contact(withIdentifier: contactIdentifier)
                 peerUserID = peerContact?.userId

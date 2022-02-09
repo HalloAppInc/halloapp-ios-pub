@@ -79,6 +79,8 @@ enum NotificationContentType: String, RawRepresentable, Codable {
     case groupChatMessageRetract = "group_chat_retract"
 
     case chatRerequest = "chat_rerequest"
+
+    case missedCall = "missed_call"
 }
 
 class NotificationMetadata: Codable {
@@ -604,6 +606,11 @@ class NotificationMetadata: Codable {
         }
     }
 
+    func populateMissedCallContent(contactStore: ContactStore) {
+        title = contactStore.fullNameIfAvailable(for: fromId, ownName: nil, showPushNumber: true) ?? Localizations.unknownContact
+        body = Localizations.newMissedCallNotificationBody
+    }
+
     static func bodyText(from chatContent: ChatContent, contactStore: ContactStore) -> String? {
         // NB: contactStore will be needed once we support mentions
         switch chatContent {
@@ -650,13 +657,17 @@ extension NotificationMetadata {
         switch contentType {
         case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract:
             return true
-        case .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest:
+        case .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest, .missedCall:
             return false
         }
     }
 
     var isChatNotification: Bool {
         return contentType == .chatMessage || contentType == .groupChatMessage
+    }
+
+    var isMissedCallNotification: Bool {
+        return contentType == .missedCall
     }
     
     var isGroupChatNotification: Bool {
@@ -671,7 +682,7 @@ extension NotificationMetadata {
         switch contentType {
         case .newFriend, .newInvitee, .newContact:
             return true
-        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .groupAdd, .chatRerequest:
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .groupAdd, .chatRerequest, .missedCall:
             return false
         }
     }
@@ -680,7 +691,7 @@ extension NotificationMetadata {
         switch contentType {
         case .groupFeedPost, .groupFeedComment, .groupChatMessage, .groupFeedPostRetract, .groupFeedCommentRetract, .groupChatMessageRetract, .groupAdd:
             return true
-        case .feedPost, .feedComment, .feedPostRetract, .feedCommentRetract, .chatMessage, .chatMessageRetract, .newFriend, .newInvitee, .newContact, .chatRerequest:
+        case .feedPost, .feedComment, .feedPostRetract, .feedCommentRetract, .chatMessage, .chatMessageRetract, .newFriend, .newInvitee, .newContact, .chatRerequest, .missedCall:
             return false
         }
     }
@@ -705,7 +716,7 @@ extension NotificationMetadata {
         switch contentType {
         case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract:
             return true
-        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact, .chatRerequest:
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact, .chatRerequest, .missedCall:
             return false
         }
     }
@@ -714,7 +725,7 @@ extension NotificationMetadata {
         switch contentType {
         case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact:
             return true
-        case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract, .chatRerequest:
+        case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract, .chatRerequest, .missedCall:
             return false
         }
     }

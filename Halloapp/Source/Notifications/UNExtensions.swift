@@ -72,6 +72,15 @@ extension UNMutableNotificationContent {
         DDLogInfo("UNExtensions/populateFeedCommentBody updated content")
     }
 
+    func populateMissedCallBody(using metadata: NotificationMetadata, contactStore: ContactStore) {
+        metadata.populateMissedCallContent(contactStore: contactStore)
+        title = metadata.title
+        body = metadata.body
+        // encode and store metadata - this will be used to handle user response on the notification.
+        userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
+        DDLogInfo("UNExtensions/populateMissedCallBody")
+    }
+
 }
 
 extension UNUserNotificationCenter {
@@ -210,4 +219,10 @@ extension Localizations {
             comment: "New post notification text when post is a voice note.")
     }
 
+    static var newMissedCallNotificationBody: String {
+        NSLocalizedString(
+            "notification.voicecall.missed",
+            value: "☎️ Missed voice call",
+            comment: "Missed voice call notification text to be shown to the user.")
+    }
 }
