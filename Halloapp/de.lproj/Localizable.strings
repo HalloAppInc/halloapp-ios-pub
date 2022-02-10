@@ -137,7 +137,7 @@
 "call.button.end" = "Anruf beenden";
 
 /* Label for button that toggles mute status during call */
-"call.button.mute" = "Stummschaltung";
+"call.button.mute" = "Stumm";
 
 /* Label for button that toggles speakerphone status during call */
 "call.button.speaker" = "Lautsprecher";

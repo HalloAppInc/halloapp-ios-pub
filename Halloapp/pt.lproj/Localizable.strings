@@ -157,6 +157,9 @@
 /* Status displayed when call fails. */
 "call.status.failed" = "Falha ao realizar à chamada";
 
+/* Status displayed when call is on hold. */
+"call.status.held" = "em espera";
+
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "Recebendo Chamada";
 

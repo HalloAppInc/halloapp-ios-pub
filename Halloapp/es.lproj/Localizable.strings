@@ -157,6 +157,9 @@
 /* Status displayed when call fails. */
 "call.status.failed" = "llamada fallida";
 
+/* Status displayed when call is on hold. */
+"call.status.held" = "en espera";
+
 /* Status displayed when incoming call starts */
 "call.status.incoming" = "llamada entrante";
 
@@ -814,6 +817,9 @@
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "Invita mediante enlace";
 
+/* Text shown when inviting to a group using a QR code */
+"join.group.using.qr.code" = "¡Únete a mi grupo de HalloApp!";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Búsqueda";
 
@@ -1206,6 +1212,9 @@
 
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "¡Se ha verificado con éxito el número de seguridad de %@!";
+
+/* Text shown to instruct using a QR code for joining a group */
+"scan.to.join.group.using.qr.code" = "Para unirte, escanea el código QR con la cámara de tu teléfono.";
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor, selecciona al menos un contacto.";
