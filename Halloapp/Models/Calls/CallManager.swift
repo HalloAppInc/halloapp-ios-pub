@@ -860,9 +860,8 @@ extension CallManager: HalloCallDelegate {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/resetWhisperSession")
                 AppContext.shared.messageCrypter.resetWhisperSession(for: peerUserID)
             }
-            if activeCall?.isMissedCall == true {
-                presentMissedCallNotification(id: callID, from: peerUserID)
-            }
+            // Check if it is a missed call.
+            let isMissedCall: Bool = activeCall?.isMissedCall ?? false
             // Save call status to CoreData
             let durationMs = callDurationMs
             MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
@@ -876,6 +875,9 @@ extension CallManager: HalloCallDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [self] in
                 reportCallEnded(id: callID, reason: endCall.cxEndCallReason)
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
+                if isMissedCall {
+                    presentMissedCallNotification(id: callID, from: peerUserID)
+                }
             }
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
         }
