@@ -156,7 +156,7 @@ fileprivate extension UIView {
             return nil
         }
 
-        context.translateBy(x: 0, y: -portion.minY)
+        context.translateBy(x: -portion.minX, y: -portion.minY)
         drawHierarchy(in: bounds, afterScreenUpdates: true)
         let image = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
