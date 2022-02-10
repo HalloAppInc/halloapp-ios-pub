@@ -70,6 +70,8 @@
 		32C90672278CC9C500E292EE /* MessageTimeHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C90671278CC9C500E292EE /* MessageTimeHeaderView.swift */; };
 		32C9067D278E5ABE00E292EE /* HalloAppClip.app in Embed App Clips (1 item) */ = {isa = PBXBuildFile; fileRef = 329E03F8268247BC00C2D250 /* HalloAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		32E60AFA271F510800D6A368 /* PostComposerLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */; };
+		32E6970427B3259100599CC7 /* MessageUnreadHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E6970327B3259100599CC7 /* MessageUnreadHeaderView.swift */; };
+		32E6970727B4442B00599CC7 /* MessageHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E6970627B4442B00599CC7 /* MessageHeaderView.swift */; };
 		32ECB6DB27725E2C004DABBA /* MessageCommentHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */; };
 		32ECB6E9277515DD004DABBA /* QuotedMessageCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */; };
 		32F8FB032748556200E52121 /* PostComposerLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */; };
@@ -597,6 +599,8 @@
 		32C90671278CC9C500E292EE /* MessageTimeHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageTimeHeaderView.swift; sourceTree = "<group>"; };
 		32E2481C270BB66200E0D12D /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerLinkPreviewView.swift; sourceTree = "<group>"; };
+		32E6970327B3259100599CC7 /* MessageUnreadHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageUnreadHeaderView.swift; sourceTree = "<group>"; };
+		32E6970627B4442B00599CC7 /* MessageHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageHeaderView.swift; sourceTree = "<group>"; };
 		32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCommentHeaderView.swift; sourceTree = "<group>"; };
 		32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMessageCellView.swift; sourceTree = "<group>"; };
 		33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsInCommonViewController.swift; sourceTree = "<group>"; };
@@ -1198,6 +1202,8 @@
 				32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */,
 				32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */,
 				32C90671278CC9C500E292EE /* MessageTimeHeaderView.swift */,
+				32E6970327B3259100599CC7 /* MessageUnreadHeaderView.swift */,
+				32E6970627B4442B00599CC7 /* MessageHeaderView.swift */,
 			);
 			path = FlatComment;
 			sourceTree = "<group>";
@@ -2773,6 +2779,7 @@
 				68E4619625C9C93B008B5698 /* ExpiredVersionViewController.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,
 				EAA424F124EC71450025CBBE /* XMPPGroup.swift in Sources */,
+				32E6970727B4442B00599CC7 /* MessageHeaderView.swift in Sources */,
 				6A1BFD30260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift in Sources */,
 				761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */,
 				EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */,
@@ -2897,6 +2904,7 @@
 				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,
 				EA3585792450BE3300E6E8AB /* ChatViewController.swift in Sources */,
 				EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */,
+				32E6970427B3259100599CC7 /* MessageUnreadHeaderView.swift in Sources */,
 				F8E60547266F931E00DDEB2A /* ImageEditViewController.swift in Sources */,
 				764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */,
 				EAD476F72458F03700EF8591 /* ChatMessage+CoreDataProperties.swift in Sources */,

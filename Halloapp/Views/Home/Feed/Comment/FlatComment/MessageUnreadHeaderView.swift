@@ -1,18 +1,17 @@
 //
-//  MessageTimeHeaderView.swift
+//  MessageUnreadHeaderView.swift
 //  HalloApp
 //
-//  Created by Nandini Shetty on 1/10/22.
+//  Created by Nandini Shetty on 2/8/22.
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
 import UIKit
-import Core
 
-class MessageTimeHeaderView: UICollectionReusableView {
+class MessageUnreadHeaderView: UICollectionViewCell {
 
     static var elementKind: String {
-        return String(describing: MessageTimeHeaderView.self)
+        return String(describing: MessageUnreadHeaderView.self)
     }
 
     private var headerView: MessageHeaderView
@@ -31,7 +30,7 @@ class MessageTimeHeaderView: UICollectionReusableView {
 
     private func commonInit() {
         self.preservesSuperviewLayoutMargins = true
-        self.addSubview(headerView)
+        contentView.addSubview(headerView)
         headerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             headerView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -43,5 +42,6 @@ class MessageTimeHeaderView: UICollectionReusableView {
 
     func configure(headerText: String) {
         headerView.configure(headerText: headerText)
+        headerView.timestampLabel.font = UIFont.systemFont(ofSize: 15, weight: .regular)
     }
 }
