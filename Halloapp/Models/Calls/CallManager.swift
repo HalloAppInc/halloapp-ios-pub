@@ -309,7 +309,7 @@ final class CallManager: NSObject, CXProviderDelegate {
             callDetailsMap[activeCallID.callUUID] = nil
             // Save call status to CoreData
             let durationMs = callDurationMs
-            MainAppContext.shared.mainDataStore.updateCall(with: activeCallID) { [self] call in
+            MainAppContext.shared.mainDataStore.updateCall(with: activeCallID) { call in
                 call.durationMs = durationMs
                 call.endReason = reason
             }
