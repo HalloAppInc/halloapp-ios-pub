@@ -148,8 +148,14 @@ class CallViewController: UIViewController {
     override func viewDidLoad() {
         DDLogInfo("CallViewController/viewDidLoad")
         super.viewDidLoad()
-        view.backgroundColor = .black
+        view.backgroundColor = .black.withAlphaComponent(0.6)
         view.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+
+        let blurEffect = UIBlurEffect(style: UIBlurEffect.Style.systemThinMaterialDark)
+        let blurEffectView = UIVisualEffectView(effect: blurEffect)
+        blurEffectView.frame = view.bounds
+        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(blurEffectView)
 
         let avatarView = AvatarView()
         avatarView.configure(with: peerUserID, using: MainAppContext.shared.avatarStore)
