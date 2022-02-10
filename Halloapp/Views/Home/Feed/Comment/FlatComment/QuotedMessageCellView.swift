@@ -58,13 +58,7 @@ class QuotedMessageCellView: UIView {
     private lazy var bubbleView: UIView = {
         let bubbleView = UIView()
         bubbleView.backgroundColor = UIColor.quotedMessageBackground
-        bubbleView.layer.borderWidth = 0.5
-        bubbleView.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
-        bubbleView.layer.cornerRadius = 12
-        bubbleView.layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
-        bubbleView.layer.shadowOffset = CGSize(width: 0, height: 2)
-        bubbleView.layer.shadowRadius = 4
-        bubbleView.layer.shadowOpacity = 0.5
+        bubbleView.layer.cornerRadius = 10
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
         return bubbleView
     }()
@@ -128,7 +122,6 @@ class QuotedMessageCellView: UIView {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        bubbleView.layer.shadowPath = UIBezierPath(roundedRect: bubbleView.bounds, cornerRadius: 15).cgPath
     }
 
     func configureWithComment(comment: FeedPostComment, userColorAssignment: UIColor) {

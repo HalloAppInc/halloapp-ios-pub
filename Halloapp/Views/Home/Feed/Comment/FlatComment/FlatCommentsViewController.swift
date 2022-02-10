@@ -34,13 +34,13 @@ private extension Localizations {
 
     static func unreadMessagesHeaderSingle(unreadCount: String) -> String {
         return String(
-            format: NSLocalizedString("comment.unread.messages.header.single", value: "%@ Unread Message", comment: "Header that appears above one single unread message in the comments view."),
+            format: NSLocalizedString("comment.unread.messages.header.single", value: "%@ Unread Comment", comment: "Header that appears above one single unread message in the comments view."),
             unreadCount)
     }
 
     static func unreadMessagesHeaderPlural(unreadCount: String) -> String {
         return String(
-            format: NSLocalizedString("comment.unread.messages.header.plural", value: "%@ Unread Messages", comment: "Header that appears above all the unread comments in the comments view when there are more than one unread message"),
+            format: NSLocalizedString("comment.unread.messages.header.plural", value: "%@ Unread Comments", comment: "Header that appears above all the unread comments in the comments view when there are more than one unread message"),
             unreadCount)
     }
 }
@@ -163,7 +163,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
                             parentUserColorAssignment = self.getUserColorAssignment(userId: parentCommentUserId)
                         }
 
-                        let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(indexPath: indexPath, currentComment: feedComment)
+                        let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(currentComment: feedComment)
                         itemCell.configureWithComment(comment: feedComment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
                         itemCell.delegate = self
                         itemCell.textLabel.delegate = self
@@ -213,12 +213,17 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         return dataSource
     }()
 
-    private func isPreviousMessageSameSender(indexPath: IndexPath, currentComment: FeedPostComment) -> Bool {
-        let previousIndexPath = IndexPath(row: indexPath.row - 1, section: indexPath.section)
-        if let previousComment =  fetchedResultsController?.getOptionalObject(at: previousIndexPath) as? FeedPostComment {
-            return previousComment.userId == currentComment.userId
+    private func isPreviousMessageSameSender(currentComment: FeedPostComment) -> Bool {
+        var previousComment: FeedPostComment?
+        guard let comments = fetchedResultsController?.fetchedObjects else { return false }
+        for comment in comments {
+            if comment.id == currentComment.id {
+                guard let previousComment = previousComment else { return false }
+                return previousComment.userId == currentComment.userId
+            } else {
+                previousComment = comment
+            }
         }
-        // If there is not previous comment, return false
         return false
     }
 
@@ -462,7 +467,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             if let parentCommentUserId = comment.parent?.userId {
                 parentUserColorAssignment = self.getUserColorAssignment(userId: parentCommentUserId)
             }
-            let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(indexPath: indexPath, currentComment: comment)
+            let isPreviousMessageFromSameSender = self.isPreviousMessageSameSender(currentComment: comment)
             cell.configureWithComment(comment: comment, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         })
         confirmationActionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
