@@ -138,7 +138,12 @@ public class FeedDownloadManager {
                         task.encryptedFilePath = self.relativePath(from: fileURL)
                         self.cleanUpResumeData(for: task)
                         self.decryptionQueue.async {
-                            self.decryptDataInChunks(for: task)
+                            switch task.mediaData.blobVersion {
+                            case .default:
+                                self.decryptDataInChunks(for: task)
+                            case .chunked:
+                                self.decryptChunkedMedia(for: task)
+                            }
                         }
                     } else {
                         task.error = .networkError
@@ -398,6 +403,105 @@ public class FeedDownloadManager {
 
         self.taskFinished(task)
 
+    }
+
+    private func decryptChunkedMedia(for task: Task) {
+        guard let encryptedFilePath = task.encryptedFilePath else {
+            DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/error Invalid encrypted file path.")
+            task.error = .unknownError
+            self.taskFailed(task)
+            return
+        }
+
+        // Fetch keys
+        guard let mediaKey = Data(base64Encoded: task.mediaData.key),
+              let sha256Hash = Data(base64Encoded: task.mediaData.sha256) else {
+            DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/error Invalid key or hash.")
+            task.error = .unknownError
+            self.taskFailed(task)
+            return
+        }
+
+        let chunkedParameters: ChunkedMediaParameters
+        do {
+            chunkedParameters = try ChunkedMediaParameters(blobSize: task.mediaData.blobSize, chunkSize: task.mediaData.chunkSize)
+        } catch {
+            DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/error Error computing the chunk parameters.")
+            task.error = .unknownError
+            self.taskFailed(task)
+            return
+        }
+
+        var decryptionSuccessful = false
+        let encryptedFileURL = fileURL(forRelativeFilePath: encryptedFilePath)
+        let decryptedFileURL = encryptedFileURL.deletingPathExtension()
+
+        DDLogInfo("FeedDownloadManager/\(task.id)/decryptChunkedMedia/file name=[\(decryptedFileURL.absoluteString)]")
+        do {
+            if FileManager.default.fileExists(atPath: decryptedFileURL.path) {
+                // if the file already exists - delete and decrypt the whole file again!
+                DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/file/duplicate exists")
+                try FileManager.default.removeItem(at: decryptedFileURL)
+                DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/file/duplicate delete [\(decryptedFileURL)]")
+            }
+            try FileManager.default.createDirectory(at: decryptedFileURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+            FileManager.default.createFile(atPath: decryptedFileURL.path, contents: nil, attributes: nil)
+            DDLogInfo("FeedDownloadManager/\(task.id)/decryptChunkedMedia/file/create: [\(decryptedFileURL)]")
+        } catch {
+            DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/file/error: failed to create file: [\(error)]")
+            task.error = .unknownError
+            self.taskFailed(task)
+            return
+        }
+
+        guard let encryptedFileHandle = try? FileHandle(forReadingFrom: encryptedFileURL) else {
+            DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/error Could not open encrypted file")
+            task.error = .unknownError
+            self.taskFailed(task)
+            return
+        }
+        defer {
+            encryptedFileHandle.closeFile()
+            if decryptionSuccessful {
+                do {
+                    try FileManager.default.removeItem(at: encryptedFileURL)
+                } catch {
+                    DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/delete-encrypted/error [\(error)]")
+                }
+            }
+        }
+        guard let decryptedFileHandle = try? FileHandle(forWritingTo: decryptedFileURL) else {
+            DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/error Could not open decrypted file")
+            task.error = .unknownError
+            self.taskFailed(task)
+            return
+        }
+        defer {
+            decryptedFileHandle.closeFile()
+        }
+
+        let ts = Date()
+        var fileSize: UInt64 = 0
+        do {
+            try ChunkedMediaCrypter.decryptChunkedMedia(
+                mediaType: task.mediaData.type,
+                mediaKey: mediaKey,
+                sha256Hash: sha256Hash,
+                chunkedParameters: chunkedParameters,
+                readChunkData: { _, chunkSize in encryptedFileHandle.readData(ofLength: chunkSize) },
+                writeChunkData: { chunkData, _ in decryptedFileHandle.write(chunkData)})
+            fileSize = decryptedFileHandle.offsetInFile
+        } catch {
+            task.error = .decryptionFailed
+            DDLogError("FeedDownloadManager/\(task.id)/decryptChunkedMedia/decrypt/failed [\(error)]")
+            self.taskFailed(task)
+            return
+        }
+        DDLogInfo("FeedDownloadManager/\(task.id)/decryptChunkedMedia/decrypt/finished full-fileSize=[\(fileSize)] duration: \(-ts.timeIntervalSinceNow) s")
+
+        decryptionSuccessful = true
+        task.decryptedFilePath = relativePath(from: decryptedFileURL)
+        self.taskFinished(task)
     }
 
     private func taskFinished(_ task: Task) {

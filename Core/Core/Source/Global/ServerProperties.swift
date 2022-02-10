@@ -31,6 +31,9 @@ public struct ServerProperties {
         case isflatCommentsEnabled = "flat_comments"
         case isVoicePostsEnabled = "voice_posts"
         case canHoldCalls = "call_hold"
+        case streamingUploadChunkSize = "streaming_upload_chunk_size"
+        case streamingInitialDownloadSize = "streaming_initial_download_size"
+        case streamingSendingEnabled = "streaming_sending_enabled"
     }
 
     private struct UserDefaultsKey {
@@ -61,6 +64,9 @@ public struct ServerProperties {
         static let isflatCommentsEnabled = false
         static let isVoicePostsEnabled = false
         static let canHoldCalls = false
+        static let streamingUploadChunkSize = 65536
+        static let streamingInitialDownloadSize = 5242880
+        static let streamingSendingEnabled = false
     }
 
     // MARK: Storage
@@ -255,5 +261,17 @@ public struct ServerProperties {
 
     public static var canHoldCalls: Bool {
         ServerProperties.bool(forKey: .canHoldCalls) ?? Defaults.canHoldCalls
+    }
+
+    public static var streamingUploadChunkSize: Int {
+        ServerProperties.integer(forKey: .streamingUploadChunkSize) ?? Defaults.streamingUploadChunkSize
+    }
+
+    public static var streamingInitialDownloadSize: Int {
+        ServerProperties.integer(forKey: .streamingInitialDownloadSize) ?? Defaults.streamingInitialDownloadSize
+    }
+
+    public static var streamingSendingEnabled: Bool {
+        ServerProperties.bool(forKey: .streamingSendingEnabled) ?? Defaults.streamingSendingEnabled
     }
 }

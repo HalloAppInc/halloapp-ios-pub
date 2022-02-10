@@ -76,6 +76,7 @@
 		32ECB6E9277515DD004DABBA /* QuotedMessageCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */; };
 		32F8FB032748556200E52121 /* PostComposerLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E60AF9271F510800D6A368 /* PostComposerLinkPreviewView.swift */; };
 		33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */; };
+		5B649728276B91BA000031C2 /* Feed6ToFeed7.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 5B649727276B91B9000031C2 /* Feed6ToFeed7.xcmappingmodel */; };
 		5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */; };
 		5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF5D12224F5295300F272D8 /* CameraViewController.swift */; };
 		680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680528CC264F14B9001F6A57 /* SafetyNumber.swift */; };
@@ -604,7 +605,10 @@
 		32ECB6DA27725E2C004DABBA /* MessageCommentHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCommentHeaderView.swift; sourceTree = "<group>"; };
 		32ECB6E8277515DD004DABBA /* QuotedMessageCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMessageCellView.swift; sourceTree = "<group>"; };
 		33816C0C2664E5B500E05E21 /* GroupsInCommonViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsInCommonViewController.swift; sourceTree = "<group>"; };
+		5B649727276B91B9000031C2 /* Feed6ToFeed7.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed6ToFeed7.xcmappingmodel; sourceTree = "<group>"; };
 		5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
+		5BD8B040276B6105006755BC /* Feed7.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed7.xcdatamodel; sourceTree = "<group>"; };
+		5BD8B042276B620C006755BC /* Chat2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Chat2.xcdatamodel; sourceTree = "<group>"; };
 		5BF5D12224F5295300F272D8 /* CameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
 		680528CC264F14B9001F6A57 /* SafetyNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyNumber.swift; sourceTree = "<group>"; };
 		6807C3FE26AFA7B500BA3586 /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -1548,6 +1552,7 @@
 				321A70102704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift */,
 				321A70122704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift */,
 				329DFD55270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel */,
+				5B649727276B91B9000031C2 /* Feed6ToFeed7.xcmappingmodel */,
 			);
 			path = "CoreData Stack";
 			sourceTree = "<group>";
@@ -2696,6 +2701,7 @@
 				EA3585712450BE2900E6E8AB /* Chat.xcdatamodeld in Sources */,
 				EAA424FC24ECF1480025CBBE /* ChatGroupMessage+CoreDataClass.swift in Sources */,
 				EAEE49F0277153660042E654 /* ChatEvent+CoreDataClass.swift in Sources */,
+				5B649728276B91BA000031C2 /* Feed6ToFeed7.xcmappingmodel in Sources */,
 				33816C0D2664E5B500E05E21 /* GroupsInCommonViewController.swift in Sources */,
 				68F935C5252CD00800FA6E75 /* ChatMention+CoreDataClass.swift in Sources */,
 				EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */,
@@ -4790,6 +4796,7 @@
 		76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				5BD8B040276B6105006755BC /* Feed7.xcdatamodel */,
 				6A911F31270EAD8F003DCB7A /* Feed6.xcdatamodel */,
 				321A700E2704FD3A005603B8 /* Feed5.xcdatamodel */,
 				323E88D626CC175900202655 /* Feed4.xcdatamodel */,
@@ -4797,7 +4804,7 @@
 				6ABBD24A2601DD990041B9ED /* Feed2.xcdatamodel */,
 				76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */,
 			);
-			currentVersion = 6A911F31270EAD8F003DCB7A /* Feed6.xcdatamodel */;
+			currentVersion = 5BD8B040276B6105006755BC /* Feed7.xcdatamodel */;
 			path = Feed.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
@@ -4805,9 +4812,10 @@
 		EA35856C2450BE2900E6E8AB /* Chat.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				5BD8B042276B620C006755BC /* Chat2.xcdatamodel */,
 				EA35856D2450BE2900E6E8AB /* Chat.xcdatamodel */,
 			);
-			currentVersion = EA35856D2450BE2900E6E8AB /* Chat.xcdatamodel */;
+			currentVersion = 5BD8B042276B620C006755BC /* Chat2.xcdatamodel */;
 			path = Chat.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

@@ -581,7 +581,7 @@ fileprivate struct PostComposerView: View {
                         ImageServer.shared.clearTask(for: previous)
                     }
 
-                    ImageServer.shared.prepare(item.type, url: url)
+                    ImageServer.shared.prepare(item.type, url: url, shouldStreamVideo: false)
                 })
             }
         }

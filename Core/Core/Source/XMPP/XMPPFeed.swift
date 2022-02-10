@@ -225,13 +225,16 @@ public struct MentionData: FeedMentionProtocol {
 
 public struct FeedMediaData: FeedMediaProtocol {
 
-    public init(id: String, url: URL?, type: FeedMediaType, size: CGSize, key: String, sha256: String) {
+    public init(id: String, url: URL?, type: FeedMediaType, size: CGSize, key: String, sha256: String, blobVersion: BlobVersion, chunkSize: Int32, blobSize: Int64) {
         self.id = id
         self.url = url
         self.type = type
         self.size = size
         self.key = key
         self.sha256 = sha256
+        self.blobVersion = blobVersion
+        self.chunkSize = chunkSize
+        self.blobSize = blobSize
     }
 
     public init(from media: FeedMediaProtocol) {
@@ -241,7 +244,10 @@ public struct FeedMediaData: FeedMediaProtocol {
             type: media.type,
             size: media.size,
             key: media.key,
-            sha256: media.sha256)
+            sha256: media.sha256,
+            blobVersion: media.blobVersion,
+            chunkSize: media.chunkSize,
+            blobSize: media.blobSize)
     }
 
     public let id: String
@@ -250,6 +256,9 @@ public struct FeedMediaData: FeedMediaProtocol {
     public let size: CGSize
     public let key: String
     public let sha256: String
+    public let blobVersion: BlobVersion
+    public let chunkSize: Int32
+    public let blobSize: Int64
 
     public init?(id: String, protoMedia: Clients_Media) {
         guard let type: FeedMediaType = {
@@ -269,6 +278,9 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.size = CGSize(width: width, height: height)
         self.key = protoMedia.encryptionKey.base64EncodedString()
         self.sha256 = protoMedia.ciphertextHash.base64EncodedString()
+        self.blobVersion = BlobVersion.init(fromProto: protoMedia.blobVersion)
+        self.chunkSize = protoMedia.chunkSize
+        self.blobSize = protoMedia.blobSize
     }
 
     public init?(id: String, clientImage: Clients_Image) {
@@ -288,6 +300,9 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.size = size
         self.key = clientImage.img.encryptionKey.base64EncodedString()
         self.sha256 = clientImage.img.ciphertextHash.base64EncodedString()
+        self.blobVersion = .default
+        self.chunkSize = 0
+        self.blobSize = 0
     }
 
     public init?(id: String, clientVideo: Clients_Video) {
@@ -308,6 +323,9 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.size = size
         self.key = clientVideo.video.encryptionKey.base64EncodedString()
         self.sha256 = clientVideo.video.ciphertextHash.base64EncodedString()
+        self.blobVersion = BlobVersion.init(fromProto: clientVideo.streamingInfo.blobVersion)
+        self.chunkSize = clientVideo.streamingInfo.chunkSize
+        self.blobSize = clientVideo.streamingInfo.blobSize
     }
 
     public init?(id: String, clientVoiceNote: Clients_VoiceNote) {
@@ -322,6 +340,9 @@ public struct FeedMediaData: FeedMediaProtocol {
         self.size = .zero
         self.key = clientVoiceNote.audio.encryptionKey.base64EncodedString()
         self.sha256 = clientVoiceNote.audio.ciphertextHash.base64EncodedString()
+        self.blobVersion = .default
+        self.chunkSize = 0
+        self.blobSize = 0
     }
 
     public init?(id: String, albumMedia: Clients_AlbumMedia) {

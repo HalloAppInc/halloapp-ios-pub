@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19574" systemVersion="21A559" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="FeedItemResendAttempt" representedClassName="FeedItemResendAttempt" syncable="YES">
+        <attribute name="contentID" optional="YES" attributeType="String"/>
+        <attribute name="retryCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userID" optional="YES" attributeType="String"/>
+        <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="resendAttempts" inverseEntity="FeedPostComment"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="resendAttempts" inverseEntity="FeedPost"/>
+    </entity>
+    <entity name="FeedLinkPreview" representedClassName="FeedLinkPreview" syncable="YES">
+        <attribute name="desc" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="url" optional="YES" attributeType="URI"/>
+        <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="linkPreviews" inverseEntity="FeedPostComment"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedPostMedia" inverseName="linkPreview" inverseEntity="FeedPostMedia"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="linkPreviews" inverseEntity="FeedPost"/>
+    </entity>
+    <entity name="FeedMention" representedClassName="FeedMention" syncable="YES">
+        <attribute name="index" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="userID" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="FeedNotification" representedClassName="FeedNotification" syncable="YES">
+        <attribute name="commentId" optional="YES" attributeType="String"/>
+        <attribute name="eventValue" attributeType="Integer 16" usesScalarValueType="YES"/>
+        <attribute name="mediaPreview" optional="YES" attributeType="Binary"/>
+        <attribute name="postId" attributeType="String"/>
+        <attribute name="postMediaType" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="read" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userId" attributeType="String"/>
+        <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedMention"/>
+    </entity>
+    <entity name="FeedPost" representedClassName="FeedPost" syncable="YES">
+        <attribute name="groupId" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="rawData" optional="YES" attributeType="Binary"/>
+        <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="unreadCount" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userId" attributeType="String"/>
+        <relationship name="comments" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FeedPostComment" inverseName="post" inverseEntity="FeedPostComment"/>
+        <relationship name="info" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FeedPostInfo" inverseName="post" inverseEntity="FeedPostInfo"/>
+        <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedLinkPreview" inverseName="post" inverseEntity="FeedLinkPreview"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Deny" destinationEntity="FeedPostMedia" inverseName="post" inverseEntity="FeedPostMedia"/>
+        <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedMention"/>
+        <relationship name="resendAttempts" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FeedItemResendAttempt" inverseName="post" inverseEntity="FeedItemResendAttempt"/>
+        <fetchIndex name="byTimestamp">
+            <fetchIndexElement property="timestamp" type="Binary" order="descending"/>
+        </fetchIndex>
+        <fetchIndex name="byTimestampAndUser">
+            <fetchIndexElement property="userId" type="Binary" order="ascending"/>
+            <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byGroupId">
+            <fetchIndexElement property="groupId" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="FeedPostComment" representedClassName="FeedPostComment" syncable="YES">
+        <attribute name="id" attributeType="String"/>
+        <attribute name="rawData" optional="YES" attributeType="Binary"/>
+        <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="text" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userId" attributeType="String"/>
+        <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedLinkPreview" inverseName="comment" inverseEntity="FeedLinkPreview"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedPostMedia" inverseName="comment" inverseEntity="FeedPostMedia"/>
+        <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedMention"/>
+        <relationship name="parent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="replies" inverseEntity="FeedPostComment"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="comments" inverseEntity="FeedPost"/>
+        <relationship name="replies" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FeedPostComment" inverseName="parent" inverseEntity="FeedPostComment"/>
+        <relationship name="resendAttempts" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FeedItemResendAttempt" inverseName="comment" inverseEntity="FeedItemResendAttempt"/>
+        <fetchIndex name="byTimetamp">
+            <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="FeedPostInfo" representedClassName="FeedPostInfo" syncable="YES">
+        <attribute name="privacyListTypeValue" optional="YES" attributeType="String"/>
+        <attribute name="receiptInfo" optional="YES" attributeType="Transformable" valueTransformerName="FeedPostReceiptInfoTransformer"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="info" inverseEntity="FeedPost"/>
+    </entity>
+    <entity name="FeedPostMedia" representedClassName="FeedPostMedia" syncable="YES">
+        <attribute name="blobSize" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="blobVersionValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="chunkSize" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="height" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="key" attributeType="String"/>
+        <attribute name="order" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="relativeFilePath" optional="YES" attributeType="String"/>
+        <attribute name="sha256" attributeType="String"/>
+        <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="uploadUrl" optional="YES" attributeType="URI"/>
+        <attribute name="url" optional="YES" attributeType="URI"/>
+        <attribute name="width" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="media" inverseEntity="FeedPostComment"/>
+        <relationship name="linkPreview" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedLinkPreview" inverseName="media" inverseEntity="FeedLinkPreview"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="media" inverseEntity="FeedPost"/>
+    </entity>
+    <elements>
+        <element name="FeedLinkPreview" positionX="-45" positionY="126" width="128" height="134"/>
+        <element name="FeedMention" positionX="-45" positionY="117" width="128" height="88"/>
+        <element name="FeedNotification" positionX="-18" positionY="45" width="128" height="193"/>
+        <element name="FeedPost" positionX="-63" positionY="-18" width="128" height="239"/>
+        <element name="FeedPostComment" positionX="-54" positionY="18" width="128" height="224"/>
+        <element name="FeedPostInfo" positionX="-45" positionY="117" width="128" height="88"/>
+        <element name="FeedPostMedia" positionX="-27" positionY="81" width="128" height="269"/>
+        <element name="FeedItemResendAttempt" positionX="-45" positionY="135" width="128" height="104"/>
+    </elements>
+</model>

@@ -12,6 +12,12 @@ import Combine
 import Core
 import SwiftUI
 
+enum MediaProcessingError: Error {
+    case failedToReadSize
+    case failedToOpenFile
+    case unexpectedEndOfFile
+}
+
 enum ImageProcessingError: Error {
     case invalidImage
     case resizeFailure
@@ -29,6 +35,8 @@ struct ImageServerResult {
     var size: CGSize
     var key: String
     var sha256: String
+    var chunkSize: Int32
+    var blobSize: Int64
 
     func copy(to destination: URL) {
         let manager = FileManager.default
@@ -74,6 +82,7 @@ class ImageServer {
         var id: String?
         var index: Int?
         var url: URL
+        var shouldStreamVideo: Bool
         var progress: Float {
             didSet {
                 if let id = self.id {
@@ -97,7 +106,7 @@ class ImageServer {
         var callbacks: [Completion] = []
         var videoExporter: CancelableExporter?
 
-        internal init(id: String?, index: Int?, url: URL, completion: Completion?) {
+        internal init(id: String?, index: Int?, url: URL, shouldStreamVideo: Bool, completion: Completion?) {
             if let completion = completion {
                 self.callbacks.append(completion)
             }
@@ -105,6 +114,7 @@ class ImageServer {
             self.id = id
             self.index = index
             self.url = url
+            self.shouldStreamVideo = shouldStreamVideo
             self.progress = 0
         }
     }
@@ -184,10 +194,10 @@ class ImageServer {
     // Prevents having more than 3 instances of AVAssetReader
     private static let mediaProcessingSemaphore = DispatchSemaphore(value: 3)
 
-    private func find(url: URL, id: String? = nil, index: Int? = nil) -> Task? {
-        if let t = (tasks.first { $0.url == url }) {
+    private func find(url: URL, id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool? = nil) -> Task? {
+        if let t = (tasks.first { $0.url == url && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
             return t
-        } else if let t = (tasks.first { $0.id == id && $0.index == index }) {
+        } else if let t = (tasks.first { $0.id == id && $0.index == index && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
             return t
         }
 
@@ -207,11 +217,11 @@ class ImageServer {
         }
     }
 
-    func prepare(_ type: FeedMediaType, url: URL, for id: String? = nil, index: Int? = nil, completion: Completion? = nil) {
+    func prepare(_ type: FeedMediaType, url: URL, for id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool, completion: Completion? = nil) {
         queue.async { [weak self] in
             guard let self = self else { return }
 
-            if let task = self.find(url: url, id: id, index: index) {
+            if let task = self.find(url: url, id: id, index: index, shouldStreamVideo: shouldStreamVideo) {
                 task.id = id
                 task.index = index
 
@@ -226,7 +236,7 @@ class ImageServer {
                 return
             }
 
-            let task = Task(id: id, index: index, url: url, completion: completion)
+            let task = Task(id: id, index: index, url: url, shouldStreamVideo: shouldStreamVideo, completion: completion)
             self.tasks.append(task)
 
             let onCompletion: (Result<(URL, CGSize), Error>) -> Void = { [weak self] result in
@@ -235,8 +245,14 @@ class ImageServer {
                 switch result {
                 case .success((let processed, let size)):
                     let encrypted = processed.appendingPathExtension("enc")
-                    task.result = self.encrypt(type, input: processed, output: encrypted).map {
-                        ImageServerResult(url: processed, size: size, key: $0.key, sha256: $0.sha256)
+                    if shouldStreamVideo {
+                        task.result = self.encryptChunkedMedia(type, input: processed, output: encrypted).map {
+                            ImageServerResult(url: processed, size: size, key: $0.key, sha256: $0.sha256, chunkSize: $0.chunkSize, blobSize: $0.blobSize)
+                        }
+                    } else {
+                        task.result = self.encrypt(type, input: processed, output: encrypted).map {
+                            ImageServerResult(url: processed, size: size, key: $0.key, sha256: $0.sha256, chunkSize: 0, blobSize: 0)
+                        }
                     }
                 case .failure(let error):
                     task.result = .failure(error)
@@ -283,6 +299,76 @@ class ImageServer {
             DDLogError("ImageServer/media/save-enc/error [\(error)]")
             return .failure(error)
         }
+    }
+
+    private func encryptChunkedMedia(_ type: FeedMediaType, input: URL, output: URL) -> Result<(key: String, sha256: String, chunkSize: Int32, blobSize: Int64), Error> {
+        guard let plaintextResource = try? input.resourceValues(forKeys: [.fileSizeKey]),
+              let plaintextSize = plaintextResource.fileSize else {
+            DDLogError("ImageServer/encryptChunkedMedia/media/error  Could not read file size")
+            return .failure(MediaProcessingError.failedToReadSize)
+        }
+        DDLogInfo("ImageServer/encryptChunkedMedia/media/ready  New media file size: [\(plaintextSize)]")
+
+        let chunkedParameters: ChunkedMediaParameters
+        do {
+            chunkedParameters = try ChunkedMediaParameters(plaintextSize: Int64(plaintextSize), chunkSize: Int32(ServerProperties.streamingUploadChunkSize))
+        } catch {
+            DDLogError("ImageServer/encryptChunkedMedia/media/error  Error while computing chunk parameters")
+            return .failure(error)
+        }
+
+        DDLogInfo("ImageServer/encryptChunkedMedia/media/file name=[\(output.absoluteString)]")
+        do {
+            if FileManager.default.fileExists(atPath: output.path) {
+                // if the file already exists - delete and decrypt the whole file again!
+                DDLogError("ImageServer/encryptChunkedMedia/media/file/duplicate exists")
+                try FileManager.default.removeItem(at: output)
+                DDLogError("ImageServer/encryptChunkedMedia/media/file/duplicate delete [\(output)]")
+            }
+            try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+            FileManager.default.createFile(atPath: output.path, contents: nil, attributes: nil)
+            DDLogInfo("ImageServer/encryptChunkedMedia/media/file/create: [\(output)]")
+        } catch {
+            DDLogError("ImageServer/encryptChunkedMedia/media/file/error: failed to create file: [\(error)]")
+            return .failure(error)
+        }
+
+        guard let plaintextFileHandle = try? FileHandle(forReadingFrom: input) else {
+            DDLogError("ImageServer/encryptChunkedMedia/media/error  Could not open input file")
+            return .failure(MediaProcessingError.failedToOpenFile)
+        }
+        defer {
+            plaintextFileHandle.closeFile()
+        }
+        guard let encryptedFileHandle = try? FileHandle(forWritingTo: output) else {
+            DDLogError("ImageServer/encryptChunkedMedia/media/error  Could not open output file")
+            return .failure(MediaProcessingError.failedToOpenFile)
+        }
+        defer {
+            encryptedFileHandle.closeFile()
+        }
+
+        DDLogDebug("ImageServer/encryptChunkedMedia/encrypt/begin")
+        let ts = Date()
+        let encryptionResult: ChunkedMediaCrypter.EncryptionResult
+        var fileSize: UInt64 = 0
+        do {
+            encryptionResult = try ChunkedMediaCrypter.encryptChunkedMedia(
+                mediaType: type,
+                chunkedParameters: chunkedParameters,
+                readChunkData: { _, chunkSize in plaintextFileHandle.readData(ofLength: chunkSize) },
+                writeChunkData: { chunkData, _ in encryptedFileHandle.write(chunkData) })
+            fileSize = encryptedFileHandle.offsetInFile
+        } catch {
+            DDLogError("ImageServer/encryptChunkedMedia/encrypt/error url=[\(input.description)] [\(error)]")
+            return .failure(error)
+        }
+
+        DDLogDebug("ImageServer/encryptChunkedMedia/encrypt/finished  File size: \(fileSize) bytes  Duration: \(-ts.timeIntervalSinceNow) s")
+        return .success((encryptionResult.mediaKey.base64EncodedString(),
+                         encryptionResult.sha256.base64EncodedString(),
+                         chunkedParameters.chunkSize,
+                         chunkedParameters.blobSize))
     }
 
     private func process(image url: URL, completion: @escaping (Result<(URL, CGSize), Error>) -> Void) {

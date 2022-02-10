@@ -85,31 +85,31 @@ public class MediaHashStore {
 
     // MARK: Fetching
 
-    public func fetch(url: URL, completion: @escaping (MediaHash?) -> Void) {
+    public func fetch(url: URL, blobVersion: BlobVersion, completion: @escaping (MediaHash?) -> Void) {
         guard let hash = try? MediaCrypter.hash(url: url).base64EncodedString() else {
             DDLogError("MediaHashStore/get/error unable to hash file=[\(url)]")
             return completion(nil)
         }
 
-        fetch(hash: hash, completion: completion)
+        fetch(hash: hash, blobVersion: blobVersion, completion: completion)
     }
 
-    public func fetch(data: Data, completion: @escaping (MediaHash?) -> Void) {
-        fetch(hash: MediaCrypter.hash(data: data).base64EncodedString(), completion: completion)
+    public func fetch(data: Data, blobVersion: BlobVersion, completion: @escaping (MediaHash?) -> Void) {
+        fetch(hash: MediaCrypter.hash(data: data).base64EncodedString(), blobVersion: blobVersion, completion: completion)
     }
 
-    public func fetch(hash: String, completion: @escaping (MediaHash?) -> Void) {
+    public func fetch(hash: String, blobVersion: BlobVersion, completion: @escaping (MediaHash?) -> Void) {
         performSeriallyOnBackgroundContext { context in
-            let mediaHash = self.fetch(hash: hash, in: context)
+            let mediaHash = self.fetch(hash: hash, blobVersion: blobVersion, in: context)
             completion(mediaHash)
         }
     }
 
     // should always run on background queue.
-    private func fetch(hash: String, in context: NSManagedObjectContext) -> MediaHash? {
+    private func fetch(hash: String, blobVersion: BlobVersion, in context: NSManagedObjectContext) -> MediaHash? {
         let request: NSFetchRequest<MediaHash> = MediaHash.fetchRequest()
         request.returnsObjectsAsFaults = false
-        request.predicate = NSPredicate(format: "dataHash = %@", hash)
+        request.predicate = NSPredicate(format: "dataHash = %@ AND blobVersionValue = %d", hash, blobVersion.rawValue)
         do {
             return try context.fetch(request).first
         } catch {
@@ -120,20 +120,20 @@ public class MediaHashStore {
 
     // MARK: Updating
 
-    public func update(url: URL, key: String, sha256: String, downloadURL: URL) {
+    public func update(url: URL, blobVersion: BlobVersion, key: String, sha256: String, downloadURL: URL) {
         guard let hash = try? MediaCrypter.hash(url: url).base64EncodedString() else {
             DDLogError("MediaHashStore/insert/error unable to hash file=[\(url)]")
             return
         }
 
-        update(hash: hash, key: key, sha256: sha256, downloadURL: downloadURL)
+        update(hash: hash, blobVersion: blobVersion, key: key, sha256: sha256, downloadURL: downloadURL)
     }
 
-    public func update(data: Data, key: String, sha256: String, downloadURL: URL) {
-        update(hash: MediaCrypter.hash(data: data).base64EncodedString(), key: key, sha256: sha256, downloadURL: downloadURL)
+    public func update(data: Data, blobVersion: BlobVersion, key: String, sha256: String, downloadURL: URL) {
+        update(hash: MediaCrypter.hash(data: data).base64EncodedString(), blobVersion: blobVersion, key: key, sha256: sha256, downloadURL: downloadURL)
     }
 
-    public func update(hash: String, key: String, sha256: String, downloadURL: URL) {
+    public func update(hash: String, blobVersion: BlobVersion, key: String, sha256: String, downloadURL: URL) {
         DDLogInfo("MediaHashStore/update hash=[\(hash)] from=[\(downloadURL)]")
 
         performSeriallyOnBackgroundContext { context in
@@ -149,6 +149,7 @@ public class MediaHashStore {
             }
 
             mediaHash.dataHash = hash
+            mediaHash.blobVersionValue = Int16(blobVersion.rawValue)
             mediaHash.key = key
             mediaHash.sha256 = sha256
             mediaHash.timestamp = Date()
