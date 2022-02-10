@@ -107,6 +107,24 @@ class ThreadListCell: UITableViewCell {
                 messageText = Localizations.chatMessageAudio
             }
 
+        case .missedCall:
+            mediaIcon = UIImage(systemName: "phone.fill.arrow.down.left")?.withTintColor(.red)
+            if messageText.isEmpty {
+                messageText = Localizations.voiceCallMissed
+            }
+
+        case .incomingCall:
+            mediaIcon = UIImage(systemName: "phone.fill.arrow.down.left")
+            if messageText.isEmpty {
+                messageText = Localizations.voiceCall
+            }
+
+        case .outgoingCall:
+            mediaIcon = UIImage(systemName: "phone.fill.arrow.up.right")
+            if messageText.isEmpty {
+                messageText = Localizations.voiceCall
+            }
+
         default:
             break
         }

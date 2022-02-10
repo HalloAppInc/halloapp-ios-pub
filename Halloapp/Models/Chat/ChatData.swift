@@ -298,13 +298,44 @@ class ChatData: ObservableObject {
             )
 
             self.cancellableSet.insert(
-                MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] call in
-                    guard let call = call else { return }
-                    self?.updateChatThread(
-                        type: .oneToOne,
-                        for: call.peerUserID,
-                        block: { $0.lastMsgTimestamp = Date() },
-                        performAfterSave: nil)
+                // Update chat thread when calls are done.
+                MainAppContext.shared.callManager.didCallComplete.sink { [weak self] callID in
+                    guard let self = self else { return }
+                    MainAppContext.shared.mainDataStore.performSeriallyOnBackgroundContext { context in
+                        guard let call = MainAppContext.shared.mainDataStore.call(with: callID, in: context) else {
+                            return
+                        }
+                        let peerUserID = call.peerUserID
+                        let isMissedCall = call.isMissedCall
+                        let isIncomingCall = call.isIncoming
+                        let isOutgoingCall = call.isOutgoing
+                        let duration: TimeInterval = call.durationMs / 1000
+                        let durationString = self.durationString(duration) ?? ""
+
+                        self.updateChatThread(type: .oneToOne, for: peerUserID, block: {
+                            if isMissedCall {
+                                $0.lastMsgText = Localizations.voiceCallMissed
+                                $0.lastMsgMediaType = .missedCall
+                                if !self.isCurrentlyChatting(with: peerUserID) {
+                                    $0.unreadCount += 1
+                                    self.unreadMessageCount += 1
+                                    self.updateUnreadChatsThreadCount()
+                                }
+
+                            } else if isIncomingCall {
+                                $0.lastMsgText = Localizations.voiceCall + " " + durationString
+                                $0.lastMsgMediaType = .incomingCall
+
+                            } else if isOutgoingCall {
+                                $0.lastMsgText = Localizations.voiceCall + " " + durationString
+                                $0.lastMsgMediaType = .outgoingCall
+                            }
+
+                            $0.lastMsgId = callID
+                            $0.lastMsgTimestamp = call.timestamp
+                            $0.lastMsgStatus = .none
+                        }, performAfterSave: nil)
+                    }
                 }
             )
         }
@@ -472,6 +503,20 @@ class ChatData: ObservableObject {
             self.cleanUpOldUploadData()
         }
     }
+
+    // TODO: Move these functions to a util function somewhere.
+    private func durationString(_ timeInterval: TimeInterval) -> String? {
+        guard timeInterval > 0 else {
+            return nil
+        }
+        return Self.durationFormatter.string(from: timeInterval)
+    }
+
+    private static var durationFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter
+    }()
 
     private func updateSendingProgress(for message: ChatMessage) {
         guard let count = message.media?.count, count > 0 else { return }

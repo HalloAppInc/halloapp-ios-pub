@@ -63,9 +63,6 @@ class Call {
                 // state is set to connected only when client answers or received an answer for the call.
                 if state == .connected {
                     isAnswered = true
-                    MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
-                        call.answered = true
-                    }
                 } else if state == .inactive {
                     callFailTImer?.cancel()
                     callFailTImer = nil
@@ -191,12 +188,7 @@ class Call {
         callFailTImer = timer
     }
 
-    private func saveCallStatusAndSendReport(durationMs: Double, reason: EndCallReason) {
-        // Save call status to CoreData
-        MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
-            call.durationMs = durationMs
-            call.endReason = reason
-        }
+    private func sendCallReport(durationMs: Double, reason: EndCallReason) {
         // Send call report to the server.
         let direction = isOutgoing ? "outgoing" : "incoming"
         let networkType = MainAppContext.shared.service.reachabilityConnectionType.lowercased()
@@ -239,7 +231,7 @@ class Call {
     private func endCall(durationMs: Double, reason: EndCallReason) {
         isCallEndedLocally = true
         service.endCall(id: callID, to: peerUserID, reason: reason)
-        saveCallStatusAndSendReport(durationMs: durationMs, reason: reason)
+        sendCallReport(durationMs: durationMs, reason: reason)
         webRTCClient?.end()
         state = .inactive
         DDLogInfo("Call/\(callID)/end/success")
@@ -575,7 +567,7 @@ class Call {
         let durationMs = MainAppContext.shared.callManager.callDurationMs
         callQueue.async { [self] in
             isCallEndedLocally = false
-            saveCallStatusAndSendReport(durationMs: durationMs, reason: reason)
+            sendCallReport(durationMs: durationMs, reason: reason)
             webRTCClient?.end()
             state = .inactive
             DDLogInfo("Call/\(callID)/didReceiveEndCall/success")

@@ -59,15 +59,15 @@ extension Call : Identifiable {
 }
 
 extension Call {
-    var isMissedCall: Bool {
+    public var isMissedCall: Bool {
         return direction == .incoming && answered != true
     }
 
-    var isOutgoing: Bool {
+    public var isOutgoing: Bool {
         return direction == .outgoing
     }
 
-    var isIncoming: Bool {
+    public var isIncoming: Bool {
         return direction == .incoming
     }
 }

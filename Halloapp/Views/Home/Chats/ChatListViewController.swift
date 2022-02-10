@@ -415,7 +415,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 DDLogDebug("ChatListView/reloadDataInMainQueue/empty chatWithUserID: \(thread)")
                 return
             }
-            var chatThreadData = ChatThreadData(chatWithUserID: chatWithUserID, lastMsgID: thread.lastMsgId ?? "", lastMsgStatus: thread.lastMsgStatus, isNew: thread.isNew)
+            var chatThreadData = ChatThreadData(chatWithUserID: chatWithUserID, lastMsgID: thread.lastMsgId ?? "", lastMsgMediaType: thread.lastMsgMediaType, lastMsgStatus: thread.lastMsgStatus, isNew: thread.isNew)
             if isFiltering {
                 if let searchStr = searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces) {
                     chatThreadData.searchStr = searchStr
@@ -719,6 +719,7 @@ fileprivate class ChatsListDataSource: UITableViewDiffableDataSource<Section, Ro
 fileprivate struct ChatThreadData {
     let chatWithUserID: UserID
     let lastMsgID: String
+    var lastMsgMediaType: ChatThread.LastMediaType
     let lastMsgStatus: ChatThread.LastMsgStatus
     let isNew: Bool
     var searchStr: String? = nil
@@ -738,6 +739,7 @@ extension ChatThreadData : Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         return  lhs.chatWithUserID == rhs.chatWithUserID &&
                 lhs.lastMsgID == rhs.lastMsgID &&
+                lhs.lastMsgMediaType == rhs.lastMsgMediaType &&
                 lhs.lastMsgStatus == rhs.lastMsgStatus &&
                 lhs.isNew == rhs.isNew &&
                 lhs.searchStr == rhs.searchStr

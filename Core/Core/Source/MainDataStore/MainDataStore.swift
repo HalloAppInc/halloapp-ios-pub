@@ -146,7 +146,7 @@ open class MainDataStore {
             DDLogInfo("MainDataStore/updateCall/callID: \(callID)")
 
             guard let call = self.call(with: callID, in: managedObjectContext) else {
-                DDLogVerbose("ChatData/updateChatThreadStatus - missing")
+                DDLogVerbose("ChatData/updateCall - missing")
                 return
             }
 
@@ -158,7 +158,7 @@ open class MainDataStore {
         }
     }
 
-    private func call(with callID: CallID, in managedObjectContext: NSManagedObjectContext) -> Call? {
+    public func call(with callID: CallID, in managedObjectContext: NSManagedObjectContext) -> Call? {
         let managedObjectContext = managedObjectContext
         let fetchRequest: NSFetchRequest<Call> = Call.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "callID == %@", callID)

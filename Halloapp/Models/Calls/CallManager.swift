@@ -122,6 +122,7 @@ final class CallManager: NSObject, CXProviderDelegate {
     public let hasActiveCallPublisher = CurrentValueSubject<Bool, Never>(false)
     public let isAnyCallOngoing = PassthroughSubject<Call?, Never>()
     public let didCallFail = PassthroughSubject<Void, Never>()
+    public let didCallComplete = PassthroughSubject<CallID, Never>()
     // TODO: maybe we should just try and have a delegate
     // for all possible call failures and show alerts accordingly.
     public let microphoneAccessDenied = PassthroughSubject<Void, Never>()
@@ -296,9 +297,7 @@ final class CallManager: NSObject, CXProviderDelegate {
     }
 
     private func endActiveCall(reason: EndCallReason) {
-        if let activeCallID = activeCallID {
-            callDetailsMap[activeCallID.callUUID] = nil
-        }
+
         callTimer?.invalidate()
         callTimer = nil
         cancelTimer?.cancel()
@@ -306,6 +305,16 @@ final class CallManager: NSObject, CXProviderDelegate {
         activeCall?.logPeerConnectionStats()
         endDate = Date()
         checkAndPlayEndCallToneAndVibrate()
+        if let activeCallID = activeCallID {
+            callDetailsMap[activeCallID.callUUID] = nil
+            // Save call status to CoreData
+            let durationMs = callDurationMs
+            MainAppContext.shared.mainDataStore.updateCall(with: activeCallID) { [self] call in
+                call.durationMs = callDurationMs
+                call.endReason = reason
+            }
+            didCallComplete.send(activeCallID)
+        }
         activeCall?.end(reason: reason)
         activeCall = nil
         callViewDelegate?.callEnded()
@@ -335,6 +344,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         DDLogInfo("CallManager/startCallDurationTimer")
         DispatchQueue.main.async { [self] in
             guard startDate == nil, callTimer == nil else {
+                DDLogInfo("CallManager/startCallDurationTimer - skipping")
                 return
             }
             startDate = Date()
@@ -752,6 +762,7 @@ extension CallManager: HalloCallDelegate {
                 MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
                     call.endReason = .busy
                 }
+                didCallComplete.send(callID)
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason busy")
             } else {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID)/callUUID: \(callID.callUUID)")
@@ -814,6 +825,7 @@ extension CallManager: HalloCallDelegate {
             MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
                 call.endReason = .busy
             }
+            didCallComplete.send(callID)
         }
     }
 
@@ -851,6 +863,13 @@ extension CallManager: HalloCallDelegate {
             if activeCall?.isMissedCall == true {
                 presentMissedCallNotification(id: callID, from: peerUserID)
             }
+            // Save call status to CoreData
+            let durationMs = callDurationMs
+            MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                call.durationMs = durationMs
+                call.endReason = endCall.endCallReason
+            }
+            didCallComplete.send(callID)
             activeCall?.didReceiveEndCall(reason: endCall.endCallReason)
             activeCall = nil
             // Adding small delay to play the end call tone.
@@ -901,6 +920,7 @@ extension CallManager: HalloCallDelegate {
             MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
                 call.endReason = .busy
             }
+            didCallComplete.send(callID)
             presentMissedCallNotification(id: callID, from: peerUserID)
         }
     }
@@ -944,6 +964,7 @@ extension CallManager: HalloCallDelegate {
             MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
                 call.endReason = .busy
             }
+            didCallComplete.send(callID)
             presentMissedCallNotification(id: callID, from: peerUserID)
         }
     }
@@ -996,6 +1017,11 @@ extension CallManager: CallStateDelegate {
         case .connected:
             // Update UI to show connected status
             callViewDelegate?.callConnected()
+            if let callID = activeCallID {
+                MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                    call.answered = true
+                }
+            }
 
         case .active:
             stopCallRingtone()
