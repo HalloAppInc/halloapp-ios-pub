@@ -109,21 +109,15 @@ class ThreadListCell: UITableViewCell {
 
         case .missedCall:
             mediaIcon = UIImage(systemName: "phone.fill.arrow.down.left")?.withTintColor(.red)
-            if messageText.isEmpty {
-                messageText = Localizations.voiceCallMissed
-            }
+            messageText = Localizations.voiceCallMissed + " " + messageText
 
         case .incomingCall:
             mediaIcon = UIImage(systemName: "phone.fill.arrow.down.left")
-            if messageText.isEmpty {
-                messageText = Localizations.voiceCall
-            }
+            messageText = Localizations.voiceCall + " " + messageText
 
         case .outgoingCall:
             mediaIcon = UIImage(systemName: "phone.fill.arrow.up.right")
-            if messageText.isEmpty {
-                messageText = Localizations.voiceCall
-            }
+            messageText = Localizations.voiceCall + " " + messageText
 
         default:
             break

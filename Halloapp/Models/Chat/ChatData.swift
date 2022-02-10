@@ -314,7 +314,7 @@ class ChatData: ObservableObject {
 
                         self.updateChatThread(type: .oneToOne, for: peerUserID, block: {
                             if isMissedCall {
-                                $0.lastMsgText = Localizations.voiceCallMissed
+                                $0.lastMsgText = ""
                                 $0.lastMsgMediaType = .missedCall
                                 if !self.isCurrentlyChatting(with: peerUserID) {
                                     $0.unreadCount += 1
@@ -323,11 +323,11 @@ class ChatData: ObservableObject {
                                 }
 
                             } else if isIncomingCall {
-                                $0.lastMsgText = Localizations.voiceCall + " " + durationString
+                                $0.lastMsgText = durationString
                                 $0.lastMsgMediaType = .incomingCall
 
                             } else if isOutgoingCall {
-                                $0.lastMsgText = Localizations.voiceCall + " " + durationString
+                                $0.lastMsgText = durationString
                                 $0.lastMsgMediaType = .outgoingCall
                             }
 
