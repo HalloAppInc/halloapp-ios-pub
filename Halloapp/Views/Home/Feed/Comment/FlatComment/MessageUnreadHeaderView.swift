@@ -33,10 +33,10 @@ class MessageUnreadHeaderView: UICollectionViewCell {
         contentView.addSubview(headerView)
         headerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            headerView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            headerView.topAnchor.constraint(equalTo: topAnchor),
-            headerView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            headerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            headerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            headerView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            headerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
         ])
     }
 

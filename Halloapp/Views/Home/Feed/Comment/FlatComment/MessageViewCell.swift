@@ -28,7 +28,7 @@ class MessageViewCell: UICollectionViewCell {
     private var audioMediaStatusCancellable: AnyCancellable?
 
     var MaxWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.8 }
-    var MinWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.5 }
+    var MinWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.2 }
     var MediaViewDimention: CGFloat { return 170.0 }
 
     var feedPostComment: FeedPostComment?
