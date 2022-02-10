@@ -124,6 +124,7 @@ class ImageServer {
     private let queue = DispatchQueue(label: "ImageServer.MediaProcessing", qos: .userInitiated)
     private var tasks = [Task]()
     public let progress = PassthroughSubject<String, Never>()
+    private let chunkSize = 512 * 1024 // 0.5MB
 
     private init() {}
 
@@ -271,32 +272,49 @@ class ImageServer {
     }
 
     private func encrypt(_ type: FeedMediaType, input: URL, output: URL) -> Result<(key: String, sha256: String), Error> {
-        // TODO:  Encrypt media without loading into memory.
-        guard let plaintextData = try? Data(contentsOf: input) else {
-            DDLogError("ImageServer/encrypt/media/error  File not accessible")
-            return .failure(VideoProcessingError.failedToLoad)
-        }
-        DDLogInfo("ImageServer/prepare/media/ready  New media file size: [\(plaintextData.count)]")
-
-        // encrypt
         let ts = Date()
-        let encryptedData: Data, key: Data, sha256Hash: Data
-        DDLogDebug("ImageServer/encrypt/begin")
         do {
-            (encryptedData, key, sha256Hash) = try MediaCrypter.encrypt(data: plaintextData, mediaType: type)
-        } catch {
-            DDLogError("ImageServer/encrypt/error url=[\(input.description)] [\(error)]")
-            return .failure(error)
-        }
-        DDLogDebug("ImageServer/encrypt/finished  Duration: \(-ts.timeIntervalSinceNow) s")
+            if FileManager.default.fileExists(atPath: output.path) {
+                DDLogError("ImageServer/encrypt/error ecrypted file exists")
+                try FileManager.default.removeItem(at: output)
+            }
 
-        // save encrypted data
-        DDLogDebug("ImageServer/media/save-enc to [\(output.description)]")
-        do {
-            try encryptedData.write(to: output, options: [ .atomic ])
+            try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+            FileManager.default.createFile(atPath: output.path, contents: nil, attributes: nil)
+
+            let crypter  = try MediaChunkCrypter(mediaType: type)
+            let inputFile = try FileHandle(forReadingFrom: input)
+            let outputFile = try FileHandle(forWritingTo: output)
+
+            defer {
+                inputFile.closeFile()
+                outputFile.closeFile()
+            }
+
+            try crypter.encryptInit()
+
+            while true {
+                var dataSize = 0
+                try autoreleasepool {
+                    let dataChunk = inputFile.readData(ofLength: chunkSize)
+                    let encryptedChunk = try crypter.encryptUpdate(dataChunk: dataChunk)
+
+                    dataSize = dataChunk.count
+                    outputFile.write(encryptedChunk)
+                }
+
+                if dataSize < chunkSize {
+                    break
+                }
+            }
+
+            let (encryptedChunk, key, sha256Hash) = try crypter.encryptFinalize()
+            outputFile.write(encryptedChunk)
+
+            DDLogDebug("ImageServer/encrypt/finished  Duration: \(-ts.timeIntervalSinceNow) s")
             return .success((key.base64EncodedString(), sha256Hash.base64EncodedString()))
         } catch {
-            DDLogError("ImageServer/media/save-enc/error [\(error)]")
+            DDLogError("ImageServer/encrypt/error url=[\(input)] [\(error)]")
             return .failure(error)
         }
     }
@@ -462,8 +480,8 @@ class ImageServer {
     // https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html#//apple_ref/doc/uid/TP40000939-CH204-33299
     // https://www.cimarronsystems.com/wp-content/uploads/2017/04/Elements-of-the-H.264-VideoAAC-Audio-MP4-Movie-v2_0.pdf
     private func clearTimestamps(video url: URL) throws {
-        let handle = try FileHandle(forUpdating: url)
-        defer { try? handle.close() }
+        let videoFile = try FileHandle(forUpdating: url)
+        defer { try? videoFile.close() }
 
         // atom types
         guard let moov = "moov".data(using: .ascii) else { return }
@@ -472,22 +490,54 @@ class ImageServer {
         guard let mdhd = "mdhd".data(using: .ascii) else { return }
 
         // Find the moov atom
-        try handle.seek(toOffset: 0)
-        guard var moovIdx = handle.availableData.firstRange(of: moov)?.lowerBound else { return }
+        try videoFile.seek(toOffset: 0)
+        guard var moovIdx = find(atom: moov, in: videoFile) else { return }
         moovIdx -= 4
 
-        try handle.seek(toOffset: UInt64(moovIdx))
-        var data = handle.availableData
-        guard !data.isEmpty && data.count > 8 else { return }
+        try videoFile.seek(toOffset: UInt64(moovIdx))
+        let moovSizeData = videoFile.readData(ofLength: 4)
+        let moovSize = Int(moovSizeData.withUnsafeBytes { Int32(bigEndian: $0.load(as: Int32.self)) })
 
-        let moovSize = Int(data[0..<4].withUnsafeBytes { Int32(bigEndian: $0.load(as: Int32.self)) })
-        data = data.subdata(in: 0..<moovSize)
+        try videoFile.seek(toOffset: UInt64(moovIdx))
+        let moovData = videoFile.readData(ofLength: moovSize)
 
-        try clearTimestamps(for: mvhd, from: data, at: moovIdx, in: handle)
-        try clearTimestamps(for: tkhd, from: data, at: moovIdx, in: handle)
-        try clearTimestamps(for: mdhd, from: data, at: moovIdx, in: handle)
+        try clearTimestamps(for: mvhd, from: moovData, at: moovIdx, in: videoFile)
+        try clearTimestamps(for: tkhd, from: moovData, at: moovIdx, in: videoFile)
+        try clearTimestamps(for: mdhd, from: moovData, at: moovIdx, in: videoFile)
+    }
 
-        try handle.synchronize()
+    private func find(atom: Data, in file: FileHandle) -> Int? {
+        var atomIdx: Int?
+        var offset = 0
+        var previousChunkSuffix = Data()
+
+        while true {
+            var dataSize = 0
+
+            autoreleasepool {
+                let previousSize = previousChunkSuffix.count
+
+                let dataChunk = file.readData(ofLength: chunkSize)
+                previousChunkSuffix.append(dataChunk)
+
+                if let idx = previousChunkSuffix.firstRange(of: atom)?.lowerBound {
+                    atomIdx = offset + idx - previousSize
+                    return
+                }
+
+                dataSize = dataChunk.count
+                previousChunkSuffix.removeAll()
+                previousChunkSuffix = dataChunk.suffix(atom.count)
+            }
+
+            if dataSize < chunkSize || atomIdx != nil {
+                break
+            }
+
+            offset += dataSize
+        }
+
+        return atomIdx
     }
 
     // Finds the atoms for the specified header, maps the timestamp locations in the file and clears them

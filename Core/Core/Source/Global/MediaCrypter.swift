@@ -137,18 +137,21 @@ extension AES256Crypter: Crypter {
         return try crypt(input: encrypted, operation: CCOperation(kCCDecrypt))
     }
 
+    mutating func encryptInit() throws {
+        return try cryptorInit(operation: CCOperation(kCCEncrypt))
+    }
+
     mutating func decryptInit() throws {
         return try cryptorInit(operation: CCOperation(kCCDecrypt))
     }
 
-    func decryptUpdate(_ encrypted: Data) throws -> Data {
+    func update(_ encrypted: Data) throws -> Data {
         return try cryptorUpdate(input: encrypted)
     }
 
-    func decryptFinal() throws -> Data {
+    func finalize() throws -> Data {
         return try cryptorFinal()
     }
-
 }
 
 public class MediaCrypter {
@@ -223,7 +226,40 @@ public class MediaCrypter {
     }
 
     public class func hash(url: URL) throws -> Data {
-        return hash(data: try Data(contentsOf: url))
+        let chunkSize = 512 * 1024 // 0.5MB
+
+        let file = try FileHandle(forReadingFrom: url)
+        defer {
+            file.closeFile()
+        }
+
+        var hashContext = CC_SHA256_CTX.init()
+        CC_SHA256_Init(&hashContext)
+
+        while true {
+            var size = 0
+
+            autoreleasepool {
+                let chunk = file.readData(ofLength: chunkSize)
+                size = chunk.count
+
+                chunk.withUnsafeBytes { (inputBytes: UnsafeRawBufferPointer) -> () in
+                    CC_SHA256_Update(
+                        &hashContext,
+                        inputBytes.baseAddress,
+                        CC_LONG(chunk.count))
+                }
+            }
+
+            if size < chunkSize {
+                break
+            }
+        }
+
+        let outLength = 32
+        var outBytes = [UInt8](repeating: 0, count: outLength)
+        CC_SHA256_Final(&outBytes, &hashContext)
+        return Data(bytes: outBytes, count: outLength)
     }
 
     public class func hash(data: Data) -> Data {
@@ -232,16 +268,19 @@ public class MediaCrypter {
 
 }
 
-
-// TODO(murali@): extend this for encryption as well?
 public class MediaChunkCrypter: MediaCrypter {
+    enum CrypterError: Error {
+        case missingMediaKey
+    }
+
     private var aesCrypter: AES256Crypter
-    private var sha256hash: Data
+    private var sha256hash: Data?
+    private var mediaKey: Data?
     private var hashContext: CC_SHA256_CTX
     private var hmacContext: CCHmacContext
 
     // MARK: initialization
-    init(mediaKey: Data, sha256hash: Data, mediaType: FeedMediaType) throws {
+    public init(mediaKey: Data, sha256hash: Data, mediaType: FeedMediaType) throws {
         // derive and extract keys
         let expandedKey = try MediaChunkCrypter.expandedKey(from: mediaKey, mediaType: mediaType)
         let IV = expandedKey[0...15]
@@ -269,7 +308,35 @@ public class MediaChunkCrypter: MediaCrypter {
                 symmetricKey.baseAddress,
                 symmetricKey.count)
         }
+    }
 
+    public init(mediaType: FeedMediaType) throws {
+        let mediaKey = try MediaCrypter.randomKey(MediaCrypter.attachedKeyLength)
+        let expandedKey = try MediaCrypter.expandedKey(from: mediaKey, mediaType: mediaType)
+        let IV = expandedKey[0...15]
+        let AESKey = expandedKey[16...47]
+        let SHA256Key = expandedKey[48...79]
+
+        self.mediaKey = mediaKey
+        aesCrypter = try AES256Crypter(key: AESKey, iv: IV)
+
+        // create sha256 context
+        hashContext = CC_SHA256_CTX.init()
+        // create hmac context
+        hmacContext = CCHmacContext.init()
+
+        super.init()
+
+        // initialize sha256 hash
+        CC_SHA256_Init(&hashContext)
+        // initialize hmac-sha256
+        SHA256Key.withUnsafeBytes { (symmetricKey: UnsafeRawBufferPointer) -> () in
+            CCHmacInit(
+                &hmacContext,
+                CCHmacAlgorithm(kCCHmacAlgSHA256),
+                symmetricKey.baseAddress,
+                symmetricKey.count)
+        }
     }
 
     // MARK: Hash verification
@@ -285,6 +352,8 @@ public class MediaChunkCrypter: MediaCrypter {
 
     // Finalize and verify hash
     public func hashFinalizeAndVerify() throws {
+        guard let sha256hash = sha256hash else { return }
+
         let outLength = 32
         var outBytes = [UInt8](repeating: 0, count: outLength)
         CC_SHA256_Final(&outBytes, &hashContext)
@@ -293,6 +362,13 @@ public class MediaChunkCrypter: MediaCrypter {
             DDLogError("MediaCrypter/hashFinalizeAndVerify/failed/expected: \(sha256hash.bytes)/actual: \(digest.bytes)")
             throw MediaDownloadError.hashMismatch
         }
+    }
+
+    public func hashFinalize() -> Data {
+        let outLength = 32
+        var outBytes = [UInt8](repeating: 0, count: outLength)
+        CC_SHA256_Final(&outBytes, &hashContext)
+        return Data(bytes: outBytes, count: outLength)
     }
 
     // MARK: Hmac Verification
@@ -317,18 +393,53 @@ public class MediaChunkCrypter: MediaCrypter {
         }
     }
 
-    // MARK: Chunk based decryption
+    public func hmacFinalize() -> Data {
+        let macLength = 32
+        var macBytes = [UInt8](repeating: 0, count: macLength)
+        CCHmacFinal(&hmacContext, &macBytes)
+        return Data(bytes: macBytes, count: macLength)
+    }
+
+    // MARK: Chunk based encryption & decryption
+
+    public func encryptInit() throws {
+        guard mediaKey != nil else { return }
+        try aesCrypter.encryptInit()
+    }
 
     public func decryptInit() throws {
         try aesCrypter.decryptInit()
     }
 
     public func decryptUpdate(dataChunk: Data) throws -> Data {
-        try aesCrypter.decryptUpdate(dataChunk)
+        try aesCrypter.update(dataChunk)
     }
 
     public func decryptFinalize() throws -> Data {
-        try aesCrypter.decryptFinal()
+        try aesCrypter.finalize()
+    }
+
+    public func encryptUpdate(dataChunk: Data) throws -> Data {
+        let encryptedData = try aesCrypter.update(dataChunk)
+        try hashUpdate(input: encryptedData)
+        try hmacUpdate(input: encryptedData)
+
+        return encryptedData
+    }
+
+    public func encryptFinalize() throws -> (Data, Data, Data) {
+        guard let mediaKey = mediaKey else { throw CrypterError.missingMediaKey }
+
+        var encryptedData = try aesCrypter.finalize()
+        try hashUpdate(input: encryptedData)
+        try hmacUpdate(input: encryptedData)
+
+        let hmac = hmacFinalize()
+        try hashUpdate(input: hmac)
+
+        encryptedData.append(hmac)
+
+        return (encryptedData, mediaKey, hashFinalize())
     }
 
 }
