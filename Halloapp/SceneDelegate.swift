@@ -481,6 +481,10 @@ extension SceneDelegate: CallViewDelegate {
     func callHold(_ hold: Bool) {
         callViewController?.callHold(hold)
     }
+
+    func callBusy() {
+        callViewController?.callBusy()
+    }
 }
 
 // App expiration

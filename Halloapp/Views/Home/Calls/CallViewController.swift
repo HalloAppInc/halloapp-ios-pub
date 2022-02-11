@@ -20,6 +20,7 @@ enum CallStatus {
     case reconnecting
     case failed
     case held
+    case busy
 }
 
 class CallViewController: UIViewController {
@@ -406,6 +407,14 @@ extension CallViewController: CallViewDelegate {
             self.updateCallStatusLabel()
         }
     }
+
+    func callBusy() {
+        callStatus = .busy
+        useCallStatus = true
+        DispatchQueue.main.async {
+            self.updateCallStatusLabel()
+        }
+    }
 }
 
 final class CallViewButton: UIControl {
@@ -516,6 +525,8 @@ private extension Localizations {
             return NSLocalizedString("call.status.failed", value: "failed", comment: "Status displayed when call fails.")
         case .held:
             return NSLocalizedString("call.status.held", value: "on hold", comment: "Status displayed when call is on hold.")
+        case .busy:
+            return NSLocalizedString("call.status.busy", value: "on another call", comment: "Status displayed when the other side is busy.")
         }
     }
 }

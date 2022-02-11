@@ -29,6 +29,7 @@ protocol CallViewDelegate: AnyObject {
     func callReconnecting()
     func callFailed()
     func callHold(_ hold: Bool)
+    func callBusy()
 }
 
 public struct CallDetails {
@@ -69,6 +70,13 @@ final class CallManager: NSObject, CXProviderDelegate {
                 endReason = nil
                 startDate = nil
                 endDate = nil
+                stopCallRingtone()
+                stopCallBusytone()
+                stopCallEndtone()
+            } else {
+                setupCallRingtone()
+                setupCallBusytone()
+                setupCallEndtone()
             }
             isAnyCallOngoing.send(activeCall)
 
@@ -95,6 +103,7 @@ final class CallManager: NSObject, CXProviderDelegate {
     private var endReason: EndCallReason? = nil
     private var callRingtonePlayer: AVAudioPlayer?
     private var callEndtonePlayer: AVAudioPlayer?
+    private var callBusytonePlayer: AVAudioPlayer?
     private var pendingStartCallAction: DispatchWorkItem? = nil
 
     // UUID to callID and peerUserID map: for all possible calls.
@@ -304,7 +313,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         cancelTimer = nil
         activeCall?.logPeerConnectionStats()
         endDate = Date()
-        checkAndPlayEndCallToneAndVibrate()
+        checkAndVibrateEndCall()
         if let activeCallID = activeCallID {
             callDetailsMap[activeCallID.callUUID] = nil
             // Save call status to CoreData
@@ -320,7 +329,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         callViewDelegate?.callEnded()
     }
 
-    private func checkAndPlayEndCallToneAndVibrate() {
+    private func checkAndVibrateEndCall() {
         if activeCall?.isAnswered == true {
             AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
         }
@@ -673,6 +682,38 @@ final class CallManager: NSObject, CXProviderDelegate {
         callEndtonePlayer?.play()
     }
 
+    private func stopCallEndtone() {
+        DDLogInfo("CallManager/stopCallEndtone/\(String(describing: callEndtonePlayer))")
+        callEndtonePlayer?.stop()
+        callEndtonePlayer = nil
+    }
+
+    private func setupCallBusytone() {
+        DDLogInfo("CallManager/setupCallBusytone")
+        do {
+            // Play busytone once.
+            callBusytonePlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "busycalltone", ofType: "mp3")!))
+            callBusytonePlayer?.prepareToPlay()
+            callBusytonePlayer?.numberOfLoops = 0
+        } catch {
+            DDLogError("CallManager/setupCallBusytone/failed: \(error)")
+        }
+    }
+
+    private func playCallBusytone() {
+        DDLogInfo("CallManager/playCallBusytone/\(String(describing: callBusytonePlayer))")
+        if callBusytonePlayer == nil {
+            setupCallBusytone()
+        }
+        callBusytonePlayer?.play()
+    }
+
+    private func stopCallBusytone() {
+        DDLogInfo("CallManager/stopCallBusytone/\(String(describing: callBusytonePlayer))")
+        callBusytonePlayer?.stop()
+        callBusytonePlayer = nil
+    }
+
 }
 
 
@@ -851,8 +892,17 @@ extension CallManager: HalloCallDelegate {
         DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/begin/reason: \(endCall.reason)")
         let callID = endCall.callID
         if activeCallID == callID {
-            checkAndPlayEndCallToneAndVibrate()
-            playCallEndtone()
+            checkAndVibrateEndCall()
+            stopCallRingtone()
+            let timeToWait: TimeInterval
+            if endCall.reason == .busy {
+                playCallBusytone()
+                timeToWait = 2
+                callViewDelegate?.callBusy()
+            } else {
+                playCallEndtone()
+                timeToWait = 0.75
+            }
             activeCall?.logPeerConnectionStats()
             endDate = Date()
             if endCall.shouldResetWhisperSession,
@@ -868,11 +918,11 @@ extension CallManager: HalloCallDelegate {
                 call.durationMs = durationMs
                 call.endReason = endCall.endCallReason
             }
-            didCallComplete.send(callID)
-            activeCall?.didReceiveEndCall(reason: endCall.endCallReason)
-            activeCall = nil
             // Adding small delay to play the end call tone.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + timeToWait) { [self] in
+                didCallComplete.send(callID)
+                activeCall?.didReceiveEndCall(reason: endCall.endCallReason)
+                activeCall = nil
                 reportCallEnded(id: callID, reason: endCall.cxEndCallReason)
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
                 if isMissedCall {
@@ -1027,7 +1077,6 @@ extension CallManager: CallStateDelegate {
 
         case .active:
             stopCallRingtone()
-            setupCallEndtone()
             callViewDelegate?.callActive()
             // Cancel timer if call is active.
             cancelTimer?.cancel()
