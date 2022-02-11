@@ -72,10 +72,12 @@ final class CallManager: NSObject, CXProviderDelegate {
                 endDate = nil
                 stopCallRingtone()
                 stopCallBusytone()
+                stopCallReconnectingtone()
                 stopCallEndtone()
             } else {
                 setupCallRingtone()
                 setupCallBusytone()
+                setupCallReconnectingtone()
                 setupCallEndtone()
             }
             isAnyCallOngoing.send(activeCall)
@@ -104,6 +106,7 @@ final class CallManager: NSObject, CXProviderDelegate {
     private var callRingtonePlayer: AVAudioPlayer?
     private var callEndtonePlayer: AVAudioPlayer?
     private var callBusytonePlayer: AVAudioPlayer?
+    private var callReconnectingtonePlayer: AVAudioPlayer?
     private var pendingStartCallAction: DispatchWorkItem? = nil
 
     // UUID to callID and peerUserID map: for all possible calls.
@@ -635,7 +638,13 @@ final class CallManager: NSObject, CXProviderDelegate {
             DDLogInfo("CallManager/presentMissedCallNotification/callID: \(callID)/success")
         }
     }
-    // MARK: Ringtone
+
+    // MARK: Audio Tones throughout the lifetime of call
+    // Ringing tone
+    // Busy tone
+    // End tone
+    // Reconnecting tone
+
     private func setupCallRingtone() {
         DDLogInfo("CallManager/setupCallRingtone")
         do {
@@ -712,6 +721,33 @@ final class CallManager: NSObject, CXProviderDelegate {
         DDLogInfo("CallManager/stopCallBusytone/\(String(describing: callBusytonePlayer))")
         callBusytonePlayer?.stop()
         callBusytonePlayer = nil
+    }
+
+    private func setupCallReconnectingtone() {
+        DDLogInfo("CallManager/setupCallReconnectingtone")
+        do {
+            // Play reconnecting tone in a loop.
+            callReconnectingtonePlayer = try AVAudioPlayer(contentsOf:
+                                                            URL(fileURLWithPath: Bundle.main.path(forResource: "reconnectingcalltone", ofType: "mp3")!))
+            callReconnectingtonePlayer?.prepareToPlay()
+            callReconnectingtonePlayer?.numberOfLoops = -1
+        } catch {
+            DDLogError("CallManager/setupCallReconnectingtone/failed: \(error)")
+        }
+    }
+
+    private func playCallReconnectingtone() {
+        DDLogInfo("CallManager/playCallReconnectingtone/\(String(describing: callReconnectingtonePlayer))")
+        if callReconnectingtonePlayer == nil {
+            setupCallReconnectingtone()
+        }
+        callReconnectingtonePlayer?.play()
+    }
+
+    private func stopCallReconnectingtone() {
+        DDLogInfo("CallManager/stopCallReconnectingtone/\(String(describing: callReconnectingtonePlayer))")
+        callReconnectingtonePlayer?.stop()
+        callReconnectingtonePlayer = nil
     }
 
 }
@@ -892,8 +928,12 @@ extension CallManager: HalloCallDelegate {
         DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/begin/reason: \(endCall.reason)")
         let callID = endCall.callID
         if activeCallID == callID {
-            checkAndVibrateEndCall()
+            // Stop any other call tones.
             stopCallRingtone()
+            stopCallReconnectingtone()
+            // Vibrate for end of call
+            checkAndVibrateEndCall()
+            // calculate timeToWait to dismiss the screen.
             let timeToWait: TimeInterval
             if endCall.reason == .busy {
                 playCallBusytone()
@@ -1046,7 +1086,6 @@ extension CallManager: CallStateDelegate {
         }
         switch newState {
         case .inactive:
-            stopCallRingtone()
             // If call is no longer active - notify UI about call ending.
             callViewDelegate?.callEnded()
             // Cancel timer if call ended.
@@ -1061,6 +1100,7 @@ extension CallManager: CallStateDelegate {
         case .iceRestartConnecting:
             // Update UI to show reconnecting status
             callViewDelegate?.callReconnecting()
+            playCallReconnectingtone()
 
         case .ringing:
             // Update UI to show ringing status.
@@ -1077,6 +1117,7 @@ extension CallManager: CallStateDelegate {
 
         case .active:
             stopCallRingtone()
+            stopCallReconnectingtone()
             callViewDelegate?.callActive()
             // Cancel timer if call is active.
             cancelTimer?.cancel()
@@ -1086,9 +1127,9 @@ extension CallManager: CallStateDelegate {
         case .iceRestart:
             // Update UI to show reconnecting status
             callViewDelegate?.callReconnecting()
+            playCallReconnectingtone()
 
         case .disconnected:
-            stopCallRingtone()
             checkAndReportCallEnded(id: activeCallID, reason: .failed)
             endActiveCall(reason: .connectionError)
         }

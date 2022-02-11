@@ -130,7 +130,6 @@
 		68F935C5252CD00800FA6E75 /* ChatMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */; };
 		68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */; };
 		6A081C51273C154600E9E29A /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = 6A081C50273C154600E9E29A /* WebRTC */; };
-		6A081C5B273F976E00E9E29A /* us_ringback_tone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6A081C5A273F976E00E9E29A /* us_ringback_tone.mp3 */; };
 		6A081C5E274070E900E9E29A /* NotificationProtoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A081C5D274070E900E9E29A /* NotificationProtoService.swift */; };
 		6A1BFD30260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */; };
 		6A218966278E55C7008D7B7C /* us_ringtone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6A218964278E55C7008D7B7C /* us_ringtone.mp3 */; };
@@ -148,6 +147,7 @@
 		6AC68EF726399BAE0073CBE9 /* ServerStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC68EF626399BAE0073CBE9 /* ServerStrings.swift */; };
 		6ACF5ACF27B32452003B7B3C /* endcalltone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6ACF5ACD27B32452003B7B3C /* endcalltone.mp3 */; };
 		6ACF5AEB27B6D060003B7B3C /* busycalltone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6ACF5AE927B6D060003B7B3C /* busycalltone.mp3 */; };
+		6ACF5AF027B7070E003B7B3C /* reconnectingcalltone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6ACF5AEF27B7070E003B7B3C /* reconnectingcalltone.mp3 */; };
 		761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */; };
 		761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
 		761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C4245D32C200DD9D1A /* UIDevice.swift */; };
@@ -772,7 +772,6 @@
 		68F0227626AB93FD0058088D /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		6A081C5A273F976E00E9E29A /* us_ringback_tone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = us_ringback_tone.mp3; sourceTree = "<group>"; };
 		6A081C5D274070E900E9E29A /* NotificationProtoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationProtoService.swift; sourceTree = "<group>"; };
 		6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostCommentToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
 		6A218964278E55C7008D7B7C /* us_ringtone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = us_ringtone.mp3; sourceTree = "<group>"; };
@@ -793,6 +792,7 @@
 		6AC68EF626399BAE0073CBE9 /* ServerStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStrings.swift; sourceTree = "<group>"; };
 		6ACF5ACD27B32452003B7B3C /* endcalltone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = endcalltone.mp3; sourceTree = "<group>"; };
 		6ACF5AE927B6D060003B7B3C /* busycalltone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = busycalltone.mp3; sourceTree = "<group>"; };
+		6ACF5AEF27B7070E003B7B3C /* reconnectingcalltone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = reconnectingcalltone.mp3; sourceTree = "<group>"; };
 		6AF7594C26F2BB110087078A /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VerificationCodeViewController.swift; path = HalloApp/Views/Registration/VerificationCodeViewController.swift; sourceTree = SOURCE_ROOT; };
 		761442C2245CF4FC00DD9D1A /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIColor.swift; path = HalloApp/Components/Extensions/UIColor.swift; sourceTree = SOURCE_ROOT; };
@@ -1295,9 +1295,9 @@
 			isa = PBXGroup;
 			children = (
 				6ACF5AE927B6D060003B7B3C /* busycalltone.mp3 */,
+				6ACF5AEF27B7070E003B7B3C /* reconnectingcalltone.mp3 */,
 				6ACF5ACD27B32452003B7B3C /* endcalltone.mp3 */,
 				6A218964278E55C7008D7B7C /* us_ringtone.mp3 */,
-				6A081C5A273F976E00E9E29A /* us_ringback_tone.mp3 */,
 			);
 			path = Calls;
 			sourceTree = "<group>";
@@ -2484,12 +2484,12 @@
 				68A0A0F126436CA600E9431E /* InfoPlist.strings in Resources */,
 				6ACF5ACF27B32452003B7B3C /* endcalltone.mp3 in Resources */,
 				762EDBD0244E2EB700986617 /* Gotham-Ultra.otf in Resources */,
-				6A081C5B273F976E00E9E29A /* us_ringback_tone.mp3 in Resources */,
 				762EDBCD244E2EB700986617 /* Gotham-XLightIta.otf in Resources */,
 				7661D947255A5E3A0063404E /* Localizable.stringsdict in Resources */,
 				762EDBCF244E2EB700986617 /* Gotham-BoldIta.otf in Resources */,
 				762EDBD3244E2EB700986617 /* Gotham-BookIta.otf in Resources */,
 				6ACF5AEB27B6D060003B7B3C /* busycalltone.mp3 in Resources */,
+				6ACF5AF027B7070E003B7B3C /* reconnectingcalltone.mp3 in Resources */,
 				EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */,
 				6878E0152798E962008BB351 /* Quicksand-Light.ttf in Resources */,
 				6878E0142798E962008BB351 /* Quicksand-Regular.ttf in Resources */,
