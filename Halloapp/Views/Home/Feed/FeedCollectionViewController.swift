@@ -924,10 +924,11 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
         }
 
         label.numberOfLines = numberOfLines
-        UIView.animate(withDuration: 0.35) {
-            self.collectionView.collectionViewLayout.invalidateLayout()
-            label.superview?.layoutIfNeeded()
-        }
+        label.superview?.layoutIfNeeded()
+        
+        let context = UICollectionViewLayoutInvalidationContext()
+        context.invalidateItems(at: [indexPath])
+        self.collectionView.collectionViewLayout.invalidateLayout(with: context)
     }
 }
 
