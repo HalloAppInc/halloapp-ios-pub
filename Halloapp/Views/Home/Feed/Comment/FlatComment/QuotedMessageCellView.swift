@@ -16,6 +16,7 @@ fileprivate struct Constants {
 
 class QuotedMessageCellView: UIView {
 
+    var MinWidthOfMessageBubble: CGFloat { return (self.window?.bounds.width ?? UIScreen.main.bounds.width) * 0.4 }
     private var imageLoadingCancellable: AnyCancellable?
     lazy var mediaWidthConstraint = mediaView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize)
     lazy var mediaHeightConstraint = mediaView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize)
@@ -38,7 +39,7 @@ class QuotedMessageCellView: UIView {
         mediaView.isHidden = true
         mediaView.contentMode = .scaleAspectFill
         mediaView.clipsToBounds = true
-        mediaView.layer.cornerRadius = 3
+        mediaView.layer.cornerRadius = 8
         return mediaView
     }()
     
@@ -55,9 +56,9 @@ class QuotedMessageCellView: UIView {
         return textLabel
     }()
     
-    private lazy var bubbleView: UIView = {
+    lazy var bubbleView: UIView = {
         let bubbleView = UIView()
-        bubbleView.backgroundColor = UIColor.quotedMessageBackground
+        bubbleView.backgroundColor = UIColor.quotedMessageOwnBackground
         bubbleView.layer.cornerRadius = 10
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
         return bubbleView
@@ -75,12 +76,12 @@ class QuotedMessageCellView: UIView {
     }()
 
     private lazy var nameTextRow: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ nameLabel, textLabel ])
+        let vStack = UIStackView(arrangedSubviews: [ nameLabel, textLabel, UIView()])
         vStack.axis = .vertical
         vStack.alignment = .fill
         vStack.isLayoutMarginsRelativeArrangement = true
         vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.spacing = 3
+        vStack.spacing = 2
         // Set bubble background
         vStack.insertSubview(bubbleView, at: 0)
         return vStack
@@ -96,6 +97,9 @@ class QuotedMessageCellView: UIView {
         quotedView.spacing = 5
         // Set bubble background
         quotedView.insertSubview(bubbleView, at: 0)
+        NSLayoutConstraint.activate([
+            nameTextRow.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfMessageBubble).rounded())
+        ])
         return quotedView
     }()
     
@@ -231,22 +235,28 @@ class QuotedMessageCellView: UIView {
         var messageText = ""
         switch media.type {
         case .image:
-            mediaIcon = UIImage(systemName: "photo")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal)
+            mediaIcon = UIImage(named: "messagesPhoto")?.withTintColor(UIColor.quotedMessageText)
             messageText = Localizations.chatMessagePhoto
         case .video:
-            mediaIcon = UIImage(systemName: "video.fill")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal)
+            mediaIcon = UIImage(named: "messagesVideo")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal)
             messageText = Localizations.chatMessageVideo
         case .audio:
             mediaIcon = UIImage(systemName: "mic.fill")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal)
             messageText = Localizations.chatMessageAudio
             break
         }
+        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+        let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 3)
         let result = NSMutableAttributedString(string: "")
         if let mediaIcon = mediaIcon {
-            result.append(NSAttributedString(attachment: NSTextAttachment(image: mediaIcon)))
+            let imageSize = mediaIcon.size
+            let scale = font.capHeight / imageSize.height
+            let iconAttachment = NSTextAttachment(image: mediaIcon)
+            iconAttachment.bounds.size = CGSize(width: ceil(imageSize.width * scale), height: ceil(imageSize.height * scale))
+            result.append(NSAttributedString(attachment: iconAttachment))
             result.append(NSAttributedString(string: " "))
         }
-        let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .footnote), color: UIColor.systemGray)
+        let ham = HAMarkdown(font: font, color: UIColor.systemGray)
         result.append(ham.parse(messageText))
         return result
     }

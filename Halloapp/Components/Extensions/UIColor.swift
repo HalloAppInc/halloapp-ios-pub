@@ -278,8 +278,12 @@ extension UIColor {
         UIColor(named: "UserColor12")!
     }
     
-    class var quotedMessageBackground: UIColor {
-        UIColor(named: "QuotedMessageBackground")!
+    class var quotedMessageOwnBackground: UIColor {
+        UIColor(named: "QuotedMessageOwnBackground")!
+    }
+
+    class var quotedMessageNotOwnBackground: UIColor {
+        UIColor(named: "QuotedMessageNotOwnBackground")!
     }
 
     class var timeHeaderBackground: UIColor {

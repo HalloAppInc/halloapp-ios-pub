@@ -343,7 +343,6 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        scrollToTarget(withAnimation: true)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -572,7 +571,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             let commentObj = fetchedResultsController?.fetchedObjects?[index]
             if let commentObj = commentObj, let indexp = fetchedResultsController?.indexPath(forObject: commentObj) {
                 DDLogDebug("FlatCommentsView/scroll/scrolling/toComment: \(commentId)")
-                collectionView.scrollToItem(at: indexp, at: .top, animated: animated)
+                collectionView.scrollToItem(at: indexp, at: .centeredVertically, animated: animated)
                 // if this comment needs to be highlighted after scroll, reset commentToScrollTo after highlighting
                 if let highlightedCommentId = highlightedCommentId, highlightedCommentId == commentId {
                     guard let cell = collectionView.cellForItem(at: indexp) as? MessageViewCell else { return }

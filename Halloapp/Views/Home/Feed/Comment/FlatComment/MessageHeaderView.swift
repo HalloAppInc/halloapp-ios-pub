@@ -52,7 +52,6 @@ class MessageHeaderView: UIView {
         self.addSubview(timestampView)
         NSLayoutConstraint.activate([
             timestampView.centerXAnchor.constraint(equalTo: centerXAnchor),
-            timestampView.centerYAnchor.constraint(equalTo: centerYAnchor),
             timestampView.topAnchor.constraint(equalTo: topAnchor, constant: 8),
             timestampView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -6)
         ])

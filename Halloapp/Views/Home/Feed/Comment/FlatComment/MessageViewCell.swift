@@ -129,6 +129,7 @@ class MessageViewCell: UICollectionViewCell {
         bubbleView.layer.shadowColor = UIColor.black.withAlphaComponent(0.08).cgColor
         bubbleView.layer.shadowOffset = CGSize(width: 0, height: 2)
         bubbleView.layer.shadowRadius = 1.5
+        bubbleView.translatesAutoresizingMaskIntoConstraints = false
         return bubbleView
     }()
 
@@ -345,11 +346,13 @@ class MessageViewCell: UICollectionViewCell {
             nameRow.isHidden = true
             rightAlignedConstraint.priority = UILayoutPriority(800)
             leftAlignedConstraint.priority = UILayoutPriority(1)
+            quotedMessageView.bubbleView.backgroundColor = UIColor.quotedMessageOwnBackground
         } else {
             bubbleView.backgroundColor = UIColor.messageNotOwnBackground
             textLabel.textColor = UIColor.messageNotOwnText
             rightAlignedConstraint.priority = UILayoutPriority(1)
             leftAlignedConstraint.priority = UILayoutPriority(800)
+            quotedMessageView.bubbleView.backgroundColor = UIColor.quotedMessageNotOwnBackground
             // If the message contains media, always show name
             // If the previous message was from the same user, hide name
             if hasMedia || !isPreviousMessageOwnMessage {
@@ -382,8 +385,12 @@ class MessageViewCell: UICollectionViewCell {
                 mentions: Array(comment.mentions ?? Set()))
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
-            let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize)
+            var font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize)
+            if comment.text.containsOnlyEmoji {
+                font = UIFont.preferredFont(forTextStyle: .largeTitle)
+            }
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
+
             if let attrText = textWithMentions?.with(font: font, color: .label) {
                 let ham = HAMarkdown(font: font, color: .label)
                 textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)

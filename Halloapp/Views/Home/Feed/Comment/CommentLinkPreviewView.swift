@@ -58,6 +58,7 @@ class CommentLinkPreviewView: UIView {
         mediaView.clipsToBounds = true
         mediaView.widthAnchor.constraint(equalToConstant: 75).isActive = true
         mediaView.heightAnchor.constraint(equalToConstant: 75).isActive = true
+        mediaView.isHidden = true
         return mediaView
     }()
 
