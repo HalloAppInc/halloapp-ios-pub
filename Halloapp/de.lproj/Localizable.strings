@@ -349,6 +349,12 @@
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Kommentieren";
 
+/* Header that appears above all the unread comments in the comments view when there are more than one unread message */
+"comment.unread.messages.header.plural" = "%@ ungelesene Kommentare";
+
+/* Header that appears above one single unread message in the comments view. */
+"comment.unread.messages.header.single" = "%@ ungelesener Kommentar";
+
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Deine HalloApp-Version unterstützt diese Art von Kommentar nicht.";
 
@@ -706,6 +712,9 @@
 /* Title of group invite screen */
 "group.invite.title" = "Gruppeneinladung";
 
+/* Section header describing options to share link */
+"group.invitesheet.use.link.via" = "Link teilen über...";
+
 /* Label shown above group members list */
 "group.members.label" = "Mitglieder";
 
@@ -890,7 +899,7 @@
 "media.voiceover.button.flip" = "Umdrehen";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
-"media.voiceover.button.mute" = "Stummschalten";
+"media.voiceover.button.mute" = "Stumm";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.rotate" = "Drehen";
@@ -987,6 +996,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 Video";
+
+/* Missed voice call notification text to be shown to the user. */
+"notification.voicecall.missed" = "☎️ Verpasster Sprachanruf";
 
 /* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Sprachnotiz";

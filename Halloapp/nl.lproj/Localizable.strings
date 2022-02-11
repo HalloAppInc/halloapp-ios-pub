@@ -349,6 +349,12 @@
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Voeg een reactie toe";
 
+/* Header that appears above all the unread comments in the comments view when there are more than one unread message */
+"comment.unread.messages.header.plural" = "%@ Ongelezen Reacties";
+
+/* Header that appears above one single unread message in the comments view. */
+"comment.unread.messages.header.single" = "%@ Ongelezen Reactie";
+
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Je versie van HalloApp ondersteunt dit type reactie niet.";
 
@@ -706,6 +712,9 @@
 /* Title of group invite screen */
 "group.invite.title" = "Groepsuitnodiging";
 
+/* Section header describing options to share link */
+"group.invitesheet.use.link.via" = "Link delen via…";
+
 /* Label shown above group members list */
 "group.members.label" = "Deelnemers";
 
@@ -987,6 +996,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
+
+/* Missed voice call notification text to be shown to the user. */
+"notification.voicecall.missed" = "☎️ Gemiste spraakoproep";
 
 /* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Spraakbericht";
