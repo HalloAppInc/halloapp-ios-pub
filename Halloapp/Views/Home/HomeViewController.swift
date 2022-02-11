@@ -264,8 +264,10 @@ class HomeViewController: UITabBarController {
     }
 
     private func processNotification(metadata: NotificationMetadata) {
-        view.window?.rootViewController?.dismiss(animated: false, completion: nil)
-
+        if let selected = selectedViewController {
+            selected.dismiss(animated: false)
+        }
+        
         if metadata.isFeedNotification {
             selectedIndex = 0
         } else if metadata.isGroupAddNotification {
