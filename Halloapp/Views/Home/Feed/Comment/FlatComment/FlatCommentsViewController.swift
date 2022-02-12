@@ -686,8 +686,7 @@ extension FlatCommentsViewController: MessageViewDelegate {
 
     func messageView(_ messageViewCell: MessageViewCell, replyTo feedPostCommentID: FeedPostCommentID) {
         guard let feedPostComment = messageViewCell.feedPostComment else { return }
-        guard let commentIndex = fetchedResultsController?.fetchedObjects?.firstIndex(where: {$0.id == feedPostComment.id }) else { return }
-        guard let comment = fetchedResultsController?.fetchedObjects?[commentIndex] else { return }
+        guard let comment = fetchedResultsController?.fetchedObjects?.first(where: {$0.id == feedPostComment.id }) else { return }
         guard !comment.isRetracted else { return }
         parentCommentID = comment.id
         let userColorAssignment = self.getUserColorAssignment(userId: comment.userId)
