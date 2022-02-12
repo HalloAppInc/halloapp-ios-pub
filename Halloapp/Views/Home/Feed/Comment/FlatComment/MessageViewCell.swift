@@ -29,6 +29,7 @@ class MessageViewCell: UICollectionViewCell {
 
     var MaxWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.8 }
     var MinWidthOfMessageBubble: CGFloat { return contentView.bounds.width * 0.2 }
+    var MinWidthOfQuotedMessageBubble: CGFloat { return contentView.bounds.width * 0.6 }
     var MediaViewDimention: CGFloat { return 170.0 }
 
     var feedPostComment: FeedPostComment?
@@ -43,6 +44,7 @@ class MessageViewCell: UICollectionViewCell {
     lazy var leftAlignedConstraint = messageRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
     lazy var mediaWidthConstraint = mediaCarouselView.widthAnchor.constraint(equalToConstant: MediaViewDimention)
     lazy var mediaHeightConstraint = mediaCarouselView.heightAnchor.constraint(equalToConstant: MediaViewDimention)
+    lazy var quotedMessageConstraint = quotedMessageView.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfQuotedMessageBubble).rounded())
 
     var hasMedia: Bool = false  {
         didSet {
@@ -243,6 +245,7 @@ class MessageViewCell: UICollectionViewCell {
     private lazy var quotedMessageView: QuotedMessageCellView = {
         let quotedMessageView = QuotedMessageCellView()
         quotedMessageView.translatesAutoresizingMaskIntoConstraints = false
+        quotedMessageView.isHidden = true
         return quotedMessageView
     }()
 
@@ -301,7 +304,8 @@ class MessageViewCell: UICollectionViewCell {
             rightAlignedConstraint,
             leftAlignedConstraint,
             mediaWidthConstraint,
-            mediaHeightConstraint
+            mediaHeightConstraint,
+            quotedMessageConstraint
         ])
     }
 
@@ -366,6 +370,11 @@ class MessageViewCell: UICollectionViewCell {
     private func updateMediaConstraints() {
         mediaWidthConstraint.priority = UILayoutPriority.defaultLow
         mediaHeightConstraint.priority = UILayoutPriority.defaultLow
+        quotedMessageConstraint.priority = UILayoutPriority.defaultLow
+        // If quoted comments have media, set the width of the comment.
+        if hasQuotedComment && quotedMessageView.hasMedia {
+            quotedMessageConstraint.priority = UILayoutPriority.defaultHigh
+        }
         if hasMedia || hasAudio {
             mediaWidthConstraint.priority = UILayoutPriority.defaultHigh
         }

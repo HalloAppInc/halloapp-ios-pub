@@ -16,7 +16,6 @@ fileprivate struct Constants {
 
 class QuotedMessageCellView: UIView {
 
-    var MinWidthOfMessageBubble: CGFloat { return (self.window?.bounds.width ?? UIScreen.main.bounds.width) * 0.4 }
     private var imageLoadingCancellable: AnyCancellable?
     lazy var mediaWidthConstraint = mediaView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize)
     lazy var mediaHeightConstraint = mediaView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize)
@@ -51,8 +50,9 @@ class QuotedMessageCellView: UIView {
         textLabel.font = UIFont.systemFont(ofSize: 12)
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.isHidden = true
-        textLabel.numberOfLines = 3
+        textLabel.numberOfLines = 2
         textLabel.textColor = UIColor.chatTime
+        textLabel.setContentHuggingPriority(.defaultHigh, for: .vertical)
         return textLabel
     }()
     
@@ -72,11 +72,12 @@ class QuotedMessageCellView: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        label.setContentHuggingPriority(.defaultHigh, for: .vertical)
         return label
     }()
 
     private lazy var nameTextRow: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ nameLabel, textLabel, UIView()])
+        let vStack = UIStackView(arrangedSubviews: [ nameLabel, textLabel])
         vStack.axis = .vertical
         vStack.alignment = .fill
         vStack.isLayoutMarginsRelativeArrangement = true
@@ -97,9 +98,6 @@ class QuotedMessageCellView: UIView {
         quotedView.spacing = 5
         // Set bubble background
         quotedView.insertSubview(bubbleView, at: 0)
-        NSLayoutConstraint.activate([
-            nameTextRow.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(MinWidthOfMessageBubble).rounded())
-        ])
         return quotedView
     }()
     
