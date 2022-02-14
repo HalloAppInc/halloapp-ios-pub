@@ -34,6 +34,7 @@ public struct ServerProperties {
         case streamingUploadChunkSize = "streaming_upload_chunk_size"
         case streamingInitialDownloadSize = "streaming_initial_download_size"
         case streamingSendingEnabled = "streaming_sending_enabled"
+        case externalSharingEnabled = "external_sharing"
     }
 
     private struct UserDefaultsKey {
@@ -67,6 +68,7 @@ public struct ServerProperties {
         static let streamingUploadChunkSize = 65536
         static let streamingInitialDownloadSize = 5242880
         static let streamingSendingEnabled = false
+        static let externalSharingEnabled = false
     }
 
     // MARK: Storage
@@ -273,5 +275,9 @@ public struct ServerProperties {
 
     public static var streamingSendingEnabled: Bool {
         ServerProperties.bool(forKey: .streamingSendingEnabled) ?? Defaults.streamingSendingEnabled
+    }
+
+    public static var externalSharingEnabled: Bool {
+        ServerProperties.bool(forKey: .externalSharingEnabled) ?? Defaults.externalSharingEnabled
     }
 }

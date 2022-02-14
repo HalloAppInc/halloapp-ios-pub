@@ -13,6 +13,7 @@ import CoreData
 import UIKit
 import Intents
 import Photos
+import SafariServices
 
 protocol FeedCollectionViewControllerDelegate: AnyObject {
     func feedCollectionViewController(_ feedCollectionViewController: FeedCollectionViewController, userActioned: Bool)
@@ -705,7 +706,7 @@ extension FeedCollectionViewController {
             guard let self = self else { return }
             
             let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-            
+
             if feedPost.hasSaveablePostMedia && feedPost.canSaveMedia {
                 let saveMediaTitle = feedPost.media?.count ?? 0 > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
                 alert.addAction(UIAlertAction(title: saveMediaTitle, style: .default, handler:  { [weak self] _ in
@@ -742,6 +743,12 @@ extension FeedCollectionViewController {
             }
             
             if feedPost.userId == MainAppContext.shared.userData.userId {
+                if ServerProperties.externalSharingEnabled {
+                    alert.addAction(UIAlertAction(title: Localizations.shareExternally, style: .default) { [weak self] _ in
+                        self?.sharePostExternally(postID: postId)
+                    })
+                }
+
                 let action = UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { [weak self] _ in
                     self?.handleDeletePostTapped(postId: postId)
                 }
@@ -869,6 +876,24 @@ extension FeedCollectionViewController {
         
         MainAppContext.shared.feedData.retract(post: feedPost)
         dismiss(animated: true)
+    }
+
+    private func sharePostExternally(postID: FeedPostID) {
+        guard proceedIfConnected() else {
+            return
+        }
+        MainAppContext.shared.service.uploadPostForExternalShare(postID) { [weak self] result in
+            guard let self = self else { return }
+
+            switch result {
+            case .success(let url):
+                self.present(SFSafariViewController(url: url), animated: true)
+            case .failure(_):
+                let actionSheet = UIAlertController(title: nil, message: Localizations.externalShareFailed, preferredStyle: .alert)
+                actionSheet.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
+                self.present(actionSheet, animated: true)
+            }
+        }
     }
 }
 
@@ -1006,5 +1031,17 @@ extension Localizations {
     }()
     static var deletePostButtonTitle: String = {
         NSLocalizedString("your.post.deletepost.button", value: "Delete Post", comment: "Title for the button that confirms intent to delete your own post.")
+    }()
+
+    static var shareExternally: String = {
+        NSLocalizedString("your.post.externalshare.button",
+                          value: "Share Externally",
+                          comment: "Title for button in action sheet prompting user to share post to external sites")
+    }()
+
+    static var externalShareFailed: String = {
+        NSLocalizedString("your.post.externalshare.error",
+                          value: "Failed to upload post for exernal share",
+                          comment: "Message that external share failed.")
     }()
 }

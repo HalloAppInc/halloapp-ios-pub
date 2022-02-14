@@ -3779,8 +3779,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
     
     /// Cutoff date at which posts expire and are sent to the archive.
-    static let cutoffDate = Date(timeIntervalSinceNow: -Date.days(31))
-    
+    static let postExpiryTimeInterval = -Date.days(31)
+    static let cutoffDate = Date(timeIntervalSinceNow: postExpiryTimeInterval)
+
     private func deleteExpiredPosts() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }

@@ -479,6 +479,18 @@ final class ProtoStartCallRequest: ProtoRequest<Server_StartCallResult> {
     }
 }
 
+final class ProtoExternalShareRequest: ProtoRequest<String> {
+
+    init(encryptedPostData: Data, expiry: Date, completion: @escaping Completion) {
+        var externalSharePost = Server_ExternalSharePost()
+        externalSharePost.action = .store
+        externalSharePost.blob = encryptedPostData
+        externalSharePost.expiresInSeconds = Int64(expiry.timeIntervalSinceNow)
+        let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .externalSharePost(externalSharePost))
+        super.init(iqPacket: iqPacket, transform: { .success($0.externalSharePost.blobID) }, completion: completion)
+    }
+}
+
 extension Server_PushPref.Name {
     init(_ configKey: NotificationSettings.ConfigKey) {
         switch configKey {

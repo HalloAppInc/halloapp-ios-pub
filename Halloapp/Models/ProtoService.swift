@@ -10,6 +10,7 @@ import CocoaLumberjackSwift
 import Combine
 import Core
 import CryptoKit
+import CryptoSwift
 import SwiftProtobuf
 
 fileprivate let userDefaultsKeyForAPNSToken = "apnsPushToken"
@@ -19,6 +20,8 @@ fileprivate let userDefaultsKeyForAPNSSyncTime = "apnsSyncTime"
 fileprivate let userDefaultsKeyForVOIPSyncTime = "voipSyncTime"
 fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 fileprivate let userDefaultsKeyForSilentRerequestRecords = "silentRerequestRecords"
+
+fileprivate let shareURLPrefix = "https://share.halloapp.com/"
 
 final class ProtoService: ProtoServiceCore {
 
@@ -1359,6 +1362,64 @@ extension ProtoService: HalloService {
             DDLogError("ProtoService/shareGroupHistory/\(groupID)/error could not serialize items")
             completion(.failure(.aborted))
         }
+    }
+
+    func uploadPostForExternalShare(_ postID: FeedPostID, completion: @escaping (Result<URL, RequestError>) -> Void) {
+        guard let postData = MainAppContext.shared.feedData.feedPost(with: postID)?.postData else {
+            DDLogError("ProtoService/UploadPostForExternalShare/Failed find post")
+            completion(.failure(RequestError.aborted))
+            return
+        }
+        guard let data = try? postData.clientPostContainer.serializedData() else {
+            DDLogError("ProtoService/UploadPostForExternalShare/Could not serialize post")
+            completion(.failure(RequestError.aborted))
+            return
+        }
+
+        var attachmentKey = [UInt8](repeating: 0, count: 15)
+        guard SecRandomCopyBytes(kSecRandomDefault, 15, &attachmentKey) == errSecSuccess else {
+            DDLogError("ProtoService/UploadPostForExternalShare/Failed to generate key")
+            completion(.failure(RequestError.aborted))
+            return
+        }
+
+        guard let fullKey = try? HKDF(password: attachmentKey, info: "HalloApp Share Post".bytes, keyLength: 80, variant: .sha256).calculate() else {
+            DDLogError("ProtoService/UploadPostForExternalShare/Failed to generate key")
+            completion(.failure(RequestError.aborted))
+            return
+        }
+
+        let iv = Array(fullKey[0..<16])
+        let aesKey = Array(fullKey[16..<48])
+        let hmacKey = Array(fullKey[48..<80])
+
+        guard let encryptedPostData = try? AES(key: aesKey, blockMode: CBC(iv: iv), padding: .pkcs5).encrypt(data.bytes) else {
+            DDLogError("ProtoService/UploadPostForExternalShare/Failed to encrypt post data")
+            completion(.failure(RequestError.aborted))
+            return
+        }
+
+        guard let hmac = try? HMAC(key: hmacKey, variant: .sha256).authenticate(encryptedPostData) else {
+            DDLogError("ProtoService/UploadPostForExternalShare/Failed to authenticate encryptedPostData")
+            completion(.failure(RequestError.aborted))
+            return
+        }
+
+        let encryptedPayload = Data(encryptedPostData + hmac)
+        let expiry = postData.timestamp.addingTimeInterval(FeedData.postExpiryTimeInterval)
+
+        enqueue(request: ProtoExternalShareRequest(encryptedPostData: encryptedPayload, expiry: expiry) { result in
+            switch result {
+            case .success(let blobID):
+                if let url = URL(string: "\(shareURLPrefix)\(blobID)?k=\(Data(attachmentKey).base64urlEncodedString())") {
+                    completion(.success(url))
+                } else {
+                    completion(.failure(RequestError.malformedResponse))
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        })
     }
 
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID) {
