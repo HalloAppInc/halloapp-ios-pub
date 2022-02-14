@@ -28,7 +28,7 @@ public class MediaHashStore {
     private lazy var persistentContainer: NSPersistentContainer = {
         let description = NSPersistentStoreDescription(url: self.persistentStoreURL)
         description.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
-        description.setOption(NSNumber(booleanLiteral: false), forKey: NSInferMappingModelAutomaticallyOption)
+        description.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
         description.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
         description.setValue(NSString("1"), forPragmaNamed: "secure_delete")
 
