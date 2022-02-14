@@ -15,6 +15,10 @@ private extension Localizations {
     static var newPost: String {
         NSLocalizedString("share.destination.new", value: "New Post", comment: "Share on the home feed selection cell")
     }
+
+    static var home: String {
+        NSLocalizedString("share.destination.home", value: "Home", comment: "Share on the home feed label")
+    }
 }
 
 class ShareDestinationRowView: UICollectionView {
@@ -191,7 +195,7 @@ fileprivate class DestinationViewCell: UICollectionViewCell {
     }
 
     public func configureHome() {
-        title.text = Localizations.newPost
+        title.text = Localizations.home
         homeView.isHidden = false
     }
 

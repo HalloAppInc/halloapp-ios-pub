@@ -33,6 +33,10 @@ private extension Localizations {
         NSLocalizedString("share.destination.new", value: "New Post", comment: "Share on the home feed selection cell")
     }
 
+    static var moreGroups: String {
+        NSLocalizedString("share.destination.more", value: "Show more...", comment: "Show more groups in the share group selection")
+    }
+
     static func missing(group name: String) -> String {
         let format = NSLocalizedString("share.destination.missing.group", value: "Missing group %@", comment: "Alert title when a direct to group sharing is missing")
         return String.localizedStringWithFormat(format, name)
@@ -408,7 +412,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
 
             let moreGroupsButton = UIButton(type: .custom)
             moreGroupsButton.translatesAutoresizingMaskIntoConstraints = false
-            moreGroupsButton.setTitle("Show more...", for: .normal)
+            moreGroupsButton.setTitle(Localizations.moreGroups, for: .normal)
             moreGroupsButton.setTitleColor(.primaryBlue, for: .normal)
             moreGroupsButton.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
             moreGroupsButton.addTarget(self, action: #selector(moreGroupsAction), for: .touchUpInside)
@@ -416,7 +420,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
             container.addSubview(moreGroupsButton)
             NSLayoutConstraint.activate([
                 moreGroupsButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
-                moreGroupsButton.topAnchor.constraint(equalTo: container.topAnchor),
+                moreGroupsButton.topAnchor.constraint(equalTo: container.topAnchor, constant: 8),
                 moreGroupsButton.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -6),
             ])
 
@@ -447,10 +451,18 @@ extension ShareDestinationViewController: UISearchBarDelegate {
 extension ShareDestinationViewController: UISearchResultsUpdating {
 
     func updateSearchResults(for searchController: UISearchController) {
-        guard let searchText = searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces), !searchText.isEmpty else { return }
+        guard let searchText = searchController.searchBar.text?.trimmingCharacters(in: CharacterSet.whitespaces), !searchText.isEmpty else {
+            // DispatchQueue.main.async is used to avoid unnecessary animations
+            // due to 'self.view?.layoutIfNeeded()' during animation
+            // when the empty search field is selected and keyboard is displayed
+            DispatchQueue.main.async { [weak self] in
+                self?.tableView.reloadData()
+            }
+            return
+        }
         let searchItems = searchText.lowercased().components(separatedBy: " ")
 
-        filteredGroups = groups.filter {
+        filteredGroups = allGroups.filter {
             let name = $0.name.lowercased()
 
             for item in searchItems {
