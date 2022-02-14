@@ -2480,6 +2480,26 @@ public struct Server_CallConfig {
 }
 
 /// External Sharing
+public struct Server_OgTagInfo {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var title: String = String()
+
+  public var description_p: String = String()
+
+  public var thumbnailURL: String = String()
+
+  public var thumbnailWidth: Int32 = 0
+
+  public var thumbnailHeight: Int32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Server_ExternalSharePost {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2492,6 +2512,15 @@ public struct Server_ExternalSharePost {
   public var blob: Data = Data()
 
   public var expiresInSeconds: Int64 = 0
+
+  public var ogTagInfo: Server_OgTagInfo {
+    get {return _ogTagInfo ?? Server_OgTagInfo()}
+    set {_ogTagInfo = newValue}
+  }
+  /// Returns true if `ogTagInfo` has been explicitly set.
+  public var hasOgTagInfo: Bool {return self._ogTagInfo != nil}
+  /// Clears the value of `ogTagInfo`. Subsequent reads from it will return its default value.
+  public mutating func clearOgTagInfo() {self._ogTagInfo = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -2524,6 +2553,8 @@ public struct Server_ExternalSharePost {
   }
 
   public init() {}
+
+  fileprivate var _ogTagInfo: Server_OgTagInfo? = nil
 }
 
 #if swift(>=4.2)
@@ -2547,9 +2578,20 @@ public struct Server_ExternalSharePostContainer {
 
   public var blob: Data = Data()
 
+  public var ogTagInfo: Server_OgTagInfo {
+    get {return _ogTagInfo ?? Server_OgTagInfo()}
+    set {_ogTagInfo = newValue}
+  }
+  /// Returns true if `ogTagInfo` has been explicitly set.
+  public var hasOgTagInfo: Bool {return self._ogTagInfo != nil}
+  /// Clears the value of `ogTagInfo`. Subsequent reads from it will return its default value.
+  public mutating func clearOgTagInfo() {self._ogTagInfo = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+
+  fileprivate var _ogTagInfo: Server_OgTagInfo? = nil
 }
 
 public struct Server_Iq {
@@ -9631,6 +9673,62 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   }
 }
 
+extension Server_OgTagInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".OgTagInfo"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "title"),
+    2: .same(proto: "description"),
+    3: .standard(proto: "thumbnail_url"),
+    4: .standard(proto: "thumbnail_width"),
+    5: .standard(proto: "thumbnail_height"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.title) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.description_p) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.thumbnailURL) }()
+      case 4: try { try decoder.decodeSingularInt32Field(value: &self.thumbnailWidth) }()
+      case 5: try { try decoder.decodeSingularInt32Field(value: &self.thumbnailHeight) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.title.isEmpty {
+      try visitor.visitSingularStringField(value: self.title, fieldNumber: 1)
+    }
+    if !self.description_p.isEmpty {
+      try visitor.visitSingularStringField(value: self.description_p, fieldNumber: 2)
+    }
+    if !self.thumbnailURL.isEmpty {
+      try visitor.visitSingularStringField(value: self.thumbnailURL, fieldNumber: 3)
+    }
+    if self.thumbnailWidth != 0 {
+      try visitor.visitSingularInt32Field(value: self.thumbnailWidth, fieldNumber: 4)
+    }
+    if self.thumbnailHeight != 0 {
+      try visitor.visitSingularInt32Field(value: self.thumbnailHeight, fieldNumber: 5)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_OgTagInfo, rhs: Server_OgTagInfo) -> Bool {
+    if lhs.title != rhs.title {return false}
+    if lhs.description_p != rhs.description_p {return false}
+    if lhs.thumbnailURL != rhs.thumbnailURL {return false}
+    if lhs.thumbnailWidth != rhs.thumbnailWidth {return false}
+    if lhs.thumbnailHeight != rhs.thumbnailHeight {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Server_ExternalSharePost: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".ExternalSharePost"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -9638,6 +9736,7 @@ extension Server_ExternalSharePost: SwiftProtobuf.Message, SwiftProtobuf._Messag
     2: .standard(proto: "blob_id"),
     3: .same(proto: "blob"),
     4: .standard(proto: "expires_in_seconds"),
+    5: .standard(proto: "og_tag_info"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -9650,12 +9749,17 @@ extension Server_ExternalSharePost: SwiftProtobuf.Message, SwiftProtobuf._Messag
       case 2: try { try decoder.decodeSingularStringField(value: &self.blobID) }()
       case 3: try { try decoder.decodeSingularBytesField(value: &self.blob) }()
       case 4: try { try decoder.decodeSingularInt64Field(value: &self.expiresInSeconds) }()
+      case 5: try { try decoder.decodeSingularMessageField(value: &self._ogTagInfo) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if self.action != .store {
       try visitor.visitSingularEnumField(value: self.action, fieldNumber: 1)
     }
@@ -9668,6 +9772,9 @@ extension Server_ExternalSharePost: SwiftProtobuf.Message, SwiftProtobuf._Messag
     if self.expiresInSeconds != 0 {
       try visitor.visitSingularInt64Field(value: self.expiresInSeconds, fieldNumber: 4)
     }
+    try { if let v = self._ogTagInfo {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -9676,6 +9783,7 @@ extension Server_ExternalSharePost: SwiftProtobuf.Message, SwiftProtobuf._Messag
     if lhs.blobID != rhs.blobID {return false}
     if lhs.blob != rhs.blob {return false}
     if lhs.expiresInSeconds != rhs.expiresInSeconds {return false}
+    if lhs._ogTagInfo != rhs._ogTagInfo {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -9693,6 +9801,7 @@ extension Server_ExternalSharePostContainer: SwiftProtobuf.Message, SwiftProtobu
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "uid"),
     2: .same(proto: "blob"),
+    3: .standard(proto: "og_tag_info"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -9703,24 +9812,33 @@ extension Server_ExternalSharePostContainer: SwiftProtobuf.Message, SwiftProtobu
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
       case 2: try { try decoder.decodeSingularBytesField(value: &self.blob) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._ogTagInfo) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if self.uid != 0 {
       try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 1)
     }
     if !self.blob.isEmpty {
       try visitor.visitSingularBytesField(value: self.blob, fieldNumber: 2)
     }
+    try { if let v = self._ogTagInfo {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_ExternalSharePostContainer, rhs: Server_ExternalSharePostContainer) -> Bool {
     if lhs.uid != rhs.uid {return false}
     if lhs.blob != rhs.blob {return false}
+    if lhs._ogTagInfo != rhs._ogTagInfo {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
