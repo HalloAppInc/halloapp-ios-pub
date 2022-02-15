@@ -192,6 +192,10 @@ extension UIColor {
         UIColor(named: "NotificationBottomBarShadow")!
     }
 
+    class var overlayLabel: UIColor {
+        UIColor(named: "OverlayLabel")!
+    }
+
     // MARK: Group Feed
 
     class var groupFeedTopNav: UIColor {

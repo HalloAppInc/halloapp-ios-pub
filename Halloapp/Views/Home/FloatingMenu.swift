@@ -255,7 +255,7 @@ final class FloatingMenu: UIView {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = UIApplication.shared.userInterfaceLayoutDirection == .rightToLeft ? .left : .right
-        label.textColor = .label
+        label.textColor = .overlayLabel
         label.font = .gothamFont(forTextStyle: textStyle, weight: .medium)
         label.text = text
         return label
