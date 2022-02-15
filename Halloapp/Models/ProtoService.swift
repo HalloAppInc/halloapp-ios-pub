@@ -1406,9 +1406,14 @@ extension ProtoService: HalloService {
         }
 
         let encryptedPayload = Data(encryptedPostData + hmac)
-        let expiry = postData.timestamp.addingTimeInterval(FeedData.postExpiryTimeInterval)
+        let expiry = postData.timestamp.addingTimeInterval(-FeedData.postExpiryTimeInterval)
 
-        enqueue(request: ProtoExternalShareRequest(encryptedPostData: encryptedPayload, expiry: expiry) { result in
+        var ogTagInfo = Server_OgTagInfo()
+        if let text = postData.text {
+            ogTagInfo.description_p = text
+        }
+
+        enqueue(request: ProtoExternalShareRequest(encryptedPostData: encryptedPayload, expiry: expiry, ogTagInfo: ogTagInfo) { result in
             switch result {
             case .success(let blobID):
                 if let url = URL(string: "\(shareURLPrefix)\(blobID)?k=\(Data(attachmentKey).base64urlEncodedString())") {

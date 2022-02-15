@@ -481,11 +481,12 @@ final class ProtoStartCallRequest: ProtoRequest<Server_StartCallResult> {
 
 final class ProtoExternalShareRequest: ProtoRequest<String> {
 
-    init(encryptedPostData: Data, expiry: Date, completion: @escaping Completion) {
+    init(encryptedPostData: Data, expiry: Date, ogTagInfo: Server_OgTagInfo, completion: @escaping Completion) {
         var externalSharePost = Server_ExternalSharePost()
         externalSharePost.action = .store
         externalSharePost.blob = encryptedPostData
         externalSharePost.expiresInSeconds = Int64(expiry.timeIntervalSinceNow)
+        externalSharePost.ogTagInfo = ogTagInfo
         let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .externalSharePost(externalSharePost))
         super.init(iqPacket: iqPacket, transform: { .success($0.externalSharePost.blobID) }, completion: completion)
     }
