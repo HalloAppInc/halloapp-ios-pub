@@ -19,6 +19,19 @@ class UserFeedViewController: FeedCollectionViewController {
         static let sectionHeaderReuseIdentifier = "header-view"
     }
 
+    override class var collectionViewSupplementaryItems: [NSCollectionLayoutBoundarySupplementaryItem] {
+        return [
+            NSCollectionLayoutBoundarySupplementaryItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                                                                           heightDimension: .estimated(44)),
+                                                        elementKind: UICollectionView.elementKindSectionHeader,
+                                                        alignment: .top)
+        ]
+    }
+
+    override class var collectionViewSectionInsets: NSDirectionalEdgeInsets {
+        return NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 20, trailing: 0)
+    }
+
     init(userId: UserID) {
         self.userId = userId
         self.isUserBlocked = false
@@ -280,25 +293,6 @@ class UserFeedViewController: FeedCollectionViewController {
             return headerView
         }
         return UICollectionReusableView()
-    }
-
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        guard section == 0 else {
-            return .zero
-        }
-        let targetSize = CGSize(width: collectionView.frame.width, height: UIView.layoutFittingCompressedSize.height)
-        let headerSize = headerViewController?.view.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel) ?? .zero
-        return headerSize
-    }
-
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        let layout = collectionViewLayout as! UICollectionViewFlowLayout
-        var inset = layout.sectionInset
-        if section == 0 {
-            inset.top = 8
-            inset.bottom = 20
-        }
-        return inset
     }
     
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {

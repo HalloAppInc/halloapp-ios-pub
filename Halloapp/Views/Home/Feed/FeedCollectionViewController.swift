@@ -26,7 +26,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     // TODO: Remove this implicitly unwrapped optional
     private(set) var collectionView: UICollectionView!
     private(set) var dataSource: FeedDataSource?
-    private let feedLayout: FeedLayout = {
+    private lazy var feedLayout: FeedLayout = {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
                                               heightDimension: .estimated(44))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
@@ -36,9 +36,19 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 
         let section = NSCollectionLayoutSection(group: group)
+        section.boundarySupplementaryItems = Self.collectionViewSupplementaryItems
+        section.contentInsets = Self.collectionViewSectionInsets
 
         return FeedLayout(section: section)
     }()
+
+    class var collectionViewSupplementaryItems: [NSCollectionLayoutBoundarySupplementaryItem] {
+        return []
+    }
+
+    class var collectionViewSectionInsets: NSDirectionalEdgeInsets {
+        return .zero
+    }
 
     private var cancellableSet: Set<AnyCancellable> = []
 
