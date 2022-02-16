@@ -503,7 +503,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         DDLogInfo("CallManager/CXEndCallAction/\(action.callUUID)/begin")
         if let details = callDetailsMap[action.callUUID],
            details.callID == activeCallID {
-            endActiveCall(reason: endReason ?? EndCallReason.ended)
+            endActiveCall(reason: endReason ?? EndCallReason.reject)
             DDLogInfo("CallManager/CXEndCallAction/success")
             action.fulfill()
         } else {

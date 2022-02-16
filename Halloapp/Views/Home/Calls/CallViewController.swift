@@ -122,6 +122,11 @@ class CallViewController: UIViewController {
             return callManager.activeCall?.isActive ?? false
         }
     }
+    private var isCallAnswered: Bool {
+        get {
+            return callManager.activeCall?.isAnswered ?? false
+        }
+    }
     private var isCallOnHold: Bool {
         get {
             return callManager.activeCall?.isOnHold ?? false
@@ -321,7 +326,13 @@ class CallViewController: UIViewController {
 
     @objc func endCallButtonTapped(sender: UIButton) {
         DDLogInfo("CallViewController/endCallButtonTapped")
-        callManager.endCall(reason: .ended) { [weak self] result in
+        let endReason: EndCallReason
+        if isOutgoing && !isCallAnswered {
+            endReason = .canceled
+        } else {
+            endReason = .ended
+        }
+        callManager.endCall(reason: endReason) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
