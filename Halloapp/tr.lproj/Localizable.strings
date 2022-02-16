@@ -358,9 +358,6 @@
 /* The default name given to new groups when the user is in Zero Zone (no contacts) */
 "create.group.default.name.my.new.group" = "Yeni grubum";
 
-/* Text label for group description text box */
-"create.group.description.label" = "Grup açıklaması";
-
 /* Placeholder text shown inside the group description input box when it's empty */
 "create.group.description.placeholder" = "Bir açıklama ekleyin (isteğe bağlı)";
 
@@ -1314,9 +1311,6 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Gizlilik";
-
-/* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.create.group" = "Yeni Grup Oluştur";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "title.select.group.members.title" = "Yeni Üyeler Ekle";

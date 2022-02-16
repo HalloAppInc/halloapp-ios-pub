@@ -148,6 +148,9 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "تماس صوتی از دست رفته";
 
+/* Status displayed when the other side is busy. */
+"call.status.busy" = "در تماس دیگر";
+
 /* Status displayed when outgoing call starts */
 "call.status.calling" = "در حال تماس...";
 
@@ -349,6 +352,12 @@
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "نوشتن نظر";
 
+/* Header that appears above all the unread comments in the comments view when there are more than one unread message */
+"comment.unread.messages.header.plural" = "@% نظر خوانده نشده";
+
+/* Header that appears above one single unread message in the comments view. */
+"comment.unread.messages.header.single" = "@% نظر خوانده نشده";
+
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "ورژن هالواپ شما این نوع نظر را نمیپذیرد.";
 
@@ -435,9 +444,6 @@
 
 /* The default name given to new groups when the user is in Zero Zone (no contacts) */
 "create.group.default.name.my.new.group" = "گروه جدیدم";
-
-/* Text label for group description text box */
-"create.group.description.label" = "توضیحات";
 
 /* Placeholder text shown inside the group description input box when it's empty */
 "create.group.description.placeholder" = "افزودن توضیحات (اختیاری)";
@@ -705,6 +711,12 @@
 
 /* Title of group invite screen */
 "group.invite.title" = "دعوت به گروه";
+
+/* Title of invite sheet */
+"group.invitesheet.title" = "برای اینکه دوستان و خانواده‌ شما به صورت خودکار به هالواپ بپیوندند، این لینک را با آن‌ها به اشتراک بگذارید";
+
+/* Section header describing options to share link */
+"group.invitesheet.use.link.via" = "به اشتراک گذاشتن لینک با...";
 
 /* Label shown above group members list */
 "group.members.label" = "اعضا";
@@ -987,6 +999,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "ویدیو 📹";
+
+/* Missed voice call notification text to be shown to the user. */
+"notification.voicecall.missed" = "☎️ تماس صوتی از دست رفته";
 
 /* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 پیام صوتی";
@@ -1447,8 +1462,8 @@
 /* Row in Settings screen */
 "title.privacy" = "حریم خصوصی";
 
-/* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.create.group" = "ایجاد گروه جدید";
+/* Title of screen where user can add members during group creation flow */
+"title.select.group.members.create.title" = "اضافه کردن عضو";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "title.select.group.members.title" = "افزودن اعضای جدید";

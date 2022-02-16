@@ -142,6 +142,9 @@
 /* Share on the home feed label */
 "share.destination.home" = "Home";
 
+/* Show more groups in the share group selection */
+"share.destination.more" = "Mehr anzeigen...";
+
 /* Share on the home feed selection cell */
 "share.destination.new" = "Neuer Beitrag";
 

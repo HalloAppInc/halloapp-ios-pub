@@ -148,6 +148,9 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Llamada de voz perdida.";
 
+/* Status displayed when the other side is busy. */
+"call.status.busy" = "en otra llamada";
+
 /* Status displayed when outgoing call starts */
 "call.status.calling" = "llamando...";
 
@@ -441,9 +444,6 @@
 
 /* The default name given to new groups when the user is in Zero Zone (no contacts) */
 "create.group.default.name.my.new.group" = "Mi grupo nuevo";
-
-/* Text label for group description text box */
-"create.group.description.label" = "Descripción";
 
 /* Placeholder text shown inside the group description input box when it's empty */
 "create.group.description.placeholder" = "Añade una descripción (opcional)";
@@ -1462,8 +1462,8 @@
 /* Row in Settings screen */
 "title.privacy" = "Privacidad";
 
-/* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.create.group" = "Crear grupo nuevo";
+/* Title of screen where user can add members during group creation flow */
+"title.select.group.members.create.title" = "Agrega miembros";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "title.select.group.members.title" = "Añadir miembros nuevos";

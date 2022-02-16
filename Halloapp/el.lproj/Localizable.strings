@@ -1130,9 +1130,6 @@
 "title.privacy" = "Απόρρητο";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.create.group" = "Δημιουργία Νέας Ομάδας";
-
-/* Title of screen where user chooses members to add to either a new group or an existing one */
 "title.select.group.members.title" = "Προσθήκη Νέων Μελών";
 
 /* Fourth tab in the main app interface */

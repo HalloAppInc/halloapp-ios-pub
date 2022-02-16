@@ -146,6 +146,9 @@
    Alert title when a direct to group sharing is missing */
 "share.destination.missing.group" = "Grupo %@ desaparecido";
 
+/* Show more groups in the share group selection */
+"share.destination.more" = "Mostrar más...";
+
 /* Share on the home feed selection cell */
 "share.destination.new" = "Nueva publicación";
 

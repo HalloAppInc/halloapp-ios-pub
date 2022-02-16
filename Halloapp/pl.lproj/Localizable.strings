@@ -433,9 +433,6 @@
 /* The default name given to new groups when the user is in Zero Zone (no contacts) */
 "create.group.default.name.my.new.group" = "Moja nowa grupa";
 
-/* Text label for group description text box */
-"create.group.description.label" = "Opis";
-
 /* Placeholder text shown inside the group description input box when it's empty */
 "create.group.description.placeholder" = "Dodaj opis (opcjonalne)";
 
@@ -1437,9 +1434,6 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Prywatność";
-
-/* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.create.group" = "Utwórz nową grupę";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "title.select.group.members.title" = "Dodaj nowych członków";

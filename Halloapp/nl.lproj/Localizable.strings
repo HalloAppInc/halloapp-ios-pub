@@ -148,6 +148,9 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Gemiste spraakoproep";
 
+/* Status displayed when the other side is busy. */
+"call.status.busy" = "in gesprek";
+
 /* Status displayed when outgoing call starts */
 "call.status.calling" = "wordt gebeld...";
 
@@ -442,9 +445,6 @@
 /* The default name given to new groups when the user is in Zero Zone (no contacts) */
 "create.group.default.name.my.new.group" = "Mijn nieuwe groep";
 
-/* Text label for group description text box */
-"create.group.description.label" = "Omschrijving";
-
 /* Placeholder text shown inside the group description input box when it's empty */
 "create.group.description.placeholder" = "Omschrijving toevoegen (optioneel)";
 
@@ -711,6 +711,9 @@
 
 /* Title of group invite screen */
 "group.invite.title" = "Groepsuitnodiging";
+
+/* Title of invite sheet */
+"group.invitesheet.title" = "Deel deze link met vrienden & familie en ze worden automatisch toegevoegd aan deze HalloApp-groep";
 
 /* Section header describing options to share link */
 "group.invitesheet.use.link.via" = "Link delen via…";
@@ -1459,8 +1462,8 @@
 /* Row in Settings screen */
 "title.privacy" = "Privacy";
 
-/* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.create.group" = "Nieuwe Groep Aanmaken";
+/* Title of screen where user can add members during group creation flow */
+"title.select.group.members.create.title" = "Deelnemers Toevoegen";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "title.select.group.members.title" = "Deelnemers Toevoegen";
@@ -1527,4 +1530,10 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Deze post verwijderen? Dit kan niet ongedaan worden gemaakt.";
+
+/* Title for button in action sheet prompting user to share post to external sites */
+"your.post.externalshare.button" = "Extern Delen";
+
+/* Message that external share failed. */
+"your.post.externalshare.error" = "Uploaden post voor extern delen mislukt";
 

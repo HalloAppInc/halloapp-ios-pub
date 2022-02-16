@@ -148,6 +148,9 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Пропущенный голосовой вызов";
 
+/* Status displayed when the other side is busy. */
+"call.status.busy" = "занято";
+
 /* Status displayed when outgoing call starts */
 "call.status.calling" = "звонит...";
 
@@ -349,6 +352,12 @@
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Добавить комментарий";
 
+/* Header that appears above all the unread comments in the comments view when there are more than one unread message */
+"comment.unread.messages.header.plural" = "%@ Непрочитанные комментарии";
+
+/* Header that appears above one single unread message in the comments view. */
+"comment.unread.messages.header.single" = "%@ Непрочитанные комментарии";
+
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "Твоя версия HalloApp не поддерживает этот тип комментариев.";
 
@@ -435,9 +444,6 @@
 
 /* The default name given to new groups when the user is in Zero Zone (no contacts) */
 "create.group.default.name.my.new.group" = "Моя новая группа";
-
-/* Text label for group description text box */
-"create.group.description.label" = "Описание";
 
 /* Placeholder text shown inside the group description input box when it's empty */
 "create.group.description.placeholder" = "Введите описание (необязательно)";
@@ -705,6 +711,12 @@
 
 /* Title of group invite screen */
 "group.invite.title" = "Групповое приглашение";
+
+/* Title of invite sheet */
+"group.invitesheet.title" = "Поделитесь этой ссылкой с друзьями и семьей, и они автоматически присоединятся к HalloApp";
+
+/* Section header describing options to share link */
+"group.invitesheet.use.link.via" = "Поделитесь ссылкой...";
 
 /* Label shown above group members list */
 "group.members.label" = "Участники";
@@ -987,6 +999,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 видео";
+
+/* Missed voice call notification text to be shown to the user. */
+"notification.voicecall.missed" = "Пропущенный голосовой вызов";
 
 /* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤 Голосовая заметка";
@@ -1447,8 +1462,8 @@
 /* Row in Settings screen */
 "title.privacy" = "Конфиденциальность";
 
-/* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.create.group" = "Создать новую группу";
+/* Title of screen where user can add members during group creation flow */
+"title.select.group.members.create.title" = "Добавить участников";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "title.select.group.members.title" = "Добавить новых участников";

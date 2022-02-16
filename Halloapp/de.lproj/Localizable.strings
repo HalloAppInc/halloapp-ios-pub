@@ -8,7 +8,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "HalloApp ist da! Und wir entwickeln diese App für dich und deine Liebsten. HalloApp ist eine Social-App, die sich wieder auf das Wesentliche besinnt und dabei gleichzeitig ein hohes Sicherheits- und Datenschutzniveau bietet, zu dem, wie wir meinen, jeder weltweit Zugriff haben sollte.\nHalloApp wird niemals deine persönlichen Daten verwenden oder dir Werbung anzeigen. Wir planen vielmehr, unseren Nutzern in Zukunft zusätzliche Funktionen zu einem günstigen Preis anzubieten.";
+"about.body.1" = "HalloApp ist da! Und wir entwickeln diese App für dich und deine Liebsten. HalloApp ist eine Social-App, die sich wieder auf das Wesentliche besinnt und dabei gleichzeitig ein hohes Sicherheits- und Datenschutzniveau bietet, zu dem, wie wir meinen, jeder weltweit Zugriff haben sollte.\nHalloApp wird niemals deine persönlichen Daten verwenden oder dir Werbung anzeigen. Stattdessen planen wir, in Zukunft zusätzliche Funktionen zu einem günstigen Preis anzubieten.";
 
 /* About screen: body text. */
 "about.body.2" = "Danke, dass du HalloApp nutzt und mit deinen Freunden und deiner Familie teilst. Wir verbessern diese App wöchentlich.";
@@ -148,6 +148,9 @@
 /* Title for call history event. Appears next to details of a missed call. */
 "call.history.voice.call.missed" = "Verpasster Sprachanruf";
 
+/* Status displayed when the other side is busy. */
+"call.status.busy" = "in einem anderen Gespräch";
+
 /* Status displayed when outgoing call starts */
 "call.status.calling" = "ausgehender Anruf...";
 
@@ -203,7 +206,7 @@
 "Cancel" = "Abbrechen";
 
 /* Text shown at the top of the chat screen informing the user that the contact is blocked */
-"chat.blocked.contact.label" = "Der Kontakt ist gesperrt, zur Freigabe hier tippen";
+"chat.blocked.contact.label" = "Kontakt ist geblockt, zum Entblocken hier tippen";
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Neue Gruppe erstellen";
@@ -441,9 +444,6 @@
 
 /* The default name given to new groups when the user is in Zero Zone (no contacts) */
 "create.group.default.name.my.new.group" = "Meine neue Gruppe";
-
-/* Text label for group description text box */
-"create.group.description.label" = "Gruppenbeschreibung";
 
 /* Placeholder text shown inside the group description input box when it's empty */
 "create.group.description.placeholder" = "Beschreibung hinzufügen (optional)";
@@ -711,6 +711,9 @@
 
 /* Title of group invite screen */
 "group.invite.title" = "Gruppeneinladung";
+
+/* Title of invite sheet */
+"group.invitesheet.title" = "Teile diesen Link mit Freunden und Familie und sie werden automatisch dieser HalloApp-Gruppe beitreten";
 
 /* Section header describing options to share link */
 "group.invitesheet.use.link.via" = "Link teilen über...";
@@ -1079,7 +1082,7 @@
 "post.privacy.title" = "Teilen mit ...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
-"privacy.list.blocked" = "Blockierte Kontakte";
+"privacy.list.blocked" = "Geblockt";
 
 /* Generic setting value telling how many contacts are blocked or muted. */
 "privacy.n.contacts" = "privacy.n.contacts";
@@ -1097,7 +1100,7 @@
 "profile.header.message.user" = "Nachricht senden";
 
 /* Text for unblocking user under profile header */
-"profile.header.unblock.user" = "Freigeben";
+"profile.header.unblock.user" = "Entblocken";
 
 /* Item in Profile > Calls screen. */
 "profile.help.calls" = "Anrufe";
@@ -1334,7 +1337,7 @@
 "settings.account.export.navbar" = "Daten exportieren";
 
 /* Label for when the date at which the user data is not determined. */
-"settings.account.export.not.found" = "Datum zur Bereitstellung der Benutzerdaten konnte nicht ermittelt werden.";
+"settings.account.export.not.found" = "Das Fertigstellungsdatum konnte nicht ermittelt werden.";
 
 /* Button to open the user data exported from HalloApp. */
 "settings.account.export.open.data" = "Exportierte Daten öffnen";
@@ -1459,8 +1462,8 @@
 /* Row in Settings screen */
 "title.privacy" = "Privatsphäre";
 
-/* Title of screen where user chooses members to add to either a new group or an existing one */
-"title.select.group.members.create.group" = "Neue Gruppe gründen";
+/* Title of screen where user can add members during group creation flow */
+"title.select.group.members.create.title" = "Mitglieder hinzufügen";
 
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "title.select.group.members.title" = "Neue Mitglieder hinzufügen";
@@ -1502,13 +1505,13 @@
 "user.option.copy.phone.number" = "Handynummer kopieren";
 
 /* Option when user taps more on profile page */
-"user.option.unblock" = "Auf HalloApp freigeben";
+"user.option.unblock" = "Auf HalloApp entblocken";
 
 /* Button to confirm unblocking user via profile page */
-"user.unblock" = "Freigeben";
+"user.unblock" = "Entblocken";
 
 /* Message asking if the user is sure they want to unblock this user */
-"user.unblock.message" = "Bist du dir sicher, dass du %@ auf HalloApp freigeben möchtest? Du kannst dies später jederzeit ändern.";
+"user.unblock.message" = "Bist du dir sicher, dass du %@ auf HalloApp entblocken möchtest? Du kannst dies später jederzeit ändern.";
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Anrufen";
@@ -1527,4 +1530,10 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Diesen Beitrag löschen? Diese Aktion kann nicht widerrufen werden.";
+
+/* Title for button in action sheet prompting user to share post to external sites */
+"your.post.externalshare.button" = "Extern teilen";
+
+/* Message that external share failed. */
+"your.post.externalshare.error" = "Fehler beim Hochladen des Beitrags für das externe Teilen";
 
