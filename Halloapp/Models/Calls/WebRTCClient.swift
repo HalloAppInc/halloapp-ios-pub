@@ -79,8 +79,6 @@ final class WebRTCClient: NSObject {
         config.iceServers = iceServers
         // Unified plan is more superior than planB
         config.sdpSemantics = .unifiedPlan
-        // Enables fast accelerate mode of jitter buffer.
-        config.audioJitterBufferFastAccelerate = true
         config.continualGatheringPolicy = .gatherOnce
         // Define media constraints. DtlsSrtpKeyAgreement is required to be true to be able to connect with web browsers.
         let constraints = RTCMediaConstraints(mandatoryConstraints: nil,
