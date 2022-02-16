@@ -38,6 +38,8 @@ class GroupFeedViewController: FeedCollectionViewController {
     private var shouldShowInviteSheet = false
 
     private var cancellableSet: Set<AnyCancellable> = []
+    
+    private var feedPostIdToScrollTo: FeedPostID?
 
     init(groupId: GroupID, shouldShowInviteSheet: Bool = false) {
         self.groupId = groupId
@@ -48,6 +50,21 @@ class GroupFeedViewController: FeedCollectionViewController {
         self.hidesBottomBarWhenPushed = true
         self.setupDatasource()
         self.populateEvents()
+    }
+    
+    /// For when the user responds to a group notification.
+    ///
+    /// This will make the VC scroll to the post referenced in the notification.
+    convenience init?(metadata: NotificationMetadata) {
+        guard
+            let id = metadata.groupId,
+            let _ = MainAppContext.shared.chatData.chatGroup(groupId: id)
+        else {
+            return nil
+        }
+        
+        self.init(groupId: id)
+        self.feedPostIdToScrollTo = metadata.postData()?.id
     }
 
     required init?(coder: NSCoder) {
@@ -100,10 +117,34 @@ class GroupFeedViewController: FeedCollectionViewController {
                 }
             }
         )
+        
+        cancellableSet.insert(
+            MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] (feedPost) in
+                guard let self = self else { return }
+                if self.feedPostIdToScrollTo == feedPost.id {
+                    self.scrollTo(postId: feedPost.id)
+                    self.feedPostIdToScrollTo = nil
+                }
+        })
+
+        cancellableSet.insert(
+            MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] (feedPostId) in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    if self.feedPostIdToScrollTo == feedPostId {
+                        self.scrollTo(postId: feedPostId)
+                        self.feedPostIdToScrollTo = nil
+                    }
+                }
+        })
 
         cancellableSet.insert(MainAppContext.shared.callManager.hasActiveCallPublisher.sink(receiveValue: { [weak self] hasActiveCall in
             self?.composeVoiceNoteButton?.button.isEnabled = !hasActiveCall
         }))
+        
+        if let idForScroll = feedPostIdToScrollTo, scrollTo(postId: idForScroll) == true {
+            feedPostIdToScrollTo = nil
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {

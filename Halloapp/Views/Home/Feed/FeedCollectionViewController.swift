@@ -25,14 +25,17 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     // TODO: Remove this implicitly unwrapped optional
     private(set) var collectionView: UICollectionView!
-    private(set) var dataSource: FeedDataSource?
+    let feedDataSource: FeedDataSource
+    var collectionViewDataSource: UICollectionViewDiffableDataSource<FeedDisplaySection, FeedDisplayItem>?
+    
     private lazy var feedLayout: FeedLayout = {
+
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                              heightDimension: .estimated(44))
+                                             heightDimension: .estimated(44))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                               heightDimension: .estimated(44))
+                                              heightDimension: .estimated(44))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 
         let section = NSCollectionLayoutSection(group: group)
@@ -232,6 +235,23 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         }
 
         checkForOnscreenCells()
+    }
+    
+    /**
+     Scrolls to a specific post.
+     
+     - Returns: `true` if the post associated with `id` exists in the data source.
+     */
+    @discardableResult
+    func scrollTo(postId: FeedPostID, animated: Bool = false) -> Bool {
+        guard let index = feedDataSource.index(of: postId) else {
+            return false
+        }
+        
+        let path = IndexPath(item: index, section: 0)
+        collectionView.scrollToItem(at: path, at: .top, animated: animated)
+        
+        return true
     }
 
     // MARK: FeedCollectionViewController Customization
@@ -569,15 +589,17 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         guard let collectionView = collectionView else { return true }
         return collectionView.contentOffset.y < fromTop
     }
-
-    let feedDataSource: FeedDataSource
-    var collectionViewDataSource: UICollectionViewDiffableDataSource<FeedDisplaySection, FeedDisplayItem>?
 }
 
 extension FeedCollectionViewController: UIViewControllerScrollsToTop {
 
     func scrollToTop(animated: Bool) {
-        collectionView.setContentOffset(CGPoint(x: 0, y: -collectionView.adjustedContentInset.top), animated: animated)
+        guard collectionView.numberOfItems(inSection: 0) > 0 else {
+            return
+        }
+        
+        let path = IndexPath(item: 0, section: 0)
+        collectionView.scrollToItem(at: path, at: .top, animated: animated)
     }
 }
 

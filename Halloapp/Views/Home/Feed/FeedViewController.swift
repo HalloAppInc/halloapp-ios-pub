@@ -76,7 +76,7 @@ class FeedViewController: FeedCollectionViewController {
                 guard let self = self else { return }
                 if self.feedPostIdToScrollTo == feedPost.id {
                     DDLogDebug("FeedViewController/scroll-to-post/postponed \(feedPost.id)")
-                    self.scrollTo(post: feedPost)
+                    self.scrollTo(postId: feedPost.id)
                     self.feedPostIdToScrollTo = nil
                 }
         })
@@ -87,7 +87,7 @@ class FeedViewController: FeedCollectionViewController {
                 DispatchQueue.main.async {
                     if self.feedPostIdToScrollTo == feedPostId {
                         DDLogDebug("FeedViewController/scroll-to-post/merged \(feedPostId)")
-                        self.scrollToPostId(postId: feedPostId)
+                        self.scrollTo(postId: feedPostId)
                         self.feedPostIdToScrollTo = nil
                     }
                 }
@@ -457,23 +457,12 @@ class FeedViewController: FeedCollectionViewController {
         showNUXIfNecessary()
     }
 
-    private func scrollTo(post feedPost: FeedPost) {
-        scrollToPostId(postId: feedPost.id)
-    }
-
-    private func scrollToPostId(postId feedPostId: FeedPostID) {
-        if let index = feedDataSource.index(of: feedPostId) {
-            collectionView.scrollToItem(at: IndexPath(item: index, section: 0), at: .top, animated: false)
-        }
-    }
-
     private func processNotification(metadata: NotificationMetadata) {
         guard metadata.isFeedNotification else {
             return
         }
 
         metadata.removeFromUserDefaults()
-
         DDLogInfo("FeedViewController/notification/process type=\(metadata.contentType) contentId=\(metadata.contentId)")
 
         switch metadata.contentType {
@@ -493,7 +482,7 @@ class FeedViewController: FeedCollectionViewController {
             if let feedPost = feedPost {
                 DDLogDebug("FeedViewController/scroll-to-post/immediate \(feedPostId)")
                 // Scroll to feed post now.
-                scrollTo(post: feedPost)
+                scrollTo(postId: feedPost.id)
             } else {
                 DDLogDebug("FeedViewController/scroll-to-post/postpone \(feedPostId)")
                 // Scroll to the top now and wait for post to be received.
@@ -504,10 +493,8 @@ class FeedViewController: FeedCollectionViewController {
                 }
             }
         case .groupFeedPost:
-            // TODO: we should scroll to the specific post - separate diff.
             DDLogDebug("FeedViewController/processNotification/groupFeedPost, groupId: \(metadata.groupId ?? "")")
-            if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                let vc = GroupFeedViewController(groupId: groupId)
+            if let vc = GroupFeedViewController(metadata: metadata) {
                 navigationController?.pushViewController(vc, animated: false)
             }
         default:
