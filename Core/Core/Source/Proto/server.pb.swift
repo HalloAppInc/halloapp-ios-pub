@@ -2474,10 +2474,52 @@ public struct Server_CallConfig {
 
   public var audioJitterBufferFastAccelerate: Bool = false
 
+  public var iceTransportPolicy: Server_CallConfig.IceTransportPolicy = .all
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum IceTransportPolicy: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case all // = 0
+    case relay // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .all
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .all
+      case 1: self = .relay
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .all: return 0
+      case .relay: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
 
   public init() {}
 }
+
+#if swift(>=4.2)
+
+extension Server_CallConfig.IceTransportPolicy: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_CallConfig.IceTransportPolicy] = [
+    .all,
+    .relay,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 /// External Sharing
 public struct Server_OgTagInfo {
@@ -9605,6 +9647,7 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     7: .standard(proto: "video_fps"),
     8: .standard(proto: "audio_jitter_buffer_max_packets"),
     9: .standard(proto: "audio_jitter_buffer_fast_accelerate"),
+    10: .standard(proto: "ice_transport_policy"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -9622,6 +9665,7 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       case 7: try { try decoder.decodeSingularInt32Field(value: &self.videoFps) }()
       case 8: try { try decoder.decodeSingularInt32Field(value: &self.audioJitterBufferMaxPackets) }()
       case 9: try { try decoder.decodeSingularBoolField(value: &self.audioJitterBufferFastAccelerate) }()
+      case 10: try { try decoder.decodeSingularEnumField(value: &self.iceTransportPolicy) }()
       default: break
       }
     }
@@ -9655,6 +9699,9 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if self.audioJitterBufferFastAccelerate != false {
       try visitor.visitSingularBoolField(value: self.audioJitterBufferFastAccelerate, fieldNumber: 9)
     }
+    if self.iceTransportPolicy != .all {
+      try visitor.visitSingularEnumField(value: self.iceTransportPolicy, fieldNumber: 10)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -9668,9 +9715,17 @@ extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if lhs.videoFps != rhs.videoFps {return false}
     if lhs.audioJitterBufferMaxPackets != rhs.audioJitterBufferMaxPackets {return false}
     if lhs.audioJitterBufferFastAccelerate != rhs.audioJitterBufferFastAccelerate {return false}
+    if lhs.iceTransportPolicy != rhs.iceTransportPolicy {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_CallConfig.IceTransportPolicy: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "ALL"),
+    1: .same(proto: "RELAY"),
+  ]
 }
 
 extension Server_OgTagInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {

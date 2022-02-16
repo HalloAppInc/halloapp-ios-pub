@@ -149,9 +149,9 @@ class Call {
         canPlayRingtone = true
     }
 
-    func initializeWebRtcClient(iceServers: [RTCIceServer]) {
-        DDLogInfo("Call/initializeWebRtcClient/id: \(callID)/iceServers: \(iceServers)")
-        self.webRTCClient = WebRTCClient(iceServers: iceServers)
+    func initializeWebRtcClient(iceServers: [RTCIceServer], config: Server_CallConfig) {
+        DDLogInfo("Call/initializeWebRtcClient/id: \(callID)/iceServers: \(iceServers)/call_config: \(config)")
+        self.webRTCClient = WebRTCClient(iceServers: iceServers, config: config)
         webRTCClient?.delegate = self
     }
 

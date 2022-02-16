@@ -408,7 +408,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                     switch callServersResult {
                     case .success(let callServers):
                         let iceServers = WebRTCClient.getIceServers(stunServers: callServers.stunServers, turnServers: callServers.turnServers)
-                        activeCall?.initializeWebRtcClient(iceServers: iceServers)
+                        activeCall?.initializeWebRtcClient(iceServers: iceServers, config: callServers.callConfig)
                         DDLogInfo("CallManager/CXStartCallAction/callID: \(details.callID)/to: \(details.peerUserID)/iceServers success")
                         activeCall?.start { [self] success in
                             DDLogInfo("CallManager/CXStartCallAction/result: \(success)")
@@ -847,7 +847,7 @@ extension CallManager: HalloCallDelegate {
                 let iceServers = WebRTCClient.getIceServers(stunServers: incomingCall.stunServers, turnServers: incomingCall.turnServers)
                 activeCall = Call(id: callID, peerUserID: peerUserID)
                 activeCall?.stateDelegate = self
-                activeCall?.initializeWebRtcClient(iceServers: iceServers)
+                activeCall?.initializeWebRtcClient(iceServers: iceServers, config: incomingCall.callConfig)
                 reportIncomingCall(id: callID, from: peerUserID) { result in
                     switch result {
                     case .success:

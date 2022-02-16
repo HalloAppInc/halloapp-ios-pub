@@ -73,21 +73,30 @@ final class WebRTCClient: NSObject {
     private let mediaConstraints = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue]
     private var localDataChannel: RTCDataChannel?
     private var remoteDataChannel: RTCDataChannel?
+    private var callConfig: Server_CallConfig
 
-    init(iceServers: [RTCIceServer]) {
-        let config = RTCConfiguration()
-        config.iceServers = iceServers
-        // Unified plan is more superior than planB
-        config.sdpSemantics = .unifiedPlan
-        config.continualGatheringPolicy = .gatherOnce
-        // Define media constraints. DtlsSrtpKeyAgreement is required to be true to be able to connect with web browsers.
-        let constraints = RTCMediaConstraints(mandatoryConstraints: nil,
-                                              optionalConstraints: ["DtlsSrtpKeyAgreement":kRTCMediaConstraintsValueTrue])
+    init(iceServers: [RTCIceServer], config: Server_CallConfig) {
+        self.callConfig = config
 
-        guard let peerConnection = WebRTCClient.factory.peerConnection(with: config, constraints: constraints, delegate: nil) else {
+        let rtcConfig = RTCConfiguration()
+        rtcConfig.iceServers = iceServers
+        rtcConfig.sdpSemantics = .unifiedPlan
+        rtcConfig.audioJitterBufferFastAccelerate = callConfig.audioJitterBufferFastAccelerate
+        switch callConfig.iceTransportPolicy {
+        case .all:
+            rtcConfig.iceTransportPolicy = .all
+        case .relay:
+            rtcConfig.iceTransportPolicy = .relay
+        case .UNRECOGNIZED:
+            rtcConfig.iceTransportPolicy = .all
+        }
+        rtcConfig.continualGatheringPolicy = .gatherOnce
+
+        let constraints = RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: ["DtlsSrtpKeyAgreement":kRTCMediaConstraintsValueTrue])
+
+        guard let peerConnection = WebRTCClient.factory.peerConnection(with: rtcConfig, constraints: constraints, delegate: nil) else {
             fatalError("WebRTCClient/Could not create new RTCPeerConnection")
         }
-
         self.peerConnection = peerConnection
 
         super.init()
