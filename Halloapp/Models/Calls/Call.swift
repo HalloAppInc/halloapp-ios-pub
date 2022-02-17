@@ -76,7 +76,6 @@ class Call {
         }
     }
     private var callQueue = DispatchQueue(label: "com.halloapp.call", qos: .userInitiated)
-    private var pendingLocalIceCandidates: [IceCandidateInfo] = []
     private var pendingRemoteIceCandidates: [IceCandidateInfo] = []
     private var pendingEndCallAction: DispatchWorkItem? = nil
     private var lastReport: [String: RTCStatistics]? = nil
@@ -114,20 +113,6 @@ class Call {
             // state will be changed to 'iceRestartConnecting' after we received an 'iceOffer' packet successfully.
             // process iceCandidates even after state is active.
             return state == .ringing || state == .iceRestartConnecting || state == .active
-        }
-    }
-
-    var isReadyToSendLocalIceCandidates: Bool {
-        if isOutgoing {
-            // state will be changed to 'connecting' after we send a 'startCall' packet successfully.
-            // state will be changed to 'iceRestartConnecting' after we send an 'iceOffer' packet successfully.
-            // send iceCandidates even after state is connected or active.
-            return state == .connecting || state == .iceRestartConnecting || state == .connected || state == .active
-        } else {
-            // state will be changed to 'connected' after we send an 'answerCall' packet successfully.
-            // state will be changed to 'connected' after we send an 'iceAnswer' packet successfully.
-            // send iceCandidates even after state is active.
-            return state == .connected || state == .active
         }
     }
 
@@ -256,7 +241,6 @@ class Call {
                     case .success(_):
                         state = .connecting
                         DDLogInfo("Call/\(callID)/start/success")
-                        processPendingLocalIceCandidates()
                         DispatchQueue.main.async {
                             completion(true)
                         }
@@ -298,7 +282,6 @@ class Call {
                             state = .iceRestartConnecting
                         }
                         DDLogInfo("Call/\(callID)/iceRestartOffer/success")
-                        processPendingLocalIceCandidates()
                         DispatchQueue.main.async {
                             completion(true)
                         }
@@ -331,7 +314,6 @@ class Call {
                     case .success:
                         state = .connected
                         DDLogInfo("Call/\(callID)/answer/success")
-                        processPendingLocalIceCandidates()
                         DispatchQueue.main.async {
                             completion(true)
                         }
@@ -369,7 +351,6 @@ class Call {
                             state = .connected
                         }
                         DDLogInfo("Call/\(callID)/iceRestartAnswer/success")
-                        processPendingLocalIceCandidates()
                         DispatchQueue.main.async {
                             completion(true)
                         }
@@ -636,17 +617,6 @@ class Call {
 
     // MARK: Internal functions
 
-    private func processPendingLocalIceCandidates() {
-        DDLogInfo("Call/\(callID)/processPendingLocalIceCandidates/count: \(pendingLocalIceCandidates.count)")
-        callQueue.async { [self] in
-            pendingLocalIceCandidates.forEach { candidate in
-                service.sendIceCandidate(id: callID, to: peerUserID, iceCandidateInfo: candidate)
-            }
-            pendingLocalIceCandidates.removeAll()
-            DDLogInfo("Call/\(callID)/processPendingLocalIceCandidates/success")
-        }
-    }
-
     func processPendingRemoteIceCandidateInfo() {
         DDLogInfo("Call/\(callID)/processPendingRemoteIceCandidateInfo/count: \(pendingRemoteIceCandidates.count)")
         callQueue.async { [self] in
@@ -671,13 +641,7 @@ extension Call: WebRTCClientDelegate {
         callQueue.async { [self] in
             if let sdpMid = candidate.sdpMid {
                 let iceCandidateInfo = IceCandidateInfo(sdpMid: sdpMid, sdpMLineIndex: candidate.sdpMLineIndex, sdpInfo: candidate.sdp)
-                // We need to hold ice candidates until we send a startCall or answerCall packet successfully.
-                if !isReadyToSendLocalIceCandidates {
-                    pendingLocalIceCandidates.append(iceCandidateInfo)
-                    DDLogInfo("Call/\(callID)/WebRTCClientDelegate/didDiscoverLocalCandidate/queue this to pendingLocalIceCandidates")
-                } else {
-                    service.sendIceCandidate(id: callID, to: peerUserID, iceCandidateInfo: iceCandidateInfo)
-                }
+                service.sendIceCandidate(id: callID, to: peerUserID, iceCandidateInfo: iceCandidateInfo)
             }
         }
     }
