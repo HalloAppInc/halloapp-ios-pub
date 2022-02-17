@@ -20,16 +20,6 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         "group-welcome-post"
     }
 
-    var maxWidth: CGFloat = 0 {
-        didSet {
-            guard maxWidth != oldValue else {
-                return
-            }
-            maxWidthConstraint.constant = maxWidth
-            maxWidthConstraint.isActive = true
-        }
-    }
-
     public func configure(groupID: GroupID, showCloseButton: Bool = false) {
         self.groupID = groupID
         closeButtonColumn.isHidden = !showCloseButton
@@ -44,10 +34,6 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         layoutAttributes.size.height = height()
         return layoutAttributes
     }
-
-    private lazy var maxWidthConstraint: NSLayoutConstraint = {
-        widthAnchor.constraint(equalToConstant: maxWidth)
-    }()
 
     struct LayoutConstants {
         static let interCardSpacing: CGFloat = 50

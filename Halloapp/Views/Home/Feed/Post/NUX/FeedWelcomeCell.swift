@@ -32,20 +32,6 @@ class FeedWelcomeCell: UICollectionViewCell {
         return layoutAttributes
     }
 
-    private lazy var maxWidthConstraint: NSLayoutConstraint = {
-        widthAnchor.constraint(equalToConstant: maxWidth)
-    }()
-
-    var maxWidth: CGFloat = 0 {
-        didSet {
-            guard maxWidth != oldValue else {
-                return
-            }
-            maxWidthConstraint.constant = maxWidth
-            maxWidthConstraint.isActive = true
-        }
-    }
-
     struct LayoutConstants {
         static let interCardSpacing: CGFloat = 50
         static let backgroundCornerRadius: CGFloat = 20

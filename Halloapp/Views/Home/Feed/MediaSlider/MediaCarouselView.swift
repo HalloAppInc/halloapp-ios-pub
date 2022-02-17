@@ -164,8 +164,6 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     
     private lazy var collectionView: UICollectionView = {
         let layout = MediaCarouselCollectionViewLayout()
-        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
-        layout.itemSize = UICollectionViewFlowLayout.automaticSize
         layout.minimumInteritemSpacing = 0
         layout.minimumLineSpacing = configuration.cellSpacing
         layout.minimumInteritemSpacing = configuration.cellSpacing // This is actually necessary for the collection view to have correct content size.
@@ -417,8 +415,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
         NSLayoutConstraint.activate([
             container.widthAnchor.constraint(equalToConstant: pageControlWidth),
-            pageControl.topAnchor.constraint(equalTo: container.topAnchor, constant: 0),
-            pageControl.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: 0),
+            pageControl.topAnchor.constraint(equalTo: container.topAnchor),
+            pageControl.bottomAnchor.constraint(equalTo: container.bottomAnchor),
             pageControl.centerXAnchor.constraint(equalTo: container.centerXAnchor),
         ])
 
@@ -778,16 +776,18 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
     private func commonInit() {
         placeholderImageView = UIImageView(frame: contentView.bounds)
         placeholderImageView.contentMode = .center
-        placeholderImageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         placeholderImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
         placeholderImageView.image = UIImage(systemName: "photo")
         placeholderImageView.tintColor = .systemGray3
+        placeholderImageView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(placeholderImageView)
+        placeholderImageView.constrain(to: contentView)
 
         imageView = ZoomableImageView(frame: contentView.bounds)
-        imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(imageView)
+        imageView.constrain(to: contentView)
     }
 
     override func apply(configuration: MediaCarouselViewConfiguration) {
@@ -1118,8 +1118,15 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func updatePlayerViewFrame() {
-        guard let url = videoURL, let videoSize = VideoUtils.resolutionForLocalVideo(url: url), videoSize.height > 0 && videoSize.width > 0 && avPlayerViewController.videoGravity != .resizeAspectFill else
-        {
+        let videoSize: CGSize
+        if let track = avPlayerViewController.player?.currentItem?.asset.tracks(withMediaType: .video).first {
+            let size = track.naturalSize.applying(track.preferredTransform)
+            videoSize = CGSize(width: abs(size.width), height: abs(size.height))
+        } else {
+            videoSize = self.videoSize ?? .zero
+        }
+
+        guard videoSize.height > 0, videoSize.width > 0, avPlayerViewController.videoGravity != .resizeAspectFill else {
             // Video takes entire cell content.
             setPlayerView(frame: contentView.bounds)
             return

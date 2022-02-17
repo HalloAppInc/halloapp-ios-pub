@@ -102,9 +102,6 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         preservesSuperviewLayoutMargins = true
         contentView.preservesSuperviewLayoutMargins = true
 
-        contentView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.constrain(to: self)
-
         // Background
         backgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
         let backgroundView = UIView()
@@ -130,8 +127,8 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         footerView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(footerView)
 
-        contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor)
-        contentTopConstraint?.isActive = true
+        let contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor)
+        self.contentTopConstraint = contentTopConstraint
 
         let verticalContentPadding = LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing / 2
         let footerBottomAnchor = footerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,
@@ -148,6 +145,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
             // CONTENT
             itemContentView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            contentTopConstraint,
             itemContentView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
 
             // FOOTER
@@ -180,7 +178,6 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         super.prepareForReuse()
         postId = nil
         headerView.prepareForReuse()
-        itemContentView.prepareForReuse()
         footerView.prepareForReuse()
     }
 
@@ -207,20 +204,6 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
     private func updateBackgroundPanelShadow() {
         backgroundPanelView.isShadowHidden = traitCollection.userInterfaceStyle == .dark
-    }
-
-    private lazy var maxWidthConstraint: NSLayoutConstraint = {
-        widthAnchor.constraint(equalToConstant: maxWidth)
-    }()
-
-    var maxWidth: CGFloat = 0 {
-        didSet {
-            guard maxWidth != oldValue else {
-                return
-            }
-            maxWidthConstraint.constant = maxWidth
-            maxWidthConstraint.isActive = true
-        }
     }
 
     private static var subscribedToContentSizeCategoryChangeNotification = false

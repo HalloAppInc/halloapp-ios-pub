@@ -659,7 +659,6 @@ extension FeedCollectionViewController {
             case .welcome:
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedWelcomeCell.reuseIdentifier, for: indexPath)
                 if let welcomeCell = cell as? FeedWelcomeCell {
-                    welcomeCell.maxWidth = collectionView.frame.width
                     if indexPath.row > 5 {
                         welcomeCell.configure(showCloseButton: true)
                     }
@@ -682,7 +681,6 @@ extension FeedCollectionViewController {
             case .groupWelcome(let groupID):
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier, for: indexPath)
                 if let groupFeedWelcomeCell = cell as? GroupFeedWelcomeCell {
-                    groupFeedWelcomeCell.maxWidth = collectionView.frame.width
 
                     let showCloseButton = indexPath.row > 5
                     groupFeedWelcomeCell.configure(groupID: groupID, showCloseButton: showCloseButton)
@@ -733,7 +731,6 @@ extension FeedCollectionViewController {
         let postId = feedPost.id
         let isGroupPost = feedPost.groupId != nil
 
-        cell.maxWidth = collectionView.frame.width
         cell.configure(
             with: feedPost,
             contentWidth: cellContentWidth,

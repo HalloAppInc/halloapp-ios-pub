@@ -177,14 +177,17 @@ final class FloatingMenu: UIView {
         let animationDuration: TimeInterval = 0.3
         
         return Future { promise in
-            UIView.animate(
-                withDuration: animationDuration,
-                delay: 0,
-                usingSpringWithDamping: damping,
-                initialSpringVelocity: 0,
-                options: .allowUserInteraction,
-                animations: { self.layoutSubviews() },
-                completion: { _ in promise(.success(())) })
+            // Dispatch async to prevent animating collection view cell reuse when scrolling to top
+            DispatchQueue.main.async {
+                UIView.animate(
+                    withDuration: animationDuration,
+                    delay: 0,
+                    usingSpringWithDamping: damping,
+                    initialSpringVelocity: 0,
+                    options: .allowUserInteraction,
+                    animations: { self.layoutSubviews() },
+                    completion: { _ in promise(.success(())) })
+            }
         }
     }
 
