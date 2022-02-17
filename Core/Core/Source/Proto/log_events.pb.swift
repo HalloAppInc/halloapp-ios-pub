@@ -175,6 +175,14 @@ public struct Server_EventData {
     set {_uniqueStorage()._edata = .call(newValue)}
   }
 
+  public var fabAction: Server_FabAction {
+    get {
+      if case .fabAction(let v)? = _storage._edata {return v}
+      return Server_FabAction()
+    }
+    set {_uniqueStorage()._edata = .fabAction(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Edata: Equatable {
@@ -187,6 +195,7 @@ public struct Server_EventData {
     case mediaObjectDownload(Server_MediaObjectDownload)
     case groupDecryptionReport(Server_GroupDecryptionReport)
     case call(Server_Call)
+    case fabAction(Server_FabAction)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_EventData.OneOf_Edata, rhs: Server_EventData.OneOf_Edata) -> Bool {
@@ -228,6 +237,10 @@ public struct Server_EventData {
       }()
       case (.call, .call): return {
         guard case .call(let l) = lhs, case .call(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.fabAction, .fabAction): return {
+        guard case .fabAction(let l) = lhs, case .fabAction(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -1239,6 +1252,70 @@ extension Server_Call.NetworkType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_FabAction {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var type: Server_FabAction.FabActionType = .unknownType
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum FabActionType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownType // = 0
+    case gallery // = 1
+    case audio // = 2
+    case text // = 3
+    case camera // = 4
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownType
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownType
+      case 1: self = .gallery
+      case 2: self = .audio
+      case 3: self = .text
+      case 4: self = .camera
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownType: return 0
+      case .gallery: return 1
+      case .audio: return 2
+      case .text: return 3
+      case .camera: return 4
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_FabAction.FabActionType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_FabAction.FabActionType] = [
+    .unknownType,
+    .gallery,
+    .audio,
+    .text,
+    .camera,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "server"
@@ -1268,6 +1345,7 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     16: .standard(proto: "media_object_download"),
     17: .standard(proto: "group_decryption_report"),
     18: .same(proto: "call"),
+    19: .standard(proto: "fab_action"),
   ]
 
   fileprivate class _StorageClass {
@@ -1429,6 +1507,19 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
             _storage._edata = .call(v)
           }
         }()
+        case 19: try {
+          var v: Server_FabAction?
+          var hadOneofValue = false
+          if let current = _storage._edata {
+            hadOneofValue = true
+            if case .fabAction(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .fabAction(v)
+          }
+        }()
         default: break
         }
       }
@@ -1492,6 +1583,10 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       case .call?: try {
         guard case .call(let v)? = _storage._edata else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
+      }()
+      case .fabAction?: try {
+        guard case .fabAction(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 19)
       }()
       case nil: break
       }
@@ -2297,5 +2392,47 @@ extension Server_Call.NetworkType: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "UNKNOWN_NETWORK"),
     1: .same(proto: "WIFI"),
     2: .same(proto: "CELLULAR"),
+  ]
+}
+
+extension Server_FabAction: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".FabAction"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "type"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.type != .unknownType {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_FabAction, rhs: Server_FabAction) -> Bool {
+    if lhs.type != rhs.type {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_FabAction.FabActionType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_TYPE"),
+    1: .same(proto: "GALLERY"),
+    2: .same(proto: "AUDIO"),
+    3: .same(proto: "TEXT"),
+    4: .same(proto: "CAMERA"),
   ]
 }

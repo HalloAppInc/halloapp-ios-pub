@@ -2451,6 +2451,64 @@ public struct Server_HoldCall {
   public init() {}
 }
 
+public struct Server_MuteCall {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var callID: String = String()
+
+  public var mediaType: Server_MuteCall.MediaType = .audio
+
+  public var muted: Bool = false
+
+  public var timestampMs: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum MediaType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case audio // = 0
+    case video // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .audio
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .audio
+      case 1: self = .video
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .audio: return 0
+      case .video: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_MuteCall.MediaType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_MuteCall.MediaType] = [
+    .audio,
+    .video,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 public struct Server_CallConfig {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3548,6 +3606,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .holdCall(newValue)}
   }
 
+  public var muteCall: Server_MuteCall {
+    get {
+      if case .muteCall(let v)? = _storage._payload {return v}
+      return Server_MuteCall()
+    }
+    set {_uniqueStorage()._payload = .muteCall(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -3601,6 +3667,7 @@ public struct Server_Msg {
     case groupFeedHistory(Server_GroupFeedHistory)
     case preAnswerCall(Server_PreAnswerCall)
     case holdCall(Server_HoldCall)
+    case muteCall(Server_MuteCall)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -3758,6 +3825,10 @@ public struct Server_Msg {
       }()
       case (.holdCall, .holdCall): return {
         guard case .holdCall(let l) = lhs, case .holdCall(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.muteCall, .muteCall): return {
+        guard case .muteCall(let l) = lhs, case .muteCall(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -9635,6 +9706,63 @@ extension Server_HoldCall: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
   }
 }
 
+extension Server_MuteCall: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".MuteCall"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "call_id"),
+    2: .standard(proto: "media_type"),
+    3: .same(proto: "muted"),
+    4: .standard(proto: "timestamp_ms"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.callID) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.mediaType) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.muted) }()
+      case 4: try { try decoder.decodeSingularInt64Field(value: &self.timestampMs) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.callID.isEmpty {
+      try visitor.visitSingularStringField(value: self.callID, fieldNumber: 1)
+    }
+    if self.mediaType != .audio {
+      try visitor.visitSingularEnumField(value: self.mediaType, fieldNumber: 2)
+    }
+    if self.muted != false {
+      try visitor.visitSingularBoolField(value: self.muted, fieldNumber: 3)
+    }
+    if self.timestampMs != 0 {
+      try visitor.visitSingularInt64Field(value: self.timestampMs, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_MuteCall, rhs: Server_MuteCall) -> Bool {
+    if lhs.callID != rhs.callID {return false}
+    if lhs.mediaType != rhs.mediaType {return false}
+    if lhs.muted != rhs.muted {return false}
+    if lhs.timestampMs != rhs.timestampMs {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_MuteCall.MediaType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "AUDIO"),
+    1: .same(proto: "VIDEO"),
+  ]
+}
+
 extension Server_CallConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".CallConfig"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -10683,6 +10811,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     42: .standard(proto: "group_feed_history"),
     43: .standard(proto: "pre_answer_call"),
     44: .standard(proto: "hold_call"),
+    45: .standard(proto: "mute_call"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -11226,6 +11355,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .holdCall(v)
           }
         }()
+        case 45: try {
+          var v: Server_MuteCall?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .muteCall(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .muteCall(v)
+          }
+        }()
         default: break
         }
       }
@@ -11414,6 +11556,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .holdCall?: try {
         guard case .holdCall(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 44)
+      }()
+      case .muteCall?: try {
+        guard case .muteCall(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 45)
       }()
       default: break
       }
