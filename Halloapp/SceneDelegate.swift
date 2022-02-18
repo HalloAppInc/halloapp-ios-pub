@@ -543,6 +543,7 @@ extension INStartCallIntent: SupportedStartCallIntent {}
 // weird: why they do it - did not find much online for this as of now?
 // We anyways made sure to support both for now.
 extension INStartAudioCallIntent: SupportedStartCallIntent {}
+extension INStartVideoCallIntent: SupportedStartCallIntent {}
 
 extension NSUserActivity {
 

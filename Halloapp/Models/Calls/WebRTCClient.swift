@@ -63,6 +63,7 @@ protocol WebRTCClientDelegate: AnyObject {
     func webRTCClient(_ client: WebRTCClient, didDiscoverLocalCandidate candidate: RTCIceCandidate)
     func webRTCClient(_ client: WebRTCClient, didChangeConnectionState state: RTCIceConnectionState)
     func didStartReceivingRemoteVideo()
+    func switchedCamera(to cameraType: CameraType)
 }
 
 final class WebRTCClient: NSObject {
@@ -94,7 +95,7 @@ final class WebRTCClient: NSObject {
     private var remoteDataChannel: RTCDataChannel?
     private var callConfig: Server_CallConfig?
     private var selectedCameraType: CameraType = .front
-    // private var videoSource: RTCVideoSource?
+    private var videoSource: RTCVideoSource?
     private var videoCapturer: RTCCameraVideoCapturer?
     private var localAudioTrack: RTCAudioTrack?
     private var localVideoTrack: RTCVideoTrack?
@@ -102,6 +103,25 @@ final class WebRTCClient: NSObject {
     private var localRenderer: RTCVideoRenderer?
     private var remoteRenderer: RTCVideoRenderer?
     private var cancellableSet: Set<AnyCancellable> = []
+
+    // TODO: This is not perfect - does not work well when device is locked.
+    // Need to use the logic with motion sensor.
+    private var rotation: RTCVideoRotation {
+        switch UIDevice.current.orientation {
+        case .landscapeLeft:
+            return RTCVideoRotation._180
+        case .landscapeRight:
+            return RTCVideoRotation._0
+        case .portrait:
+            return RTCVideoRotation._90
+        case .portraitUpsideDown:
+            return RTCVideoRotation._270
+        case .faceUp, .faceDown, .unknown:
+            return RTCVideoRotation._90
+        @unknown default:
+            return RTCVideoRotation._90
+        }
+    }
 
     init(callType: CallType) {
         self.callType = callType
@@ -261,6 +281,7 @@ final class WebRTCClient: NSObject {
         DDLogInfo("WebRTCClient/startVideoCapture/fps: \(fps)")
 
         videoCapturer?.startCapture(with: camera, format: captureFormat, fps: fps)
+        videoCapturer?.delegate = self
     }
 
     func stopVideoCapture() {
@@ -304,9 +325,10 @@ final class WebRTCClient: NSObject {
     }
 
     private func createVideoTrack() -> RTCVideoTrack {
-        let videoSource = WebRTCClient.factory.videoSource()
-        let videoTrack = WebRTCClient.factory.videoTrack(with: videoSource, trackId: "video0")
-        self.videoCapturer = RTCCameraVideoCapturer(delegate: videoSource)
+        let source = WebRTCClient.factory.videoSource()
+        self.videoSource = source
+        let videoTrack = WebRTCClient.factory.videoTrack(with: source, trackId: "video0")
+        self.videoCapturer = RTCCameraVideoCapturer(delegate: self)
         return videoTrack
     }
 
@@ -474,6 +496,7 @@ extension WebRTCClient {
         }
         // stopVideoCapture() -- do we have to do this?
         startVideoCapture()
+        self.delegate?.switchedCamera(to: selectedCameraType)
     }
 
     // MARK:- Audio control
@@ -517,6 +540,15 @@ extension WebRTCClient: RTCDataChannelDelegate {
 
     func dataChannel(_ dataChannel: RTCDataChannel, didReceiveMessageWith buffer: RTCDataBuffer) {
         DDLogDebug("WebRTCClient/dataChannel/didReceiveMessageWith: \(buffer.data)")
+    }
+}
+
+extension WebRTCClient: RTCVideoCapturerDelegate {
+    func capturer(_ capturer: RTCVideoCapturer, didCapture frame: RTCVideoFrame) {
+        if let videoCapturer = self.videoCapturer {
+            let rotatedFrame = RTCVideoFrame(buffer: frame.buffer, rotation: rotation, timeStampNs: frame.timeStampNs)
+            self.videoSource?.capturer(videoCapturer, didCapture: rotatedFrame)
+        }
     }
 }
 

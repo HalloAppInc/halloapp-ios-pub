@@ -17,7 +17,7 @@ import WebRTC
 class VideoCallViewController: CallViewController {
 
     // Avoid storing local state here.
-    private var muted: Bool = false
+    private var audioMuted: Bool = false
     private var videoMuted: Bool = false
 
     // MARK: View Controller
@@ -128,10 +128,14 @@ class VideoCallViewController: CallViewController {
     private var leadingConstraint: NSLayoutConstraint?
     private var bottomConstraint: NSLayoutConstraint?
     private var trailingConstraint: NSLayoutConstraint?
+    private var topConstraint: NSLayoutConstraint?
     private var cancellableSet = Set<AnyCancellable>()
+    // Using metal (arm64 only)
+    private let remoteRenderer = RTCMTLVideoView()
+    private let localRenderer = RTCMTLVideoView()
 
     init(peerUserID: UserID, isOutgoing: Bool, backAction: (() -> Void)?) {
-        DDLogInfo("CallViewController/init/peerUserID: \(peerUserID)/isOutgoing: \(isOutgoing)")
+        DDLogInfo("VideoCallViewController/init/peerUserID: \(peerUserID)/isOutgoing: \(isOutgoing)")
         self.peerUserID = peerUserID
         self.callManager = MainAppContext.shared.callManager
         self.isOutgoing = isOutgoing
@@ -144,46 +148,49 @@ class VideoCallViewController: CallViewController {
     }
 
     override func viewDidLoad() {
-        DDLogInfo("CallViewController/viewDidLoad")
+        DDLogInfo("VideoCallViewController/viewDidLoad")
         super.viewDidLoad()
-        view.backgroundColor = .black.withAlphaComponent(0.9)
+        view.backgroundColor = .black.withAlphaComponent(0.6)
         view.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
 
-        // Using metal (arm64 only)
-        let remoteRenderer = RTCMTLVideoView()
-        let localRenderer = RTCMTLVideoView()
-
+        localRenderer.transform = CGAffineTransform(scaleX: -1, y: 1)
         view.addSubview(remoteRenderer)
         view.addSubview(localRenderer)
 
         remoteRenderer.constrain(to: view)
         remoteRenderer.videoContentMode = .scaleAspectFill
 
-        let bottomAnchor = localRenderer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
-        let leadingAnchor = localRenderer.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor)
-        let trailingAnchor = localRenderer.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
+        let bottomAnchor = localRenderer.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        let leadingAnchor = localRenderer.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+        let trailingAnchor = localRenderer.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        let topAnchor = localRenderer.topAnchor.constraint(equalTo: view.topAnchor)
         bottomConstraint = bottomAnchor
         leadingConstraint = leadingAnchor
         trailingConstraint = trailingAnchor
+        topConstraint = topAnchor
         localRenderer.videoContentMode = .scaleAspectFill
         bottomConstraint?.priority = .defaultHigh
         leadingConstraint?.priority = .defaultHigh
         trailingConstraint?.priority = .defaultHigh
+        topConstraint?.priority = .defaultHigh
         let widthConstraint = localRenderer.widthAnchor.constraint(equalToConstant: 120)
         let heightConstraint = localRenderer.heightAnchor.constraint(equalToConstant: 160)
         let delayTrailingConstraint = localRenderer.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -15)
+        let delayTopConstraint = localRenderer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
         widthConstraint.priority = UILayoutPriority(rawValue: 500)
         heightConstraint.priority = UILayoutPriority(rawValue: 500)
         delayTrailingConstraint.priority = UILayoutPriority(rawValue: 500)
+        delayTopConstraint.priority = UILayoutPriority(rawValue: 500)
 
         NSLayoutConstraint.activate([
-            localRenderer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            topAnchor,
             trailingAnchor,
             bottomAnchor,
             leadingAnchor,
             widthConstraint,
             heightConstraint,
-            delayTrailingConstraint
+            delayTrailingConstraint,
+            delayTopConstraint
         ])
 
         localRenderer.clipsToBounds = true
@@ -260,6 +267,12 @@ class VideoCallViewController: CallViewController {
                         }
                     }
                 })
+
+            cancellableSet.insert(
+                activeCall.mirrorVideo.sink { [weak self] mirror in
+                    guard let self = self else { return }
+                    self.mirrorVideo(mirror)
+                })
         }
 
     }
@@ -291,6 +304,10 @@ class VideoCallViewController: CallViewController {
 
     private func updateCallStatusLabel() {
         callStatusLabel.text = callStatusText
+    }
+
+    override var shouldAutorotate: Bool {
+        return false
     }
 
     private func durationString(seconds : Int) -> String {
@@ -338,16 +355,16 @@ class VideoCallViewController: CallViewController {
     }
 
     @objc func micButtonTapped(sender: UIButton) {
-        muted = !muted
-        DDLogInfo("VideoCallViewController/micButtonTapped/muted: \(muted)")
-        callManager.muteAudio(muted: muted) { [weak self] result in
+        audioMuted = !audioMuted
+        DDLogInfo("VideoCallViewController/micButtonTapped/muted: \(audioMuted)")
+        callManager.muteAudio(muted: audioMuted) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .failure(let error):
                     DDLogError("VideoCallViewController/muteCall/failed: \(error)")
                 case .success:
-                    let micStatusImage = self.muted ? self.micOffImage : self.micOnImage
+                    let micStatusImage = self.audioMuted ? self.micOffImage : self.micOnImage
                     self.micButton.image = micStatusImage
                 }
             }
@@ -460,8 +477,25 @@ class VideoCallViewController: CallViewController {
             self.bottomConstraint?.priority = .defaultLow
             self.leadingConstraint?.priority = .defaultLow
             self.trailingConstraint?.priority = .defaultLow
+            self.topConstraint?.priority = .defaultLow
+            self.localRenderer.layer.borderColor = UIColor.black.withAlphaComponent(0.2).cgColor
+            self.localRenderer.layer.borderWidth = 0.5
+            self.localRenderer.layer.cornerRadius = 10
             UIView.animate(withDuration: 0.5, animations: {
                 self.view.layoutIfNeeded()
+            })
+        }
+    }
+
+    func mirrorVideo(_ mirror: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            UIView.animate(withDuration: 0.5, animations: {
+                if mirror {
+                    self.localRenderer.transform = CGAffineTransform(scaleX: -1, y: 1)
+                } else {
+                    self.localRenderer.transform = CGAffineTransform(scaleX: 1, y: 1)
+                }
             })
         }
     }
@@ -478,7 +512,7 @@ final class VideoCallViewButton: UIControl {
 
     struct Style {
         var circleDiameter: CGFloat = 48
-        var circleColor: UIColor = UIColor.white.withAlphaComponent(0.3)
+        var circleColor: UIColor = UIColor.black.withAlphaComponent(0.5)
         var iconHeight: CGFloat = 20
 
         static var normal: Style {

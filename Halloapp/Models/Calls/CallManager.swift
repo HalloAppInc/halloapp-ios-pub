@@ -443,6 +443,8 @@ final class CallManager: NSObject, CXProviderDelegate {
                         let iceServers = WebRTCClient.getIceServers(stunServers: callServers.stunServers, turnServers: callServers.turnServers)
                         activeCall?.initializeWebRtcClient(iceServers: iceServers, config: callServers.callConfig)
                         DDLogInfo("CallManager/CXStartCallAction/callID: \(details.callID)/to: \(details.peerUserID)/iceServers success")
+                        // call just started - notify UI.
+                        callViewDelegate?.callStarted()
                         activeCall?.start { [self] success in
                             DDLogInfo("CallManager/CXStartCallAction/result: \(success)")
                             if success {
@@ -1157,8 +1159,6 @@ extension CallManager: CallStateDelegate {
             cancelTimer = nil
 
         case .connecting:
-            // If call just started - notify UI and start timer.
-            callViewDelegate?.callStarted()
             startCancelTimer()
 
         case .iceRestartConnecting:

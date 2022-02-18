@@ -112,11 +112,11 @@ class ThreadListCell: UITableViewCell {
             messageText = Localizations.voiceCallMissed + " " + messageText
 
         case .incomingAudioCall:
-            mediaIcon = UIImage(systemName: "phone.fill.arrow.down.left")
+            mediaIcon = UIImage(systemName: "phone.fill.arrow.down.left")?.withTintColor(.primaryBlue)
             messageText = Localizations.voiceCall + " " + messageText
 
         case .outgoingAudioCall:
-            mediaIcon = UIImage(systemName: "phone.fill.arrow.up.right")
+            mediaIcon = UIImage(systemName: "phone.fill.arrow.up.right")?.withTintColor(.primaryBlue)
             messageText = Localizations.voiceCall + " " + messageText
 
         case .missedVideoCall:
@@ -124,11 +124,11 @@ class ThreadListCell: UITableViewCell {
             messageText = Localizations.videoCallMissed + " " + messageText
 
         case .incomingVideoCall:
-            mediaIcon = UIImage(systemName: "arrow.down.left.video.fill")
+            mediaIcon = UIImage(systemName: "arrow.down.left.video.fill")?.withTintColor(.primaryBlue)
             messageText = Localizations.videoCall + " " + messageText
 
         case .outgoingVideoCall:
-            mediaIcon = UIImage(systemName: "arrow.up.right.video.fill")
+            mediaIcon = UIImage(systemName: "arrow.up.right.video.fill")?.withTintColor(.primaryBlue)
             messageText = Localizations.videoCall + " " + messageText
 
         default:

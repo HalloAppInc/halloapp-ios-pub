@@ -82,6 +82,7 @@ public class Call {
     private var pendingEndCallAction: DispatchWorkItem? = nil
     private var lastReport: [String: RTCStatistics]? = nil
     public let hasStartedReceivingRemoteVideo = CurrentValueSubject<Bool, Never>(false)
+    public let mirrorVideo = PassthroughSubject<Bool, Never>()
 
     var stateDelegate: CallStateDelegate? = nil
 
@@ -763,6 +764,13 @@ extension Call: WebRTCClientDelegate {
 
     func didStartReceivingRemoteVideo() {
         hasStartedReceivingRemoteVideo.send(true)
+    }
+
+    func switchedCamera(to cameraType: CameraType) {
+        switch cameraType {
+        case .back: mirrorVideo.send(false)
+        case .front: mirrorVideo.send(true)
+        }
     }
 
 }
