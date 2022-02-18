@@ -39,8 +39,6 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     private var cancellableSet: Set<AnyCancellable> = []
     
-    private var feedPostIdToScrollTo: FeedPostID?
-
     init(groupId: GroupID, shouldShowInviteSheet: Bool = false) {
         self.groupId = groupId
         self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupId)
@@ -48,7 +46,6 @@ class GroupFeedViewController: FeedCollectionViewController {
         self.shouldShowInviteSheet = shouldShowInviteSheet
         super.init(title: nil, fetchRequest: FeedDataSource.groupFeedRequest(groupID: groupId))
         self.hidesBottomBarWhenPushed = true
-        self.setupDatasource()
         self.populateEvents()
     }
     
@@ -117,26 +114,6 @@ class GroupFeedViewController: FeedCollectionViewController {
                 }
             }
         )
-        
-        cancellableSet.insert(
-            MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] (feedPost) in
-                guard let self = self else { return }
-                if self.feedPostIdToScrollTo == feedPost.id {
-                    self.scrollTo(postId: feedPost.id)
-                    self.feedPostIdToScrollTo = nil
-                }
-        })
-
-        cancellableSet.insert(
-            MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] (feedPostId) in
-                guard let self = self else { return }
-                DispatchQueue.main.async {
-                    if self.feedPostIdToScrollTo == feedPostId {
-                        self.scrollTo(postId: feedPostId)
-                        self.feedPostIdToScrollTo = nil
-                    }
-                }
-        })
 
         cancellableSet.insert(MainAppContext.shared.callManager.hasActiveCallPublisher.sink(receiveValue: { [weak self] hasActiveCall in
             self?.composeVoiceNoteButton?.button.isEnabled = !hasActiveCall
@@ -271,46 +248,43 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     // MARK: Datasource
 
-    private func setupDatasource() {
-        feedDataSource.modifyItems = { [weak self] items in
-            var result = items
-            guard let self = self else { return result }
-            guard let group = self.group else { return result }
+    override func modifyItems(_ items: [FeedDisplayItem]) -> [FeedDisplayItem] {
+        var result = items
+        guard let group = self.group else { return result }
 
-            let sharedNUX = MainAppContext.shared.nux
-            let sharedUserData = MainAppContext.shared.userData
-            let sharedChatData = MainAppContext.shared.chatData
-            let welcomePostExist = sharedNUX.welcomePostExist(id: self.groupId)
-            let isZeroZone = sharedNUX.state == .zeroZone
-            let isSampleGroup = sharedNUX.sampleGroupID() == self.groupId
-            let showWelcomePostIfNeeded = welcomePostExist || isZeroZone
+        let sharedNUX = MainAppContext.shared.nux
+        let sharedUserData = MainAppContext.shared.userData
+        let sharedChatData = MainAppContext.shared.chatData
+        let welcomePostExist = sharedNUX.welcomePostExist(id: self.groupId)
+        let isZeroZone = sharedNUX.state == .zeroZone
+        let isSampleGroup = sharedNUX.sampleGroupID() == self.groupId
+        let showWelcomePostIfNeeded = welcomePostExist || isZeroZone
 
-            guard let groupMember = sharedChatData?.chatGroupMember(groupId: group.groupId, memberUserId: sharedUserData.userId) else { return result }
-            guard groupMember.type == .admin else { return result }
+        guard let groupMember = sharedChatData?.chatGroupMember(groupId: group.groupId, memberUserId: sharedUserData.userId) else { return result }
+        guard groupMember.type == .admin else { return result }
 
-            if showWelcomePostIfNeeded {
-                if welcomePostExist {
-                    // don't show post if post was closed by user or expired
-                    if sharedNUX.showWelcomePost(id: self.groupId) {
-                        result.append(FeedDisplayItem.groupWelcome(self.groupId))
-                    }
-                } else {
-                    sharedNUX.recordWelcomePost(id: self.groupId, type: .group)
+        if showWelcomePostIfNeeded {
+            if welcomePostExist {
+                // don't show post if post was closed by user or expired
+                if sharedNUX.showWelcomePost(id: self.groupId) {
                     result.append(FeedDisplayItem.groupWelcome(self.groupId))
                 }
+            } else {
+                sharedNUX.recordWelcomePost(id: self.groupId, type: .group)
+                result.append(FeedDisplayItem.groupWelcome(self.groupId))
             }
-
-            // one time update to mark sample group welcome post as seen if not seen before
-            if isSampleGroup, let seen = sharedNUX.sampleGroupWelcomePostSeen(), !seen {
-                sharedNUX.markSampleGroupWelcomePostSeen() // user will see welcome post once loaded since it's at the top
-                MainAppContext.shared.chatData.updateUnreadThreadGroupsCount() // refresh bottom nav groups badge
-                MainAppContext.shared.chatData.triggerGroupThreadUpdate(self.groupId) // refresh groups list thread unread count
-            }
-
-            return result
         }
-    }
 
+        // one time update to mark sample group welcome post as seen if not seen before
+        if isSampleGroup, let seen = sharedNUX.sampleGroupWelcomePostSeen(), !seen {
+            sharedNUX.markSampleGroupWelcomePostSeen() // user will see welcome post once loaded since it's at the top
+            MainAppContext.shared.chatData.updateUnreadThreadGroupsCount() // refresh bottom nav groups badge
+            MainAppContext.shared.chatData.triggerGroupThreadUpdate(self.groupId) // refresh groups list thread unread count
+        }
+
+        return result
+    }
+    
     private func populateEvents() {
         let groupFeedEvents = MainAppContext.shared.chatData.groupFeedEvents(with: self.groupId)
         var feedEvents = [FeedEvent]()

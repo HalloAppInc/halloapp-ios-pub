@@ -75,11 +75,7 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
         
         title = Localizations.archiveNavigationTitle
         
-        feedDataSource.itemsDidChange = { [weak self] items in
-            DispatchQueue.main.async {
-                self?.update(with: items.compactMap({ $0.post }))
-            }
-        }
+        feedDataSource.delegate = self
         
         view.addSubview(emptyPlaceholderView)
         emptyPlaceholderView.constrain(to: view)
@@ -141,6 +137,16 @@ class SettingsArchiveViewController: UIViewController, UICollectionViewDelegate,
         }
 
         present(PostViewController(post: post), animated: true)
+    }
+}
+
+// MARK: - FeedDataSourceDelegate methods
+
+extension SettingsArchiveViewController: FeedDataSourceDelegate {
+    func itemsDidChange(_ items: [FeedDisplayItem]) {
+        DispatchQueue.main.async {
+            self.update(with: items.compactMap({ $0.post }))
+        }
     }
 }
 

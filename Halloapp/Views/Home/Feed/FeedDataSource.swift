@@ -11,7 +11,24 @@ import Core
 import CoreData
 import UIKit
 
+protocol FeedDataSourceDelegate: AnyObject {
+    func itemsDidChange(_ items: [FeedDisplayItem])
+    func itemDidChange(_ item: FeedDisplayItem, change type: FeedDataSource.FeedDataSourceChangeType)
+    func modifyItems(_ items: [FeedDisplayItem]) -> [FeedDisplayItem]
+}
+
+// MARK: - default implementations
+
+extension FeedDataSourceDelegate {
+    func itemDidChange(_ item: FeedDisplayItem, change type: FeedDataSource.FeedDataSourceChangeType) { }
+
+    func modifyItems(_ items: [FeedDisplayItem]) -> [FeedDisplayItem] {
+        return items
+    }
+}
+
 final class FeedDataSource: NSObject {
+    typealias FeedDataSourceChangeType = NSFetchedResultsChangeType
 
     init(fetchRequest: NSFetchRequest<FeedPost>) {
         self.fetchRequest = fetchRequest
@@ -19,9 +36,9 @@ final class FeedDataSource: NSObject {
         setup()
     }
 
+    weak var delegate: FeedDataSourceDelegate?
+    
     private(set) var displayItems = [FeedDisplayItem]()
-    var modifyItems: (([FeedDisplayItem]) -> ([FeedDisplayItem]))?
-    var itemsDidChange: (([FeedDisplayItem]) -> Void)?
     var deletionLabelToExpand: FeedDisplayItem?
 
     var events = [FeedEvent]()
@@ -50,10 +67,10 @@ final class FeedDataSource: NSObject {
             try fetchedResultsController?.performFetch()
             let posts = fetchedResultsController?.fetchedObjects ?? []
             displayItems = FeedDataSource.makeDisplayItems(orderedPosts: posts, orderedEvents: events)
-            if modifyItems != nil, let modifiedItems = modifyItems?(displayItems) {
+            if let modifiedItems = delegate?.modifyItems(displayItems) {
                 displayItems = modifiedItems
             }
-            itemsDidChange?(displayItems)
+            delegate?.itemsDidChange(displayItems)
         } catch {
             fatalError("Failed to fetch feed items \(error)")
         }
@@ -62,10 +79,10 @@ final class FeedDataSource: NSObject {
     func refresh() {
         let posts = fetchedResultsController?.fetchedObjects ?? []
         displayItems = FeedDataSource.makeDisplayItems(orderedPosts: posts, orderedEvents: events)
-        if modifyItems != nil, let modifiedItems = modifyItems?(displayItems) {
+        if let modifiedItems = delegate?.modifyItems(displayItems) {
             displayItems = modifiedItems
         }
-        itemsDidChange?(displayItems)
+        delegate?.itemsDidChange(displayItems)
     }
     
     func expand(expandItem: FeedDisplayItem) {
@@ -86,7 +103,7 @@ final class FeedDataSource: NSObject {
                 displayItems.insert(addDeletion, at: index)
             }
         }
-        itemsDidChange?(displayItems)
+        delegate?.itemsDidChange(displayItems)
     }
     
     // MARK: Private
@@ -161,10 +178,22 @@ extension FeedDataSource: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         let posts = (controller.fetchedObjects as? [FeedPost]) ?? []
         displayItems = FeedDataSource.makeDisplayItems(orderedPosts: posts, orderedEvents: events)
-        if modifyItems != nil, let modifiedItems = modifyItems?(displayItems) {
+        if let modifiedItems = delegate?.modifyItems(displayItems) {
             displayItems = modifiedItems
         }
-        itemsDidChange?(displayItems)
+        delegate?.itemsDidChange(displayItems)
+    }
+    
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
+              didChange anObject: Any,
+                    at indexPath: IndexPath?,
+                        for type: NSFetchedResultsChangeType,
+                    newIndexPath: IndexPath?)
+    {
+        if let post = anObject as? FeedPost {
+            let item = FeedDisplayItem.post(post)
+            delegate?.itemDidChange(item, change: type)
+        }
     }
 }
 

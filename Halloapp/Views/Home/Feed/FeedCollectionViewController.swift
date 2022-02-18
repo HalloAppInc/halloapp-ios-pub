@@ -19,7 +19,7 @@ protocol FeedCollectionViewControllerDelegate: AnyObject {
     func feedCollectionViewController(_ feedCollectionViewController: FeedCollectionViewController, userActioned: Bool)
 }
 
-class FeedCollectionViewController: UIViewController, NSFetchedResultsControllerDelegate {
+class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate {
 
     weak var delegate: FeedCollectionViewControllerDelegate?
 
@@ -61,17 +61,16 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     private var isVisible: Bool = true
     private var isCheckForOnscreenCellsScheduled: Bool = false
 
+    var feedPostIdToScrollTo: FeedPostID?
+    
     var firstActionHappened: Bool = false
 
     init(title: String?, fetchRequest: NSFetchRequest<FeedPost>) {
         self.feedDataSource = FeedDataSource(fetchRequest: fetchRequest)
         super.init(nibName: nil, bundle: nil)
         self.title = title
-        self.feedDataSource.itemsDidChange = { [weak self] items in
-            DispatchQueue.main.async {
-                self?.update(with: items)
-            }
-        }
+        
+        feedDataSource.delegate = self
     }
 
     required init?(coder: NSCoder) {
@@ -263,6 +262,22 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     public func showGroupName() -> Bool {
         return true
     }
+    
+    // MARK: - FeedDataSourceDelegate methods
+    
+    func itemsDidChange(_ items: [FeedDisplayItem]) {
+        DispatchQueue.main.async {
+            self.update(with: items)
+        }
+    }
+    
+    func itemDidChange(_ item: FeedDisplayItem, change type: FeedDataSource.FeedDataSourceChangeType) {
+        
+    }
+    
+    func modifyItems(_ items: [FeedDisplayItem]) -> [FeedDisplayItem] {
+        return items
+    }
 
     public func willUpdate(with items: [FeedDisplayItem]) {
         // Subclasses can implement
@@ -333,9 +348,21 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         waitingPostIds = waitingPostIds.subtracting(newlyDecryptedPosts.compactMap { $0.post?.id })
 
         collectionViewDataSource?.apply(snapshot, animatingDifferences: animated) { [weak self] in
-            self?.loadedPostIDs = updatedPostIDs
-            self?.feedLayout.maintainVisualPosition = false
-            self?.didUpdateItems()
+            guard let self = self else { return }
+            
+            self.loadedPostIDs = updatedPostIDs
+            self.feedLayout.maintainVisualPosition = false
+            self.didUpdateItems()
+            
+            if let id = self.feedPostIdToScrollTo {
+                for item in items {
+                    if id == item.post?.id {
+                        self.feedPostIdToScrollTo = nil
+                        self.scrollTo(postId: id)
+                        break
+                    }
+                }
+            }
         }
     }
 

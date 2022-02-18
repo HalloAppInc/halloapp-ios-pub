@@ -25,12 +25,10 @@ class FeedViewController: FeedCollectionViewController {
         }
     }
 
-    private var feedPostIdToScrollTo: FeedPostID?
     private var showContactsPermissionDialogIfNecessary = true
 
     override init(title: String?, fetchRequest: NSFetchRequest<FeedPost>) {
         super.init(title: title, fetchRequest: fetchRequest)
-        self.setupDatasourceAndRefreshIfNeeded()
     }
 
     required init?(coder: NSCoder) {
@@ -70,28 +68,6 @@ class FeedViewController: FeedCollectionViewController {
                 self?.notificationCount = unreadCount
             })
         }
-
-        cancellables.insert(
-            MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] (feedPost) in
-                guard let self = self else { return }
-                if self.feedPostIdToScrollTo == feedPost.id {
-                    DDLogDebug("FeedViewController/scroll-to-post/postponed \(feedPost.id)")
-                    self.scrollTo(postId: feedPost.id)
-                    self.feedPostIdToScrollTo = nil
-                }
-        })
-
-        cancellables.insert(
-            MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] (feedPostId) in
-                guard let self = self else { return }
-                DispatchQueue.main.async {
-                    if self.feedPostIdToScrollTo == feedPostId {
-                        DDLogDebug("FeedViewController/scroll-to-post/merged \(feedPostId)")
-                        self.scrollTo(postId: feedPostId)
-                        self.feedPostIdToScrollTo = nil
-                    }
-                }
-        })
 
         cancellables.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
@@ -145,49 +121,39 @@ class FeedViewController: FeedCollectionViewController {
     }
 
     // MARK: Datasource
+    
+    override func modifyItems(_ items: [FeedDisplayItem]) -> [FeedDisplayItem] {
+        var result = items
 
-    private func setupDatasourceAndRefreshIfNeeded() {
-        var needToShowWelcomePost: Bool = false
+        let sharedNUX = MainAppContext.shared.nux
+        let userID = MainAppContext.shared.userData.userId
 
-        feedDataSource.modifyItems = { items in
-            var result = items
+        let isDemoMode = sharedNUX.isDemoMode
+        let isZeroZone = sharedNUX.state == .zeroZone
+        let welcomePostExist = sharedNUX.welcomePostExist(id: userID)
+        let isEmptyItemsList = items.count == 0
+        let showWelcomePostIfNeeded = welcomePostExist || isZeroZone || isEmptyItemsList
 
-            let sharedNUX = MainAppContext.shared.nux
-            let userID = MainAppContext.shared.userData.userId
-
-            let isDemoMode = sharedNUX.isDemoMode
-            let isZeroZone = sharedNUX.state == .zeroZone
-            let welcomePostExist = sharedNUX.welcomePostExist(id: userID)
-            let isEmptyItemsList = items.count == 0
-            let showWelcomePostIfNeeded = welcomePostExist || isZeroZone || isEmptyItemsList
-
-            if isDemoMode {
-                result.insert(FeedDisplayItem.welcome, at: 0)
-                return result
-            }
-
-            if showWelcomePostIfNeeded {
-                if welcomePostExist {
-                    // don't show post if post was closed by user or expired
-                    if sharedNUX.showWelcomePost(id: userID) {
-                        result.append(FeedDisplayItem.welcome)
-                        needToShowWelcomePost = true
-                    }
-                } else {
-                    sharedNUX.recordWelcomePost(id: userID, type: .mainFeed)
-                    result.append(FeedDisplayItem.welcome)
-                    needToShowWelcomePost = true
-                }
-            }
+        if isDemoMode {
+            result.insert(FeedDisplayItem.welcome, at: 0)
             return result
         }
 
-        if needToShowWelcomePost {
-            DDLogInfo("FeedViewController/setupDatasourceAndRefreshIfNeeded/needToShowWelcomePost, refresh")
-            feedDataSource.refresh()
+        if showWelcomePostIfNeeded {
+            if welcomePostExist {
+                // don't show post if post was closed by user or expired
+                if sharedNUX.showWelcomePost(id: userID) {
+                    result.append(FeedDisplayItem.welcome)
+                }
+            } else {
+                sharedNUX.recordWelcomePost(id: userID, type: .mainFeed)
+                result.append(FeedDisplayItem.welcome)
+            }
         }
+        
+        return result
     }
-
+    
     // MARK: UI Actions
 
     @objc private func didTapNotificationButton() {
