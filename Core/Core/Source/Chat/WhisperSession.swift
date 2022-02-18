@@ -167,7 +167,9 @@ public final class WhisperSession {
             case .awaitingSetup:
                 DDLogVerbose("WhisperSession/sessionSetupInfoForRerequest/state: awaitingSetup")
                 // First session setup attempt must have failed.
-                dispatchedCompletion(nil)
+                // so try setting up outbound session and then send the rerequest info.
+                // Add this task to the queue
+                self.pendingTasks.append(.getSessionSetupInfoForRerequest(dispatchedCompletion))
             case .retrievingKeys:
                 DDLogVerbose("WhisperSession/sessionSetupInfoForRerequest/state: retrievingKeys")
                 // Add this task to the queue
@@ -200,11 +202,19 @@ public final class WhisperSession {
             case .retrievingKeys:
                 AppContext.shared.errorLogger?.logError(NSError.init(domain: "WhisperSessionMergeError", code: 1005, userInfo: nil))
                 return
-            case .ready(_, _), .awaitingSetup(_):
-                break
-            }
-            if let (keyBundle, messageKeys) = self.loadFromKeyStore() {
-                self.state = .ready(keyBundle, messageKeys)
+            case .ready(_, _):
+                if let (keyBundle, messageKeys) = self.loadFromKeyStore() {
+                    self.state = .ready(keyBundle, messageKeys)
+                } else {
+                    // If we are not able to retrieve keys properly.
+                    // Then this means the keyBundle has been deleted - so we have to start afresh.
+                    self.state = .awaitingSetup(attempts: 0)
+                }
+            case .awaitingSetup(_):
+                if let (keyBundle, messageKeys) = self.loadFromKeyStore() {
+                    self.state = .ready(keyBundle, messageKeys)
+                }
+                // Else -- continue trying to setup keys.
             }
         }
     }
@@ -305,7 +315,14 @@ public final class WhisperSession {
                     DDLogInfo("WhisperSession/\(userID)/execute/decrypting")
                     executeDecryption(data, completion: completion)
                 case .getSessionSetupInfoForRerequest(let completion):
-                    completion(nil)
+                    guard setupAttempts < 3 else {
+                        DDLogInfo("WhisperSession/\(userID)/execute/failing (outbound setup failed \(setupAttempts) times")
+                        completion(nil)
+                        return
+                    }
+                    DDLogInfo("WhisperSession/\(userID)/execute/pausing (needs outbound setup)")
+                    setupOutbound()
+                    return
                 case .resetSession:
                     DDLogInfo("WhisperSession/\(userID)/execute/resetSession - (needs outbound setup)")
                     self.teardown(nil)
