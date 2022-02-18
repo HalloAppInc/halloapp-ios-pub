@@ -640,7 +640,7 @@ final class ProtoService: ProtoServiceCore {
                                 id: msg.id,
                                 from: UserID(msg.fromUid),
                                 to: UserID(msg.toUid),
-                                timestamp: Date(timeIntervalSince1970: serverChat.timestamp)
+                                timestamp: Date(timeIntervalSince1970: TimeInterval(serverChat.timestamp))
                             )))
                 }
                 if let failure = decryptionFailure {
