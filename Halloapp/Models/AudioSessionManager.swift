@@ -16,7 +16,7 @@ import Foundation
 class AudioSession {
 
     enum Category: Int, Comparable {
-        case play = 0, record = 1, call = 2
+        case play = 0, record = 1, audioCall = 2, videoCall = 3
 
         // The associated integer is a priority, where the highest priority session category configures
         // the shared audio session
@@ -134,11 +134,25 @@ class AudioSessionManager {
         }
 
         if let activeAudioSession = activeAudioSession {
+
+            // set portOverride
+            switch activeAudioSession.portOverride {
+            case .speaker:
+                portOverride = .speaker
+            default:
+                portOverride = .none
+            }
+
             switch activeAudioSession.category {
-            case .call:
+            case .audioCall:
                 category = .playAndRecord
                 options = .allowBluetooth
                 mode = .voiceChat
+            case .videoCall:
+                category = .playAndRecord
+                options = .allowBluetooth
+                mode = .videoChat
+                portOverride = .speaker
             case .play:
                 if isPlayingOnDeviceSpeaker, UIDevice.current.proximityState {
                     category = .playAndRecord
@@ -153,13 +167,6 @@ class AudioSessionManager {
             case .record:
                 category = .playAndRecord
                 disableIdleTimer = true
-            }
-
-            switch activeAudioSession.portOverride {
-            case .speaker:
-                portOverride = .speaker
-            default:
-                portOverride = .none
             }
         }
 

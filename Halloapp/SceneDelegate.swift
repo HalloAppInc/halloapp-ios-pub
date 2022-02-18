@@ -63,8 +63,16 @@ class SceneDelegate: UIResponder {
     private func showCallViewController(for call: Call, completion: (() -> Void)? = nil) {
         guard let window = window else { return }
 
-        let callViewController = CallViewController(peerUserID: call.peerUserID, isOutgoing: call.isOutgoing) { [weak self] in
-            self?.hideCallViewController()
+        let callViewController: CallViewController
+        switch call.type {
+        case .audio:
+            callViewController = AudioCallViewController(peerUserID: call.peerUserID, isOutgoing: call.isOutgoing) { [weak self] in
+                self?.hideCallViewController()
+            }
+        case .video:
+            callViewController = VideoCallViewController(peerUserID: call.peerUserID, isOutgoing: call.isOutgoing) { [weak self] in
+                self?.hideCallViewController()
+            }
         }
 
         let callWindow = UIWindow(frame: window.frame)
@@ -288,7 +296,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
             processGroupInviteToken(inviteToken)
 
         // TODO: Do we need to use this intent to pop up people for share-intents? maybe?
-        case "INStartAudioCallIntent", "INStartCallIntent":
+        case "INStartAudioCallIntent", "INStartCallIntent", "INStartVideoCallIntent":
             // We always try to fetch the contactIdentifier first.
             // Because user could be trying to make the call using siri (or) native-contacts app (or) native-calls app.
             // We lookup the contact and its userID to start call.
@@ -319,8 +327,15 @@ extension SceneDelegate: UIWindowSceneDelegate {
                 return
             }
 
-            DDLogInfo("appdelegate/scene/continueUserActivity/trying to startCall for: \(peerUserID)")
-            MainAppContext.shared.callManager.startCall(to: peerUserID, type: .audio) { [weak self] result in
+            let callType: CallType
+            if userActivity.activityType == "INStartVideoCallIntent" {
+                callType = .video
+            } else {
+                callType = .audio
+            }
+
+            DDLogInfo("appdelegate/scene/continueUserActivity/trying to startCall for: \(peerUserID)/callType: \(callType)")
+            MainAppContext.shared.callManager.startCall(to: peerUserID, type: callType) { [weak self] result in
                 guard let self = self else { return }
                 DispatchQueue.main.async {
                     switch result {
@@ -332,10 +347,6 @@ extension SceneDelegate: UIWindowSceneDelegate {
                     }
                 }
             }
-
-        case "INStartVideoCallIntent":
-            DDLogInfo("application/scene/continue - unable to handle - type: \(userActivity.activityType)")
-            self.presentUnsupportedVideoCallAlertController()
 
         default:
             DDLogInfo("application/scene/continue - unable to handle - type: \(userActivity.activityType)")
@@ -382,7 +393,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
         alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
             DDLogInfo("SceneDelegate/presentUnsupportedVideoCallAlertController/dismiss")
         }))
-        var viewController: UIViewController? = self.callViewController
+        var viewController: UIViewController? = nil
         if viewController == nil {
             viewController = window?.rootViewController
             while let presentedViewController = viewController?.presentedViewController {

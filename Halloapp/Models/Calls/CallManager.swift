@@ -15,7 +15,7 @@ import CocoaLumberjackSwift
 import WebRTC
 import AVFoundation
 
-protocol CallViewDelegate: AnyObject {
+public protocol CallViewDelegate: AnyObject {
     // indicates user actions
     func startedOutgoingCall(call: Call)
     func callAccepted(call: Call)
@@ -225,19 +225,6 @@ final class CallManager: NSObject, CXProviderDelegate {
         }
     }
 
-    func muteCall(muted: Bool, completion: @escaping (Result<Void, CallError>) -> Void) {
-        if let callID = activeCallID {
-            DDLogInfo("CallManager/muteCall/callID: \(callID)/muted: \(muted)")
-            let muteCallAction = CXSetMutedCallAction(call: callID.callUUID, muted: muted)
-            let transaction = CXTransaction()
-            transaction.addAction(muteCallAction)
-            requestTransaction(transaction, completion: completion)
-        } else {
-            DDLogError("CallManager/muteCall/callID is nil")
-            completion(.failure(.noActiveCall))
-        }
-    }
-
     func setHeld(onHold: Bool, completion: @escaping (Result<Void, CallError>) -> Void) {
         if let callID = activeCallID {
             DDLogInfo("CallManager/setHeld/callID: \(callID)/onHold: \(onHold)")
@@ -262,8 +249,51 @@ final class CallManager: NSObject, CXProviderDelegate {
         }
     }
 
+    func muteAudio(muted: Bool, completion: @escaping (Result<Void, CallError>) -> Void) {
+        if activeCallID != nil {
+            muteCall(muted: muted, completion: completion)
+        } else {
+            DDLogError("CallManager/muteAudio/callID is nil")
+            completion(.failure(.noActiveCall))
+        }
+    }
+
+    func muteVideo(muted: Bool, completion: @escaping (Result<Void, CallError>) -> Void) {
+        if let callID = activeCallID {
+            DDLogInfo("CallManager/muteVideo/callID: \(callID)/muted: \(muted)")
+            muted ? activeCall?.muteVideo() : activeCall?.unmuteVideo()
+            completion(.success(()))
+        } else {
+            DDLogError("CallManager/muteVideo/callID is nil")
+            completion(.failure(.noActiveCall))
+        }
+    }
+
+    func switchCamera(completion: @escaping (Result<Void, CallError>) -> Void) {
+        if let callID = activeCallID {
+            DDLogInfo("CallManager/switchCamera/callID: \(callID)")
+            activeCall?.switchCamera()
+            completion(.success(()))
+        } else {
+            DDLogError("CallManager/switchCamera/callID is nil")
+            completion(.failure(.noActiveCall))
+        }
+    }
 
     // MARK: Private functions
+
+    private func muteCall(muted: Bool, completion: @escaping (Result<Void, CallError>) -> Void) {
+        if let callID = activeCallID {
+            DDLogInfo("CallManager/muteCall/callID: \(callID)/muted: \(muted)")
+            let muteCallAction = CXSetMutedCallAction(call: callID.callUUID, muted: muted)
+            let transaction = CXTransaction()
+            transaction.addAction(muteCallAction)
+            requestTransaction(transaction, completion: completion)
+        } else {
+            DDLogError("CallManager/muteCall/callID is nil")
+            completion(.failure(.noActiveCall))
+        }
+    }
 
     private func requestTransaction(_ transaction: CXTransaction, completion: ((Result<Void, CallError>) -> Void)? = nil) {
         // We could be starting the call when the app is transitioning from background to foreground.
@@ -841,17 +871,7 @@ extension CallManager: HalloCallDelegate {
             // Save call to mainDataStore.
             MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID, type: callType, direction: .incoming, timestamp: Date())
 
-            // Try to decrypt offer if no call is active and report to callkit provider.
-            // Check if call is supported or if we have an active call already.
-            if callType != .audio {
-                // Reject non-audio calls for now.
-                // TODO: we need some sort of tombstone here eventually!
-                MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .videoUnsupportedError)
-                MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
-                    call.endReason = .videoUnsupportedError
-                }
-                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason videoUnsupportedError")
-            } else if activeCallID == incomingCall.callID {
+            if activeCallID == incomingCall.callID {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID) duplicate packet")
                 reportIncomingCall(id: callID, from: peerUserID, type: callType) { result in
                     switch result {

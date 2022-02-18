@@ -23,7 +23,73 @@ enum CallStatus {
     case busy
 }
 
-class CallViewController: UIViewController {
+// TODO: consider making this only a protocol instead of an abstract class.
+class CallViewController: UIViewController, CallViewDelegate {
+    private var type: CallType
+
+    init(type: CallType) {
+        self.type = type
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func startedOutgoingCall(call: Call) {
+        fatalError("must-override")
+    }
+
+    func callAccepted(call: Call) {
+        fatalError("must-override")
+    }
+
+    func callStarted() {
+        fatalError("must-override")
+    }
+
+    func callRinging() {
+        fatalError("must-override")
+    }
+
+    func callConnected() {
+        fatalError("must-override")
+    }
+
+    func callActive() {
+        fatalError("must-override")
+    }
+
+    func callDurationChanged(seconds: Int) {
+        fatalError("must-override")
+    }
+
+    func callEnded() {
+        fatalError("must-override")
+    }
+
+    func callReconnecting() {
+        fatalError("Must Override")
+    }
+
+    func callFailed() {
+        fatalError("Must Override")
+    }
+
+    func callHold(_ hold: Bool) {
+        fatalError("Must Override")
+    }
+
+    func callBusy() {
+        fatalError("Must Override")
+    }
+
+    func callMute(_ muted: Bool, media: CallMediaType) {
+        fatalError("Must Override")
+    }
+}
+
+class AudioCallViewController: CallViewController {
 
     var muted: Bool = false
     var speakerOn: Bool = false
@@ -144,7 +210,7 @@ class CallViewController: UIViewController {
         self.callManager = MainAppContext.shared.callManager
         self.isOutgoing = isOutgoing
         self.backAction = backAction
-        super.init(nibName: nil, bundle: nil)
+        super.init(type: .audio)
     }
 
     required init?(coder: NSCoder) {
@@ -246,14 +312,17 @@ class CallViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         DDLogInfo("CallViewController/viewDidAppear")
+        super.viewDidAppear(animated)
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         DDLogInfo("CallViewController/viewDidDisappear")
+        super.viewDidDisappear(animated)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         DDLogInfo("CallViewController/viewWillDisappear")
+        super.viewWillDisappear(animated)
     }
 
     private func getCallStatusText() -> String {
@@ -293,7 +362,7 @@ class CallViewController: UIViewController {
     @objc func micButtonTapped(sender: UIButton) {
         muted = !muted
         DDLogInfo("CallViewController/micButtonTapped/muted: \(muted)")
-        callManager.muteCall(muted: muted) { [weak self] result in
+        callManager.muteAudio(muted: muted) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
@@ -349,27 +418,26 @@ class CallViewController: UIViewController {
     @objc func didTapBack() {
         backAction?()
     }
-}
 
-extension CallViewController: CallViewDelegate {
+    // MARK:- CallViewDelegate
 
-    func startedOutgoingCall(call: Call) {
+    override func startedOutgoingCall(call: Call) {
     }
 
-    func callAccepted(call: Call) {
+    override func callAccepted(call: Call) {
     }
 
-    func callStarted() {
+    override func callStarted() {
     }
 
-    func callRinging() {
+    override func callRinging() {
         callStatus = .ringing
         DispatchQueue.main.async {
             self.updateCallStatusLabel()
         }
     }
 
-    func callConnected() {
+    override func callConnected() {
         callStatus = .connecting
         useCallStatus = true
         DispatchQueue.main.async {
@@ -377,23 +445,23 @@ extension CallViewController: CallViewDelegate {
         }
     }
 
-    func callActive() {
+    override func callActive() {
         useCallStatus = false
         DispatchQueue.main.async {
             self.updateCallStatusLabel()
         }
     }
 
-    func callDurationChanged(seconds: Int) {
+    override func callDurationChanged(seconds: Int) {
         DispatchQueue.main.async {
             self.updateCallStatusLabel()
         }
     }
 
-    func callEnded() {
+    override func callEnded() {
     }
 
-    func callReconnecting() {
+    override func callReconnecting() {
         callStatus = .reconnecting
         useCallStatus = true
         DispatchQueue.main.async {
@@ -401,7 +469,7 @@ extension CallViewController: CallViewDelegate {
         }
     }
 
-    func callFailed() {
+    override func callFailed() {
         callStatus = .failed
         useCallStatus = true
         DispatchQueue.main.async {
@@ -409,7 +477,7 @@ extension CallViewController: CallViewDelegate {
         }
     }
 
-    func callHold(_ hold: Bool) {
+    override func callHold(_ hold: Bool) {
         if hold {
             callStatus = .held
         }
@@ -419,7 +487,7 @@ extension CallViewController: CallViewDelegate {
         }
     }
 
-    func callBusy() {
+    override func callBusy() {
         callStatus = .busy
         useCallStatus = true
         DispatchQueue.main.async {
@@ -427,7 +495,7 @@ extension CallViewController: CallViewDelegate {
         }
     }
 
-    func callMute(_ muted: Bool, media: CallMediaType) {
+    override func callMute(_ muted: Bool, media: CallMediaType) {
     }
 }
 
@@ -509,7 +577,7 @@ final class CallViewButton: UIControl {
     }()
 }
 
-private extension Localizations {
+extension Localizations {
     static var callMute: String {
         NSLocalizedString("call.button.mute", value: "mute", comment: "Label for button that toggles mute status during call")
     }

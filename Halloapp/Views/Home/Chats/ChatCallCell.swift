@@ -82,8 +82,6 @@ final class ChatCallView: UIView {
         let showMissedCall = callData.wasIncoming && !callData.wasSuccessful
         let titleString: NSMutableAttributedString
 
-        // TODO: Update the callButton icon here.
-        // just setting an icon does not seem to work here? - check with team.
         let iconConfiguration = UIImage.SymbolConfiguration(pointSize: 13)
         switch callData.type {
         case .audio:

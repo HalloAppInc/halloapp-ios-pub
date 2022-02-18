@@ -131,6 +131,7 @@
 		68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */; };
 		6A081C51273C154600E9E29A /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = 6A081C50273C154600E9E29A /* WebRTC */; };
 		6A081C5E274070E900E9E29A /* NotificationProtoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A081C5D274070E900E9E29A /* NotificationProtoService.swift */; };
+		6A08F9E227BB758B005894FF /* VideoCallViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A08F9E127BB758B005894FF /* VideoCallViewController.swift */; };
 		6A1BFD30260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */; };
 		6A218966278E55C7008D7B7C /* us_ringtone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6A218964278E55C7008D7B7C /* us_ringtone.mp3 */; };
 		6A6D50D9270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6A6D50D8270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel */; };
@@ -773,6 +774,7 @@
 		68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6A081C5D274070E900E9E29A /* NotificationProtoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationProtoService.swift; sourceTree = "<group>"; };
+		6A08F9E127BB758B005894FF /* VideoCallViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCallViewController.swift; sourceTree = "<group>"; };
 		6A1BFD2F260A5D150070F84C /* FeedPostCommentToFeed2MigrationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostCommentToFeed2MigrationPolicy.swift; sourceTree = "<group>"; };
 		6A218964278E55C7008D7B7C /* us_ringtone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = us_ringtone.mp3; sourceTree = "<group>"; };
 		6A38E09426F2BB6800103F30 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -1316,6 +1318,7 @@
 			isa = PBXGroup;
 			children = (
 				6ABBB20C272DA251007A595D /* CallViewController.swift */,
+				6A08F9E127BB758B005894FF /* VideoCallViewController.swift */,
 			);
 			path = Calls;
 			sourceTree = "<group>";
@@ -2906,6 +2909,7 @@
 				EA3585792450BE3300E6E8AB /* ChatViewController.swift in Sources */,
 				EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */,
 				32E6970427B3259100599CC7 /* MessageUnreadHeaderView.swift in Sources */,
+				6A08F9E227BB758B005894FF /* VideoCallViewController.swift in Sources */,
 				F8E60547266F931E00DDEB2A /* ImageEditViewController.swift in Sources */,
 				764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */,
 				EAD476F72458F03700EF8591 /* ChatMessage+CoreDataProperties.swift in Sources */,

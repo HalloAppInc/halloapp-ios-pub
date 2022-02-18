@@ -12,6 +12,7 @@ import CocoaLumberjackSwift
 import WebRTC
 import CallKit
 import Reachability
+import Combine
 
 
 public let importantStatKeys: Set = ["packetsReceived", "bytesReceived",
@@ -41,7 +42,7 @@ protocol CallStateDelegate: AnyObject {
     func stateChanged(oldState: CallState, newState: CallState)
 }
 
-class Call {
+public class Call {
 
     // MARK: Metadata Properties
     let callID: CallID
@@ -80,6 +81,7 @@ class Call {
     private var pendingRemoteIceCandidates: [IceCandidateInfo] = []
     private var pendingEndCallAction: DispatchWorkItem? = nil
     private var lastReport: [String: RTCStatistics]? = nil
+    public let hasStartedReceivingRemoteVideo = CurrentValueSubject<Bool, Never>(false)
 
     var stateDelegate: CallStateDelegate? = nil
 
@@ -126,6 +128,9 @@ class Call {
         }
     }
 
+    private var localVideoRenderer: RTCVideoRenderer?
+    private var remoteVideoRenderer: RTCVideoRenderer?
+
     // MARK: Initialization
     init(id: CallID, peerUserID: UserID, type: CallType, direction: CallDirection = .incoming) {
         DDLogInfo("Call/init/id: \(id)/peerUserID: \(peerUserID)/direction: \(direction)")
@@ -133,13 +138,30 @@ class Call {
         self.peerUserID = peerUserID
         self.type = type
         self.isOutgoing = direction == .outgoing
+        self.webRTCClient = WebRTCClient(callType: type)
+        webRTCClient?.delegate = self
         canPlayRingtone = true
     }
 
     func initializeWebRtcClient(iceServers: [RTCIceServer], config: Server_CallConfig) {
-        DDLogInfo("Call/initializeWebRtcClient/id: \(callID)/iceServers: \(iceServers)/call_config: \(config)")
-        self.webRTCClient = WebRTCClient(callType: type, iceServers: iceServers, config: config)
-        webRTCClient?.delegate = self
+        callQueue.async { [self] in
+            DDLogInfo("Call/initializeWebRtcClient/id: \(callID)/iceServers: \(iceServers)/call_config: \(config)")
+            self.webRTCClient?.initialize(iceServers: iceServers, config: config)
+        }
+    }
+
+    public func renderLocalVideo(to localRenderer: RTCVideoRenderer) {
+        callQueue.async { [self] in
+            self.localVideoRenderer = localRenderer
+            webRTCClient?.renderLocalVideo(to: localRenderer)
+        }
+    }
+
+    public func renderRemoteVideo(to remoteRenderer: RTCVideoRenderer) {
+        callQueue.async { [self] in
+            self.remoteVideoRenderer = remoteRenderer
+            webRTCClient?.renderRemoteVideo(to: remoteRenderer)
+        }
     }
 
     private func checkAndStartIceRestartTimer(deadline: DispatchTime) {
@@ -238,7 +260,7 @@ class Call {
                     }
                     return
                 }
-                service.startCall(id: callID, to: peerUserID, callType: .audio, payload: payload) { [self] result in
+                service.startCall(id: callID, to: peerUserID, callType: type, payload: payload) { [self] result in
                     switch result {
                     case .success(_):
                         state = .connecting
@@ -441,6 +463,44 @@ class Call {
         }
     }
 
+    func muteVideo() {
+        DDLogInfo("Call/\(callID)/muteVideo/begin")
+        callQueue.async { [self] in
+            webRTCClient?.muteVideo()
+            service.muteCall(id: callID, to: peerUserID, muted: true, mediaType: .video) { result in
+                switch result {
+                case .success:
+                    DDLogInfo("Call/\(callID)/muteVideo/success")
+                case .failure(let error):
+                    DDLogError("Call/\(callID)/muteVideo/failed: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    func unmuteVideo() {
+        DDLogInfo("Call/\(callID)/unmuteVideo/begin")
+        callQueue.async { [self] in
+            webRTCClient?.unmuteVideo()
+            service.muteCall(id: callID, to: peerUserID, muted: false, mediaType: .video) { result in
+                switch result {
+                case .success:
+                    DDLogInfo("Call/\(callID)/unmuteVideo/success")
+                case .failure(let error):
+                    DDLogError("Call/\(callID)/unmuteVideo/failed: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    func switchCamera() {
+        DDLogInfo("Call/\(callID)/switchCamera/begin")
+        callQueue.async { [self] in
+            webRTCClient?.switchCamera()
+            DDLogInfo("Call/\(callID)/switchCamera/success")
+        }
+    }
+
     func speakerOn() {
         DDLogInfo("Call/\(callID)/speakerOn/begin")
         callQueue.async { [self] in
@@ -628,7 +688,7 @@ class Call {
                                 statString += "\"\(statKey)\": \(statValue) , "
                             }
                         }
-                        DDLogInfo("Call/\(callID)/logPeerConnectionStats/report: \(statString)]")
+                        DDLogInfo("Call/\(callID)/logPeerConnectionStats/report/key: \(key)/stats: \(statString)]")
                     }
                 }
                 // Hold latest report
@@ -699,6 +759,10 @@ extension Call: WebRTCClientDelegate {
             }
             DDLogInfo("Call/\(callID)/WebRTCClientDelegate/didChangeConnectionState/success")
         }
+    }
+
+    func didStartReceivingRemoteVideo() {
+        hasStartedReceivingRemoteVideo.send(true)
     }
 
 }
