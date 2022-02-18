@@ -27,8 +27,8 @@ final class NotificationProtoService: ProtoServiceCore {
     private var pendingNotificationContent = [String: UNNotificationContent]()
     private var pendingRetractNotificationIds: [String] = []
 
-    public required init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = false) {
-        super.init(credentials: credentials, passiveMode: passiveMode, automaticallyReconnect: automaticallyReconnect)
+    public required init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = false, resource: ResourceType = .iphone_nse) {
+        super.init(credentials: credentials, passiveMode: passiveMode, automaticallyReconnect: automaticallyReconnect, resource: resource)
         self.cancellableSet.insert(
             didDisconnect.sink { [weak self] in
                 self?.downloadManager.suspendMediaDownloads()

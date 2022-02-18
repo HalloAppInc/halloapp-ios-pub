@@ -14,6 +14,12 @@ enum Stream {
     case noise(NoiseStream)
 }
 
+public enum ResourceType: String {
+    case iphone
+    case iphone_nse
+    case iphone_share
+}
+
 fileprivate let userDefaultsKeyForRequestLogs = "serverRequestedLogs"
 
 open class ProtoServiceCore: NSObject, ObservableObject {
@@ -70,6 +76,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     private var pendingWorkItems = [GroupID: [DispatchWorkItem]]()
     private var groupStates = [GroupID: GroupProcessingState]()
     private var groupWorkQueue = DispatchQueue(label: "com.halloapp.group-work", qos: .default)
+    private let resource: ResourceType
 
     private var stream: Stream?
     public var credentials: Credentials? {
@@ -84,10 +91,11 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         }
     }
 
-    required public init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = true) {
+    required public init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = true, resource: ResourceType = .iphone) {
         self.credentials = credentials
         self.isPassiveMode = passiveMode
         self.isAutoReconnectEnabled = automaticallyReconnect
+        self.resource = resource
         super.init()
 
         if let credentials = credentials {
@@ -431,7 +439,7 @@ extension ProtoServiceCore: NoiseDelegate {
         var clientConfig = Server_AuthRequest()
         clientConfig.clientMode.mode = isPassiveMode ? .passive : .active
         clientConfig.clientVersion.version = AppContext.userAgent
-        clientConfig.resource = "iphone"
+        clientConfig.resource = self.resource.rawValue
         clientConfig.deviceInfo = deviceInfo
         if let userID = credentials?.userID, let uid = Int64(userID) {
             clientConfig.uid = uid

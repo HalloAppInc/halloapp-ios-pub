@@ -35,8 +35,8 @@ final class ProtoService: ProtoServiceCore {
     }
     var pendingCallMessages = [CallID: [Server_Msg]]()
 
-    public required init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = true) {
-        super.init(credentials: credentials, passiveMode: passiveMode, automaticallyReconnect: automaticallyReconnect)
+    public required init(credentials: Credentials?, passiveMode: Bool = false, automaticallyReconnect: Bool = true, resource: ResourceType = .iphone) {
+        super.init(credentials: credentials, passiveMode: passiveMode, automaticallyReconnect: automaticallyReconnect, resource: resource)
         self.cancellableSet.insert(
             didDisconnect.sink {
                 // reset our call handling state if no calls are active.
