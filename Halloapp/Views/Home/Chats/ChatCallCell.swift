@@ -78,10 +78,27 @@ final class ChatCallView: UIView {
     }
 
     func configure(_ callData: ChatCallData) {
+        self.callData = callData
         let showMissedCall = callData.wasIncoming && !callData.wasSuccessful
-        let titleString = NSMutableAttributedString(
-            string: showMissedCall ? Localizations.voiceCallMissed : Localizations.voiceCall,
-            attributes: [.font: UIFont.systemFont(forTextStyle: .subheadline, weight: .bold)])
+        let titleString: NSMutableAttributedString
+
+        // TODO: Update the callButton icon here.
+        // just setting an icon does not seem to work here? - check with team.
+        let iconConfiguration = UIImage.SymbolConfiguration(pointSize: 13)
+        switch callData.type {
+        case .audio:
+            titleString = NSMutableAttributedString(
+                string: showMissedCall ? Localizations.voiceCallMissed : Localizations.voiceCall,
+                attributes: [.font: UIFont.systemFont(forTextStyle: .subheadline, weight: .bold)])
+            let phoneIcon = UIImage(systemName: "phone.fill", withConfiguration: iconConfiguration)
+            callButton.setImage(phoneIcon, for: .normal)
+        case .video:
+            titleString = NSMutableAttributedString(
+                string: showMissedCall ? Localizations.videoCallMissed : Localizations.videoCall,
+                attributes: [.font: UIFont.systemFont(forTextStyle: .subheadline, weight: .bold)])
+            let videoIcon = UIImage(systemName: "video.fill", withConfiguration: iconConfiguration)
+            callButton.setImage(videoIcon, for: .normal)
+        }
         if let duration = durationString(callData.duration) {
             titleString.append(NSAttributedString(
                 string: " \(duration)",
@@ -91,7 +108,6 @@ final class ChatCallView: UIView {
         primaryLabel.attributedText = titleString
         timeLabel.text = callData.timestamp?.chatTimestamp(Date())
         callButton.tintColor = showMissedCall ? .systemRed : .systemBlue
-        self.callData = callData
     }
 
     override func layoutSubviews() {
@@ -125,7 +141,7 @@ final class ChatCallView: UIView {
         label.textColor = .secondaryLabel
         return label
     }()
-    private lazy var callButton: UIControl = {
+    private lazy var callButton: UIButton = {
         let button = UIButton(type: .system)
         let iconConfiguration = UIImage.SymbolConfiguration(pointSize: 13)
         let phoneIcon = UIImage(systemName: "phone.fill", withConfiguration: iconConfiguration)
@@ -173,5 +189,13 @@ extension Localizations {
 
     static var voiceCallMissed: String {
         NSLocalizedString("call.history.voice.call.missed", value: "Missed voice call", comment: "Title for call history event. Appears next to details of a missed call.")
+    }
+
+    static var videoCall: String {
+        NSLocalizedString("call.history.video.call", value: "Video call", comment: "Title for call history event. Appears next to details of a successful call.")
+    }
+
+    static var videoCallMissed: String {
+        NSLocalizedString("call.history.video.call.missed", value: "Missed video call", comment: "Title for call history event. Appears next to details of a missed call.")
     }
 }

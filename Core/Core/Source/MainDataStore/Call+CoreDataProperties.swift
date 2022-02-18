@@ -70,4 +70,12 @@ extension Call {
     public var isIncoming: Bool {
         return direction == .incoming
     }
+
+    public var isVideoCall: Bool {
+        return type == .video
+    }
+
+    public var isAudioCall: Bool {
+        return type == .audio
+    }
 }

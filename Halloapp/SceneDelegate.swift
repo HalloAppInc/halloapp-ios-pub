@@ -320,7 +320,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
             }
 
             DDLogInfo("appdelegate/scene/continueUserActivity/trying to startCall for: \(peerUserID)")
-            MainAppContext.shared.callManager.startCall(to: peerUserID) { [weak self] result in
+            MainAppContext.shared.callManager.startCall(to: peerUserID, type: .audio) { [weak self] result in
                 guard let self = self else { return }
                 DispatchQueue.main.async {
                     switch result {

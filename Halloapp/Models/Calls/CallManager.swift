@@ -36,6 +36,7 @@ protocol CallViewDelegate: AnyObject {
 public struct CallDetails {
     var callID: CallID
     var peerUserID: UserID
+    var type: CallType
 }
 
 final class CallManager: NSObject, CXProviderDelegate {
@@ -161,7 +162,7 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     // MARK: User-Initiated Actions
 
-    func startCall(to peerUserID: String, completion: @escaping (Result<Void, CallError>) -> Void) {
+    func startCall(to peerUserID: String, type: CallType, completion: @escaping (Result<Void, CallError>) -> Void) {
         // check Mic permissions before starting a call.
         AVAudioSession.sharedInstance().requestRecordPermission { [self] granted in
             if (granted) {
@@ -170,10 +171,11 @@ final class CallManager: NSObject, CXProviderDelegate {
                     completion(.failure(.alreadyInCall))
                 } else {
                     let callID = PacketID.generate()
-                    callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID)
+                    callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID, type: type)
                     let handle = handle(for: peerUserID)
                     DDLogInfo("CallManager/startCall/create/callID: \(callID)/handleValue: \(handle.value)")
                     let startCallAction = CXStartCallAction(call: callID.callUUID, handle: handle)
+                    startCallAction.isVideo = type == .video
                     startCallAction.contactIdentifier = peerName(for: peerUserID)
                     let transaction = CXTransaction()
                     transaction.addAction(startCallAction)
@@ -393,10 +395,10 @@ final class CallManager: NSObject, CXProviderDelegate {
             // Save call to mainDataStore.
             MainAppContext.shared.mainDataStore.saveCall(callID: details.callID,
                                                          peerUserID: details.peerUserID,
-                                                         type: .audio,
+                                                         type: details.type,
                                                          direction: .outgoing,
                                                          timestamp: Date())
-            activeCall = Call(id: details.callID, peerUserID: details.peerUserID, direction: .outgoing)
+            activeCall = Call(id: details.callID, peerUserID: details.peerUserID, type: details.type, direction: .outgoing)
             activeCall?.stateDelegate = self
             // Show call UI to the user
             if let displayCall = activeCall {
@@ -405,7 +407,7 @@ final class CallManager: NSObject, CXProviderDelegate {
 
             // set startCall work item.
             pendingStartCallAction = DispatchWorkItem { [self] in
-                service.getCallServers(id: details.callID, for: details.peerUserID, callType: .audio) { [self] callServersResult in
+                service.getCallServers(id: details.callID, for: details.peerUserID, callType: details.type) { [self] callServersResult in
                     switch callServersResult {
                     case .success(let callServers):
                         let iceServers = WebRTCClient.getIceServers(stunServers: callServers.stunServers, turnServers: callServers.turnServers)
@@ -579,12 +581,13 @@ final class CallManager: NSObject, CXProviderDelegate {
         DDLogInfo("CallManager/reportCallHoldUnavailable/callID: \(callID)/success")
     }
 
-    func reportIncomingCall(id callID: CallID, from peerUserID: UserID, completion: @escaping (Result<Void, CallError>) -> Void) {
+    func reportIncomingCall(id callID: CallID, from peerUserID: UserID, type: CallType, completion: @escaping (Result<Void, CallError>) -> Void) {
         DDLogInfo("CallManager/reportIncomingCall/callID: \(callID)/peerUserID: \(peerUserID)")
         let update = CXCallUpdate()
         update.remoteHandle = handle(for: peerUserID)
         update.localizedCallerName = peerName(for: peerUserID)
         update.supportsHolding = ServerProperties.canHoldCalls
+        update.hasVideo = type == .video
         provider.reportNewIncomingCall(with: callID.callUUID, update: update) { error in
             if let error = error {
                 DDLogError("CallManager/reportNewIncomingCall/callID: \(callID)/error: \(error)")
@@ -621,9 +624,27 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     func presentMissedCallNotification(id callID: CallID, from peerUserID: UserID) {
         DDLogInfo("CallManager/presentMissedCallNotification/callID: \(callID)")
+        DispatchQueue.main.async {
+            guard let call = MainAppContext.shared.mainDataStore.call(with: callID, in: MainAppContext.shared.mainDataStore.viewContext) else {
+                DDLogError("CallManager/presentMissedCallNotification/id: \(callID)/from: \(peerUserID) - missing call object")
+                return
+            }
+            self.presentMissedCallNotification(id: callID, from: peerUserID, type: call.type)
+        }
+    }
+
+    func presentMissedCallNotification(id callID: CallID, from peerUserID: UserID, type: CallType) {
+        DDLogInfo("CallManager/presentMissedCallNotification/callID: \(callID)/type: \(type)")
+        let contentType: NotificationContentType
+        switch type {
+        case .audio:
+            contentType = .missedAudioCall
+        case .video:
+            contentType = .missedVideoCall
+        }
         let peerName = peerName(for: peerUserID)
         let metadata = NotificationMetadata(contentId: callID,
-                                            contentType: .missedCall,
+                                            contentType: contentType,
                                             fromId: peerUserID,
                                             timestamp: Date(),
                                             data: nil,
@@ -813,21 +834,26 @@ extension CallManager: HalloCallDelegate {
         // Things should work fine after that.
         delegateQueue.sync {
 
-            // Save call to mainDataStore.
-            if let callType = incomingCall.type {
-                MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID, type: callType, direction: .incoming, timestamp: Date())
+            guard let callType = incomingCall.type else {
+                DDLogError("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/incomingCall stanza: \(incomingCall)")
+                return
             }
+            // Save call to mainDataStore.
+            MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID, type: callType, direction: .incoming, timestamp: Date())
 
             // Try to decrypt offer if no call is active and report to callkit provider.
             // Check if call is supported or if we have an active call already.
-            if incomingCall.callType != .audio {
+            if callType != .audio {
                 // Reject non-audio calls for now.
                 // TODO: we need some sort of tombstone here eventually!
                 MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .videoUnsupportedError)
+                MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                    call.endReason = .videoUnsupportedError
+                }
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason videoUnsupportedError")
             } else if activeCallID == incomingCall.callID {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID) duplicate packet")
-                reportIncomingCall(id: callID, from: peerUserID) { result in
+                reportIncomingCall(id: callID, from: peerUserID, type: callType) { result in
                     switch result {
                     case .success:
                         DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/duplicate-success")
@@ -844,12 +870,12 @@ extension CallManager: HalloCallDelegate {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason busy")
             } else {
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID)/callUUID: \(callID.callUUID)")
-                callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID)
+                callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID, type: callType)
                 let iceServers = WebRTCClient.getIceServers(stunServers: incomingCall.stunServers, turnServers: incomingCall.turnServers)
-                activeCall = Call(id: callID, peerUserID: peerUserID)
+                activeCall = Call(id: callID, peerUserID: peerUserID, type: callType)
                 activeCall?.stateDelegate = self
                 activeCall?.initializeWebRtcClient(iceServers: iceServers, config: incomingCall.callConfig)
-                reportIncomingCall(id: callID, from: peerUserID) { result in
+                reportIncomingCall(id: callID, from: peerUserID, type: callType) { result in
                     switch result {
                     case .success:
                         DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/success")
@@ -952,6 +978,7 @@ extension CallManager: HalloCallDelegate {
                 AppContext.shared.messageCrypter.resetWhisperSession(for: peerUserID)
             }
             // Check if it is a missed call.
+            let callType: CallType = activeCall?.type ?? .audio
             let isMissedCall: Bool = activeCall?.isMissedCall ?? false
             // Save call status to CoreData
             let durationMs = callDurationMs
@@ -967,7 +994,7 @@ extension CallManager: HalloCallDelegate {
                 reportCallEnded(id: callID, reason: endCall.cxEndCallReason)
                 DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")
                 if isMissedCall {
-                    presentMissedCallNotification(id: callID, from: peerUserID)
+                    presentMissedCallNotification(id: callID, from: peerUserID, type: callType)
                 }
             }
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveEndCall/success")

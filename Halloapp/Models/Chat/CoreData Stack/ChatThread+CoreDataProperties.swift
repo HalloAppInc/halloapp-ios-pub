@@ -30,9 +30,12 @@ extension ChatThread {
         case image = 1
         case video = 2
         case audio = 3
-        case missedCall = 4
-        case incomingCall = 5
-        case outgoingCall = 6
+        case missedAudioCall = 4
+        case incomingAudioCall = 5
+        case outgoingAudioCall = 6
+        case missedVideoCall = 7
+        case incomingVideoCall = 8
+        case outgoingVideoCall = 9
     }
     
     enum LastFeedStatus: Int16 {

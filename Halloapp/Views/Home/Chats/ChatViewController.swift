@@ -73,11 +73,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     // Should always be called on the main queue.
-    private func checkAndUpdateCallButton() {
+    private func checkAndUpdateCallButtons() {
         if fromUserId != MainAppContext.shared.userData.userId && MainAppContext.shared.callManager.activeCallID == nil {
-            navigationItem.rightBarButtonItem?.isEnabled = true
+            navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = true }
         } else {
-            navigationItem.rightBarButtonItem?.isEnabled = false
+            navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = false }
         }
     }
 
@@ -88,11 +88,17 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         preventNavLoop()
 
+        var rightBarButtons: [UIBarButtonItem] = []
         if ServerProperties.isAudioCallsEnabled {
             let image = UIImage(systemName: "phone.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))
-            navigationItem.rightBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(callButtonTapped))
+            rightBarButtons.append(UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(audioCallButtonTapped)))
         }
-        checkAndUpdateCallButton()
+        if ServerProperties.isVideoCallsEnabled {
+            let image = UIImage(systemName: "video.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))
+            rightBarButtons.append(UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(videoCallButtonTapped)))
+        }
+        navigationItem.rightBarButtonItems = rightBarButtons
+        checkAndUpdateCallButtons()
 
         let navAppearance = UINavigationBarAppearance()
         navAppearance.backgroundColor = UIColor.primaryBg
@@ -275,8 +281,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] call in
                 guard let self = self else { return }
                 DispatchQueue.main.async {
-                    // Disable call button when the user is in an active call.
-                    self.checkAndUpdateCallButton()
+                    // Disable call buttons when the user is in an active call.
+                    self.checkAndUpdateCallButtons()
                 }
             }
         )
@@ -368,12 +374,21 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         DDLogDebug("ChatViewController/deinit/\(fromUserId ?? "")")
     }
 
-    @objc private func callButtonTapped() {
+    @objc private func audioCallButtonTapped() {
+        callButtonTapped(type: .audio)
+    }
+
+    @objc private func videoCallButtonTapped() {
+        callButtonTapped(type: .video)
+    }
+
+    private func callButtonTapped(type: CallType) {
         guard let peerUserID = fromUserId else {
             DDLogInfo("ChatViewController/callButtonTapped/peerUserID is empty")
             return
         }
-        startCallIfPossible(with: peerUserID)
+        DDLogInfo("ChatViewController/callButtonTapped/type: \(type)/peerUserID: \(peerUserID)")
+        startCallIfPossible(with: peerUserID, type: type)
 
         // Clear search if user called from this screen.
         if !firstActionHappened {
@@ -382,18 +397,18 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
     }
 
-    private func startCallIfPossible(with peerUserID: UserID) {
+    private func startCallIfPossible(with peerUserID: UserID, type: CallType) {
         if peerUserID == MainAppContext.shared.userData.userId {
-            DDLogInfo("ChatViewController/callButtonTapped/cannot call oneself")
+            DDLogInfo("ChatViewController/startCallIfPossible/cannot call oneself")
             return
         }
         guard MainAppContext.shared.service.isConnected else {
-            DDLogInfo("ChatViewController/callButtonTapped/service not connected")
+            DDLogInfo("ChatViewController/startCallIfPossible/service not connected")
             let alert = self.getFailedCallAlertController()
             self.present(alert, animated: true)
             return
         }
-        MainAppContext.shared.callManager.startCall(to: peerUserID) { [weak self] result in
+        MainAppContext.shared.callManager.startCall(to: peerUserID, type: type) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
@@ -945,7 +960,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         // Add calls
         chatRows += calls
-            .map { ChatCallData(userID: $0.peerUserID, timestamp: $0.timestamp, duration: $0.durationMs / 1000, wasSuccessful: $0.answered, wasIncoming: $0.direction == .incoming) }
+            .map { ChatCallData(userID: $0.peerUserID, timestamp: $0.timestamp, duration: $0.durationMs / 1000, wasSuccessful: $0.answered, wasIncoming: $0.direction == .incoming, type: $0.type) }
             .map { Row.chatCall($0) }
 
         // Sort by date
@@ -1383,6 +1398,7 @@ struct ChatCallData: Hashable {
     var duration: TimeInterval
     var wasSuccessful: Bool
     var wasIncoming: Bool
+    var type: CallType
 }
 
 extension ChatEventData : Hashable {
@@ -1746,7 +1762,7 @@ extension ChatViewController: MsgViewCellDelegate {
 // MARK: ChatCallView Delegates
 extension ChatViewController: ChatCallViewDelegate {
     func chatCallView(_ callView: ChatCallView, didTapCallButtonWithData callData: ChatCallData) {
-        startCallIfPossible(with: callData.userID)
+        startCallIfPossible(with: callData.userID, type: callData.type)
     }
 }
 

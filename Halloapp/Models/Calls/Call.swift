@@ -47,6 +47,7 @@ class Call {
     let callID: CallID
     let isOutgoing: Bool
     let peerUserID: UserID
+    let type: CallType
     var isAnswered: Bool = false
     var isConnected: Bool = false
     var isCallEndedLocally: Bool = false
@@ -126,17 +127,18 @@ class Call {
     }
 
     // MARK: Initialization
-    init(id: CallID, peerUserID: UserID, direction: CallDirection = .incoming) {
+    init(id: CallID, peerUserID: UserID, type: CallType, direction: CallDirection = .incoming) {
         DDLogInfo("Call/init/id: \(id)/peerUserID: \(peerUserID)/direction: \(direction)")
         self.callID = id
         self.peerUserID = peerUserID
+        self.type = type
         self.isOutgoing = direction == .outgoing
         canPlayRingtone = true
     }
 
     func initializeWebRtcClient(iceServers: [RTCIceServer], config: Server_CallConfig) {
         DDLogInfo("Call/initializeWebRtcClient/id: \(callID)/iceServers: \(iceServers)/call_config: \(config)")
-        self.webRTCClient = WebRTCClient(iceServers: iceServers, config: config)
+        self.webRTCClient = WebRTCClient(callType: type, iceServers: iceServers, config: config)
         webRTCClient?.delegate = self
     }
 

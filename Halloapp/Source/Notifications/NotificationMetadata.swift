@@ -80,7 +80,8 @@ enum NotificationContentType: String, RawRepresentable, Codable {
 
     case chatRerequest = "chat_rerequest"
 
-    case missedCall = "missed_call"
+    case missedAudioCall = "missed_voice_call"
+    case missedVideoCall = "missed_video_call"
 }
 
 class NotificationMetadata: Codable {
@@ -606,9 +607,14 @@ class NotificationMetadata: Codable {
         }
     }
 
-    func populateMissedCallContent(contactStore: ContactStore) {
+    func populateMissedVoiceCallContent(contactStore: ContactStore) {
         title = contactStore.fullNameIfAvailable(for: fromId, ownName: nil, showPushNumber: true) ?? Localizations.unknownContact
-        body = Localizations.newMissedCallNotificationBody
+        body = Localizations.newMissedVoiceCallNotificationBody
+    }
+
+    func populateMissedVideoCallContent(contactStore: ContactStore) {
+        title = contactStore.fullNameIfAvailable(for: fromId, ownName: nil, showPushNumber: true) ?? Localizations.unknownContact
+        body = Localizations.newMissedVideoCallNotificationBody
     }
 
     static func bodyText(from chatContent: ChatContent, contactStore: ContactStore) -> String? {
@@ -657,7 +663,7 @@ extension NotificationMetadata {
         switch contentType {
         case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract:
             return true
-        case .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest, .missedCall:
+        case .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest, .missedAudioCall, .missedVideoCall:
             return false
         }
     }
@@ -667,7 +673,7 @@ extension NotificationMetadata {
     }
 
     var isMissedCallNotification: Bool {
-        return contentType == .missedCall
+        return contentType == .missedAudioCall || contentType == .missedVideoCall
     }
     
     var isGroupChatNotification: Bool {
@@ -682,7 +688,7 @@ extension NotificationMetadata {
         switch contentType {
         case .newFriend, .newInvitee, .newContact:
             return true
-        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .groupAdd, .chatRerequest, .missedCall:
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .groupAdd, .chatRerequest, .missedAudioCall, .missedVideoCall:
             return false
         }
     }
@@ -691,7 +697,7 @@ extension NotificationMetadata {
         switch contentType {
         case .groupFeedPost, .groupFeedComment, .groupChatMessage, .groupFeedPostRetract, .groupFeedCommentRetract, .groupChatMessageRetract, .groupAdd:
             return true
-        case .feedPost, .feedComment, .feedPostRetract, .feedCommentRetract, .chatMessage, .chatMessageRetract, .newFriend, .newInvitee, .newContact, .chatRerequest, .missedCall:
+        case .feedPost, .feedComment, .feedPostRetract, .feedCommentRetract, .chatMessage, .chatMessageRetract, .newFriend, .newInvitee, .newContact, .chatRerequest, .missedAudioCall, .missedVideoCall:
             return false
         }
     }
@@ -716,7 +722,7 @@ extension NotificationMetadata {
         switch contentType {
         case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract:
             return true
-        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact, .chatRerequest, .missedCall:
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact, .chatRerequest, .missedAudioCall, .missedVideoCall:
             return false
         }
     }
@@ -725,7 +731,7 @@ extension NotificationMetadata {
         switch contentType {
         case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact:
             return true
-        case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract, .chatRerequest, .missedCall:
+        case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract, .chatRerequest, .missedAudioCall, .missedVideoCall:
             return false
         }
     }

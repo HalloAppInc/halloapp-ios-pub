@@ -277,7 +277,14 @@ class HomeViewController: UITabBarController {
             selectedIndex = 2
         } else if metadata.isMissedCallNotification {
             metadata.removeFromUserDefaults()
-            MainAppContext.shared.callManager.startCall(to: metadata.fromId) { [weak self] result in
+            // Default to audio call.
+            var callType: CallType = .audio
+            if metadata.contentType == .missedAudioCall {
+                callType = .audio
+            } else if metadata.contentType == .missedVideoCall {
+                callType = .video
+            }
+            MainAppContext.shared.callManager.startCall(to: metadata.fromId, type: callType) { [weak self] result in
                 guard let self = self else { return }
                 DispatchQueue.main.async {
                     switch result {

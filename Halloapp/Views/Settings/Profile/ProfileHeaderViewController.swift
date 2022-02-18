@@ -43,7 +43,8 @@ final class ProfileHeaderViewController: UIViewController {
         let headerView = ProfileHeaderView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: screenWidth))
         headerView.isEditingAllowed = isEditingAllowed
         headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
-        headerView.callButton.addTarget(self, action: #selector(callButtonTapped), for: .touchUpInside)
+        headerView.audioCallButton.addTarget(self, action: #selector(audioCallButtonTapped), for: .touchUpInside)
+        headerView.videoCallButton.addTarget(self, action: #selector(videoCallButtonTapped), for: .touchUpInside)
         headerView.unblockButton.addTarget(self, action: #selector(unblockButtonTappedprofile), for: .touchUpInside)
         view = headerView
     }
@@ -217,16 +218,24 @@ final class ProfileHeaderViewController: UIViewController {
         navigationController?.pushViewController(ChatViewController(for: userID), animated: true)
     }
 
-    @objc private func callButtonTapped() {
+    @objc private func audioCallButtonTapped() {
+        startCall(type: .audio)
+    }
+
+    @objc private func videoCallButtonTapped() {
+        startCall(type: .video)
+    }
+
+    private func startCall(type: CallType) {
         guard let peerUserID = headerView.userID else {
-            DDLogInfo("ProfileHeader/callButtonTapped/peerUserID is empty")
+            DDLogInfo("ProfileHeader/audioCallButtonTapped/peerUserID is empty")
             return
         }
         if peerUserID == MainAppContext.shared.userData.userId {
-            DDLogInfo("ProfileHeader/callButtonTapped/cannot call oneself")
+            DDLogInfo("ProfileHeader/audioCallButtonTapped/cannot call oneself")
             return
         }
-        MainAppContext.shared.callManager.startCall(to: peerUserID) { [weak self] result in
+        MainAppContext.shared.callManager.startCall(to: peerUserID, type: type) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
@@ -402,7 +411,8 @@ private final class ProfileHeaderView: UIView {
     private func updateActions() {
         actionPanel.isHidden = isBlocked || !isInAddressBook
         unblockButton.isHidden = !isBlocked
-        callButton.isHidden = !ServerProperties.isAudioCallsEnabled
+        audioCallButton.isHidden = !ServerProperties.isAudioCallsEnabled
+        videoCallButton.isHidden = !ServerProperties.isVideoCallsEnabled
     }
     
     private func addCameraOverlayToAvatarViewButton() {
@@ -500,7 +510,7 @@ private final class ProfileHeaderView: UIView {
     }()
 
     private(set) lazy var actionPanel: UIView = {
-        let view = UIStackView(arrangedSubviews: [messageButton, callButton])
+        let view = UIStackView(arrangedSubviews: [messageButton, audioCallButton, videoCallButton])
         view.axis = .horizontal
         view.spacing = 8
         return view
@@ -513,10 +523,17 @@ private final class ProfileHeaderView: UIView {
         return button
     }()
 
-    private(set) lazy var callButton: UIControl = {
+    private(set) lazy var audioCallButton: UIControl = {
         let button = Self.makeActionButton(
             image: .init(systemName: "phone.fill")?.withRenderingMode(.alwaysTemplate),
-            title: Localizations.profileHeaderCallUser)
+            title: Localizations.profileHeaderAudioCallUser)
+        return button
+    }()
+
+    private(set) lazy var videoCallButton: UIControl = {
+        let button = Self.makeActionButton(
+            image: .init(systemName: "video.fill")?.withRenderingMode(.alwaysTemplate),
+            title: Localizations.profileHeaderVideoCallUser)
         return button
     }()
     
@@ -575,8 +592,12 @@ extension Localizations {
         NSLocalizedString("profile.header.message.user", value: "message", comment: "This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun.")
     }
 
-    static var profileHeaderCallUser: String {
-        NSLocalizedString("profile.header.call.user", value: "call", comment: "This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun.")
+    static var profileHeaderAudioCallUser: String {
+        NSLocalizedString("profile.header.call.user", value: "voice call", comment: "This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun.")
+    }
+
+    static var profileHeaderVideoCallUser: String {
+        NSLocalizedString("profile.header.call.user", value: "video call", comment: "This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun.")
     }
     
     static var unBlockedUser: String {

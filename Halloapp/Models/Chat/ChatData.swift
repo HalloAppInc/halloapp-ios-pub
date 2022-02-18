@@ -306,31 +306,45 @@ class ChatData: ObservableObject {
                             return
                         }
                         let peerUserID = call.peerUserID
+                        let isAudioCall = call.isAudioCall
+                        let isVideoCall = call.isVideoCall
                         let isMissedCall = call.isMissedCall
-                        let isIncomingCall = call.isIncoming
                         let isOutgoingCall = call.isOutgoing
                         let duration: TimeInterval = call.durationMs / 1000
                         let durationString = self.durationString(duration) ?? ""
 
                         self.updateChatThread(type: .oneToOne, for: peerUserID, block: {
+                            if isAudioCall {
+                                if isOutgoingCall {
+                                    $0.lastMsgText = durationString
+                                    $0.lastMsgMediaType = .outgoingAudioCall
+                                } else if isMissedCall {
+                                    $0.lastMsgText = ""
+                                    $0.lastMsgMediaType = .missedAudioCall
+                                } else {
+                                    $0.lastMsgText = durationString
+                                    $0.lastMsgMediaType = .incomingAudioCall
+                                }
+                            } else if isVideoCall {
+                                if isOutgoingCall {
+                                    $0.lastMsgText = durationString
+                                    $0.lastMsgMediaType = .outgoingVideoCall
+                                } else if isMissedCall {
+                                    $0.lastMsgText = ""
+                                    $0.lastMsgMediaType = .missedVideoCall
+                                } else {
+                                    $0.lastMsgText = durationString
+                                    $0.lastMsgMediaType = .incomingVideoCall
+                                }
+                            }
+                            // Update unread count if it is a missed call.
                             if isMissedCall {
-                                $0.lastMsgText = ""
-                                $0.lastMsgMediaType = .missedCall
                                 if !self.isCurrentlyChatting(with: peerUserID) {
                                     $0.unreadCount += 1
                                     self.unreadMessageCount += 1
                                     self.updateUnreadChatsThreadCount()
                                 }
-
-                            } else if isIncomingCall {
-                                $0.lastMsgText = durationString
-                                $0.lastMsgMediaType = .incomingCall
-
-                            } else if isOutgoingCall {
-                                $0.lastMsgText = durationString
-                                $0.lastMsgMediaType = .outgoingCall
                             }
-
                             $0.lastMsgId = callID
                             $0.lastMsgTimestamp = call.timestamp
                             $0.lastMsgStatus = .none

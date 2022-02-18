@@ -67,6 +67,7 @@ final class WebRTCClient: NSObject {
     }()
 
     weak var delegate: WebRTCClientDelegate?
+    private let callType: CallType
     private let peerConnection: RTCPeerConnection
     private var audioSession: AudioSession?
     private let audioQueue = DispatchQueue(label: "audio")
@@ -75,7 +76,8 @@ final class WebRTCClient: NSObject {
     private var remoteDataChannel: RTCDataChannel?
     private var callConfig: Server_CallConfig
 
-    init(iceServers: [RTCIceServer], config: Server_CallConfig) {
+    init(callType: CallType, iceServers: [RTCIceServer], config: Server_CallConfig) {
+        self.callType = callType
         self.callConfig = config
 
         let rtcConfig = RTCConfiguration()
@@ -100,6 +102,8 @@ final class WebRTCClient: NSObject {
         self.peerConnection = peerConnection
 
         super.init()
+
+        // TODO: We should do things differently here based on callType.
 
         // set AudioSession to useManualAudio.
         // We should activate/deactivate the audioSession based on the callback from ios.

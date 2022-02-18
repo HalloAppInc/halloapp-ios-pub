@@ -73,7 +73,11 @@ extension UNMutableNotificationContent {
     }
 
     func populateMissedCallBody(using metadata: NotificationMetadata, contactStore: ContactStore) {
-        metadata.populateMissedCallContent(contactStore: contactStore)
+        if metadata.contentType == .missedVideoCall {
+            metadata.populateMissedVideoCallContent(contactStore: contactStore)
+        } else {
+            metadata.populateMissedVoiceCallContent(contactStore: contactStore)
+        }
         title = metadata.title
         body = metadata.body
         // encode and store metadata - this will be used to handle user response on the notification.
@@ -219,10 +223,17 @@ extension Localizations {
             comment: "New post notification text when post is a voice note.")
     }
 
-    static var newMissedCallNotificationBody: String {
+    static var newMissedVoiceCallNotificationBody: String {
         NSLocalizedString(
             "notification.voicecall.missed",
             value: "☎️ Missed voice call",
             comment: "Missed voice call notification text to be shown to the user.")
+    }
+
+    static var newMissedVideoCallNotificationBody: String {
+        NSLocalizedString(
+            "notification.videocall.missed",
+            value: "📹 Missed video call",
+            comment: "Missed video call notification text to be shown to the user.")
     }
 }
