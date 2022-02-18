@@ -426,6 +426,9 @@ extension CallViewController: CallViewDelegate {
             self.updateCallStatusLabel()
         }
     }
+
+    func callMute(_ muted: Bool, media: CallMediaType) {
+    }
 }
 
 final class CallViewButton: UIControl {

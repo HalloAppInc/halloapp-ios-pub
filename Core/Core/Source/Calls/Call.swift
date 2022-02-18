@@ -19,6 +19,11 @@ public enum CallType: String {
     case video
 }
 
+public enum CallMediaType {
+    case audio
+    case video
+}
+
 public enum CallDirection: String {
     case incoming
     case outgoing
@@ -41,6 +46,30 @@ extension Server_CallType {
         case .audio: return .audio
         case .video: return .video
         default: return nil
+        }
+    }
+}
+
+extension Server_MuteCall {
+    public var callMediaType: CallMediaType? {
+        switch self.mediaType {
+        case .audio:
+            return .audio
+        case .video:
+            return .video
+        case .UNRECOGNIZED:
+            return nil
+        }
+    }
+}
+
+extension CallMediaType {
+    var serverMuteCallMediaType: Server_MuteCall.MediaType {
+        switch self {
+        case .audio:
+            return .audio
+        case .video:
+            return .video
         }
     }
 }

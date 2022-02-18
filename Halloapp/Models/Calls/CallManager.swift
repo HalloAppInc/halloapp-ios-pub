@@ -30,6 +30,7 @@ protocol CallViewDelegate: AnyObject {
     func callFailed()
     func callHold(_ hold: Bool)
     func callBusy()
+    func callMute(_ muted: Bool, media: CallMediaType)
 }
 
 public struct CallDetails {
@@ -1070,6 +1071,22 @@ extension CallManager: HalloCallDelegate {
             self.activeCall?.didReceiveCallHold(isOnHold)
             self.callViewDelegate?.callHold(isOnHold)
             DDLogInfo("CallManager/HalloCallDelegate/didReceiveHoldCall/success")
+        }
+    }
+
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveMuteCall muteCall: Server_MuteCall) {
+        DDLogInfo("CallManager/HalloCallDelegate/didReceiveMuteCall/begin")
+        let callID = muteCall.callID
+        let isOnMute = muteCall.muted
+        guard let mediaType = muteCall.callMediaType else {
+            DDLogError("CallManager/HalloCallDelegate/didReceiveMuteCall/invalid mediaType: \(muteCall)")
+            return
+        }
+
+        if activeCallID == callID {
+            self.activeCall?.didReceiveCallMute(isOnMute, media: mediaType)
+            self.callViewDelegate?.callMute(isOnMute, media: mediaType)
+            DDLogInfo("CallManager/HalloCallDelegate/didReceiveMuteCall/success")
         }
     }
 

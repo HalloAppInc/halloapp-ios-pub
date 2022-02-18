@@ -413,7 +413,14 @@ class Call {
         DDLogInfo("Call/\(callID)/muteAudio/begin")
         callQueue.async { [self] in
             webRTCClient?.muteAudio()
-            DDLogInfo("Call/\(callID)/muteAudio/success")
+            service.muteCall(id: callID, to: peerUserID, muted: true, mediaType: .audio) { result in
+                switch result {
+                case .success:
+                    DDLogInfo("Call/\(callID)/muteAudio/success")
+                case .failure(let error):
+                    DDLogError("Call/\(callID)/muteAudio/failed: \(error.localizedDescription)")
+                }
+            }
         }
     }
 
@@ -421,7 +428,14 @@ class Call {
         DDLogInfo("Call/\(callID)/unmuteAudio/begin")
         callQueue.async { [self] in
             webRTCClient?.unmuteAudio()
-            DDLogInfo("Call/\(callID)/unmuteAudio/success")
+            service.muteCall(id: callID, to: peerUserID, muted: false, mediaType: .audio) { result in
+                switch result {
+                case .success:
+                    DDLogInfo("Call/\(callID)/unmuteAudio/success")
+                case .failure(let error):
+                    DDLogError("Call/\(callID)/unmuteAudio/failed: \(error.localizedDescription)")
+                }
+            }
         }
     }
 
@@ -570,6 +584,13 @@ class Call {
         callQueue.async { [self] in
             DDLogInfo("Call/\(callID)/didReceiveCallHold/success")
             isOnHold = hold
+        }
+    }
+
+    func didReceiveCallMute(_ muted: Bool, media: CallMediaType) {
+        DDLogInfo("Call/\(callID)/didReceiveCallMute/begin/muted: \(muted)/media: \(media)")
+        callQueue.async { [self] in
+            DDLogInfo("Call/\(callID)/didReceiveCallMute/success")
         }
     }
 

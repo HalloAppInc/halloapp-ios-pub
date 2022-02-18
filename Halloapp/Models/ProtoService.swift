@@ -1087,6 +1087,17 @@ final class ProtoService: ProtoServiceCore {
                 callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveHoldCall: holdCall)
             }
 
+        case .muteCall(let muteCall):
+            if !readyToHandleCallMessages {
+                DDLogInfo("proto/didReceive/\(msg.id)/muteCall/\(muteCall.callID)/addedToPending")
+                var pendingMsgs = pendingCallMessages[muteCall.callID] ?? []
+                pendingMsgs.append(msg)
+                pendingCallMessages[muteCall.callID] = pendingMsgs
+            } else {
+                DDLogInfo("proto/didReceive/\(msg.id)/muteCall/\(muteCall.callID)")
+                callDelegate?.halloService(self, from: UserID(msg.fromUid), didReceiveMuteCall: muteCall)
+            }
+
         case .inviteeNotice:
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .homeFeedRerequest(_):
@@ -1094,8 +1105,6 @@ final class ProtoService: ProtoServiceCore {
         case .marketingAlert(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .preAnswerCall(_):
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .muteCall(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
@@ -1121,6 +1130,8 @@ final class ProtoService: ProtoServiceCore {
                     callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveIceAnswer: iceAnswer)
                 case .holdCall(let holdCall):
                     callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveHoldCall: holdCall)
+                case .muteCall(let muteCall):
+                    callDelegate?.halloService(self, from: UserID(pendingMsg.fromUid), didReceiveMuteCall: muteCall)
                 default:
                     DDLogError("proto/didReceive/unexpected call message: \(String(describing: pendingMsg.payload))")
                     break
@@ -2104,11 +2115,11 @@ extension ProtoService: HalloService {
     func holdCall(id callID: CallID, to peerUserID: UserID, hold: Bool, completion: @escaping (Result<Void, RequestError>) -> Void) {
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
             guard let fromUID = Int64(AppContext.shared.userData.userId) else {
-                DDLogError("ProtoService/sendCallRinging/\(callID)/error invalid sender uid")
+                DDLogError("ProtoService/holdCall/\(callID)/error invalid sender uid")
                 return
             }
             guard let toUID = Int64(peerUserID) else {
-                DDLogError("ProtoService/sendCallRinging/\(callID)/error invalid to uid")
+                DDLogError("ProtoService/holdCall/\(callID)/error invalid to uid")
                 return
             }
 
@@ -2125,11 +2136,45 @@ extension ProtoService: HalloService {
             packet.msg.payload = .holdCall(callHold)
 
             guard let packetData = try? packet.serializedData() else {
-                DDLogError("ProtoService/sendCallRinging/\(callID)/error could not serialize packet")
+                DDLogError("ProtoService/holdCall/\(callID)/error could not serialize packet")
                 return
             }
 
-            DDLogInfo("ProtoService/sendCallRinging/\(callID) sending")
+            DDLogInfo("ProtoService/holdCall/\(callID) sending")
+            self.send(packetData)
+        }
+    }
+
+    func muteCall(id callID: CallID, to peerUserID: UserID, muted: Bool, mediaType: Server_MuteCall.MediaType, completion: @escaping (Result<Void, RequestError>) -> Void) {
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            guard let fromUID = Int64(AppContext.shared.userData.userId) else {
+                DDLogError("ProtoService/muteCall/\(callID)/error invalid sender uid")
+                return
+            }
+            guard let toUID = Int64(peerUserID) else {
+                DDLogError("ProtoService/muteCall/\(callID)/error invalid to uid")
+                return
+            }
+
+            let msgID = PacketID.generate()
+
+            var callMute = Server_MuteCall()
+            callMute.callID = callID
+            callMute.muted = muted
+            callMute.mediaType = mediaType
+
+            var packet = Server_Packet()
+            packet.msg.fromUid = fromUID
+            packet.msg.id = msgID
+            packet.msg.toUid = toUID
+            packet.msg.payload = .muteCall(callMute)
+
+            guard let packetData = try? packet.serializedData() else {
+                DDLogError("ProtoService/muteCall/\(callID)/error could not serialize packet")
+                return
+            }
+
+            DDLogInfo("ProtoService/muteCall/\(callID) sending")
             self.send(packetData)
         }
     }
