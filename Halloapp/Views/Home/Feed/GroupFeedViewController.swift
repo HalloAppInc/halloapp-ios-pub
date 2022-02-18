@@ -362,6 +362,18 @@ class GroupFeedViewController: FeedCollectionViewController {
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
+        let fabActionType: FabActionType
+        switch source {
+        case .library:
+            fabActionType = .gallery
+        case .camera:
+            fabActionType = .camera
+        case .noMedia:
+            fabActionType = .text
+        case .voiceNote:
+            fabActionType = .audio
+        }
+        AppContext.shared.observeAndSave(event: .fabAction(type: fabActionType))
         if source == .voiceNote && MainAppContext.shared.callManager.isAnyCallActive {
             // When we have an active call ongoing: we should not record audio.
             // We should present an alert saying that this action is not allowed.

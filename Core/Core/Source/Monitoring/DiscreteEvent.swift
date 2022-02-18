@@ -8,6 +8,13 @@
 
 import Foundation
 
+public enum FabActionType: String {
+    case gallery
+    case camera
+    case text
+    case audio
+}
+
 public enum DiscreteEvent {
     case mediaUpload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int, totalSize: Int)
     case mediaDownload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int, totalSize: Int)
@@ -15,6 +22,7 @@ public enum DiscreteEvent {
     case decryptionReport(id: String, result: String, clientVersion: String, sender: UserAgent, rerequestCount: Int, timeTaken: TimeInterval, isSilent: Bool)
     case groupDecryptionReport(id: String, gid: String, contentType: String, error: String, clientVersion: String, sender: UserAgent?, rerequestCount: Int, timeTaken: TimeInterval)
     case callReport(id: String, peerUserID: UserID, type: String, direction: String, networkType: String, answered: Bool, connected: Bool, duration_ms: Int, endCallReason: String, localEndCall: Bool, webrtcStats: String)
+    case fabAction(type: FabActionType)
 }
 
 extension DiscreteEvent: Codable {
@@ -74,7 +82,13 @@ extension DiscreteEvent: Codable {
             let localEndCall = try container.decode(Bool.self, forKey: .localEndCall)
             let webrtcStats = try container.decode(String.self, forKey: .webrtcStats)
             self = .callReport(id: id, peerUserID: peerUserID, type: type, direction: direction, networkType: networkType, answered: answered, connected: connected, duration_ms: duration_ms, endCallReason: endCallReason, localEndCall: localEndCall, webrtcStats: webrtcStats)
-
+        case .fabAction:
+            let contentType = try container.decode(String.self, forKey: .contentType)
+            if let fabActionType = FabActionType(rawValue: contentType) {
+                self = .fabAction(type: fabActionType)
+            } else {
+                self = .fabAction(type: .text)
+            }
         }
     }
 
@@ -132,6 +146,9 @@ extension DiscreteEvent: Codable {
             try container.encode(endCallReason, forKey: .endCallReason)
             try container.encode(localEndCall, forKey: .localEndCall)
             try container.encode(webrtcStats, forKey: .webrtcStats)
+        case .fabAction(let type):
+            try container.encode(EventType.fabAction, forKey: .eventType)
+            try container.encode(type.rawValue, forKey: .contentType)
         }
     }
 
@@ -169,5 +186,6 @@ extension DiscreteEvent: Codable {
         case decryptionReport
         case groupDecryptionReport
         case callReport
+        case fabAction
     }
 }

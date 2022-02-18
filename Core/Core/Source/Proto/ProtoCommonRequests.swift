@@ -304,6 +304,19 @@ private extension DiscreteEvent {
             callReport.webrtcStats = webrtcStats
             return .call(callReport)
 
+        case .fabAction(let type):
+            var fabAction = Server_FabAction()
+            switch type {
+            case .gallery:
+                fabAction.type = .gallery
+            case .audio:
+                fabAction.type = .audio
+            case .text:
+                fabAction.type = .text
+            case .camera:
+                fabAction.type = .camera
+            }
+            return .fabAction(fabAction)
         }
     }
 }
