@@ -135,14 +135,6 @@ class AudioSessionManager {
 
         if let activeAudioSession = activeAudioSession {
 
-            // set portOverride
-            switch activeAudioSession.portOverride {
-            case .speaker:
-                portOverride = .speaker
-            default:
-                portOverride = .none
-            }
-
             switch activeAudioSession.category {
             case .audioCall:
                 category = .playAndRecord
@@ -152,7 +144,7 @@ class AudioSessionManager {
                 category = .playAndRecord
                 options = .allowBluetooth
                 mode = .videoChat
-                portOverride = .speaker
+                monitorProximity = false
             case .play:
                 if isPlayingOnDeviceSpeaker, UIDevice.current.proximityState {
                     category = .playAndRecord
@@ -167,6 +159,14 @@ class AudioSessionManager {
             case .record:
                 category = .playAndRecord
                 disableIdleTimer = true
+            }
+
+            // set portOverride
+            switch activeAudioSession.portOverride {
+            case .speaker:
+                portOverride = .speaker
+            default:
+                portOverride = .none
             }
         }
 
