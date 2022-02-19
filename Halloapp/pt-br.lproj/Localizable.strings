@@ -1093,7 +1093,8 @@
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Grupos em comum";
 
-/* This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
+/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun.
+   This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
 "profile.header.call.user" = "ligar";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
@@ -1530,4 +1531,10 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Excluir esta postagem? Essa ação não pode ser desfeita.";
+
+/* Title for button in action sheet prompting user to share post to external sites */
+"your.post.externalshare.button" = "Compartilhar externamente";
+
+/* Message that external share failed. */
+"your.post.externalshare.error" = "Falha ao enviar postagem para compartilhamento externo";
 
