@@ -83,6 +83,8 @@ public class Call {
     private var lastReport: [String: RTCStatistics]? = nil
     public let hasStartedReceivingRemoteVideo = CurrentValueSubject<Bool, Never>(false)
     public let mirrorVideo = PassthroughSubject<Bool, Never>()
+    public var isWaitingForWebRtcOffer: Bool
+    public var answerCompletion: ((_ success: Bool) -> Void)? = nil
 
     var stateDelegate: CallStateDelegate? = nil
 
@@ -139,6 +141,8 @@ public class Call {
         self.peerUserID = peerUserID
         self.type = type
         self.isOutgoing = direction == .outgoing
+        self.isWaitingForWebRtcOffer = direction == .incoming
+        self.answerCompletion = nil
         self.webRTCClient = WebRTCClient(callType: type)
         webRTCClient?.delegate = self
         canPlayRingtone = true
@@ -325,6 +329,11 @@ public class Call {
     func answer(completion: @escaping ((_ success: Bool) -> Void)) {
         DDLogInfo("Call/\(callID)/answer/begin")
         callQueue.async { [self] in
+            guard !isWaitingForWebRtcOffer else {
+                DDLogInfo("Call/\(callID)/answer/isWaitingForWebRtcOffer: \(isWaitingForWebRtcOffer)/still waiting for offer.")
+                answerCompletion = completion
+                return
+            }
             webRTCClient?.answer { [self] sdpInfo in
                 guard let payload = sdpInfo.sdp.data(using: .utf8) else {
                     state = .inactive
@@ -525,6 +534,11 @@ public class Call {
                                 completion: @escaping ((_ success: Bool) -> Void)) {
         DDLogInfo("Call/\(callID)/didReceiveIncomingCall/begin")
         callQueue.async { [self] in
+            guard isWaitingForWebRtcOffer else {
+                DDLogInfo("Call/\(callID)/didReceiveIncomingCall/processed webrtc offer already - skip")
+                // No need to call completion as well - since we processed offer already.
+                return
+            }
             state = .connecting
             service.sendCallRinging(id: callID, to: peerUserID)
             webRTCClient?.set(remoteSdp: RTCSessionDescription(type: .offer, sdp: sdpInfo)) { [self] error in
@@ -541,6 +555,11 @@ public class Call {
                         completion(true)
                     }
                 }
+            }
+            isWaitingForWebRtcOffer = false
+            if let completion = answerCompletion {
+                answer(completion: completion)
+                answerCompletion = nil
             }
         }
     }

@@ -522,8 +522,12 @@ extension AppDelegate: PKPushRegistryDelegate {
             let fromUserID = UserID(msg.fromUid)
             switch msg.payload {
             case .incomingCall(let incomingCall):
-                DDLogInfo("appdelegate/voip-notifications/invoking delegate now for call from: \(fromUserID)")
+                DDLogInfo("appdelegate/voip-notifications/invoking delegate now for call from: \(fromUserID) using incomingCall")
                 service.callDelegate?.halloService(service, from: fromUserID, didReceiveIncomingCall: incomingCall)
+                service.readyToHandleCallMessages = true
+            case .incomingCallPush(let incomingCallPush):
+                DDLogInfo("appdelegate/voip-notifications/invoking delegate now for call from: \(fromUserID) using incomingCallPush")
+                service.callDelegate?.halloService(service, from: fromUserID, didReceiveIncomingCallPush: incomingCallPush)
                 service.readyToHandleCallMessages = true
             default:
                 DDLogError("appdelegate/voip-notifications/error invalid payload: \(msg)")

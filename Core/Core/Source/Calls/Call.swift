@@ -240,3 +240,13 @@ extension Server_IncomingCall {
         }
     }
 }
+
+extension Server_IncomingCallPush {
+    public var type: CallType? {
+        switch self.callType {
+        case .audio: return .audio
+        case .video: return .video
+        case .unknownType, .UNRECOGNIZED: return nil
+        }
+    }
+}

@@ -124,6 +124,7 @@ protocol HalloChatDelegate: AnyObject {
 }
 
 protocol HalloCallDelegate: AnyObject {
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIncomingCallPush incomingCallPush: Server_IncomingCallPush)
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIncomingCall incomingCall: Server_IncomingCall)
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveAnswerCall answerCall: Server_AnswerCall)
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIceOffer iceOffer: Server_IceRestartOffer)

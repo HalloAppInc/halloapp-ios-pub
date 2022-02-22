@@ -808,6 +808,58 @@ final class CallManager: NSObject, CXProviderDelegate {
 
 
 extension CallManager: HalloCallDelegate {
+    func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIncomingCallPush incomingCallPush: Server_IncomingCallPush) {
+        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCallPush/begin")
+        let callID = incomingCallPush.callID
+
+        // Lets run this synchronously on a queue as explained in the incomingCall function below.
+        delegateQueue.sync {
+
+            guard let callType = incomingCallPush.type else {
+                DDLogError("CallManager/HalloCallDelegate/didReceiveIncomingCallPush: \(callID) from: \(peerUserID)/incomingCallPush stanza: \(incomingCallPush)")
+                return
+            }
+            // Save call to mainDataStore.
+            MainAppContext.shared.mainDataStore.saveCall(callID: callID, peerUserID: peerUserID, type: callType, direction: .incoming, timestamp: Date())
+
+            if activeCallID == incomingCallPush.callID {
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID) duplicate packet")
+                reportIncomingCall(id: callID, from: peerUserID, type: callType) { result in
+                    switch result {
+                    case .success:
+                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/duplicate-success")
+                    case .failure(let error):
+                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/duplicate-failed: \(error)")
+                    }
+                }
+            } else if activeCall != nil {
+                MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
+                MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
+                    call.endReason = .busy
+                }
+                didCallComplete.send(callID)
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID) from: \(peerUserID)/end with reason busy")
+            } else {
+                DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall: \(callID)/callUUID: \(callID.callUUID)")
+                callDetailsMap[callID.callUUID] = CallDetails(callID: callID, peerUserID: peerUserID, type: callType)
+                let iceServers = WebRTCClient.getIceServers(stunServers: incomingCallPush.stunServers, turnServers: incomingCallPush.turnServers)
+                activeCall = Call(id: callID, peerUserID: peerUserID, type: callType)
+                activeCall?.stateDelegate = self
+                activeCall?.initializeWebRtcClient(iceServers: iceServers, config: incomingCallPush.callConfig)
+                reportIncomingCall(id: callID, from: peerUserID, type: callType) { result in
+                    switch result {
+                    case .success:
+                        DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/success")
+                    case .failure(let error):
+                        DDLogError("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/failed: \(error)")
+                        self.checkAndReportCallEnded(id: callID, reason: .failed)
+                        self.endActiveCall(reason: .systemError)
+                    }
+                }
+            }
+        }
+    }
+
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveIncomingCall incomingCall: Server_IncomingCall) {
         DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/begin")
         let callID = incomingCall.callID
@@ -854,7 +906,7 @@ extension CallManager: HalloCallDelegate {
             }
         }
 
-        // Lets run this async on a queue
+        // Lets run this synchronously on a queue
         // I noticed an edgecase where this delegate function was being called twice
         // 1. first one is from the noise-queue which is when we receive a message,
         // 2. second one is from the voip-push queue which happens when we receive a voip-push
@@ -862,7 +914,7 @@ extension CallManager: HalloCallDelegate {
         // However - notification extension can't wake up the main app before 14.5.
         // so currently server sends both voip-push and the message even when the client has a connection on ios < 14.5.
         // this is done - to ensure that the voip-push wakes up the app in those cases in-case nse was active.
-        // Running this operation serially on the queue -- should sync things up and we will discard the second incomingCall packet.
+        // Running this operation synchronously on the queue -- should serialize things up and we will discard the second incomingCall packet.
         // Things should work fine after that.
         delegateQueue.sync {
 
@@ -883,6 +935,7 @@ extension CallManager: HalloCallDelegate {
                         DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/duplicate-failed: \(error)")
                     }
                 }
+                reportIncomingCallCompletion()
             } else if activeCall != nil {
                 MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
                 MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
