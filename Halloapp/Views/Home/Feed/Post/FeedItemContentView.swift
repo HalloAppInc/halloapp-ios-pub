@@ -56,8 +56,6 @@ final class FeedItemBackgroundPanelView: UIView {
 final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private let scaleThreshold: CGFloat = 1.3
-    // Prevent expensive bindings if just used for sizing
-    private var isSizingView = false
     private var postId: FeedPostID? = nil
     private var feedPost: FeedPost?
 
@@ -173,7 +171,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             audioView.delegate = self
             let isOwnPost = post.userId == MainAppContext.shared.userData.userId
             audioView.isSeen = post.status == .seen || isOwnPost
-            audioView.feedMedia = isSizingView ? nil : audioMedia
+            audioView.feedMedia = audioMedia
 
             let layoutMargins: NSDirectionalEdgeInsets
             if let mediaView = mediaView, !mediaView.isHidden {
@@ -289,29 +287,6 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             cryptoResultString = ""
         }
         return cryptoResultString
-    }
-
-    private static var forSizing: FeedItemContentView = {
-        let view = FeedItemContentView()
-        view.isSizingView = true
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
-    class func preferredHeight(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) -> CGFloat {
-        let fittingView = FeedItemContentView.forSizing
-        let targetSize = CGSize(width: contentWidth + 2 * gutterWidth, height: 0)
-        fittingView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
-        let fittingSize = fittingView.systemLayoutSizeFitting(targetSize)
-        let postHasImageOrVideo = post.media?.contains { [FeedMediaType.image, FeedMediaType.video].contains($0.type) } ?? false
-        if let mediaHeight = fittingView.mediaViewHeightConstraint?.constant,
-            postHasImageOrVideo,
-            mediaHeight > fittingSize.height
-        {
-            DDLogError("FeedItemContentView/preferredHeight/\(post.id)/error [media: \(mediaHeight)] [fit: \(fittingSize.height)] [width: \(contentWidth)] [gutter: \(gutterWidth)]")
-            return mediaHeight
-        }
-        return fittingSize.height
     }
 
     func stopPlayback() {

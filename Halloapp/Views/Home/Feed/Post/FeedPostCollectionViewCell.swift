@@ -72,8 +72,6 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
     // MARK: Layout
 
-    static var metricsCache: [String: CGFloat] = [:]
-
     struct LayoutConstants {
         static let interCardSpacing: CGFloat = 50
         static let backgroundCornerRadius: CGFloat = 20
@@ -109,13 +107,6 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         backgroundPanelView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(backgroundPanelView)
         updateBackgroundPanelShadow()
-
-        if !Self.subscribedToContentSizeCategoryChangeNotification {
-            NotificationCenter.default.addObserver(forName: UIContentSizeCategory.didChangeNotification, object: nil, queue: .main) { (notification) in
-                Self.metricsCache.removeAll()
-            }
-            Self.subscribedToContentSizeCategoryChangeNotification = true
-        }
 
         headerView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(headerView)
@@ -214,8 +205,6 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         backgroundPanelView.isShadowHidden = traitCollection.userInterfaceStyle == .dark
     }
 
-    private static var subscribedToContentSizeCategoryChangeNotification = false
-
     // MARK: FeedPostCollectionViewCell
 
     func stopPlayback() {
@@ -264,52 +253,6 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
     static func contentTopSpacing(forPost post: FeedPost) -> CGFloat {
         return post.media?.isEmpty ?? true ? 0 : 5
-    }
-
-    // MARK: Height computation
-
-    class func height(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?, showGroupName: Bool) -> CGFloat {
-        let headerHeight = Self.headerHeight(forPost: post, contentWidth: contentWidth, showGroupName: showGroupName)
-        let contentHeight = Self.contentHeight(forPost: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
-        let footerHeight = Self.footerHeight(forPost: post, contentWidth: contentWidth)
-        let contentSpacing = Self.contentTopSpacing(forPost: post)
-        let outerMarginHeight = 2 * LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing
-        return headerHeight + contentSpacing + contentHeight + footerHeight + outerMarginHeight
-    }
-
-    private static let sizingHeader = FeedItemHeaderView()
-    private class func headerHeight(forPost post: FeedPost, contentWidth: CGFloat, showGroupName: Bool) -> CGFloat {
-        sizingHeader.configure(with: post, contentWidth: contentWidth, showGroupName: showGroupName)
-        let targetSize = CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
-        let headerSize = sizingHeader.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
-        let avatarSize = sizingHeader.avatarButtonSize
-        guard headerSize.height >= avatarSize else {
-            DDLogError("FeedPostCollectionViewCell/headerHeight/\(post.id)/error [avatar: \(avatarSize)] [fit: \(headerSize.height)] [width: \(contentWidth)]")
-            return avatarSize
-        }
-        return headerSize.height
-    }
-
-    private static let footerCacheKey = "height.footer"
-    private class func footerHeight(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat {
-        // It is possible to cache footer height because all footers look the same.
-        if let cachedFooterHeight = Self.metricsCache[footerCacheKey] {
-            return cachedFooterHeight
-        }
-        let footerView = FeedItemFooterView()
-        let targetSize = CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
-        let footerSize = footerView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
-        guard footerSize.height >= 0 else {
-            DDLogError("FeedPostCollectionViewCell/footerHeight/\(post.id)/error [fit: \(footerSize.height)] [width: \(contentWidth)]")
-            return 0
-        }
-        Self.metricsCache[footerCacheKey] = footerSize.height
-        return footerSize.height
-    }
-
-    private class func contentHeight(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, displayData: FeedPostDisplayData?) -> CGFloat {
-        let contentHeight = FeedItemContentView.preferredHeight(forPost: post, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: displayData)
-        return contentHeight
     }
 
     // MARK: Button actions

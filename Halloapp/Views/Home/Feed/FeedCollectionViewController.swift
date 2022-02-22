@@ -55,7 +55,6 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate {
 
     private var cancellableSet: Set<AnyCancellable> = []
 
-    private var cachedCellHeights = [FeedDisplayItem: CGFloat]()
     private var postDisplayData = [FeedPostID: FeedPostDisplayData]()
 
     private var isVisible: Bool = true
@@ -165,14 +164,6 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate {
         })
 
         cancellableSet.insert(
-            NotificationCenter.default.publisher(for: UIContentSizeCategory.didChangeNotification).sink { [weak self] (_) in
-                guard let self = self else { return }
-                self.cachedCellHeights.removeAll()
-                // TextLabel in FeedItemContentView uses NSAttributedText and therefore doesn't support automatic font adjustment.
-                self.collectionView.reloadData()
-        })
-
-        cancellableSet.insert(
             MainAppContext.shared.chatData.didGetAGroupEvent.sink { [weak self] (groupID) in
                 guard let self = self else { return }
                 DispatchQueue.main.async { [weak self] in
@@ -219,10 +210,6 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate {
 
     override func viewLayoutMarginsDidChange() {
         super.viewLayoutMarginsDidChange()
-        // NB: This function will get called when a presented view controller rotates. 
-        // We should skip recomputing cell heights in this scenario to avoid slowing down the animation.
-        guard presentedViewController == nil else { return }
-        cachedCellHeights.removeAll()
 
         feedLayout.invalidateLayout()
     }
@@ -329,13 +316,6 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate {
         let newlyDecryptedPosts = items.filter {
             guard let post = $0.post else { return false }
             return !post.isWaiting && waitingPostIds.contains(post.id)
-        }
-
-        newlyDeletedPosts.forEach {
-            self.cachedCellHeights[$0] = nil
-        }
-        newlyDecryptedPosts.forEach {
-            self.cachedCellHeights[$0] = nil
         }
 
         var snapshot = NSDiffableDataSourceSnapshot<FeedDisplaySection, FeedDisplayItem>()
@@ -997,12 +977,6 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
         var displayData = postDisplayData[postID] ?? FeedPostDisplayData()
         displayData.textNumberOfLines = numberOfLines
         postDisplayData[postID] = displayData
-
-        if let displayItem = self.feedDataSource.item(at: indexPath.item) {
-            cachedCellHeights.removeValue(forKey: displayItem)
-        } else {
-            cachedCellHeights.removeAll()
-        }
 
         label.numberOfLines = numberOfLines
         label.superview?.layoutIfNeeded()
