@@ -341,9 +341,11 @@ extension SceneDelegate: UIWindowSceneDelegate {
                     switch result {
                     case .success:
                         DDLogInfo("appdelegate/scene/continueUserActivity/startCall/success")
-                    case .failure:
+                    case .failure(let error):
+                        if error != .alreadyInCall {
+                            self.presentFailedCallAlertController()
+                        }
                         DDLogInfo("appdelegate/scene/continueUserActivity/startCall/failure")
-                        self.presentFailedCallAlertController()
                     }
                 }
             }

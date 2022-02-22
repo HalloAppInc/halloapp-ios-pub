@@ -224,7 +224,7 @@ public class Call {
                 if let webrtcStatsString = String(data: webrtcStatsData, encoding: .utf8) {
                     AppContext.shared.observeAndSave(event: .callReport(id: callID,
                                                                        peerUserID: peerUserID,
-                                                                       type: "audio",
+                                                                       type: type.rawValue,
                                                                        direction: direction,
                                                                        networkType: networkType,
                                                                        answered: isAnswered,

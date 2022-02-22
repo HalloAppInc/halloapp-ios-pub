@@ -167,7 +167,7 @@ final class CallManager: NSObject, CXProviderDelegate {
         AVAudioSession.sharedInstance().requestRecordPermission { [self] granted in
             if (granted) {
                 if let callID = activeCallID {
-                    DDLogError("CallManager/startCall/callID:\(callID)/failed call to \(peerUserID)")
+                    DDLogError("CallManager/startCall/callID:\(callID)/failed call to \(peerUserID)/already in call")
                     completion(.failure(.alreadyInCall))
                 } else {
                     let callID = PacketID.generate()
