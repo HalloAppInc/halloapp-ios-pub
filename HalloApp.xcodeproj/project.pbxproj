@@ -32,6 +32,7 @@
 		327AB839272C8356001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327AB836272C8355001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift */; };
 		327AB83A272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327AB838272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift */; };
 		328B64102756D53900899525 /* FlatCommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328B640F2756D53900899525 /* FlatCommentsViewController.swift */; };
+		328D13A527C02A5200AA9F18 /* HalloAppClip.app in Embed AppClip */ = {isa = PBXBuildFile; fileRef = 329E03F8268247BC00C2D250 /* HalloAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		329DFD56270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD55270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel */; };
 		329DFD61270F691F00B85CFF /* CommentLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD60270F691F00B85CFF /* CommentLinkPreviewView.swift */; };
 		329DFD65270FB01E00B85CFF /* PostLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD64270FB01E00B85CFF /* PostLinkPreviewView.swift */; };
@@ -423,6 +424,13 @@
 			remoteGlobalIDString = 24D743D524B3D199001111BF;
 			remoteInfo = "Shared Extension";
 		};
+		328D13BE27C02AB100AA9F18 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 328D13BA27C02AB000AA9F18 /* CoreCommon.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 328D13B027C02AB000AA9F18;
+			remoteInfo = CoreCommon;
+		};
 		329E0412268247BE00C2D250 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
@@ -482,6 +490,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		328D13A327C02A2700AA9F18 /* Embed AppClip */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/AppClips";
+			dstSubfolderSpec = 16;
+			files = (
+				328D13A527C02A5200AA9F18 /* HalloAppClip.app in Embed AppClip */,
+			);
+			name = "Embed AppClip";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		329E0436268247D400C2D250 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -556,6 +575,7 @@
 		327AB836272C8355001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ChatLinkPreview+CoreDataProperties copy.swift"; sourceTree = "<group>"; };
 		327AB838272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ChatLinkPreview+CoreDataClass.swift"; sourceTree = "<group>"; };
 		328B640F2756D53900899525 /* FlatCommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlatCommentsViewController.swift; sourceTree = "<group>"; };
+		328D13BA27C02AB000AA9F18 /* CoreCommon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CoreCommon.xcodeproj; path = CoreCommon/CoreCommon.xcodeproj; sourceTree = "<group>"; };
 		329DFD55270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Feed4ToFeed5.xcmappingmodel; sourceTree = "<group>"; };
 		329DFD60270F691F00B85CFF /* CommentLinkPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentLinkPreviewView.swift; sourceTree = "<group>"; };
 		329DFD64270FB01E00B85CFF /* PostLinkPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostLinkPreviewView.swift; sourceTree = "<group>"; };
@@ -1204,6 +1224,14 @@
 				32E6970627B4442B00599CC7 /* MessageHeaderView.swift */,
 			);
 			path = FlatComment;
+			sourceTree = "<group>";
+		};
+		328D13BB27C02AB000AA9F18 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				328D13BF27C02AB100AA9F18 /* CoreCommon.framework */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		329E03F9268247BD00C2D250 /* HalloAppClip */ = {
@@ -2019,6 +2047,7 @@
 		EAF3A1B62334191E00805FF9 = {
 			isa = PBXGroup;
 			children = (
+				328D13BA27C02AB000AA9F18 /* CoreCommon.xcodeproj */,
 				768123D82485DFA1008C5216 /* Core.xcodeproj */,
 				EAF3A1C12334191E00805FF9 /* Halloapp */,
 				EAF3A1D82334192000805FF9 /* HalloappTests */,
@@ -2256,6 +2285,7 @@
 				EAF3A1BD2334191E00805FF9 /* Resources */,
 				768123A02485A240008C5216 /* Embed App Extensions */,
 				768123CB2485D9F5008C5216 /* Embed Frameworks */,
+				328D13A327C02A2700AA9F18 /* Embed AppClip */,
 			);
 			buildRules = (
 			);
@@ -2391,6 +2421,10 @@
 					ProductGroup = 768123D92485DFA1008C5216 /* Products */;
 					ProjectRef = 768123D82485DFA1008C5216 /* Core.xcodeproj */;
 				},
+				{
+					ProductGroup = 328D13BB27C02AB000AA9F18 /* Products */;
+					ProjectRef = 328D13BA27C02AB000AA9F18 /* CoreCommon.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
@@ -2408,6 +2442,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		328D13BF27C02AB100AA9F18 /* CoreCommon.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CoreCommon.framework;
+			remoteRef = 328D13BE27C02AB100AA9F18 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		768123DD2485DFA1008C5216 /* Core.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
