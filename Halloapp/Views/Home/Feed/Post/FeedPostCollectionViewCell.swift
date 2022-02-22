@@ -95,6 +95,8 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     private let footerView = FeedItemFooterView()
     
     private var contentTopConstraint: NSLayoutConstraint? = nil
+    private var backgroundPanelLeadingConstraint: NSLayoutConstraint?
+    private var backgroundPanelTrailingConstraint: NSLayoutConstraint?
 
     private func commonInit() {
 
@@ -104,10 +106,8 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
         // Background
         backgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
-        let backgroundView = UIView()
-        backgroundView.preservesSuperviewLayoutMargins = true
-        backgroundView.addSubview(backgroundPanelView)
-        self.backgroundView = backgroundView
+        backgroundPanelView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(backgroundPanelView)
         updateBackgroundPanelShadow()
 
         if !Self.subscribedToContentSizeCategoryChangeNotification {
@@ -131,11 +131,18 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         self.contentTopConstraint = contentTopConstraint
 
         let verticalContentPadding = LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing / 2
-        let footerBottomAnchor = footerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,
-                                                                    constant: -verticalContentPadding)
+        let footerBottomConstraint = footerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,
+                                                                        constant: -verticalContentPadding)
         // On initial cell sizing, our height is set to the estimatedItemHeight, which causes
         // constraint violations. Allow overflow at the bottom to prevent this.
-        footerBottomAnchor.priority = UILayoutPriority(999)
+        footerBottomConstraint.priority = UILayoutPriority(999)
+
+        let backgroundPanelLeadingConstraint = backgroundPanelView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,
+                                                                                            constant: layoutMargins.left * LayoutConstants.backgroundPanelHMarginRatio)
+        self.backgroundPanelLeadingConstraint = backgroundPanelLeadingConstraint
+        let backgroundPanelTrailingConstraint = backgroundPanelView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor,
+                                                                                              constant: -layoutMargins.right * LayoutConstants.backgroundPanelHMarginRatio)
+        self.backgroundPanelTrailingConstraint = backgroundPanelTrailingConstraint
 
         NSLayoutConstraint.activate([
             // HEADER
@@ -152,7 +159,14 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
             footerView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
             footerView.topAnchor.constraint(equalTo: itemContentView.bottomAnchor),
             footerView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
-            footerBottomAnchor,
+            footerBottomConstraint,
+
+            // BACKGROUND
+            backgroundPanelView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: LayoutConstants.interCardSpacing / 2),
+            backgroundPanelView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -LayoutConstants.interCardSpacing / 2),
+            backgroundPanelLeadingConstraint,
+            backgroundPanelTrailingConstraint,
+
 
             // Separator in the footer view needs to be extended past view bounds to be the same width as background "card".
             footerView.separator.leadingAnchor.constraint(equalTo: backgroundPanelView.leadingAnchor),
@@ -174,24 +188,18 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         }
     }
 
+    override func layoutMarginsDidChange() {
+        super.layoutMarginsDidChange()
+
+        backgroundPanelLeadingConstraint?.constant = layoutMargins.left * LayoutConstants.backgroundPanelHMarginRatio
+        backgroundPanelTrailingConstraint?.constant = -layoutMargins.right * LayoutConstants.backgroundPanelHMarginRatio
+    }
+
     override func prepareForReuse() {
         super.prepareForReuse()
         postId = nil
         headerView.prepareForReuse()
         footerView.prepareForReuse()
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-
-        if let backgroundView = backgroundView {
-            let panelInsets = UIEdgeInsets(
-                top: LayoutConstants.interCardSpacing / 2,
-                left: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.left,
-                bottom: LayoutConstants.interCardSpacing / 2,
-                right: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.right)
-            backgroundPanelView.frame = backgroundView.bounds.inset(by: panelInsets)
-        }
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {

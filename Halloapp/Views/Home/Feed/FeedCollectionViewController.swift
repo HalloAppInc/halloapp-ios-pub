@@ -31,11 +31,11 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate {
     private lazy var feedLayout: FeedLayout = {
 
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                             heightDimension: .estimated(44))
+                                             heightDimension: .estimated(64))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                              heightDimension: .estimated(44))
+                                              heightDimension: .estimated(64))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 
         let section = NSCollectionLayoutSection(group: group)
