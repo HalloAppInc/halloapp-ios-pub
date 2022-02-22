@@ -263,6 +263,41 @@ open class SharedDataStore {
             } catch {}
         }
     }
+
+    public final func deleteAllContent() {
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            do {
+                let chatRequest = SharedChatMessage.fetchRequest()
+                let chatMessages = try managedObjectContext.fetch(chatRequest)
+                for chatMessage in chatMessages {
+                    managedObjectContext.delete(chatMessage)
+                }
+
+                let sharedCommentRequest = SharedFeedComment.fetchRequest()
+                let sharedComments = try managedObjectContext.fetch(sharedCommentRequest)
+                for sharedComment in sharedComments {
+                    managedObjectContext.delete(sharedComment)
+                }
+
+                let sharedPostRequest = SharedFeedPost.fetchRequest()
+                let sharedPosts = try managedObjectContext.fetch(sharedPostRequest)
+                for sharedPost in sharedPosts {
+                    managedObjectContext.delete(sharedPost)
+                }
+
+                let serverMessageRequest = SharedServerMessage.fetchRequest()
+                let sharedServerMessages = try managedObjectContext.fetch(serverMessageRequest)
+                for sharedServerMessage in sharedServerMessages {
+                    managedObjectContext.delete(sharedServerMessage)
+                }
+
+                self.save(managedObjectContext)
+            } catch {
+                DDLogError("SharedDataStore/deleteAllContent/error  [\(error)]")
+                fatalError("Failed to delete all shared content.")
+            }
+        }
+    }
 }
 
 open class ShareExtensionDataStore: SharedDataStore {

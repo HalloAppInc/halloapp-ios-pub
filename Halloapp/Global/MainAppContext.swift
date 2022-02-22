@@ -15,6 +15,8 @@ import FirebaseCrashlytics
 import Foundation
 import Intents
 
+let userDefaultsKeyForMergeDataAttempts = "userDefaultsKeyForMergeDataAttempts"
+
 class MainAppContext: AppContext {
     // MARK: Constants
     private static let feedDatabaseFilename = "feed.sqlite"
@@ -218,7 +220,22 @@ class MainAppContext: AppContext {
     
     // needs to run only on mergeDataQueue
     func mergeSharedData() {
-        mergeSharedDataQueue.async {
+        mergeSharedDataQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            let mergeAttempts = self.userDefaults.integer(forKey: userDefaultsKeyForMergeDataAttempts)
+            guard mergeAttempts < 2 else {
+                self.shareExtensionDataStore.deleteAllContent()
+                self.notificationServiceExtensionDataStore.deleteAllContent()
+                let reportUserInfo = [
+                    "userId": AppContext.shared.userData.userId
+                ]
+                AppContext.shared.errorLogger?.logError(NSError.init(domain: "MergeSharedDataError", code: 1006, userInfo: reportUserInfo))
+                DDLogError("MainAppContext/merge-data/failed so clearing all shared data from extensions")
+                self.userDefaults.removeObject(forKey: userDefaultsKeyForMergeDataAttempts)
+                return
+            }
+            self.userDefaults.set(mergeAttempts + 1, forKey: userDefaultsKeyForMergeDataAttempts)
 
             let mergeGroup = DispatchGroup()
 
@@ -255,6 +272,7 @@ class MainAppContext: AppContext {
 
             mergeGroup.notify(queue: .main) {
                 DDLogInfo("MainAppContext/merge-data/finished")
+                self.userDefaults.removeObject(forKey: userDefaultsKeyForMergeDataAttempts)
             }
         }
     }

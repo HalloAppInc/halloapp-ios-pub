@@ -3828,7 +3828,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.deleteNotifications(forPosts: posts, in: managedObjectContext)
             self.deletePostCommentDrafts(forPosts: posts)
             self.deletePostComments(for: posts, in: managedObjectContext)
-            try? managedObjectContext.save()
+            do {
+                try managedObjectContext.save()
+                DDLogVerbose("FeedData/did-save")
+            } catch {
+                DDLogError("FeedData/save-error error=[\(error)]")
+            }
         }
     }
     
