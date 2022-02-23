@@ -447,7 +447,7 @@ public class Call {
         DDLogInfo("Call/\(callID)/muteAudio/begin")
         callQueue.async { [self] in
             webRTCClient?.muteAudio()
-            service.muteCall(id: callID, to: peerUserID, muted: true, mediaType: .audio) { result in
+            service.muteCall(id: callID, to: peerUserID, muted: true, mediaType: .audio) { [callID] result in
                 switch result {
                 case .success:
                     DDLogInfo("Call/\(callID)/muteAudio/success")
@@ -462,7 +462,7 @@ public class Call {
         DDLogInfo("Call/\(callID)/unmuteAudio/begin")
         callQueue.async { [self] in
             webRTCClient?.unmuteAudio()
-            service.muteCall(id: callID, to: peerUserID, muted: false, mediaType: .audio) { result in
+            service.muteCall(id: callID, to: peerUserID, muted: false, mediaType: .audio) { [callID] result in
                 switch result {
                 case .success:
                     DDLogInfo("Call/\(callID)/unmuteAudio/success")
@@ -477,7 +477,7 @@ public class Call {
         DDLogInfo("Call/\(callID)/muteVideo/begin")
         callQueue.async { [self] in
             webRTCClient?.muteVideo()
-            service.muteCall(id: callID, to: peerUserID, muted: true, mediaType: .video) { result in
+            service.muteCall(id: callID, to: peerUserID, muted: true, mediaType: .video) { [callID] result in
                 switch result {
                 case .success:
                     DDLogInfo("Call/\(callID)/muteVideo/success")
@@ -492,7 +492,7 @@ public class Call {
         DDLogInfo("Call/\(callID)/unmuteVideo/begin")
         callQueue.async { [self] in
             webRTCClient?.unmuteVideo()
-            service.muteCall(id: callID, to: peerUserID, muted: false, mediaType: .video) { result in
+            service.muteCall(id: callID, to: peerUserID, muted: false, mediaType: .video) { [callID] result in
                 switch result {
                 case .success:
                     DDLogInfo("Call/\(callID)/unmuteVideo/success")
