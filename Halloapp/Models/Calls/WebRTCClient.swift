@@ -245,6 +245,11 @@ final class WebRTCClient: NSObject {
     }
 
     func startVideoCapture() {
+        guard callType == .video else {
+            DDLogInfo("WebRTCClient/startVideoCapture/skip - calltype: \(callType)")
+            return
+        }
+
         let camera: AVCaptureDevice
         switch selectedCameraType {
         case .front:
