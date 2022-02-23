@@ -142,6 +142,9 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "ویدیو 📹";
 
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 تماس ویدیویی از دست رفته";
+
 /* Missed voice call notification text to be shown to the user. */
 "notification.voicecall.missed" = "☎️ تماس صوتی از دست رفته";
 

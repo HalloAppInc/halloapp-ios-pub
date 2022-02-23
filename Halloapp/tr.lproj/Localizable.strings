@@ -124,8 +124,59 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Paylaş";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Dur";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Güncelle";
+
+/* Label for button that opens chat during call */
+"call.button.chat" = "Sohbet";
+
+/* Label for button that ends call */
+"call.button.end" = "Aramayı bitir";
+
+/* Label for button that toggles mute status during call */
+"call.button.mute" = "Sessize al";
+
+/* Label for button that toggles speakerphone status during call */
+"call.button.speaker" = "Hoparlör";
+
+/* Title for call history event. Appears next to details of a successful call. */
+"call.history.video.call" = "Görüntülü arama";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.video.call.missed" = "Cevapsız görüntülü arama";
+
+/* Title for call history event. Appears next to details of a successful call. */
+"call.history.voice.call" = "Sesli arama";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.voice.call.missed" = "Cevapsız sesli arama";
+
+/* Status displayed when the other side is busy. */
+"call.status.busy" = "Başka bir aramada";
+
+/* Status displayed when outgoing call starts */
+"call.status.calling" = "Aranıyor...";
+
+/* Status displayed while call is connecting */
+"call.status.connecting" = "Bağlanıyor...";
+
+/* Status displayed when call fails. */
+"call.status.failed" = "Başarısız";
+
+/* Status displayed when call is on hold. */
+"call.status.held" = "Beklemede";
+
+/* Status displayed when incoming call starts */
+"call.status.incoming" = "Gelen çağrı";
+
+/* Status displayed when reconnecting during call */
+"call.status.reconnecting" = "Yeniden bağlanıyor...";
+
+/* Status displayed while outgoing call is ringing */
+"call.status.ringing" = "Çalıyor...";
 
 /* Generic error when trying to use camera */
 "camera.error" = "Kamera hatası";
@@ -157,6 +208,9 @@
 /* Title for a popup alerting about camera initialization error. */
 "camera.init.error.title" = "Başlatma hatası";
 
+/* No comment provided by engineer. */
+"Cancel" = "İptal et";
+
 /* Text shown at the top of the chat screen informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Bu kişi engelli, engeli kaldırmak için dokun";
 
@@ -165,6 +219,9 @@
 
 /* Text shown at the top of the chat screen informing the user that the chat is end-to-end encrypted */
 "chat.encryption.label" = "Sohbetler uçtan uca şifrelenir ve HalloApp'in bunlara erişimi yoktur. Daha fazlasını öğrenmek için dokun.";
+
+/* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
+"chat.event.security.keys.changed" = "%@ ile güvenlik anahtarları değiştirildi";
 
 /* Message text shown with the user who joined the group via invite link */
 "chat.group.event.join" = "%@, Grup Davet İlişimi ile gruba katıldı";
@@ -301,11 +358,47 @@
 /* Text displayed in gray inside of the comment input field when there is no user input. */
 "comment.textfield.placeholder" = "Yorum ekle";
 
+/* Header that appears above all the unread comments in the comments view when there are more than one unread message */
+"comment.unread.messages.header.plural" = "%@ okunmamış mesaj";
+
+/* Header that appears above one single unread message in the comments view. */
+"comment.unread.messages.header.single" = "%@ okunmamış mesaj";
+
 /* Text displayed in place of a comment that is not supported in the current app version. */
 "comment.unsupported" = "HalloApp sürümün, bu tür yorumları desteklemiyor.";
 
 /* Warning text displayed in Comments when post wasn't available. */
 "comments.post.loading.failed" = "Bu gönderiyi yüklemeye çalışırken bir hata oldu. Lütfen daha sonra tekrar dene.";
+
+/* Accessibility label for add images button */
+"composer.audio.a11y.addImages" = "Görüntü ekle";
+
+/* Accessibility label for sharing a post */
+"composer.audio.a11y.shareRecording" = "Paylaş";
+
+/* Accessibility label for starting an audio recording */
+"composer.audio.a11y.startRecording" = "Kayda başla";
+
+/* Accessibility label for stopping an audio recording */
+"composer.audio.a11y.stopRecording" = "Kaydı bitir";
+
+/* Instructions for audio post composer */
+"composer.audio.instructions" = "Kaydetmek için dokun";
+
+/* Title for audio post composer */
+"composer.audio.title" = "Yeni sesli mesaj";
+
+/* Title warning that a voice recording will be deleted */
+"composer.delete.recording.title" = "Ses kaydını sil?";
+
+/* Show the user that the title is tappable */
+"composer.deletevoicenote.message" = "Bu gönderiyi silerseniz ses kaydı kaydedilmeyecektir.";
+
+/* Title for alert when closing the post composer with a voice note */
+"composer.deletevoicenote.title" = "Gönderiyi sil?";
+
+/* Label shown when only single media item selected */
+"composer.label.more" = "Ekle";
 
 /* Alert message in composer when a video is too long */
 "composer.max.video.length.message" = "Lütfen başka bir video seç ya da düzenle butonuna bas";
@@ -385,6 +478,15 @@
 /* VoiceOver label for text post button in floating compose post menu in Home view. */
 "fab.accessibility.text" = "Metin";
 
+/* VoiceOver label for audio post button in floating compose post menu in Home view. */
+"fab.accessibility.voice" = "Ses";
+
+/* Label for floating compose post menu on Group screen. */
+"fab.post.button" = "Gönderi";
+
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.comment.waiting" = "Yorum bekleniyor. Bu biraz zaman alabilir.";
+
 /* Shown while content is being retracted from feed */
 "feed.deleting" = "Siliniyor...";
 
@@ -438,6 +540,9 @@
 
 /* Shown when receiving a new (unsupported) type of post. */
 "feed.post.unsupported" = "HalloApp sürümün, bu tür gönderileri desteklemiyor.";
+
+/* Text shown in place of a received post we are not able to decrypt yet. */
+"feed.post.waiting" = "Gönderi bekleniyor. Bu biraz zaman alabilir.";
 
 /* Shown while content is being posted to feed */
 "feed.posting" = "Paylaşılıyor...";
@@ -613,6 +718,12 @@
 /* Title of group invite screen */
 "group.invite.title" = "Grup daveti";
 
+/* Title of invite sheet */
+"group.invitesheet.title" = "Bu ilişimi ailen ve arkadaşlarınla paylaş; otomatik olarak HalloApp'a katılsınlar";
+
+/* Section header describing options to share link */
+"group.invitesheet.use.link.via" = "... kullanarak ilişimi paylaş";
+
 /* Label shown above group members list */
 "group.members.label" = "Üyeler";
 
@@ -652,6 +763,12 @@
 /* Text shown in the email body when sending logs from the help screen */
 "help.send.logs.email.body" = "\n\n\nLütfen yukarıya, yaşadığın sorunla ilgili bir açıklama veya geri bildirim yaz.\nSürüm %1$@ - %2$@\n%3$@";
 
+/* Text shown to users on failed audio capture alert during a call. */
+"home.calls.fail.audio.text" = "Lütfen daha sonra dene";
+
+/* Title of failed audio capture alert during a call. */
+"home.calls.fail.audio.title" = "HalloApp araması sırasında ses kaydı yapılamaz.";
+
 /* Text shown to users on call failure. */
 "home.calls.fail.text" = "Lütfen daha sonra dene.";
 
@@ -672,6 +789,12 @@
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Bu sürüm güncel değil";
+
+/* Text shown to users on video call failure. */
+"home.video.calls.fail.text" = "Yakında...";
+
+/* Title of failed video call screen alert. */
+"home.video.calls.fail.title" = "Görüntülü arama henüz desteklenmiyor.";
 
 /* Title of action sheet that allows the user to choose between sms and whatsapp to invite contact */
 "invite.action.sheet.title" = "%@ kişisini ... yoluyla davet et";
@@ -711,6 +834,9 @@
 
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "İlişim yoluyla davet et";
+
+/* Text shown when inviting to a group using a QR code */
+"join.group.using.qr.code" = "HalloApp'teki grubuma katıl!";
 
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Ara";
@@ -838,6 +964,9 @@
 /* Alert text shown when max group size is reached when selecting/adding group members */
 "new.group.members.max.size.alert" = "En fazla %d kişi olabilir";
 
+/* Title for alert that pops up when user attempts to save an empty contact list */
+"no.contact.selected" = "Kişi seçilmedi";
+
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Artık bu grupta değilsin";
 
@@ -876,6 +1005,12 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 Video";
+
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 Cevapsız görüntülü arama";
+
+/* Missed voice call notification text to be shown to the user. */
+"notification.voicecall.missed" = "☎️ Cevapsız çağrı";
 
 /* New post notification text when post is a voice note. */
 "notification.voicenote" = "🎤Sesli mesaj";
@@ -966,6 +1101,10 @@
 
 /* A label for the button which leads to the page showing groups in common */
 "profile.groups.in.common" = "Ortak Gruplar";
+
+/* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun.
+   This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
+"profile.header.call.user" = "Sesli arama";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Mesaj";
@@ -1099,6 +1238,12 @@
 /* Message to show when safety number is succesfully verified */
 "safety.number.verified" = "%@ için güvenlik numarası doğrulaması başarılı!";
 
+/* Text shown to instruct using a QR code for joining a group */
+"scan.to.join.group.using.qr.code" = "Katılmak için bu QR kodunu telefonunun kamerasıyla tara.";
+
+/* Message that pops up when user attempts to save an empty contact list */
+"select.at.least.one.contact" = "Lütfen en az bir kişi seç";
+
 /* body of the marketing alert sent to users */
 "server.marketing.body" = "Arkadaşlarınızı HalloApp'in keyfini çıkarmaya davet edin!";
 
@@ -1153,17 +1298,29 @@
 /* Action that will occur when users delete their account */
 "settings.account.delete.bullet3" = "Mesaj geçmişini bu telefondan sil";
 
+/* Button to continue to the next step of deleting account after warning */
+"settings.account.delete.continue.title" = "Devam et";
+
 /* Label telling the user that their account has been deleted */
 "settings.account.delete.deleted" = "Hesap silindi";
 
 /* Alert telling user that their account could not be deleted, and that it's likely due to their phone number */
 "settings.account.delete.error" = "Hesabın silinirken bir hata oluştu. Lütfen telefon numaranın doğru olduğundan emin ol.";
 
+/* Text field label asking for feedback before deleting account */
+"settings.account.delete.feedback.prompt" = "HalloApp ekibi için geri bildirim bırakmak ister misin?";
+
 /* Label above list of things that will happen if they delete their account */
 "settings.account.delete.header" = "Hesabın silinirse: ";
 
 /* Alert message telling the user that account deletion is irreversible */
 "settings.account.delete.irreversible.label" = "Bu eylem geri alınamaz";
+
+/* Text field placeholder for collecting feedback before deleing account */
+"settings.account.delete.phone.number.placeholder" = "Geri bildirim";
+
+/* Text field label for account deletion phone number */
+"settings.account.delete.phone.number.prompt" = "Onaylamak için telefon numarası gir";
 
 /* String that's displayed when a spinner is not available to indicate that the view is waiting for a response from the server */
 "settings.account.delete.spinner.replacement" = "Sunucudan yanıt bekleniyor";
@@ -1233,6 +1390,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "HalloApp'teki gerçek ilişki ağıma katıl. halloapp.com/dl adresinden ücretsiz indir.";
+
+/* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
+"tap.return.call" = "Aramaya dönmek için dokun";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Okuma listesine ekle";
@@ -1312,6 +1472,9 @@
 /* Row in Settings screen */
 "title.privacy" = "Gizlilik";
 
+/* Title of screen where user can add members during group creation flow */
+"title.select.group.members.create.title" = "Üye ekle";
+
 /* Title of screen where user chooses members to add to either a new group or an existing one */
 "title.select.group.members.title" = "Yeni Üyeler Ekle";
 
@@ -1336,6 +1499,9 @@
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Cevaplamak için mesajı kabul et";
 
+/* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
+"unknown.contact.not.in.contact.book" = "Gönderici, kişi listende değil";
+
 /* Button to confirm blocking user via profile page */
 "user.block" = "Engelle";
 
@@ -1357,6 +1523,9 @@
 /* Message asking if the user is sure they want to unblock this user */
 "user.unblock.message" = "%@ kişisinin HalloApp'teki engelini kaldırmak istediğine emin misin? Bunu daha sonra değiştirebilirsin.";
 
+/* Button to start voice call. Should be translated as verb. */
+"user.voice.call" = "Ara";
+
 /* Reference to the user, second person pronoun */
 "user.you" = "sen";
 
@@ -1371,4 +1540,10 @@
 
 /* Post deletion confirmation. Displayed as action sheet title. */
 "your.post.deletepost.confirmation" = "Bu gönderi silinsin mi? Bu eylem geri alınamaz.";
+
+/* Title for button in action sheet prompting user to share post to external sites */
+"your.post.externalshare.button" = "Harici olarak paylaş ";
+
+/* Message that external share failed. */
+"your.post.externalshare.error" = "Harici paylaşım için gönderi yüklenemedi";
 

@@ -143,6 +143,12 @@
 "call.button.speaker" = "alto falante";
 
 /* Title for call history event. Appears next to details of a successful call. */
+"call.history.video.call" = "visualizar videochamadas anteriores";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.video.call.missed" = "visualizar videochamada perdidas";
+
+/* Title for call history event. Appears next to details of a successful call. */
 "call.history.voice.call" = "Chamada de voz";
 
 /* Title for call history event. Appears next to details of a missed call. */

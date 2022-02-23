@@ -143,6 +143,12 @@
 "call.button.speaker" = "altavoz";
 
 /* Title for call history event. Appears next to details of a successful call. */
+"call.history.video.call" = "Videollamada";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.video.call.missed" = "Videollamada perdida";
+
+/* Title for call history event. Appears next to details of a successful call. */
 "call.history.voice.call" = "Llamada de voz";
 
 /* Title for call history event. Appears next to details of a missed call. */
@@ -999,6 +1005,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
+
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 Videollamada perdida";
 
 /* Missed voice call notification text to be shown to the user. */
 "notification.voicecall.missed" = "☎️ Llamada de voz perdida";

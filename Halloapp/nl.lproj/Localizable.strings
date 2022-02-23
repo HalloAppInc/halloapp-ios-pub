@@ -143,6 +143,12 @@
 "call.button.speaker" = "luidspreker";
 
 /* Title for call history event. Appears next to details of a successful call. */
+"call.history.video.call" = "Video-oproep";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.video.call.missed" = "Gemiste video-oproep";
+
+/* Title for call history event. Appears next to details of a successful call. */
 "call.history.voice.call" = "Spraakoproep";
 
 /* Title for call history event. Appears next to details of a missed call. */
@@ -1000,6 +1006,9 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
 
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 Gemiste video-oproep";
+
 /* Missed voice call notification text to be shown to the user. */
 "notification.voicecall.missed" = "☎️ Gemiste spraakoproep";
 
@@ -1095,7 +1104,7 @@
 
 /* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun.
    This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
-"profile.header.call.user" = "bellen";
+"profile.header.call.user" = "spraakoproep";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "stuur bericht";

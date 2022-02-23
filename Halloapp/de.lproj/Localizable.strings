@@ -143,6 +143,12 @@
 "call.button.speaker" = "Lautsprecher";
 
 /* Title for call history event. Appears next to details of a successful call. */
+"call.history.video.call" = "Videoanruf";
+
+/* Title for call history event. Appears next to details of a missed call. */
+"call.history.video.call.missed" = "Verpasster Videoanruf";
+
+/* Title for call history event. Appears next to details of a successful call. */
 "call.history.voice.call" = "Sprachanruf";
 
 /* Title for call history event. Appears next to details of a missed call. */
@@ -1000,6 +1006,9 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 Video";
 
+/* Missed video call notification text to be shown to the user. */
+"notification.videocall.missed" = "📹 Verpasster Videoanruf";
+
 /* Missed voice call notification text to be shown to the user. */
 "notification.voicecall.missed" = "☎️ Verpasster Sprachanruf";
 
@@ -1082,7 +1091,7 @@
 "post.privacy.title" = "Teilen mit ...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
-"privacy.list.blocked" = "Geblockt";
+"privacy.list.blocked" = "Geblockte Kontakte";
 
 /* Generic setting value telling how many contacts are blocked or muted. */
 "privacy.n.contacts" = "privacy.n.contacts";
@@ -1095,7 +1104,7 @@
 
 /* This is a verb.  The text is clickable, under a contact name and starts a video call with that contact. It should not be translated as a noun.
    This is a verb.  The text is clickable, under a contact name and starts a voice call with that contact. It should not be translated as a noun. */
-"profile.header.call.user" = "anrufen";
+"profile.header.call.user" = "Sprachanruf";
 
 /* This is a verb.  The text is clickable, under a contact name and takes the user to the chat screen with that contact. It should not be translated as a noun. */
 "profile.header.message.user" = "Nachricht senden";
@@ -1536,5 +1545,5 @@
 "your.post.externalshare.button" = "Extern teilen";
 
 /* Message that external share failed. */
-"your.post.externalshare.error" = "Fehler beim Hochladen des Beitrags für das externe Teilen";
+"your.post.externalshare.error" = "Fehler beim Laden, um extern zu teilen";
 

@@ -64,11 +64,29 @@
 /* Title for generic Share button. Mostly used to complete some modal flow. */
 "button.share" = "Paylaş";
 
+/* Title for generic Stop button. Currently used to stop an audio recording) */
+"button.stop" = "Durdur";
+
 /* Title for generic Update button. Mostly used to complete some modal flow. */
 "button.update" = "Güncelle";
 
+/* Alert message when missing microphone access */
+"chat.mic.access.denied.message" = "Ses kaydını etkinleştirmek için lütfen Ayarlara git ve Mikrofonu aç";
+
+/* Alert title when missing microphone access */
+"chat.mic.access.denied.title" = "Mikrofona erişilemiyor";
+
 /* Title for generic delete button. */
 "Delete" = "Sil";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Kişilerimle paylaş";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Seçtiklerim hariç, kişilerimle paylaş";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Yalnızca seçilen kişilerle paylaş";
 
 /* Title for exit button that closes the app */
 "home.update.notice.button.exit" = "Çık";
@@ -93,6 +111,9 @@
 
 /* Displayed in place of own name (e.g., next to own comments) */
 "meCapitalized" = "Ben";
+
+/* Button title. Refers to discarding photo/video edits in media composer. */
+"media.button.discard" = "Sil";
 
 /* Disclaimer text about receiving SMS verification code */
 "registration.code.disclaimer" = "Bir onay kodu alacaksın. Bu mesaj ücretli olabilir.";
@@ -165,6 +186,9 @@
 
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "HalloApp'teki gerçek ilişkiler ağıma katıl. halloapp.com/dl adresinden ücretsiz indir.";
+
+/* Row in Settings screen */
+"title.privacy" = "Gizlilik";
 
 /* Displayed in place of contact name if name is not known. */
 "unknown.contact" = "Bilinmeyen kişi";
