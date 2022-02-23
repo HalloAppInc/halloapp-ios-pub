@@ -1097,7 +1097,7 @@ extension Localizations {
 
     static var externalShareFailed: String = {
         NSLocalizedString("your.post.externalshare.error",
-                          value: "Failed to upload post for exernal share",
+                          value: "Failed to upload post for external share",
                           comment: "Message that external share failed.")
     }()
 }
