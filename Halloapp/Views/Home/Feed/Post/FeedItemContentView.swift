@@ -80,6 +80,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         let textLabel = TextLabel()
 
         private func commonInit() {
+            // when animating, align contents to top so that initial resize puts more content below the fold.
+            textLabel.contentMode = .top
             textLabel.textColor = .label
             textLabel.translatesAutoresizingMaskIntoConstraints = false
             addSubview(textLabel)

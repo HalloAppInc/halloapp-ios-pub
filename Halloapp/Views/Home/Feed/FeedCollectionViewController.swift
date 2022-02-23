@@ -979,11 +979,21 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
         postDisplayData[postID] = displayData
 
         label.numberOfLines = numberOfLines
-        label.superview?.layoutIfNeeded()
-        
-        let context = UICollectionViewLayoutInvalidationContext()
-        context.invalidateItems(at: [indexPath])
-        self.collectionView.collectionViewLayout.invalidateLayout(with: context)
+
+        if let collectionViewDataSource = collectionViewDataSource, let displayItem = feedDataSource.item(at: indexPath.item) {
+            var snapshot = collectionViewDataSource.snapshot()
+            if #available(iOS 15.0, *) {
+                snapshot.reconfigureItems([displayItem])
+            } else {
+                snapshot.reloadItems([displayItem])
+            }
+            collectionViewDataSource.apply(snapshot)
+        } else {
+            DDLogWarn("FeedPostViewController/feedPostCollectionViewCellDidRequestTextExpansion/unable to resize via dataSource")
+            let context = UICollectionViewLayoutInvalidationContext()
+            context.invalidateItems(at: [indexPath])
+            self.collectionView.collectionViewLayout.invalidateLayout(with: context)
+        }
     }
 }
 
@@ -1031,7 +1041,8 @@ private class FeedLayout: UICollectionViewCompositionalLayout {
     }
 
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
-        guard maintainVisualPosition else { return proposedContentOffset }
+        let targetContentOffset = super.targetContentOffset(forProposedContentOffset: proposedContentOffset)
+        guard maintainVisualPosition else { return targetContentOffset }
         var offset = proposedContentOffset
         offset.y +=  newItemsHeight
         newItemsHeight = 0.0
@@ -1039,7 +1050,8 @@ private class FeedLayout: UICollectionViewCompositionalLayout {
     }
 
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
-        guard maintainVisualPosition else { return proposedContentOffset }
+        let targetContentOffset = super.targetContentOffset(forProposedContentOffset: proposedContentOffset, withScrollingVelocity: velocity)
+        guard maintainVisualPosition else { return targetContentOffset }
         var offset = proposedContentOffset
         offset.y += newItemsHeight
         newItemsHeight = 0.0
