@@ -50,6 +50,28 @@ class VideoCallViewController: CallViewController {
         return callStatusLabel
     }()
 
+    private lazy var peerNameLabel: UILabel = {
+        let peerNameLabel = UILabel()
+        peerNameLabel.text = MainAppContext.shared.contactStore.fullName(for: peerUserID, showPushNumber: true)
+        peerNameLabel.font = .systemFont(ofSize: 30)
+        peerNameLabel.textColor = .white
+        peerNameLabel.adjustsFontSizeToFitWidth = true
+        peerNameLabel.textAlignment = .center
+        peerNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        return peerNameLabel
+    }()
+
+    private lazy var callNameStatusView: UIStackView = {
+        let callNameStatusView = UIStackView(arrangedSubviews: [peerNameLabel, callStatusLabel])
+        callNameStatusView.translatesAutoresizingMaskIntoConstraints = false
+        callNameStatusView.axis = .vertical
+        callNameStatusView.distribution = .fill
+        callNameStatusView.alignment = .center
+        callNameStatusView.spacing = 36
+        callNameStatusView.setCustomSpacing(8, after: peerNameLabel)
+        return callNameStatusView
+    }()
+
     private lazy var camButton: VideoCallViewButton = {
         let button = VideoCallViewButton(image: camImage, title: "")
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -125,10 +147,15 @@ class VideoCallViewController: CallViewController {
         }
     }
 
-    private var leadingConstraint: NSLayoutConstraint?
-    private var bottomConstraint: NSLayoutConstraint?
-    private var trailingConstraint: NSLayoutConstraint?
-    private var topConstraint: NSLayoutConstraint?
+    // TODO: This is not clean and has to be redone as per design.
+    private var localViewLeadingConstraint: NSLayoutConstraint?
+    private var localViewBottomConstraint: NSLayoutConstraint?
+    private var localViewTrailingConstraint: NSLayoutConstraint?
+    private var localViewTopConstraint: NSLayoutConstraint?
+    private var remoteViewLeadingConstraint: NSLayoutConstraint?
+    private var remoteViewBottomConstraint: NSLayoutConstraint?
+    private var remoteViewTrailingConstraint: NSLayoutConstraint?
+    private var remoteViewTopConstraint: NSLayoutConstraint?
     private var cancellableSet = Set<AnyCancellable>()
     // Using metal (arm64 only)
     private let remoteRenderer = RTCMTLVideoView()
@@ -157,44 +184,75 @@ class VideoCallViewController: CallViewController {
         view.addSubview(remoteRenderer)
         view.addSubview(localRenderer)
 
-        remoteRenderer.constrain(to: view)
-        remoteRenderer.videoContentMode = .scaleAspectFill
-
-        let bottomAnchor = localRenderer.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        let leadingAnchor = localRenderer.leadingAnchor.constraint(equalTo: view.leadingAnchor)
-        let trailingAnchor = localRenderer.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        let topAnchor = localRenderer.topAnchor.constraint(equalTo: view.topAnchor)
-        bottomConstraint = bottomAnchor
-        leadingConstraint = leadingAnchor
-        trailingConstraint = trailingAnchor
-        topConstraint = topAnchor
         localRenderer.videoContentMode = .scaleAspectFill
-        bottomConstraint?.priority = .defaultHigh
-        leadingConstraint?.priority = .defaultHigh
-        trailingConstraint?.priority = .defaultHigh
-        topConstraint?.priority = .defaultHigh
-        let widthConstraint = localRenderer.widthAnchor.constraint(equalToConstant: 120)
-        let heightConstraint = localRenderer.heightAnchor.constraint(equalToConstant: 160)
-        let delayTrailingConstraint = localRenderer.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -15)
-        let delayTopConstraint = localRenderer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
-        widthConstraint.priority = UILayoutPriority(rawValue: 500)
-        heightConstraint.priority = UILayoutPriority(rawValue: 500)
-        delayTrailingConstraint.priority = UILayoutPriority(rawValue: 500)
-        delayTopConstraint.priority = UILayoutPriority(rawValue: 500)
+        let localViewBottomAnchor = localRenderer.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        let localViewLeadingAnchor = localRenderer.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+        let localViewTrailingAnchor = localRenderer.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        let localViewTopAnchor = localRenderer.topAnchor.constraint(equalTo: view.topAnchor)
+        localViewBottomConstraint = localViewBottomAnchor
+        localViewLeadingConstraint = localViewLeadingAnchor
+        localViewTrailingConstraint = localViewTrailingAnchor
+        localViewTopConstraint = localViewTopAnchor
+        localViewBottomConstraint?.priority = .defaultHigh
+        localViewLeadingConstraint?.priority = .defaultHigh
+        localViewTrailingConstraint?.priority = .defaultHigh
+        localViewTopConstraint?.priority = .defaultHigh
+        let localViewWidthConstraint = localRenderer.widthAnchor.constraint(equalToConstant: 120)
+        let localViewHeightConstraint = localRenderer.heightAnchor.constraint(equalToConstant: 160)
+        let localViewDelayTrailingConstraint = localRenderer.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -15)
+        let localViewDelayTopConstraint = localRenderer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
+        localViewWidthConstraint.priority = UILayoutPriority(rawValue: 500)
+        localViewHeightConstraint.priority = UILayoutPriority(rawValue: 500)
+        localViewDelayTrailingConstraint.priority = UILayoutPriority(rawValue: 500)
+        localViewDelayTopConstraint.priority = UILayoutPriority(rawValue: 500)
 
         NSLayoutConstraint.activate([
-            topAnchor,
-            trailingAnchor,
-            bottomAnchor,
-            leadingAnchor,
-            widthConstraint,
-            heightConstraint,
-            delayTrailingConstraint,
-            delayTopConstraint
+            localViewTopAnchor,
+            localViewTrailingAnchor,
+            localViewBottomAnchor,
+            localViewLeadingAnchor,
+            localViewWidthConstraint,
+            localViewHeightConstraint,
+            localViewDelayTrailingConstraint,
+            localViewDelayTopConstraint
+        ])
+
+        remoteRenderer.videoContentMode = .scaleAspectFill
+        let remoteViewBottomAnchor = remoteRenderer.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        let remoteVideoLeadingAnchor = remoteRenderer.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+        let remoteVideoTrailingAnchor = remoteRenderer.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        let remoteVideoTopAnchor = remoteRenderer.topAnchor.constraint(equalTo: view.topAnchor)
+        remoteViewBottomConstraint = remoteViewBottomAnchor
+        remoteViewLeadingConstraint = remoteVideoLeadingAnchor
+        remoteViewTrailingConstraint = remoteVideoTrailingAnchor
+        remoteViewTopConstraint = remoteVideoTopAnchor
+        remoteViewBottomConstraint?.priority = .defaultHigh
+        remoteViewLeadingConstraint?.priority = .defaultHigh
+        remoteViewTrailingConstraint?.priority = .defaultHigh
+        remoteViewTopConstraint?.priority = .defaultHigh
+        let remoteVideoWidthConstraint = remoteRenderer.widthAnchor.constraint(equalToConstant: 120)
+        let remoteVideoHeightConstraint = remoteRenderer.heightAnchor.constraint(equalToConstant: 160)
+        let remoteVideoDelayTrailingConstraint = remoteRenderer.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -15)
+        let remoteVideoDelayTopConstraint = remoteRenderer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
+        remoteVideoWidthConstraint.priority = UILayoutPriority(rawValue: 500)
+        remoteVideoHeightConstraint.priority = UILayoutPriority(rawValue: 500)
+        remoteVideoDelayTrailingConstraint.priority = UILayoutPriority(rawValue: 500)
+        remoteVideoDelayTopConstraint.priority = UILayoutPriority(rawValue: 500)
+
+        NSLayoutConstraint.activate([
+            remoteVideoTopAnchor,
+            remoteVideoTrailingAnchor,
+            remoteViewBottomAnchor,
+            remoteVideoLeadingAnchor,
+            remoteVideoWidthConstraint,
+            remoteVideoHeightConstraint,
+            remoteVideoDelayTrailingConstraint,
+            remoteVideoDelayTopConstraint
         ])
 
         localRenderer.clipsToBounds = true
         localRenderer.translatesAutoresizingMaskIntoConstraints = false
+        remoteRenderer.clipsToBounds = true
         remoteRenderer.translatesAutoresizingMaskIntoConstraints = false
 
         MainAppContext.shared.callManager.activeCall?.renderLocalVideo(to: localRenderer)
@@ -211,29 +269,11 @@ class VideoCallViewController: CallViewController {
         buttonPanel.addArrangedSubview(micButton)
         buttonPanel.addArrangedSubview(endCallButton)
 
-        // Text Label
-        let peerNameLabel = UILabel()
-        peerNameLabel.text = MainAppContext.shared.contactStore.fullName(for: peerUserID, showPushNumber: true)
-        peerNameLabel.font = .systemFont(ofSize: 30)
-        peerNameLabel.textColor = .white
-        peerNameLabel.adjustsFontSizeToFitWidth = true
-        peerNameLabel.textAlignment = .center
-        peerNameLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        // Full stack view: contains all the components
-        let fullCallView = UIStackView(arrangedSubviews: [peerNameLabel, callStatusLabel])
-        fullCallView.translatesAutoresizingMaskIntoConstraints = false
-        fullCallView.axis = .vertical
-        fullCallView.distribution = .fill
-        fullCallView.alignment = .center
-        fullCallView.spacing = 36
-        fullCallView.setCustomSpacing(8, after: peerNameLabel)
-
-        view.addSubview(fullCallView)
+        view.addSubview(callNameStatusView)
         view.addSubview(buttonPanel)
 
-        fullCallView.constrain(anchor: .leading, to: view, constant: 36)
-        fullCallView.constrain(anchor: .trailing, to: view, constant: -36)
+        callNameStatusView.constrain(anchor: .leading, to: view, constant: 36)
+        callNameStatusView.constrain(anchor: .trailing, to: view, constant: -36)
 
         NSLayoutConstraint.activate([
             buttonPanel.constrain(anchor: .leading, to: view, constant: 36),
@@ -242,14 +282,14 @@ class VideoCallViewController: CallViewController {
         ])
 
         if backAction == nil {
-            fullCallView.constrainMargin(anchor: .top, to: view, constant: 44)
+            callNameStatusView.constrainMargin(anchor: .top, to: view, constant: 44)
         } else {
             view.addSubview(backButton)
             backButton.constrainMargins([.top, .leading], to: view)
             backButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
             backButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
 
-            fullCallView.topAnchor.constraint(greaterThanOrEqualTo: backButton.bottomAnchor).isActive = true
+            callNameStatusView.topAnchor.constraint(greaterThanOrEqualTo: backButton.bottomAnchor).isActive = true
         }
 
         if let activeCall = MainAppContext.shared.callManager.activeCall {
@@ -471,20 +511,72 @@ class VideoCallViewController: CallViewController {
     }
 
     func didStartReceivingRemoteVideo() {
+        DDLogInfo("VideoCallViewController/didStartReceivingRemoteVideo")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            DDLogInfo("VideoCallViewController/didStartReceivingRemoteVideo")
-            self.bottomConstraint?.priority = .defaultLow
-            self.leadingConstraint?.priority = .defaultLow
-            self.trailingConstraint?.priority = .defaultLow
-            self.topConstraint?.priority = .defaultLow
-            self.localRenderer.layer.borderColor = UIColor.black.withAlphaComponent(0.2).cgColor
-            self.localRenderer.layer.borderWidth = 0.5
-            self.localRenderer.layer.cornerRadius = 10
-            UIView.animate(withDuration: 0.5, animations: {
-                self.view.layoutIfNeeded()
-            })
+            self.callNameStatusView.isHidden = true
+            self.expandRemoteVideo()
         }
+    }
+
+    func expandLocalVideo() {
+        DDLogInfo("VideoCallViewController/expandLocalVideo")
+
+        localViewBottomConstraint?.priority = .defaultHigh
+        localViewLeadingConstraint?.priority = .defaultHigh
+        localViewTrailingConstraint?.priority = .defaultHigh
+        localViewTopConstraint?.priority = .defaultHigh
+        localRenderer.layer.borderWidth = 0
+        localRenderer.layer.cornerRadius = 0
+        localRenderer.removeGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(localVideoTapped)))
+        view.sendSubviewToBack(localRenderer)
+        view.layoutIfNeeded()
+
+        remoteViewTopConstraint?.priority = .defaultLow
+        remoteViewBottomConstraint?.priority = .defaultLow
+        remoteViewLeadingConstraint?.priority = .defaultLow
+        remoteViewTrailingConstraint?.priority = .defaultLow
+        remoteRenderer.layer.borderColor = UIColor.black.withAlphaComponent(0.2).cgColor
+        remoteRenderer.layer.borderWidth = 0.5
+        remoteRenderer.layer.cornerRadius = 10
+        remoteRenderer.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(remoteVideoTapped)))
+        UIView.animate(withDuration: 0.5, animations: {
+            self.view.layoutIfNeeded()
+        })
+    }
+
+    func expandRemoteVideo() {
+        DDLogInfo("VideoCallViewController/expandRemoteVideo")
+
+        remoteViewTopConstraint?.priority = .defaultHigh
+        remoteViewBottomConstraint?.priority = .defaultHigh
+        remoteViewLeadingConstraint?.priority = .defaultHigh
+        remoteViewTrailingConstraint?.priority = .defaultHigh
+        remoteRenderer.layer.borderWidth = 0
+        remoteRenderer.layer.cornerRadius = 0
+        remoteRenderer.removeGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(remoteVideoTapped)))
+        view.sendSubviewToBack(remoteRenderer)
+        view.layoutIfNeeded()
+
+        localViewBottomConstraint?.priority = .defaultLow
+        localViewLeadingConstraint?.priority = .defaultLow
+        localViewTrailingConstraint?.priority = .defaultLow
+        localViewTopConstraint?.priority = .defaultLow
+        localRenderer.layer.borderColor = UIColor.black.withAlphaComponent(0.2).cgColor
+        localRenderer.layer.borderWidth = 0.5
+        localRenderer.layer.cornerRadius = 10
+        localRenderer.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(localVideoTapped)))
+        UIView.animate(withDuration: 0.5, animations: {
+            self.view.layoutIfNeeded()
+        })
+    }
+
+    @objc private func localVideoTapped() {
+        expandLocalVideo()
+    }
+
+    @objc private func remoteVideoTapped() {
+        expandRemoteVideo()
     }
 
     func mirrorVideo(_ mirror: Bool) {
@@ -512,7 +604,7 @@ final class VideoCallViewButton: UIControl {
 
     struct Style {
         var circleDiameter: CGFloat = 48
-        var circleColor: UIColor = UIColor.black.withAlphaComponent(0.5)
+        var circleColor: UIColor = UIColor.black.withAlphaComponent(0.7)
         var iconHeight: CGFloat = 20
 
         static var normal: Style {
