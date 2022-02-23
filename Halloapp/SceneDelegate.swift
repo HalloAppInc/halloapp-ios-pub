@@ -345,7 +345,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
                         if error != .alreadyInCall {
                             self.presentFailedCallAlertController()
                         }
-                        DDLogInfo("appdelegate/scene/continueUserActivity/startCall/failure")
+                        DDLogInfo("appdelegate/scene/continueUserActivity/startCall/failure: \(error)")
                     }
                 }
             }

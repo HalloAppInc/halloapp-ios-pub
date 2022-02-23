@@ -76,6 +76,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                 stopCallBusytone()
                 stopCallReconnectingtone()
                 stopCallEndtone()
+                activeCallWaitingForOffer = false
             } else {
                 setupCallRingtone()
                 setupCallBusytone()
@@ -90,6 +91,8 @@ final class CallManager: NSObject, CXProviderDelegate {
             }
         }
     }
+    // This variable is primarily used and modified only on the delegate queue to avoid race conditions.
+    public var activeCallWaitingForOffer: Bool = false
     public var callViewDelegate: CallViewDelegate?
     private var cancelTimer: DispatchSourceTimer?
     private var callTimer: Timer?
@@ -846,6 +849,7 @@ extension CallManager: HalloCallDelegate {
                 activeCall = Call(id: callID, peerUserID: peerUserID, type: callType)
                 activeCall?.stateDelegate = self
                 activeCall?.initializeWebRtcClient(iceServers: iceServers, config: incomingCallPush.callConfig)
+                activeCallWaitingForOffer = true
                 reportIncomingCall(id: callID, from: peerUserID, type: callType) { result in
                     switch result {
                     case .success:
@@ -935,7 +939,9 @@ extension CallManager: HalloCallDelegate {
                         DDLogInfo("CallManager/HalloCallDelegate/didReceiveIncomingCall/system/duplicate-failed: \(error)")
                     }
                 }
-                reportIncomingCallCompletion()
+                if activeCallWaitingForOffer {
+                    reportIncomingCallCompletion()
+                }
             } else if activeCall != nil {
                 MainAppContext.shared.service.endCall(id: callID, to: peerUserID, reason: .busy)
                 MainAppContext.shared.mainDataStore.updateCall(with: callID) { call in
@@ -950,6 +956,7 @@ extension CallManager: HalloCallDelegate {
                 activeCall = Call(id: callID, peerUserID: peerUserID, type: callType)
                 activeCall?.stateDelegate = self
                 activeCall?.initializeWebRtcClient(iceServers: iceServers, config: incomingCall.callConfig)
+                activeCallWaitingForOffer = false
                 reportIncomingCall(id: callID, from: peerUserID, type: callType) { result in
                     switch result {
                     case .success:
