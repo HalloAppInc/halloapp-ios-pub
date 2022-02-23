@@ -50,9 +50,9 @@ public extension MentionText {
     }
 
     private static func mentionDictionary(from mentions: [FeedMentionProtocol]) -> [Int: MentionedUser] {
-        Dictionary(uniqueKeysWithValues: mentions.map {
+        Dictionary(mentions.map {
             (Int($0.index), MentionedUser(userID: $0.userID, pushName: $0.name))
-        })
+        }) { (v1, v2) in v2 }
     }
 }
 
