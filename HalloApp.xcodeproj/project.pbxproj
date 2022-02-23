@@ -32,7 +32,6 @@
 		327AB839272C8356001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327AB836272C8355001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift */; };
 		327AB83A272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327AB838272C8356001C0E00 /* ChatLinkPreview+CoreDataClass.swift */; };
 		328B64102756D53900899525 /* FlatCommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328B640F2756D53900899525 /* FlatCommentsViewController.swift */; };
-		328D13A527C02A5200AA9F18 /* HalloAppClip.app in Embed AppClip */ = {isa = PBXBuildFile; fileRef = 329E03F8268247BC00C2D250 /* HalloAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		329DFD56270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD55270CF70200B85CFF /* Feed4ToFeed5.xcmappingmodel */; };
 		329DFD61270F691F00B85CFF /* CommentLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD60270F691F00B85CFF /* CommentLinkPreviewView.swift */; };
 		329DFD65270FB01E00B85CFF /* PostLinkPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329DFD64270FB01E00B85CFF /* PostLinkPreviewView.swift */; };
@@ -490,17 +489,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		328D13A327C02A2700AA9F18 /* Embed AppClip */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(CONTENTS_FOLDER_PATH)/AppClips";
-			dstSubfolderSpec = 16;
-			files = (
-				328D13A527C02A5200AA9F18 /* HalloAppClip.app in Embed AppClip */,
-			);
-			name = "Embed AppClip";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		329E0436268247D400C2D250 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2285,7 +2273,6 @@
 				EAF3A1BD2334191E00805FF9 /* Resources */,
 				768123A02485A240008C5216 /* Embed App Extensions */,
 				768123CB2485D9F5008C5216 /* Embed Frameworks */,
-				328D13A327C02A2700AA9F18 /* Embed AppClip */,
 			);
 			buildRules = (
 			);
