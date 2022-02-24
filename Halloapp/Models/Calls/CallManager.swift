@@ -425,7 +425,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                 guard let self = self else { return }
                 let callDurationSec = Int(self.callDurationMs / 1000)
                 self.callViewDelegate?.callDurationChanged(seconds: callDurationSec)
-                if callDurationSec % 10 == 0 {
+                if callDurationSec % 5 == 0 {
                     self.activeCall?.logPeerConnectionStats()
                 }
             }
